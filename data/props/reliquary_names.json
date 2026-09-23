@@ -1,0 +1,26 @@
+{
+  "id": "reliquary_names",
+  "kind": "chest",
+  "essence": 40,
+  "ash": 25,
+  "note": "note_crypt_names",
+  "glow": "#c8d4ff",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_iron.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 6
+  },
+  "icon": [
+    "res://assets/icons/quest/letter_1.png",
+    "res://assets/icons/quest/letter_2.png",
+    "res://assets/icons/quest/letter_3.png",
+    "res://assets/icons/quest/letter_4.png",
+    "res://assets/icons/quest/letter_5.png",
+    "res://assets/icons/quest/letter_6.png"
+  ]
+}

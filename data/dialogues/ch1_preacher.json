@@ -22,8 +22,14 @@
     "p2": {
       "speaker": "SPEAKER_PREACHER",
       "text": "DLG_CH1_PREACHER_2",
+      "next": "p_letters_route"
+    },
+    "p_letters_route": {
+      "branches": [{"flag": "read_letters", "next": "p_letters_1"}],
       "next": "p_mercy_1"
     },
+    "p_letters_1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PREACHER_LETTERS_1", "next": "p_letters_2"},
+    "p_letters_2": {"speaker": "SPEAKER_PREACHER", "text": "DLG_CH1_PREACHER_LETTERS_2", "next": "p_mercy_1"},
     "p_mercy_1": {
       "speaker": "SPEAKER_ELIAN",
       "text": "DLG_CH1_PREACHER_MERCY_1",

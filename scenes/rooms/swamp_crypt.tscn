@@ -546,6 +546,10 @@ prop_id = "box_goods"
 position = Vector2(1090, 311)
 prop_id = "swamp_bundle"
 
+[node name="Prop10" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(815, 451)
+prop_id = "secret_wall_swamp"
+
 [node name="Shrine" type="Sprite2D" parent="."]
 position = Vector2(1245, 548)
 texture = ExtResource("9_shrine")

@@ -526,6 +526,10 @@ prop_id = "rubble"
 position = Vector2(1130, 229)
 prop_id = "bone_reliquary"
 
+[node name="Prop12" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1340, 695)
+prop_id = "secret_wall_catacombs"
+
 [node name="Shrine" type="Sprite2D" parent="."]
 position = Vector2(1520, 258)
 texture = ExtResource("9_shrine")

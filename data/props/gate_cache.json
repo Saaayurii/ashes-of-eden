@@ -1,0 +1,26 @@
+{
+  "id": "gate_cache",
+  "kind": "chest",
+  "essence": 30,
+  "ash": 15,
+  "note": "note_gate_log",
+  "glow": "#ffd9a0",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_wooden.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/quest/letter_1.png",
+    "res://assets/icons/quest/letter_2.png",
+    "res://assets/icons/quest/letter_3.png",
+    "res://assets/icons/quest/letter_4.png",
+    "res://assets/icons/quest/letter_5.png",
+    "res://assets/icons/quest/letter_6.png"
+  ]
+}

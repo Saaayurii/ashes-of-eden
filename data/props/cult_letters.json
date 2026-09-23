@@ -1,0 +1,31 @@
+{
+  "id": "cult_letters",
+  "kind": "chest",
+  "essence": 40,
+  "ash": 15,
+  "note": "note_preacher_letters",
+  "glow": "#e0a0ff",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_cursed.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/quest/letter_1.png",
+    "res://assets/icons/quest/letter_2.png",
+    "res://assets/icons/quest/letter_3.png",
+    "res://assets/icons/quest/letter_4.png",
+    "res://assets/icons/quest/letter_5.png",
+    "res://assets/icons/quest/letter_6.png"
+  ],
+  "effect": {
+    "set_flags": [
+      "read_letters"
+    ]
+  }
+}

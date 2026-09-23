@@ -20,6 +20,8 @@ var chapters: Dictionary = {}
 var _room_chapters: Dictionary = {}
 var npcs: Dictionary = {}
 var props: Dictionary = {}
+## Records found in secret caches (data/notes): a name, the caption dialogue that reads them.
+var notes: Dictionary = {}
 
 
 func _ready() -> void:
@@ -37,6 +39,7 @@ func reload() -> void:
 	_index_chapters()
 	props = _load_collection("props", roots)
 	npcs = _load_collection("npcs", roots)
+	notes = _load_collection("notes", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

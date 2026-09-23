@@ -9,6 +9,11 @@ class_name Prop
 ##   icon      optional pickup icon that floats out of an opened chest: one path,
 ##             or a list of paths to pick from, so the same chest does not always
 ##             hold the same thing
+##   reveals   a destructible that hides another prop (a bricked-up doorway and
+##             the cache behind it): that prop appears where this one broke
+##   still     masonry, not a barrel: no size/tint variation, no sway, no kick
+##   note      a record (data/notes) read aloud as a caption and kept in the
+##             bestiary; "ash" is paid only the first time it is found
 ## A prop is never an enemy: it does not count towards the room's kill count and
 ## nothing in it blocks movement.
 
@@ -57,11 +62,12 @@ func _ready() -> void:
 	# Position-derived variation is stable between runs. Nearby copies no longer
 	# breathe in lockstep or read like objects stamped from a level editor.
 	_phase = fposmod(global_position.x * 0.071 + global_position.y * 0.037 + prop_id.hash() * 0.001, TAU)
-	var size_variation := 0.96 + fposmod(absf(sin(_phase * 1.73)), 1.0) * 0.08
-	sprite.scale = Vector2(size_variation, size_variation)
-	sprite.flip_h = sin(_phase * 2.31) < 0.0
-	var value_variation := 0.94 + fposmod(absf(cos(_phase * 1.19)), 1.0) * 0.08
-	sprite.modulate = Color(value_variation, value_variation, value_variation, 1.0)
+	if not stats.get("still", false):
+		var size_variation := 0.96 + fposmod(absf(sin(_phase * 1.73)), 1.0) * 0.08
+		sprite.scale = Vector2(size_variation, size_variation)
+		sprite.flip_h = sin(_phase * 2.31) < 0.0
+		var value_variation := 0.94 + fposmod(absf(cos(_phase * 1.19)), 1.0) * 0.08
+		sprite.modulate = Color(value_variation, value_variation, value_variation, 1.0)
 	_base_sprite_position = sprite.position
 	_base_sprite_scale = sprite.scale
 	var box: Array = stats.get("hitbox", [20, 20])
@@ -83,7 +89,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if _spent:
+	if _spent or stats.get("still", false):
 		return
 	_idle_clock += delta
 	var idle_frames := mini(int(stats.get("idle_frames", 1)), sprite.hframes)
@@ -103,7 +109,7 @@ func _process(delta: float) -> void:
 
 
 func _on_world_impulse(at: Vector2, direction: Vector2, strength: float, kind: StringName) -> void:
-	if _spent:
+	if _spent or stats.get("still", false):
 		return
 	var distance := global_position.distance_to(at)
 	var reach := 225.0 if kind == &"parry" else 165.0
@@ -142,6 +148,12 @@ func _emit_ambient() -> void:
 			Fx.ash(global_position + Vector2(0, -30), Color(0.48, 0.78, 0.76, 0.55), 3, 18.0, 6.0)
 		"bottles":
 			Fx.sparkle(global_position + Vector2(12, -18), Color(0.72, 0.88, 0.76, 0.5), 2, 4.0)
+		"dust":
+			# A secret wall gives itself away to a patient eye: grit trickling
+			# out of a crack somewhere on its face.
+			var box: Array = stats.get("hitbox", [20, 20])
+			var at := Vector2(randf_range(-0.35, 0.35) * float(box[0]), -randf_range(0.3, 0.9) * float(box[1]))
+			Fx.dust(global_position + at, Vector2.DOWN, 4, Color(0.62, 0.56, 0.5, 0.6))
 
 
 ## The sword hits props through the same call it uses on enemies.
@@ -152,8 +164,9 @@ func take_damage(amount: float, _source: Node = null, _info: Dictionary = {}) ->
 	Juice.shake(1.5)
 	if hp > 0.0:
 		sprite.frame = mini(int(stats.get("hit_frame", 1)), sprite.hframes - 1)
-		_kick = Vector2(randf_range(-2.0, 2.0), -2.5)
-		_kick_rotation = randf_range(-0.08, 0.08)
+		if not stats.get("still", false):
+			_kick = Vector2(randf_range(-2.0, 2.0), -2.5)
+			_kick_rotation = randf_range(-0.08, 0.08)
 		Fx.puff(global_position + Vector2(0, -8), 0.3, Color(0.8, 0.7, 0.55, 0.7))
 		return
 	_break()
@@ -170,6 +183,7 @@ func _break() -> void:
 	Juice.shake(2.5)
 	Audio.play_at(&"prop_break", global_position, -2.0)
 	_pay_out()
+	_reveal()
 	await get_tree().create_timer(0.12).timeout
 	if is_inside_tree():
 		sprite.frame = sprite.hframes - 1  # the leftovers stay on the floor
@@ -227,3 +241,29 @@ func _pay_out(taker: Player = null) -> void:
 	var heal := float(stats.get("heal", 0.0))
 	if heal > 0.0 and taker != null:
 		taker.heal(heal)
+	# A record is ours only when our own body opened it (online, the other
+	# player's puppet walks into chests on this machine too).
+	var note := str(stats.get("note", ""))
+	if note == "" or (taker != null and not taker.is_multiplayer_authority()):
+		return
+	var first := Profile.record_note(note)
+	var ash := int(stats.get("ash", 0))
+	if first and ash > 0:
+		Game.ash_earned += ash
+		Fx.popup(global_position + Vector2(0, -30), tr("NOTE_ASH") % ash, Color(0.85, 0.82, 0.95))
+	EventBus.note_found.emit(note, first)
+
+
+## The bricked-up doorway is down: whatever it hid stands where it stood.
+func _reveal() -> void:
+	var hidden := str(stats.get("reveals", ""))
+	if hidden == "" or not Data.props.has(hidden):
+		return
+	var cache: Prop = load("res://scenes/props/prop.tscn").instantiate()
+	cache.prop_id = hidden
+	cache.position = position
+	get_parent().add_child.call_deferred(cache)
+	await get_tree().create_timer(0.35).timeout
+	if is_instance_valid(cache) and cache.is_inside_tree():
+		Fx.sparkle(cache.global_position + Vector2(0, -12), Color(stats.get("glow", "#ffcc78")), 16, 18.0)
+		Fx.flash(cache.global_position + Vector2(0, -16), Color("#ffcc78"), 80.0, 0.5, 1.2)

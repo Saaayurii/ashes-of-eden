@@ -441,6 +441,10 @@ prop_id = "barrel"
 position = Vector2(1120, 325)
 prop_id = "rubble"
 
+[node name="Prop12" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1430, 635)
+prop_id = "secret_wall_village"
+
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(300, 345)
 npc_id = "severin"

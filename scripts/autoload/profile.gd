@@ -91,6 +91,20 @@ func record_met(npc_id: String) -> void:
 	EventBus.bestiary_unlocked.emit(npc_id)
 
 
+## A record from a secret cache: its page opens in the bestiary as "note:<id>".
+## Returns true the first time, which is when the cache pays its Ash.
+func record_note(note_id: String) -> bool:
+	if Net.dedicated or note_id == "":
+		return false
+	var key := "note:" + note_id
+	if data.bestiary.get(key, {}).get("met", false):
+		return false
+	data.bestiary[key] = {"seen": true, "met": true, "kills": 0}
+	save()
+	EventBus.bestiary_unlocked.emit(key)
+	return true
+
+
 func bestiary_entry(enemy_id: String) -> Dictionary:
 	return data.bestiary.get(enemy_id, {})
 

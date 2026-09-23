@@ -149,7 +149,8 @@ PAINTED = {
                 ("possessed_villager", 1050, 248), ("possessed_villager", 330, 333),
                 ("shade", 500, 300), ("shade", 900, 200), ("raven", 700, 120)],
         props=[("pot", 280, 195), ("barrel", 370, 345), ("barrel_apples", 330, 527), ("box_goods", 365, 527), ("rubble", 500, 527),
-               ("pot", 700, 560), ("rubble", 1000, 625), ("chest_wooden", 1200, 635), ("box_goods", 980, 260)],
+               ("pot", 700, 560), ("rubble", 1000, 625), ("chest_wooden", 1200, 635), ("box_goods", 980, 260),
+               ("secret_wall_village", 1110, 635)],  # Severin's gate log, bricked up in the crypt (docs/CHAPTER1.md)
         decor=[],
         npcs=[("severin", 300, 345)],  # on the side ledge, where the possessed one spawns
         ambient="#c0bccc",
@@ -274,7 +275,8 @@ PAINTED = {
                 ("fallen_guard", 1200, 299), ("preacher_acolyte", 960, 302), ("zealot", 450, 528), ("wraith", 700, 400),
                 ("shade", 300, 200), ("raven", 850, 120), ("elite_possessed", 690, 300)],
         props=[("barrel", 150, 319), ("chest_iron", 200, 414), ("box_goods", 560, 256), ("rubble", 600, 451), ("barrel_apples", 1000, 314),
-               ("chest_wooden", 1130, 485), ("pot", 780, 655), ("box_goods", 1200, 311)],
+               ("chest_wooden", 1130, 485), ("pot", 780, 655), ("box_goods", 1200, 311),
+               ("secret_wall_swamp", 655, 451)],  # the preacher's letters, walled into the tower foot
         decor=[], npcs=[], ambient="#c8b0b4", lights="auto",
         player=(40, 299), door=(995, 528), shrine=(925, 548)),
     "catacombs_1": dict(
@@ -315,7 +317,8 @@ PAINTED = {
                 ("possessed_villager", 600, 639), ("possessed_villager", 850, 621), ("shade", 500, 300),
                 ("wraith", 1000, 380), ("elite_possessed", 1050, 217)],
         props=[("pot", 80, 298), ("barrel", 250, 353), ("box_goods", 600, 424), ("sack", 1050, 521), ("barrel_apples", 500, 228),
-               ("chest_wooden", 60, 579), ("pot", 300, 636), ("box_goods", 700, 651), ("sack", 1230, 630)],
+               ("chest_wooden", 60, 579), ("pot", 300, 636), ("box_goods", 700, 651), ("sack", 1230, 630),
+               ("secret_wall_catacombs", 1020, 695)],  # the bricked-up ossuary niche: names under the lid
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
         player=(60, 278), door=(1235, 226), shrine=(1200, 258)),
     "catacombs_3": dict(

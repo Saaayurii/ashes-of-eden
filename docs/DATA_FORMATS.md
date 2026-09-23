@@ -358,7 +358,13 @@ never enemies: nothing blocks movement and the room's door does not wait for the
 
 For a living four-frame prop use `"idle_frames": 2, "hit_frame": 2`: frames 0–1 loop while intact,
 frame 2 is the hit/break reaction, and the last frame is the remains. `ambient` may be `candle`, `spores`,
-`soul` or `bottles`; it adds a restrained light or particle accent. Every prop also has stable scale/phase
+`soul`, `bottles` or `dust` (grit trickling from a secret wall); it adds a restrained light or particle accent.
+
+Secrets: a destructible with `"reveals": "<prop id>"` leaves that prop where it broke (a bricked-up
+doorway and the cache behind it); `"still": true` turns off the variation and sway for masonry. A chest
+with `"note": "<id>"` files a record from `data/notes/` (`{"id", "name", "dialogue", "place", "avatar"}`)
+in the bestiary and plays its `dialogue` as a caption; its `"ash"` is paid only the first time that
+record is found, so a cache with Ash must carry a note. Every prop also has stable scale/phase
 variation and reacts to nearby land, jump, dash, attack and parry impulses. The room generator replaces
 obviously misplaced generic clutter through `contextual_props()` while preserving all reward chests.
 

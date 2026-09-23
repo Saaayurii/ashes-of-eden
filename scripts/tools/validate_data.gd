@@ -38,11 +38,15 @@ const REQUIRED := {
 	"chapters": ["id", "chapter", "title", "rooms"],
 	"npcs": ["id", "name", "dialogue", "sprite"],
 	"props": ["id", "kind", "sprite"],
+	"notes": ["id", "name", "dialogue"],
 }
 
 var errors: PackedStringArray = []
 var _dialogue_ids := {}
 var _npc_ids := {}
+var _prop_ids := {}
+var _note_ids := {}
+var _chapter_ids := {}
 ## Room scene -> the chapter that claims it; two chapters may not claim one room.
 var _room_chapter := {}
 var used_keys := {}  # localization key -> where it is used
@@ -55,6 +59,12 @@ func _init() -> void:
 		_dialogue_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/npcs"):
 		_npc_ids[id.get("id", "")] = true
+	for id in _load_entries("res://data/props"):
+		_prop_ids[id.get("id", "")] = true
+	for id in _load_entries("res://data/notes"):
+		_note_ids[id.get("id", "")] = true
+	for id in _load_entries("res://data/chapters"):
+		_chapter_ids[id.get("id", "")] = true
 	_check_enemy_archetypes()
 	for collection in REQUIRED:
 		var entries := _load_entries("res://data".path_join(collection))
@@ -187,6 +197,23 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			for icon in (icons if icons is Array else [icons]):
 				if not FileAccess.file_exists(str(icon)) and not ResourceLoader.exists(str(icon)):
 					_error("%s: icon not found: %s" % [where, icon])
+			if entry.has("reveals"):
+				if entry.get("kind") != "destructible":
+					_error("%s: only a destructible can hide another prop" % where)
+				if not _prop_ids.has(entry.reveals) or entry.reveals == entry.get("id"):
+					_error("%s: reveals unknown prop %s" % [where, entry.reveals])
+			if entry.has("note") and not _note_ids.has(entry.note):
+				_error("%s: unknown note %s" % [where, entry.note])
+			if int(entry.get("ash", 0)) > 0 and not entry.has("note"):
+				_error("%s: ash is paid once per record; a cache with ash needs a note" % where)
+		"notes":
+			_use_key(entry.get("name", ""), where)
+			if not _dialogue_ids.has(entry.get("dialogue", "")):
+				_error("%s: unknown dialogue %s" % [where, entry.get("dialogue", "")])
+			if entry.has("place") and not _chapter_ids.has(entry.place):
+				_error("%s: unknown place %s" % [where, entry.place])
+			if entry.has("avatar") and not ResourceLoader.exists(str(entry.avatar)):
+				_error("%s: avatar not found: %s" % [where, entry.avatar])
 		"npcs":
 			_use_key(entry.get("name", ""), where)
 			for key in ["lore", "role", "location"]:

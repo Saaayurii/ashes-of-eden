@@ -96,6 +96,9 @@ func _ready() -> void:
 	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void: kills += 1)
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
+	# A record from a secret cache is read out over play, like a caption.
+	EventBus.note_found.connect(func(note_id: String, _first: bool) -> void:
+		dialogue.play(str(Data.notes.get(note_id, {}).get("dialogue", ""))))
 	dialogue.answered_locally.connect(_on_local_answer)
 	cutscene.story_hook = _cutscene_story
 	if not Net.active:

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "note_gate_log",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_GATE_LOG",
+        "text": "DLG_NOTE_GATE_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_GATE_LOG",
+        "text": "DLG_NOTE_GATE_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_GATE_LOG",
+        "text": "DLG_NOTE_GATE_3"
+      }
+    }
+  },
+  {
+    "id": "note_preacher_letters",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_PREACHER_LETTERS",
+        "text": "DLG_NOTE_LETTERS_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_PREACHER_LETTERS",
+        "text": "DLG_NOTE_LETTERS_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_PREACHER_LETTERS",
+        "text": "DLG_NOTE_LETTERS_3"
+      }
+    }
+  },
+  {
+    "id": "note_crypt_names",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_CRYPT_NAMES",
+        "text": "DLG_NOTE_CRYPT_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_CRYPT_NAMES",
+        "text": "DLG_NOTE_CRYPT_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_CRYPT_NAMES",
+        "text": "DLG_NOTE_CRYPT_3"
+      }
+    }
+  }
+]

@@ -144,6 +144,8 @@ func _on_charges_changed(current: int, maximum: int) -> void:
 func _on_bestiary_unlocked(enemy_id: String) -> void:
 	var named: Dictionary = Data.npcs.get(enemy_id.trim_prefix("npc:"), {}) if enemy_id.begins_with("npc:") else Data.enemies.get(enemy_id, {})
 	toast.text = tr("BESTIARY_NEW") % tr(named.get("name", enemy_id))
+	if enemy_id.begins_with("note:"):
+		toast.text = tr("NOTE_NEW") % tr(Data.notes.get(enemy_id.trim_prefix("note:"), {}).get("name", enemy_id))
 	if _toast_tween != null:
 		_toast_tween.kill()  # two firsts in a row: the newer line takes the slot
 	_toast_tween = create_tween()

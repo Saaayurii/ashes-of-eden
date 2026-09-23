@@ -34,6 +34,7 @@ Godot 4.7 / GDScript, 2D pixel action roguelite. Open source, community-driven, 
 - Playtests: the `Playtest` autoload writes every solo run to `user://playtest/*.jsonl` (off under `-s`); `scripts/tools/balance_probe.gd` measures duels and reads those logs into `docs/BALANCE_PROBE.md`. Tune `data/enemies` against that report, not by feel.
 - Builds: `make build` (desktop + Web), `make android-image` then `make android` (debug-signed test APK). Light builds (Android, Web) get their exclude lists from `tools/export/music_filters.py`; the painted panels import as lossy WebP on purpose (their `.import` files are tracked).
 - Full-screen feedback for the player's own eyes — the red vignette on a hit (`assets/shaders/vignette.gdshader`) and the eyelids blinking open when the body comes to — is `scripts/ui/screen_fx.gd`, the first child of a scene's `UI` layer (run and duel). It listens to `EventBus.player_hurt` / `player_waking`, which only our own body emits; the lids slot themselves in right after the HUD so bars vanish with the eyes shut but dialogue and menus stay on top.
+- Secrets: a `destructible` prop with `reveals` (a bricked-up wall, `tools/art/make_secret_walls.py`) leaves a cache chest; a chest with `note` files a record (`data/notes`, bestiary "Records", read as a caption) and pays its `ash` only the first time. `secret_test.gd` covers every wall placed in a room.
 - Tabs in GDScript. Files `snake_case`, nodes `PascalCase`, `%UniqueName` for nodes scripts reach into.
 
 ## Multiplayer (see docs/MULTIPLAYER.md)
@@ -53,6 +54,7 @@ Godot 4.7 / GDScript, 2D pixel action roguelite. Open source, community-driven, 
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/gift_test.gd` (every gift mechanic, measured)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/save_test.gd` (save → load round-trip, export/import, bad files refused)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/skill_test.gd` (the three active skills fire, hurt, heal, cool down)
+  `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/secret_test.gd` (secret walls break, caches pay Ash once, records open)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --fixed-fps 60 --path . -s scripts/tools/reach_test.gd [-- room|room]` (a bot with the hero's real physics proves every door and walker reachable; ~8 min for all rooms). Run it after touching any room's colliders.
   `GODOT=/Applications/Godot.app/Contents/MacOS/Godot tools/net_test.sh coop` (also `pvp`, `coop-dedicated`, `pvp-dedicated`)
 - `-s` tool scripts compile before autoloads exist: keep them untyped w.r.t. game classes.

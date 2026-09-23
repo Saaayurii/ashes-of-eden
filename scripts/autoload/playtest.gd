@@ -8,7 +8,8 @@ extends Node
 ## Events (one per line, "t" = seconds since the run started):
 ##   run_start, room_start {room, index}, room_clear {room, seconds, damage, deaths},
 ##   hurt {room, fraction}, death {room, x, y}, boss {room, id, seconds},
-##   gift {id, rarity, path}, level {level}, choice {dialogue, choice}, run_end {won, seconds}
+##   gift {id, rarity, path}, level {level}, choice {dialogue, choice}, secret {room, note, first},
+##   run_end {won, seconds}
 ##
 ## Off in tool scripts (-s) and in online sessions' non-host peers; turn it off
 ## entirely with Settings "playtest_log" = false.
@@ -38,6 +39,7 @@ func _ready() -> void:
 	EventBus.ability_acquired.connect(_on_gift)
 	EventBus.level_up.connect(func(level: int) -> void: _write("level", {"level": level}))
 	EventBus.choice_made.connect(func(d: String, c: String) -> void: _write("choice", {"dialogue": d, "choice": c}))
+	EventBus.note_found.connect(func(n: String, first: bool) -> void: _write("secret", {"room": _room, "note": n, "first": first}))
 	get_tree().node_added.connect(_on_node_added)
 	# The main scene may already be in the tree before this autoload is ready
 	# (started straight into the run): catch it once, deferred.

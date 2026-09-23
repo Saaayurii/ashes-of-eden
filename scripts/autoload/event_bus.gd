@@ -27,6 +27,8 @@ signal player_parried
 signal world_impulse(position: Vector2, direction: Vector2, strength: float, kind: StringName)
 ## First kill of a kind: the bestiary has a new page (Profile keeps the book).
 signal bestiary_unlocked(enemy_id: String)
+## A record (data/notes) was found in a secret cache; [param first] the first time ever.
+signal note_found(note_id: String, first: bool)
 signal cutscene_started(cutscene_id: String)
 signal cutscene_finished(cutscene_id: String)
 signal dialogue_started(dialogue_id: String)

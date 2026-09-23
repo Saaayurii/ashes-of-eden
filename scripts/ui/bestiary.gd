@@ -10,6 +10,7 @@ class_name Bestiary
 ##   known    killed at least once — portrait, stats, lore, kill count
 ## People (data/npcs, ids "npc:<id>") get the same book after the enemies:
 ## a silhouette once you have shared a room, the page once you have talked.
+## Records from secret caches (data/notes, ids "note:<id>") close the book.
 
 signal closed
 
@@ -88,15 +89,17 @@ func _build_list() -> void:
 	var people: Array[String] = []
 	people.assign(Data.npcs.keys().map(func(id: String) -> String: return "npc:" + id))
 	people.sort()
+	var notes: Array[String] = []
+	notes.assign(Data.notes.keys().map(func(id: String) -> String: return "note:" + id))
 	var last_family := ""
-	for id in _ids + people:
-		if not people.is_empty() and id == people[0]:
+	for id in _ids + people + notes:
+		if (not people.is_empty() and id == people[0]) or (not notes.is_empty() and id == notes[0]):
 			var heading := Label.new()
-			heading.text = tr("BESTIARY_PEOPLE")
+			heading.text = tr("BESTIARY_PEOPLE" if id.begins_with("npc:") else "BESTIARY_NOTES")
 			heading.add_theme_color_override("font_color", GOLD)
 			heading.add_theme_font_size_override("font_size", 11)
 			list.add_child(heading)
-		elif not id.begins_with("npc:"):
+		elif not id.begins_with("npc:") and not id.begins_with("note:"):
 			var family := str(Data.enemies[id].get("family", "restless"))
 			if family != last_family:
 				last_family = family
@@ -110,7 +113,7 @@ func _build_list() -> void:
 		button.name = id.replace(":", "_")
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var branch := ""
-		if not id.begins_with("npc:"):
+		if not id.begins_with("npc:") and not id.begins_with("note:"):
 			branch = "  └ " if int(_spec(id).get("tier", 1)) > 1 else "  ◆ "
 		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) else UNKNOWN_NAME)
 		if not _known(id, entry):
@@ -119,6 +122,7 @@ func _build_list() -> void:
 		button.pressed.connect(_show.bind(id))
 		list.add_child(button)
 	_ids.append_array(people)
+	_ids.append_array(notes)
 	progress.text = tr("BESTIARY_PROGRESS") % [Profile.bestiary_known(), enemies]
 	if _ids.is_empty() or not _ids.has(_selected):
 		_selected = _ids[0] if not _ids.is_empty() else ""
@@ -130,12 +134,16 @@ func _build_list() -> void:
 func _spec(id: String) -> Dictionary:
 	if id.begins_with("npc:"):
 		return Data.npcs.get(id.trim_prefix("npc:"), {})
+	if id.begins_with("note:"):
+		return Data.notes.get(id.trim_prefix("note:"), {})
 	return Data.enemies.get(id, {})
 
 
 ## A page is open once the enemy has been slain, or the person spoken to.
 func _known(id: String, entry: Dictionary) -> bool:
-	return entry.get("met", false) if id.begins_with("npc:") else int(entry.get("kills", 0)) > 0
+	if id.begins_with("npc:") or id.begins_with("note:"):
+		return entry.get("met", false)
+	return int(entry.get("kills", 0)) > 0
 
 
 func _show(id: String) -> void:
@@ -158,7 +166,13 @@ func _show(id: String) -> void:
 	lore_label.text = ""
 	hint_label.text = ""
 	if not seen:
-		hint_label.text = tr("BESTIARY_HINT_UNKNOWN")
+		hint_label.text = tr("BESTIARY_HINT_NOTE" if id.begins_with("note:") else "BESTIARY_HINT_UNKNOWN")
+		return
+	if id.begins_with("note:"):
+		var chapter: Dictionary = Data.chapters.get(str(stats.get("place", "")), {})
+		if chapter.has("title"):
+			tags_label.text = tr(chapter.title)
+		lore_label.text = _note_text(str(stats.get("dialogue", "")))
 		return
 	if id.begins_with("npc:"):
 		if stats.has("role"):
@@ -190,6 +204,18 @@ func _show(id: String) -> void:
 	if stats.has("lore"):
 		lore_label.text = tr(stats.lore)
 	_show_abilities(stats)
+
+
+## A record's page is the caption it was read out as, line after line.
+func _note_text(dialogue_id: String) -> String:
+	var dialogue: Dictionary = Data.dialogues.get(dialogue_id, {})
+	var nodes: Dictionary = dialogue.get("nodes", {})
+	var lines: PackedStringArray = []
+	var node_id := str(dialogue.get("start", ""))
+	while node_id != "" and nodes.has(node_id) and lines.size() < 32:
+		lines.append(tr(str(nodes[node_id].get("text", ""))))
+		node_id = str(nodes[node_id].get("next", ""))
+	return "\n\n".join(lines)
 
 
 ## Where it is at home when the data says so, otherwise where this player first
