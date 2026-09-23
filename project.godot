@@ -33,6 +33,7 @@ Juice="*res://scripts/autoload/juice.gd"
 Fx="*res://scripts/autoload/fx.gd"
 Net="*res://scripts/autoload/net.gd"
 Saves="*res://scripts/autoload/saves.gd"
+Playtest="*res://scripts/autoload/playtest.gd"
 Curtain="*res://scenes/ui/curtain.tscn"
 
 [display]

@@ -15,8 +15,9 @@ const SMOKE_CELL := Vector2i(32, 32)
 const HIT_STRIPS := {"spark": "res://assets/sprites/hit_spark.png", "blood": "res://assets/sprites/hit_blood.png"}
 const HIT_CELL := Vector2i(80, 48)
 const SHADOW_TEXTURE := preload("res://assets/fx/shadow_blob.tres")
-const ESSENCE_LIGHT := preload("res://assets/fx/essence_light_v2.png")
-const ESSENCE_DARK := preload("res://assets/fx/essence_dark_v2.png")
+const ESSENCE_LIGHT_SHEET := preload("res://assets/fx/essence_light_flight_v3.png")
+const ESSENCE_DARK_SHEET := preload("res://assets/fx/essence_dark_flight_v3.png")
+const ESSENCE_FRAGMENT := preload("res://scripts/fx/essence_fragment.gd")
 
 var _smoke_frames: SpriteFrames
 var _hit_frames := {}
@@ -26,6 +27,7 @@ var _chunk: ImageTexture
 var _fade_out: Gradient
 var _fade_in_out: Gradient
 var _shrink: Curve
+var _essence_frames := {}
 
 
 func _ready() -> void:
@@ -40,6 +42,8 @@ func _ready() -> void:
 	_shrink = Curve.new()
 	_shrink.add_point(Vector2(0.0, 1.0))
 	_shrink.add_point(Vector2(1.0, 0.15))
+	_essence_frames[false] = _essence_sprite_frames(ESSENCE_LIGHT_SHEET)
+	_essence_frames[true] = _essence_sprite_frames(ESSENCE_DARK_SHEET)
 
 
 ## The drawn burst of a hit: "spark" for steel on flesh, "blood" for the blow
@@ -157,31 +161,23 @@ func ash(position: Vector2, tint := Color(0.8, 0.75, 0.7), amount := 16, rise :=
 ## A readable burst of experience-like fragments on every enemy death. It is
 ## intentionally cosmetic: rewards remain owned by Game.add_essence.
 func essence_release(position: Vector2, dark := false, amount := 9) -> void:
-	var fragments := _burst(position, maxi(4, int(amount * 0.75)),
-		1.25 if dark else 1.05, 0.92)
-	if fragments == null:
+	var parent := get_tree().current_scene
+	if parent == null:
 		return
-	fragments.texture = ESSENCE_DARK if dark else ESSENCE_LIGHT
-	fragments.direction = Vector2.UP
-	fragments.spread = 105.0
-	fragments.initial_velocity_min = 55.0 if dark else 68.0
-	fragments.initial_velocity_max = 105.0 if dark else 135.0
-	fragments.gravity = Vector2(0, -12) if dark else Vector2(0, 90)
-	fragments.damping_min = 16.0
-	fragments.damping_max = 32.0
-	fragments.angle_min = -75.0
-	fragments.angle_max = 75.0
-	fragments.angular_velocity_min = -170.0
-	fragments.angular_velocity_max = 170.0
-	fragments.scale_amount_min = 0.5
-	fragments.scale_amount_max = 0.85 if dark else 0.75
-	fragments.scale_amount_curve = _shrink
-	# The authored texture carries the pale-gold / violet palette. White here
-	# preserves its feathered silhouette instead of flattening it into a block.
-	fragments.color = Color.WHITE
-	fragments.color_ramp = _fade_out
-	fragments.z_index = 7
-	fragments.emitting = true
+	var frames: SpriteFrames = _essence_frames[dark]
+	for i in maxi(4, int(amount * 0.75)):
+		var shard: AnimatedSprite2D = ESSENCE_FRAGMENT.new()
+		shard.sprite_frames = frames
+		shard.z_index = 7
+		shard.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var launch := Vector2.UP.rotated(deg_to_rad(randf_range(-52.5, 52.5)))
+		launch *= randf_range(55.0, 105.0) if dark else randf_range(68.0, 135.0)
+		shard.configure(launch, -12.0 if dark else 90.0,
+			deg_to_rad(randf_range(-170.0, 170.0)),
+			randf_range(1.05, 1.25) if dark else randf_range(0.92, 1.08),
+			randf_range(0.5, 0.85 if dark else 0.75))
+		parent.add_child(shard)
+		shard.global_position = position + Vector2(randf_range(-3.0, 3.0), randf_range(-3.0, 3.0))
 	var motes := _burst(position, maxi(4, int(amount / 2)), 1.35, 0.85)
 	motes.texture = _soft
 	motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
@@ -191,12 +187,27 @@ func essence_release(position: Vector2, dark := false, amount := 9) -> void:
 	motes.initial_velocity_min = 22.0
 	motes.initial_velocity_max = 62.0
 	motes.gravity = Vector2(0, -28)
-	motes.scale_amount_min = 0.55
-	motes.scale_amount_max = 0.95
-	motes.color = Color(0.49, 0.89, 0.82) if dark else Color(1.0, 0.97, 0.78)
+	motes.scale_amount_min = 0.35
+	motes.scale_amount_max = 0.65
+	motes.color = Color(0.49, 0.89, 0.82, 0.55) if dark else Color(1.0, 0.97, 0.78, 0.7)
 	motes.color_ramp = _fade_in_out
 	motes.z_index = 7
 	motes.emitting = true
+
+
+func _essence_sprite_frames(sheet: Texture2D) -> SpriteFrames:
+	var frames := SpriteFrames.new()
+	frames.add_animation("dissolve")
+	frames.set_animation_speed("dissolve", 4.0)
+	frames.set_animation_loop("dissolve", false)
+	var cell_width := sheet.get_width() / 4
+	for index in 4:
+		var cell := AtlasTexture.new()
+		cell.atlas = sheet
+		cell.region = Rect2(index * cell_width, 0, cell_width, sheet.get_height())
+		cell.filter_clip = true
+		frames.add_frame("dissolve", cell)
+	return frames
 
 
 ## A chest opening, a heal, a shrine waking: twinkles floating up.

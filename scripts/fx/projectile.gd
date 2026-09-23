@@ -11,13 +11,17 @@ const ART := {
 	"blade": preload("res://assets/sprites/projectiles/blade_wave_v2.png"),
 	"sacred": preload("res://assets/sprites/projectiles/sacred_bolt_v2.png"),
 	"umbral": preload("res://assets/sprites/projectiles/umbral_bolt_v2.png"),
-	"wraith": preload("res://assets/sprites/projectiles/wraith_bolt_v2.png"),
-	"zealot": preload("res://assets/sprites/projectiles/zealot_lance_v3.png"),
-	"acolyte": preload("res://assets/sprites/projectiles/zealot_lance_v3.png"),
-	"preacher": preload("res://assets/sprites/projectiles/sacred_bolt_v2.png"),
-	"cult": preload("res://assets/sprites/projectiles/umbral_bolt_v2.png"),
-	"ash": preload("res://assets/sprites/projectiles/ash_shard_v3.png"),
-	"ophanim": preload("res://assets/sprites/projectiles/ophanim_eye_v3.png"),
+	"wraith": preload("res://assets/sprites/projectiles/wraith_flight_v3.png"),
+	"zealot": preload("res://assets/sprites/projectiles/zealot_flight_v3.png"),
+	"acolyte": preload("res://assets/sprites/projectiles/acolyte_flight_v3.png"),
+	"preacher": preload("res://assets/sprites/projectiles/preacher_flight_v3.png"),
+	"cult": preload("res://assets/sprites/projectiles/cult_flight_v3.png"),
+	"ash": preload("res://assets/sprites/projectiles/ash_flight_v3.png"),
+	"ophanim": preload("res://assets/sprites/projectiles/ophanim_flight_v3.png"),
+}
+const FLIGHT_FPS := {
+	"wraith": 12.0, "zealot": 11.0, "acolyte": 13.0,
+	"preacher": 9.0, "cult": 11.0, "ash": 12.0, "ophanim": 10.0,
 }
 ## A client's copy of a bolt the host already fired: it flies and bursts on
 ## walls, but only the host's bolt is allowed to hurt anyone.
@@ -88,6 +92,11 @@ func _set_art() -> void:
 	var painted: Texture2D = ART.get(visual_style, ART["sacred"])
 	$Art.texture = painted
 	$Echo.texture = painted
+	var animated := FLIGHT_FPS.has(visual_style)
+	$Art.hframes = 4 if animated else 1
+	$Echo.hframes = 4 if animated else 1
+	$Art.frame = 0
+	$Echo.frame = 0
 	$Art.rotation = direction.angle()
 	$Echo.rotation = direction.angle()
 	var art_scale := 0.76 if visual_style == "blade" else 0.62
@@ -98,6 +107,8 @@ func _set_art() -> void:
 	$Echo.modulate = Color(1, 1, 1, 0.36)
 	$Art.material.set_shader_parameter("motion_kind", _motion_kind())
 	$Echo.material.set_shader_parameter("motion_kind", _motion_kind())
+	$Art.material.set_shader_parameter("use_frames", animated)
+	$Echo.material.set_shader_parameter("use_frames", animated)
 
 
 func _motion_kind() -> int:
@@ -111,6 +122,10 @@ func _motion_kind() -> int:
 
 func _animate_art() -> void:
 	var t := _flight_clock
+	if FLIGHT_FPS.has(visual_style):
+		var frame_index := int(floor(t * float(FLIGHT_FPS[visual_style]))) % 4
+		$Art.frame = frame_index
+		$Echo.frame = (frame_index + 3) % 4
 	var pulse := sin(t * 17.0)
 	var base_angle := direction.angle()
 	var scale_base := 0.76 if visual_style == "blade" else (0.48 if visual_style == "ophanim" else 0.62)

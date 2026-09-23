@@ -1,13 +1,17 @@
 shader_type canvas_item;
 uniform float phase = 0.0;
 uniform int motion_kind = 0;
+uniform bool use_frames = false;
 
 // A small edge shimmer, not a circular glow: the painted silhouette remains
 // readable while its trailing wisps breathe in flight.
 void fragment() {
 	vec2 uv = UV;
 	float motion = phase * 16.0;
-	if (motion_kind == 1) {
+	if (use_frames) {
+		// Frame atlases are already animated; never sample over a cell edge.
+		uv = UV;
+	} else if (motion_kind == 1) {
 		uv.y += sin(motion + uv.x * 19.0) * 0.012 * (1.0 - uv.x);
 	} else if (motion_kind == 2) {
 		uv.y += sin(motion + uv.x * 23.0) * 0.026 * (1.0 - uv.x);

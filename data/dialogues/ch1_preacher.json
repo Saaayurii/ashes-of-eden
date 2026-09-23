@@ -21,7 +21,17 @@
     "p_voice_answered": {"speaker": "SPEAKER_PREACHER", "text": "DLG_CH1_PREACHER_VOICE_ANSWERED", "next": "p2"},
     "p2": {
       "speaker": "SPEAKER_PREACHER",
-      "text": "DLG_CH1_PREACHER_2"
+      "text": "DLG_CH1_PREACHER_2",
+      "next": "p_mercy_1"
+    },
+    "p_mercy_1": {
+      "speaker": "SPEAKER_ELIAN",
+      "text": "DLG_CH1_PREACHER_MERCY_1",
+      "next": "p_mercy_2"
+    },
+    "p_mercy_2": {
+      "speaker": "SPEAKER_PREACHER",
+      "text": "DLG_CH1_PREACHER_MERCY_2"
     }
   }
 }

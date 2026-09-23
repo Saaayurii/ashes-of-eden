@@ -42,6 +42,7 @@ func _ready() -> void:
 	back_button.pressed.connect(close)
 	Settings.changed.connect(_refresh)
 	_build_bindings()
+	_build_touch()
 	_refresh()
 
 
@@ -66,10 +67,76 @@ func _refresh() -> void:
 	fullscreen.set_pressed_no_signal(Settings.fullscreen)
 	shake.set_pressed_no_signal(Settings.screen_shake)
 	lighting.set_pressed_no_signal(Settings.lighting)
+	if _touch_mode:
+		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
+		_touch_scale.set_value_no_signal(Settings.touch_scale)
+		_touch_opacity.set_value_no_signal(Settings.touch_opacity)
+		_touch_left.set_pressed_no_signal(Settings.touch_left_handed)
 	for action in Settings.BINDABLE_ACTIONS:
 		var button: Button = bindings.get_node_or_null(action)
 		if button:
 			button.text = tr("SETTINGS_PRESS_KEY") if _rebinding == action else Settings.key_name(action)
+
+
+## On-screen controls (scripts/ui/touch_pad.gd): built here rather than in the
+## scene so the rows sit just above the key bindings wherever those move to.
+var _touch_mode: OptionButton
+var _touch_scale: HSlider
+var _touch_opacity: HSlider
+var _touch_left: CheckButton
+
+
+func _build_touch() -> void:
+	var box: Container = bindings.get_parent()
+	var anchor := box.get_node_or_null("ControlsTitle")
+	var index := anchor.get_index() if anchor else bindings.get_index()
+	var title := Label.new()
+	title.text = "SETTINGS_TOUCH"
+	if anchor:
+		title.add_theme_color_override("font_color", anchor.get_theme_color("font_color"))
+		title.add_theme_font_size_override("font_size", anchor.get_theme_font_size("font_size"))
+	var rows: Array[Control] = [title]
+	_touch_mode = OptionButton.new()
+	for mode in Settings.TOUCH_MODES:
+		_touch_mode.add_item("TOUCH_" + mode.to_upper())
+	rows.append(_row("SETTINGS_TOUCH_MODE", _touch_mode))
+	_touch_scale = _slider(0.7, 1.5)
+	rows.append(_row("SETTINGS_TOUCH_SCALE", _touch_scale))
+	_touch_opacity = _slider(0.3, 1.0)
+	rows.append(_row("SETTINGS_TOUCH_OPACITY", _touch_opacity))
+	_touch_left = CheckButton.new()
+	rows.append(_row("SETTINGS_TOUCH_LEFT", _touch_left))
+	for i in rows.size():
+		box.add_child(rows[i])
+		box.move_child(rows[i], index + i)
+	_touch_mode.item_selected.connect(func(_i: int) -> void: _push_touch())
+	_touch_scale.value_changed.connect(func(_v: float) -> void: _push_touch())
+	_touch_opacity.value_changed.connect(func(_v: float) -> void: _push_touch())
+	_touch_left.toggled.connect(func(_on: bool) -> void: _push_touch())
+
+
+func _row(label_key: String, control: Control) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	var label := Label.new()
+	label.text = label_key
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	control.custom_minimum_size.x = 130
+	row.add_child(control)
+	return row
+
+
+func _slider(lo: float, hi: float) -> HSlider:
+	var slider := HSlider.new()
+	slider.min_value = lo
+	slider.max_value = hi
+	slider.step = 0.05
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return slider
+
+
+func _push_touch() -> void:
+	Settings.set_touch(Settings.TOUCH_MODES[_touch_mode.selected], _touch_scale.value, _touch_opacity.value, _touch_left.button_pressed)
 
 
 func _build_bindings() -> void:

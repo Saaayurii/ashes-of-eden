@@ -27,6 +27,11 @@
       },
       "f3": {
         "speaker": "SPEAKER_OPHANIM",
+        "text": "DLG_CH1_OPHANIM_FALL_3",
+        "next": "f4"
+      },
+      "f4": {
+        "speaker": "SPEAKER_OPHANIM",
         "text": "DLG_CH1_OPHANIM_1"
       }
     }
@@ -144,6 +149,14 @@
     "start": "l",
     "nodes": {
       "l": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_FINALE_BELL_LEFT"}
+    }
+  },
+  {
+    "id": "ch1_finale_names",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_FINALE_NAMES"}
     }
   },
   {

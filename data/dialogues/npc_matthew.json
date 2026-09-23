@@ -36,11 +36,16 @@
         {"flag": "crone_bitter", "next": "t_crone_bitter"},
         {"flag": "crone_sent_home", "next": "t_crone_home"}
       ],
+      "next": "t_road"
+    },
+    "t_crone_asked": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_ASKED", "next": "t_road"},
+    "t_crone_bitter": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_BITTER", "next": "t_road"},
+    "t_crone_home": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_HOME", "next": "t_road"},
+    "t_road": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_ROAD",
       "next": "t2"
     },
-    "t_crone_asked": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_ASKED", "next": "t2"},
-    "t_crone_bitter": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_BITTER", "next": "t2"},
-    "t_crone_home": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_HOME", "next": "t2"},
     "t2": {
       "speaker": "NPC_MATTHEW",
       "text": "DLG_MATTHEW_2",
@@ -125,6 +130,15 @@
             ]
           },
           "next": "t_r_let"
+        },
+        {
+          "id": "names",
+          "text": "DLG_MATTHEW_NAMES",
+          "effect": {
+            "will": 1,
+            "set_flags": ["matthew_book_revealed"]
+          },
+          "next": "t_r_names"
         }
       ]
     },
@@ -135,6 +149,10 @@
     "t_r_let": {
       "speaker": "NPC_MATTHEW",
       "text": "DLG_MATTHEW_R_LET"
+    },
+    "t_r_names": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_R_NAMES"
     }
   }
 }

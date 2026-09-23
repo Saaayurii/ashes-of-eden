@@ -15,6 +15,8 @@ const DIFFICULTIES := {"pilgrim": [0.8, 0.75], "standard": [1.0, 1.0], "judgment
 ## How much of the curtain between places a player wants to sit through on
 ## their fifth night: the whole card, a brisk one, or a plain cut. In menu order.
 const TRANSITIONS := ["full", "short", "off"]
+## On-screen controls: "auto" = phones, tablets and mobile browsers only.
+const TOUCH_MODES := ["auto", "on", "off"]
 
 var locale: String = "en"
 var volumes := {"Master": 1.0, "Music": 0.8, "SFX": 1.0}
@@ -25,6 +27,10 @@ var lighting := true
 var difficulty := "standard"
 ## Chapter cards and the ash between rooms (scripts/autoload/curtain.gd).
 var transitions := "full"
+var touch_mode := "auto"
+var touch_scale := 1.0     # 0.7–1.5, how big the on-screen buttons are
+var touch_opacity := 0.75  # 0.3–1.0
+var touch_left_handed := false  # buttons on the left, stick on the right
 ## action -> physical keycode of the primary keyboard key. Gamepad bindings stay as in project.godot.
 var keys: Dictionary = {}
 
@@ -44,6 +50,12 @@ func _ready() -> void:
 	transitions = cfg.get_value("game", "transitions", "full")
 	if not TRANSITIONS.has(transitions):
 		transitions = "full"
+	touch_mode = cfg.get_value("touch", "mode", "auto")
+	if not TOUCH_MODES.has(touch_mode):
+		touch_mode = "auto"
+	touch_scale = clampf(float(cfg.get_value("touch", "scale", 1.0)), 0.7, 1.5)
+	touch_opacity = clampf(float(cfg.get_value("touch", "opacity", 0.75)), 0.3, 1.0)
+	touch_left_handed = bool(cfg.get_value("touch", "left_handed", false))
 	for action in BINDABLE_ACTIONS:
 		if cfg.has_section_key("keys", action):
 			keys[action] = int(cfg.get_value("keys", action))
@@ -69,6 +81,10 @@ func save() -> void:
 	cfg.set_value("video", "lighting", lighting)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "transitions", transitions)
+	cfg.set_value("touch", "mode", touch_mode)
+	cfg.set_value("touch", "scale", touch_scale)
+	cfg.set_value("touch", "opacity", touch_opacity)
+	cfg.set_value("touch", "left_handed", touch_left_handed)
 	for action in keys:
 		cfg.set_value("keys", action, keys[action])
 	cfg.save(PATH)
@@ -85,6 +101,26 @@ func set_volume(bus: String, linear: float) -> void:
 	volumes[bus] = clampf(linear, 0.0, 1.0)
 	_apply_volume(bus)
 	save()
+
+
+## Whether the on-screen controls are shown on this device.
+func touch_enabled() -> bool:
+	match touch_mode:
+		"on":
+			return true
+		"off":
+			return false
+	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") \
+		or DisplayServer.is_touchscreen_available() and not OS.has_feature("pc")
+
+
+func set_touch(mode: String, scale: float, opacity: float, left_handed: bool) -> void:
+	touch_mode = mode if TOUCH_MODES.has(mode) else "auto"
+	touch_scale = clampf(scale, 0.7, 1.5)
+	touch_opacity = clampf(opacity, 0.3, 1.0)
+	touch_left_handed = left_handed
+	save()
+	changed.emit()
 
 
 func set_fullscreen(enabled: bool) -> void:

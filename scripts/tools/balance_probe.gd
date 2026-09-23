@@ -198,6 +198,7 @@ func _census(run, data) -> void:
 			var real: float = r.ttk * 2.5  # dodging, phases: pure damage time × 2.5 (docs/BALANCE.md §6)
 			var ok: bool = real >= 90.0 and real <= 150.0 if mini else real >= 180.0 and real <= 240.0
 			_lines.append("| %s fight | %s | %.0f s damage phase → ~%.1f min | %s |" % [boss_id, wanted, r.ttk, real / 60.0, _mark(ok)])
+	_append_playtests(total_time)
 	_lines.append("")
 	_lines.append("## Duels (fresh hero, no gifts, standing and swinging)")
 	_lines.append("")
@@ -235,3 +236,69 @@ func _wait(seconds: float) -> void:
 	Engine.time_scale = 1.0
 	await create_timer(seconds, true, false, true).timeout
 	await process_frame
+
+
+## Real hands: every run recorded by the Playtest autoload (user://playtest/*.jsonl).
+## The estimate above guesses walking and dodging; these do not.
+func _append_playtests(estimate: float) -> void:
+	var dir := DirAccess.open("user://playtest")
+	var files: Array = []
+	if dir != null:
+		for f in dir.get_files():
+			if f.ends_with(".jsonl"):
+				files.append("user://playtest/" + f)
+	_lines.append("")
+	_lines.append("## Playtests (%d recorded runs)" % files.size())
+	_lines.append("")
+	if files.is_empty():
+		_lines.append("No recorded runs yet. Play the chapter (any build, solo): every run is written to `user://playtest/` and summarised here on the next probe.")
+		return
+	var room_times := {}
+	var room_damage := {}
+	var deaths := {}
+	var bosses := {}
+	var finished: Array = []
+	for path in files:
+		for line in FileAccess.get_file_as_string(path).split("\n", false):
+			var e = JSON.parse_string(line)
+			if not e is Dictionary:
+				continue
+			match str(e.get("e", "")):
+				"room_clear":
+					room_times.get_or_add(e.room, []).append(float(e.seconds))
+					room_damage.get_or_add(e.room, []).append(float(e.damage))
+				"death":
+					deaths[e.room] = int(deaths.get(e.room, 0)) + 1
+				"boss":
+					bosses.get_or_add(e.room, []).append(float(e.seconds))
+				"run_end":
+					if bool(e.get("won", false)):
+						finished.append(float(e.seconds))
+	if not finished.is_empty():
+		_lines.append("Finished runs: %d, median %.0f min (estimate above: %.0f min)." % [finished.size(), _median(finished) / 60.0, estimate / 60.0])
+	else:
+		_lines.append("No run reached the end yet (estimate above: %.0f min)." % (estimate / 60.0))
+	_lines.append("")
+	_lines.append("| Room | Clears | Median time | Median damage (bar) | Deaths | Boss fight |")
+	_lines.append("|---|---|---|---|---|---|")
+	var names: Array = room_times.keys()
+	for r in deaths.keys() + bosses.keys():
+		if not names.has(r):
+			names.append(r)
+	for r in names:
+		var times: Array = room_times.get(r, [])
+		var hurt: Array = room_damage.get(r, [])
+		var boss: Array = bosses.get(r, [])
+		_lines.append("| %s | %d | %s | %s | %d | %s |" % [r, times.size(),
+			"%.0f s" % _median(times) if not times.is_empty() else "—",
+			"%.0f %%" % (_median(hurt) * 100.0) if not hurt.is_empty() else "—",
+			int(deaths.get(r, 0)),
+			"%.1f min" % (_median(boss) / 60.0) if not boss.is_empty() else "—"])
+
+
+func _median(values: Array) -> float:
+	if values.is_empty():
+		return 0.0
+	var sorted := values.duplicate()
+	sorted.sort()
+	return float(sorted[sorted.size() / 2])
