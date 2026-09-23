@@ -1,0 +1,17 @@
+{
+  "id": "crates_stacked",
+  "kind": "destructible",
+  "hp": 25,
+  "essence": 9,
+  "hitbox": [
+    34,
+    34
+  ],
+  "sprite": {
+    "path": "res://assets/props/crates_stacked.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#9a7a50"
+}

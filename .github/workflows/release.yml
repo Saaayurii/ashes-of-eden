@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  export:
+    name: Export all platforms
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Godot image (cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ashes-of-eden/godot:4.7.2
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Validate
+        run: docker compose run --rm validate
+
+      - name: Export Windows / Linux / macOS / Web
+        run: docker compose run --rm build
+
+      # Android needs the SDK, a debug keystore and Godot's android build
+      # template inside the image. Tracked in docs/ROADMAP.md (v0.2).
+
+      - name: Package
+        run: |
+          set -eux
+          mkdir -p dist
+          (cd build/windows && zip -r ../../dist/ashes-of-eden-windows.zip .)
+          (cd build/linux && zip -r ../../dist/ashes-of-eden-linux.zip .)
+          cp build/macos/ashes-of-eden.zip dist/ashes-of-eden-macos.zip
+          (cd build/web && zip -r ../../dist/ashes-of-eden-web.zip .)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: builds
+          path: dist/*
+
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

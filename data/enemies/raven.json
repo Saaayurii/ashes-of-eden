@@ -1,0 +1,39 @@
+{
+  "id": "raven",
+  "name": "ENEMY_RAVEN",
+  "lore": "ENEMY_RAVEN_LORE",
+  "hp": 12,
+  "speed": 105,
+  "damage": 0,
+  "attack_interval": 0.8,
+  "behaviour": "flyer",
+  "hover_distance": 75,
+  "aggro_range": 560,
+  "size": 10,
+  "color": "#2a2b33",
+  "material": "feather",
+  "tags": [
+    "beast"
+  ],
+  "sprite": {
+    "cell": [
+      48,
+      28
+    ],
+    "fps": 10,
+    "animations": {
+      "idle": "res://assets/sprites/raven_fly.png"
+    }
+  },
+  "attack": {
+    "type": "lunge",
+    "range": 115,
+    "windup": 0.55,
+    "damage": 9,
+    "cooldown": 2.2,
+    "lunge_speed": 330,
+    "lunge_time": 0.3,
+    "recover": 0.45
+  },
+  "essence": 12
+}

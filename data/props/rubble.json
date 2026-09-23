@@ -1,0 +1,17 @@
+{
+  "id": "rubble",
+  "kind": "destructible",
+  "hp": 16,
+  "essence": 7,
+  "hitbox": [
+    30,
+    22
+  ],
+  "sprite": {
+    "path": "res://assets/props/rubble.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#6a6468"
+}

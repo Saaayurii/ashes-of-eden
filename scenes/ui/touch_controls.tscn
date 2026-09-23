@@ -1,0 +1,125 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/virtual_joystick.gd" id="1_joystick"]
+
+[sub_resource type="RectangleShape2D" id="button_shape"]
+size = Vector2(48, 48)
+
+[node name="TouchControls" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Joystick" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_joystick")
+
+[node name="Base" type="ColorRect" parent="Joystick"]
+layout_mode = 0
+offset_right = 72.0
+offset_bottom = 72.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="Knob" type="ColorRect" parent="Joystick/Base"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.4)
+
+[node name="Buttons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -120.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Attack" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(70, 10)
+shape = SubResource("button_shape")
+shape_centered = false
+action = "attack"
+
+[node name="Visual" type="ColorRect" parent="Buttons/Attack"]
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+color = Color(0.95, 0.85, 0.5, 0.35)
+
+[node name="Jump" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(130, 60)
+shape = SubResource("button_shape")
+shape_centered = false
+action = "jump"
+
+[node name="Visual" type="ColorRect" parent="Buttons/Jump"]
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+color = Color(0.6, 0.9, 0.6, 0.35)
+
+[node name="Heal" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(10, 5)
+shape = SubResource("button_shape")
+shape_centered = false
+action = "heal"
+
+[node name="Visual" type="ColorRect" parent="Buttons/Heal"]
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+color = Color(0.7, 0.95, 0.65, 0.3)
+
+[node name="Block" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(70, 60)
+shape = SubResource("button_shape")
+shape_centered = false
+action = "block"
+
+[node name="Visual" type="ColorRect" parent="Buttons/Block"]
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+color = Color(0.55, 0.7, 1.0, 0.35)
+
+[node name="Talk" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(130, 5)
+shape = SubResource("button_shape")
+shape_centered = false
+action = "interact"
+
+[node name="Visual" type="ColorRect" parent="Buttons/Talk"]
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+color = Color(0.95, 0.85, 0.5, 0.3)
+
+[node name="Dash" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(10, 60)
+shape = SubResource("button_shape")
+shape_centered = false
+action = "dash"
+
+[node name="Visual" type="ColorRect" parent="Buttons/Dash"]
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+color = Color(0.75, 0.8, 0.9, 0.35)

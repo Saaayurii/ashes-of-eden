@@ -1,0 +1,144 @@
+{
+  "id": "npc_mara",
+  "start": "route",
+  "nodes": {
+    "route": {
+      "branches": [
+        {
+          "flag": "stranger_killed",
+          "next": "m_killed"
+        },
+        {
+          "flag": "stranger_heard",
+          "next": "m_heard"
+        }
+      ],
+      "next": "m_default"
+    },
+    "m_killed": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_KILLED",
+      "next": "m_agnes_first"
+    },
+    "m_heard": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_HEARD",
+      "next": "m_agnes_first"
+    },
+    "m_default": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_DEFAULT",
+      "next": "m_agnes_first"
+    },
+    "m_agnes_first": {
+      "branches": [
+        {"flag": "agnes_asked", "next": "m_agnes_asked"},
+        {"flag": "agnes_silenced", "next": "m_agnes_silenced"},
+        {"flag": "agnes_blessed", "next": "m_agnes_blessed"}
+      ],
+      "next": "m_agnes_second"
+    },
+    "m_agnes_asked": {"speaker": "NPC_MARA", "text": "DLG_MARA_AGNES_ASKED", "next": "m_agnes_second"},
+    "m_agnes_silenced": {"speaker": "NPC_MARA", "text": "DLG_MARA_AGNES_SILENCED", "next": "m_agnes_second"},
+    "m_agnes_blessed": {"speaker": "NPC_MARA", "text": "DLG_MARA_AGNES_BLESSED", "next": "m_agnes_second"},
+    "m_agnes_second": {
+      "branches": [
+        {"flag": "agnes_called", "next": "m_agnes_called"},
+        {"flag": "agnes_alone", "next": "m_agnes_alone"}
+      ],
+      "next": "m2"
+    },
+    "m_agnes_called": {"speaker": "NPC_MARA", "text": "DLG_MARA_AGNES_CALLED", "next": "m2"},
+    "m_agnes_alone": {"speaker": "NPC_MARA", "text": "DLG_MARA_AGNES_ALONE", "next": "m2"},
+    "m2": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_2",
+      "choices": [
+        {
+          "id": "who",
+          "text": "DLG_MARA_WHO",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "mara_asked"
+            ]
+          },
+          "next": "m_who"
+        },
+        {
+          "id": "hunt",
+          "text": "DLG_MARA_HUNT",
+          "effect": {
+            "temptation": 1,
+            "set_flags": [
+              "mara_hunts"
+            ]
+          },
+          "next": "m_hunt"
+        },
+        {
+          "id": "save",
+          "text": "DLG_MARA_SAVE",
+          "effect": {
+            "grace": 1,
+            "set_flags": [
+              "mara_saved"
+            ]
+          },
+          "next": "m_save"
+        }
+      ]
+    },
+    "m_who": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_R_WHO",
+      "next": "m3"
+    },
+    "m_hunt": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_R_HUNT",
+      "next": "m3"
+    },
+    "m_save": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_R_SAVE",
+      "next": "m3"
+    },
+    "m3": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_3",
+      "choices": [
+        {
+          "id": "press",
+          "text": "DLG_MARA_PRESS",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "mara_pressed"
+            ]
+          },
+          "next": "m_r_press"
+        },
+        {
+          "id": "refuse",
+          "text": "DLG_MARA_REFUSE",
+          "effect": {
+            "grace": 1,
+            "set_flags": [
+              "mara_refused"
+            ]
+          },
+          "next": "m_r_refuse"
+        }
+      ]
+    },
+    "m_r_press": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_R_PRESS"
+    },
+    "m_r_refuse": {
+      "speaker": "NPC_MARA",
+      "text": "DLG_MARA_R_REFUSE"
+    }
+  }
+}

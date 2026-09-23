@@ -1,0 +1,143 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/autoload/curtain.gd" id="1_transition"]
+[ext_resource type="Shader" path="res://assets/shaders/ash_curtain.gdshader" id="2_curtain"]
+
+[sub_resource type="FastNoiseLite" id="curtain_noise"]
+noise_type = 2
+frequency = 0.045
+fractal_octaves = 4
+
+[sub_resource type="NoiseTexture2D" id="curtain_noise_tex"]
+seamless = true
+noise = SubResource("curtain_noise")
+
+[sub_resource type="ShaderMaterial" id="curtain_mat"]
+shader = ExtResource("2_curtain")
+shader_parameter/noise = SubResource("curtain_noise_tex")
+shader_parameter/progress = 0.0
+shader_parameter/ash = Color(0.02, 0.018, 0.024, 1)
+shader_parameter/ember = Color(1, 0.55, 0.22, 1)
+shader_parameter/edge = 0.18
+shader_parameter/sweep = 0.4
+shader_parameter/drift = 0.03
+
+[sub_resource type="Gradient" id="ember_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="ember_dot"]
+gradient = SubResource("ember_grad")
+width = 4
+height = 4
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[node name="Curtain" type="CanvasLayer"]
+script = ExtResource("1_transition")
+
+[node name="Root" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Ash" type="ColorRect" parent="Root"]
+unique_name_in_owner = true
+material = SubResource("curtain_mat")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+
+[node name="Card" type="Control" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Embers" type="CPUParticles2D" parent="Root/Card"]
+unique_name_in_owner = true
+position = Vector2(320, 372)
+emitting = false
+amount = 26
+lifetime = 5.0
+preprocess = 2.0
+texture = SubResource("ember_dot")
+emission_shape = 3
+emission_rect_extents = Vector2(300, 6)
+direction = Vector2(0, -1)
+spread = 16.0
+gravity = Vector2(0, -6)
+initial_velocity_min = 10.0
+initial_velocity_max = 26.0
+scale_amount_min = 0.3
+scale_amount_max = 0.8
+color = Color(1, 0.62, 0.28, 0.75)
+
+[node name="Chapter" type="Label" parent="Root/Card"]
+unique_name_in_owner = true
+offset_left = 80.0
+offset_top = 116.0
+offset_right = 560.0
+offset_bottom = 132.0
+theme_override_colors/font_color = Color(0.72, 0.66, 0.52, 1)
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Rule" type="ColorRect" parent="Root/Card"]
+unique_name_in_owner = true
+offset_left = 220.0
+offset_top = 140.0
+offset_right = 420.0
+offset_bottom = 141.0
+pivot_offset = Vector2(100, 0)
+mouse_filter = 2
+color = Color(0.95, 0.85, 0.5, 0.7)
+
+[node name="Title" type="Label" parent="Root/Card"]
+unique_name_in_owner = true
+offset_left = 60.0
+offset_top = 150.0
+offset_right = 580.0
+offset_bottom = 196.0
+theme_type_variation = &"TitleLabel"
+theme_override_colors/font_color = Color(0.95, 0.85, 0.5, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Epigraph" type="Label" parent="Root/Card"]
+unique_name_in_owner = true
+offset_left = 130.0
+offset_top = 204.0
+offset_right = 510.0
+offset_bottom = 244.0
+theme_override_colors/font_color = Color(0.74, 0.72, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Line" type="Label" parent="Root"]
+unique_name_in_owner = true
+offset_top = 298.0
+offset_right = 640.0
+offset_bottom = 312.0
+theme_override_colors/font_color = Color(0.78, 0.73, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1

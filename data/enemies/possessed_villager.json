@@ -1,0 +1,42 @@
+{
+  "id": "possessed_villager",
+  "name": "ENEMY_POSSESSED_VILLAGER",
+  "lore": "ENEMY_POSSESSED_VILLAGER_LORE",
+  "hp": 48,
+  "speed": 60,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "behaviour": "walker",
+  "aggro_range": 380,
+  "size": 12,
+  "color": "#8c2f2f",
+  "material": "flesh",
+  "tags": [
+    "human",
+    "possessed"
+  ],
+  "sprite": {
+    "cell": [
+      40,
+      36
+    ],
+    "fps": 7,
+    "animations": {
+      "idle": "res://assets/sprites/possessed_idle.png",
+      "walk": "res://assets/sprites/possessed_walk.png",
+      "attack": "res://assets/sprites/possessed_attack.png",
+      "hurt": "res://assets/sprites/possessed_hurt.png",
+      "death": "res://assets/sprites/possessed_death.png"
+    }
+  },
+  "attack": {
+    "type": "melee",
+    "range": 28,
+    "reach": 34,
+    "windup": 0.5,
+    "damage": 8,
+    "cooldown": 1.7,
+    "recover": 0.3
+  },
+  "essence": 12
+}

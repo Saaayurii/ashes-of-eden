@@ -1,0 +1,48 @@
+services:
+  # Base image with headless Godot + export templates.
+  godot:
+    build:
+      context: .
+      args:
+        GODOT_VERSION: "4.7.2"
+    image: ashes-of-eden/godot:4.7.2
+    volumes:
+      - .:/project
+
+  validate:
+    extends:
+      service: godot
+    command: validate
+
+  test:
+    extends:
+      service: godot
+    command: test
+
+  net-test:
+    extends:
+      service: godot
+    command: net-test
+
+  # Dedicated referee: the host two browsers can share, since a browser
+  # cannot listen for connections itself (docs/MULTIPLAYER.md).
+  server:
+    extends:
+      service: godot
+    command: ["server", "--port=8910", "--mode=coop"]
+    ports:
+      - "8910:8910"
+
+  build:
+    extends:
+      service: godot
+    command: build
+
+  # Serves ./build/web with the cross-origin isolation headers Godot Web needs.
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./build/web:/usr/share/nginx/html:ro
+      - ./tools/docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro

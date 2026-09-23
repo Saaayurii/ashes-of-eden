@@ -1,0 +1,21 @@
+{
+  "id": "ch1_ophanim",
+  "blocking": false,
+  "start": "o1",
+  "nodes": {
+    "o1": {
+      "speaker": "SPEAKER_OPHANIM",
+      "text": "DLG_CH1_OPHANIM_1",
+      "next": "o2"
+    },
+    "o2": {
+      "speaker": "SPEAKER_OPHANIM",
+      "text": "DLG_CH1_OPHANIM_2",
+      "next": "o3"
+    },
+    "o3": {
+      "speaker": "SPEAKER_OPHANIM",
+      "text": "DLG_CH1_OPHANIM_1"
+    }
+  }
+}

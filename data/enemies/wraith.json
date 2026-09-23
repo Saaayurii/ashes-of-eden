@@ -1,0 +1,48 @@
+{
+  "id": "wraith",
+  "name": "ENEMY_WRAITH",
+  "lore": "ENEMY_WRAITH_LORE",
+  "hp": 36,
+  "speed": 70,
+  "damage": 6,
+  "attack_interval": 0.8,
+  "behaviour": "flyer",
+  "hover_distance": 82,
+  "aggro_range": 520,
+  "size": 12,
+  "color": "#3fb08a",
+  "material": "spirit",
+  "tags": [
+    "spirit"
+  ],
+  "sprite": {
+    "cell": [
+      72,
+      56
+    ],
+    "fps": 8,
+    "animations": {
+      "idle": "res://assets/sprites/wraith_idle.png",
+      "walk": "res://assets/sprites/wraith_walk.png",
+      "attack": "res://assets/sprites/wraith_attack.png",
+      "death": "res://assets/sprites/wraith_death.png"
+    }
+  },
+  "attack": {
+    "type": "ranged",
+    "range": 230,
+    "windup": 0.7,
+    "damage": 10,
+    "cooldown": 2.3,
+    "projectile_speed": 150,
+    "projectile_style": "wraith",
+    "color": "#7dffc4"
+  },
+  "essence": 15,
+  "light": {
+    "color": "#5fe0b0",
+    "radius": 56,
+    "energy": 0.8,
+    "flicker": 0.1
+  }
+}

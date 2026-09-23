@@ -1,0 +1,111 @@
+{
+  "id": "stranger_meeting",
+  "steps": [
+    {
+      "do": "hold"
+    },
+    {
+      "do": "letterbox",
+      "on": true,
+      "time": 0.4
+    },
+    {
+      "do": "face",
+      "who": "player",
+      "dir": 1
+    },
+    {
+      "do": "wait",
+      "time": 0.3
+    },
+    {
+      "do": "sound",
+      "name": "summon",
+      "volume": -12
+    },
+    {
+      "do": "appear",
+      "who": "npc:stranger",
+      "time": 1.2
+    },
+    {
+      "do": "camera",
+      "to": "npc:stranger",
+      "zoom": 1.3,
+      "time": 1.0
+    },
+    {
+      "do": "dialogue",
+      "id": "ch1_stranger"
+    },
+    {
+      "do": "anim",
+      "who": "player",
+      "anim": "thrust",
+      "if": "stranger_killed"
+    },
+    {
+      "do": "shake",
+      "strength": 4,
+      "if": "stranger_killed"
+    },
+    {
+      "do": "vanish",
+      "who": "npc:stranger",
+      "ash": true,
+      "time": 0.35,
+      "if": "stranger_killed"
+    },
+    {
+      "do": "dialogue",
+      "id": "ch1_stranger_after_kill",
+      "if": "stranger_killed"
+    },
+    {
+      "do": "dialogue",
+      "id": "ch1_stranger_after_listen",
+      "if": "stranger_heard"
+    },
+    {
+      "do": "vanish",
+      "who": "npc:stranger",
+      "time": 1.6,
+      "if": "stranger_heard"
+    },
+    {
+      "do": "dialogue",
+      "id": "ch1_stranger_after_leave",
+      "if": "stranger_refused"
+    },
+    {
+      "do": "vanish",
+      "who": "npc:stranger",
+      "time": 1.0,
+      "if": "stranger_refused"
+    },
+    {
+      "do": "vanish",
+      "who": "npc:stranger",
+      "time": 0.8,
+      "unless": [
+        "stranger_killed",
+        "stranger_heard",
+        "stranger_refused"
+      ]
+    },
+    {
+      "do": "camera",
+      "to": "player",
+      "zoom": 1.0,
+      "time": 0.8
+    },
+    {
+      "do": "letterbox",
+      "on": false,
+      "time": 0.3
+    },
+    {
+      "do": "release"
+    }
+  ]
+}

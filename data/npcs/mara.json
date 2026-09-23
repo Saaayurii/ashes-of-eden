@@ -1,0 +1,55 @@
+{
+  "id": "mara",
+  "name": "NPC_MARA",
+  "dialogue": "npc_mara",
+  "avatar": "res://assets/portraits/mara.png",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/mara_v2_idle.png",
+      "walk": "res://assets/sprites/mara_v2_walk.png",
+      "interact": "res://assets/sprites/mara_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 4
+  },
+  "lore": "NPC_MARA_LORE",
+  "role": "NPC_ROLE_MARA",
+  "location": "LOC_GRAVEYARD_TREE",
+  "path": [
+    [
+      0,
+      0
+    ],
+    [
+      65,
+      -15
+    ],
+    [
+      145,
+      30
+    ],
+    [
+      245,
+      65
+    ]
+  ],
+  "pace": 7,
+  "travel": "fade",
+  "light": {
+    "color": "#9ab0ff",
+    "radius": 50,
+    "energy": 0.5,
+    "flicker": 0.0,
+    "breathe": 0.25
+  },
+  "motes": "#b8c8ff",
+  "lines": [
+    "NPC_MARA_LINE_1",
+    "NPC_MARA_LINE_2",
+    "NPC_MARA_LINE_3"
+  ]
+}

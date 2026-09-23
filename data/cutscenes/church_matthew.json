@@ -1,0 +1,47 @@
+{
+  "id": "church_matthew",
+  "steps": [
+    {
+      "do": "hold"
+    },
+    {
+      "do": "letterbox",
+      "on": true,
+      "time": 0.4
+    },
+    {
+      "do": "sound",
+      "name": "bell",
+      "volume": -6
+    },
+    {
+      "do": "camera",
+      "to": "npc:matthew",
+      "zoom": 1.25,
+      "time": 1.4
+    },
+    {
+      "do": "wait",
+      "time": 1.4
+    },
+    {
+      "do": "sound",
+      "name": "bell",
+      "volume": -9
+    },
+    {
+      "do": "camera",
+      "to": "player",
+      "zoom": 1.0,
+      "time": 1.0
+    },
+    {
+      "do": "letterbox",
+      "on": false,
+      "time": 0.3
+    },
+    {
+      "do": "release"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/elian_frames.tres" id="2_frames"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/slash_frames.tres" id="3_slash"]
+
+[sub_resource type="RectangleShape2D" id="body_shape"]
+size = Vector2(14, 30)
+
+[sub_resource type="RectangleShape2D" id="hitbox_shape"]
+size = Vector2(30, 30)
+
+[node name="Player" type="CharacterBody2D" groups=["player"]]
+collision_layer = 2
+collision_mask = 17
+floor_snap_length = 4.0
+script = ExtResource("1_player")
+
+[node name="Body" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -15)
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+shape = SubResource("body_shape")
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 4
+monitoring = false
+monitorable = false
+
+[node name="Collision" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(24, -4)
+shape = SubResource("hitbox_shape")
+
+[node name="Slash" type="AnimatedSprite2D" parent="Hitbox"]
+visible = false
+position = Vector2(22, -10)
+sprite_frames = ExtResource("3_slash")
+animation = &"white"
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(0, -30)
+limit_left = 0
+limit_top = 0
+limit_right = 1280
+limit_bottom = 360
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0

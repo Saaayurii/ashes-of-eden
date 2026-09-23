@@ -1,0 +1,17 @@
+{
+  "id": "barrel",
+  "kind": "destructible",
+  "hp": 1,
+  "essence": 4,
+  "hitbox": [
+    20,
+    26
+  ],
+  "sprite": {
+    "path": "res://assets/props/barrel.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#8a6a48"
+}

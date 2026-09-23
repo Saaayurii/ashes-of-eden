@@ -1,0 +1,269 @@
+[
+  {
+    "id": "blood_pact",
+    "name": "ABILITY_BLOOD_PACT_NAME",
+    "description": "ABILITY_BLOOD_PACT_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/status_2.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_damage",
+        "op": "mul",
+        "value": 1.35
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": -15
+      }
+    ]
+  },
+  {
+    "id": "hunger_of_the_abyss",
+    "name": "ABILITY_HUNGER_OF_THE_ABYSS_NAME",
+    "description": "ABILITY_HUNGER_OF_THE_ABYSS_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/relic_4.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "lifesteal",
+        "value": 0.15
+      }
+    ]
+  },
+  {
+    "id": "wrath",
+    "name": "ABILITY_WRATH_NAME",
+    "description": "ABILITY_WRATH_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/status_5.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_cooldown",
+        "op": "mul",
+        "value": 0.7
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": -10
+      }
+    ]
+  },
+  {
+    "id": "ravenous_edge",
+    "name": "ABILITY_RAVENOUS_EDGE_NAME",
+    "description": "ABILITY_RAVENOUS_EDGE_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/badge_4.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "crit_chance",
+        "op": "add",
+        "value": 0.12
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": -10
+      }
+    ]
+  },
+  {
+    "id": "whispered_bargain",
+    "name": "ABILITY_WHISPERED_BARGAIN_NAME",
+    "description": "ABILITY_WHISPERED_BARGAIN_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/resource_1.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_damage",
+        "op": "mul",
+        "value": 1.15
+      }
+    ]
+  },
+  {
+    "id": "sharpened_greed",
+    "name": "ABILITY_SHARPENED_GREED_NAME",
+    "description": "ABILITY_SHARPENED_GREED_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/resource_3.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "essence_bonus",
+        "op": "add",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "id": "knife_in_the_dark",
+    "name": "ABILITY_KNIFE_IN_THE_DARK_NAME",
+    "description": "ABILITY_KNIFE_IN_THE_DARK_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/gear_5.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "backstab_multiplier",
+        "op": "add",
+        "value": 0.75
+      }
+    ]
+  },
+  {
+    "id": "carrion_feast",
+    "name": "ABILITY_CARRION_FEAST_NAME",
+    "description": "ABILITY_CARRION_FEAST_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/potion_22.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "kill_heal",
+        "op": "add",
+        "value": 4
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": -8
+      }
+    ]
+  },
+  {
+    "id": "executioner",
+    "name": "ABILITY_EXECUTIONER_NAME",
+    "description": "ABILITY_EXECUTIONER_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/gear_2.png",
+    "rarity": "epic",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "execute",
+        "op": "add",
+        "value": 0.6
+      }
+    ]
+  },
+  {
+    "id": "crimson_rite",
+    "name": "ABILITY_CRIMSON_RITE_NAME",
+    "description": "ABILITY_CRIMSON_RITE_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/relic_2.png",
+    "rarity": "epic",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "crit_multiplier",
+        "op": "add",
+        "value": 0.6
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": -12
+      }
+    ]
+  },
+  {
+    "id": "abyssal_covenant",
+    "name": "ABILITY_ABYSSAL_COVENANT_NAME",
+    "description": "ABILITY_ABYSSAL_COVENANT_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/status_3.png",
+    "rarity": "legendary",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_damage",
+        "op": "mul",
+        "value": 1.6
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "mul",
+        "value": 0.6
+      }
+    ]
+  },
+  {
+    "id": "blood_lash",
+    "name": "ABILITY_BLOOD_LASH_NAME",
+    "description": "ABILITY_BLOOD_LASH_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/rune_2.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "skill",
+        "skill": {
+          "kind": "drain",
+          "cooldown": 7,
+          "damage": 30,
+          "range": 120,
+          "drain": 0.5,
+          "color": "#d0303a"
+        }
+      }
+    ]
+  }
+]

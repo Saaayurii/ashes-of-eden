@@ -1,0 +1,81 @@
+[
+  {
+    "id": "village",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_VILLAGE",
+    "subtitle": "AREA_VILLAGE_SUB",
+    "color": "#f2d98c",
+    "sound": "bell",
+    "rooms": ["res://scenes/rooms/village_night.tscn"]
+  },
+  {
+    "id": "graveyard",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_GRAVEYARD",
+    "subtitle": "AREA_GRAVEYARD_SUB",
+    "color": "#b9c6d8",
+    "rooms": [
+      "res://scenes/rooms/graveyard_cross.tscn",
+      "res://scenes/rooms/graveyard_arches.tscn",
+      "res://scenes/rooms/graveyard_tree.tscn"
+    ]
+  },
+  {
+    "id": "swamp",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_SWAMP",
+    "subtitle": "AREA_SWAMP_SUB",
+    "color": "#9ec8a8",
+    "rooms": [
+      "res://scenes/rooms/swamp_moon.tscn",
+      "res://scenes/rooms/swamp_red.tscn",
+      "res://scenes/rooms/swamp_crypt.tscn"
+    ]
+  },
+  {
+    "id": "catacombs",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_CATACOMBS",
+    "subtitle": "AREA_CATACOMBS_SUB",
+    "color": "#d8cbb0",
+    "rooms": [
+      "res://scenes/rooms/catacombs_1.tscn",
+      "res://scenes/rooms/catacombs_2.tscn",
+      "res://scenes/rooms/catacombs_3.tscn"
+    ]
+  },
+  {
+    "id": "crypts",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_CRYPTS",
+    "subtitle": "AREA_CRYPTS_SUB",
+    "color": "#a8c0e0",
+    "rooms": ["res://scenes/rooms/crypt_skulls.tscn", "res://scenes/rooms/preacher_nave.tscn"]
+  },
+  {
+    "id": "church",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_CHURCH",
+    "subtitle": "AREA_CHURCH_SUB",
+    "color": "#f0d8a0",
+    "sound": "bell",
+    "rooms": ["res://scenes/rooms/church.tscn"]
+  },
+  {
+    "id": "ashes",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_ASHES",
+    "subtitle": "AREA_ASHES_SUB",
+    "color": "#ff8a4a",
+    "rooms": ["res://scenes/rooms/crypt_lava.tscn"]
+  },
+  {
+    "id": "gate",
+    "chapter": "CHAPTER_I",
+    "title": "AREA_GATE",
+    "subtitle": "AREA_GATE_SUB",
+    "color": "#fff1c2",
+    "sound": "bell",
+    "rooms": ["res://scenes/rooms/hell_gate.tscn"]
+  }
+]

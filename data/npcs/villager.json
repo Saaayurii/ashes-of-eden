@@ -1,0 +1,47 @@
+{
+  "id": "villager",
+  "name": "NPC_VILLAGER",
+  "dialogue": "npc_villager",
+  "avatar": "res://assets/portraits/villager.png",
+  "face": "right",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/villager_v2_idle.png",
+      "walk": "res://assets/sprites/villager_v2_walk.png",
+      "interact": "res://assets/sprites/villager_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_VILLAGER_LORE",
+  "role": "NPC_ROLE_VILLAGER",
+  "location": "LOC_SWAMP_MOON",
+  "path": [
+    [
+      0,
+      0
+    ],
+    [
+      -80,
+      0
+    ],
+    [
+      20,
+      0
+    ]
+  ],
+  "pace": 5,
+  "light": {
+    "color": "#ffa050",
+    "radius": 36,
+    "energy": 0.55,
+    "flicker": 0.3
+  },
+  "lines": [
+    "NPC_VILLAGER_LINE_1",
+    "NPC_VILLAGER_LINE_2"
+  ]
+}

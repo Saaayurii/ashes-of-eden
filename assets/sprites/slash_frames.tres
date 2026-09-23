@@ -1,0 +1,272 @@
+[gd_resource type="SpriteFrames" load_steps=40 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/slash_white.png" id="tex_slash_white"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slash_heavy.png" id="tex_slash_heavy"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slash_gold.png" id="tex_slash_gold"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slash_red.png" id="tex_slash_red"]
+[ext_resource type="Texture2D" path="res://assets/sprites/hit_spark.png" id="tex_hit_spark"]
+[ext_resource type="Texture2D" path="res://assets/sprites/hit_blood.png" id="tex_hit_blood"]
+
+[sub_resource type="AtlasTexture" id="slash_white_0"]
+atlas = ExtResource("tex_slash_white")
+region = Rect2(0, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_white_1"]
+atlas = ExtResource("tex_slash_white")
+region = Rect2(80, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_white_2"]
+atlas = ExtResource("tex_slash_white")
+region = Rect2(160, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_white_3"]
+atlas = ExtResource("tex_slash_white")
+region = Rect2(240, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_white_4"]
+atlas = ExtResource("tex_slash_white")
+region = Rect2(320, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_heavy_0"]
+atlas = ExtResource("tex_slash_heavy")
+region = Rect2(0, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_heavy_1"]
+atlas = ExtResource("tex_slash_heavy")
+region = Rect2(80, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_heavy_2"]
+atlas = ExtResource("tex_slash_heavy")
+region = Rect2(160, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_heavy_3"]
+atlas = ExtResource("tex_slash_heavy")
+region = Rect2(240, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_heavy_4"]
+atlas = ExtResource("tex_slash_heavy")
+region = Rect2(320, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_heavy_5"]
+atlas = ExtResource("tex_slash_heavy")
+region = Rect2(400, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_gold_0"]
+atlas = ExtResource("tex_slash_gold")
+region = Rect2(0, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_gold_1"]
+atlas = ExtResource("tex_slash_gold")
+region = Rect2(80, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_gold_2"]
+atlas = ExtResource("tex_slash_gold")
+region = Rect2(160, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_gold_3"]
+atlas = ExtResource("tex_slash_gold")
+region = Rect2(240, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_gold_4"]
+atlas = ExtResource("tex_slash_gold")
+region = Rect2(320, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_gold_5"]
+atlas = ExtResource("tex_slash_gold")
+region = Rect2(400, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_red_0"]
+atlas = ExtResource("tex_slash_red")
+region = Rect2(0, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_red_1"]
+atlas = ExtResource("tex_slash_red")
+region = Rect2(80, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_red_2"]
+atlas = ExtResource("tex_slash_red")
+region = Rect2(160, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_red_3"]
+atlas = ExtResource("tex_slash_red")
+region = Rect2(240, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_red_4"]
+atlas = ExtResource("tex_slash_red")
+region = Rect2(320, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="slash_red_5"]
+atlas = ExtResource("tex_slash_red")
+region = Rect2(400, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_spark_0"]
+atlas = ExtResource("tex_hit_spark")
+region = Rect2(0, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_spark_1"]
+atlas = ExtResource("tex_hit_spark")
+region = Rect2(80, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_spark_2"]
+atlas = ExtResource("tex_hit_spark")
+region = Rect2(160, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_spark_3"]
+atlas = ExtResource("tex_hit_spark")
+region = Rect2(240, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_spark_4"]
+atlas = ExtResource("tex_hit_spark")
+region = Rect2(320, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_blood_0"]
+atlas = ExtResource("tex_hit_blood")
+region = Rect2(0, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_blood_1"]
+atlas = ExtResource("tex_hit_blood")
+region = Rect2(80, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_blood_2"]
+atlas = ExtResource("tex_hit_blood")
+region = Rect2(160, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_blood_3"]
+atlas = ExtResource("tex_hit_blood")
+region = Rect2(240, 0, 80, 48)
+
+[sub_resource type="AtlasTexture" id="hit_blood_4"]
+atlas = ExtResource("tex_hit_blood")
+region = Rect2(320, 0, 80, 48)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("slash_white_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_white_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_white_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_white_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_white_4")
+}],
+"loop": false,
+"name": &"white",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("slash_heavy_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_heavy_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_heavy_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_heavy_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_heavy_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_heavy_5")
+}],
+"loop": false,
+"name": &"heavy",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("slash_gold_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_gold_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_gold_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_gold_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_gold_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_gold_5")
+}],
+"loop": false,
+"name": &"gold",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("slash_red_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_red_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_red_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_red_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_red_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("slash_red_5")
+}],
+"loop": false,
+"name": &"red",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("hit_spark_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_spark_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_spark_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_spark_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_spark_4")
+}],
+"loop": false,
+"name": &"spark",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("hit_blood_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_blood_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_blood_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_blood_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("hit_blood_4")
+}],
+"loop": false,
+"name": &"blood",
+"speed": 18.0
+}]

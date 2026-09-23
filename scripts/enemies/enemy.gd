@@ -1,0 +1,1233 @@
+extends CharacterBody2D
+class_name Enemy
+## Generic data-driven enemy. Everything comes from res://data/enemies/*.json
+## (see docs/DATA_FORMATS.md):
+##   behaviour  walker | flyer | boss_ophanim | caster (a walker that backs
+##              away from a player closer than "keep_away", never off a ledge)
+##   attacks    optional telegraphed attacks: [{"type": "melee" | "ranged" | "lunge" | "beam" | "nova", "windup", ...}]
+##              (a single "attack" object is accepted too). One is picked by weight among those in range.
+##   sprite     one strip, or {"cell", "fps", "animations": {idle, walk, attack, hurt, death}}
+##   sight      {"range", "height", "behind"}: how far ahead it looks (a cone in
+##              front of its face, cut by walls and floors) and the radius behind
+##              its back it can still feel you in.
+##   patrol     {"radius", "speed", "pause"}: how it idles around its spawn until
+##              it notices somebody.
+##   aware      true = awake from frame one (bosses always are).
+## The telegraph is the whole point: a wind-up the player can read and roll through.
+##
+## Nobody is born hostile: an enemy patrols its patch until it sees a player
+## (or is touched, hit, or shouted at by a neighbour), pauses one readable beat
+## with a "!" and only then hunts. A sword landing on an unaware body is a
+## backstab: a guaranteed crit at Player.stats.backstab_multiplier.
+##
+## Online (docs/MULTIPLAYER.md): enemies are simulated by the host only. Clients
+## receive the pose through a synchronizer and the theatre — telegraph, swing,
+## beam, death — through RPCs, so both players read the same wind-up.
+
+enum State { PATROL, ALERT, CHASE, WINDUP, STRIKE, RECOVER, DEAD }
+
+const PROJECTILE_SCENE := preload("res://scenes/fx/projectile.tscn")
+const RETARGET_INTERVAL := 0.4
+## A swing the player parried leaves its owner open this long (data can say
+## otherwise: "parry_opening"); a boss gets its feet back in half the time. The
+## first blow landed in that window is a riposte, worth half as much again.
+const PARRY_OPENING := 0.9
+const RIPOSTE_MULTIPLIER := 1.5
+## The beat between "!" and the first step towards you.
+const ALERT_TIME := 0.4
+## An enemy that wakes up shouts; sleepers this close wake with it.
+## An enemy at or under this share of its health can be executed outright.
+const EXECUTE_BELOW := 0.3
+const SHOUT_RADIUS := 90.0
+## Physics layers a look or a step is stopped by: world (1) and ledges (5).
+const SOLID_MASK := 1 | 16
+## Per behaviour: sight range, sight height, feel-behind radius.
+const SIGHT_DEFAULTS := {
+	"walker": [210.0, 70.0, 40.0],
+	"flyer": [260.0, 150.0, 48.0],
+}
+const PATROL_DEFAULTS := {"radius": 110.0, "speed": 0.45, "pause": [0.8, 2.4]}
+
+@export var enemy_id: String = "possessed_villager"
+## Set by the spawner for reinforcements: they arrive already fighting.
+@export var start_aware := false
+
+var stats: Dictionary = {}
+var hp: float
+var state := State.PATROL
+## Replicated so a client's minimap can tell a sleeper from a hunter.
+var aware := false
+var facing := 1:
+	set(value):
+		facing = value
+		if sprite != null:
+			sprite.flip_h = value < 0
+		if attack_area != null:
+			attack_area.scale.x = value
+
+var _max_hp: float
+var _attacks: Array = []
+var _attack: Dictionary = {}  # the one being performed
+var _beam_lines: Array[Line2D] = []
+var _beam_hit := {}  # player -> already burned this beam
+var _contact_cd := 0.0
+var _attack_cd := 0.0
+var _open_left := 0.0  # parried: the riposte window (see PARRY_OPENING)
+var _state_left := 0.0
+var _knockback := Vector2.ZERO
+var _target: Player
+var _retarget := 0.0
+var _bob := randf() * TAU
+var _hover_side := 1.0 if randf() < 0.5 else -1.0
+var _hover_timer := 0.0
+## A short tactical retreat after a melee strike, then a fresh approach.
+var _disengage_left := 0.0
+var _retreat_distance := 38.0
+var _retreat_speed := 0.7
+## Flyers alternate near and far per instance; the phase changes only in
+## CHASE, never in the middle of a telegraphed attack.
+var _fly_phase := 0
+var _fly_phase_left := 0.0
+var _lunge_dir := Vector2.ZERO
+var _summoned := false
+var _home := Vector2.ZERO  # where it was spawned; the patrol is around this
+var _patrol_goal := Vector2.ZERO
+var _patrol_wait := 0.0
+var _has_anim := {}
+## What the body's scale springs back to after a hit punch.
+var _visual_scale := Vector2.ONE
+var _simulated := true  # false on a client: the host drives this body
+## Optional glow from data ("light": colour, radius, energy): spirits, relics, the boss.
+var _light: GlowLight
+var _shadow: Sprite2D
+
+@onready var body: ColorRect = $Body
+@onready var sprite: AnimatedSprite2D = $Sprite
+@onready var hp_bar: ColorRect = $HpBar
+@onready var contact_area: Area2D = $ContactArea
+@onready var attack_area: Area2D = $AttackArea
+@onready var attack_shape: CollisionShape2D = $AttackArea/Shape
+## Whatever is drawn: the sprite when data provides one, the rectangle otherwise.
+@onready var visual: CanvasItem = body
+
+
+## Same contract as Player.attach_net_sync: the run calls this on a fresh
+## enemy, before it enters the tree.
+func attach_net_sync() -> void:
+	if Net.active and not has_node("NetSync"):
+		Net.attach_sync(self, [".:position", ".:facing", ".:aware"])
+
+
+func _ready() -> void:
+	stats = Data.enemies.get(enemy_id, {}).duplicate(true)  # scaled per instance below
+	if stats.is_empty():
+		push_error("Unknown enemy id: %s" % enemy_id)
+	Profile.record_seen(enemy_id)
+	# Walkers need a floor (gravity, is_on_floor, ledge checks); flyers must not
+	# snap to one. The scene file cannot know which we are, so decide here.
+	motion_mode = MOTION_MODE_FLOATING if _is_flying() else MOTION_MODE_GROUNDED
+	floor_snap_length = 0.0 if _is_flying() else 4.0
+	# Difficulty mode × time scaling (docs/BALANCE.md), applied once at spawn.
+	stats.hp = float(stats.get("hp", 20)) * Game.enemy_hp_multiplier()
+	var damage_scale := Game.enemy_damage_multiplier()
+	stats.damage = float(stats.get("damage", 0)) * damage_scale
+	for attack in stats.get("attacks", []) + ([stats.attack] if stats.has("attack") else []):
+		attack.damage = float(attack.get("damage", 0)) * damage_scale
+	_max_hp = stats.hp
+	hp = _max_hp
+	_attacks = stats.get("attacks", [])
+	if stats.has("attack"):
+		_attacks = [stats.attack]
+	_attack_cd = randf_range(0.3, 1.0)  # not everyone swings on frame one
+	_retreat_distance = randf_range(28.0, 48.0)
+	_retreat_speed = randf_range(0.55, 0.8)
+	_fly_phase = randi() % 2
+	_fly_phase_left = randf_range(0.9, 1.7)
+	var size := float(stats.get("size", 12))
+	body.size = Vector2.ONE * size
+	body.position = -body.size / 2.0
+	body.color = Color(stats.get("color", "#b03030"))
+	body.pivot_offset = body.size / 2.0
+	hp_bar.visible = false
+	attack_area.monitoring = false
+	for attack in _attacks:
+		if attack.get("type", "") == "melee":
+			var reach := float(attack.get("reach", 30))
+			(attack_shape.shape as RectangleShape2D).size = Vector2(reach, 24)
+			attack_shape.position = Vector2(reach / 2.0 + 2.0, -6)
+	if stats.has("sprite"):
+		_setup_sprite(stats.sprite)
+	_visual_scale = visual.get("scale")
+	if stats.has("light"):
+		var spec: Dictionary = stats.light
+		_light = Fx.light(self, Vector2(0, -10), Color(spec.get("color", stats.get("color", "#ffffff"))),
+			float(spec.get("radius", 50)), float(spec.get("energy", 0.7)), float(spec.get("flicker", 0.0)), 0.15)
+	if not _is_flying():
+		_shadow = Fx.shadow(self, Vector2(0, 11), size * 1.6, 0.7)
+	if _is_flying():
+		collision_mask &= ~16  # ledges are for walkers; a flyer passes through them
+	_home = global_position
+	_patrol_wait = randf_range(0.2, 1.2)
+	aware = start_aware or bool(stats.get("aware", false)) or bool(stats.get("boss", false))
+	state = State.CHASE if aware else State.PATROL
+	if Net.active:
+		_simulated = multiplayer.is_server()
+		set_physics_process(_simulated)
+	if _simulated and stats.get("boss", false):
+		EventBus.boss_hp_changed.emit(stats.get("name", ""), hp, _max_hp)
+
+
+func _is_flying() -> bool:
+	return stats.get("behaviour", "walker") in ["flyer", "boss_ophanim"]
+
+
+func is_dead() -> bool:
+	return state == State.DEAD
+
+
+## True while it has not noticed anybody: a sword landing now is a backstab.
+func is_unaware() -> bool:
+	return state == State.PATROL or state == State.ALERT
+
+
+func _setup_sprite(spec: Dictionary) -> void:
+	var frames := SpriteFrames.new()
+	var cell := Vector2i(int(spec.get("frame_w", 24)), int(spec.get("frame_h", 28)))
+	if spec.has("cell"):
+		cell = Vector2i(int(spec.cell[0]), int(spec.cell[1]))
+	var fps := float(spec.get("fps", 6))
+	if spec.has("animations"):
+		for anim in spec.animations:
+			var loop: bool = anim in ["idle", "walk"]
+			if Fx.add_strip(frames, spec.animations[anim], cell, fps, anim, loop):
+				_has_anim[anim] = true
+	elif spec.has("path"):
+		if Fx.add_strip(frames, spec.path, cell, fps, "idle", true):
+			_has_anim["idle"] = true
+	if _has_anim.is_empty():
+		return
+	sprite.sprite_frames = frames
+	var art_scale := float(spec.get("scale", 1.0))
+	sprite.scale = Vector2.ONE * art_scale
+	# The collision box is 22 px tall around the origin, so its sole is at +11; the
+	# strips keep one transparent row under the feet. Anything less than +12 here
+	# and the whole bestiary hovers a few pixels above the ground.
+	sprite.position.y = -cell.y * art_scale / 2.0 + 12.0
+	sprite.play("idle")
+	sprite.frame = randi() % maxi(1, frames.get_frame_count("idle"))  # desync the crowd
+	sprite.visible = true
+	body.visible = false
+	visual = sprite
+
+
+func _physics_process(delta: float) -> void:
+	if state == State.DEAD:
+		return
+	if Game.cutscene:
+		# A scene is playing: everybody holds where they stand (walkers keep
+		# their gravity, a flyer hangs still so the scene can place it).
+		if _is_flying():
+			velocity = Vector2.ZERO
+		else:
+			_hold(delta)
+			move_and_slide()
+		return
+	_contact_cd = maxf(0.0, _contact_cd - delta)
+	_attack_cd = maxf(0.0, _attack_cd - delta)
+	_disengage_left = maxf(0.0, _disengage_left - delta)
+	_open_left = maxf(0.0, _open_left - delta)
+	_state_left -= delta
+	if state == State.PATROL:
+		_patrol(delta)
+		_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
+		move_and_slide()
+		var seen := _spot_player()
+		if seen != null:
+			_notice(seen)
+		return
+	if state == State.ALERT:
+		_hold(delta)
+		move_and_slide()
+		if _state_left <= 0.0:
+			_set_state(State.CHASE, 0.0)
+		return
+	_retarget -= delta
+	if _target == null or not is_instance_valid(_target) or _target.is_dead() or _retarget <= 0.0:
+		_retarget = RETARGET_INTERVAL
+		_acquire_target()
+	if _target == null:
+		return
+
+	var to_target := _target.global_position - global_position
+	match state:
+		State.CHASE:
+			_chase(to_target, delta)
+			if _attack_cd <= 0.0:
+				var choice := _pick_attack(to_target)
+				if not choice.is_empty():
+					_attack = choice
+					_begin_windup(to_target)
+		State.WINDUP:
+			_hold(delta)
+			if _state_left <= 0.0:
+				_strike(to_target)
+		State.STRIKE:
+			if _attack.get("type") == "lunge":
+				velocity = _lunge_dir * float(_attack.get("lunge_speed", 400))
+			else:
+				_hold(delta)
+			if _attack.get("type") == "beam":
+				_beam_tick()
+			if _state_left <= 0.0:
+				_clear_beam()
+				if Net.active:
+					_net_clear_beam.rpc()
+				# Let a real seven-frame attack finish across recovery instead of
+				# snapping back to idle after the hit frame.
+				var recover := maxf(float(_attack.get("recover", 0.35)), _attack_animation_remaining())
+				_set_state(State.RECOVER, recover)
+		State.RECOVER:
+			_hold(delta)
+			if _state_left <= 0.0:
+				_set_state(State.CHASE, 0.0)
+	_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
+	move_and_slide()
+
+	var contact_damage := float(stats.get("damage", 5))
+	if state == State.STRIKE and _attack.get("type") == "lunge":
+		contact_damage = float(_attack.get("damage", contact_damage))
+	# A flyer may pass close, but only a telegraphed dive may hurt by touch.
+	# Ground enemies retain their ordinary contact threat.
+	if _is_flying() and not (state == State.STRIKE and _attack.get("type") == "lunge"):
+		contact_damage = 0.0
+	if contact_damage > 0.0 and _contact_cd <= 0.0:
+		for touched in contact_area.get_overlapping_bodies():
+			if touched is Player and not touched.is_dead():
+				_contact_cd = float(stats.get("attack_interval", 0.8))
+				touched.take_damage(contact_damage, self)
+
+
+## The nearest player still on their feet. In co-op both of you are fair game.
+func _acquire_target() -> void:
+	var best: Player = null
+	var best_distance := INF
+	for node in get_tree().get_nodes_in_group("player"):
+		var candidate := node as Player
+		if candidate == null or candidate.is_dead():
+			continue
+		var distance := candidate.global_position.distance_squared_to(global_position)
+		if distance < best_distance:
+			best_distance = distance
+			best = candidate
+	_target = best
+
+
+# ------------------------------------------------------------- awareness ---
+
+## Idle around the spawn point: walkers pace their ledge and turn at its edge,
+## flyers drift between points in the air. Nothing here hurts anybody.
+func _patrol(delta: float) -> void:
+	var spec: Dictionary = stats.get("patrol", {})
+	var radius := float(spec.get("radius", PATROL_DEFAULTS.radius))
+	var speed := float(stats.get("speed", 50)) * float(spec.get("speed", PATROL_DEFAULTS.speed))
+	var pause: Array = spec.get("pause", PATROL_DEFAULTS.pause)
+	if _is_flying():
+		_bob += delta * 2.0
+		if _patrol_wait > 0.0:
+			_patrol_wait -= delta
+			velocity = Vector2.ZERO
+			if _patrol_wait <= 0.0:
+				_patrol_goal = _home + Vector2(randf_range(-radius, radius), randf_range(-radius * 0.5, radius * 0.5))
+		else:
+			var to_goal := _patrol_goal - global_position
+			if to_goal.length() < 6.0 or get_slide_collision_count() > 0:
+				_patrol_wait = randf_range(float(pause[0]), float(pause[1]))
+				velocity = Vector2.ZERO
+			else:
+				velocity = to_goal.normalized() * speed
+				if absf(to_goal.x) > 4.0:
+					facing = 1 if to_goal.x > 0.0 else -1
+		velocity.y += sin(_bob) * 10.0
+		velocity += _knockback
+		_play("walk" if velocity.length() > 6.0 else "idle")
+		return
+	velocity.y += 1100.0 * delta
+	velocity.x = _knockback.x
+	if _patrol_wait > 0.0:
+		_patrol_wait -= delta
+		if _patrol_wait <= 0.0:
+			# Walk the other way from where we stand, somewhere inside the patch.
+			var side := -signf(global_position.x - _home.x)
+			if side == 0.0:
+				side = 1.0 if randf() < 0.5 else -1.0
+			_patrol_goal = Vector2(_home.x + side * randf_range(radius * 0.4, radius), _home.y)
+			facing = 1 if _patrol_goal.x > global_position.x else -1
+		_play("idle")
+		return
+	var dx := _patrol_goal.x - global_position.x
+	if absf(dx) < 4.0 or _blocked_ahead():
+		_patrol_wait = randf_range(float(pause[0]), float(pause[1]))
+		_play("idle")
+		return
+	facing = 1 if dx > 0.0 else -1
+	velocity.x += facing * speed
+	_play("walk")
+
+
+## A wall in the face, or no floor under the next step.
+## A wall or a drop in the direction a caster is backing into.
+func _ledge_behind(direction: float) -> bool:
+	var saved := facing
+	facing = 1 if direction > 0.0 else -1
+	var blocked := _blocked_ahead()
+	facing = saved
+	return blocked
+
+
+func _blocked_ahead() -> bool:
+	var space := get_world_2d().direct_space_state
+	var ahead := Vector2(facing * 10.0, 0.0)
+	var wall := PhysicsRayQueryParameters2D.create(global_position + Vector2(0, -4), global_position + ahead + Vector2(0, -4), 1)
+	wall.exclude = [get_rid()]
+	if not space.intersect_ray(wall).is_empty():
+		return true
+	var step := PhysicsRayQueryParameters2D.create(global_position + ahead + Vector2(0, 4), global_position + ahead + Vector2(0, 26), SOLID_MASK)
+	step.exclude = [get_rid()]
+	return space.intersect_ray(step).is_empty()
+
+
+## The first player in sight: in the cone ahead with nothing solid between us,
+## or close enough behind to be felt. Touching one counts as well.
+func _spot_player() -> Player:
+	for touched in contact_area.get_overlapping_bodies():
+		if touched is Player and not touched.is_dead():
+			return touched
+	for node in get_tree().get_nodes_in_group("player"):
+		var candidate := node as Player
+		if candidate != null and not candidate.is_dead() and _can_see(candidate):
+			return candidate
+	return null
+
+
+func _can_see(who: Player) -> bool:
+	var spec: Dictionary = stats.get("sight", {})
+	var defaults: Array = SIGHT_DEFAULTS["flyer" if _is_flying() else "walker"]
+	var sight_range := float(spec.get("range", defaults[0]))
+	var height := float(spec.get("height", defaults[1]))
+	var behind := float(spec.get("behind", defaults[2]))
+	var d := who.global_position - global_position
+	if d.length() <= behind:
+		return true
+	if d.x * facing < 0.0 or absf(d.x) > sight_range or absf(d.y) > height:
+		return false
+	var eyes := global_position + Vector2(0, -10)
+	var query := PhysicsRayQueryParameters2D.create(eyes, who.global_position + Vector2(0, -8), SOLID_MASK)
+	query.exclude = [get_rid()]
+	return get_world_2d().direct_space_state.intersect_ray(query).is_empty()
+
+
+## "!" — one readable beat, then the hunt. Sleepers nearby wake with us.
+func _notice(who: Player, shout := true) -> void:
+	if not is_unaware():
+		return
+	_target = who
+	aware = true
+	_set_state(State.ALERT, ALERT_TIME)
+	var d := who.global_position - global_position
+	if absf(d.x) > 4.0:
+		facing = 1 if d.x > 0.0 else -1
+	_alert_fx()
+	if Net.active:
+		_net_alert.rpc(facing)
+	if shout:
+		for node in get_tree().get_nodes_in_group("enemies"):
+			var other := node as Enemy
+			if other != null and other != self and other.is_unaware() \
+					and other.global_position.distance_to(global_position) <= SHOUT_RADIUS:
+				other._notice(who, false)
+
+
+## What the sword sounds like landing on this body: its own clips if the
+## bestiary has them (<voice>_impact_1..3), otherwise the set for whatever it
+## is made of ("material" in the JSON: flesh, cloth, mail, plate, bone,
+## feather, spirit, gold), otherwise the generic blow. Asked for by whoever
+## swung, so the hit is heard the moment it lands and not a round trip later.
+func impact_sound() -> StringName:
+	var own := StringName("%s_impact" % str(stats.get("voice", enemy_id)))
+	if Audio.has_clip(own):
+		return own
+	var material := StringName("hit_%s" % str(stats.get("material", "flesh")))
+	return material if Audio.has_clip(material) else &"hit"
+
+
+## Every creature in the bestiary has its own voice: clips named
+## <voice>_alert / _attack / _hurt / _death in assets/audio/sfx ("voice" in the
+## enemy's data, its id by default). Where one is missing the generic cue plays.
+func _voice(kind: String, fallback: StringName, volume_db := 0.0) -> void:
+	var own := StringName("%s_%s" % [str(stats.get("voice", enemy_id)), kind])
+	if Audio.has_clip(own):
+		Audio.play_at(own, global_position, volume_db)
+	elif fallback != &"":
+		Audio.play_at(fallback, global_position, volume_db)
+
+
+func _alert_fx() -> void:
+	_play("idle")
+	_voice("alert", &"", -6.0)
+	Fx.popup(global_position + Vector2(0, -28), "!", Color(1.0, 0.85, 0.4), 12)
+	visual.modulate = Color(1.6, 1.3, 1.0)
+	create_tween().tween_property(visual, "modulate", Color.WHITE, 0.25)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_alert(new_facing: int) -> void:
+	facing = new_facing
+	_alert_fx()
+
+
+func _chase(to_target: Vector2, delta: float) -> void:
+	var speed := float(stats.get("speed", 50))
+	var aggro := float(stats.get("aggro_range", 380))
+	var chase := Vector2.ZERO
+	match stats.get("behaviour", "walker"):
+		"flyer":
+			_bob += delta * 3.0
+			_fly_phase_left -= delta
+			if _fly_phase_left <= 0.0:
+				_fly_phase = 1 - _fly_phase
+				_fly_phase_left = randf_range(1.0, 2.0)
+			# Advance, then drift out and higher; each flyer has its own timing.
+			var side := signf(to_target.x) if absf(to_target.x) > 4.0 else float(facing)
+			var distance := float(stats.get("hover_distance", 60.0)) + (30.0 if _fly_phase == 1 else -12.0)
+			var height := 32.0 + 17.0 * _fly_phase
+			var goal := to_target - Vector2(side * distance, height)
+			if goal.length() > 6.0:
+				chase = goal.normalized() * minf(speed, goal.length() * 3.0)
+			chase.y += sin(_bob) * 18.0
+			velocity = chase + _knockback
+		"boss_ophanim":
+			_bob += delta * 2.0
+			_hover_timer -= delta
+			if _hover_timer <= 0.0:
+				_hover_side = -_hover_side
+				_hover_timer = randf_range(2.5, 4.5)
+			var hover := _target.global_position + Vector2(150.0 * _hover_side, -100.0)
+			hover.y = clampf(hover.y, 70.0, 250.0)
+			var goal := hover - global_position
+			if goal.length() > 8.0:
+				chase = goal.normalized() * minf(speed, goal.length() * 3.0)
+			chase.y += sin(_bob) * 20.0
+			velocity = chase + _knockback
+		_:
+			velocity.y += 1100.0 * delta
+			# The close stance is for a ready attack. During cooldown, hold just
+			# outside melee range; after a strike, backstep before returning.
+			var stop_at := float(stats.get("size", 12)) * 0.5 + 11.0
+			var melee_range := 0.0
+			for attack in _attacks:
+				if attack.get("type") == "ranged":
+					stop_at = maxf(stop_at, float(attack.get("range", 0)) * 0.6)
+				elif attack.get("type") == "melee":
+					melee_range = maxf(melee_range, float(attack.get("range", 30)))
+			if stats.get("behaviour", "walker") == "caster":
+				var preferred := maxf(stop_at, float(stats.get("keep_away", 90)))
+				if _disengage_left > 0.0:
+					preferred += _retreat_distance
+				if absf(to_target.x) < preferred - 5.0:
+					var away := -signf(to_target.x)
+					if not _ledge_behind(away):
+						chase.x = away * speed * _retreat_speed
+				elif absf(to_target.x) > preferred + 12.0 and absf(to_target.x) < aggro:
+					var toward := signf(to_target.x)
+					if not _ledge_behind(toward):
+						chase.x = toward * speed * 0.75
+			elif _disengage_left > 0.0 and melee_range > 0.0 and not stats.get("boss", false):
+				var retreat_dir := -signf(to_target.x)
+				if absf(to_target.x) < stop_at + _retreat_distance and not _ledge_behind(retreat_dir):
+					chase.x = retreat_dir * speed * _retreat_speed
+			else:
+				var stance := stop_at
+				if _attack_cd > 0.3 and melee_range > 0.0:
+					stance = maxf(stance, melee_range + 8.0)
+				if absf(to_target.x) < aggro and absf(to_target.x) > stance:
+					chase.x = signf(to_target.x) * speed
+			velocity.x = chase.x + _knockback.x
+			velocity.y += _knockback.y
+	if absf(to_target.x) > 4.0:
+		facing = 1 if to_target.x > 0.0 else -1
+	_play("walk" if chase.length() > 1.0 else "idle")
+
+
+## Stand still (walkers keep gravity) while winding up / striking / recovering.
+func _hold(delta: float) -> void:
+	match stats.get("behaviour", "walker"):
+		"flyer", "boss_ophanim":
+			# _knockback already represents the full impulse; adding it to last
+			# frame's velocity again made flyers accelerate away without bound.
+			velocity = _knockback
+		_:
+			velocity.x = _knockback.x
+			velocity.y += 1100.0 * delta
+
+
+## Weighted random among the attacks whose range and phase conditions hold.
+## "from_hp": 0.66 makes an attack available only once hp is at or below 66 %;
+## "until_hp": 0.66 retires it after that. Phases change behaviour, not HP.
+func _pick_attack(to_target: Vector2) -> Dictionary:
+	var candidates: Array = []
+	var total := 0.0
+	var fraction := hp / _max_hp
+	for attack in _attacks:
+		if fraction > float(attack.get("from_hp", 1.0)) or fraction <= float(attack.get("until_hp", 0.0)):
+			continue
+		if _in_attack_range(attack, to_target):
+			candidates.append(attack)
+			total += float(attack.get("weight", 1.0))
+	if candidates.is_empty():
+		return {}
+	var roll := randf() * total
+	for attack in candidates:
+		roll -= float(attack.get("weight", 1.0))
+		if roll <= 0.0:
+			return attack
+	return candidates.back()
+
+
+func _in_attack_range(attack: Dictionary, to_target: Vector2) -> bool:
+	var range := float(attack.get("range", 30))
+	match attack.get("type", "melee"):
+		"melee":
+			return absf(to_target.x) <= range and absf(to_target.y) <= 26.0
+		"beam":
+			# Only worth firing when the player is roughly on one of the two axes.
+			return to_target.length() <= range and (absf(to_target.y) < 60.0 or absf(to_target.x) < 60.0)
+		"nova":
+			return to_target.length() <= float(attack.get("trigger_range", range))
+		"summon":
+			return to_target.length() <= range and _summons_near(attack) < int(attack.get("max_alive", 2))
+		_:
+			return to_target.length() <= range
+
+
+func _begin_windup(to_target: Vector2) -> void:
+	_set_state(State.WINDUP, float(_attack.get("windup", 0.5)))
+	facing = 1 if to_target.x >= 0.0 else -1
+	var beam: bool = _attack.get("type", "melee") == "beam"
+	var length := float(_attack.get("length", 420))
+	var thickness := float(_attack.get("thickness", 26))
+	var color := str(_attack.get("color", "#ffe9a8"))
+	_telegraph(_state_left, beam, length, thickness, color)
+	if Net.active:
+		_net_telegraph.rpc(facing, _state_left, beam, length, thickness, color)
+
+
+## The telegraph: a bright pulse the player can read from across the room, and
+## the breath before the swing for anyone looking the other way. Runs on every
+## peer already, so the sound rides along without an RPC of its own.
+func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26.0, color := "#ffe9a8") -> void:
+	_voice("attack", &"enemy_windup", -11.0)
+	_play(str(_attack.get("animation", "attack")), true)
+	visual.modulate = Color(1.0, 0.85, 0.7)
+	var tween := create_tween()
+	tween.tween_property(visual, "modulate", Color(2.2, 1.6, 1.2), duration * 0.8)
+	tween.tween_property(visual, "modulate", Color.WHITE, 0.1)
+	# The wind-up also brightens the room around the enemy: readable in the dark.
+	Fx.flash(global_position + Vector2(0, -10), Color(color), 60.0, duration, 0.6)
+	if beam:
+		_show_beam(true, duration, length, thickness, color)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_telegraph(new_facing: int, duration: float, beam: bool, length: float, thickness: float, color: String) -> void:
+	facing = new_facing
+	_telegraph(duration, beam, length, thickness, color)
+
+
+func _strike(to_target: Vector2) -> void:
+	_attack_cd = float(_attack.get("cooldown", 1.5))
+	if _attack.get("type") == "melee" and not stats.get("boss", false):
+		# Include the strike and recovery in the timer, leaving a visible
+		# backstep once CHASE resumes without delaying the next ready attack.
+		_disengage_left = minf(_attack_cd * 0.8,
+			float(_attack.get("recover", 0.35)) + 0.18 + randf_range(0.55, 0.8))
+	elif stats.get("behaviour", "walker") == "caster" and _attack.get("type") in ["ranged", "summon", "beam"]:
+		_disengage_left = minf(_attack_cd * 0.7,
+			float(_attack.get("recover", 0.35)) + 0.25 + randf_range(0.5, 0.75))
+	var animation := str(_attack.get("animation", "attack"))
+	var own_sfx := StringName(str(_attack.get("sfx", "")))
+	if own_sfx != &"" and Audio.has_clip(own_sfx):
+		Audio.play_at(own_sfx, global_position, -5.0)
+	match _attack.get("type", "melee"):
+		"melee":
+			_set_state(State.STRIKE, 0.18)
+			_play(animation)
+			Audio.play(&"enemy_swing", -8.0)
+			if Net.active:
+				_net_strike.rpc("melee", animation)
+			_melee_hit()
+		"ranged":
+			_set_state(State.STRIKE, 0.25)
+			_play(animation)
+			var direction := (to_target + Vector2(0, -14)).normalized()
+			var origin := global_position + Vector2(facing * 12.0, -14.0)
+			var count := maxi(1, int(_attack.get("projectiles", 1)))
+			var spread := deg_to_rad(float(_attack.get("spread", 0.0)))
+			for i in count:
+				var offset := 0.0 if count == 1 else lerpf(-spread * 0.5, spread * 0.5, float(i) / float(count - 1))
+				var shot := direction.rotated(offset)
+				_spawn_projectile(origin, shot, false)
+				if Net.active:
+					_net_projectile.rpc(origin, shot, float(_attack.get("projectile_speed", 170)),
+						str(_attack.get("color", "#ffd27a")), _projectile_style())
+		"lunge":
+			_set_state(State.STRIKE, float(_attack.get("lunge_time", 0.45)))
+			_lunge_dir = (to_target + Vector2(0, -10)).normalized()
+			_play(animation)
+			_lunge_fx()
+			if Net.active:
+				_net_strike.rpc("lunge", animation)
+		"beam":
+			_set_state(State.STRIKE, float(_attack.get("duration", 0.45)))
+			_play(animation)
+			_beam_hit = {}
+			_beam_fx(float(_attack.get("length", 420)), float(_attack.get("thickness", 26)),
+				str(_attack.get("color", "#ffe9a8")))
+			if Net.active:
+				_net_beam.rpc(float(_attack.get("length", 420)), float(_attack.get("thickness", 26)),
+					str(_attack.get("color", "#ffe9a8")))
+		"summon":
+			_set_state(State.STRIKE, 0.45)
+			_play(animation)
+			_call_up(_attack)
+			if Net.active:
+				_net_strike.rpc("summon", animation)
+		"nova":
+			_set_state(State.STRIKE, float(_attack.get("duration", 0.3)))
+			_play(animation)
+			_nova_fx(float(_attack.get("radius", 90)), str(_attack.get("color", "#b86cff")))
+			_nova_hit()
+			if Net.active:
+				_net_nova.rpc(float(_attack.get("radius", 90)), str(_attack.get("color", "#b86cff")))
+
+
+func _lunge_fx() -> void:
+	var animation := str(_attack.get("animation", "attack"))
+	if _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
+		sprite.frame = 1
+	Juice.shake(3.0)
+
+
+func _beam_fx(length: float, thickness: float, color: String) -> void:
+	var animation := str(_attack.get("animation", "attack"))
+	if _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
+		sprite.frame = 1
+	_show_beam(false, 0.0, length, thickness, color)
+	Fx.flash(global_position, Color(color), 180.0, 0.5, 1.3)
+	Audio.play(&"beam", -2.0)
+	Juice.shake(5.0)
+	Juice.hit_stop(0.05)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_strike(kind: String, animation := "attack") -> void:
+	_play(animation)
+	Audio.play(&"enemy_swing", -8.0)
+	if kind == "lunge":
+		_lunge_fx()
+	elif kind == "summon":
+		_summon_fx()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_beam(length: float, thickness: float, color: String) -> void:
+	_beam_fx(length, thickness, color)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_clear_beam() -> void:
+	_clear_beam()
+	_play("idle")
+
+
+func _nova_fx(radius: float, color: String) -> void:
+	Fx.flash(global_position + Vector2(0, -8), Color(color), radius, 0.45, 1.2)
+	Fx.puff(global_position + Vector2(0, -8), radius / 40.0, Color(color))
+	Juice.shake(4.0)
+
+
+func _nova_hit() -> void:
+	var radius := float(_attack.get("radius", 90))
+	for node in get_tree().get_nodes_in_group("player"):
+		var victim := node as Player
+		if victim != null and not victim.is_dead() and victim.global_position.distance_to(global_position) <= radius:
+			victim.take_damage(float(_attack.get("damage", 12)), self)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_nova(radius: float, color: String) -> void:
+	_nova_fx(radius, color)
+
+
+func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool) -> void:
+	Audio.play(&"projectile", -9.0)
+	var projectile := PROJECTILE_SCENE.instantiate()
+	projectile.damage = float(_attack.get("damage", 10)) if not cosmetic else 0.0
+	projectile.speed = float(_attack.get("projectile_speed", 170))
+	projectile.direction = direction
+	projectile.tint = Color(_attack.get("color", "#ffd27a"))
+	projectile.visual_style = _projectile_style()
+	projectile.cosmetic = cosmetic
+	get_parent().add_child(projectile)
+	projectile.global_position = origin
+
+
+## Bolts fly straight at a constant speed, so a client can draw its own copy
+## instead of paying for a replicated node per shot. Only the host's bolt bites.
+@rpc("authority", "call_remote", "reliable")
+func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: String, style: String) -> void:
+	var projectile := PROJECTILE_SCENE.instantiate()
+	projectile.damage = 0.0
+	projectile.speed = speed
+	projectile.direction = direction
+	projectile.tint = Color(color)
+	projectile.visual_style = style
+	projectile.cosmetic = true
+	get_parent().add_child(projectile)
+	projectile.global_position = origin
+
+
+func _projectile_style() -> String:
+	var explicit_style := str(_attack.get("projectile_style", ""))
+	if explicit_style in ["sacred", "umbral", "wraith", "zealot", "acolyte", "preacher", "cult", "ash", "ophanim"]:
+		return explicit_style
+	if enemy_id == "wraith":
+		return "wraith"
+	var tags: Array = stats.get("tags", [])
+	if "cult" in tags or "fallen" in tags or "spirit" in tags or "possessed" in tags:
+		return "umbral"
+	return "sacred"
+
+
+func _soul_affinity() -> String:
+	var override := str(stats.get("soul_affinity", ""))
+	if override in ["light", "dark"]:
+		return override
+	var tags: Array = stats.get("tags", [])
+	for corrupted in ["possessed", "undead", "fallen", "spirit", "demon", "unclean"]:
+		if corrupted in tags:
+			return "dark"
+	# Humans, angels and animals leave warm motes. A cultist is still human;
+	# only actual corruption makes its soul-effect dark.
+	return "light"
+
+
+## Cross of light through the boss: thin while winding up, thick while firing.
+func _show_beam(telegraph: bool, duration := 0.0, length := 420.0, thickness := 26.0, color_hex := "#ffe9a8") -> void:
+	_clear_beam()
+	var color := Color(color_hex)
+	var material := CanvasItemMaterial.new()
+	material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	for axis in [Vector2.RIGHT, Vector2.DOWN]:
+		# a wide soft halo under a hot core
+		for layer in ([[2.0, 0.35]] if telegraph else [[thickness * 2.4, 0.25], [thickness, 0.95]]):
+			var line := Line2D.new()
+			line.points = PackedVector2Array([-axis * length, axis * length])
+			line.width = layer[0]
+			line.default_color = Color(color, layer[1])
+			line.z_index = 3
+			line.material = material
+			add_child(line)
+			_beam_lines.append(line)
+	if telegraph:
+		for line in _beam_lines:
+			create_tween().tween_property(line, "width", 6.0, duration)
+
+
+func _beam_tick() -> void:
+	for line in _beam_lines:
+		line.default_color.a = clampf(line.default_color.a * randf_range(0.8, 1.15), 0.15, 1.0)
+	var half := float(_attack.get("thickness", 26)) / 2.0 + 6.0
+	var length := float(_attack.get("length", 420))
+	for node in get_tree().get_nodes_in_group("player"):
+		var victim := node as Player
+		if victim == null or victim.is_dead() or _beam_hit.has(victim):
+			continue
+		var d := victim.global_position - global_position
+		if (absf(d.y - 10.0) < half and absf(d.x) < length) or (absf(d.x) < half and absf(d.y) < length):
+			_beam_hit[victim] = true
+			victim.take_damage(float(_attack.get("damage", 20)), self)
+
+
+func _clear_beam() -> void:
+	for line in _beam_lines:
+		line.queue_free()
+	_beam_lines.clear()
+
+
+func _melee_hit() -> void:
+	attack_area.monitoring = true
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if not is_inside_tree() or state == State.DEAD:
+		return
+	for body_hit in attack_area.get_overlapping_bodies():
+		if body_hit is Player and not body_hit.is_dead():
+			body_hit.take_damage(float(_attack.get("damage", 10)), self)
+	attack_area.monitoring = false
+
+
+## The second frame of the swing, for the enemies that have one drawn.
+func _hold_attack_frame() -> void:
+	var animation := str(_attack.get("animation", "attack"))
+	if _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
+		sprite.frame = 1
+
+
+func _set_state(new_state: State, duration: float) -> void:
+	state = new_state
+	_state_left = duration
+
+
+func _play(animation: String, hold_first_frame := false) -> void:
+	if not _has_anim.has(animation) or sprite.animation == animation and sprite.is_playing() and not hold_first_frame:
+		return
+	sprite.play(animation)
+	if hold_first_frame:
+		sprite.pause()
+		sprite.frame = 0
+
+
+func _attack_animation_remaining() -> float:
+	if sprite.sprite_frames == null or not _has_anim.has(sprite.animation):
+		return 0.0
+	var count := sprite.sprite_frames.get_frame_count(sprite.animation)
+	var fps := sprite.sprite_frames.get_animation_speed(sprite.animation)
+	if count <= 1 or fps <= 0.0:
+		return 0.0
+	return maxf(0.0, float(count - sprite.frame - 1) / fps)
+
+
+## The one door damage comes through. Enemies live on the host, so a client
+## reports the hit and lets the host decide what it was worth.
+func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> void:
+	var from: Vector2 = source.global_position if source is Node2D else global_position
+	var crit := bool(info.get("crit", false))
+	var knockback := float(info.get("knockback", 1.0))
+	var sneak := float(info.get("sneak", 1.0))
+	var execute := float(info.get("execute", 0.0))
+	if Net.active and not multiplayer.is_server():
+		if multiplayer.get_peers().has(1):
+			_net_hit.rpc_id(1, amount, from, crit, knockback, sneak, execute)
+		return
+	_apply_damage(amount, from, source != null, crit, knockback, sneak, execute)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_hit(amount: float, from: Vector2, crit: bool, knockback: float, sneak: float, execute := 0.0) -> void:
+	_apply_damage(amount, from, true, crit, knockback, sneak, execute)
+
+
+## [param sneak] is what the blow is worth on a body that never saw it coming;
+## only the host knows whether this one did, so the multiplier is applied here.
+func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knockback: float, sneak := 1.0,
+		execute := 0.0) -> void:
+	if state == State.DEAD:
+		return
+	var backstab := is_unaware() and sneak > 1.0
+	if backstab:
+		amount *= sneak
+		crit = true
+	# The execution: worth nothing on a healthy body, everything on a spent one.
+	# Only this side knows how much is left, so the multiplier is applied here.
+	if execute > 0.0 and hp <= _max_hp * EXECUTE_BELOW:
+		amount *= 1.0 + execute
+		crit = true
+	var riposte := _open_left > 0.0
+	if riposte:
+		_open_left = 0.0  # one riposte per parry
+		amount *= RIPOSTE_MULTIPLIER
+		crit = true
+	amount *= 1.0 - clampf(float(stats.get("armor", 0.0)), 0.0, 0.5)  # FinalDamage = Base × (1 − armor)
+	hp -= amount
+	var away := signf(global_position.x - from.x)
+	if away == 0.0:
+		away = float(facing)
+	_hit_fx(amount, crit, hp, away, backstab)
+	if Net.active:
+		_net_hit_fx.rpc(amount, crit, hp, _max_hp, away, backstab)
+	if riposte:
+		_riposte_fx()
+		if Net.active:
+			_net_riposte_fx.rpc()
+	if is_unaware():
+		# Whoever it was, it is awake now; the nearest player is picked up on the next tick.
+		aware = true
+		_target = null
+		_set_state(State.CHASE, 0.0)
+	if pushed and not stats.get("boss", false):
+		var push := 170.0 * knockback * (1.4 if crit else 1.0)
+		if _is_flying():
+			push = minf(push, 190.0)
+		_knockback = Vector2(away * push, -35.0 if _is_flying() else -60.0)
+		if state == State.WINDUP and randf() < float(stats.get("stagger_chance", 0.35)):
+			_set_state(State.RECOVER, 0.4)  # interrupted the wind-up
+			_play("idle")
+			_clear_beam()
+			if Net.active:
+				_net_clear_beam.rpc()
+		elif state == State.CHASE:
+			# Knocked out of its stride: while it is walking at you a hit has to
+			# actually stop it, otherwise the body walks the push straight off
+			# and the sword looks like it passed through. An attack already in
+			# motion still plays out — that is what stagger_chance is for.
+			_set_state(State.RECOVER, float(stats.get("flinch", 0.18)))
+			_play("idle")
+	if hp > 0.0:
+		_play("hurt")
+	if stats.get("boss", false) and not _summoned and stats.has("summons") \
+			and hp <= _max_hp * float(stats.summons.get("at_hp", 0.5)):
+		_summon()
+	if hp <= 0.0:
+		if Net.active:
+			_net_die.rpc()
+		_die()
+
+
+## The player's block caught this swing on the beat (Player._parry): the blow is
+## dead, the attack is abandoned and the body is open for a riposte. Enemies
+## live on the host, so a client reports the parry and lets the host act on it.
+func parried(by: Node2D) -> void:
+	var from: Vector2 = by.global_position if by != null else global_position
+	if Net.active and not multiplayer.is_server():
+		if multiplayer.get_peers().has(1):
+			_net_parried.rpc_id(1, from)
+		return
+	_apply_parry(from)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_parried(from: Vector2) -> void:
+	_apply_parry(from)
+
+
+func _apply_parry(from: Vector2) -> void:
+	if state == State.DEAD:
+		return
+	var boss: bool = stats.get("boss", false)
+	var opening := float(stats.get("parry_opening", PARRY_OPENING)) * (0.5 if boss else 1.0)
+	_clear_beam()
+	if Net.active:
+		_net_clear_beam.rpc()
+	_open_left = opening
+	_attack_cd = maxf(_attack_cd, opening + 0.3)
+	_set_state(State.RECOVER, opening)
+	_play("idle")
+	var away := signf(global_position.x - from.x)
+	if away == 0.0:
+		away = -float(facing)
+	if not boss:
+		_knockback = Vector2(away * 220.0, -80.0)
+	_parried_fx(away)
+	if Net.active:
+		_net_parried_fx.rpc(away)
+
+
+## Thrown off balance: rocked back, the colour knocked out of it, and a word so
+## the player knows the next blow is worth more.
+func _parried_fx(away: float) -> void:
+	Fx.popup(global_position + Vector2(0, -36), tr("HUD_PARRY"), Color(0.8, 0.9, 1.0), 9)
+	visual.modulate = Color(0.55, 0.65, 1.0)
+	create_tween().tween_property(visual, "modulate", Color.WHITE, 0.5)
+	Fx.impact(global_position + Vector2(away * -6.0, -12.0), Vector2(away, -0.5), Color(0.85, 0.92, 1.0), 10)
+
+
+@rpc("authority", "call_remote", "unreliable")
+func _net_parried_fx(away: float) -> void:
+	_parried_fx(away)
+
+
+## The blow that answers a parry: named, and given a beat of its own.
+func _riposte_fx() -> void:
+	Fx.popup(global_position + Vector2(0, -44), tr("HUD_RIPOSTE"), Color(1.0, 0.85, 0.4), 9)
+	Juice.hit_stop(0.08, 0.05)
+	Juice.shake(4.0)
+
+
+@rpc("authority", "call_remote", "unreliable")
+func _net_riposte_fx() -> void:
+	_riposte_fx()
+
+
+## What a hit looks like from the receiving end: a white blow-out, a squash that
+## springs back, sparks thrown the way the blade was going, and the number.
+## [param away] is -1 or 1: the direction the hit came from, pointing outwards.
+func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := false) -> void:
+	Fx.damage_number(global_position, amount, Color(1.0, 0.8, 0.3) if crit else Color(1, 0.95, 0.8))
+	if backstab:
+		# The one hit that is meant to feel like a decision: name it and let it land.
+		Fx.popup(global_position + Vector2(0, -36), tr("HUD_BACKSTAB"), Color(1.0, 0.7, 0.25), 9)
+		Juice.hit_stop(0.1, 0.05)
+		Juice.shake(4.0)
+	# The drawn burst: steel sparks on every blow, blood on the ones that open something.
+	Fx.hit(global_position + Vector2(away * -3.0, -10.0), "blood" if backstab or crit else "spark",
+		0.8 if crit else 0.6, away > 0.0)
+	hp_bar.visible = not stats.get("boss", false)
+	hp_bar.size.x = 14.0 * clampf(new_hp / _max_hp, 0.0, 1.0)
+	visual.modulate = Color(3, 3, 3)
+	create_tween().tween_property(visual, "modulate", Color.WHITE, 0.12)
+	_voice("hurt", &"enemy_hurt", -12.0)
+	_punch(crit)
+	# Sparks fly off the side the blade came from, up and outwards.
+	Fx.impact(global_position + Vector2(away * -7.0, -10.0), Vector2(away, -0.35),
+		Color(1.0, 0.75, 0.35) if crit else Color(1, 0.9, 0.7), 13 if crit else 9)
+	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.8, 0.5), 50.0 if crit else 36.0, 0.18, 0.9)
+	if stats.get("boss", false):
+		EventBus.boss_hp_changed.emit(stats.get("name", ""), maxf(new_hp, 0.0), _max_hp)
+
+
+## Squash on the way in, spring back out. Set through the property name because
+## a body is either a Node2D sprite or the fallback Control rectangle, and only
+## the two of them (not CanvasItem) have a scale — both pivot on their centre.
+func _punch(crit: bool) -> void:
+	var squash := Vector2(1.3, 0.74) if crit else Vector2(1.18, 0.84)
+	visual.set("scale", _visual_scale * squash)
+	var tween := create_tween()
+	tween.tween_property(visual, "scale", _visual_scale, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## The host also sends its own max: difficulty is a per-player setting, so the
+## numbers a client computed at spawn are not the numbers being fought.
+@rpc("authority", "call_remote", "unreliable_ordered")
+func _net_hit_fx(amount: float, crit: bool, new_hp: float, max_hp: float, away: float, backstab: bool) -> void:
+	hp = new_hp
+	_max_hp = maxf(max_hp, 1.0)
+	_hit_fx(amount, crit, new_hp, away, backstab)
+
+
+## Attack type "summon": after its wind-up, calls "count" of "id" out of the
+## ground beside it, unless "max_alive" of them are already about. The run
+## spawns them (replicated in a session).
+func _call_up(attack: Dictionary) -> void:
+	_summon_fx()
+	var wanted := mini(int(attack.get("count", 1)), int(attack.get("max_alive", 2)) - _summons_near(attack))
+	for i in wanted:
+		var offset := Vector2(randf_range(24.0, 60.0) * (1 if i % 2 == 0 else -1), -18.0)
+		EventBus.enemy_spawn_requested.emit(str(attack.get("id", "shade")), global_position + offset)
+		Fx.puff(global_position + offset, 1.0, Color(0.6, 0.4, 0.8))
+
+
+func _summons_near(attack: Dictionary) -> int:
+	var count := 0
+	for other in get_tree().get_nodes_in_group("enemies"):
+		var body := other as Enemy
+		if body != null and body != self and not body.is_dead() and body.enemy_id == str(attack.get("id", "shade")) \
+				and body.global_position.distance_to(global_position) < 320.0:
+			count += 1
+	return count
+
+
+func _summon_fx() -> void:
+	Audio.play(&"summon", -6.0, 0.0)
+	Fx.flash(global_position + Vector2(0, -12), Color(0.65, 0.4, 1.0), 110.0, 0.5, 1.2)
+	Fx.sparkle(global_position + Vector2(0, 8), Color(0.7, 0.5, 1.0), 16, 20.0)
+
+
+func _summon() -> void:
+	Audio.play(&"summon", -3.0, 0.0)
+	_summoned = true
+	for i in int(stats.summons.get("count", 2)):
+		var offset := Vector2(randf_range(-60, 60), randf_range(-30, 10))
+		# The run owns spawning: in a session it also has to be replicated.
+		EventBus.enemy_spawn_requested.emit(str(stats.summons.get("id", "shade")), global_position + offset)
+		Fx.puff(global_position + offset, 1.2, Color(0.6, 0.4, 0.7))
+
+
+## Counts as dead immediately; the body plays its death strip or an "ash" squash.
+## On a client this is the mirror of the host's death: same theatre, no bookkeeping.
+@rpc("authority", "call_remote", "reliable")
+func _net_die() -> void:
+	_die()
+
+
+func _die() -> void:
+	if state == State.DEAD:
+		return
+	state = State.DEAD
+	EventBus.enemy_died.emit(StringName(enemy_id), global_position)
+	var is_boss: bool = stats.get("boss", false)
+	if _simulated:
+		Game.add_essence(float(stats.get("essence", 10)))
+		if is_boss:
+			Game.ash_earned += int(stats.get("ash", 10))
+		match stats.get("on_death", {}).get("type", ""):
+			"explode":
+				_explode(stats.on_death)
+	_voice("death", &"boss_death" if is_boss else &"enemy_death")
+	Juice.shake(9.0 if is_boss else 2.5)
+	if is_boss:
+		Juice.hit_stop(0.25, 0.1)
+		EventBus.boss_died.emit()
+	set_physics_process(false)
+	_clear_beam()
+	collision_layer = 0
+	collision_mask = 0
+	contact_area.monitoring = false
+	attack_area.monitoring = false
+	hp_bar.visible = false
+	Fx.puff(global_position + Vector2(0, -8), 1.6 if is_boss else 0.8)
+	# Cosmetic essence has its own readable allegiance; the numeric reward above
+	# is unchanged. Possession and undeath override a human origin.
+	var dark := _soul_affinity() == "dark"
+	var tint := Color(0.57, 0.37, 0.79) if dark else Color(1.0, 0.88, 0.61)
+	Fx.ash(global_position + Vector2(0, -8), tint, 18 if is_boss else 7, 65.0 if dark else 42.0, 14.0 if is_boss else 8.0)
+	Fx.essence_release(global_position + Vector2(0, -10), dark, 19 if is_boss else 9)
+	Fx.flash(global_position + Vector2(0, -8), tint, 140.0 if is_boss else 60.0, 0.9 if is_boss else 0.4)
+	if _shadow != null:
+		_shadow.visible = false
+	if _light != null:
+		create_tween().tween_method(_light.set_base_energy, _light.energy, 0.0, 0.5)
+	if is_boss and stats.get("lingers", true):
+		# A boss is not a corpse: it dims and hangs where it fell, so the scene
+		# that follows (its last words) has somebody to look at. The room takes
+		# it away when it changes.
+		if _has_anim.has("death"):
+			sprite.play("death")
+		create_tween().tween_property(visual, "modulate:a", 0.35, 1.2)
+		return
+	if _has_anim.has("death"):
+		sprite.play("death")
+		await sprite.animation_finished
+		if not is_inside_tree():
+			return
+		var tween := create_tween()
+		tween.tween_property(visual, "modulate:a", 0.0, 0.35)
+		tween.tween_callback(_leave)
+	else:
+		var tween := create_tween()
+		tween.tween_property(visual, "scale", Vector2(1.7, 0.1), 0.12)
+		tween.parallel().tween_property(visual, "modulate", Color(1, 1, 1, 0), 0.12)
+		tween.tween_callback(_leave)
+
+
+## Only the host removes the node: the spawner takes the corpse off the clients.
+func _leave() -> void:
+	if _simulated:
+		queue_free()
+	else:
+		visible = false
+
+
+## Elite mechanic: a blast around the corpse the player has to step away from.
+func _explode(spec: Dictionary) -> void:
+	var radius := float(spec.get("radius", 40))
+	var damage := float(spec.get("damage", 12)) * Game.enemy_damage_multiplier()
+	await get_tree().create_timer(float(spec.get("delay", 0.6))).timeout
+	if not is_inside_tree():
+		return
+	Fx.puff(global_position, radius / 24.0, Color(1.0, 0.5, 0.3))
+	Audio.play_at(&"explode", global_position)
+	Juice.shake(4.0)
+	for node in get_tree().get_nodes_in_group("player"):
+		var victim := node as Player
+		if victim != null and not victim.is_dead() and victim.global_position.distance_to(global_position) <= radius:
+			victim.take_damage(damage, self)

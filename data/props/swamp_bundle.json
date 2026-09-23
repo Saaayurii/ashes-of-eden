@@ -1,0 +1,18 @@
+{
+  "id": "swamp_bundle",
+  "kind": "destructible",
+  "hp": 2,
+  "essence": 6,
+  "hitbox": [28, 32],
+  "sprite": {
+    "path": "res://assets/props/swamp_bundle.png",
+    "frame_w": 48,
+    "frame_h": 44,
+    "ground_pad": 2,
+    "frames": 4
+  },
+  "ambient": "spores",
+  "idle_frames": 2,
+  "hit_frame": 2,
+  "debris": "#55613c"
+}

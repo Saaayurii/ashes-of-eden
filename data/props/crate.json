@@ -1,0 +1,17 @@
+{
+  "id": "crate",
+  "kind": "destructible",
+  "hp": 1,
+  "essence": 4,
+  "hitbox": [
+    22,
+    24
+  ],
+  "sprite": {
+    "path": "res://assets/props/crate.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#9a7a50"
+}

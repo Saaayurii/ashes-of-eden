@@ -1,0 +1,266 @@
+[
+  {
+    "id": "stubbornness",
+    "name": "ABILITY_STUBBORNNESS_NAME",
+    "description": "ABILITY_STUBBORNNESS_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/status_1.png",
+    "rarity": "epic",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "extra_life",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "steady_hand",
+    "name": "ABILITY_STEADY_HAND_NAME",
+    "description": "ABILITY_STEADY_HAND_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/gear_10.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_damage",
+        "op": "add",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "quick_feet",
+    "name": "ABILITY_QUICK_FEET_NAME",
+    "description": "ABILITY_QUICK_FEET_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/gear_13.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "speed",
+        "op": "mul",
+        "value": 1.15
+      },
+      {
+        "type": "stat",
+        "stat": "dash_cooldown",
+        "op": "mul",
+        "value": 0.75
+      }
+    ]
+  },
+  {
+    "id": "iron_vigil",
+    "name": "ABILITY_IRON_VIGIL_NAME",
+    "description": "ABILITY_IRON_VIGIL_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/potion_1.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "heal_charges",
+        "op": "add",
+        "value": 1
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "id": "measured_breath",
+    "name": "ABILITY_MEASURED_BREATH_NAME",
+    "description": "ABILITY_MEASURED_BREATH_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/relic_7.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_cooldown",
+        "op": "mul",
+        "value": 0.88
+      }
+    ]
+  },
+  {
+    "id": "sure_footing",
+    "name": "ABILITY_SURE_FOOTING_NAME",
+    "description": "ABILITY_SURE_FOOTING_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/trinket_7.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "dash_time",
+        "op": "add",
+        "value": 0.06
+      },
+      {
+        "type": "stat",
+        "stat": "dash_cooldown",
+        "op": "mul",
+        "value": 0.85
+      }
+    ]
+  },
+  {
+    "id": "duelists_poise",
+    "name": "ABILITY_DUELISTS_POISE_NAME",
+    "description": "ABILITY_DUELISTS_POISE_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/marker_3.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "crit_chance",
+        "op": "add",
+        "value": 0.08
+      },
+      {
+        "type": "stat",
+        "stat": "attack_damage",
+        "op": "add",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "momentum",
+    "name": "ABILITY_MOMENTUM_NAME",
+    "description": "ABILITY_MOMENTUM_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/status_7.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "speed",
+        "op": "mul",
+        "value": 1.12
+      },
+      {
+        "type": "stat",
+        "stat": "attack_damage",
+        "op": "mul",
+        "value": 1.12
+      }
+    ]
+  },
+  {
+    "id": "cutting_roll",
+    "name": "ABILITY_CUTTING_ROLL_NAME",
+    "description": "ABILITY_CUTTING_ROLL_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/gear_1.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "dash_damage",
+        "op": "add",
+        "value": 18
+      }
+    ]
+  },
+  {
+    "id": "severing_arc",
+    "name": "ABILITY_SEVERING_ARC_NAME",
+    "description": "ABILITY_SEVERING_ARC_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/weather_2.png",
+    "rarity": "epic",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "wave_damage",
+        "op": "add",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "id": "unbroken_will",
+    "name": "ABILITY_UNBROKEN_WILL_NAME",
+    "description": "ABILITY_UNBROKEN_WILL_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/badge_1.png",
+    "rarity": "legendary",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "extra_life",
+        "value": 1
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": 20
+      }
+    ]
+  },
+  {
+    "id": "ash_spear",
+    "name": "ABILITY_ASH_SPEAR_NAME",
+    "description": "ABILITY_ASH_SPEAR_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/rune_3.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "skill",
+        "skill": {
+          "kind": "bolt",
+          "cooldown": 6,
+          "damage": 26,
+          "speed": 320,
+          "color": "#d8d0c8"
+        }
+      }
+    ]
+  }
+]

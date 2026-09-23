@@ -1,0 +1,57 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy.gd" id="1_enemy"]
+
+[sub_resource type="RectangleShape2D" id="body_shape"]
+size = Vector2(12, 22)
+
+[sub_resource type="CircleShape2D" id="contact_shape"]
+radius = 12.0
+
+[sub_resource type="RectangleShape2D" id="attack_shape"]
+size = Vector2(30, 24)
+
+[node name="Enemy" type="CharacterBody2D" groups=["enemies"]]
+collision_layer = 4
+collision_mask = 21
+motion_mode = 1
+script = ExtResource("1_enemy")
+
+[node name="Body" type="ColorRect" parent="."]
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 6.0
+offset_bottom = 6.0
+color = Color(0.7, 0.2, 0.2, 1)
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+visible = false
+position = Vector2(0, -8)
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+shape = SubResource("body_shape")
+
+[node name="ContactArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Collision" type="CollisionShape2D" parent="ContactArea"]
+shape = SubResource("contact_shape")
+
+[node name="AttackArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="AttackArea"]
+position = Vector2(17, -6)
+shape = SubResource("attack_shape")
+
+[node name="HpBar" type="ColorRect" parent="."]
+offset_left = -7.0
+offset_top = -26.0
+offset_right = 7.0
+offset_bottom = -24.0
+color = Color(0.3, 0.9, 0.35, 1)

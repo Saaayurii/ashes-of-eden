@@ -1,0 +1,18 @@
+{
+  "id": "bone_reliquary",
+  "kind": "destructible",
+  "hp": 3,
+  "essence": 10,
+  "hitbox": [30, 38],
+  "sprite": {
+    "path": "res://assets/props/bone_reliquary.png",
+    "frame_w": 48,
+    "frame_h": 44,
+    "ground_pad": 2,
+    "frames": 4
+  },
+  "ambient": "soul",
+  "idle_frames": 2,
+  "hit_frame": 2,
+  "debris": "#a28f72"
+}

@@ -1,0 +1,105 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="2_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/bestiary.tscn" id="3_bestiary"]
+[ext_resource type="PackedScene" path="res://scenes/ui/save_menu.tscn" id="4_saves"]
+
+[node name="PauseMenu" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_pause")
+
+[node name="PausePanel" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="PausePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Center" type="CenterContainer" parent="PausePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="PausePanel/Center"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="PausePanel/Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+text = "PAUSE_TITLE"
+
+[node name="Resume" type="Button" parent="PausePanel/Center/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "PAUSE_RESUME"
+
+[node name="SaveRow" type="HBoxContainer" parent="PausePanel/Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="OpenSave" type="Button" parent="PausePanel/Center/VBox/SaveRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "PAUSE_SAVE"
+
+[node name="OpenLoad" type="Button" parent="PausePanel/Center/VBox/SaveRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MENU_LOAD"
+
+[node name="OpenSettings" type="Button" parent="PausePanel/Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_SETTINGS"
+
+[node name="OpenBestiary" type="Button" parent="PausePanel/Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_BESTIARY"
+
+[node name="ToMenu" type="Button" parent="PausePanel/Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "RUN_MENU"
+
+[node name="Settings" parent="." instance=ExtResource("2_settings")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="SaveMenu" parent="." instance=ExtResource("4_saves")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="Bestiary" parent="." instance=ExtResource("3_bestiary")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1

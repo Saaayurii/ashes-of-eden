@@ -1,0 +1,38 @@
+extends Node
+## Global signal hub. Systems talk through here so they never hold
+## references to each other (UI <-> combat <-> story).
+
+signal enemy_died(enemy_id: StringName, position: Vector2)
+## A boss asking for reinforcements. The run spawns them so a session can replicate them.
+signal enemy_spawn_requested(enemy_id: String, position: Vector2)
+signal player_hp_changed(hp: float, max_hp: float)
+signal heal_charges_changed(charges: int, max_charges: int)
+signal essence_changed(essence: float, needed: float, level: int)
+signal level_up(level: int)
+signal player_died
+## Our own body took a blow: the share of the bar it cost (scripts/ui/screen_fx.gd reddens the frame).
+signal player_hurt(fraction: float)
+## Our own body is coming to, over this many seconds: the eyes blink open.
+signal player_waking(seconds: float)
+signal room_started(index: int)
+signal room_cleared(index: int)
+signal ability_acquired(ability: Dictionary)
+signal alignment_changed(alignment: Dictionary)
+signal boss_hp_changed(name_key: String, hp: float, max_hp: float)
+signal boss_died
+## A blow caught on a timed block (Player._parry).
+signal player_parried
+## A physical beat strong enough for the room to answer: footsteps stay local,
+## while jumps, rolls, swings and hard landings bend fog and nearby foliage.
+signal world_impulse(position: Vector2, direction: Vector2, strength: float, kind: StringName)
+## First kill of a kind: the bestiary has a new page (Profile keeps the book).
+signal bestiary_unlocked(enemy_id: String)
+signal cutscene_started(cutscene_id: String)
+signal cutscene_finished(cutscene_id: String)
+signal dialogue_started(dialogue_id: String)
+signal dialogue_finished(dialogue_id: String)
+signal choice_made(dialogue_id: String, choice_id: String)
+## The "Lighting" setting flipped; every GlowLight and ambient tint re-reads Settings.lighting.
+signal lighting_changed
+## A saved game was put back into Game and the body (Saves.restore): redraw what reads them.
+signal run_restored

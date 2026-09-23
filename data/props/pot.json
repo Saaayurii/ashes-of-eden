@@ -1,0 +1,17 @@
+{
+  "id": "pot",
+  "kind": "destructible",
+  "hp": 1,
+  "essence": 3,
+  "hitbox": [
+    16,
+    22
+  ],
+  "sprite": {
+    "path": "res://assets/props/pot.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#a06a50"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "nun",
+  "name": "NPC_NUN",
+  "dialogue": "npc_nun",
+  "avatar": "res://assets/portraits/nun.png",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/nun_v2_idle.png",
+      "walk": "res://assets/sprites/nun_v2_walk.png",
+      "interact": "res://assets/sprites/nun_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_NUN_LORE",
+  "role": "NPC_ROLE_NUN",
+  "location": "LOC_GRAVEYARD_CROSS",
+  "path": [
+    [
+      0,
+      0
+    ],
+    [
+      -70,
+      0
+    ]
+  ],
+  "pace": 6,
+  "light": {
+    "color": "#ffb060",
+    "radius": 40,
+    "energy": 0.6,
+    "flicker": 0.3
+  },
+  "lines": [
+    "NPC_NUN_LINE_1",
+    "NPC_NUN_LINE_2",
+    "NPC_NUN_LINE_3"
+  ]
+}

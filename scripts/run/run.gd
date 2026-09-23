@@ -1,0 +1,713 @@
+extends Node2D
+## One run = a chain of rooms (docs/CORE_LOOP.md). Clear the room, the door
+## opens, walk through, pick a gift, next room. Death or the last door ends the run.
+##
+## Co-op (docs/MULTIPLAYER.md) changes who decides, not what happens: the host
+## owns the room chain, the enemies and the shared essence bar; each player owns
+## their own body and picks their own gifts. Solo, every "host" branch below is
+## simply taken by the only peer there is, so the single-player run is unchanged.
+
+## The painted panels of the first location, in order (tools/rooms/painted_rooms.py):
+## the graveyard at night, down through the swamp into the catacombs and the
+## crypts, the Knight of Ash over the lava, the Ophanim at the gate of the pit.
+const ROOMS := [
+	"res://scenes/rooms/village_night.tscn",
+	"res://scenes/rooms/graveyard_cross.tscn",
+	"res://scenes/rooms/graveyard_arches.tscn",
+	"res://scenes/rooms/graveyard_tree.tscn",
+	"res://scenes/rooms/swamp_moon.tscn",
+	"res://scenes/rooms/swamp_red.tscn",
+	"res://scenes/rooms/swamp_crypt.tscn",
+	"res://scenes/rooms/catacombs_1.tscn",
+	"res://scenes/rooms/catacombs_2.tscn",
+	"res://scenes/rooms/catacombs_3.tscn",
+	"res://scenes/rooms/crypt_skulls.tscn",
+	"res://scenes/rooms/preacher_nave.tscn",
+	"res://scenes/rooms/church.tscn",
+	"res://scenes/rooms/crypt_lava.tscn",
+	"res://scenes/rooms/hell_gate.tscn",
+]
+const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
+## How often each rarity is offered, relative to the others (docs/BALANCE.md).
+const RARITY_WEIGHT := {"common": 55.0, "rare": 30.0, "epic": 12.0, "legendary": 3.0}
+const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
+const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
+## Two bodies should not spawn inside each other.
+const SLOT_OFFSET := 26.0
+## Co-op forgiveness: whoever fell is back on their feet in the next room, hurt.
+const REVIVE_FRACTION := 0.5
+
+var room_index := -1
+var room: Room
+var kills := 0
+var elapsed := 0.0
+var _finished := false
+var _pending_gifts := 0
+var _picking := false
+var _advancing := false
+var _started := false
+var _enemy_counter := 0
+var _scene_ready_peers := {}
+var _gift_pending := {}
+var _dead_peers := {}
+var _story_done := false
+var _placed_for_room := -1
+## The place (data/chapters) the last loaded room belonged to: the card is only
+## shown when we walk into a new one.
+var _chapter_id := ""
+## Bumped by every _load_room, so the card of a room that was replaced while
+## the curtain was still up does not talk over the room that replaced it.
+var _load_token := 0
+## Whether the curtain now closing is hiding a new place (a full card) or the
+## next room of the one we are in. Decided when the curtain starts, used when
+## it opens again.
+var _pending_grand := false
+## The run as it stood when this room was entered: what every save writes
+## (see Saves). Solo only.
+var checkpoint: Dictionary = {}
+
+## Our own body. The other player's is in the same container, owned by them.
+var player: Player
+
+@onready var players_root: Node2D = $Players
+@onready var entities: Node2D = $Entities
+@onready var player_spawner: MultiplayerSpawner = $PlayerSpawner
+@onready var enemy_spawner: MultiplayerSpawner = $EnemySpawner
+@onready var room_holder: Node2D = $RoomHolder
+@onready var dialogue: DialogueBox = $UI/DialogueBox
+@onready var cutscene: CutscenePlayer = $UI/Cutscene
+## The curtain is an autoload (it outlives this scene); named here so the
+## tool scripts can reach it through the run they are driving.
+@onready var transition: CanvasLayer = Curtain
+@onready var picker: AbilityPicker = $UI/AbilityPicker
+@onready var touch_controls: Control = $UI/TouchControls
+@onready var run_end: EndScreen = $UI/RunEnd
+
+
+func _ready() -> void:
+	Game.new_run()
+	player_spawner.spawn_function = _make_player
+	enemy_spawner.spawn_function = _make_enemy
+	players_root.child_entered_tree.connect(_on_player_entered)
+	# Not is_touchscreen_available(): mouse->touch emulation is on for desktop testing.
+	touch_controls.visible = OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+	run_end.retry.connect(_restart)
+	run_end.to_menu.connect(_to_menu)
+	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void: kills += 1)
+	EventBus.level_up.connect(_on_level_up)
+	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
+	dialogue.answered_locally.connect(_on_local_answer)
+	cutscene.story_hook = _cutscene_story
+	if not Net.active:
+		var save := Saves.take_pending()
+		_spawn_player(1, 0)
+		if save.is_empty():
+			_go_to_room(0)
+			_begin()
+		else:
+			_resume_from(save)
+		return
+	run_end.allow_retry(multiplayer.is_server())
+	Net.closed.connect(_on_session_closed)
+	multiplayer.peer_disconnected.connect(_on_peer_left)
+	if multiplayer.is_server():
+		EventBus.essence_changed.connect(
+			func(value: float, _needed: float, level: int) -> void: _net_essence.rpc(value, level))
+		_scene_ready_peers[1] = true
+		_check_everyone_loaded()
+	else:
+		# The host must not spawn anything into a scene we have not built yet.
+		_scene_loaded.rpc_id(1)
+
+
+func _process(delta: float) -> void:
+	if not _finished:
+		elapsed += delta
+		Game.elapsed = elapsed
+
+
+func _is_server() -> bool:
+	return Net.is_server()
+
+
+## Who sent the RPC we are handling. Zero means we sent it to ourselves.
+func _sender() -> int:
+	var id := multiplayer.get_remote_sender_id()
+	return id if id != 0 else multiplayer.get_unique_id()
+
+
+# ------------------------------------------------------------------ start ---
+
+@rpc("any_peer", "call_remote", "reliable")
+func _scene_loaded() -> void:
+	if not multiplayer.is_server():
+		return
+	_scene_ready_peers[multiplayer.get_remote_sender_id()] = true
+	_check_everyone_loaded()
+
+
+func _check_everyone_loaded() -> void:
+	if _started or not multiplayer.is_server():
+		return
+	for id in Net.peers:
+		if not _scene_ready_peers.has(id):
+			return
+	_started = true
+	for id in Net.peer_ids():
+		_spawn_player(id, Net.slot_of(id))
+	_go_to_room(0)
+	_net_begin.rpc()
+
+
+@rpc("authority", "call_local", "reliable")
+func _net_begin() -> void:
+	_begin()
+
+
+func _begin() -> void:
+	# He is already lying in the grave while the curtain is still up: waiting
+	# for it with the body in its default pose showed him standing first.
+	if player:
+		player.lie_down()
+	# The night opens on the chapter card; the angel speaks once we can see.
+	while transition.active:
+		await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	# The angel talks over the fight; hands stay on the controls from second one.
+	dialogue.play("ch1_intro")
+	# ...except for the first second and a half: Elian rises out of the grave.
+	# The captions run over it (docs/CORE_LOOP.md).
+	if player:
+		player.wake_up()
+
+
+## A saved night picks up at the entrance of the room it was saved in, with
+## no wake-up and no intro: the hero is already on his feet.
+func _resume_from(save: Dictionary) -> void:
+	Saves.restore(save, player)
+	var state: Dictionary = save.game_state
+	kills = int(state.get("kills", 0))
+	elapsed = float(state.get("elapsed", 0.0))
+	_go_to_room(maxi(0, Saves.room_index(save.room)))
+
+
+# ---------------------------------------------------------------- spawning ---
+
+func _spawn_player(peer_id: int, slot: int) -> void:
+	var data := {"peer": peer_id, "slot": slot}
+	if Net.active:
+		player_spawner.spawn(data)
+	else:
+		players_root.add_child(_make_player(data))
+
+
+func _make_player(data: Dictionary) -> Node:
+	var body: Player = PLAYER_SCENE.instantiate()
+	body.name = "P%d" % int(data.peer)
+	body.slot = int(data.slot)
+	body.set_multiplayer_authority(int(data.peer))
+	body.attach_net_sync()
+	return body
+
+
+## Wait for the body's own _ready: its camera and sprite do not exist yet
+## at the moment it enters the tree.
+func _on_player_entered(node: Node) -> void:
+	var body := node as Player
+	if body != null:
+		body.ready.connect(_on_player_ready.bind(body), CONNECT_ONE_SHOT)
+
+
+func _on_player_ready(body: Player) -> void:
+	if Net.active and body.get_multiplayer_authority() != multiplayer.get_unique_id():
+		return
+	player = body
+	body.died.connect(_on_local_death)
+	_place_local_player()
+
+
+## Bosses asking for reinforcements come through here so a session replicates them.
+func _on_spawn_requested(enemy_id: String, at: Vector2) -> void:
+	if not _is_server() or room == null:
+		return
+	room.spawn_enemy(enemy_id, at, true)
+
+
+func _spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
+	_enemy_counter += 1
+	var data := {"n": _enemy_counter, "id": enemy_id, "pos": at, "aware": aware}
+	if Net.active:
+		return enemy_spawner.spawn(data) as Enemy
+	var enemy := _make_enemy(data)
+	entities.add_child(enemy)
+	return enemy as Enemy
+
+
+func _make_enemy(data: Dictionary) -> Node:
+	var enemy: Enemy = ENEMY_SCENE.instantiate()
+	enemy.name = "E%d" % int(data.n)
+	enemy.enemy_id = str(data.id)
+	enemy.position = data.pos
+	enemy.start_aware = bool(data.get("aware", false))
+	enemy.attach_net_sync()
+	return enemy
+
+
+# ------------------------------------------------------------------ rooms ---
+
+## Walking into the next room, in two halves. First every peer draws its
+## curtain (scripts/autoload/curtain.gd); only when ours is black does the
+## host call the swap, and the swap itself is still one synchronous rpc, as it
+## always was. That ordering is not decoration: the host populates the new room
+## the moment it has built it, and a peer that was still tearing the old room
+## down would free those brand-new enemies as leftovers.
+func _go_to_room(index: int) -> void:
+	if Net.active:
+		if not _is_server():
+			return
+		_net_cover.rpc(index)
+	await _draw_curtain(index)
+	if not is_inside_tree():
+		return
+	if Net.active:
+		_net_load_room.rpc(index)
+	else:
+		_load_room(index)
+
+
+## A guest is told to cover up; it builds nothing until the host says so.
+@rpc("authority", "call_remote", "reliable")
+func _net_cover(index: int) -> void:
+	_draw_curtain(index)
+
+
+func _draw_curtain(index: int) -> void:
+	var chapter := Data.chapter_for(ROOMS[index])
+	# A place we have not been in gets the full page; another room of the same
+	# place gets the curtain and its name, and we walk on.
+	_pending_grand = not chapter.is_empty() and str(chapter.id) != _chapter_id
+	await transition.cover(chapter, _pending_grand, room == null)
+
+
+@rpc("authority", "call_local", "reliable")
+func _net_load_room(index: int) -> void:
+	_load_room(index)
+
+
+## The swap itself: synchronous, the same on every peer. The curtain is
+## already down — snap it shut if a slower peer is still burning the old room.
+func _load_room(index: int) -> void:
+	_load_token += 1
+	var token := _load_token
+	transition.snap_closed()
+	_build_room(index)
+	var chapter := Data.chapter_for(ROOMS[index])
+	_chapter_id = str(chapter.get("id", ""))
+	Game.place = _chapter_id
+	_open_curtain(chapter, _pending_grand, token)
+
+
+## Local and unhurried: the card, the curtain opening, and only then whatever
+## the room wanted to say. A boss landing behind the black is a boss nobody
+## saw land.
+func _open_curtain(chapter: Dictionary, grand: bool, token: int) -> void:
+	# A room with a scene of its own gets the brisk card: name the place and
+	# hand over, instead of two held pauses back to back.
+	await transition.reveal(chapter, grand, room != null and room.intro_cutscene != "")
+	if token != _load_token or not is_inside_tree() or room == null:
+		return
+	if room.intro_dialogue != "":
+		dialogue.play(room.intro_dialogue)
+	if room.intro_cutscene != "":
+		cutscene.play(room.intro_cutscene)
+
+
+func _build_room(index: int) -> void:
+	cutscene.abort()
+	cutscene.clear()
+	if room:
+		if room.exited.is_connected(_on_room_exited):
+			room.exited.disconnect(_on_room_exited)
+		room.queue_free()
+	for leftover in entities.get_children():
+		leftover.queue_free()
+	room_index = index
+	_placed_for_room = -1
+	_dead_peers.clear()
+	Game.wave = index + 1
+	room = load(ROOMS[index]).instantiate()
+	room.name = "Room"  # the same node path on every peer
+	room.authoritative = _is_server()
+	room.spawn_hook = _spawn_enemy
+	room_holder.add_child(room)
+	room.cleared.connect(_on_room_cleared)
+	room.exited.connect(_on_room_exited)
+	_place_local_player()
+	if not Net.active and player != null:
+		checkpoint = Saves.capture(ROOMS[index], kills, elapsed, player)
+		Saves.write(Saves.AUTO, checkpoint)
+	if _is_server():
+		room.populate()
+	EventBus.room_started.emit(room_index + 1)
+
+
+## Our body starts the room at the spawn marker, one slot-width apart from the
+## other player's, and gets up again if it fell in the room before.
+func _place_local_player() -> void:
+	if player == null or room == null or _placed_for_room == room_index:
+		return
+	_placed_for_room = room_index
+	var at: Vector2 = room.player_spawn.global_position + Vector2(player.slot * SLOT_OFFSET, 0)
+	if player.is_dead():
+		player.revive(at, REVIVE_FRACTION)
+	else:
+		player.global_position = at
+		player.velocity = Vector2.ZERO
+	player.camera.limit_right = room.width
+	player.camera.limit_bottom = room.height
+	player.camera.reset_smoothing()
+
+
+func _on_room_cleared() -> void:
+	EventBus.room_cleared.emit(room_index + 1)
+	if Net.active and multiplayer.is_server():
+		_net_room_cleared.rpc()
+	if room.outro_cutscene != "":
+		cutscene.play(room.outro_cutscene)
+
+
+## The host counts the corpses; the clients are told when the way is open.
+@rpc("authority", "call_remote", "reliable")
+func _net_room_cleared() -> void:
+	if room:
+		room.door.open = true
+		if room.outro_cutscene != "":
+			cutscene.play(room.outro_cutscene)
+	EventBus.room_cleared.emit(room_index + 1)
+
+
+func _on_room_exited() -> void:
+	if _finished or _advancing:
+		return
+	if _is_server():
+		_advance()
+	else:
+		_reached_door.rpc_id(1)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _reached_door() -> void:
+	if multiplayer.is_server() and not _finished and not _advancing:
+		_advance()
+
+
+## Whether the door we just walked through closes a place (or the chapter).
+func _door_grants_gift() -> bool:
+	if room_index + 1 >= ROOMS.size():
+		return true
+	var here: Dictionary = Data.chapter_for(ROOMS[room_index])
+	var next: Dictionary = Data.chapter_for(ROOMS[room_index + 1])
+	return here.is_empty() or next.is_empty() or here.get("id") != next.get("id")
+
+
+## Between two rooms: a gift for each player, then onwards. (The story beats
+## are the rooms' own scenes now: data/cutscenes, intro_cutscene / outro_cutscene.)
+func _advance() -> void:
+	_advancing = true
+	# We arrive here from the door's body_entered, i.e. mid physics flush. When
+	# nothing below awaits (no story, the gift pool run dry) the next room would
+	# be built inside that flush and its areas could not be configured.
+	await get_tree().process_frame
+	# A door gift only where a place ends (data/chapters): one per graveyard,
+	# swamp, catacombs… not one per room. With a gift behind every door the
+	# chapter handed out ~23 upgrades against the 10–14 docs/BALANCE.md asks
+	# for (measured by scripts/tools/balance_probe.gd); essence levels fill the rest.
+	if _door_grants_gift():
+		if Net.active:
+			_gift_pending = {}
+			for id in Net.peers:
+				_gift_pending[id] = true
+			_net_gift_at_door.rpc()
+			while not _gift_pending.is_empty() and not _finished:
+				await get_tree().process_frame
+		else:
+			_pending_gifts += 1
+			await _offer_gifts()
+	while _picking:  # a level-up picker was already open; wait for the queue to drain
+		await get_tree().process_frame
+	if _finished or not is_inside_tree():
+		_advancing = false
+		return
+	if room_index + 1 >= ROOMS.size():
+		_end_run(true)
+	else:
+		await _go_to_room(room_index + 1)
+	# The previous room's door is only freed at the end of the frame. Keep the
+	# transition guard up until then so its queued body_entered cannot skip the
+	# new (possibly quiet) room before the player sees it.
+	await get_tree().physics_frame
+	_advancing = false
+
+
+# ------------------------------------------------------------------ gifts ---
+
+## The host counts the essence for everyone; the clients are told where the
+## shared bar stands. No level_up here: the gift is announced by _net_gift_now,
+## so both players are offered their card at the same moment.
+@rpc("authority", "call_remote", "reliable")
+func _net_essence(value: float, level: int) -> void:
+	Game.set_essence(value, level)
+
+
+## Essence bar filled: a gift right now, mid-fight.
+func _on_level_up(_level: int) -> void:
+	if _finished:
+		return
+	if Net.active:
+		if multiplayer.is_server():
+			_net_gift_now.rpc()
+		return
+	_pending_gifts += 1
+	_offer_gifts()
+
+
+@rpc("authority", "call_local", "reliable")
+func _net_gift_now() -> void:
+	if player == null:
+		return
+	_pending_gifts += 1
+	_offer_gifts()
+
+
+## The gift behind the door. The host waits for both players before moving on,
+## so nobody is dragged into the next room while still reading their cards.
+@rpc("authority", "call_local", "reliable")
+func _net_gift_at_door() -> void:
+	if player == null:
+		return  # a dedicated host referees, it does not collect gifts
+	_pending_gifts += 1
+	await _offer_gifts()
+	while _picking:
+		await get_tree().process_frame
+	_gift_taken.rpc_id(1)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _gift_taken() -> void:
+	if multiplayer.is_server():
+		_gift_pending.erase(_sender())
+
+
+## Gifts are offered one at a time; a level-up during a door gift just queues.
+func _offer_gifts() -> void:
+	if _picking:
+		return
+	_picking = true
+	while _pending_gifts > 0 and not _finished:
+		_pending_gifts -= 1
+		var options := _roll_gifts()
+		if options.is_empty():
+			break
+		AbilitySystem.apply(player, await picker.pick(options))
+	_picking = false
+
+
+## One gift per path, skipping gifts already taken this run.
+func _roll_gifts() -> Array[Dictionary]:
+	var taken := Game.abilities.map(func(a: Dictionary) -> String: return a.id)
+	var result: Array[Dictionary] = []
+	for path in Game.PATHS:
+		var pool := Data.abilities.values().filter(
+			func(a: Dictionary) -> bool: return a.path == path and not taken.has(a.id)
+		)
+		var pick := _weighted_pick(pool)
+		if not pick.is_empty():
+			result.append(pick)
+	return result
+
+
+## Rarity decides how often a gift is offered at all, never how strong it is
+## once it turns up (docs/BALANCE.md). The weights are relative, so a path
+## whose commons have all been taken still offers its rare cards rather than
+## going empty.
+func _weighted_pick(pool: Array) -> Dictionary:
+	var total := 0.0
+	for ability in pool:
+		total += float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+	if total <= 0.0:
+		return {}
+	var roll := randf() * total
+	for ability in pool:
+		roll -= float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+		if roll <= 0.0:
+			return ability
+	return pool.back()
+
+
+# ------------------------------------------------------------------ story ---
+
+## One voice answers for the group (docs/MULTIPLAYER.md): everyone sees the
+## same dialogue, the chooser's buttons are the live ones, and their answer is
+## replayed on the other screens so the run keeps one alignment.
+func _story(dialogue_id: String) -> void:
+	if not Net.active:
+		await dialogue.play(dialogue_id)
+		return
+	_story_done = false
+	_net_story.rpc(dialogue_id, Net.chooser_id())
+	while not _story_done and not _finished:
+		await get_tree().process_frame
+
+
+## A choice inside a scene. Every peer plays the room's scene on its own, but
+## only the host opens the conversation (one voice answers for the group); a
+## guest waits for it to end, or for its own Skip, or gives up after a while
+## if the host skipped the scene and no conversation is coming.
+func _cutscene_story(dialogue_id: String) -> void:
+	if not Net.active or multiplayer.is_server():
+		await _story(dialogue_id)
+		return
+	var ended := [false]
+	var on_end := func(id: String) -> void:
+		if id == dialogue_id:
+			ended[0] = true
+	EventBus.dialogue_finished.connect(on_end)
+	var waited := 0.0
+	while not ended[0] and not _finished and waited < 45.0 and cutscene.playing != "" and not cutscene.skipping():
+		await get_tree().process_frame
+		waited += get_process_delta_time()
+	EventBus.dialogue_finished.disconnect(on_end)
+
+
+@rpc("authority", "call_local", "reliable")
+func _net_story(dialogue_id: String, chooser: int) -> void:
+	dialogue.remote = multiplayer.get_unique_id() != chooser
+	await dialogue.play(dialogue_id)
+	dialogue.remote = false
+	if multiplayer.get_unique_id() == chooser:
+		_story_finished.rpc_id(1)
+
+
+func _on_local_answer(choice_index: int) -> void:
+	if Net.active and not dialogue.remote:
+		_net_answer.rpc(choice_index)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_answer(choice_index: int) -> void:
+	dialogue.answer_remote(choice_index)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _story_finished() -> void:
+	if multiplayer.is_server():
+		_story_done = true
+
+
+# ------------------------------------------------------------------- death ---
+
+func _on_local_death(_body: Player) -> void:
+	if not Net.active:
+		_end_run(false)
+	else:
+		_report_death.rpc_id(1)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _report_death() -> void:
+	if not multiplayer.is_server():
+		return
+	_dead_peers[_sender()] = true
+	for id in Net.peers:
+		if not _dead_peers.has(id):
+			return  # somebody is still standing; the run goes on
+	_end_run(false)
+
+
+## Somebody closed the game. Their body has to go with them, or every enemy
+## that touches it keeps talking to a peer that is not there any more.
+func _on_peer_left(id: int) -> void:
+	_gift_pending.erase(id)
+	_dead_peers.erase(id)
+	var body := players_root.get_node_or_null("P%d" % id)
+	if body != null:
+		body.queue_free()
+	if not multiplayer.is_server() or _finished:
+		return
+	if Net.peers.is_empty():
+		_end_run(false)  # nobody left to finish the night
+
+
+func _on_session_closed(_reason: String) -> void:
+	if is_inside_tree():
+		Curtain.change_scene(MENU_SCENE)
+
+
+# --------------------------------------------------------------------- end ---
+
+func _end_run(won: bool) -> void:
+	if _finished:
+		return
+	if Net.active and multiplayer.is_server():
+		# Ash is minted by the bosses the host simulates, so it travels with the
+		# verdict; otherwise a guest would walk away from a kill empty-handed.
+		_net_end.rpc(won, room_index + 1, kills, elapsed, Game.ash_earned)
+		return
+	_show_end(won, room_index + 1, kills, elapsed, Game.ash_earned)
+
+
+@rpc("authority", "call_local", "reliable")
+func _net_end(won: bool, reached: int, total_kills: int, seconds: float, ash: int) -> void:
+	_show_end(won, reached, total_kills, seconds, ash)
+
+
+func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: int) -> void:
+	if _finished:
+		return
+	_finished = true
+	kills = total_kills
+	Game.ash_earned = ash
+	if not Net.dedicated:  # a referee plays no night of its own
+		Profile.record_run(reached, total_kills, seconds, ash)
+	$UI/PauseMenu.visible = false
+	# A fall beyond the map is already off-screen: show the result at once.
+	var end_delay := 0.0 if not won and player != null and player.fell_outside_room else (0.9 if not won else 0.4)
+	if end_delay > 0.0:
+		await get_tree().create_timer(end_delay).timeout
+	if not is_inside_tree():
+		return
+	# The night goes out the same way a room does. Red ash for a death, gold
+	# for the dawn; the verdict is already standing when the screen comes back.
+	await transition.cover({"color": "#f2d98c" if won else "#8c1f24"}, true)
+	if not is_inside_tree():
+		return
+	Net.set_paused(true)
+	var last := Data.chapter_for(ROOMS[clampi(reached - 1, 0, ROOMS.size() - 1)])
+	run_end.show_result(won, reached, total_kills, seconds, str(last.get("title", "")))
+	await transition.reveal()
+
+
+func _restart() -> void:
+	if Net.active:
+		if multiplayer.is_server():
+			_net_restart.rpc()
+		return
+	_reload()
+
+
+@rpc("authority", "call_local", "reliable")
+func _net_restart() -> void:
+	_reload()
+
+
+## Another night, from the first room: keep_closed, because the run that comes
+## up behind the black opens on its own chapter card.
+func _reload() -> void:
+	Curtain.change_scene("", true, func() -> void: get_tree().paused = false)
+
+
+func _to_menu() -> void:
+	Curtain.change_scene(MENU_SCENE, false, func() -> void:
+		get_tree().paused = false
+		Net.leave())

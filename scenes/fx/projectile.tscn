@@ -1,0 +1,61 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/projectile.gd" id="1_projectile"]
+[ext_resource type="Shader" path="res://assets/fx/projectile_motion_v2.gdshader" id="2_motion"]
+
+[sub_resource type="Gradient" id="glow_grad"]
+offsets = PackedFloat32Array(0, 0.4, 1)
+colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0.35, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_tex"]
+gradient = SubResource("glow_grad")
+width = 24
+height = 24
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="core_tex"]
+gradient = SubResource("glow_grad")
+width = 8
+height = 8
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CanvasItemMaterial" id="add_mat"]
+blend_mode = 1
+
+[sub_resource type="ShaderMaterial" id="paint_mat"]
+shader = ExtResource("2_motion")
+
+[sub_resource type="CircleShape2D" id="shape"]
+radius = 5.0
+
+[node name="Projectile" type="Area2D"]
+collision_layer = 0
+collision_mask = 3
+monitorable = false
+script = ExtResource("1_projectile")
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("shape")
+
+[node name="Glow" type="Sprite2D" parent="."]
+material = SubResource("add_mat")
+texture = SubResource("glow_tex")
+visible = false
+
+[node name="Core" type="Sprite2D" parent="."]
+texture = SubResource("core_tex")
+visible = false
+
+[node name="Art" type="Sprite2D" parent="."]
+material = SubResource("paint_mat")
+texture_filter = 1
+z_index = 4
+
+[node name="Echo" type="Sprite2D" parent="."]
+material = SubResource("paint_mat")
+texture_filter = 1
+z_index = 3

@@ -1,0 +1,17 @@
+{
+  "id": "barrel_iron",
+  "kind": "destructible",
+  "hp": 12,
+  "essence": 6,
+  "hitbox": [
+    20,
+    26
+  ],
+  "sprite": {
+    "path": "res://assets/props/barrel_iron.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#6a6a70"
+}

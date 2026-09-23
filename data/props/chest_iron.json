@@ -1,0 +1,45 @@
+{
+  "id": "chest_iron",
+  "kind": "chest",
+  "essence": 45,
+  "glow": "#9fc4ff",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_iron.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 6
+  },
+  "icon": [
+    "res://assets/icons/quest/key_1.png",
+    "res://assets/icons/quest/key_2.png",
+    "res://assets/icons/quest/key_3.png",
+    "res://assets/icons/quest/key_4.png",
+    "res://assets/icons/quest/key_5.png",
+    "res://assets/icons/quest/key_6.png",
+    "res://assets/icons/quest/key_7.png",
+    "res://assets/icons/quest/gatekey_1.png",
+    "res://assets/icons/quest/gatekey_2.png",
+    "res://assets/icons/quest/gatekey_3.png",
+    "res://assets/icons/quest/gatekey_4.png",
+    "res://assets/icons/quest/gatekey_5.png",
+    "res://assets/icons/quest/gatekey_6.png",
+    "res://assets/icons/quest/material_1.png",
+    "res://assets/icons/quest/material_2.png",
+    "res://assets/icons/quest/material_3.png",
+    "res://assets/icons/quest/material_4.png",
+    "res://assets/icons/quest/material_5.png",
+    "res://assets/icons/quest/material_6.png",
+    "res://assets/icons/quest/material_7.png",
+    "res://assets/icons/quest/material_8.png",
+    "res://assets/icons/quest/flask_1.png",
+    "res://assets/icons/quest/flask_2.png",
+    "res://assets/icons/quest/flask_3.png",
+    "res://assets/icons/quest/flask_4.png",
+    "res://assets/icons/quest/flask_5.png",
+    "res://assets/icons/quest/flask_6.png"
+  ]
+}

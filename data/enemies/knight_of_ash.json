@@ -1,0 +1,82 @@
+{
+  "id": "knight_of_ash",
+  "name": "ENEMY_KNIGHT_OF_ASH",
+  "lore": "ENEMY_KNIGHT_OF_ASH_LORE",
+  "hp": 760,
+  "speed": 62,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "boss": true,
+  "behaviour": "walker",
+  "aggro_range": 900,
+  "size": 22,
+  "color": "#8c1f24",
+  "material": "plate",
+  "tags": [
+    "fallen",
+    "boss"
+  ],
+  "stagger_chance": 0.05,
+  "sprite": {
+    "cell": [
+      96,
+      72
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/ash_knight_idle.png",
+      "walk": "res://assets/sprites/ash_knight_walk.png",
+      "attack": "res://assets/sprites/ash_knight_attack.png",
+      "death": "res://assets/sprites/ash_knight_death.png"
+    }
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 66,
+      "reach": 80,
+      "windup": 0.85,
+      "damage": 20,
+      "cooldown": 2.2,
+      "recover": 0.55,
+      "weight": 3
+    },
+    {
+      "type": "lunge",
+      "range": 430,
+      "windup": 0.8,
+      "damage": 22,
+      "cooldown": 3.2,
+      "lunge_speed": 450,
+      "lunge_time": 0.42,
+      "recover": 0.7,
+      "weight": 2
+    },
+    {
+      "type": "ranged",
+      "range": 470,
+      "windup": 0.8,
+      "damage": 14,
+      "cooldown": 3.0,
+      "projectile_speed": 230,
+      "projectile_style": "ash",
+      "color": "#ff5a4a",
+      "weight": 2,
+      "from_hp": 0.6
+    }
+  ],
+  "summons": {
+    "id": "shade",
+    "count": 2,
+    "at_hp": 0.5
+  },
+  "armor": 0.18,
+  "essence": 260,
+  "ash": 12,
+  "light": {
+    "color": "#ff5a3a",
+    "radius": 60,
+    "energy": 0.6,
+    "flicker": 0.3
+  }
+}

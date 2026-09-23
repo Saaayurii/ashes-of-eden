@@ -1,0 +1,17 @@
+{
+  "_comment": "Which living details a room gets, by a substring of its scene name (first match wins). Effects: ravens, bats, leaves, petals, wisps, motes, embers, low_fog, lightning, clouds. See scripts/rooms/ambience.gd.",
+  "rules": [
+    {"match": "village",   "effects": ["clouds", "ravens", "leaves", "low_fog"]},
+    {"match": "graveyard", "effects": ["clouds", "ravens", "wisps", "low_fog", "lightning"]},
+    {"match": "swamp",     "effects": ["clouds", "wisps", "low_fog", "leaves"]},
+    {"match": "catacombs", "effects": ["motes", "bats"]},
+    {"match": "crypt",     "effects": ["motes", "embers"]},
+    {"match": "church",    "effects": ["motes", "petals"]},
+    {"match": "hell",      "effects": ["embers", "bats"]},
+    {"match": "bridge",    "effects": ["clouds", "ravens", "low_fog", "wisps"]},
+    {"match": "knight",    "effects": ["clouds", "ravens", "lightning", "leaves"]},
+    {"match": "ophanim",   "effects": ["motes", "embers"]},
+    {"match": "road",      "effects": ["ravens", "leaves"]}
+  ],
+  "default": ["motes"]
+}

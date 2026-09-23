@@ -1,0 +1,334 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/village_dawn.png" id="2_background"]
+[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="4_water"]
+[ext_resource type="Script" path="res://scripts/fx/flicker.gd" id="5_flicker"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/elian_frames.tres" id="6_frames"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="7_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/bestiary.tscn" id="8_bestiary"]
+[ext_resource type="PackedScene" path="res://scenes/ui/save_menu.tscn" id="9_saves"]
+
+[sub_resource type="FastNoiseLite" id="noise"]
+frequency = 0.012
+
+[sub_resource type="NoiseTexture2D" id="noise_tex"]
+seamless = true
+noise = SubResource("noise")
+
+[sub_resource type="ShaderMaterial" id="fog_mat"]
+shader = ExtResource("3_fog")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/density = 0.4
+shader_parameter/speed = 0.012
+
+[sub_resource type="ShaderMaterial" id="water_mat"]
+shader = ExtResource("4_water")
+shader_parameter/strength = 0.3
+
+[sub_resource type="Gradient" id="warm_grad"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 0.75, 0.4, 0.9, 1, 0.55, 0.2, 0.35, 1, 0.5, 0.2, 0)
+
+[sub_resource type="GradientTexture2D" id="warm_glow"]
+gradient = SubResource("warm_grad")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="cold_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.95, 0.8, 0.5, 1, 0.95, 0.8, 0)
+
+[sub_resource type="GradientTexture2D" id="cold_glow"]
+gradient = SubResource("cold_grad")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="dot_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_grad")
+width = 4
+height = 4
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="drop"]
+gradient = SubResource("dot_grad")
+width = 2
+height = 10
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CanvasItemMaterial" id="add_mat"]
+blend_mode = 1
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Layers" type="Node2D" parent="."]
+
+[node name="Background" type="Sprite2D" parent="Layers"]
+texture = ExtResource("2_background")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 640, 340)
+
+[node name="Beam" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(470, 60)
+scale = Vector2(1.4, 1.1)
+texture = SubResource("cold_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.35
+variation = 0.12
+speed = 1.5
+
+[node name="Water" type="ColorRect" parent="Layers"]
+material = SubResource("water_mat")
+offset_left = 548.0
+offset_top = 292.0
+offset_right = 640.0
+offset_bottom = 356.0
+mouse_filter = 2
+
+[node name="Fog" type="ColorRect" parent="Layers"]
+material = SubResource("fog_mat")
+offset_right = 640.0
+offset_bottom = 360.0
+mouse_filter = 2
+
+[node name="Rain" type="CPUParticles2D" parent="Layers"]
+position = Vector2(320, -20)
+amount = 140
+lifetime = 1.3
+preprocess = 1.3
+texture = SubResource("drop")
+emission_shape = 3
+emission_rect_extents = Vector2(380, 4)
+direction = Vector2(-0.12, 1)
+spread = 2.0
+gravity = Vector2(0, 500)
+initial_velocity_min = 220.0
+initial_velocity_max = 300.0
+scale_amount_min = 0.6
+scale_amount_max = 1.0
+color = Color(0.75, 0.8, 0.95, 0.35)
+
+[node name="Lantern" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(38, 262)
+scale = Vector2(0.7, 0.7)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.7
+variation = 0.3
+speed = 12.0
+
+[node name="Window" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(300, 352)
+scale = Vector2(0.5, 0.4)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.5
+variation = 0.35
+speed = 10.0
+
+[node name="Embers" type="CPUParticles2D" parent="Layers"]
+position = Vector2(40, 262)
+amount = 14
+lifetime = 3.0
+preprocess = 3.0
+texture = SubResource("dot")
+emission_shape = 1
+emission_sphere_radius = 6.0
+direction = Vector2(0.3, -1)
+spread = 30.0
+gravity = Vector2(0, -20)
+initial_velocity_min = 8.0
+initial_velocity_max = 22.0
+scale_amount_min = 0.4
+scale_amount_max = 0.9
+color = Color(1, 0.65, 0.3, 0.9)
+
+[node name="Elian" type="AnimatedSprite2D" parent="Layers"]
+position = Vector2(118, 268)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("6_frames")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.3
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.05, 0.04, 0.06, 0.32)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.28
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+theme_override_colors/font_color = Color(0.95, 0.85, 0.5, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+text = "GAME_TITLE"
+
+[node name="Subtitle" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.78, 0.75, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+text = "GAME_SUBTITLE"
+
+[node name="Spacer" type="Control" parent="Center/VBox"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="SaveRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Continue" type="Button" parent="Center/VBox/SaveRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MENU_CONTINUE"
+
+[node name="OpenLoad" type="Button" parent="Center/VBox/SaveRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MENU_LOAD"
+
+[node name="Play" type="Button" parent="Center/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "MENU_PLAY"
+
+[node name="Together" type="Button" parent="Center/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "MENU_TOGETHER"
+
+[node name="OpenBestiary" type="Button" parent="Center/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "MENU_BESTIARY"
+
+[node name="LanguageRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+
+[node name="LanguageLabel" type="Label" parent="Center/VBox/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MENU_LANGUAGE"
+
+[node name="Language" type="OptionButton" parent="Center/VBox/LanguageRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+
+[node name="OpenSettings" type="Button" parent="Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_SETTINGS"
+
+[node name="Quit" type="Button" parent="Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_QUIT"
+
+[node name="CharacterSelect" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 60.0
+offset_top = 320.0
+offset_right = 180.0
+offset_bottom = 340.0
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Prev" type="Button" parent="CharacterSelect"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+text = "◀"
+
+[node name="CharacterName" type="Label" parent="CharacterSelect"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.5, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "SPEAKER_ELIAN"
+horizontal_alignment = 1
+
+[node name="Next" type="Button" parent="CharacterSelect"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+text = "▶"
+
+[node name="Settings" parent="." instance=ExtResource("7_settings")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="SaveMenu" parent="." instance=ExtResource("9_saves")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="Bestiary" parent="." instance=ExtResource("8_bestiary")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1

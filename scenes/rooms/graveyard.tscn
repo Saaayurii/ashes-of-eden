@@ -1,0 +1,1756 @@
+[gd_scene load_steps=124 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/graveyard.png" id="2_backdrop"]
+[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Script" path="res://scripts/rooms/door.gd" id="4_door"]
+[ext_resource type="Script" path="res://scripts/rooms/enemy_spawn.gd" id="5_spawn"]
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="7_prop"]
+[ext_resource type="Texture2D" path="res://assets/decor/door_gate.png" id="8_gate"]
+[ext_resource type="Texture2D" path="res://assets/decor/shrine.png" id="9_shrine"]
+[ext_resource type="Texture2D" path="res://assets/decor/barrier.png" id="11_barrier"]
+[ext_resource type="Script" path="res://scripts/rooms/room_fixture.gd" id="10_fixture"]
+[ext_resource type="PackedScene" path="res://scenes/npc/npc.tscn" id="11_npc"]
+[ext_resource type="Script" path="res://scripts/fx/glow_light.gd" id="12_light"]
+[ext_resource type="Script" path="res://scripts/fx/ambient_light.gd" id="13_ambient"]
+[ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
+[ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
+[ext_resource type="Texture2D" path="res://assets/decor/bush.png" id="decor_bush"]
+[ext_resource type="Texture2D" path="res://assets/decor/crypt_1.png" id="decor_crypt_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/crypt_2.png" id="decor_crypt_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/fence_1.png" id="decor_fence_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/fence_2.png" id="decor_fence_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/fence_3.png" id="decor_fence_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/grass_1.png" id="decor_grass_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/grass_2.png" id="decor_grass_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/angel_1.png" id="decor_graveyard_angel_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/angel_2.png" id="decor_graveyard_angel_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/bones_1.png" id="decor_graveyard_bones_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/bones_2.png" id="decor_graveyard_bones_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/coffin_4.png" id="decor_graveyard_coffin_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/cross_1.png" id="decor_graveyard_cross_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/cross_2.png" id="decor_graveyard_cross_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/cross_4.png" id="decor_graveyard_cross_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/crypt_3.png" id="decor_graveyard_crypt_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/deadwood_1.png" id="decor_graveyard_deadwood_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/deadwood_4.png" id="decor_graveyard_deadwood_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/railing_2.png" id="decor_graveyard_railing_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/tomb_2.png" id="decor_graveyard_tomb_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/tomb_7.png" id="decor_graveyard_tomb_7"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/tomb_8.png" id="decor_graveyard_tomb_8"]
+[ext_resource type="Texture2D" path="res://assets/decor/monument_1.png" id="decor_monument_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/monument_3.png" id="decor_monument_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/monument_6.png" id="decor_monument_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/monument_8.png" id="decor_monument_8"]
+[ext_resource type="Texture2D" path="res://assets/decor/monument_9.png" id="decor_monument_9"]
+[ext_resource type="Texture2D" path="res://assets/decor/rocks.png" id="decor_rocks"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_1.png" id="decor_tombstone_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_2.png" id="decor_tombstone_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_3.png" id="decor_tombstone_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_4.png" id="decor_tombstone_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_5.png" id="decor_tombstone_5"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_6.png" id="decor_tombstone_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_7.png" id="decor_tombstone_7"]
+[ext_resource type="Texture2D" path="res://assets/decor/tombstone_8.png" id="decor_tombstone_8"]
+[ext_resource type="Texture2D" path="res://assets/decor/tree_2.png" id="decor_tree_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/tree_4.png" id="decor_tree_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/tree_5.png" id="decor_tree_5"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/brush_1.png" id="decor_wilds_brush_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/brush_2.png" id="decor_wilds_brush_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/brush_3.png" id="decor_wilds_brush_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/brush_5.png" id="decor_wilds_brush_5"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/brush_6.png" id="decor_wilds_brush_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/sapling_1.png" id="decor_wilds_sapling_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/sapling_4.png" id="decor_wilds_sapling_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/sapling_5.png" id="decor_wilds_sapling_5"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/stump_1.png" id="decor_wilds_stump_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/cap_1.png" id="piece_cap_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/cap_2.png" id="piece_cap_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_1.png" id="piece_float_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_2.png" id="piece_float_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_3.png" id="piece_float_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_1.png" id="piece_ground_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_2.png" id="piece_ground_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_3.png" id="piece_ground_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_4.png" id="piece_ground_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_5.png" id="piece_ground_5"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_6.png" id="piece_ground_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_1.png" id="piece_ledge_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_3.png" id="piece_ledge_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_4.png" id="piece_ledge_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_5.png" id="piece_ledge_5"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_6.png" id="piece_ledge_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_7.png" id="piece_ledge_7"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_8.png" id="piece_ledge_8"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_1.png" id="piece_wall_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_2.png" id="piece_wall_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_3.png" id="piece_wall_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_4.png" id="piece_wall_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_5.png" id="piece_wall_5"]
+
+[sub_resource type="Gradient" id="fade"]
+offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="FastNoiseLite" id="noise"]
+frequency = 0.012
+
+[sub_resource type="NoiseTexture2D" id="noise_tex"]
+seamless = true
+noise = SubResource("noise")
+
+[sub_resource type="ShaderMaterial" id="fog_mat"]
+shader = ExtResource("3_fog")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/density = 0.55
+
+[sub_resource type="Gradient" id="glow_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.85, 0.5, 0.7, 1, 0.85, 0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_tex"]
+gradient = SubResource("glow_grad")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="dot_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_grad")
+width = 4
+height = 4
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="drop"]
+gradient = SubResource("dot_grad")
+width = 2
+height = 10
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CanvasItemMaterial" id="add_mat"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="door_shape"]
+size = Vector2(20, 56)
+
+[sub_resource type="RectangleShape2D" id="Ground1_shape"]
+size = Vector2(540, 40)
+
+[sub_resource type="RectangleShape2D" id="Ground2_shape"]
+size = Vector2(680, 40)
+
+[sub_resource type="RectangleShape2D" id="Ground3_shape"]
+size = Vector2(60, 4)
+
+[sub_resource type="RectangleShape2D" id="Platform1_shape"]
+size = Vector2(380, 20)
+
+[sub_resource type="RectangleShape2D" id="Platform2_shape"]
+size = Vector2(200, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform3_shape"]
+size = Vector2(520, 20)
+
+[sub_resource type="RectangleShape2D" id="Platform4_shape"]
+size = Vector2(90, 12)
+
+[sub_resource type="RectangleShape2D" id="Platform5_shape"]
+size = Vector2(100, 12)
+
+[sub_resource type="RectangleShape2D" id="Platform6_shape"]
+size = Vector2(240, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform7_shape"]
+size = Vector2(180, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform8_shape"]
+size = Vector2(160, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform9_shape"]
+size = Vector2(320, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform10_shape"]
+size = Vector2(80, 12)
+
+[sub_resource type="RectangleShape2D" id="Platform11_shape"]
+size = Vector2(70, 12)
+
+[sub_resource type="RectangleShape2D" id="Platform12_shape"]
+size = Vector2(260, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform13_shape"]
+size = Vector2(220, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform14_shape"]
+size = Vector2(240, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform15_shape"]
+size = Vector2(280, 16)
+
+[sub_resource type="RectangleShape2D" id="Platform16_shape"]
+size = Vector2(70, 12)
+
+[sub_resource type="RectangleShape2D" id="Platform17_shape"]
+size = Vector2(80, 12)
+
+[sub_resource type="RectangleShape2D" id="Platform18_shape"]
+size = Vector2(120, 12)
+
+[sub_resource type="RectangleShape2D" id="Platform19_shape"]
+size = Vector2(100, 12)
+
+[sub_resource type="RectangleShape2D" id="Wall1_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall2_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall3_shape"]
+size = Vector2(1280, 16)
+
+[node name="Room" type="Node2D"]
+script = ExtResource("1_room")
+width = 1280
+height = 720
+intro_dialogue = ""
+intro_cutscene = ""
+outro_cutscene = ""
+
+[node name="Ambient" type="CanvasModulate" parent="."]
+color = Color(0.627, 0.643, 0.706, 1)
+script = ExtResource("13_ambient")
+music = "graveyard"
+
+[node name="Parallax" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.1, 0.1)
+
+[node name="Backdrop" type="Sprite2D" parent="Parallax"]
+texture_filter = 2
+scale = Vector2(1.1, 1.1)
+texture = ExtResource("2_backdrop")
+centered = false
+
+[node name="Painted1" type="PointLight2D" parent="Parallax"]
+position = Vector2(440, 110)
+color = Color(1.0, 0.69, 0.439, 1)
+energy = 0.55
+script = ExtResource("12_light")
+radius = 160.0
+flicker = 0.0
+
+[node name="Painted2" type="PointLight2D" parent="Parallax"]
+position = Vector2(622, 182)
+color = Color(0.753, 0.627, 0.376, 1)
+energy = 0.35
+script = ExtResource("12_light")
+radius = 40.0
+flicker = 0.1
+
+[node name="FogFar" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.75, 0.75)
+
+[node name="Fog" type="ColorRect" parent="FogFar"]
+material = SubResource("fog_mat")
+offset_right = 1480.0
+offset_bottom = 1120.0
+mouse_filter = 2
+
+[node name="DecorBack" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.88, 1)
+
+[node name="tree_2_1" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(90, 625.0)
+texture = ExtResource("decor_tree_2")
+
+[node name="tree_4_2" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(700, 625.0)
+texture = ExtResource("decor_tree_4")
+
+[node name="crypt_1_3" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(1010, 644.0)
+texture = ExtResource("decor_crypt_1")
+
+[node name="crypt_2_4" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(470, 644.0)
+texture = ExtResource("decor_crypt_2")
+
+[node name="monument_1_5" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(640, 652.0)
+texture = ExtResource("decor_monument_1")
+
+[node name="monument_6_6" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(820, 652.0)
+texture = ExtResource("decor_monument_6")
+
+[node name="monument_9_7" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(1230, 652.0)
+texture = ExtResource("decor_monument_9")
+
+[node name="monument_8_8" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(250, 262.0)
+texture = ExtResource("decor_monument_8")
+
+[node name="tree_5_9" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(1000, 235.0)
+texture = ExtResource("decor_tree_5")
+
+[node name="graveyard_crypt_3_28" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(1212, 384.0)
+texture = ExtResource("decor_graveyard_crypt_3")
+
+[node name="graveyard_cross_2_29" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(554, 262.0)
+texture = ExtResource("decor_graveyard_cross_2")
+
+[node name="graveyard_angel_2_32" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(1192, 518.0)
+texture = ExtResource("decor_graveyard_angel_2")
+
+[node name="graveyard_angel_1_36" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(1038, 258.0)
+texture = ExtResource("decor_graveyard_angel_1")
+
+[node name="wilds_sapling_1_37" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(914, 455.0)
+texture = ExtResource("decor_wilds_sapling_1")
+
+[node name="graveyard_crypt_3_38" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(122, 514.0)
+texture = ExtResource("decor_graveyard_crypt_3")
+
+[node name="graveyard_cross_4_41" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(732, 652.0)
+texture = ExtResource("decor_graveyard_cross_4")
+
+[node name="graveyard_deadwood_1_42" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(772, 384.0)
+texture = ExtResource("decor_graveyard_deadwood_1")
+
+[node name="graveyard_cross_1_43" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(772, 522.0)
+texture = ExtResource("decor_graveyard_cross_1")
+
+[node name="graveyard_deadwood_4_52" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(481, 384.0)
+texture = ExtResource("decor_graveyard_deadwood_4")
+
+[node name="wilds_sapling_4_53" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(1221, 260.0)
+texture = ExtResource("decor_wilds_sapling_4")
+
+[node name="wilds_sapling_5_55" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(612, 160.0)
+texture = ExtResource("decor_wilds_sapling_5")
+
+[node name="graveyard_cross_2_59" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(645, 162.0)
+texture = ExtResource("decor_graveyard_cross_2")
+
+[node name="Geometry" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(270.0, 700.0)
+shape = SubResource("Ground1_shape")
+
+[node name="Ground2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(940.0, 700.0)
+shape = SubResource("Ground2_shape")
+
+[node name="Ground3Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(570.0, 718.0)
+shape = SubResource("Ground3_shape")
+
+[node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-8.0, 352.0)
+shape = SubResource("Wall1_shape")
+
+[node name="Wall2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1288.0, 352.0)
+shape = SubResource("Wall2_shape")
+
+[node name="Wall3Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(640.0, -8.0)
+shape = SubResource("Wall3_shape")
+
+[node name="Ledges" type="StaticBody2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(190.0, 300.0)
+shape = SubResource("Platform1_shape")
+one_way_collision = true
+
+[node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(570.0, 298.0)
+shape = SubResource("Platform2_shape")
+one_way_collision = true
+
+[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1020.0, 300.0)
+shape = SubResource("Platform3_shape")
+one_way_collision = true
+
+[node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(425.0, 361.0)
+shape = SubResource("Platform4_shape")
+one_way_collision = true
+
+[node name="Platform5Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1230.0, 361.0)
+shape = SubResource("Platform5_shape")
+one_way_collision = true
+
+[node name="Platform6Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(200.0, 428.0)
+shape = SubResource("Platform6_shape")
+one_way_collision = true
+
+[node name="Platform7Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(510.0, 428.0)
+shape = SubResource("Platform7_shape")
+one_way_collision = true
+
+[node name="Platform8Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(780.0, 428.0)
+shape = SubResource("Platform8_shape")
+one_way_collision = true
+
+[node name="Platform9Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1120.0, 428.0)
+shape = SubResource("Platform9_shape")
+one_way_collision = true
+
+[node name="Platform10Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(370.0, 491.0)
+shape = SubResource("Platform10_shape")
+one_way_collision = true
+
+[node name="Platform11Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(915.0, 491.0)
+shape = SubResource("Platform11_shape")
+one_way_collision = true
+
+[node name="Platform12Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(130.0, 558.0)
+shape = SubResource("Platform12_shape")
+one_way_collision = true
+
+[node name="Platform13Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(460.0, 558.0)
+shape = SubResource("Platform13_shape")
+one_way_collision = true
+
+[node name="Platform14Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(780.0, 558.0)
+shape = SubResource("Platform14_shape")
+one_way_collision = true
+
+[node name="Platform15Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1140.0, 558.0)
+shape = SubResource("Platform15_shape")
+one_way_collision = true
+
+[node name="Platform16Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(315.0, 621.0)
+shape = SubResource("Platform16_shape")
+one_way_collision = true
+
+[node name="Platform17Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(960.0, 621.0)
+shape = SubResource("Platform17_shape")
+one_way_collision = true
+
+[node name="Platform18Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(620.0, 196.0)
+shape = SubResource("Platform18_shape")
+one_way_collision = true
+
+[node name="Platform19Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1130.0, 206.0)
+shape = SubResource("Platform19_shape")
+one_way_collision = true
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Ground1Fill" type="ColorRect" parent="Terrain"]
+offset_left = 0.0
+offset_top = 713.0
+offset_right = 540.0
+offset_bottom = 720.0
+color = Color(0.11, 0.09, 0.1, 1)
+mouse_filter = 2
+
+[node name="Ground1_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(0, 678)
+texture = ExtResource("piece_ground_3")
+centered = false
+flip_h = true
+
+[node name="Ground1_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(53, 668)
+texture = ExtResource("piece_ground_5")
+centered = false
+
+[node name="Ground1_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(98, 674)
+texture = ExtResource("piece_ground_2")
+centered = false
+
+[node name="Ground1_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(162, 676)
+texture = ExtResource("piece_ground_4")
+centered = false
+
+[node name="Ground1_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(205, 670)
+texture = ExtResource("piece_ground_6")
+centered = false
+
+[node name="Ground1_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(250, 674)
+texture = ExtResource("piece_ground_2")
+centered = false
+flip_h = true
+
+[node name="Ground1_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(314, 676)
+texture = ExtResource("piece_ground_4")
+centered = false
+flip_h = true
+
+[node name="Ground1_8" type="Sprite2D" parent="Terrain"]
+position = Vector2(357, 668)
+texture = ExtResource("piece_ground_5")
+centered = false
+flip_h = true
+
+[node name="Ground1_9" type="Sprite2D" parent="Terrain"]
+position = Vector2(402, 670)
+texture = ExtResource("piece_ground_6")
+centered = false
+
+[node name="Ground1_10" type="Sprite2D" parent="Terrain"]
+position = Vector2(447, 674)
+texture = ExtResource("piece_ground_2")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 59, 46)
+
+[node name="Ground1_11" type="Sprite2D" parent="Terrain"]
+position = Vector2(503, 677)
+texture = ExtResource("piece_cap_2")
+centered = false
+
+[node name="Ground2Fill" type="ColorRect" parent="Terrain"]
+offset_left = 600.0
+offset_top = 713.0
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0.11, 0.09, 0.1, 1)
+mouse_filter = 2
+
+[node name="Ground2_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(600, 677)
+texture = ExtResource("piece_cap_2")
+centered = false
+flip_h = true
+
+[node name="Ground2_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(634, 676)
+texture = ExtResource("piece_ground_4")
+centered = false
+flip_h = true
+
+[node name="Ground2_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(677, 676)
+texture = ExtResource("piece_ground_4")
+centered = false
+
+[node name="Ground2_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(720, 678)
+texture = ExtResource("piece_ground_3")
+centered = false
+flip_h = true
+
+[node name="Ground2_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(773, 670)
+texture = ExtResource("piece_ground_6")
+centered = false
+
+[node name="Ground2_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(818, 678)
+texture = ExtResource("piece_ground_3")
+centered = false
+flip_h = true
+
+[node name="Ground2_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(871, 674)
+texture = ExtResource("piece_ground_1")
+centered = false
+flip_h = true
+
+[node name="Ground2_8" type="Sprite2D" parent="Terrain"]
+position = Vector2(973, 668)
+texture = ExtResource("piece_ground_5")
+centered = false
+
+[node name="Ground2_9" type="Sprite2D" parent="Terrain"]
+position = Vector2(1018, 674)
+texture = ExtResource("piece_ground_2")
+centered = false
+flip_h = true
+
+[node name="Ground2_10" type="Sprite2D" parent="Terrain"]
+position = Vector2(1082, 674)
+texture = ExtResource("piece_ground_1")
+centered = false
+flip_h = true
+
+[node name="Ground2_11" type="Sprite2D" parent="Terrain"]
+position = Vector2(1184, 678)
+texture = ExtResource("piece_ground_3")
+centered = false
+flip_h = true
+
+[node name="Ground2_12" type="Sprite2D" parent="Terrain"]
+position = Vector2(1175, 674)
+texture = ExtResource("piece_ground_1")
+centered = false
+
+[node name="Ground3_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(540, 710)
+texture = ExtResource("piece_cap_1")
+centered = false
+flip_h = true
+
+[node name="Ground3_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(565, 710)
+texture = ExtResource("piece_cap_1")
+centered = false
+
+[node name="Platform1_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(0, 290)
+texture = ExtResource("piece_ledge_5")
+centered = false
+flip_h = true
+
+[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(42, 290)
+texture = ExtResource("piece_ledge_4")
+centered = false
+flip_h = true
+
+[node name="Platform1_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(90, 290)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform1_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(132, 290)
+texture = ExtResource("piece_ledge_5")
+centered = false
+flip_h = true
+
+[node name="Platform1_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(174, 290)
+texture = ExtResource("piece_ledge_2")
+centered = false
+flip_h = true
+
+[node name="Platform1_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(222, 290)
+texture = ExtResource("piece_ledge_2")
+centered = false
+flip_h = true
+
+[node name="Platform1_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(270, 290)
+texture = ExtResource("piece_ledge_7")
+centered = false
+flip_h = true
+
+[node name="Platform1_8" type="Sprite2D" parent="Terrain"]
+position = Vector2(311, 290)
+texture = ExtResource("piece_ledge_7")
+centered = false
+flip_h = true
+
+[node name="Platform1_9" type="Sprite2D" parent="Terrain"]
+position = Vector2(352, 290)
+texture = ExtResource("piece_ledge_3")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 28, 46)
+
+[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(470, 290)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(510, 290)
+texture = ExtResource("piece_ledge_1")
+centered = false
+flip_h = true
+
+[node name="Platform2_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(552, 290)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform2_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(594, 290)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform2_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(634, 290)
+texture = ExtResource("piece_ledge_2")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 36, 46)
+
+[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(760, 290)
+texture = ExtResource("piece_ledge_7")
+centered = false
+
+[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(801, 290)
+texture = ExtResource("piece_ledge_8")
+centered = false
+
+[node name="Platform3_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(836, 290)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform3_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(878, 290)
+texture = ExtResource("piece_ledge_1")
+centered = false
+
+[node name="Platform3_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(920, 290)
+texture = ExtResource("piece_ledge_3")
+centered = false
+flip_h = true
+
+[node name="Platform3_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(967, 290)
+texture = ExtResource("piece_ledge_7")
+centered = false
+
+[node name="Platform3_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(1008, 290)
+texture = ExtResource("piece_ledge_3")
+centered = false
+
+[node name="Platform3_8" type="Sprite2D" parent="Terrain"]
+position = Vector2(1055, 290)
+texture = ExtResource("piece_ledge_2")
+centered = false
+flip_h = true
+
+[node name="Platform3_9" type="Sprite2D" parent="Terrain"]
+position = Vector2(1103, 290)
+texture = ExtResource("piece_ledge_2")
+centered = false
+
+[node name="Platform3_10" type="Sprite2D" parent="Terrain"]
+position = Vector2(1151, 290)
+texture = ExtResource("piece_ledge_5")
+centered = false
+flip_h = true
+
+[node name="Platform3_11" type="Sprite2D" parent="Terrain"]
+position = Vector2(1193, 290)
+texture = ExtResource("piece_ledge_8")
+centered = false
+
+[node name="Platform3_12" type="Sprite2D" parent="Terrain"]
+position = Vector2(1228, 290)
+texture = ExtResource("piece_ledge_2")
+centered = false
+
+[node name="Platform3_13" type="Sprite2D" parent="Terrain"]
+position = Vector2(1235, 290)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(380, 355)
+texture = ExtResource("piece_ledge_8")
+centered = false
+flip_h = true
+
+[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(415, 355)
+texture = ExtResource("piece_ledge_2")
+centered = false
+
+[node name="Platform4_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(425, 355)
+texture = ExtResource("piece_ledge_1")
+centered = false
+
+[node name="Platform5_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(1180, 355)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform5_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(1220, 355)
+texture = ExtResource("piece_ledge_7")
+centered = false
+flip_h = true
+
+[node name="Platform5_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(1237, 355)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="Platform6_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(80, 420)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="Platform6_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(120, 420)
+texture = ExtResource("piece_ledge_8")
+centered = false
+flip_h = true
+
+[node name="Platform6_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(155, 420)
+texture = ExtResource("piece_ledge_2")
+centered = false
+flip_h = true
+
+[node name="Platform6_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(203, 420)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform6_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(243, 420)
+texture = ExtResource("piece_ledge_4")
+centered = false
+flip_h = true
+
+[node name="Platform6_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(291, 420)
+texture = ExtResource("piece_ledge_5")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 29, 46)
+
+[node name="Platform7_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(420, 420)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform7_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(460, 420)
+texture = ExtResource("piece_ledge_7")
+centered = false
+
+[node name="Platform7_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(501, 420)
+texture = ExtResource("piece_ledge_1")
+centered = false
+
+[node name="Platform7_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(543, 420)
+texture = ExtResource("piece_ledge_5")
+centered = false
+flip_h = true
+
+[node name="Platform7_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(549, 420)
+texture = ExtResource("piece_ledge_2")
+centered = false
+
+[node name="Platform8_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(700, 420)
+texture = ExtResource("piece_ledge_3")
+centered = false
+flip_h = true
+
+[node name="Platform8_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(747, 420)
+texture = ExtResource("piece_ledge_3")
+centered = false
+flip_h = true
+
+[node name="Platform8_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(794, 420)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="Platform8_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(834, 420)
+texture = ExtResource("piece_ledge_7")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 26, 37)
+
+[node name="Platform9_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(960, 420)
+texture = ExtResource("piece_ledge_3")
+centered = false
+flip_h = true
+
+[node name="Platform9_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(1007, 420)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform9_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(1049, 420)
+texture = ExtResource("piece_ledge_2")
+centered = false
+
+[node name="Platform9_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(1097, 420)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform9_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(1139, 420)
+texture = ExtResource("piece_ledge_1")
+centered = false
+flip_h = true
+
+[node name="Platform9_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(1181, 420)
+texture = ExtResource("piece_ledge_8")
+centered = false
+flip_h = true
+
+[node name="Platform9_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(1216, 420)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform9_8" type="Sprite2D" parent="Terrain"]
+position = Vector2(1256, 420)
+texture = ExtResource("piece_ledge_2")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 46)
+
+[node name="Platform10_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(330, 485)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="Platform10_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(370, 485)
+texture = ExtResource("piece_ledge_2")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 40, 46)
+
+[node name="Platform11_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(880, 483)
+texture = ExtResource("piece_float_3")
+centered = false
+
+[node name="Platform11_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(905, 484)
+texture = ExtResource("piece_float_1")
+centered = false
+flip_h = true
+
+[node name="Platform11_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(934, 484)
+texture = ExtResource("piece_float_1")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 32)
+
+[node name="Platform12_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(0, 550)
+texture = ExtResource("piece_ledge_8")
+centered = false
+flip_h = true
+
+[node name="Platform12_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(35, 550)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform12_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(75, 550)
+texture = ExtResource("piece_ledge_7")
+centered = false
+flip_h = true
+
+[node name="Platform12_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(116, 550)
+texture = ExtResource("piece_ledge_3")
+centered = false
+
+[node name="Platform12_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(163, 550)
+texture = ExtResource("piece_ledge_5")
+centered = false
+flip_h = true
+
+[node name="Platform12_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(205, 550)
+texture = ExtResource("piece_ledge_4")
+centered = false
+
+[node name="Platform12_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(217, 550)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="Platform13_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(350, 550)
+texture = ExtResource("piece_ledge_1")
+centered = false
+
+[node name="Platform13_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(392, 550)
+texture = ExtResource("piece_ledge_2")
+centered = false
+
+[node name="Platform13_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(440, 550)
+texture = ExtResource("piece_ledge_4")
+centered = false
+
+[node name="Platform13_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(488, 550)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform13_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(530, 550)
+texture = ExtResource("piece_ledge_1")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 40, 46)
+
+[node name="Platform14_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(660, 550)
+texture = ExtResource("piece_ledge_2")
+centered = false
+flip_h = true
+
+[node name="Platform14_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(708, 550)
+texture = ExtResource("piece_ledge_2")
+centered = false
+
+[node name="Platform14_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(756, 550)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="Platform14_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(796, 550)
+texture = ExtResource("piece_ledge_5")
+centered = false
+
+[node name="Platform14_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(838, 550)
+texture = ExtResource("piece_ledge_1")
+centered = false
+
+[node name="Platform14_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(880, 550)
+texture = ExtResource("piece_ledge_7")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 20, 37)
+
+[node name="Platform15_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(1000, 550)
+texture = ExtResource("piece_ledge_1")
+centered = false
+flip_h = true
+
+[node name="Platform15_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(1042, 550)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform15_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(1082, 550)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="Platform15_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(1122, 550)
+texture = ExtResource("piece_ledge_6")
+centered = false
+flip_h = true
+
+[node name="Platform15_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(1162, 550)
+texture = ExtResource("piece_ledge_3")
+centered = false
+flip_h = true
+
+[node name="Platform15_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(1209, 550)
+texture = ExtResource("piece_ledge_7")
+centered = false
+
+[node name="Platform15_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(1250, 550)
+texture = ExtResource("piece_ledge_2")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 30, 46)
+
+[node name="Platform16_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(280, 614)
+texture = ExtResource("piece_float_2")
+centered = false
+flip_h = true
+
+[node name="Platform16_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(309, 614)
+texture = ExtResource("piece_float_2")
+centered = false
+flip_h = true
+
+[node name="Platform16_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(322, 613)
+texture = ExtResource("piece_float_3")
+centered = false
+flip_h = true
+
+[node name="Platform17_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(920, 615)
+texture = ExtResource("piece_ledge_7")
+centered = false
+
+[node name="Platform17_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(961, 615)
+texture = ExtResource("piece_ledge_1")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 39, 46)
+
+[node name="Platform18_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(560, 190)
+texture = ExtResource("piece_ledge_1")
+centered = false
+
+[node name="Platform18_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(602, 190)
+texture = ExtResource("piece_ledge_1")
+centered = false
+
+[node name="Platform18_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(644, 190)
+texture = ExtResource("piece_ledge_8")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 36, 43)
+
+[node name="Platform19_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(1080, 200)
+texture = ExtResource("piece_ledge_5")
+centered = false
+flip_h = true
+
+[node name="Platform19_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(1122, 200)
+texture = ExtResource("piece_ledge_1")
+centered = false
+flip_h = true
+
+[node name="Platform19_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(1136, 200)
+texture = ExtResource("piece_ledge_7")
+centered = false
+
+[node name="WallL_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 658)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 597)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 535)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 473)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 411)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 349)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 286)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_8" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 224)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_9" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 162)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_10" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 100)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_11" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 37)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_12" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, -24)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 658)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 596)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 535)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 473)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 411)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_6" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 350)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_7" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 287)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_8" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 224)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_9" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 163)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_10" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 100)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_11" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, 39)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallR_12" type="Sprite2D" parent="Terrain"]
+position = Vector2(1254, -23)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="DecorMid" type="Node2D" parent="."]
+
+[node name="tombstone_1_10" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(150, 660.0)
+texture = ExtResource("decor_tombstone_1")
+
+[node name="tombstone_2_11" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(210, 660.0)
+texture = ExtResource("decor_tombstone_2")
+
+[node name="tombstone_4_12" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(350, 660.0)
+texture = ExtResource("decor_tombstone_4")
+
+[node name="tombstone_5_13" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(620, 660.0)
+texture = ExtResource("decor_tombstone_5")
+
+[node name="tombstone_7_14" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(760, 660.0)
+texture = ExtResource("decor_tombstone_7")
+
+[node name="tombstone_8_15" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(960, 660.0)
+texture = ExtResource("decor_tombstone_8")
+
+[node name="fence_1_16" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(880, 658.0)
+texture = ExtResource("decor_fence_1")
+
+[node name="fence_3_17" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1150, 658.0)
+texture = ExtResource("decor_fence_3")
+
+[node name="monument_3_18" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1090, 652.0)
+texture = ExtResource("decor_monument_3")
+
+[node name="tombstone_3_23" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(120, 400.0)
+texture = ExtResource("decor_tombstone_3")
+
+[node name="tombstone_6_24" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(560, 530.0)
+texture = ExtResource("decor_tombstone_6")
+
+[node name="fence_2_25" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1100, 528.0)
+texture = ExtResource("decor_fence_2")
+
+[node name="graveyard_tomb_2_26" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(509, 530.0)
+texture = ExtResource("decor_graveyard_tomb_2")
+
+[node name="wilds_brush_2_31" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(122, 275.0)
+texture = ExtResource("decor_wilds_brush_2")
+
+[node name="graveyard_tomb_8_33" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(740, 530.0)
+texture = ExtResource("decor_graveyard_tomb_8")
+
+[node name="wilds_brush_3_35" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(425, 340.0)
+texture = ExtResource("decor_wilds_brush_3")
+
+[node name="graveyard_railing_2_39" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1067, 528.0)
+texture = ExtResource("decor_graveyard_railing_2")
+
+[node name="graveyard_railing_2_40" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(919, 658.0)
+texture = ExtResource("decor_graveyard_railing_2")
+
+[node name="wilds_brush_1_44" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(235, 405.0)
+texture = ExtResource("decor_wilds_brush_1")
+
+[node name="wilds_brush_5_46" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(824, 405.0)
+texture = ExtResource("decor_wilds_brush_5")
+
+[node name="wilds_brush_5_47" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(312, 600.0)
+texture = ExtResource("decor_wilds_brush_5")
+
+[node name="graveyard_tomb_7_48" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(189, 530.0)
+texture = ExtResource("decor_graveyard_tomb_7")
+
+[node name="graveyard_coffin_4_49" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(592, 277.0)
+texture = ExtResource("decor_graveyard_coffin_4")
+
+[node name="wilds_brush_6_51" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(576, 701.0)
+texture = ExtResource("decor_wilds_brush_6")
+
+[node name="wilds_stump_1_54" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(272, 403.0)
+texture = ExtResource("decor_wilds_stump_1")
+
+[node name="graveyard_railing_2_56" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(385, 528.0)
+texture = ExtResource("decor_graveyard_railing_2")
+
+[node name="graveyard_railing_2_57" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(962, 268.0)
+texture = ExtResource("decor_graveyard_railing_2")
+
+[node name="wilds_brush_3_58" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1174, 405.0)
+texture = ExtResource("decor_wilds_brush_3")
+
+[node name="DecorFront" type="Node2D" parent="."]
+z_index = 1
+
+[node name="grass_2_19" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(210, 279.0)
+texture = ExtResource("decor_grass_2")
+
+[node name="rocks_20" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(620, 281.0)
+texture = ExtResource("decor_rocks")
+
+[node name="grass_1_21" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(830, 279.0)
+texture = ExtResource("decor_grass_1")
+
+[node name="bush_22" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1040, 407.0)
+texture = ExtResource("decor_bush")
+
+[node name="graveyard_bones_2_27" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1221, 344.0)
+texture = ExtResource("decor_graveyard_bones_2")
+
+[node name="graveyard_bones_1_30" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1149, 279.0)
+texture = ExtResource("decor_graveyard_bones_1")
+
+[node name="graveyard_bones_1_34" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(852, 539.0)
+texture = ExtResource("decor_graveyard_bones_1")
+
+[node name="graveyard_bones_1_45" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(1234, 539.0)
+texture = ExtResource("decor_graveyard_bones_1")
+
+[node name="graveyard_bones_2_50" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.85, 0.8, 0.85, 1)
+position = Vector2(850, 669.0)
+texture = ExtResource("decor_graveyard_bones_2")
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(330, 290)
+prop_id = "pot"
+
+[node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(460, 680)
+prop_id = "barrel"
+
+[node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(700, 680)
+prop_id = "crates_stacked"
+
+[node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(880, 680)
+prop_id = "sack"
+
+[node name="Prop5" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1050, 190)
+prop_id = "chest_gold"
+
+[node name="Prop6" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(150, 420)
+prop_id = "pot"
+
+[node name="Prop7" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1150, 550)
+prop_id = "funeral_offering"
+
+[node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
+position = Vector2(170, 290)
+npc_id = "nun"
+
+[node name="Npc2" parent="Props" instance=ExtResource("11_npc")]
+position = Vector2(1180, 260)
+npc_id = "mara"
+
+[node name="Shrine" type="Sprite2D" parent="."]
+position = Vector2(1170, 680)
+texture = ExtResource("9_shrine")
+hframes = 7
+centered = false
+offset = Vector2(-24, -64)
+script = ExtResource("10_fixture")
+lights = true
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="Spawns"]
+position = Vector2(900, 278)
+script = ExtResource("5_spawn")
+enemy_id = "cultist"
+
+[node name="Spawn2" type="Marker2D" parent="Spawns"]
+position = Vector2(1150, 408)
+script = ExtResource("5_spawn")
+enemy_id = "zealot"
+
+[node name="Spawn3" type="Marker2D" parent="Spawns"]
+position = Vector2(200, 408)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn4" type="Marker2D" parent="Spawns"]
+position = Vector2(480, 538)
+script = ExtResource("5_spawn")
+enemy_id = "cultist"
+
+[node name="Spawn5" type="Marker2D" parent="Spawns"]
+position = Vector2(1100, 538)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn6" type="Marker2D" parent="Spawns"]
+position = Vector2(800, 668)
+script = ExtResource("5_spawn")
+enemy_id = "fallen_guard"
+
+[node name="Spawn7" type="Marker2D" parent="Spawns"]
+position = Vector2(1100, 668)
+script = ExtResource("5_spawn")
+enemy_id = "cultist"
+
+[node name="Spawn8" type="Marker2D" parent="Spawns"]
+position = Vector2(300, 620)
+script = ExtResource("5_spawn")
+enemy_id = "wraith"
+
+[node name="Spawn9" type="Marker2D" parent="Spawns"]
+position = Vector2(600, 380)
+script = ExtResource("5_spawn")
+enemy_id = "shade"
+
+[node name="Spawn10" type="Marker2D" parent="Spawns"]
+position = Vector2(900, 160)
+script = ExtResource("5_spawn")
+enemy_id = "raven"
+
+[node name="Spawn11" type="Marker2D" parent="Spawns"]
+position = Vector2(1050, 260)
+script = ExtResource("5_spawn")
+enemy_id = "wraith"
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(60, 270)
+
+[node name="Door" type="Area2D" parent="."]
+position = Vector2(1246, 648)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_door")
+
+[node name="Shape" type="CollisionShape2D" parent="Door"]
+shape = SubResource("door_shape")
+
+[node name="Gate" type="Sprite2D" parent="Door"]
+texture = ExtResource("8_gate")
+hframes = 5
+
+[node name="Glow" type="Sprite2D" parent="Door"]
+visible = false
+material = SubResource("add_mat")
+scale = Vector2(1.6, 1.6)
+texture = SubResource("glow_tex")
+
+[node name="Weather" type="CPUParticles2D" parent="."]
+z_index = 2
+position = Vector2(640.0, -20)
+amount = 400
+lifetime = 1.8
+preprocess = 1.8
+texture = SubResource("drop")
+emission_shape = 3
+emission_rect_extents = Vector2(700.0, 4)
+direction = Vector2(-0.15, 1)
+spread = 2.0
+gravity = Vector2(0, 600)
+initial_velocity_min = 260.0
+initial_velocity_max = 340.0
+scale_amount_min = 0.7
+scale_amount_max = 1.0
+color = Color(0.9, 0.95, 1.1, 0.5)
+
+[node name="WeatherFar" type="CPUParticles2D" parent="."]
+position = Vector2(640.0, -20)
+amount = 80
+lifetime = 1.8
+preprocess = 1.8
+texture = SubResource("drop")
+emission_shape = 3
+emission_rect_extents = Vector2(700.0, 4)
+direction = Vector2(-0.15, 1)
+spread = 2.0
+gravity = Vector2(0, 500)
+initial_velocity_min = 200.0
+initial_velocity_max = 260.0
+scale_amount_min = 0.4
+scale_amount_max = 0.6
+color = Color(0.7, 0.75, 0.9, 0.3)
+
+[node name="Motes" type="CPUParticles2D" parent="."]
+z_index = 1
+position = Vector2(640.0, 360.0)
+amount = 72
+lifetime = 9.0
+preprocess = 9.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(640.0, 360.0)
+direction = Vector2(1, 0)
+spread = 180.0
+gravity = Vector2(0, -3)
+initial_velocity_min = 3.0
+initial_velocity_max = 9.0
+scale_amount_min = 0.3
+scale_amount_max = 0.6
+color = Color(1, 0.95, 0.85, 0.5)
+color_ramp = SubResource("fade")
+
+[node name="Lights" type="Node2D" parent="."]
+
+[node name="Light1" type="PointLight2D" parent="Lights"]
+position = Vector2(470, 250)
+color = Color(0.561, 0.816, 1.0, 1)
+energy = 0.45
+script = ExtResource("12_light")
+radius = 70.0
+flicker = 0.1
+
+[node name="Light2" type="PointLight2D" parent="Lights"]
+position = Vector2(570, 630)
+color = Color(0.498, 0.847, 0.722, 1)
+energy = 0.4
+script = ExtResource("12_light")
+radius = 60.0
+flicker = 0.1
+
+[node name="Light3" type="PointLight2D" parent="Lights"]
+position = Vector2(1246, 621)
+color = Color(1.0, 0.722, 0.467, 1)
+energy = 0.6
+script = ExtResource("12_light")
+radius = 60.0
+flicker = 0.3
+

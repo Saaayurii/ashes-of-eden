@@ -1,0 +1,292 @@
+extends Control
+class_name Bestiary
+## The bestiary: every enemy kind in the data, opened page by page as the
+## player meets them (Profile keeps the book). Works from the main menu and
+## from the pause menu, like SettingsMenu.
+##
+## Three states per kind:
+##   unknown  never spawned in a room the player was in — "???", no portrait
+##   seen     spawned, never killed — silhouette and name
+##   known    killed at least once — portrait, stats, lore, kill count
+## People (data/npcs, ids "npc:<id>") get the same book after the enemies:
+## a silhouette once you have shared a room, the page once you have talked.
+
+signal closed
+
+const UNKNOWN_NAME := "???"
+const DIM := Color(0.55, 0.53, 0.58)
+const GOLD := Color(0.95, 0.85, 0.5)
+const SILHOUETTE := Color(0.08, 0.06, 0.1)
+## Attack types → their localization key; contact damage is listed separately.
+const ATTACK_KEYS := {"melee": "BESTIARY_ATK_MELEE", "ranged": "BESTIARY_ATK_RANGED", "lunge": "BESTIARY_ATK_LUNGE", "beam": "BESTIARY_ATK_BEAM", "nova": "BESTIARY_ATK_NOVA"}
+const FAMILY_ORDER := ["possessed", "cult", "fallen", "restless", "heaven"]
+
+var _ids: Array[String] = []
+var _selected := ""
+
+@onready var progress: Label = %Progress
+@onready var list: VBoxContainer = %List
+@onready var portrait: Control = %Portrait
+@onready var avatar: TextureRect = %Avatar
+@onready var sprite: AnimatedSprite2D = %Sprite
+@onready var name_label: Label = %Name
+@onready var tags_label: Label = %Tags
+@onready var stats_box: GridContainer = %Stats
+@onready var lore_label: Label = %Lore
+@onready var abilities_title: Label = %AbilitiesTitle
+@onready var abilities_box: VBoxContainer = %Abilities
+@onready var hint_label: Label = %Hint
+@onready var back_button: Button = %Back
+
+
+func _ready() -> void:
+	back_button.pressed.connect(close)
+	portrait.resized.connect(_place_sprite)
+
+
+func open() -> void:
+	_build_list()
+	visible = true
+	if list.get_child_count() > 0:
+		# Come back to the page that was open; the first one otherwise.
+		var target: Button = list.get_node_or_null(_selected.replace(":", "_")) if _selected != "" else null
+		(target if target else list.get_child(0) as Button).grab_focus()
+	else:
+		back_button.grab_focus()
+
+
+func close() -> void:
+	visible = false
+	closed.emit()
+
+
+func _input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		close()
+
+
+## Weakest first, by the essence a kill is worth; bosses land at the end on their own.
+func _build_list() -> void:
+	for child in list.get_children():
+		list.remove_child(child)
+		child.queue_free()
+	_ids.assign(Data.enemies.keys())
+	_ids.sort_custom(func(a: String, b: String) -> bool:
+		var sa: Dictionary = Data.enemies[a]
+		var sb: Dictionary = Data.enemies[b]
+		var fa := FAMILY_ORDER.find(str(sa.get("family", "restless")))
+		var fb := FAMILY_ORDER.find(str(sb.get("family", "restless")))
+		fa = fa if fa >= 0 else FAMILY_ORDER.size()
+		fb = fb if fb >= 0 else FAMILY_ORDER.size()
+		if fa != fb:
+			return fa < fb
+		var ta := int(sa.get("tier", 1))
+		var tb := int(sb.get("tier", 1))
+		return ta < tb if ta != tb else float(sa.get("essence", 10)) < float(sb.get("essence", 10)))
+	var enemies := _ids.size()
+	var people: Array[String] = []
+	people.assign(Data.npcs.keys().map(func(id: String) -> String: return "npc:" + id))
+	people.sort()
+	var last_family := ""
+	for id in _ids + people:
+		if not people.is_empty() and id == people[0]:
+			var heading := Label.new()
+			heading.text = tr("BESTIARY_PEOPLE")
+			heading.add_theme_color_override("font_color", GOLD)
+			heading.add_theme_font_size_override("font_size", 11)
+			list.add_child(heading)
+		elif not id.begins_with("npc:"):
+			var family := str(Data.enemies[id].get("family", "restless"))
+			if family != last_family:
+				last_family = family
+				var heading := Label.new()
+				heading.text = tr("BESTIARY_FAMILY_" + family.to_upper())
+				heading.add_theme_color_override("font_color", GOLD)
+				heading.add_theme_font_size_override("font_size", 11)
+				list.add_child(heading)
+		var entry := Profile.bestiary_entry(id)
+		var button := Button.new()
+		button.name = id.replace(":", "_")
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var branch := ""
+		if not id.begins_with("npc:"):
+			branch = "  └ " if int(_spec(id).get("tier", 1)) > 1 else "  ◆ "
+		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) else UNKNOWN_NAME)
+		if not _known(id, entry):
+			button.add_theme_color_override("font_color", DIM)
+		button.focus_entered.connect(_show.bind(id))
+		button.pressed.connect(_show.bind(id))
+		list.add_child(button)
+	_ids.append_array(people)
+	progress.text = tr("BESTIARY_PROGRESS") % [Profile.bestiary_known(), enemies]
+	if _ids.is_empty() or not _ids.has(_selected):
+		_selected = _ids[0] if not _ids.is_empty() else ""
+	if _selected != "":
+		_show(_selected)
+
+
+## The data behind a page: an enemy, or a person for an "npc:" id.
+func _spec(id: String) -> Dictionary:
+	if id.begins_with("npc:"):
+		return Data.npcs.get(id.trim_prefix("npc:"), {})
+	return Data.enemies.get(id, {})
+
+
+## A page is open once the enemy has been slain, or the person spoken to.
+func _known(id: String, entry: Dictionary) -> bool:
+	return entry.get("met", false) if id.begins_with("npc:") else int(entry.get("kills", 0)) > 0
+
+
+func _show(id: String) -> void:
+	_selected = id
+	var stats := _spec(id)
+	var entry := Profile.bestiary_entry(id)
+	var seen: bool = entry.get("seen", false)
+	var kills := int(entry.get("kills", 0))
+	var known := _known(id, entry)
+	for child in stats_box.get_children():
+		stats_box.remove_child(child)
+		child.queue_free()
+	for child in abilities_box.get_children():
+		abilities_box.remove_child(child)
+		child.queue_free()
+	abilities_title.visible = false
+	_set_portrait(stats if seen else {}, known)
+	name_label.text = tr(stats.get("name", id)) if seen else UNKNOWN_NAME
+	tags_label.text = ""
+	lore_label.text = ""
+	hint_label.text = ""
+	if not seen:
+		hint_label.text = tr("BESTIARY_HINT_UNKNOWN")
+		return
+	if id.begins_with("npc:"):
+		if stats.has("role"):
+			tags_label.text = tr(stats.role)
+		if not known:
+			hint_label.text = tr("BESTIARY_HINT_MEET")
+			return
+		_place_row(stats, entry)
+		if not stats.get("lines", []).is_empty():
+			_stat("BESTIARY_SAYS", "«%s»" % tr(stats.lines[0]))
+		if stats.has("lore"):
+			lore_label.text = tr(stats.lore)
+		return
+	if kills <= 0:
+		hint_label.text = tr("BESTIARY_HINT_SEEN")
+		return
+	var tags: Array = stats.get("tags", []).map(func(tag: String) -> String: return tr("TAG_" + tag.to_upper()))
+	tags_label.text = " · ".join(tags)
+	_stat("BESTIARY_HP", str(int(stats.get("hp", 0))))
+	_stat("BESTIARY_SPEED", str(int(stats.get("speed", 0))))
+	if float(stats.get("armor", 0.0)) > 0.0:
+		_stat("BESTIARY_ARMOR", "%d%%" % int(round(float(stats.armor) * 100.0)))
+	var attacks := _attack_summary(stats)
+	if attacks != "":
+		_stat("BESTIARY_ATTACKS", attacks)
+	_stat("BESTIARY_ESSENCE", str(int(stats.get("essence", 0))))
+	_place_row(stats, entry)
+	_stat("BESTIARY_SLAIN", str(kills))
+	if stats.has("lore"):
+		lore_label.text = tr(stats.lore)
+	_show_abilities(stats)
+
+
+## Where it is at home when the data says so, otherwise where this player first
+## laid eyes on one (Profile remembers the chapter, see Game.place).
+func _place_row(stats: Dictionary, entry: Dictionary) -> void:
+	if stats.has("location"):
+		_stat("BESTIARY_PLACE", tr(stats.location))
+		return
+	var chapter: Dictionary = Data.chapters.get(str(entry.get("place", "")), {})
+	if chapter.has("title"):
+		_stat("BESTIARY_PLACE", tr(chapter.title))
+
+
+## "Melee 12 · Ranged 10 · Touch 6": base damage, before difficulty and time scaling.
+func _attack_summary(stats: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	var attacks: Array = stats.get("attacks", [])
+	if stats.has("attack"):
+		attacks = attacks + [stats.attack]
+	for attack in attacks:
+		var key: String = str(attack.get("name", ATTACK_KEYS.get(attack.get("type", ""), "")))
+		if key != "":
+			parts.append("%s %d" % [tr(key), int(attack.get("damage", 0))])
+	if float(stats.get("damage", 0)) > 0.0:
+		parts.append("%s %d" % [tr("BESTIARY_CONTACT"), int(stats.damage)])
+	return " · ".join(parts)
+
+
+func _show_abilities(stats: Dictionary) -> void:
+	var abilities: Array = stats.get("attacks", []).duplicate(true)
+	abilities.append_array(stats.get("abilities", []))
+	abilities_title.visible = not abilities.is_empty()
+	for ability in abilities:
+		var label := Label.new()
+		var description := str(ability.get("description", ""))
+		if description == "" and ability.has("type"):
+			description = tr("BESTIARY_MOVE_DETAIL") % [int(ability.get("damage", 0)), int(ability.get("range", ability.get("radius", 0))), float(ability.get("windup", 0.0)), float(ability.get("cooldown", 0.0))]
+		label.text = "◆ %s\n%s" % [tr(ability.get("name", ATTACK_KEYS.get(ability.get("type", ""), ""))), tr(description)]
+		label.add_theme_color_override("font_color", GOLD)
+		label.add_theme_font_size_override("font_size", 10)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.tooltip_text = tr(ability.get("description", ""))
+		abilities_box.add_child(label)
+
+
+func _stat(key: String, value: String) -> void:
+	var label := Label.new()
+	label.text = key
+	label.add_theme_color_override("font_color", DIM)
+	label.add_theme_font_size_override("font_size", 11)
+	stats_box.add_child(label)
+	var value_label := Label.new()
+	value_label.text = value
+	value_label.add_theme_font_size_override("font_size", 11)
+	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	stats_box.add_child(value_label)
+
+
+## The idle strip, built the way the enemy builds it. Empty stats = no portrait;
+## a kind the player has met but not beaten is a silhouette.
+func _set_portrait(stats: Dictionary, known: bool) -> void:
+	avatar.visible = false
+	avatar.texture = null
+	sprite.visible = false
+	sprite.sprite_frames = null
+	if stats.is_empty():
+		return
+	if stats.has("avatar") and ResourceLoader.exists(str(stats.avatar)):
+		avatar.texture = load(str(stats.avatar))
+		avatar.modulate = Color.WHITE if known else SILHOUETTE
+		avatar.visible = true
+		return
+	if not stats.has("sprite"):
+		return
+	var spec: Dictionary = stats.sprite
+	var frames := SpriteFrames.new()
+	var cell := Vector2i(int(spec.get("frame_w", 24)), int(spec.get("frame_h", 28)))
+	if spec.has("cell"):
+		cell = Vector2i(int(spec.cell[0]), int(spec.cell[1]))
+	var path: String = spec.animations.get("idle", "") if spec.has("animations") else spec.get("path", "")
+	if path == "" or not Fx.add_strip(frames, path, cell, float(spec.get("fps", 6)), "idle", true):
+		return
+	sprite.sprite_frames = frames
+	sprite.set_meta("cell", cell)
+	sprite.modulate = Color.WHITE if known else SILHOUETTE
+	sprite.visible = true
+	sprite.play("idle")
+	_place_sprite()
+
+
+## Centred in the portrait box, 2× when the cell fits, smaller for the big bosses.
+func _place_sprite() -> void:
+	if sprite.sprite_frames == null:
+		return
+	var cell: Vector2i = sprite.get_meta("cell", Vector2i(24, 28))
+	var room := portrait.size - Vector2(8, 8)
+	var fit := minf(2.0, minf(room.x / cell.x, room.y / cell.y))
+	sprite.scale = Vector2.ONE * fit
+	sprite.position = portrait.size / 2.0

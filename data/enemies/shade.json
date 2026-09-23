@@ -1,0 +1,42 @@
+{
+  "id": "shade",
+  "name": "ENEMY_SHADE",
+  "lore": "ENEMY_SHADE_LORE",
+  "hp": 24,
+  "speed": 90,
+  "damage": 6,
+  "attack_interval": 0.6,
+  "behaviour": "flyer",
+  "hover_distance": 42,
+  "aggro_range": 520,
+  "size": 10,
+  "color": "#3a2a55",
+  "material": "spirit",
+  "tags": [
+    "spirit"
+  ],
+  "sprite": {
+    "path": "res://assets/sprites/shade.png",
+    "frame_w": 24,
+    "frame_h": 28,
+    "frames": 4,
+    "fps": 8
+  },
+  "attack": {
+    "type": "lunge",
+    "range": 85,
+    "windup": 0.5,
+    "damage": 6,
+    "cooldown": 1.9,
+    "lunge_speed": 220,
+    "lunge_time": 0.38,
+    "recover": 0.45,
+    "color": "#9d80d0"
+  },
+  "essence": 8,
+  "light": {
+    "color": "#7a5cc0",
+    "radius": 46,
+    "energy": 0.7
+  }
+}

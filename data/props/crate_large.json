@@ -1,0 +1,17 @@
+{
+  "id": "crate_large",
+  "kind": "destructible",
+  "hp": 12,
+  "essence": 6,
+  "hitbox": [
+    28,
+    30
+  ],
+  "sprite": {
+    "path": "res://assets/props/crate_large.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#9a7a50"
+}

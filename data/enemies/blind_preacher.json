@@ -1,0 +1,71 @@
+{
+  "id": "blind_preacher",
+  "name": "ENEMY_BLIND_PREACHER",
+  "lore": "ENEMY_BLIND_PREACHER_LORE",
+  "hp": 900,
+  "speed": 58,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "boss": true,
+  "behaviour": "walker",
+  "aggro_range": 700,
+  "size": 14,
+  "color": "#b9a27a",
+  "material": "cloth",
+  "tags": [
+    "human",
+    "heaven",
+    "miniboss"
+  ],
+  "stagger_chance": 0.0,
+  "sprite": {
+    "cell": [
+      56,
+      64
+    ],
+    "fps": 8,
+    "animations": {
+      "idle": "res://assets/sprites/preacher_idle.png",
+      "walk": "res://assets/sprites/preacher_walk.png",
+      "attack": "res://assets/sprites/preacher_attack.png",
+      "death": "res://assets/sprites/preacher_death.png"
+    }
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 42,
+      "reach": 50,
+      "windup": 0.55,
+      "damage": 18,
+      "cooldown": 1.3,
+      "recover": 0.4,
+      "weight": 2
+    },
+    {
+      "type": "ranged",
+      "range": 300,
+      "windup": 0.8,
+      "damage": 15,
+      "cooldown": 2.0,
+      "projectile_speed": 190,
+      "projectile_style": "preacher",
+      "color": "#fff1c2",
+      "weight": 1
+    },
+    {
+      "type": "melee",
+      "range": 60,
+      "reach": 70,
+      "windup": 0.95,
+      "damage": 35,
+      "cooldown": 3.0,
+      "recover": 0.7,
+      "weight": 2,
+      "from_hp": 0.5
+    }
+  ],
+  "armor": 0.1,
+  "essence": 150,
+  "ash": 10
+}

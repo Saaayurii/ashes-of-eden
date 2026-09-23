@@ -1,0 +1,172 @@
+{
+  "id": "npc_nun",
+  "start": "route",
+  "nodes": {
+    "route": {
+      "branches": [
+        {
+          "flag": "stranger_killed",
+          "next": "a_killed"
+        },
+        {
+          "flag": "stranger_heard",
+          "next": "a_heard"
+        },
+        {
+          "flag": "severin_blamed",
+          "next": "a_blamed"
+        }
+      ],
+      "next": "a_default"
+    },
+    "a_killed": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_KILLED",
+      "next": "a2"
+    },
+    "a_heard": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_HEARD",
+      "next": "a2"
+    },
+    "a_blamed": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_BLAMED",
+      "next": "a2"
+    },
+    "a_default": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_NPC_NUN_1",
+      "next": "a2"
+    },
+    "a2": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_NPC_NUN_2",
+      "next": "a_severin_first"
+    },
+    "a_severin_first": {
+      "branches": [
+        {"flag": "severin_asked", "next": "a_severin_asked"},
+        {"flag": "severin_thanked", "next": "a_severin_thanked"}
+      ],
+      "next": "a_severin_second"
+    },
+    "a_severin_asked": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_SEVERIN_ASKED",
+      "next": "a_severin_second"
+    },
+    "a_severin_thanked": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_SEVERIN_THANKED",
+      "next": "a_severin_second"
+    },
+    "a_severin_second": {
+      "branches": [
+        {"flag": "severin_told", "next": "a_severin_told"},
+        {"flag": "severin_knew", "next": "a_severin_knew"}
+      ],
+      "next": "a3"
+    },
+    "a_severin_told": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_SEVERIN_TOLD",
+      "next": "a3"
+    },
+    "a_severin_knew": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_SEVERIN_KNEW",
+      "next": "a3"
+    },
+    "a3": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_3",
+      "choices": [
+        {
+          "id": "ask",
+          "text": "DLG_AGNES_ASK",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "agnes_asked"
+            ]
+          },
+          "next": "a_r_ask"
+        },
+        {
+          "id": "silence",
+          "text": "DLG_AGNES_SILENCE",
+          "effect": {
+            "temptation": 1,
+            "set_flags": [
+              "agnes_silenced"
+            ]
+          },
+          "next": "a_r_silence"
+        },
+        {
+          "id": "bless",
+          "text": "DLG_AGNES_BLESS",
+          "effect": {
+            "grace": 1,
+            "set_flags": [
+              "agnes_blessed"
+            ]
+          },
+          "next": "a_r_bless"
+        }
+      ]
+    },
+    "a_r_ask": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_R_ASK",
+      "next": "a4"
+    },
+    "a_r_silence": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_R_SILENCE",
+      "next": "a4"
+    },
+    "a_r_bless": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_R_BLESS",
+      "next": "a4"
+    },
+    "a4": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_4",
+      "choices": [
+        {
+          "id": "called",
+          "text": "DLG_AGNES_CALLED",
+          "effect": {
+            "grace": 1,
+            "set_flags": [
+              "agnes_called"
+            ]
+          },
+          "next": "a_end_called"
+        },
+        {
+          "id": "alone",
+          "text": "DLG_AGNES_ALONE",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "agnes_alone"
+            ]
+          },
+          "next": "a_end_alone"
+        }
+      ]
+    },
+    "a_end_called": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_R_CALLED"
+    },
+    "a_end_alone": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_R_ALONE"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+[gd_resource type="Theme" load_steps=6 format=3]
+
+; Project theme. Two faces, both SIL OFL, both with full Cyrillic (see assets/CREDITS.md):
+;   Forum       — inscriptional Roman capitals, for titles and buttons.
+;   EB Garamond — old-style serif, for everything that is read rather than glanced at.
+; Neither covers CJK, so a system CJK font stays at the end of the fallback chain.
+; Web builds have no system fonts: before the first Web/zh_CN release, ship a CJK
+; font file here and put it in the chain (see docs/LOCALIZATION.md).
+
+[ext_resource type="FontFile" path="res://assets/fonts/EBGaramond-Variable.ttf" id="1_body"]
+[ext_resource type="FontFile" path="res://assets/fonts/Forum-Regular.ttf" id="2_display"]
+
+[sub_resource type="SystemFont" id="cjk_fallback"]
+font_names = PackedStringArray("Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", "Droid Sans Fallback", "Arial Unicode MS")
+
+[sub_resource type="FontVariation" id="body_font"]
+fallbacks = Array[Font]([SubResource("cjk_fallback")])
+base_font = ExtResource("1_body")
+
+[sub_resource type="FontVariation" id="display_font"]
+fallbacks = Array[Font]([ExtResource("1_body"), SubResource("cjk_fallback")])
+base_font = ExtResource("2_display")
+
+[resource]
+default_font = SubResource("body_font")
+Button/fonts/font = SubResource("display_font")
+TitleLabel/base_type = &"Label"
+TitleLabel/fonts/font = SubResource("display_font")

@@ -1,0 +1,48 @@
+{
+  "id": "matthew",
+  "name": "NPC_MATTHEW",
+  "dialogue": "npc_matthew",
+  "avatar": "res://assets/portraits/matthew.png",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/matthew_v2_idle.png",
+      "walk": "res://assets/sprites/matthew_v2_walk.png",
+      "interact": "res://assets/sprites/matthew_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 4
+  },
+  "lore": "NPC_MATTHEW_LORE",
+  "role": "NPC_ROLE_MATTHEW",
+  "location": "LOC_CHURCH",
+  "light": {
+    "color": "#ffb060",
+    "radius": 40,
+    "energy": 0.5,
+    "flicker": 0.3
+  },
+  "path": [
+    [
+      0,
+      0
+    ],
+    [
+      -140,
+      0
+    ],
+    [
+      -60,
+      0
+    ]
+  ],
+  "pace": 6,
+  "lines": [
+    "NPC_MATTHEW_LINE_1",
+    "NPC_MATTHEW_LINE_2",
+    "NPC_MATTHEW_LINE_3"
+  ]
+}

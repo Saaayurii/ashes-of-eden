@@ -1,0 +1,37 @@
+{
+  "id": "chest_cursed",
+  "kind": "chest",
+  "essence": 90,
+  "glow": "#ff6a6a",
+  "effect": {
+    "temptation": 1
+  },
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_cursed.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/crystal_blue.png",
+    "res://assets/icons/quest/trophy_1.png",
+    "res://assets/icons/quest/trophy_2.png",
+    "res://assets/icons/quest/trophy_3.png",
+    "res://assets/icons/quest/trophy_4.png",
+    "res://assets/icons/quest/trophy_5.png",
+    "res://assets/icons/quest/trophy_6.png",
+    "res://assets/icons/quest/trophy_7.png",
+    "res://assets/icons/quest/ritual_1.png",
+    "res://assets/icons/quest/ritual_2.png",
+    "res://assets/icons/quest/ritual_3.png",
+    "res://assets/icons/quest/ritual_4.png",
+    "res://assets/icons/quest/ritual_5.png",
+    "res://assets/icons/quest/ritual_6.png",
+    "res://assets/icons/quest/ritual_7.png",
+    "res://assets/icons/quest/essence_7.png"
+  ]
+}

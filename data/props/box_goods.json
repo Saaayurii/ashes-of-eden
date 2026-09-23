@@ -1,0 +1,17 @@
+{
+  "id": "box_goods",
+  "kind": "destructible",
+  "hp": 1,
+  "essence": 5,
+  "hitbox": [
+    22,
+    24
+  ],
+  "sprite": {
+    "path": "res://assets/props/box_goods.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#8a6040"
+}

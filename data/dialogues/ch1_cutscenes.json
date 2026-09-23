@@ -1,0 +1,160 @@
+[
+  {
+    "id": "ch1_ophanim_arrival",
+    "blocking": false,
+    "start": "a1",
+    "nodes": {
+      "a1": {
+        "speaker": "SPEAKER_OPHANIM",
+        "text": "DLG_CH1_OPHANIM_1"
+      }
+    }
+  },
+  {
+    "id": "ch1_ophanim_fall",
+    "blocking": false,
+    "start": "f1",
+    "nodes": {
+      "f1": {
+        "speaker": "SPEAKER_OPHANIM",
+        "text": "DLG_CH1_OPHANIM_FALL_1",
+        "next": "f2"
+      },
+      "f2": {
+        "speaker": "SPEAKER_OPHANIM",
+        "text": "DLG_CH1_OPHANIM_FALL_2",
+        "next": "f3"
+      },
+      "f3": {
+        "speaker": "SPEAKER_OPHANIM",
+        "text": "DLG_CH1_OPHANIM_1"
+      }
+    }
+  },
+  {
+    "id": "ch1_stranger_after_kill",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH1_STRANGER_AFTER_KILL"
+      }
+    }
+  },
+  {
+    "id": "ch1_stranger_after_listen",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_STRANGER",
+        "text": "DLG_CH1_STRANGER_AFTER_LISTEN"
+      }
+    }
+  },
+  {
+    "id": "ch1_stranger_after_leave",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_STRANGER",
+        "text": "DLG_CH1_STRANGER_AFTER_LEAVE"
+      }
+    }
+  },
+  {
+    "id": "ch1_finale_confessed",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH1_FINALE_CONFESSED"
+      }
+    }
+  },
+  {
+    "id": "ch1_finale_judged",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH1_FINALE_JUDGED"
+      }
+    }
+  },
+  {
+    "id": "ch1_finale_released",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH1_FINALE_RELEASED"
+      }
+    }
+  },
+  {
+    "id": "ch1_finale_unknown",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH1_FINALE_UNKNOWN"
+      }
+    }
+  },
+  {
+    "id": "ch1_finale_grace",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH1_FINALE_GRACE"
+      }
+    }
+  },
+  {
+    "id": "ch1_finale_temptation",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH1_FINALE_TEMPTATION"
+      }
+    }
+  },
+  {
+    "id": "ch1_finale_bell_asked",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_FINALE_BELL_ASKED"}
+    }
+  },
+  {
+    "id": "ch1_finale_bell_left",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_FINALE_BELL_LEFT"}
+    }
+  },
+  {
+    "id": "ch1_finale_will",
+    "blocking": false,
+    "start": "l",
+    "nodes": {
+      "l": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH1_FINALE_WILL"
+      }
+    }
+  }
+]

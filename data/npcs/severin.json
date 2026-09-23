@@ -1,0 +1,45 @@
+{
+  "id": "severin",
+  "name": "NPC_SEVERIN",
+  "dialogue": "npc_severin",
+  "avatar": "res://assets/portraits/severin.png",
+  "face": "right",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/severin_v2_idle.png",
+      "walk": "res://assets/sprites/severin_v2_walk.png",
+      "attack": "res://assets/sprites/severin_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 4
+  },
+  "lore": "NPC_SEVERIN_LORE",
+  "guard": {
+    "range": 150,
+    "reach": 34,
+    "damage": 7,
+    "cooldown": 1.1,
+    "speed": 60,
+    "leash": 55
+  },
+  "role": "NPC_ROLE_SEVERIN",
+  "location": "LOC_GRAVEYARD_MOON",
+  "path": [
+    [
+      0,
+      0
+    ],
+    [
+      50,
+      0
+    ]
+  ],
+  "pace": 5,
+  "lines": [
+    "NPC_SEVERIN_LINE_1",
+    "NPC_SEVERIN_LINE_2"
+  ]
+}

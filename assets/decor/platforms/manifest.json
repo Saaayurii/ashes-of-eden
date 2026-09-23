@@ -1,0 +1,260 @@
+{
+ "cap_1": {
+  "family": "cap",
+  "h": 45,
+  "top": 6,
+  "w": 35
+ },
+ "cap_2": {
+  "family": "cap",
+  "h": 42,
+  "top": 3,
+  "w": 37
+ },
+ "earth_1": {
+  "family": "earth",
+  "h": 44,
+  "top": 6,
+  "w": 77
+ },
+ "earth_2": {
+  "family": "earth",
+  "h": 44,
+  "top": 5,
+  "w": 60
+ },
+ "earth_3": {
+  "family": "earth",
+  "h": 48,
+  "top": 6,
+  "w": 55
+ },
+ "earth_4": {
+  "family": "earth",
+  "h": 41,
+  "top": 2,
+  "w": 42
+ },
+ "earth_5": {
+  "family": "earth",
+  "h": 45,
+  "top": 5,
+  "w": 48
+ },
+ "earth_6": {
+  "family": "earth",
+  "h": 44,
+  "top": 5,
+  "w": 58
+ },
+ "float_1": {
+  "family": "float",
+  "h": 32,
+  "top": 1,
+  "w": 32
+ },
+ "float_2": {
+  "family": "float",
+  "h": 30,
+  "top": 1,
+  "w": 32
+ },
+ "float_3": {
+  "family": "float",
+  "h": 28,
+  "top": 2,
+  "w": 28
+ },
+ "ground_1": {
+  "family": "ground",
+  "h": 46,
+  "top": 6,
+  "w": 105
+ },
+ "ground_2": {
+  "family": "ground",
+  "h": 46,
+  "top": 6,
+  "w": 67
+ },
+ "ground_3": {
+  "family": "ground",
+  "h": 44,
+  "top": 2,
+  "w": 56
+ },
+ "ground_4": {
+  "family": "ground",
+  "h": 45,
+  "top": 4,
+  "w": 46
+ },
+ "ground_5": {
+  "family": "ground",
+  "h": 49,
+  "top": 12,
+  "w": 48
+ },
+ "ground_6": {
+  "family": "ground",
+  "h": 48,
+  "top": 10,
+  "w": 48
+ },
+ "ledge_1": {
+  "family": "ledge",
+  "h": 46,
+  "top": 0,
+  "w": 45
+ },
+ "ledge_2": {
+  "family": "ledge",
+  "h": 46,
+  "top": 0,
+  "w": 51
+ },
+ "ledge_3": {
+  "family": "ledge",
+  "h": 46,
+  "top": 0,
+  "w": 50
+ },
+ "ledge_4": {
+  "family": "ledge",
+  "h": 46,
+  "top": 0,
+  "w": 51
+ },
+ "ledge_5": {
+  "family": "ledge",
+  "h": 46,
+  "top": 0,
+  "w": 45
+ },
+ "ledge_6": {
+  "family": "ledge",
+  "h": 46,
+  "top": 0,
+  "w": 43
+ },
+ "ledge_7": {
+  "family": "ledge",
+  "h": 37,
+  "top": 0,
+  "w": 44
+ },
+ "ledge_8": {
+  "family": "ledge",
+  "h": 43,
+  "top": 0,
+  "w": 38
+ },
+ "pillar_1": {
+  "family": "pillar",
+  "h": 53,
+  "top": 2,
+  "w": 26
+ },
+ "pillar_2": {
+  "family": "pillar",
+  "h": 49,
+  "top": 34,
+  "w": 26
+ },
+ "pillar_3": {
+  "family": "pillar",
+  "h": 38,
+  "top": 25,
+  "w": 30
+ },
+ "pillar_4": {
+  "family": "pillar",
+  "h": 32,
+  "top": 21,
+  "w": 35
+ },
+ "pillar_5": {
+  "family": "pillar",
+  "h": 43,
+  "top": 0,
+  "w": 33
+ },
+ "pillar_6": {
+  "family": "pillar",
+  "h": 44,
+  "top": 0,
+  "w": 50
+ },
+ "pillar_7": {
+  "family": "pillar",
+  "h": 44,
+  "top": 0,
+  "w": 26
+ },
+ "rock_1": {
+  "family": "rock",
+  "h": 20,
+  "top": 9,
+  "w": 35
+ },
+ "rock_2": {
+  "family": "rock",
+  "h": 20,
+  "top": 0,
+  "w": 21
+ },
+ "rock_3": {
+  "family": "rock",
+  "h": 18,
+  "top": 0,
+  "w": 24
+ },
+ "rock_4": {
+  "family": "rock",
+  "h": 19,
+  "top": 0,
+  "w": 27
+ },
+ "rock_5": {
+  "family": "rock",
+  "h": 19,
+  "top": 2,
+  "w": 23
+ },
+ "rock_6": {
+  "family": "rock",
+  "h": 38,
+  "top": 16,
+  "w": 53
+ },
+ "wall_1": {
+  "family": "wall",
+  "h": 64,
+  "top": 0,
+  "w": 30
+ },
+ "wall_2": {
+  "family": "wall",
+  "h": 65,
+  "top": 0,
+  "w": 31
+ },
+ "wall_3": {
+  "family": "wall",
+  "h": 65,
+  "top": 0,
+  "w": 32
+ },
+ "wall_4": {
+  "family": "wall",
+  "h": 65,
+  "top": 0,
+  "w": 24
+ },
+ "wall_5": {
+  "family": "wall",
+  "h": 66,
+  "top": 0,
+  "w": 35
+ }
+}

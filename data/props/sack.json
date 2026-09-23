@@ -1,0 +1,17 @@
+{
+  "id": "sack",
+  "kind": "destructible",
+  "hp": 1,
+  "essence": 3,
+  "hitbox": [
+    20,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/sack.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#b0a070"
+}

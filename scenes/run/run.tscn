@@ -1,0 +1,56 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/cutscene.gd" id="cutscene"]
+[ext_resource type="Script" path="res://scripts/ui/screen_fx.gd" id="screen_fx"]
+[ext_resource type="Script" path="res://scripts/run/run.gd" id="1_run"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="4_touch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ability_picker.tscn" id="5_picker"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="6_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="7_end"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="8_pause"]
+
+[node name="Run" type="Node2D"]
+script = ExtResource("1_run")
+
+[node name="RoomHolder" type="Node2D" parent="."]
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Players" type="Node2D" parent="."]
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Players")
+
+[node name="EnemySpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Entities")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="ScreenFx" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("screen_fx")
+
+[node name="HUD" parent="UI" instance=ExtResource("3_hud")]
+
+[node name="TouchControls" parent="UI" instance=ExtResource("4_touch")]
+
+[node name="AbilityPicker" parent="UI" instance=ExtResource("5_picker")]
+
+[node name="Cutscene" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("cutscene")
+
+[node name="DialogueBox" parent="UI" instance=ExtResource("6_dialogue")]
+
+[node name="PauseMenu" parent="UI" instance=ExtResource("8_pause")]
+
+[node name="RunEnd" parent="UI" instance=ExtResource("7_end")]

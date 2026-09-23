@@ -1,0 +1,101 @@
+{
+  "id": "npc_severin",
+  "start": "s1",
+  "nodes": {
+    "s1": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_1",
+      "next": "s2"
+    },
+    "s2": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_2",
+      "choices": [
+        {
+          "id": "ask",
+          "text": "DLG_SEVERIN_ASK",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "severin_asked"
+            ]
+          },
+          "next": "s_ask"
+        },
+        {
+          "id": "blame",
+          "text": "DLG_SEVERIN_BLAME",
+          "effect": {
+            "temptation": 1,
+            "set_flags": [
+              "severin_blamed"
+            ]
+          },
+          "next": "s_blame"
+        },
+        {
+          "id": "thank",
+          "text": "DLG_SEVERIN_THANK",
+          "effect": {
+            "grace": 1,
+            "set_flags": [
+              "severin_thanked"
+            ]
+          },
+          "next": "s_thank"
+        }
+      ]
+    },
+    "s_ask": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_R_ASK",
+      "next": "s3"
+    },
+    "s_blame": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_R_BLAME",
+      "next": "s3"
+    },
+    "s_thank": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_R_THANK",
+      "next": "s3"
+    },
+    "s3": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_3",
+      "choices": [
+        {
+          "id": "tell",
+          "text": "DLG_SEVERIN_TELL",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "severin_told"
+            ]
+          },
+          "next": "s_r_tell"
+        },
+        {
+          "id": "know",
+          "text": "DLG_SEVERIN_KNOW",
+          "effect": {
+            "temptation": 1,
+            "set_flags": [
+              "severin_knew"
+            ]
+          },
+          "next": "s_r_know"
+        }
+      ]
+    },
+    "s_r_tell": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_R_TELL"
+    },
+    "s_r_know": {
+      "speaker": "NPC_SEVERIN",
+      "text": "DLG_SEVERIN_R_KNOW"
+    }
+  }
+}

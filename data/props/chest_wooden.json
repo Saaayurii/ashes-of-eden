@@ -1,0 +1,46 @@
+{
+  "id": "chest_wooden",
+  "kind": "chest",
+  "essence": 25,
+  "glow": "#ffd9a0",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_wooden.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/coins.png",
+    "res://assets/icons/quest/keepsake_1.png",
+    "res://assets/icons/quest/keepsake_2.png",
+    "res://assets/icons/quest/keepsake_3.png",
+    "res://assets/icons/quest/keepsake_4.png",
+    "res://assets/icons/quest/keepsake_5.png",
+    "res://assets/icons/quest/keepsake_6.png",
+    "res://assets/icons/quest/keepsake_7.png",
+    "res://assets/icons/quest/letter_1.png",
+    "res://assets/icons/quest/letter_2.png",
+    "res://assets/icons/quest/letter_3.png",
+    "res://assets/icons/quest/letter_4.png",
+    "res://assets/icons/quest/letter_5.png",
+    "res://assets/icons/quest/letter_6.png",
+    "res://assets/icons/quest/tool_1.png",
+    "res://assets/icons/quest/tool_2.png",
+    "res://assets/icons/quest/tool_3.png",
+    "res://assets/icons/quest/tool_4.png",
+    "res://assets/icons/quest/tool_5.png",
+    "res://assets/icons/quest/tool_6.png",
+    "res://assets/icons/quest/tool_7.png",
+    "res://assets/icons/quest/remedy_1.png",
+    "res://assets/icons/quest/remedy_2.png",
+    "res://assets/icons/quest/remedy_3.png",
+    "res://assets/icons/quest/remedy_4.png",
+    "res://assets/icons/quest/remedy_5.png",
+    "res://assets/icons/quest/remedy_6.png",
+    "res://assets/icons/quest/remedy_7.png"
+  ]
+}

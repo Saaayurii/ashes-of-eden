@@ -1,0 +1,23 @@
+{
+  "id": "stranger",
+  "name": "SPEAKER_STRANGER",
+  "dialogue": "ch1_stranger",
+  "scripted": true,
+  "menu": false,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/stranger_v2_idle.png"
+    },
+    "cell": [
+      48,
+      56
+    ],
+    "fps": 4,
+    "ground_offset": 3
+  },
+  "motes": "#6a4a8a",
+  "lore": "NPC_STRANGER_LORE",
+  "role": "NPC_ROLE_STRANGER",
+  "location": "LOC_GRAVEYARD_CROSS"
+}

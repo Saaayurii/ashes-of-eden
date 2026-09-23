@@ -1,0 +1,140 @@
+{
+  "id": "npc_matthew",
+  "start": "route",
+  "nodes": {
+    "route": {
+      "branches": [
+        {
+          "flag": "mara_hunts",
+          "next": "t_hunted"
+        },
+        {
+          "flag": "voice_yes",
+          "next": "t_unrepentant"
+        }
+      ],
+      "next": "t_default"
+    },
+    "t_hunted": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_HUNTED",
+      "next": "t_crone_route"
+    },
+    "t_unrepentant": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_UNREPENTANT",
+      "next": "t_crone_route"
+    },
+    "t_default": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_DEFAULT",
+      "next": "t_crone_route"
+    },
+    "t_crone_route": {
+      "branches": [
+        {"flag": "crone_asked", "next": "t_crone_asked"},
+        {"flag": "crone_bitter", "next": "t_crone_bitter"},
+        {"flag": "crone_sent_home", "next": "t_crone_home"}
+      ],
+      "next": "t2"
+    },
+    "t_crone_asked": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_ASKED", "next": "t2"},
+    "t_crone_bitter": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_BITTER", "next": "t2"},
+    "t_crone_home": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_CRONE_HOME", "next": "t2"},
+    "t2": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_2",
+      "choices": [
+        {
+          "id": "confess",
+          "text": "DLG_MATTHEW_CONFESS",
+          "effect": {
+            "grace": 1,
+            "set_flags": [
+              "matthew_confessed"
+            ]
+          },
+          "next": "t_confess"
+        },
+        {
+          "id": "judge",
+          "text": "DLG_MATTHEW_JUDGE",
+          "effect": {
+            "temptation": 1,
+            "set_flags": [
+              "matthew_judged"
+            ]
+          },
+          "next": "t_judge"
+        },
+        {
+          "id": "release",
+          "text": "DLG_MATTHEW_RELEASE",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "matthew_released"
+            ]
+          },
+          "next": "t_release"
+        }
+      ]
+    },
+    "t_confess": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_R_CONFESS",
+      "next": "t_confess2"
+    },
+    "t_confess2": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_R_CONFESS2",
+      "next": "t3"
+    },
+    "t_judge": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_R_JUDGE",
+      "next": "t3"
+    },
+    "t_release": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_R_RELEASE",
+      "next": "t3"
+    },
+    "t3": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_3",
+      "choices": [
+        {
+          "id": "bell",
+          "text": "DLG_MATTHEW_BELL",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "matthew_bell"
+            ]
+          },
+          "next": "t_r_bell"
+        },
+        {
+          "id": "let",
+          "text": "DLG_MATTHEW_LET",
+          "effect": {
+            "temptation": 1,
+            "set_flags": [
+              "matthew_let_ring"
+            ]
+          },
+          "next": "t_r_let"
+        }
+      ]
+    },
+    "t_r_bell": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_R_BELL"
+    },
+    "t_r_let": {
+      "speaker": "NPC_MATTHEW",
+      "text": "DLG_MATTHEW_R_LET"
+    }
+  }
+}

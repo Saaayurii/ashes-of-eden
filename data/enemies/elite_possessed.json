@@ -1,0 +1,20 @@
+{
+  "id": "elite_possessed",
+  "extends": "possessed_villager",
+  "name": "ENEMY_ELITE_POSSESSED",
+  "lore": "ENEMY_ELITE_POSSESSED_LORE",
+  "hp": 54,
+  "speed": 66,
+  "essence": 50,
+  "color": "#c04040",
+  "material": "flesh",
+  "attack": {
+    "damage": 11
+  },
+  "on_death": {
+    "type": "explode",
+    "radius": 44,
+    "damage": 14,
+    "delay": 0.6
+  }
+}

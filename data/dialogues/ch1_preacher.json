@@ -1,0 +1,27 @@
+{
+  "id": "ch1_preacher",
+  "blocking": false,
+  "start": "p1",
+  "nodes": {
+    "p1": {
+      "speaker": "SPEAKER_PREACHER",
+      "text": "DLG_CH1_PREACHER_1",
+      "next": "p_voice_route"
+    },
+    "p_voice_route": {
+      "branches": [
+        {"flag": "voice_no", "next": "p_voice_no"},
+        {"flag": "voice_silent", "next": "p_voice_silent"},
+        {"flag": "voice_answered", "next": "p_voice_answered"}
+      ],
+      "next": "p2"
+    },
+    "p_voice_no": {"speaker": "SPEAKER_PREACHER", "text": "DLG_CH1_PREACHER_VOICE_NO", "next": "p2"},
+    "p_voice_silent": {"speaker": "SPEAKER_PREACHER", "text": "DLG_CH1_PREACHER_VOICE_SILENT", "next": "p2"},
+    "p_voice_answered": {"speaker": "SPEAKER_PREACHER", "text": "DLG_CH1_PREACHER_VOICE_ANSWERED", "next": "p2"},
+    "p2": {
+      "speaker": "SPEAKER_PREACHER",
+      "text": "DLG_CH1_PREACHER_2"
+    }
+  }
+}

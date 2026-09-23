@@ -1,0 +1,98 @@
+{
+  "id": "ophanim",
+  "name": "ENEMY_OPHANIM",
+  "lore": "ENEMY_OPHANIM_LORE",
+  "hp": 1800,
+  "speed": 120,
+  "damage": 8,
+  "attack_interval": 0.7,
+  "boss": true,
+  "behaviour": "boss_ophanim",
+  "aggro_range": 2000,
+  "size": 40,
+  "color": "#d9b24c",
+  "material": "gold",
+  "tags": [
+    "angel",
+    "boss"
+  ],
+  "sprite": {
+    "cell": [
+      112,
+      112
+    ],
+    "fps": 5,
+    "animations": {
+      "idle": "res://assets/sprites/ophanim_idle.png",
+      "attack": "res://assets/sprites/ophanim_attack.png",
+      "hurt": "res://assets/sprites/ophanim_hurt.png",
+      "death": "res://assets/sprites/ophanim_death.png"
+    }
+  },
+  "summons": {
+    "id": "shade",
+    "count": 2,
+    "at_hp": 0.66
+  },
+  "attacks": [
+    {
+      "type": "lunge",
+      "range": 420,
+      "windup": 0.8,
+      "damage": 20,
+      "cooldown": 2.4,
+      "lunge_speed": 430,
+      "lunge_time": 0.45,
+      "recover": 0.6,
+      "weight": 2
+    },
+    {
+      "type": "beam",
+      "range": 460,
+      "windup": 1.0,
+      "damage": 20,
+      "cooldown": 3.4,
+      "length": 440,
+      "thickness": 24,
+      "duration": 0.45,
+      "recover": 0.7,
+      "weight": 2,
+      "color": "#ffd66a"
+    },
+    {
+      "type": "ranged",
+      "range": 420,
+      "windup": 0.7,
+      "damage": 12,
+      "cooldown": 2.2,
+      "projectile_speed": 210,
+      "projectile_style": "ophanim",
+      "color": "#fff3c4",
+      "weight": 2,
+      "from_hp": 0.66
+    },
+    {
+      "type": "beam",
+      "range": 520,
+      "windup": 1.4,
+      "damage": 45,
+      "cooldown": 5.0,
+      "length": 520,
+      "thickness": 40,
+      "duration": 0.6,
+      "recover": 0.9,
+      "weight": 3,
+      "from_hp": 0.32,
+      "color": "#ffffff"
+    }
+  ],
+  "armor": 0.15,
+  "essence": 400,
+  "ash": 25,
+  "light": {
+    "color": "#ffd27a",
+    "radius": 120,
+    "energy": 1.0,
+    "flicker": 0.08
+  }
+}

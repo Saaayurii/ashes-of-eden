@@ -1,0 +1,16 @@
+{
+  "id": "preacher_arrival",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.3},
+    {"do": "camera", "to": "boss", "zoom": 1.22, "time": 0.9},
+    {"do": "anim", "who": "boss", "anim": "special", "hold": true},
+    {"do": "sound", "name": "bell", "volume": -13},
+    {"do": "wait", "time": 0.45},
+    {"do": "dialogue", "id": "ch1_preacher"},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.75},
+    {"do": "anim", "who": "player", "anim": "draw"},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
+  ]
+}

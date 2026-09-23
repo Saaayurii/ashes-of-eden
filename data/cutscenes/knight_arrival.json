@@ -1,0 +1,17 @@
+{
+  "id": "knight_arrival",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.3},
+    {"do": "camera", "to": "boss", "zoom": 1.2, "time": 0.9},
+    {"do": "anim", "who": "boss", "anim": "attack", "hold": true},
+    {"do": "sound", "name": "enemy_windup", "volume": -2},
+    {"do": "wait", "time": 0.9},
+    {"do": "shake", "strength": 4},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.7},
+    {"do": "anim", "who": "player", "anim": "draw"},
+    {"do": "wait", "time": 0.5},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
+  ]
+}

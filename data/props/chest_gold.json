@@ -1,0 +1,42 @@
+{
+  "id": "chest_gold",
+  "kind": "chest",
+  "essence": 60,
+  "heal": 15,
+  "glow": "#ffe08a",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_gold.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/gem_red.png",
+    "res://assets/icons/quest/relic_1.png",
+    "res://assets/icons/quest/relic_2.png",
+    "res://assets/icons/quest/relic_3.png",
+    "res://assets/icons/quest/relic_4.png",
+    "res://assets/icons/quest/relic_5.png",
+    "res://assets/icons/quest/relic_6.png",
+    "res://assets/icons/quest/essence_1.png",
+    "res://assets/icons/quest/essence_2.png",
+    "res://assets/icons/quest/essence_3.png",
+    "res://assets/icons/quest/curio_1.png",
+    "res://assets/icons/quest/curio_2.png",
+    "res://assets/icons/quest/curio_3.png",
+    "res://assets/icons/quest/curio_4.png",
+    "res://assets/icons/quest/curio_5.png",
+    "res://assets/icons/quest/curio_6.png",
+    "res://assets/icons/quest/curio_7.png",
+    "res://assets/icons/quest/emblem_1.png",
+    "res://assets/icons/quest/emblem_2.png",
+    "res://assets/icons/quest/emblem_3.png",
+    "res://assets/icons/quest/emblem_4.png",
+    "res://assets/icons/quest/emblem_5.png",
+    "res://assets/icons/quest/emblem_6.png"
+  ]
+}

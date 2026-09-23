@@ -1,0 +1,278 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/screen_fx.gd" id="screen_fx"]
+[ext_resource type="Script" path="res://scripts/pvp/duel.gd" id="1_duel"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/babylon_dusk.png" id="2_backdrop"]
+[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Texture2D" path="res://assets/decor/ground_tiles.png" id="4_tiles"]
+[ext_resource type="Texture2D" path="res://assets/decor/pillar.png" id="5_pillar"]
+[ext_resource type="Texture2D" path="res://assets/decor/arch.png" id="6_arch"]
+[ext_resource type="Texture2D" path="res://assets/decor/rocks.png" id="7_rocks"]
+[ext_resource type="Script" path="res://scripts/fx/flicker.gd" id="8_flicker"]
+[ext_resource type="PackedScene" path="res://scenes/ui/duel_hud.tscn" id="9_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="10_touch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="11_pause"]
+
+[sub_resource type="FastNoiseLite" id="noise"]
+frequency = 0.012
+
+[sub_resource type="NoiseTexture2D" id="noise_tex"]
+seamless = true
+noise = SubResource("noise")
+
+[sub_resource type="ShaderMaterial" id="fog_mat"]
+shader = ExtResource("3_fog")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/density = 0.28
+shader_parameter/speed = 0.02
+
+[sub_resource type="Gradient" id="glow_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.85, 0.5, 0.7, 1, 0.85, 0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_tex"]
+gradient = SubResource("glow_grad")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CanvasItemMaterial" id="add_mat"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="ground_shape"]
+size = Vector2(960, 40)
+
+[sub_resource type="RectangleShape2D" id="low_shape"]
+size = Vector2(130, 12)
+
+[sub_resource type="RectangleShape2D" id="mid_shape"]
+size = Vector2(200, 12)
+
+[sub_resource type="RectangleShape2D" id="high_shape"]
+size = Vector2(100, 12)
+
+[sub_resource type="RectangleShape2D" id="wall_shape"]
+size = Vector2(16, 400)
+
+[node name="Duel" type="Node2D"]
+script = ExtResource("1_duel")
+
+[node name="Parallax" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.4, 0.6)
+
+[node name="Backdrop" type="Sprite2D" parent="Parallax"]
+scale = Vector2(1.3, 1.1)
+texture = ExtResource("2_backdrop")
+centered = false
+
+[node name="FogFar" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.75, 0.9)
+
+[node name="Fog" type="ColorRect" parent="FogFar"]
+material = SubResource("fog_mat")
+offset_right = 1160.0
+offset_bottom = 360.0
+mouse_filter = 2
+
+[node name="DecorBack" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.9, 1)
+
+[node name="pillar_left" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(70, 268)
+texture = ExtResource("5_pillar")
+
+[node name="pillar_right" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.55, 0.5, 0.55, 1)
+position = Vector2(890, 268)
+texture = ExtResource("5_pillar")
+
+[node name="arch_center" type="Sprite2D" parent="DecorBack"]
+modulate = Color(0.5, 0.46, 0.52, 1)
+position = Vector2(480, 262)
+texture = ExtResource("6_arch")
+
+[node name="Brazier" type="Sprite2D" parent="."]
+material = SubResource("add_mat")
+position = Vector2(480, 210)
+scale = Vector2(0.8, 0.8)
+texture = SubResource("glow_tex")
+script = ExtResource("8_flicker")
+base_alpha = 0.45
+variation = 0.2
+speed = 8.0
+
+[node name="Geometry" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Ground" type="ColorRect" parent="Geometry"]
+offset_top = 320.0
+offset_right = 960.0
+offset_bottom = 360.0
+color = Color(0.16, 0.13, 0.15, 1)
+
+[node name="GroundTiles" type="TextureRect" parent="Geometry"]
+offset_top = 320.0
+offset_right = 960.0
+offset_bottom = 352.0
+mouse_filter = 2
+texture = ExtResource("4_tiles")
+stretch_mode = 1
+
+[node name="GroundShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(480, 340)
+shape = SubResource("ground_shape")
+
+[node name="LowLeft" type="ColorRect" parent="Geometry"]
+offset_left = 150.0
+offset_top = 250.0
+offset_right = 280.0
+offset_bottom = 262.0
+color = Color(0.27, 0.23, 0.25, 1)
+
+[node name="LowLeftTiles" type="TextureRect" parent="Geometry"]
+offset_left = 150.0
+offset_top = 250.0
+offset_right = 280.0
+offset_bottom = 262.0
+mouse_filter = 2
+texture = ExtResource("4_tiles")
+stretch_mode = 1
+
+[node name="LowLeftShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(215, 256)
+shape = SubResource("low_shape")
+
+[node name="LowRight" type="ColorRect" parent="Geometry"]
+offset_left = 680.0
+offset_top = 250.0
+offset_right = 810.0
+offset_bottom = 262.0
+color = Color(0.27, 0.23, 0.25, 1)
+
+[node name="LowRightTiles" type="TextureRect" parent="Geometry"]
+offset_left = 680.0
+offset_top = 250.0
+offset_right = 810.0
+offset_bottom = 262.0
+mouse_filter = 2
+texture = ExtResource("4_tiles")
+stretch_mode = 1
+
+[node name="LowRightShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(745, 256)
+shape = SubResource("low_shape")
+
+[node name="MidCenter" type="ColorRect" parent="Geometry"]
+offset_left = 380.0
+offset_top = 200.0
+offset_right = 580.0
+offset_bottom = 212.0
+color = Color(0.27, 0.23, 0.25, 1)
+
+[node name="MidCenterTiles" type="TextureRect" parent="Geometry"]
+offset_left = 380.0
+offset_top = 200.0
+offset_right = 580.0
+offset_bottom = 212.0
+mouse_filter = 2
+texture = ExtResource("4_tiles")
+stretch_mode = 1
+
+[node name="MidCenterShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(480, 206)
+shape = SubResource("mid_shape")
+
+[node name="HighLeft" type="ColorRect" parent="Geometry"]
+offset_left = 240.0
+offset_top = 148.0
+offset_right = 340.0
+offset_bottom = 160.0
+color = Color(0.27, 0.23, 0.25, 1)
+
+[node name="HighLeftTiles" type="TextureRect" parent="Geometry"]
+offset_left = 240.0
+offset_top = 148.0
+offset_right = 340.0
+offset_bottom = 160.0
+mouse_filter = 2
+texture = ExtResource("4_tiles")
+stretch_mode = 1
+
+[node name="HighLeftShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(290, 154)
+shape = SubResource("high_shape")
+
+[node name="HighRight" type="ColorRect" parent="Geometry"]
+offset_left = 620.0
+offset_top = 148.0
+offset_right = 720.0
+offset_bottom = 160.0
+color = Color(0.27, 0.23, 0.25, 1)
+
+[node name="HighRightTiles" type="TextureRect" parent="Geometry"]
+offset_left = 620.0
+offset_top = 148.0
+offset_right = 720.0
+offset_bottom = 160.0
+mouse_filter = 2
+texture = ExtResource("4_tiles")
+stretch_mode = 1
+
+[node name="HighRightShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(670, 154)
+shape = SubResource("high_shape")
+
+[node name="WallLeftShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-8, 170)
+shape = SubResource("wall_shape")
+
+[node name="WallRightShape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(968, 170)
+shape = SubResource("wall_shape")
+
+[node name="DecorFront" type="Node2D" parent="."]
+z_index = 1
+
+[node name="rocks_left" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.8, 0.76, 0.8, 1)
+position = Vector2(330, 306)
+texture = ExtResource("7_rocks")
+
+[node name="rocks_right" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.8, 0.76, 0.8, 1)
+position = Vector2(630, 306)
+flip_h = true
+texture = ExtResource("7_rocks")
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="Spawn0" type="Marker2D" parent="Spawns"]
+position = Vector2(110, 300)
+
+[node name="Spawn1" type="Marker2D" parent="Spawns"]
+position = Vector2(850, 300)
+
+[node name="Players" type="Node2D" parent="."]
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Players")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="ScreenFx" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("screen_fx")
+
+[node name="DuelHud" parent="UI" instance=ExtResource("9_hud")]
+
+[node name="TouchControls" parent="UI" instance=ExtResource("10_touch")]
+
+[node name="PauseMenu" parent="UI" instance=ExtResource("11_pause")]

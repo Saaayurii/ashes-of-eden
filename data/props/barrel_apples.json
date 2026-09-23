@@ -1,0 +1,17 @@
+{
+  "id": "barrel_apples",
+  "kind": "destructible",
+  "hp": 1,
+  "essence": 5,
+  "hitbox": [
+    20,
+    26
+  ],
+  "sprite": {
+    "path": "res://assets/props/barrel_apples.png",
+    "frame_w": 48,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "debris": "#a4402e"
+}

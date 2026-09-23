@@ -1,0 +1,261 @@
+[
+  {
+    "id": "seal_of_order",
+    "name": "ABILITY_SEAL_OF_ORDER_NAME",
+    "description": "ABILITY_SEAL_OF_ORDER_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/rune_1.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_scale",
+        "op": "mul",
+        "value": 1.3
+      }
+    ]
+  },
+  {
+    "id": "shield_of_faith",
+    "name": "ABILITY_SHIELD_OF_FAITH_NAME",
+    "description": "ABILITY_SHIELD_OF_FAITH_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/gear_18.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": 30
+      },
+      {
+        "type": "heal",
+        "value": "full"
+      }
+    ]
+  },
+  {
+    "id": "blessing_of_haste",
+    "name": "ABILITY_BLESSING_OF_HASTE_NAME",
+    "description": "ABILITY_BLESSING_OF_HASTE_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/weather_1.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_cooldown",
+        "op": "mul",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "id": "sanctuary",
+    "name": "ABILITY_SANCTUARY_NAME",
+    "description": "ABILITY_SANCTUARY_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/marker_7.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "armor",
+        "op": "add",
+        "value": 0.1
+      },
+      {
+        "type": "heal",
+        "value": 20
+      }
+    ]
+  },
+  {
+    "id": "mending_light",
+    "name": "ABILITY_MENDING_LIGHT_NAME",
+    "description": "ABILITY_MENDING_LIGHT_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/relic_5.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "kill_heal",
+        "op": "add",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "litany_of_rest",
+    "name": "ABILITY_LITANY_OF_REST_NAME",
+    "description": "ABILITY_LITANY_OF_REST_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/document_3.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "clear_heal",
+        "op": "add",
+        "value": 25
+      }
+    ]
+  },
+  {
+    "id": "tempered_mail",
+    "name": "ABILITY_TEMPERED_MAIL_NAME",
+    "description": "ABILITY_TEMPERED_MAIL_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/gear_8.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "armor",
+        "op": "add",
+        "value": 0.08
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": 15
+      }
+    ]
+  },
+  {
+    "id": "briar_mantle",
+    "name": "ABILITY_BRIAR_MANTLE_NAME",
+    "description": "ABILITY_BRIAR_MANTLE_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/trinket_2.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "thorns",
+        "op": "add",
+        "value": 0.35
+      }
+    ]
+  },
+  {
+    "id": "vigil_unbroken",
+    "name": "ABILITY_VIGIL_UNBROKEN_NAME",
+    "description": "ABILITY_VIGIL_UNBROKEN_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/trinket_3.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "heal_charges",
+        "op": "add",
+        "value": 1
+      },
+      {
+        "type": "stat",
+        "stat": "armor",
+        "op": "add",
+        "value": 0.05
+      }
+    ]
+  },
+  {
+    "id": "ward_of_the_nameless",
+    "name": "ABILITY_WARD_OF_THE_NAMELESS_NAME",
+    "description": "ABILITY_WARD_OF_THE_NAMELESS_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/gear_14.png",
+    "rarity": "epic",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "guard",
+        "op": "add",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "aegis_of_ash",
+    "name": "ABILITY_AEGIS_OF_ASH_NAME",
+    "description": "ABILITY_AEGIS_OF_ASH_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/gear_6.png",
+    "rarity": "legendary",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "guard",
+        "op": "add",
+        "value": 2
+      },
+      {
+        "type": "stat",
+        "stat": "speed",
+        "op": "mul",
+        "value": 0.9
+      }
+    ]
+  },
+  {
+    "id": "radiance",
+    "name": "ABILITY_RADIANCE_NAME",
+    "description": "ABILITY_RADIANCE_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/rune_1.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "skill",
+        "skill": {
+          "kind": "nova",
+          "cooldown": 10,
+          "damage": 22,
+          "radius": 72,
+          "heal": 12,
+          "color": "#ffe9a8"
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "id": "funeral_offering",
+  "kind": "destructible",
+  "hp": 2,
+  "essence": 7,
+  "hitbox": [34, 26],
+  "sprite": {
+    "path": "res://assets/props/funeral_offering.png",
+    "frame_w": 48,
+    "frame_h": 44,
+    "ground_pad": 2,
+    "frames": 4
+  },
+  "ambient": "candle",
+  "idle_frames": 2,
+  "hit_frame": 2,
+  "debris": "#8c7559"
+}

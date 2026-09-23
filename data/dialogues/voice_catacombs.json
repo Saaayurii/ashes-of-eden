@@ -1,0 +1,65 @@
+{
+  "id": "voice_catacombs",
+  "start": "v1",
+  "nodes": {
+    "v1": {
+      "speaker": "SPEAKER_VOICE",
+      "text": "DLG_VOICE_1",
+      "next": "v2"
+    },
+    "v2": {
+      "speaker": "SPEAKER_VOICE",
+      "text": "DLG_VOICE_2",
+      "choices": [
+        {
+          "id": "yes",
+          "text": "DLG_VOICE_YES",
+          "effect": {
+            "temptation": 2,
+            "set_flags": [
+              "voice_answered",
+              "voice_yes"
+            ]
+          },
+          "next": "v_yes"
+        },
+        {
+          "id": "no",
+          "text": "DLG_VOICE_NO",
+          "effect": {
+            "grace": 2,
+            "set_flags": [
+              "voice_answered",
+              "voice_no"
+            ]
+          },
+          "next": "v_no"
+        },
+        {
+          "id": "silent",
+          "text": "DLG_VOICE_SILENT",
+          "effect": {
+            "will": 2,
+            "set_flags": [
+              "voice_answered",
+              "voice_silent"
+            ]
+          },
+          "next": "v_silent"
+        }
+      ]
+    },
+    "v_yes": {
+      "speaker": "SPEAKER_VOICE",
+      "text": "DLG_VOICE_R_YES"
+    },
+    "v_no": {
+      "speaker": "SPEAKER_VOICE",
+      "text": "DLG_VOICE_R_NO"
+    },
+    "v_silent": {
+      "speaker": "SPEAKER_VOICE",
+      "text": "DLG_VOICE_R_SILENT"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "npc_knight",
+  "blocking": false,
+  "start": "n1",
+  "nodes": {
+    "n1": {
+      "speaker": "NPC_KNIGHT",
+      "text": "DLG_NPC_KNIGHT_1",
+      "next": "n2"
+    },
+    "n2": {
+      "speaker": "NPC_KNIGHT",
+      "text": "DLG_NPC_KNIGHT_2"
+    }
+  }
+}

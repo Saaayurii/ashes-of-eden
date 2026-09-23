@@ -1,0 +1,42 @@
+# Android export image: the regular headless Godot image plus a JDK, the
+# Android SDK (platform-tools, build-tools, one platform) and a debug keystore.
+# Kept out of the main image so CI for data / tests / desktop stays small.
+#
+#   docker build -f tools/docker/Dockerfile.android -t ashes-of-eden/godot-android:4.7.2 .
+#   docker run --rm -v "$PWD:/project" ashes-of-eden/godot-android:4.7.2 build Android
+#
+# Building this image accepts the Android SDK licence (sdkmanager --licenses):
+# whoever builds it is agreeing to Google's terms.
+
+ARG BASE=ashes-of-eden/godot:4.7.2
+FROM ${BASE}
+
+ARG ANDROID_PLATFORM=35
+ARG ANDROID_BUILD_TOOLS=35.0.0
+ENV ANDROID_HOME=/opt/android-sdk \
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+
+RUN apt-get update && apt-get install -y --no-install-recommends openjdk-17-jdk-headless \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sfn "$(dirname "$(dirname "$(readlink -f "$(which javac)")")")" "${JAVA_HOME}"
+
+# Command-line tools, then the pieces a non-Gradle export needs (apksigner, zipalign).
+RUN set -eux; \
+    mkdir -p "${ANDROID_HOME}/cmdline-tools"; \
+    curl -fsSL -o /tmp/tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip; \
+    unzip -q /tmp/tools.zip -d "${ANDROID_HOME}/cmdline-tools"; \
+    mv "${ANDROID_HOME}/cmdline-tools/cmdline-tools" "${ANDROID_HOME}/cmdline-tools/latest"; \
+    rm /tmp/tools.zip; \
+    yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null; \
+    "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" \
+        "platform-tools" "platforms;android-${ANDROID_PLATFORM}" "build-tools;${ANDROID_BUILD_TOOLS}"
+
+# A debug keystore (the standard android/android pair) and editor settings that
+# point Godot at the SDK, the JDK and the keystore.
+RUN set -eux; \
+    keytool -genkeypair -v -keystore /root/debug.keystore -storepass android -keypass android \
+        -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+        -dname "CN=Android Debug,O=Android,C=US"; \
+    mkdir -p /root/.config/godot; \
+    printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\nexport/android/android_sdk_path = "%s"\nexport/android/java_sdk_path = "%s"\nexport/android/debug_keystore = "/root/debug.keystore"\nexport/android/debug_keystore_user = "androiddebugkey"\nexport/android/debug_keystore_pass = "android"\n' \
+        "${ANDROID_HOME}" "${JAVA_HOME}" > /root/.config/godot/editor_settings-4.7.tres

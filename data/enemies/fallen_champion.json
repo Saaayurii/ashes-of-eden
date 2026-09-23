@@ -1,0 +1,41 @@
+{
+  "id": "fallen_champion",
+  "name": "ENEMY_FALLEN_CHAMPION",
+  "lore": "ENEMY_FALLEN_CHAMPION_LORE",
+  "hp": 95,
+  "speed": 42,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "behaviour": "walker",
+  "aggro_range": 480,
+  "size": 16,
+  "color": "#3a2145",
+  "material": "plate",
+  "tags": [
+    "fallen",
+    "elite"
+  ],
+  "stagger_chance": 0.08,
+  "sprite": {
+    "cell": [
+      72,
+      64
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/champion_idle.png",
+      "attack": "res://assets/sprites/champion_attack.png"
+    }
+  },
+  "attack": {
+    "type": "melee",
+    "range": 54,
+    "reach": 62,
+    "windup": 0.9,
+    "damage": 18,
+    "cooldown": 2.6,
+    "recover": 0.6
+  },
+  "armor": 0.2,
+  "essence": 45
+}

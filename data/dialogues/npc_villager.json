@@ -1,0 +1,111 @@
+{
+  "id": "npc_villager",
+  "start": "route",
+  "nodes": {
+    "route": {
+      "branches": [
+        {
+          "flag": "stranger_killed",
+          "next": "v_killed"
+        },
+        {
+          "flag": "mara_saved",
+          "next": "v_mara"
+        }
+      ],
+      "next": "v_default"
+    },
+    "v_killed": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_CRONE_KILLED",
+      "next": "v_mara_first"
+    },
+    "v_mara": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_CRONE_MARA",
+      "next": "v_mara_first"
+    },
+    "v_default": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_NPC_VILLAGER_1",
+      "next": "v_mara_first"
+    },
+    "v_mara_first": {
+      "branches": [{"flag": "mara_asked", "next": "v_mara_asked"}],
+      "next": "v_mara_second"
+    },
+    "v_mara_asked": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_MARA_ASKED", "next": "v_mara_second"},
+    "v_mara_second": {
+      "branches": [
+        {"flag": "mara_pressed", "next": "v_mara_pressed"},
+        {"flag": "mara_refused", "next": "v_mara_refused"}
+      ],
+      "next": "v2"
+    },
+    "v_mara_pressed": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_MARA_PRESSED", "next": "v2"},
+    "v_mara_refused": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_MARA_REFUSED", "next": "v2"},
+    "v2": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_NPC_VILLAGER_2",
+      "next": "v3"
+    },
+    "v3": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_CRONE_3",
+      "choices": [
+        {
+          "id": "who",
+          "text": "DLG_CRONE_WHO",
+          "effect": {
+            "will": 1,
+            "set_flags": [
+              "crone_asked"
+            ]
+          },
+          "next": "v_r_who"
+        },
+        {
+          "id": "priest",
+          "text": "DLG_CRONE_PRIEST",
+          "effect": {
+            "temptation": 1,
+            "set_flags": [
+              "crone_bitter"
+            ]
+          },
+          "next": "v_r_priest"
+        },
+        {
+          "id": "home",
+          "text": "DLG_CRONE_HOME",
+          "effect": {
+            "grace": 1,
+            "set_flags": [
+              "crone_sent_home"
+            ]
+          },
+          "next": "v_r_home"
+        }
+      ]
+    },
+    "v_r_who": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_CRONE_R_WHO",
+      "next": "v4"
+    },
+    "v_r_priest": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_CRONE_R_PRIEST",
+      "next": "v4"
+    },
+    "v_r_home": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_CRONE_R_HOME",
+      "next": "v4"
+    },
+    "v4": {
+      "speaker": "NPC_VILLAGER",
+      "text": "DLG_CRONE_4"
+    }
+  }
+}
