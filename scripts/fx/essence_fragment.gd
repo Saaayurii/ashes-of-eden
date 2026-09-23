@@ -4,7 +4,7 @@ extends AnimatedSprite2D
 var velocity := Vector2.ZERO
 var gravity := 0.0
 var spin := 0.0
-var drag := 20.0
+var drag := 1.8
 var lifetime := 1.0
 var _age := 0.0
 var _initial_scale := 1.0
@@ -38,4 +38,4 @@ func _process(delta: float) -> void:
 	rotation += spin * delta
 	var progress := _age / lifetime
 	modulate.a = clampf((1.0 - progress) * 2.0, 0.0, 1.0)
-	scale = Vector2.ONE * _initial_scale * lerpf(1.0, 0.62, progress)
+	scale = Vector2.ONE * _initial_scale * lerpf(1.0, 0.45, progress)

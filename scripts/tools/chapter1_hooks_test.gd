@@ -85,8 +85,24 @@ func _run() -> void:
 		var dialogue: Dictionary = data.dialogues[hook[0]]
 		_check(hook[2] in _spoken(dialogue, [hook[1]]), str(hook[1]) + " selects its line")
 		_check(not hook[2] in _spoken(dialogue, []), str(hook[1]) + " stays conditional")
+	var preacher: Dictionary = data.dialogues["ch1_preacher"]
+	for flag in ["voice_no", "voice_silent", "voice_answered"]:
+		var lines := _spoken(preacher, [flag])
+		_check("DLG_CH1_PREACHER_MERCY_1" in lines and "DLG_CH1_PREACHER_MERCY_2" in lines,
+			"Preacher's mercy exchange survives every voice branch")
+	var matthew: Dictionary = data.dialogues["npc_matthew"]
+	_check("DLG_MATTHEW_ROAD" in _spoken(matthew, []),
+		"Matthew's wounded traveller line precedes his choice")
+	var names_choice := false
+	for choice in matthew.nodes.t3.choices:
+		if choice.get("id", "") == "names":
+			names_choice = choice.get("effect", {}).get("set_flags", []).has("matthew_book_revealed") \
+				and choice.get("next", "") == "t_r_names"
+	_check(names_choice, "asking for the names reveals the ledger")
+	_check(data.dialogues["ch1_ophanim_fall"].nodes.f3.text == "DLG_CH1_OPHANIM_FALL_3",
+		"Ophanim recognizes the hand behind the sentence")
 	var finale: Dictionary = data.cutscenes["ch1_finale"]
-	for flag in ["matthew_bell", "matthew_let_ring"]:
+	for flag in ["matthew_bell", "matthew_let_ring", "matthew_book_revealed"]:
 		var found := false
 		for step in finale.steps:
 			if step.get("if", "") == flag and step.get("do", "") == "dialogue":
@@ -95,10 +111,12 @@ func _run() -> void:
 	var original_locale := TranslationServer.get_locale()
 	for locale in ["en", "ru", "uk", "zh_CN"]:
 		TranslationServer.set_locale(locale)
-		var sample := TranslationServer.translate(&"DLG_CH1_PREACHER_VOICE_NO")
-		_check(not sample.is_empty() and sample != "DLG_CH1_PREACHER_VOICE_NO",
-			locale + " imports the new dialogue lines")
+		for key in ["DLG_CH1_PREACHER_MERCY_1", "DLG_MATTHEW_ROAD",
+			"DLG_MATTHEW_R_NAMES", "DLG_CH1_OPHANIM_FALL_3", "DLG_CH1_FINALE_NAMES"]:
+			var sample := TranslationServer.translate(StringName(key))
+			_check(not sample.is_empty() and sample != key,
+				locale + " imports " + key)
 	TranslationServer.set_locale(original_locale)
-	print("CHAPTER1_HOOKS_%s: %d dialogue flags plus 2 finale flags" %
+	print("CHAPTER1_HOOKS_%s: %d dialogue flags plus 3 finale flags" %
 		["FAILED" if _failed else "OK", hooks.size()])
 	quit(1 if _failed else 0)

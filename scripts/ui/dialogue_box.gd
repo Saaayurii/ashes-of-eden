@@ -52,6 +52,10 @@ var _typing: Tween
 
 
 func _ready() -> void:
+	if Settings.text_scale() != 1.0:
+		for label in [caption, speaker_label, text_label]:
+			var size: int = label.get_theme_font_size("font_size")
+			label.add_theme_font_size_override("font_size", int(round(size * Settings.text_scale())))
 	visible = false
 	panel.visible = false
 	caption.visible = false
@@ -232,7 +236,7 @@ func _build_bubbles() -> void:
 
 func _small_label(font_size: int, color: Color) -> Label:
 	var label := Label.new()
-	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_font_size_override("font_size", int(round(font_size * Settings.text_scale())))
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	label.add_theme_constant_override("shadow_offset_x", 1)
@@ -286,7 +290,7 @@ func _line_typed() -> void:
 		button.text = "%d. %s" % [index + 1, tr(_choices[index].get("text", ""))]
 		button.flat = true
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.add_theme_font_size_override("font_size", 8)
+		button.add_theme_font_size_override("font_size", int(round(8 * Settings.text_scale())))
 		button.add_theme_color_override("font_color", Color(0.85, 0.82, 0.76))
 		button.add_theme_color_override("font_focus_color", Color(1.0, 0.86, 0.5))
 		button.add_theme_color_override("font_hover_color", Color(1.0, 0.86, 0.5))

@@ -11,6 +11,9 @@
 - `DLG_MATTHEW_CRONE_*` — ответ Матфея о старухе;
 - `DLG_CH1_PREACHER_VOICE_*` — Проповедник после Голоса;
 - `DLG_CH1_FINALE_BELL_*` — колокол в финале.
+- `DLG_CH1_PREACHER_MERCY_*`, `DLG_MATTHEW_ROAD`, `DLG_MATTHEW_NAMES`,
+  `DLG_MATTHEW_R_NAMES`, `DLG_CH1_OPHANIM_FALL_3`, `DLG_CH1_FINALE_NAMES` —
+  новые библейские мотивы; проверить, что это художественные намёки, а не выдаваемые за цитату слова.
 
 Затем проверить прежние строки главы I (`DLG_CH1_*`, `DLG_SEVERIN_*`, `DLG_MARA_*`,
 `DLG_AGNES_*`, `DLG_CRONE_*`, `DLG_MATTHEW_*`, `DLG_VOICE_*`).

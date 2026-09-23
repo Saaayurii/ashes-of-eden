@@ -165,34 +165,46 @@ func essence_release(position: Vector2, dark := false, amount := 9) -> void:
 	if parent == null:
 		return
 	var frames: SpriteFrames = _essence_frames[dark]
+	var palette := [
+		Color(0.91, 0.64, 1.0), Color(1.0, 0.62, 0.83),
+		Color(0.62, 0.95, 0.91), Color(1.0, 0.85, 1.0),
+	] if dark else [
+		Color(1.0, 0.85, 0.52), Color(1.0, 0.98, 0.78),
+		Color(0.78, 0.9, 1.0), Color(1.0, 0.7, 0.47),
+	]
 	for i in maxi(4, int(amount * 0.75)):
 		var shard: AnimatedSprite2D = ESSENCE_FRAGMENT.new()
 		shard.sprite_frames = frames
-		shard.z_index = 7
+		shard.z_index = 6
 		shard.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		var launch := Vector2.UP.rotated(deg_to_rad(randf_range(-52.5, 52.5)))
-		launch *= randf_range(55.0, 105.0) if dark else randf_range(68.0, 135.0)
-		shard.configure(launch, -12.0 if dark else 90.0,
-			deg_to_rad(randf_range(-170.0, 170.0)),
-			randf_range(1.05, 1.25) if dark else randf_range(0.92, 1.08),
-			randf_range(0.5, 0.85 if dark else 0.75))
+		# A broad fan clears the corpse instead of stacking large sprites above it.
+		var launch := Vector2.RIGHT.rotated(randf_range(-PI - 0.28, 0.28))
+		launch *= randf_range(115.0, 205.0)
+		shard.configure(launch, -24.0 if dark else 68.0,
+			deg_to_rad(randf_range(-240.0, 240.0)),
+			randf_range(0.82, 1.08), randf_range(0.24, 0.40))
+		shard.modulate = palette[i % palette.size()]
 		parent.add_child(shard)
-		shard.global_position = position + Vector2(randf_range(-3.0, 3.0), randf_range(-3.0, 3.0))
-	var motes := _burst(position, maxi(4, int(amount / 2)), 1.35, 0.85)
-	motes.texture = _soft
-	motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
-	motes.emission_sphere_radius = 6.0
-	motes.direction = Vector2.UP
-	motes.spread = 58.0
-	motes.initial_velocity_min = 22.0
-	motes.initial_velocity_max = 62.0
-	motes.gravity = Vector2(0, -28)
-	motes.scale_amount_min = 0.35
-	motes.scale_amount_max = 0.65
-	motes.color = Color(0.49, 0.89, 0.82, 0.55) if dark else Color(1.0, 0.97, 0.78, 0.7)
-	motes.color_ramp = _fade_in_out
-	motes.z_index = 7
-	motes.emitting = true
+		shard.global_position = position + Vector2(randf_range(-4.0, 4.0), randf_range(-4.0, 4.0))
+	# Tiny contrasting glints carry the palette into the surrounding air.
+	var spark_colors := [Color(0.84, 0.39, 0.94, 0.8), Color(0.42, 0.9, 0.82, 0.7)] if dark \
+		else [Color(1.0, 0.75, 0.3, 0.82), Color(0.79, 0.9, 1.0, 0.7)]
+	for spark_color in spark_colors:
+		var motes := _burst(position, maxi(3, int(amount / 2)), 0.9, 0.95)
+		motes.texture = _soft
+		motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+		motes.emission_sphere_radius = 4.0
+		motes.direction = Vector2.UP
+		motes.spread = 110.0
+		motes.initial_velocity_min = 72.0
+		motes.initial_velocity_max = 150.0
+		motes.gravity = Vector2(0, -8) if dark else Vector2(0, 48)
+		motes.scale_amount_min = 0.14
+		motes.scale_amount_max = 0.30
+		motes.color = spark_color
+		motes.color_ramp = _fade_in_out
+		motes.z_index = 7
+		motes.emitting = true
 
 
 func _essence_sprite_frames(sheet: Texture2D) -> SpriteFrames:

@@ -1,4 +1,4 @@
-.PHONY: android android-image validate test net-test build build-web web image editor server
+.PHONY: pull-playtest android android-image validate test net-test build build-web web image editor server
 
 image:      ## build the Docker image with headless Godot
 	docker compose build godot
@@ -33,3 +33,9 @@ android-image: ## Android export image (JDK + SDK + debug keystore; accepts the 
 android: ## debug-signed test APK -> build/android/ashes-of-eden.apk (install: adb install -r build/android/ashes-of-eden.apk)
 	docker run --rm -v "$(CURDIR):/project" --entrypoint bash ashes-of-eden/godot-android:4.7.2 \
 		-c "cp /project/tools/docker/entrypoint.sh /usr/local/bin/entrypoint && chmod +x /usr/local/bin/entrypoint && entrypoint build-debug Android"
+
+PLAYTEST_DIR := $(HOME)/Library/Application Support/Godot/app_userdata/Ashes of Eden/playtest
+pull-playtest: ## copy the playtest logs off a USB phone (debug APK) next to the desktop ones, for balance_probe
+	mkdir -p "$(PLAYTEST_DIR)"
+	adb exec-out run-as org.ashesofeden.game sh -c 'cd files/playtest && tar cf - .' | tar xf - -C "$(PLAYTEST_DIR)"
+	@ls "$(PLAYTEST_DIR)" | tail -5

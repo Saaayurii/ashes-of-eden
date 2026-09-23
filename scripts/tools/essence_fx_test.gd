@@ -25,8 +25,10 @@ func _run() -> void:
 			emitters.append(child)
 		elif child is AnimatedSprite2D:
 			shards.append(child)
-	assert(emitters.size() == 2, "soft motes remain a separate layer for each death")
+	assert(emitters.size() == 4, "two small color accents should accompany each death")
 	assert(shards.size() == 18, "each death should release nine painted shards")
+	for shard in shards:
+		assert(shard.scale.x <= 0.4, "death shards should stay smaller than the actor")
 	var sheets := ["res://assets/fx/essence_light_flight_v3.png",
 		"res://assets/fx/essence_dark_flight_v3.png"]
 	for sheet_path in sheets:
@@ -43,6 +45,11 @@ func _run() -> void:
 	var initial_frame := shards[0].frame
 	await create_timer(0.35).timeout
 	assert(shards[0].frame > initial_frame, "fragment animation must advance in the live scene")
+	var furthest := 0.0
+	for index in shards.size():
+		var origin := Vector2(130, 128) if index < 9 else Vector2(290, 128)
+		furthest = maxf(furthest, shards[index].global_position.distance_to(origin))
+	assert(furthest > 35.0, "shards should spread away from the body")
 	var args := OS.get_cmdline_user_args()
 	if not args.is_empty():
 		var viewport_texture := root.get_viewport().get_texture()

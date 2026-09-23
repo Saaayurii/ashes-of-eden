@@ -82,10 +82,12 @@ func _set_meter(bar: Range, key: Label, ratio: float) -> void:
 
 
 func _refresh_keys() -> void:
-	dash_key.text = Settings.key_name("dash")
-	attack_key.text = Settings.key_name("attack")
-	block_key.text = Settings.key_name("block")
-	skill_key.text = Settings.key_name("skill")
+	# On a phone the buttons are the labels; "Shift" / "J" mean nothing there.
+	var touch := Settings.touch_enabled()
+	dash_key.text = "" if touch else Settings.key_name("dash")
+	attack_key.text = "" if touch else Settings.key_name("attack")
+	block_key.text = "" if touch else Settings.key_name("block")
+	skill_key.text = "" if touch else Settings.key_name("skill")
 
 
 func _local_player() -> Player:

@@ -72,6 +72,7 @@ func _refresh() -> void:
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
 		_touch_opacity.set_value_no_signal(Settings.touch_opacity)
 		_touch_left.set_pressed_no_signal(Settings.touch_left_handed)
+		_vibration.set_pressed_no_signal(Settings.vibration)
 	for action in Settings.BINDABLE_ACTIONS:
 		var button: Button = bindings.get_node_or_null(action)
 		if button:
@@ -84,6 +85,7 @@ var _touch_mode: OptionButton
 var _touch_scale: HSlider
 var _touch_opacity: HSlider
 var _touch_left: CheckButton
+var _vibration: CheckButton
 
 
 func _build_touch() -> void:
@@ -106,6 +108,9 @@ func _build_touch() -> void:
 	rows.append(_row("SETTINGS_TOUCH_OPACITY", _touch_opacity))
 	_touch_left = CheckButton.new()
 	rows.append(_row("SETTINGS_TOUCH_LEFT", _touch_left))
+	_vibration = CheckButton.new()
+	rows.append(_row("SETTINGS_VIBRATION", _vibration))
+	_vibration.toggled.connect(Settings.set_vibration)
 	for i in rows.size():
 		box.add_child(rows[i])
 		box.move_child(rows[i], index + i)

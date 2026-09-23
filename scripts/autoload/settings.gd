@@ -31,6 +31,7 @@ var touch_mode := "auto"
 var touch_scale := 1.0     # 0.7–1.5, how big the on-screen buttons are
 var touch_opacity := 0.75  # 0.3–1.0
 var touch_left_handed := false  # buttons on the left, stick on the right
+var vibration := true  # phones and tablets: a buzz on a blow taken, a parry, a boss down
 ## action -> physical keycode of the primary keyboard key. Gamepad bindings stay as in project.godot.
 var keys: Dictionary = {}
 
@@ -56,6 +57,7 @@ func _ready() -> void:
 	touch_scale = clampf(float(cfg.get_value("touch", "scale", 1.0)), 0.7, 1.5)
 	touch_opacity = clampf(float(cfg.get_value("touch", "opacity", 0.75)), 0.3, 1.0)
 	touch_left_handed = bool(cfg.get_value("touch", "left_handed", false))
+	vibration = bool(cfg.get_value("touch", "vibration", true))
 	for action in BINDABLE_ACTIONS:
 		if cfg.has_section_key("keys", action):
 			keys[action] = int(cfg.get_value("keys", action))
@@ -85,6 +87,7 @@ func save() -> void:
 	cfg.set_value("touch", "scale", touch_scale)
 	cfg.set_value("touch", "opacity", touch_opacity)
 	cfg.set_value("touch", "left_handed", touch_left_handed)
+	cfg.set_value("touch", "vibration", vibration)
 	for action in keys:
 		cfg.set_value("keys", action, keys[action])
 	cfg.save(PATH)
@@ -112,6 +115,18 @@ func touch_enabled() -> bool:
 			return false
 	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") \
 		or DisplayServer.is_touchscreen_available() and not OS.has_feature("pc")
+
+
+## Text is read at arm's length on a desk and at a hand's length on a phone,
+## but a phone's pixels are tiny: story text grows when the touch pad is on.
+func text_scale() -> float:
+	return 1.3 if touch_enabled() else 1.0
+
+
+func set_vibration(enabled: bool) -> void:
+	vibration = enabled
+	save()
+	changed.emit()
 
 
 func set_touch(mode: String, scale: float, opacity: float, left_handed: bool) -> void:

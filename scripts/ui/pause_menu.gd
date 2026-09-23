@@ -35,11 +35,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		_resume()
 	elif not get_tree().paused:  # someone else (dialogue, picker, end screen) owns the pause
 		get_viewport().set_input_as_handled()
-		Net.set_paused(true)  # online the world keeps turning while you read
-		Audio.play(&"ui_pause", -6.0, 0.0)
-		visible = true
-		panel.visible = true
-		%Resume.grab_focus()
+		_open()
+
+
+func _open() -> void:
+	Net.set_paused(true)  # online the world keeps turning while you read
+	Audio.play(&"ui_pause", -6.0, 0.0)
+	visible = true
+	panel.visible = true
+	%Resume.grab_focus()
+
+
+## A phone call, the home button, the notification shade, a browser tab
+## switched away: the fight must not go on without the player. Solo only —
+## online the other player is still there.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		if not Net.active and not visible and not get_tree().paused and is_inside_tree():
+			_open()
 
 
 ## What "Save" writes is the run's checkpoint: the state at this room's entrance.
