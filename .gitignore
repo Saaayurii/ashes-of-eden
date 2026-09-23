@@ -17,6 +17,7 @@ content/
 build/
 dist/
 *.apk
+*.apk.idsig
 *.aab
 
 # OS / IDE

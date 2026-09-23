@@ -1,4 +1,4 @@
-.PHONY: validate test net-test build build-web web image editor server
+.PHONY: android android-image validate test net-test build build-web web image editor server
 
 image:      ## build the Docker image with headless Godot
 	docker compose build godot
@@ -26,3 +26,10 @@ web: build-web ## serve the web build at http://localhost:8080
 
 editor:     ## open the project in the native Godot editor (macOS)
 	open -a Godot --args --path "$(CURDIR)" -e
+
+android-image: ## Android export image (JDK + SDK + debug keystore; accepts the Android SDK licence)
+	docker build -f tools/docker/Dockerfile.android -t ashes-of-eden/godot-android:4.7.2 .
+
+android: ## debug-signed test APK -> build/android/ashes-of-eden.apk (install: adb install -r build/android/ashes-of-eden.apk)
+	docker run --rm -v "$(CURDIR):/project" --entrypoint bash ashes-of-eden/godot-android:4.7.2 \
+		-c "cp /project/tools/docker/entrypoint.sh /usr/local/bin/entrypoint && chmod +x /usr/local/bin/entrypoint && entrypoint build-debug Android"

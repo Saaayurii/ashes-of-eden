@@ -5,6 +5,7 @@
 #   entrypoint net-test [mode...]  two-process crossplay stand (default: all four)
 #   entrypoint server [--flags]    dedicated headless host for two browsers
 #   entrypoint build [preset...]   export presets (default: all desktop + web)
+#   entrypoint build-debug Android debug-signed export (test APKs)
 #   entrypoint godot <args...>     raw godot command
 set -euo pipefail
 
@@ -40,7 +41,11 @@ case "${1:-validate}" in
         import
         exec godot --headless -- --server "$@"
         ;;
-    build)
+    build|build-debug)
+        # build-debug signs with the image's debug keystore: what a test APK
+        # needs. A store release needs your own keystore (see docs/RELEASE.md).
+        mode="--export-release"
+        [ "$1" = "build-debug" ] && mode="--export-debug"
         shift
         presets=("$@")
         [ ${#presets[@]} -eq 0 ] && presets=("Windows Desktop" "Linux" "macOS" "Web")
@@ -52,7 +57,7 @@ case "${1:-validate}" in
             [ -n "$out" ] || { echo "unknown preset: $preset" >&2; exit 1; }
             mkdir -p "$(dirname "$out")"
             echo "==> $preset -> $out"
-            godot --headless --export-release "$preset" "$out"
+            godot --headless "$mode" "$preset" "$out"
         done
         ;;
     godot)
