@@ -109,17 +109,40 @@ def check_licence(model):
 
 
 def ensure_model(model):
-    """Download a Piper voice once; later runs find it in the cache."""
+    """Download a Piper voice once; later runs find it in the cache.
+
+    A voice is two files, and an interrupted download tends to leave the big
+    one and lose the small one. Checking only the .onnx means the next run
+    thinks it is done and piper dies on the missing .onnx.json a hundred lines
+    later, so both are required here and a half-downloaded pair is refetched.
+    """
     check_licence(model)
     onnx = os.path.join(MODELS, model + ".onnx")
-    if os.path.exists(onnx):
+    config = onnx + ".json"
+    if os.path.exists(onnx) and os.path.exists(config):
         return onnx
     os.makedirs(MODELS, exist_ok=True)
+    if os.path.exists(onnx):
+        print("  %s is missing its config, fetching again" % model)
+        os.remove(onnx)
     print("  downloading", model)
     subprocess.run([sys.executable, "-m", "piper.download_voices",
                     "--data-dir", MODELS, model], check=True)
-    if not os.path.exists(onnx):
-        die("piper did not produce " + onnx)
+    for path in (onnx, config):
+        if not os.path.exists(path):
+            die("piper did not produce " + path)
+    # A truncated download is a well-formed file of the wrong length, and
+    # onnxruntime only complains about it at the first line it is asked to
+    # read — a hundred lines into a run that then dies. Ask now.
+    try:
+        import onnxruntime
+        onnxruntime.InferenceSession(onnx, providers=["CPUExecutionProvider"])
+    except ImportError:
+        pass  # piper pulls it in; if it is genuinely absent, piper will say so
+    except Exception as error:
+        os.remove(onnx)
+        die("%s downloaded broken and has been deleted (%s). Run again."
+            % (model, type(error).__name__))
     return onnx
 
 

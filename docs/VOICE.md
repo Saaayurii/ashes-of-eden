@@ -95,7 +95,7 @@ the other three.
 ## Running it
 
 ```bash
-pip install piper-tts          # once; ffmpeg must also be on PATH
+pip install 'piper-tts[zh]'    # once; ffmpeg must also be on PATH
 python3 tools/audio/generate_speech.py               # only the lines that are missing
 python3 tools/audio/generate_speech.py --force       # re-render everything
 python3 tools/audio/generate_speech.py --locale ru   # one language
@@ -103,7 +103,18 @@ python3 tools/audio/generate_speech.py --speaker SPEAKER_ELIAN
 python3 tools/audio/generate_speech.py --dry-run     # list the work, do none of it
 ```
 
-The first run of a voice downloads its model (10–60 MB) into `tools/audio/.cache/voices/`.
+The first run of a voice downloads its model (60–115 MB) into `tools/audio/.cache/voices/`.
+
+Two things worth knowing before the first run:
+
+- **Mandarin needs the `[zh]` extra.** `zh_CN` voices phonemise through pinyin rather than espeak,
+  which pulls in g2pW and `bert-base-chinese` on first use — a few hundred MB fetched from Hugging
+  Face, and noticeably slower per line than the other three languages. Plain `pip install piper-tts`
+  renders every other locale and fails on this one with "Chinese lookup tables not found".
+- **Interrupted downloads are common and quiet.** Hugging Face throttles, and a truncated `.onnx`
+  is a well-formed file that only fails when onnxruntime first reads it. The script now checks each
+  freshly downloaded model, deletes it if it will not load, and tells you to run again; a model
+  whose `.onnx.json` went missing is refetched rather than trusted.
 
 ## What is honestly wrong with it
 

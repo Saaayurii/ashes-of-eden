@@ -39,3 +39,7 @@ package-lock.json
 # Python bytecode
 __pycache__/
 *.pyc
+
+# g2pW lookup tables, fetched on demand by the Chinese phonemizer
+# (tools/audio/generate_speech.py, see docs/VOICE.md)
+g2pW/
