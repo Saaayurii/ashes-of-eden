@@ -5,7 +5,8 @@ class_name Enemy
 ##   behaviour  walker | flyer | boss_ophanim | caster (a walker that backs
 ##              away from a player closer than "keep_away", never off a ledge)
 ##   attacks    optional telegraphed attacks: [{"type": "melee" | "ranged" | "lunge" | "beam" | "nova", "windup", ...}]
-##              (a single "attack" object is accepted too). One is picked by weight among those in range.
+##              (a single "attack" object is accepted too). One is picked by weight among those in range,
+##              with a strong penalty for repeating while another is available.
 ##   sprite     one strip, or {"cell", "fps", "animations": {idle, walk, attack, hurt, death}}
 ##   sight      {"range", "height", "behind"}: how far ahead it looks (a cone in
 ##              front of its face, cut by walls and floors) and the radius behind
@@ -39,6 +40,12 @@ const ALERT_TIME := 0.4
 ## An enemy at or under this share of its health can be executed outright.
 const EXECUTE_BELOW := 0.3
 const SHOUT_RADIUS := 90.0
+## A hit that stops a body (a flinch, a broken wind-up) also keeps the next
+## wind-up back this long after it is on its feet: hurt, a beat, then the
+## telegraph, never a swing that grows straight out of the flinch.
+const HIT_ATTACK_DELAY := 0.25
+## Occasional repeats keep two-move enemies from becoming a strict metronome.
+const REPEAT_ATTACK_WEIGHT := 0.18
 ## Physics layers a look or a step is stopped by: world (1) and ledges (5).
 const SOLID_MASK := 1 | 16
 ## Per behaviour: sight range, sight height, feel-behind radius.
@@ -68,6 +75,12 @@ var facing := 1:
 var _max_hp: float
 var _attacks: Array = []
 var _attack: Dictionary = {}  # the one being performed
+## Index in _attacks of the last wind-up begun. Repeats are less likely when
+## another move is in range, but never impossible. Host-only choice.
+var _last_attack := -1
+## Its own dice for the choice, so a test can seed it.
+var attack_rng := RandomNumberGenerator.new()
+var _telegraph_tween: Tween
 var _beam_lines: Array[Line2D] = []
 var _beam_hit := {}  # player -> already burned this beam
 var _contact_cd := 0.0
@@ -138,6 +151,7 @@ func _ready() -> void:
 	_attacks = stats.get("attacks", [])
 	if stats.has("attack"):
 		_attacks = [stats.attack]
+	attack_rng.randomize()
 	_attack_cd = randf_range(0.3, 1.0)  # not everyone swings on frame one
 	_retreat_distance = randf_range(28.0, 48.0)
 	_retreat_speed = randf_range(0.55, 0.8)
@@ -263,9 +277,10 @@ func _physics_process(delta: float) -> void:
 		State.CHASE:
 			_chase(to_target, delta)
 			if _attack_cd <= 0.0:
-				var choice := _pick_attack(to_target)
-				if not choice.is_empty():
-					_attack = choice
+				var choice := _choose_attack(to_target)
+				if choice >= 0:
+					_last_attack = choice
+					_attack = _attacks[choice]
 					_begin_windup(to_target)
 		State.WINDUP:
 			_hold(delta)
@@ -573,23 +588,29 @@ func _hold(delta: float) -> void:
 ## Weighted random among the attacks whose range and phase conditions hold.
 ## "from_hp": 0.66 makes an attack available only once hp is at or below 66 %;
 ## "until_hp": 0.66 retires it after that. Phases change behaviour, not HP.
-func _pick_attack(to_target: Vector2) -> Dictionary:
-	var candidates: Array = []
-	var total := 0.0
+## The last attack is less likely while another one is available; a single
+## attack (or only one in range) repeats normally. Returns an index, -1 for none.
+func _choose_attack(to_target: Vector2) -> int:
+	var candidates: Array[int] = []
 	var fraction := hp / _max_hp
-	for attack in _attacks:
+	for i in _attacks.size():
+		var attack: Dictionary = _attacks[i]
 		if fraction > float(attack.get("from_hp", 1.0)) or fraction <= float(attack.get("until_hp", 0.0)):
 			continue
 		if _in_attack_range(attack, to_target):
-			candidates.append(attack)
-			total += float(attack.get("weight", 1.0))
+			candidates.append(i)
 	if candidates.is_empty():
-		return {}
-	var roll := randf() * total
-	for attack in candidates:
-		roll -= float(attack.get("weight", 1.0))
+		return -1
+	var total := 0.0
+	for i in candidates:
+		var weight := maxf(0.0, float(_attacks[i].get("weight", 1.0)))
+		total += weight * (REPEAT_ATTACK_WEIGHT if candidates.size() > 1 and i == _last_attack else 1.0)
+	var roll := attack_rng.randf() * total
+	for i in candidates:
+		var weight := maxf(0.0, float(_attacks[i].get("weight", 1.0)))
+		roll -= weight * (REPEAT_ATTACK_WEIGHT if candidates.size() > 1 and i == _last_attack else 1.0)
 		if roll <= 0.0:
-			return attack
+			return i
 	return candidates.back()
 
 
@@ -628,9 +649,11 @@ func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26
 	_voice("attack", &"enemy_windup", -11.0)
 	_play(str(_attack.get("animation", "attack")), true)
 	visual.modulate = Color(1.0, 0.85, 0.7)
-	var tween := create_tween()
-	tween.tween_property(visual, "modulate", Color(2.2, 1.6, 1.2), duration * 0.8)
-	tween.tween_property(visual, "modulate", Color.WHITE, 0.1)
+	if _telegraph_tween != null:
+		_telegraph_tween.kill()
+	_telegraph_tween = create_tween()
+	_telegraph_tween.tween_property(visual, "modulate", Color(2.2, 1.6, 1.2), duration * 0.8)
+	_telegraph_tween.tween_property(visual, "modulate", Color.WHITE, 0.1)
 	# The wind-up also brightens the room around the enemy: readable in the dark.
 	Fx.flash(global_position + Vector2(0, -10), Color(color), 60.0, duration, 0.6)
 	if beam:
@@ -641,6 +664,24 @@ func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26
 func _net_telegraph(new_facing: int, duration: float, beam: bool, length: float, thickness: float, color: String) -> void:
 	facing = new_facing
 	_telegraph(duration, beam, length, thickness, color)
+
+
+## A wind-up that will not land (staggered, parried) stops looking like one:
+## the glow stops building, the beam goes and the raised pose drops, so the
+## player reads "broken" instead of waiting for a blow that never comes.
+func _cancel_telegraph() -> void:
+	if _telegraph_tween != null and _telegraph_tween.is_running():
+		_telegraph_tween.kill()
+		# Eased rather than snapped: a hit flash may be fading on the same colour.
+		create_tween().tween_property(visual, "modulate", Color.WHITE, 0.12)
+	_telegraph_tween = null
+	_clear_beam()
+	_play("idle")
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_cancel_telegraph() -> void:
+	_cancel_telegraph()
 
 
 func _strike(to_target: Vector2) -> void:
@@ -971,16 +1012,17 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		_knockback = Vector2(away * push, -35.0 if _is_flying() else -60.0)
 		if state == State.WINDUP and randf() < float(stats.get("stagger_chance", 0.35)):
 			_set_state(State.RECOVER, 0.4)  # interrupted the wind-up
-			_play("idle")
-			_clear_beam()
+			_attack_cd = maxf(_attack_cd, _state_left + HIT_ATTACK_DELAY)
+			_cancel_telegraph()
 			if Net.active:
-				_net_clear_beam.rpc()
+				_net_cancel_telegraph.rpc()
 		elif state == State.CHASE:
 			# Knocked out of its stride: while it is walking at you a hit has to
 			# actually stop it, otherwise the body walks the push straight off
 			# and the sword looks like it passed through. An attack already in
 			# motion still plays out — that is what stagger_chance is for.
 			_set_state(State.RECOVER, float(stats.get("flinch", 0.18)))
+			_attack_cd = maxf(_attack_cd, _state_left + HIT_ATTACK_DELAY)
 			_play("idle")
 	if hp > 0.0:
 		_play("hurt")
@@ -1015,9 +1057,9 @@ func _apply_parry(from: Vector2) -> void:
 		return
 	var boss: bool = stats.get("boss", false)
 	var opening := float(stats.get("parry_opening", PARRY_OPENING)) * (0.5 if boss else 1.0)
-	_clear_beam()
+	_cancel_telegraph()
 	if Net.active:
-		_net_clear_beam.rpc()
+		_net_cancel_telegraph.rpc()
 	_open_left = opening
 	_attack_cd = maxf(_attack_cd, opening + 0.3)
 	_set_state(State.RECOVER, opening)

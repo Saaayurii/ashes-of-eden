@@ -12,6 +12,7 @@ Writes assets/props/secret_wall_<place>.png. Deterministic (seeded per wall).
 """
 import os
 import random
+import sys
 
 from PIL import Image
 
@@ -22,15 +23,22 @@ OUT = os.path.join(ROOT, "assets", "props")
 WALLS = {
     "catacombs": ("catacombs_2", (1058, 575, 1098, 688), 64, 100, 7),
     "village": ("graveyard_moon", (1085, 560, 1135, 640), 48, 72, 11),
-    "swamp": ("swamp_crypt", (660, 360, 700, 410), 52, 76, 5),
+    "swamp": ("swamp_crypt", (600, 330, 640, 420), 52, 76, 5),
 }
 GLOW = (255, 204, 120)
 
 
-def palette(panel, box):
+def palette(panel, box, stone_only=False):
     """Mortar, shadow, base, light and highlight from the panel's own stones."""
     img = Image.open(os.path.join(ROOT, "assets", "levels", panel + ".png")).convert("RGB")
     pixels = [img.getpixel((x, y)) for x in range(box[0], box[2]) for y in range(box[1], box[3])]
+    if stone_only:
+        # A crypt-wall sample includes black mortar and red roots. The secret
+        # opening must borrow the visible grey masonry, not those shadows.
+        stones = [p for p in pixels if 0.3 * p[0] + 0.59 * p[1] + 0.11 * p[2] > 38
+                  and max(p) - min(p) < 45]
+        if stones:
+            pixels = stones
     pixels.sort(key=lambda p: 0.3 * p[0] + 0.59 * p[1] + 0.11 * p[2])
 
     def at(fraction, spread=0.04):
@@ -155,7 +163,7 @@ def rubble(w, h, pal, rng):
 
 def build(place, spec):
     panel, box, w, h, seed = spec
-    pal = palette(panel, box)
+    pal = palette(panel, box, stone_only=place == "swamp")
     frames = []
     # 0: whole, two hairline cracks — enough for a looking eye
     rng = random.Random(seed)
@@ -187,5 +195,10 @@ def build(place, spec):
 
 
 if __name__ == "__main__":
-    for place, spec in WALLS.items():
-        build(place, spec)
+    selected = set(sys.argv[1:]) or set(WALLS)
+    unknown = selected - set(WALLS)
+    if unknown:
+        raise SystemExit("unknown secret walls: " + ", ".join(sorted(unknown)))
+    for place in WALLS:
+        if place in selected:
+            build(place, WALLS[place])

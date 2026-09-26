@@ -1,861 +1,1862 @@
 {
-  "tracks": [
-    {
-      "slug": "ossuary_6_air",
-      "title": "Ossuary 6 - Air",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%206%20-%20Air.mp3",
-      "bytes": 8004526,
-      "playlists": [
-        "menu"
-      ]
-    },
-    {
-      "slug": "long_note_one",
-      "title": "Long Note One",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Long%20Note%20One.mp3",
-      "bytes": 17761954,
-      "playlists": [
-        "menu",
-        "church"
-      ]
-    },
-    {
-      "slug": "virtutes_vocis",
-      "title": "Virtutes Vocis",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Virtutes%20Vocis.mp3",
-      "bytes": 10364376,
-      "playlists": [
-        "menu",
-        "church"
-      ]
-    },
-    {
-      "slug": "lost_frontier",
-      "title": "Lost Frontier",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lost%20Frontier.mp3",
-      "bytes": 10599561,
-      "playlists": [
-        "road"
-      ]
-    },
-    {
-      "slug": "heart_of_nowhere",
-      "title": "Heart of Nowhere",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Heart%20of%20Nowhere.mp3",
-      "bytes": 5515852,
-      "playlists": [
-        "road",
-        "village_night"
-      ]
-    },
-    {
-      "slug": "sunset_at_glengorm",
-      "title": "Sunset at Glengorm",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sunset%20at%20Glengorm.mp3",
-      "bytes": 5604953,
-      "playlists": [
-        "road"
-      ]
-    },
-    {
-      "slug": "ossuary_2_turn",
-      "title": "Ossuary 2 - Turn",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%202%20-%20Turn.mp3",
-      "bytes": 9219947,
-      "playlists": [
-        "village_night"
-      ]
-    },
-    {
-      "slug": "gathering_darkness",
-      "title": "Gathering Darkness",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Gathering%20Darkness.mp3",
-      "bytes": 10600574,
-      "playlists": [
-        "village_night"
-      ]
-    },
-    {
-      "slug": "dark_times",
-      "title": "Dark Times",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Times.mp3",
-      "bytes": 7349969,
-      "playlists": [
-        "village_night"
-      ]
-    },
-    {
-      "slug": "long_note_two",
-      "title": "Long Note Two",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Long%20Note%20Two.mp3",
-      "bytes": 18641758,
-      "playlists": [
-        "village_night"
-      ]
-    },
-    {
-      "slug": "ghost_story",
-      "title": "Ghost Story",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ghost%20Story.mp3",
-      "bytes": 12785490,
-      "playlists": [
-        "graveyard"
-      ]
-    },
-    {
-      "slug": "the_dread",
-      "title": "The Dread",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Dread.mp3",
-      "bytes": 7896741,
-      "playlists": [
-        "graveyard"
-      ]
-    },
-    {
-      "slug": "darkest_child",
-      "title": "Darkest Child",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Darkest%20Child.mp3",
-      "bytes": 9551329,
-      "playlists": [
-        "graveyard"
-      ]
-    },
-    {
-      "slug": "ossuary_5_rest",
-      "title": "Ossuary 5 - Rest",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%205%20-%20Rest.mp3",
-      "bytes": 7547280,
-      "playlists": [
-        "graveyard"
-      ]
-    },
-    {
-      "slug": "unseen_horrors",
-      "title": "Unseen Horrors",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Unseen%20Horrors.mp3",
-      "bytes": 8036245,
-      "playlists": [
-        "graveyard"
-      ]
-    },
-    {
-      "slug": "ossuary_1_a_beginning",
-      "title": "Ossuary 1 - A Beginning",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%201%20-%20A%20Beginning.mp3",
-      "bytes": 6020064,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "deep_noise",
-      "title": "Deep Noise",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deep%20Noise.mp3",
-      "bytes": 6200420,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "anguish",
-      "title": "Anguish",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Anguish.mp3",
-      "bytes": 7653395,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "shadowlands_5_antechamber",
-      "title": "Shadowlands 5 - Antechamber",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%205%20-%20Antechamber.mp3",
-      "bytes": 5700691,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "lightless_dawn",
-      "title": "Lightless Dawn",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lightless%20Dawn.mp3",
-      "bytes": 15197957,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "penumbra",
-      "title": "Penumbra",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Penumbra.mp3",
-      "bytes": 11845077,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "virtutes_instrumenti",
-      "title": "Virtutes Instrumenti",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Virtutes%20Instrumenti.mp3",
-      "bytes": 10486513,
-      "playlists": [
-        "church"
-      ]
-    },
-    {
-      "slug": "ossuary_7_resolve",
-      "title": "Ossuary 7 - Resolve",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%207%20-%20Resolve.mp3",
-      "bytes": 8260321,
-      "playlists": [
-        "church",
-        "end"
-      ]
-    },
-    {
-      "slug": "volatile_reaction",
-      "title": "Volatile Reaction",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Volatile%20Reaction.mp3",
-      "bytes": 5293585,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "killers",
-      "title": "Killers",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Killers.mp3",
-      "bytes": 9769089,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "grim_league",
-      "title": "Grim League",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Grim%20League.mp3",
-      "bytes": 6383406,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "rites",
-      "title": "Rites",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Rites.mp3",
-      "bytes": 5078605,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "exit_the_premises",
-      "title": "Exit the Premises",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Exit%20the%20Premises.mp3",
-      "bytes": 6724725,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "five_armies",
-      "title": "Five Armies",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Five%20Armies.mp3",
-      "bytes": 6235982,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "impact_prelude",
-      "title": "Impact Prelude",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Impact%20Prelude.mp3",
-      "bytes": 8122953,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "wretched_destroyer",
-      "title": "Wretched Destroyer",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Wretched%20Destroyer.mp3",
-      "bytes": 6340197,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "stormfront",
-      "title": "Stormfront",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Stormfront.mp3",
-      "bytes": 13364350,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "achilles",
-      "title": "Achilles",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Achilles.mp3",
-      "bytes": 2540613,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "aftermath",
-      "title": "Aftermath",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Aftermath.mp3",
-      "bytes": 7806546,
-      "playlists": [
-        "end"
-      ]
-    },
-    {
-      "slug": "immersed",
-      "title": "Immersed",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Immersed.mp3",
-      "bytes": 7969389,
-      "playlists": [
-        "end"
-      ]
-    },
-    {
-      "slug": "wounded",
-      "title": "Wounded",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Wounded.mp3",
-      "bytes": 8135515,
-      "playlists": [
-        "death"
-      ]
-    },
-    {
-      "slug": "lamentation",
-      "title": "Lamentation",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lamentation.mp3",
-      "bytes": 8001095,
-      "playlists": [
-        "death"
-      ]
-    },
-    {
-      "slug": "decline",
-      "title": "Decline",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Decline.mp3",
-      "bytes": 8289278,
-      "playlists": [
-        "death"
-      ]
-    },
-    {
-      "slug": "evil_awaits",
-      "title": "Evil Awaits",
-      "author": "bosslevelaudio",
-      "license": "CC0",
-      "page": "https://opengameart.org/content/evil-awaits",
-      "url": "https://opengameart.org/sites/default/files/evil_awaits.mp3",
-      "bytes": 1300000,
-      "playlists": [
-        "boss_knight",
-        "arena"
-      ]
-    },
-    {
-      "slug": "clocktower",
-      "title": "Clocktower",
-      "author": "symphony",
-      "license": "CC0",
-      "page": "https://opengameart.org/content/clocktower",
-      "url": "https://opengameart.org/sites/default/files/cubed%20-%20clocktower.mp3",
-      "bytes": 7100000,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "beyond_redemption",
-      "title": "Dark Solemn Choral with Organ",
-      "author": "ISAo",
-      "license": "OGA-BY 3.0",
-      "page": "https://opengameart.org/content/dark-solemn-choral-with-organ",
-      "url": "https://opengameart.org/sites/default/files/demo_Beyond%20Redemption_master_0.mp3",
-      "bytes": 1700000,
-      "playlists": [
-        "church"
-      ]
-    },
-    {
-      "slug": "final_boss_appearance",
-      "title": "Final Boss Appearance Dark Fantasy",
-      "author": "ISAo",
-      "license": "OGA-BY 3.0",
-      "page": "https://opengameart.org/content/final-boss-appearance-dark-fantasy",
-      "url": "https://opengameart.org/sites/default/files/dova_mary_only_knows.mp3",
-      "bytes": 1800000,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "blood_stained_glass",
-      "title": "(Blood) Stained Glass",
-      "author": "FoxSynergy",
-      "license": "CC BY 3.0",
-      "page": "https://opengameart.org/content/blood-stained-glass",
-      "url": "https://opengameart.org/sites/default/files/%28Blood%29%20Stained%20Glass%20v0_8.mp3",
-      "bytes": 3800000,
-      "playlists": [
-        "arena",
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "long_note_three",
-      "title": "Long Note Three",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Long%20Note%20Three.mp3",
-      "bytes": 7808160,
-      "playlists": [
-        "menu",
-        "church"
-      ]
-    },
-    {
-      "slug": "floating_cities",
-      "title": "Floating Cities",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Floating%20Cities.mp3",
-      "bytes": 5892113,
-      "playlists": [
-        "menu"
-      ]
-    },
-    {
-      "slug": "satiate",
-      "title": "Satiate",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Satiate.mp3",
-      "bytes": 7684302,
-      "playlists": [
-        "church",
-        "end"
-      ]
-    },
-    {
-      "slug": "relent",
-      "title": "Relent",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Relent.mp3",
-      "bytes": 7013475,
-      "playlists": [
-        "church",
-        "end"
-      ]
-    },
-    {
-      "slug": "moorland",
-      "title": "Moorland",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Moorland.mp3",
-      "bytes": 13564988,
-      "playlists": [
-        "road"
-      ]
-    },
-    {
-      "slug": "hidden_past",
-      "title": "Hidden Past",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hidden%20Past.mp3",
-      "bytes": 6147939,
-      "playlists": [
-        "road",
-        "village_night"
-      ]
-    },
-    {
-      "slug": "dark_walk",
-      "title": "Dark Walk",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Walk.mp3",
-      "bytes": 3538605,
-      "playlists": [
-        "village_night"
-      ]
-    },
-    {
-      "slug": "disquiet",
-      "title": "Disquiet",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Disquiet.mp3",
-      "bytes": 5924748,
-      "playlists": [
-        "village_night",
-        "death"
-      ]
-    },
-    {
-      "slug": "dark_fog",
-      "title": "Dark Fog",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Fog.mp3",
-      "bytes": 9564075,
-      "playlists": [
-        "graveyard",
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "curse_of_the_scarab",
-      "title": "Curse of the Scarab",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Curse%20of%20the%20Scarab.mp3",
-      "bytes": 10473824,
-      "playlists": [
-        "graveyard"
-      ]
-    },
-    {
-      "slug": "mourning_song",
-      "title": "Mourning Song",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mourning%20Song.mp3",
-      "bytes": 3791841,
-      "playlists": [
-        "graveyard",
-        "death"
-      ]
-    },
-    {
-      "slug": "grave_matters",
-      "title": "Grave Matters",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Grave%20Matters.mp3",
-      "bytes": 3901853,
-      "playlists": [
-        "graveyard",
-        "end"
-      ]
-    },
-    {
-      "slug": "shadowlands_1_horizon",
-      "title": "Shadowlands 1 - Horizon",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%201%20-%20Horizon.mp3",
-      "bytes": 7044008,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "shadowlands_4_breath",
-      "title": "Shadowlands 4 - Breath",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%204%20-%20Breath.mp3",
-      "bytes": 7364164,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "the_descent",
-      "title": "The Descent",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Descent.mp3",
-      "bytes": 7672813,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "crypto",
-      "title": "Crypto",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Crypto.mp3",
-      "bytes": 6532455,
-      "playlists": [
-        "dead_bridge"
-      ]
-    },
-    {
-      "slug": "nightmare_machine",
-      "title": "Nightmare Machine",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Nightmare%20Machine.mp3",
-      "bytes": 7248839,
-      "playlists": [
-        "dead_bridge",
-        "arena"
-      ]
-    },
-    {
-      "slug": "controlled_chaos",
-      "title": "Controlled Chaos",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Controlled%20Chaos.mp3",
-      "bytes": 14092660,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "failing_defense",
-      "title": "Failing Defense",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Failing%20Defense.mp3",
-      "bytes": 4222281,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "malicious",
-      "title": "Malicious",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Malicious.mp3",
-      "bytes": 7135982,
-      "playlists": [
-        "boss_knight"
-      ]
-    },
-    {
-      "slug": "undaunted",
-      "title": "Undaunted",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Undaunted.mp3",
-      "bytes": 6803270,
-      "playlists": [
-        "boss_knight",
-        "arena"
-      ]
-    },
-    {
-      "slug": "echoes_of_time_v2",
-      "title": "Echoes of Time v2",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Echoes%20of%20Time%20v2.mp3",
-      "bytes": 11408320,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "prelude_and_action",
-      "title": "Prelude and Action",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Prelude%20and%20Action.mp3",
-      "bytes": 3956095,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "redletter",
-      "title": "Redletter",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Redletter.mp3",
-      "bytes": 10728189,
-      "playlists": [
-        "boss_ophanim"
-      ]
-    },
-    {
-      "slug": "thunderbird",
-      "title": "Thunderbird",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Thunderbird.mp3",
-      "bytes": 11573856,
-      "playlists": [
-        "boss_ophanim",
-        "arena"
-      ]
-    },
-    {
-      "slug": "deadly_roulette",
-      "title": "Deadly Roulette",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deadly%20Roulette.mp3",
-      "bytes": 5099663,
-      "playlists": [
-        "arena"
-      ]
-    },
-    {
-      "slug": "voxel_revolution",
-      "title": "Voxel Revolution",
-      "author": "Kevin MacLeod",
-      "license": "CC BY 4.0",
-      "page": "https://incompetech.com",
-      "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Voxel%20Revolution.mp3",
-      "bytes": 2600392,
-      "playlists": [
-        "arena"
-      ]
-    }
-  ]
+ "tracks": [
+  {
+   "slug": "ossuary_6_air",
+   "title": "Ossuary 6 - Air",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%206%20-%20Air.mp3",
+   "bytes": 8004526,
+   "playlists": [
+    "menu"
+   ]
+  },
+  {
+   "slug": "long_note_one",
+   "title": "Long Note One",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Long%20Note%20One.mp3",
+   "bytes": 17761954,
+   "playlists": [
+    "menu",
+    "church"
+   ]
+  },
+  {
+   "slug": "virtutes_vocis",
+   "title": "Virtutes Vocis",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Virtutes%20Vocis.mp3",
+   "bytes": 10364376,
+   "playlists": [
+    "menu",
+    "church"
+   ]
+  },
+  {
+   "slug": "lost_frontier",
+   "title": "Lost Frontier",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lost%20Frontier.mp3",
+   "bytes": 10599561,
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "heart_of_nowhere",
+   "title": "Heart of Nowhere",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Heart%20of%20Nowhere.mp3",
+   "bytes": 5515852,
+   "playlists": [
+    "road",
+    "village_night"
+   ]
+  },
+  {
+   "slug": "sunset_at_glengorm",
+   "title": "Sunset at Glengorm",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sunset%20at%20Glengorm.mp3",
+   "bytes": 5604953,
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "ossuary_2_turn",
+   "title": "Ossuary 2 - Turn",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%202%20-%20Turn.mp3",
+   "bytes": 9219947,
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "gathering_darkness",
+   "title": "Gathering Darkness",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Gathering%20Darkness.mp3",
+   "bytes": 10600574,
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "dark_times",
+   "title": "Dark Times",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Times.mp3",
+   "bytes": 7349969,
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "long_note_two",
+   "title": "Long Note Two",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Long%20Note%20Two.mp3",
+   "bytes": 18641758,
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "ghost_story",
+   "title": "Ghost Story",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ghost%20Story.mp3",
+   "bytes": 12785490,
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "the_dread",
+   "title": "The Dread",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Dread.mp3",
+   "bytes": 7896741,
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "darkest_child",
+   "title": "Darkest Child",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Darkest%20Child.mp3",
+   "bytes": 9551329,
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "ossuary_5_rest",
+   "title": "Ossuary 5 - Rest",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%205%20-%20Rest.mp3",
+   "bytes": 7547280,
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "unseen_horrors",
+   "title": "Unseen Horrors",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Unseen%20Horrors.mp3",
+   "bytes": 8036245,
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "ossuary_1_a_beginning",
+   "title": "Ossuary 1 - A Beginning",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%201%20-%20A%20Beginning.mp3",
+   "bytes": 6020064,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "deep_noise",
+   "title": "Deep Noise",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deep%20Noise.mp3",
+   "bytes": 6200420,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "anguish",
+   "title": "Anguish",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Anguish.mp3",
+   "bytes": 7653395,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "shadowlands_5_antechamber",
+   "title": "Shadowlands 5 - Antechamber",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%205%20-%20Antechamber.mp3",
+   "bytes": 5700691,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "lightless_dawn",
+   "title": "Lightless Dawn",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lightless%20Dawn.mp3",
+   "bytes": 15197957,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "penumbra",
+   "title": "Penumbra",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Penumbra.mp3",
+   "bytes": 11845077,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "virtutes_instrumenti",
+   "title": "Virtutes Instrumenti",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Virtutes%20Instrumenti.mp3",
+   "bytes": 10486513,
+   "playlists": [
+    "church"
+   ]
+  },
+  {
+   "slug": "ossuary_7_resolve",
+   "title": "Ossuary 7 - Resolve",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%207%20-%20Resolve.mp3",
+   "bytes": 8260321,
+   "playlists": [
+    "church",
+    "end"
+   ]
+  },
+  {
+   "slug": "volatile_reaction",
+   "title": "Volatile Reaction",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Volatile%20Reaction.mp3",
+   "bytes": 5293585,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "killers",
+   "title": "Killers",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Killers.mp3",
+   "bytes": 9769089,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "grim_league",
+   "title": "Grim League",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Grim%20League.mp3",
+   "bytes": 6383406,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "rites",
+   "title": "Rites",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Rites.mp3",
+   "bytes": 5078605,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "exit_the_premises",
+   "title": "Exit the Premises",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Exit%20the%20Premises.mp3",
+   "bytes": 6724725,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "five_armies",
+   "title": "Five Armies",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Five%20Armies.mp3",
+   "bytes": 6235982,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "impact_prelude",
+   "title": "Impact Prelude",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Impact%20Prelude.mp3",
+   "bytes": 8122953,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "wretched_destroyer",
+   "title": "Wretched Destroyer",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Wretched%20Destroyer.mp3",
+   "bytes": 6340197,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "stormfront",
+   "title": "Stormfront",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Stormfront.mp3",
+   "bytes": 13364350,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "achilles",
+   "title": "Achilles",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Achilles.mp3",
+   "bytes": 2540613,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "aftermath",
+   "title": "Aftermath",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Aftermath.mp3",
+   "bytes": 7806546,
+   "playlists": [
+    "end"
+   ]
+  },
+  {
+   "slug": "immersed",
+   "title": "Immersed",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Immersed.mp3",
+   "bytes": 7969389,
+   "playlists": [
+    "end"
+   ]
+  },
+  {
+   "slug": "wounded",
+   "title": "Wounded",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Wounded.mp3",
+   "bytes": 8135515,
+   "playlists": [
+    "death"
+   ]
+  },
+  {
+   "slug": "lamentation",
+   "title": "Lamentation",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lamentation.mp3",
+   "bytes": 8001095,
+   "playlists": [
+    "death"
+   ]
+  },
+  {
+   "slug": "decline",
+   "title": "Decline",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Decline.mp3",
+   "bytes": 8289278,
+   "playlists": [
+    "death"
+   ]
+  },
+  {
+   "slug": "evil_awaits",
+   "title": "Evil Awaits",
+   "author": "bosslevelaudio",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/evil-awaits",
+   "url": "https://opengameart.org/sites/default/files/evil_awaits.mp3",
+   "bytes": 1300000,
+   "playlists": [
+    "boss_knight",
+    "arena"
+   ]
+  },
+  {
+   "slug": "clocktower",
+   "title": "Clocktower",
+   "author": "symphony",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/clocktower",
+   "url": "https://opengameart.org/sites/default/files/cubed%20-%20clocktower.mp3",
+   "bytes": 7100000,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "beyond_redemption",
+   "title": "Dark Solemn Choral with Organ",
+   "author": "ISAo",
+   "license": "OGA-BY 3.0",
+   "page": "https://opengameart.org/content/dark-solemn-choral-with-organ",
+   "url": "https://opengameart.org/sites/default/files/demo_Beyond%20Redemption_master_0.mp3",
+   "bytes": 1700000,
+   "playlists": [
+    "church"
+   ]
+  },
+  {
+   "slug": "final_boss_appearance",
+   "title": "Final Boss Appearance Dark Fantasy",
+   "author": "ISAo",
+   "license": "OGA-BY 3.0",
+   "page": "https://opengameart.org/content/final-boss-appearance-dark-fantasy",
+   "url": "https://opengameart.org/sites/default/files/dova_mary_only_knows.mp3",
+   "bytes": 1800000,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "blood_stained_glass",
+   "title": "(Blood) Stained Glass",
+   "author": "FoxSynergy",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/blood-stained-glass",
+   "url": "https://opengameart.org/sites/default/files/%28Blood%29%20Stained%20Glass%20v0_8.mp3",
+   "bytes": 3800000,
+   "playlists": [
+    "arena",
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "long_note_three",
+   "title": "Long Note Three",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Long%20Note%20Three.mp3",
+   "bytes": 7808160,
+   "playlists": [
+    "menu",
+    "church"
+   ]
+  },
+  {
+   "slug": "floating_cities",
+   "title": "Floating Cities",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Floating%20Cities.mp3",
+   "bytes": 5892113,
+   "playlists": [
+    "menu"
+   ]
+  },
+  {
+   "slug": "satiate",
+   "title": "Satiate",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Satiate.mp3",
+   "bytes": 7684302,
+   "playlists": [
+    "church",
+    "end"
+   ]
+  },
+  {
+   "slug": "relent",
+   "title": "Relent",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Relent.mp3",
+   "bytes": 7013475,
+   "playlists": [
+    "church",
+    "end"
+   ]
+  },
+  {
+   "slug": "moorland",
+   "title": "Moorland",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Moorland.mp3",
+   "bytes": 13564988,
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "hidden_past",
+   "title": "Hidden Past",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hidden%20Past.mp3",
+   "bytes": 6147939,
+   "playlists": [
+    "road",
+    "village_night"
+   ]
+  },
+  {
+   "slug": "dark_walk",
+   "title": "Dark Walk",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Walk.mp3",
+   "bytes": 3538605,
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "disquiet",
+   "title": "Disquiet",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Disquiet.mp3",
+   "bytes": 5924748,
+   "playlists": [
+    "village_night",
+    "death"
+   ]
+  },
+  {
+   "slug": "dark_fog",
+   "title": "Dark Fog",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dark%20Fog.mp3",
+   "bytes": 9564075,
+   "playlists": [
+    "graveyard",
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "curse_of_the_scarab",
+   "title": "Curse of the Scarab",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Curse%20of%20the%20Scarab.mp3",
+   "bytes": 10473824,
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "mourning_song",
+   "title": "Mourning Song",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mourning%20Song.mp3",
+   "bytes": 3791841,
+   "playlists": [
+    "graveyard",
+    "death"
+   ]
+  },
+  {
+   "slug": "grave_matters",
+   "title": "Grave Matters",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Grave%20Matters.mp3",
+   "bytes": 3901853,
+   "playlists": [
+    "graveyard",
+    "end"
+   ]
+  },
+  {
+   "slug": "shadowlands_1_horizon",
+   "title": "Shadowlands 1 - Horizon",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%201%20-%20Horizon.mp3",
+   "bytes": 7044008,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "shadowlands_4_breath",
+   "title": "Shadowlands 4 - Breath",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%204%20-%20Breath.mp3",
+   "bytes": 7364164,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "the_descent",
+   "title": "The Descent",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Descent.mp3",
+   "bytes": 7672813,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "crypto",
+   "title": "Crypto",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Crypto.mp3",
+   "bytes": 6532455,
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "nightmare_machine",
+   "title": "Nightmare Machine",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Nightmare%20Machine.mp3",
+   "bytes": 7248839,
+   "playlists": [
+    "dead_bridge",
+    "arena"
+   ]
+  },
+  {
+   "slug": "controlled_chaos",
+   "title": "Controlled Chaos",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Controlled%20Chaos.mp3",
+   "bytes": 14092660,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "failing_defense",
+   "title": "Failing Defense",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Failing%20Defense.mp3",
+   "bytes": 4222281,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "malicious",
+   "title": "Malicious",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Malicious.mp3",
+   "bytes": 7135982,
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "undaunted",
+   "title": "Undaunted",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Undaunted.mp3",
+   "bytes": 6803270,
+   "playlists": [
+    "boss_knight",
+    "arena"
+   ]
+  },
+  {
+   "slug": "echoes_of_time_v2",
+   "title": "Echoes of Time v2",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Echoes%20of%20Time%20v2.mp3",
+   "bytes": 11408320,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "prelude_and_action",
+   "title": "Prelude and Action",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Prelude%20and%20Action.mp3",
+   "bytes": 3956095,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "redletter",
+   "title": "Redletter",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Redletter.mp3",
+   "bytes": 10728189,
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "thunderbird",
+   "title": "Thunderbird",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Thunderbird.mp3",
+   "bytes": 11573856,
+   "playlists": [
+    "boss_ophanim",
+    "arena"
+   ]
+  },
+  {
+   "slug": "deadly_roulette",
+   "title": "Deadly Roulette",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deadly%20Roulette.mp3",
+   "bytes": 5099663,
+   "playlists": [
+    "arena"
+   ]
+  },
+  {
+   "slug": "voxel_revolution",
+   "title": "Voxel Revolution",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Voxel%20Revolution.mp3",
+   "bytes": 2600392,
+   "playlists": [
+    "arena"
+   ]
+  },
+  {
+   "slug": "all_this",
+   "title": "All This",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/All%20This.mp3",
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "ancient_rite",
+   "title": "Ancient Rite",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ancient%20Rite.mp3",
+   "playlists": [
+    "church",
+    "menu"
+   ]
+  },
+  {
+   "slug": "angevin",
+   "title": "Angevin",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Angevin.mp3",
+   "playlists": [
+    "church",
+    "road"
+   ]
+  },
+  {
+   "slug": "ascending_the_vale",
+   "title": "Ascending the Vale",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ascending%20the%20Vale.mp3",
+   "playlists": [
+    "church",
+    "road"
+   ]
+  },
+  {
+   "slug": "baba_yaga",
+   "title": "Baba Yaga",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Baba%20Yaga.mp3",
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "bittersweet",
+   "title": "Bittersweet",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Bittersweet.mp3",
+   "playlists": [
+    "church",
+    "end"
+   ]
+  },
+  {
+   "slug": "black_vortex",
+   "title": "Black Vortex",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Black%20Vortex.mp3",
+   "playlists": [
+    "boss_knight",
+    "arena"
+   ]
+  },
+  {
+   "slug": "clash_defiant",
+   "title": "Clash Defiant",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Clash%20Defiant.mp3",
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "constance",
+   "title": "Constance",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Constance.mp3",
+   "playlists": [
+    "boss_knight",
+    "arena"
+   ]
+  },
+  {
+   "slug": "corruption",
+   "title": "Corruption",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Corruption.mp3",
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "crowd_hammer",
+   "title": "Crowd Hammer",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Crowd%20Hammer.mp3",
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "dama_may",
+   "title": "Dama-May",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dama-May.mp3",
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "darkling",
+   "title": "Darkling",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Darkling.mp3",
+   "playlists": [
+    "arena"
+   ]
+  },
+  {
+   "slug": "death_and_axes",
+   "title": "Death and Axes",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Death%20and%20Axes.mp3",
+   "playlists": [
+    "arena"
+   ]
+  },
+  {
+   "slug": "despair_and_triumph",
+   "title": "Despair and Triumph",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Despair%20and%20Triumph.mp3",
+   "playlists": [
+    "dead_bridge",
+    "death"
+   ]
+  },
+  {
+   "slug": "dreams_become_real",
+   "title": "Dreams Become Real",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dreams%20Become%20Real.mp3",
+   "playlists": [
+    "end"
+   ]
+  },
+  {
+   "slug": "drums_of_the_deep",
+   "title": "Drums of the Deep",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Drums%20of%20the%20Deep.mp3",
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "eternal_terminal",
+   "title": "Eternal Terminal",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Eternal%20Terminal.mp3",
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "final_battle_of_the_dark_wizards",
+   "title": "Final Battle of the Dark Wizards",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Final%20Battle%20of%20the%20Dark%20Wizards.mp3",
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "full_on",
+   "title": "Full On",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Full%20On.mp3",
+   "playlists": [
+    "boss_ophanim",
+    "arena"
+   ]
+  },
+  {
+   "slug": "funeral_march_for_brass",
+   "title": "Funeral March for Brass",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Funeral%20March%20for%20Brass.mp3",
+   "playlists": [
+    "death",
+    "end"
+   ]
+  },
+  {
+   "slug": "giant_wyrm",
+   "title": "Giant Wyrm",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Giant%20Wyrm.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "gregorian_chant",
+   "title": "Gregorian Chant",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Gregorian%20Chant.mp3",
+   "playlists": [
+    "church"
+   ]
+  },
+  {
+   "slug": "gypsy_shoegazer_no_voices",
+   "title": "Gypsy Shoegazer No Voices",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Gypsy%20Shoegazer%20No%20Voices.mp3",
+   "playlists": [
+    "village_night",
+    "death"
+   ]
+  },
+  {
+   "slug": "hero_down",
+   "title": "Hero Down",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hero%20Down.mp3",
+   "playlists": [
+    "boss_ophanim",
+    "end"
+   ]
+  },
+  {
+   "slug": "inexorable",
+   "title": "Inexorable",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Inexorable.mp3",
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "intrepid",
+   "title": "Intrepid",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Intrepid.mp3",
+   "playlists": [
+    "village_night",
+    "road"
+   ]
+  },
+  {
+   "slug": "lithium",
+   "title": "Lithium",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lithium.mp3",
+   "playlists": [
+    "church",
+    "end"
+   ]
+  },
+  {
+   "slug": "magic_forest",
+   "title": "Magic Forest",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Magic%20Forest.mp3",
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "mesmerize",
+   "title": "Mesmerize",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mesmerize.mp3",
+   "playlists": [
+    "end"
+   ]
+  },
+  {
+   "slug": "minima",
+   "title": "Minima",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Minima.mp3",
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "mountain_emperor",
+   "title": "Mountain Emperor",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mountain%20Emperor.mp3",
+   "playlists": [
+    "road",
+    "arena"
+   ]
+  },
+  {
+   "slug": "music_for_funeral_home_part_11",
+   "title": "Music for Funeral Home - Part 11",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Music%20for%20Funeral%20Home%20-%20Part%2011.mp3",
+   "playlists": [
+    "death"
+   ]
+  },
+  {
+   "slug": "myst_on_the_moor",
+   "title": "Myst on the Moor",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Myst%20on%20the%20Moor.mp3",
+   "playlists": [
+    "village_night",
+    "menu"
+   ]
+  },
+  {
+   "slug": "mystery_bazaar",
+   "title": "Mystery Bazaar",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mystery%20Bazaar.mp3",
+   "playlists": [
+    "dead_bridge",
+    "road"
+   ]
+  },
+  {
+   "slug": "mystic_force",
+   "title": "Mystic Force",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mystic%20Force.mp3",
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "night_vigil",
+   "title": "Night Vigil",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Night%20Vigil.mp3",
+   "playlists": [
+    "church",
+    "menu"
+   ]
+  },
+  {
+   "slug": "noble_race",
+   "title": "Noble Race",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Noble%20Race.mp3",
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "oppressive_gloom",
+   "title": "Oppressive Gloom",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Oppressive%20Gloom.mp3",
+   "playlists": [
+    "boss_ophanim",
+    "menu"
+   ]
+  },
+  {
+   "slug": "ossuary_4_animate",
+   "title": "Ossuary 4 - Animate",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%204%20-%20Animate.mp3",
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "past_the_edge",
+   "title": "Past the Edge",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Past%20the%20Edge.mp3",
+   "playlists": [
+    "dead_bridge",
+    "death"
+   ]
+  },
+  {
+   "slug": "plaint",
+   "title": "Plaint",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Plaint.mp3",
+   "playlists": [
+    "church",
+    "death"
+   ]
+  },
+  {
+   "slug": "reign_supreme",
+   "title": "Reign Supreme",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Reign%20Supreme.mp3",
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "river_flute",
+   "title": "River Flute",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/River%20Flute.mp3",
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "rynos_theme",
+   "title": "Rynos Theme",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Rynos%20Theme.mp3",
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "scp_x1x_gateway_to_hell",
+   "title": "SCP-x1x (Gateway to Hell)",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/SCP-x1x.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "scp_x2x_unseen_presence",
+   "title": "SCP-x2x (Unseen Presence)",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/SCP-x2x.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "scp_x5x_outer_thoughts",
+   "title": "SCP-x5x (Outer Thoughts)",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/SCP-x5x.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "scp_x6x_hopes",
+   "title": "SCP-x6x (Hopes)",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/SCP-x6x.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "send_for_the_horses",
+   "title": "Send for the Horses",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Send%20for%20the%20Horses.mp3",
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "shadowlands_2_bridge",
+   "title": "Shadowlands 2 - Bridge",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%202%20-%20Bridge.mp3",
+   "playlists": [
+    "graveyard",
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "shadowlands_3_machine",
+   "title": "Shadowlands 3 - Machine",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%203%20-%20Machine.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "stay_the_course",
+   "title": "Stay the Course",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Stay%20the%20Course.mp3",
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "stompdance",
+   "title": "StompDance",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/StompDance.mp3",
+   "playlists": [
+    "boss_knight",
+    "arena"
+   ]
+  },
+  {
+   "slug": "strength_of_the_titans",
+   "title": "Strength of the Titans",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Strength%20of%20the%20Titans.mp3",
+   "playlists": [
+    "boss_ophanim"
+   ]
+  },
+  {
+   "slug": "symmetry",
+   "title": "Symmetry",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Symmetry.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "teller_of_the_tales",
+   "title": "Teller of the Tales",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Teller%20of%20the%20Tales.mp3",
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "the_escalation",
+   "title": "The Escalation",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Escalation.mp3",
+   "playlists": [
+    "boss_knight",
+    "arena"
+   ]
+  },
+  {
+   "slug": "this_house",
+   "title": "This House",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/This%20House.mp3",
+   "playlists": [
+    "graveyard",
+    "village_night"
+   ]
+  },
+  {
+   "slug": "unlight",
+   "title": "Unlight",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Unlight.mp3",
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "vanishing",
+   "title": "Vanishing",
+   "author": "Kevin MacLeod",
+   "license": "CC BY 4.0",
+   "page": "https://incompetech.com",
+   "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Vanishing.mp3",
+   "playlists": [
+    "village_night",
+    "menu"
+   ]
+  },
+  {
+   "slug": "mysterious_ambience_song21",
+   "title": "Mysterious Ambience (song21)",
+   "author": "cynicmusic",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/mysterious-ambience-song21",
+   "url": "https://opengameart.org/sites/default/files/song21_0.mp3",
+   "playlists": [
+    "village_night",
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "dark_ambience_loop",
+   "title": "Dark Ambience Loop",
+   "author": "qubodup",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/dark-ambience-loop",
+   "url": "https://opengameart.org/sites/default/files/Iwan%20Gabovitch%20-%20Dark%20Ambience%20Loop.ogg",
+   "playlists": [
+    "graveyard",
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "dark_descent",
+   "title": "Dark Descent",
+   "author": "Matthew Pablo",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/dark-descent",
+   "url": "https://opengameart.org/sites/default/files/Dark%20Descent_0.mp3",
+   "playlists": [
+    "dead_bridge",
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "forgoten_tomb_ambience",
+   "title": "Forgoten tomb ambience",
+   "author": "kindland",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/forgoten-tomb-ambience",
+   "url": "https://opengameart.org/sites/default/files/Forgoten_tombs_1.mp3",
+   "playlists": [
+    "graveyard",
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "the_dark_amulet_dark_mage_theme",
+   "title": "The Dark Amulet - Dark Mage Theme",
+   "author": "Matthew Pablo",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/the-dark-amulet-dark-mage-theme",
+   "url": "https://opengameart.org/sites/default/files/The%20Dark%20Amulet_0.mp3",
+   "playlists": [
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "dungeon_ambience",
+   "title": "Dungeon Ambience",
+   "author": "yd",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/dungeon-ambience",
+   "url": "https://opengameart.org/sites/default/files/dungeon002_0.ogg",
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "vampires_piano",
+   "title": "Vampire's Piano",
+   "author": "TAD",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/vampires-piano",
+   "url": "https://opengameart.org/sites/default/files/vampires_piano_6.mp3",
+   "playlists": [
+    "church",
+    "death"
+   ]
+  },
+  {
+   "slug": "lurid_delusion",
+   "title": "Lurid Delusion",
+   "author": "Matthew Pablo",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/lurid-delusion",
+   "url": "https://opengameart.org/sites/default/files/Lurid%20Delusion_0.mp3",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "dark_forest_theme",
+   "title": "Dark Forest Theme",
+   "author": "cynicmusic",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/dark-forest-theme",
+   "url": "https://opengameart.org/sites/default/files/GameMusic_ForestTheme_24_0.mp3",
+   "playlists": [
+    "road",
+    "village_night"
+   ]
+  },
+  {
+   "slug": "bleeding_out",
+   "title": "Bleeding out",
+   "author": "HaelDB",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/bleeding-out",
+   "url": "https://opengameart.org/sites/default/files/bleeding_out2_2.ogg",
+   "playlists": [
+    "death",
+    "end"
+   ]
+  },
+  {
+   "slug": "zombies_march",
+   "title": "Zombies' March",
+   "author": "yd",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/zombies-march",
+   "url": "https://opengameart.org/sites/default/files/ZombiesAreComing.ogg",
+   "playlists": [
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "creepy",
+   "title": "Creepy",
+   "author": "TokyoGeisha",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/creepy",
+   "url": "https://opengameart.org/sites/default/files/CrEEP_0.mp3",
+   "playlists": [
+    "village_night",
+    "graveyard"
+   ]
+  },
+  {
+   "slug": "night_of_the_streets_horrorsuspense",
+   "title": "Night of the Streets [Horror/Suspense]",
+   "author": "nene",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/night-of-the-streets-horrorsuspense",
+   "url": "https://opengameart.org/sites/default/files/Night%20of%20the%20Streets_0.mp3",
+   "playlists": [
+    "village_night"
+   ]
+  },
+  {
+   "slug": "scary_ambient_wind",
+   "title": "Scary Ambient Wind",
+   "author": "Alexandr Zhelanov",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/scary-ambient-wind",
+   "url": "https://opengameart.org/sites/default/files/Scary%20Ambient%20Wind.ogg",
+   "playlists": [
+    "village_night",
+    "menu"
+   ]
+  },
+  {
+   "slug": "mystery_manor",
+   "title": "Mystery Manor",
+   "author": "Alexandr Zhelanov",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/mystery-manor",
+   "url": "https://opengameart.org/sites/default/files/Mystery%20Manor.ogg",
+   "playlists": [
+    "dead_bridge",
+    "church"
+   ]
+  },
+  {
+   "slug": "doll_house",
+   "title": "Doll House",
+   "author": "Alexandr Zhelanov",
+   "license": "CC BY 4.0",
+   "page": "https://opengameart.org/content/doll-house",
+   "url": "https://opengameart.org/sites/default/files/Doll%20House%20%28Piano_Ghosts%29.mp3",
+   "playlists": [
+    "menu",
+    "village_night"
+   ]
+  },
+  {
+   "slug": "unsolved_investigation",
+   "title": "Unsolved Investigation",
+   "author": "isaiah658",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/unsolved-investigation",
+   "url": "https://opengameart.org/sites/default/files/Unsolved-Investigation-isaiah658_0.ogg",
+   "playlists": [
+    "dead_bridge"
+   ]
+  },
+  {
+   "slug": "medieval_the_old_tower_inn",
+   "title": "Medieval: The Old Tower Inn",
+   "author": "RandomMind",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/medieval-the-old-tower-inn",
+   "url": "https://opengameart.org/sites/default/files/The_Old_Tower_Inn.mp3",
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "medieval_the_bards_tale",
+   "title": "Medieval: The Bard's Tale",
+   "author": "RandomMind",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/medieval-the-bards-tale",
+   "url": "https://opengameart.org/sites/default/files/The_Bards_Tale.mp3",
+   "playlists": [
+    "road",
+    "menu"
+   ]
+  },
+  {
+   "slug": "fantasy_lament_for_a_warriors_soul",
+   "title": "Fantasy: Lament for a Warrior's Soul",
+   "author": "RandomMind",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/fantasy-lament-for-a-warriors-soul",
+   "url": "https://opengameart.org/sites/default/files/Lament_for_a_Warriors_Soul_REUPLOAD.mp3",
+   "playlists": [
+    "end",
+    "death",
+    "church"
+   ]
+  },
+  {
+   "slug": "medieval_kings_feast",
+   "title": "Medieval: King's Feast",
+   "author": "RandomMind",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/medieval-kings-feast",
+   "url": "https://opengameart.org/sites/default/files/Kings_Feast_0.mp3",
+   "playlists": [
+    "road"
+   ]
+  },
+  {
+   "slug": "medieval_exploration",
+   "title": "Medieval: Exploration",
+   "author": "RandomMind",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/medieval-exploration",
+   "url": "https://opengameart.org/sites/default/files/Exploration_0.mp3",
+   "playlists": [
+    "road",
+    "village_night"
+   ]
+  },
+  {
+   "slug": "medieval_battle",
+   "title": "Medieval: Battle",
+   "author": "RandomMind",
+   "license": "CC0",
+   "page": "https://opengameart.org/content/medieval-battle",
+   "url": "https://opengameart.org/sites/default/files/battle_8.mp3",
+   "playlists": [
+    "boss_knight",
+    "arena"
+   ]
+  },
+  {
+   "slug": "northern_isles",
+   "title": "Northern Isles",
+   "author": "Yubatake",
+   "license": "CC BY 4.0",
+   "page": "https://opengameart.org/content/northern-isles",
+   "url": "https://opengameart.org/sites/default/files/NorthernIsles.ogg",
+   "playlists": [
+    "road",
+    "menu"
+   ]
+  },
+  {
+   "slug": "ambush_in_buch",
+   "title": "Ambush in buch",
+   "author": "Alexandr Zhelanov",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/ambush-in-buch",
+   "url": "https://opengameart.org/sites/default/files/Ambush%20in%20buch.ogg",
+   "playlists": [
+    "arena",
+    "boss_knight"
+   ]
+  },
+  {
+   "slug": "classicalmedieval_song",
+   "title": "Classical/Medieval Song",
+   "author": "professorlamp",
+   "license": "CC BY 3.0",
+   "page": "https://opengameart.org/content/classicalmedieval-song",
+   "url": "https://opengameart.org/sites/default/files/sketch4_0.mp3",
+   "playlists": [
+    "church",
+    "road"
+   ]
+  }
+ ]
 }

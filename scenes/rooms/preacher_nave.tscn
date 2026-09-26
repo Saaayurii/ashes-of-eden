@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=3]
+[gd_scene load_steps=51 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
 [ext_resource type="Texture2D" path="res://assets/decor/arch.png" id="decor_arch"]
+[ext_resource type="Texture2D" path="res://assets/decor/clutter/brazier_lit.png" id="decor_clutter_brazier_lit"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/coffin_4.png" id="decor_graveyard_coffin_4"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_1.png" id="piece_ledge_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_3.png" id="piece_ledge_3"]
@@ -95,9 +97,6 @@ size = Vector2(140, 14)
 [sub_resource type="RectangleShape2D" id="Platform2_shape"]
 size = Vector2(140, 14)
 
-[sub_resource type="RectangleShape2D" id="Platform3_shape"]
-size = Vector2(120, 12)
-
 [sub_resource type="RectangleShape2D" id="Wall1_shape"]
 size = Vector2(16, 436)
 
@@ -136,2898 +135,2893 @@ modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_2" type="Sprite2D" parent="Interior"]
 position = Vector2(13, -12)
-texture = ExtResource("piece_wall_4")
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_3" type="Sprite2D" parent="Interior"]
-position = Vector2(34, -12)
-texture = ExtResource("piece_wall_4")
+position = Vector2(40, -12)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_4" type="Sprite2D" parent="Interior"]
-position = Vector2(55, -12)
-texture = ExtResource("piece_wall_4")
+position = Vector2(67, -12)
+texture = ExtResource("piece_wall_5")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_5" type="Sprite2D" parent="Interior"]
-position = Vector2(76, -12)
-texture = ExtResource("piece_wall_1")
+position = Vector2(99, -12)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_6" type="Sprite2D" parent="Interior"]
-position = Vector2(103, -12)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_7" type="Sprite2D" parent="Interior"]
-position = Vector2(135, -12)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_8" type="Sprite2D" parent="Interior"]
-position = Vector2(163, -12)
+position = Vector2(120, -12)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_0_9" type="Sprite2D" parent="Interior"]
-position = Vector2(192, -12)
+[node name="Wall_0_7" type="Sprite2D" parent="Interior"]
+position = Vector2(149, -12)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_8" type="Sprite2D" parent="Interior"]
+position = Vector2(170, -12)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_0_9" type="Sprite2D" parent="Interior"]
+position = Vector2(191, -12)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_0_10" type="Sprite2D" parent="Interior"]
-position = Vector2(213, -12)
+position = Vector2(218, -12)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_11" type="Sprite2D" parent="Interior"]
+position = Vector2(250, -12)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_12" type="Sprite2D" parent="Interior"]
+position = Vector2(278, -12)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_13" type="Sprite2D" parent="Interior"]
+position = Vector2(307, -12)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_14" type="Sprite2D" parent="Interior"]
+position = Vector2(328, -12)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_0_11" type="Sprite2D" parent="Interior"]
-position = Vector2(245, -12)
+[node name="Wall_0_15" type="Sprite2D" parent="Interior"]
+position = Vector2(360, -12)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_12" type="Sprite2D" parent="Interior"]
-position = Vector2(272, -12)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_13" type="Sprite2D" parent="Interior"]
-position = Vector2(299, -12)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_14" type="Sprite2D" parent="Interior"]
-position = Vector2(326, -12)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_15" type="Sprite2D" parent="Interior"]
-position = Vector2(353, -12)
-texture = ExtResource("piece_wall_4")
-centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_16" type="Sprite2D" parent="Interior"]
-position = Vector2(374, -12)
+position = Vector2(387, -12)
 texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_17" type="Sprite2D" parent="Interior"]
-position = Vector2(401, -12)
+position = Vector2(414, -12)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_18" type="Sprite2D" parent="Interior"]
-position = Vector2(428, -12)
+position = Vector2(441, -12)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_19" type="Sprite2D" parent="Interior"]
-position = Vector2(455, -12)
-texture = ExtResource("piece_wall_1")
+position = Vector2(468, -12)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_20" type="Sprite2D" parent="Interior"]
-position = Vector2(482, -12)
-texture = ExtResource("piece_wall_2")
+position = Vector2(489, -12)
+texture = ExtResource("piece_wall_1")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_21" type="Sprite2D" parent="Interior"]
-position = Vector2(510, -12)
-texture = ExtResource("piece_wall_3")
+position = Vector2(516, -12)
+texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_22" type="Sprite2D" parent="Interior"]
-position = Vector2(539, -12)
-texture = ExtResource("piece_wall_4")
+position = Vector2(543, -12)
+texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_23" type="Sprite2D" parent="Interior"]
-position = Vector2(560, -12)
-texture = ExtResource("piece_wall_3")
+position = Vector2(570, -12)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_24" type="Sprite2D" parent="Interior"]
-position = Vector2(589, -12)
-texture = ExtResource("piece_wall_5")
+position = Vector2(597, -12)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_25" type="Sprite2D" parent="Interior"]
-position = Vector2(621, -12)
-texture = ExtResource("piece_wall_1")
+position = Vector2(625, -12)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_26" type="Sprite2D" parent="Interior"]
-position = Vector2(648, -12)
-texture = ExtResource("piece_wall_1")
+position = Vector2(654, -12)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_27" type="Sprite2D" parent="Interior"]
 position = Vector2(675, -12)
-texture = ExtResource("piece_wall_5")
+texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_28" type="Sprite2D" parent="Interior"]
-position = Vector2(707, -12)
-texture = ExtResource("piece_wall_4")
+position = Vector2(704, -12)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_29" type="Sprite2D" parent="Interior"]
-position = Vector2(728, -12)
-texture = ExtResource("piece_wall_3")
+position = Vector2(736, -12)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_30" type="Sprite2D" parent="Interior"]
-position = Vector2(757, -12)
-texture = ExtResource("piece_wall_2")
+position = Vector2(763, -12)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_31" type="Sprite2D" parent="Interior"]
-position = Vector2(785, -12)
+position = Vector2(790, -12)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_32" type="Sprite2D" parent="Interior"]
-position = Vector2(817, -12)
+position = Vector2(822, -12)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_33" type="Sprite2D" parent="Interior"]
+position = Vector2(843, -12)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_34" type="Sprite2D" parent="Interior"]
+position = Vector2(872, -12)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_0_33" type="Sprite2D" parent="Interior"]
-position = Vector2(845, -12)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_34" type="Sprite2D" parent="Interior"]
-position = Vector2(866, -12)
+[node name="Wall_0_35" type="Sprite2D" parent="Interior"]
+position = Vector2(900, -12)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_0_35" type="Sprite2D" parent="Interior"]
-position = Vector2(898, -12)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_0_36" type="Sprite2D" parent="Interior"]
-position = Vector2(919, -12)
+position = Vector2(932, -12)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_37" type="Sprite2D" parent="Interior"]
-position = Vector2(947, -12)
-texture = ExtResource("piece_wall_1")
+position = Vector2(960, -12)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_38" type="Sprite2D" parent="Interior"]
-position = Vector2(974, -12)
-texture = ExtResource("piece_wall_3")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_0_39" type="Sprite2D" parent="Interior"]
-position = Vector2(1003, -12)
+position = Vector2(981, -12)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_0_40" type="Sprite2D" parent="Interior"]
-position = Vector2(1035, -12)
-texture = ExtResource("piece_wall_2")
+[node name="Wall_0_39" type="Sprite2D" parent="Interior"]
+position = Vector2(1013, -12)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_0_41" type="Sprite2D" parent="Interior"]
-position = Vector2(1063, -12)
+[node name="Wall_0_40" type="Sprite2D" parent="Interior"]
+position = Vector2(1034, -12)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_0_41" type="Sprite2D" parent="Interior"]
+position = Vector2(1062, -12)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_0_42" type="Sprite2D" parent="Interior"]
-position = Vector2(1091, -12)
+position = Vector2(1089, -12)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_43" type="Sprite2D" parent="Interior"]
-position = Vector2(1120, -12)
+position = Vector2(1118, -12)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_0_44" type="Sprite2D" parent="Interior"]
-position = Vector2(1152, -12)
-texture = ExtResource("piece_wall_3")
+position = Vector2(1150, -12)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_0_45" type="Sprite2D" parent="Interior"]
+position = Vector2(1178, -12)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_0_45" type="Sprite2D" parent="Interior"]
-position = Vector2(1181, -12)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_1_46" type="Sprite2D" parent="Interior"]
 position = Vector2(-20, 34)
-texture = ExtResource("piece_wall_4")
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_47" type="Sprite2D" parent="Interior"]
-position = Vector2(1, 34)
-texture = ExtResource("piece_wall_3")
+position = Vector2(9, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_48" type="Sprite2D" parent="Interior"]
-position = Vector2(30, 34)
-texture = ExtResource("piece_wall_2")
+position = Vector2(41, 34)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_49" type="Sprite2D" parent="Interior"]
-position = Vector2(58, 34)
-texture = ExtResource("piece_wall_2")
+position = Vector2(70, 34)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_1_50" type="Sprite2D" parent="Interior"]
+position = Vector2(99, 34)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_1_50" type="Sprite2D" parent="Interior"]
-position = Vector2(86, 34)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_1_51" type="Sprite2D" parent="Interior"]
-position = Vector2(113, 34)
-texture = ExtResource("piece_wall_1")
+position = Vector2(120, 34)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_52" type="Sprite2D" parent="Interior"]
-position = Vector2(140, 34)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_1_53" type="Sprite2D" parent="Interior"]
-position = Vector2(172, 34)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_1_54" type="Sprite2D" parent="Interior"]
-position = Vector2(199, 34)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_1_55" type="Sprite2D" parent="Interior"]
-position = Vector2(228, 34)
+position = Vector2(149, 34)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_1_56" type="Sprite2D" parent="Interior"]
-position = Vector2(256, 34)
-texture = ExtResource("piece_wall_3")
+[node name="Wall_1_53" type="Sprite2D" parent="Interior"]
+position = Vector2(177, 34)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_1_54" type="Sprite2D" parent="Interior"]
+position = Vector2(205, 34)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_1_55" type="Sprite2D" parent="Interior"]
+position = Vector2(232, 34)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_1_56" type="Sprite2D" parent="Interior"]
+position = Vector2(259, 34)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_1_57" type="Sprite2D" parent="Interior"]
-position = Vector2(285, 34)
+position = Vector2(291, 34)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_58" type="Sprite2D" parent="Interior"]
-position = Vector2(312, 34)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_1_59" type="Sprite2D" parent="Interior"]
-position = Vector2(339, 34)
+position = Vector2(318, 34)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_1_60" type="Sprite2D" parent="Interior"]
-position = Vector2(368, 34)
-texture = ExtResource("piece_wall_1")
+[node name="Wall_1_59" type="Sprite2D" parent="Interior"]
+position = Vector2(347, 34)
+texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_1_60" type="Sprite2D" parent="Interior"]
+position = Vector2(375, 34)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_61" type="Sprite2D" parent="Interior"]
-position = Vector2(395, 34)
-texture = ExtResource("piece_wall_2")
+position = Vector2(404, 34)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_62" type="Sprite2D" parent="Interior"]
-position = Vector2(423, 34)
-texture = ExtResource("piece_wall_2")
+position = Vector2(431, 34)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_63" type="Sprite2D" parent="Interior"]
-position = Vector2(451, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(458, 34)
+texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_64" type="Sprite2D" parent="Interior"]
-position = Vector2(483, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(487, 34)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_65" type="Sprite2D" parent="Interior"]
-position = Vector2(515, 34)
-texture = ExtResource("piece_wall_4")
+position = Vector2(514, 34)
+texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_66" type="Sprite2D" parent="Interior"]
-position = Vector2(536, 34)
-texture = ExtResource("piece_wall_4")
+position = Vector2(542, 34)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_67" type="Sprite2D" parent="Interior"]
-position = Vector2(557, 34)
-texture = ExtResource("piece_wall_1")
+position = Vector2(570, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_68" type="Sprite2D" parent="Interior"]
-position = Vector2(584, 34)
-texture = ExtResource("piece_wall_3")
+position = Vector2(602, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_69" type="Sprite2D" parent="Interior"]
-position = Vector2(613, 34)
-texture = ExtResource("piece_wall_3")
+position = Vector2(634, 34)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_70" type="Sprite2D" parent="Interior"]
-position = Vector2(642, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(655, 34)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_71" type="Sprite2D" parent="Interior"]
-position = Vector2(674, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(676, 34)
+texture = ExtResource("piece_wall_1")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_72" type="Sprite2D" parent="Interior"]
-position = Vector2(706, 34)
-texture = ExtResource("piece_wall_4")
+position = Vector2(703, 34)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_73" type="Sprite2D" parent="Interior"]
-position = Vector2(727, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(732, 34)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_74" type="Sprite2D" parent="Interior"]
-position = Vector2(759, 34)
-texture = ExtResource("piece_wall_3")
+position = Vector2(761, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_75" type="Sprite2D" parent="Interior"]
-position = Vector2(788, 34)
-texture = ExtResource("piece_wall_3")
+position = Vector2(793, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_76" type="Sprite2D" parent="Interior"]
-position = Vector2(817, 34)
+position = Vector2(825, 34)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_77" type="Sprite2D" parent="Interior"]
-position = Vector2(838, 34)
+position = Vector2(846, 34)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_78" type="Sprite2D" parent="Interior"]
-position = Vector2(870, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(878, 34)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_79" type="Sprite2D" parent="Interior"]
-position = Vector2(902, 34)
+position = Vector2(907, 34)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_80" type="Sprite2D" parent="Interior"]
-position = Vector2(931, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(936, 34)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_81" type="Sprite2D" parent="Interior"]
-position = Vector2(963, 34)
-texture = ExtResource("piece_wall_1")
+position = Vector2(957, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_82" type="Sprite2D" parent="Interior"]
-position = Vector2(990, 34)
-texture = ExtResource("piece_wall_2")
+position = Vector2(989, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_83" type="Sprite2D" parent="Interior"]
-position = Vector2(1018, 34)
-texture = ExtResource("piece_wall_2")
+position = Vector2(1021, 34)
+texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_84" type="Sprite2D" parent="Interior"]
-position = Vector2(1046, 34)
-texture = ExtResource("piece_wall_2")
+position = Vector2(1050, 34)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_85" type="Sprite2D" parent="Interior"]
-position = Vector2(1074, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1082, 34)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_86" type="Sprite2D" parent="Interior"]
-position = Vector2(1106, 34)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1109, 34)
+texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_87" type="Sprite2D" parent="Interior"]
-position = Vector2(1138, 34)
+position = Vector2(1137, 34)
 texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_88" type="Sprite2D" parent="Interior"]
-position = Vector2(1166, 34)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1165, 34)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_1_89" type="Sprite2D" parent="Interior"]
 position = Vector2(1193, 34)
-texture = ExtResource("piece_wall_3")
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_90" type="Sprite2D" parent="Interior"]
 position = Vector2(-8, 80)
-texture = ExtResource("piece_wall_4")
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_91" type="Sprite2D" parent="Interior"]
-position = Vector2(13, 80)
-texture = ExtResource("piece_wall_4")
+position = Vector2(24, 80)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_92" type="Sprite2D" parent="Interior"]
-position = Vector2(34, 80)
-texture = ExtResource("piece_wall_4")
+position = Vector2(52, 80)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_93" type="Sprite2D" parent="Interior"]
-position = Vector2(55, 80)
-texture = ExtResource("piece_wall_4")
+position = Vector2(79, 80)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_94" type="Sprite2D" parent="Interior"]
-position = Vector2(76, 80)
+position = Vector2(108, 80)
 texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_95" type="Sprite2D" parent="Interior"]
-position = Vector2(97, 80)
-texture = ExtResource("piece_wall_1")
+position = Vector2(129, 80)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_96" type="Sprite2D" parent="Interior"]
-position = Vector2(124, 80)
+position = Vector2(150, 80)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_97" type="Sprite2D" parent="Interior"]
-position = Vector2(145, 80)
-texture = ExtResource("piece_wall_5")
+position = Vector2(171, 80)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_98" type="Sprite2D" parent="Interior"]
-position = Vector2(177, 80)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_99" type="Sprite2D" parent="Interior"]
-position = Vector2(204, 80)
-texture = ExtResource("piece_wall_5")
+position = Vector2(192, 80)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_2_100" type="Sprite2D" parent="Interior"]
-position = Vector2(236, 80)
-texture = ExtResource("piece_wall_5")
+[node name="Wall_2_99" type="Sprite2D" parent="Interior"]
+position = Vector2(213, 80)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_2_101" type="Sprite2D" parent="Interior"]
-position = Vector2(268, 80)
+[node name="Wall_2_100" type="Sprite2D" parent="Interior"]
+position = Vector2(240, 80)
 texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_2_101" type="Sprite2D" parent="Interior"]
+position = Vector2(261, 80)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_102" type="Sprite2D" parent="Interior"]
-position = Vector2(289, 80)
-texture = ExtResource("piece_wall_3")
+position = Vector2(293, 80)
+texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_103" type="Sprite2D" parent="Interior"]
-position = Vector2(318, 80)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_104" type="Sprite2D" parent="Interior"]
-position = Vector2(346, 80)
-texture = ExtResource("piece_wall_2")
+position = Vector2(320, 80)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_2_105" type="Sprite2D" parent="Interior"]
-position = Vector2(374, 80)
+[node name="Wall_2_104" type="Sprite2D" parent="Interior"]
+position = Vector2(352, 80)
 texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_2_105" type="Sprite2D" parent="Interior"]
+position = Vector2(384, 80)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_106" type="Sprite2D" parent="Interior"]
-position = Vector2(406, 80)
-texture = ExtResource("piece_wall_2")
+position = Vector2(405, 80)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_107" type="Sprite2D" parent="Interior"]
 position = Vector2(434, 80)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_108" type="Sprite2D" parent="Interior"]
-position = Vector2(455, 80)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_2_108" type="Sprite2D" parent="Interior"]
+position = Vector2(462, 80)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_2_109" type="Sprite2D" parent="Interior"]
-position = Vector2(483, 80)
-texture = ExtResource("piece_wall_4")
+position = Vector2(490, 80)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_110" type="Sprite2D" parent="Interior"]
-position = Vector2(504, 80)
-texture = ExtResource("piece_wall_5")
+position = Vector2(522, 80)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_111" type="Sprite2D" parent="Interior"]
-position = Vector2(536, 80)
-texture = ExtResource("piece_wall_1")
+position = Vector2(550, 80)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_112" type="Sprite2D" parent="Interior"]
-position = Vector2(563, 80)
-texture = ExtResource("piece_wall_3")
+position = Vector2(571, 80)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_113" type="Sprite2D" parent="Interior"]
-position = Vector2(592, 80)
-texture = ExtResource("piece_wall_2")
+position = Vector2(599, 80)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_114" type="Sprite2D" parent="Interior"]
 position = Vector2(620, 80)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_115" type="Sprite2D" parent="Interior"]
-position = Vector2(648, 80)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_2_116" type="Sprite2D" parent="Interior"]
-position = Vector2(680, 80)
-texture = ExtResource("piece_wall_3")
+[node name="Wall_2_115" type="Sprite2D" parent="Interior"]
+position = Vector2(652, 80)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_2_117" type="Sprite2D" parent="Interior"]
-position = Vector2(709, 80)
-texture = ExtResource("piece_wall_1")
+[node name="Wall_2_116" type="Sprite2D" parent="Interior"]
+position = Vector2(679, 80)
+texture = ExtResource("piece_wall_3")
 centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_2_117" type="Sprite2D" parent="Interior"]
+position = Vector2(708, 80)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_118" type="Sprite2D" parent="Interior"]
 position = Vector2(736, 80)
 texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_119" type="Sprite2D" parent="Interior"]
 position = Vector2(764, 80)
-texture = ExtResource("piece_wall_3")
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_120" type="Sprite2D" parent="Interior"]
-position = Vector2(793, 80)
-texture = ExtResource("piece_wall_5")
+position = Vector2(796, 80)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_121" type="Sprite2D" parent="Interior"]
 position = Vector2(825, 80)
-texture = ExtResource("piece_wall_2")
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_122" type="Sprite2D" parent="Interior"]
-position = Vector2(853, 80)
-texture = ExtResource("piece_wall_5")
+position = Vector2(852, 80)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_123" type="Sprite2D" parent="Interior"]
-position = Vector2(885, 80)
+position = Vector2(880, 80)
 texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_124" type="Sprite2D" parent="Interior"]
-position = Vector2(914, 80)
-texture = ExtResource("piece_wall_4")
+position = Vector2(909, 80)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_125" type="Sprite2D" parent="Interior"]
-position = Vector2(935, 80)
-texture = ExtResource("piece_wall_5")
+position = Vector2(941, 80)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_2_126" type="Sprite2D" parent="Interior"]
-position = Vector2(967, 80)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_127" type="Sprite2D" parent="Interior"]
-position = Vector2(995, 80)
+position = Vector2(969, 80)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_2_127" type="Sprite2D" parent="Interior"]
+position = Vector2(1001, 80)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_2_128" type="Sprite2D" parent="Interior"]
-position = Vector2(1027, 80)
+position = Vector2(1030, 80)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_2_129" type="Sprite2D" parent="Interior"]
+position = Vector2(1051, 80)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_2_130" type="Sprite2D" parent="Interior"]
+position = Vector2(1083, 80)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_2_131" type="Sprite2D" parent="Interior"]
+position = Vector2(1111, 80)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_2_132" type="Sprite2D" parent="Interior"]
+position = Vector2(1143, 80)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_2_129" type="Sprite2D" parent="Interior"]
-position = Vector2(1056, 80)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_130" type="Sprite2D" parent="Interior"]
-position = Vector2(1084, 80)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_131" type="Sprite2D" parent="Interior"]
-position = Vector2(1112, 80)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_132" type="Sprite2D" parent="Interior"]
-position = Vector2(1140, 80)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_2_133" type="Sprite2D" parent="Interior"]
-position = Vector2(1168, 80)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_2_134" type="Sprite2D" parent="Interior"]
-position = Vector2(1189, 80)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1172, 80)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_134" type="Sprite2D" parent="Interior"]
+position = Vector2(-20, 126)
+texture = ExtResource("piece_wall_2")
+centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_135" type="Sprite2D" parent="Interior"]
-position = Vector2(-20, 126)
-texture = ExtResource("piece_wall_1")
+position = Vector2(8, 126)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_136" type="Sprite2D" parent="Interior"]
-position = Vector2(7, 126)
-texture = ExtResource("piece_wall_1")
+position = Vector2(36, 126)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_137" type="Sprite2D" parent="Interior"]
-position = Vector2(34, 126)
+position = Vector2(64, 126)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_138" type="Sprite2D" parent="Interior"]
+position = Vector2(85, 126)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_3_138" type="Sprite2D" parent="Interior"]
-position = Vector2(61, 126)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_3_139" type="Sprite2D" parent="Interior"]
-position = Vector2(93, 126)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_140" type="Sprite2D" parent="Interior"]
-position = Vector2(114, 126)
-texture = ExtResource("piece_wall_2")
+position = Vector2(112, 126)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_3_140" type="Sprite2D" parent="Interior"]
+position = Vector2(139, 126)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_3_141" type="Sprite2D" parent="Interior"]
-position = Vector2(142, 126)
+position = Vector2(166, 126)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_142" type="Sprite2D" parent="Interior"]
-position = Vector2(169, 126)
-texture = ExtResource("piece_wall_3")
+position = Vector2(193, 126)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_143" type="Sprite2D" parent="Interior"]
-position = Vector2(198, 126)
-texture = ExtResource("piece_wall_3")
+position = Vector2(225, 126)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_144" type="Sprite2D" parent="Interior"]
-position = Vector2(227, 126)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_145" type="Sprite2D" parent="Interior"]
-position = Vector2(254, 126)
-texture = ExtResource("piece_wall_5")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_146" type="Sprite2D" parent="Interior"]
-position = Vector2(286, 126)
+position = Vector2(246, 126)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_3_145" type="Sprite2D" parent="Interior"]
+position = Vector2(274, 126)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_146" type="Sprite2D" parent="Interior"]
+position = Vector2(301, 126)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_3_147" type="Sprite2D" parent="Interior"]
-position = Vector2(314, 126)
+position = Vector2(330, 126)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_148" type="Sprite2D" parent="Interior"]
-position = Vector2(343, 126)
-texture = ExtResource("piece_wall_5")
+position = Vector2(359, 126)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_149" type="Sprite2D" parent="Interior"]
-position = Vector2(375, 126)
-texture = ExtResource("piece_wall_3")
+position = Vector2(386, 126)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_150" type="Sprite2D" parent="Interior"]
-position = Vector2(404, 126)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_151" type="Sprite2D" parent="Interior"]
-position = Vector2(431, 126)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_152" type="Sprite2D" parent="Interior"]
-position = Vector2(458, 126)
-texture = ExtResource("piece_wall_4")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_153" type="Sprite2D" parent="Interior"]
-position = Vector2(479, 126)
+position = Vector2(418, 126)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_3_154" type="Sprite2D" parent="Interior"]
+[node name="Wall_3_151" type="Sprite2D" parent="Interior"]
+position = Vector2(446, 126)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_152" type="Sprite2D" parent="Interior"]
+position = Vector2(475, 126)
+texture = ExtResource("piece_wall_5")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_153" type="Sprite2D" parent="Interior"]
 position = Vector2(507, 126)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_3_155" type="Sprite2D" parent="Interior"]
+[node name="Wall_3_154" type="Sprite2D" parent="Interior"]
 position = Vector2(536, 126)
-texture = ExtResource("piece_wall_4")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_156" type="Sprite2D" parent="Interior"]
-position = Vector2(557, 126)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_157" type="Sprite2D" parent="Interior"]
-position = Vector2(578, 126)
-texture = ExtResource("piece_wall_4")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_158" type="Sprite2D" parent="Interior"]
-position = Vector2(599, 126)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_3_159" type="Sprite2D" parent="Interior"]
-position = Vector2(626, 126)
+[node name="Wall_3_155" type="Sprite2D" parent="Interior"]
+position = Vector2(563, 126)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_156" type="Sprite2D" parent="Interior"]
+position = Vector2(590, 126)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_157" type="Sprite2D" parent="Interior"]
+position = Vector2(611, 126)
 texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_158" type="Sprite2D" parent="Interior"]
+position = Vector2(639, 126)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_159" type="Sprite2D" parent="Interior"]
+position = Vector2(668, 126)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_160" type="Sprite2D" parent="Interior"]
-position = Vector2(654, 126)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_161" type="Sprite2D" parent="Interior"]
-position = Vector2(683, 126)
+position = Vector2(689, 126)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_3_161" type="Sprite2D" parent="Interior"]
+position = Vector2(710, 126)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_3_162" type="Sprite2D" parent="Interior"]
-position = Vector2(704, 126)
+position = Vector2(731, 126)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_163" type="Sprite2D" parent="Interior"]
-position = Vector2(731, 126)
-texture = ExtResource("piece_wall_4")
+position = Vector2(758, 126)
+texture = ExtResource("piece_wall_2")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_164" type="Sprite2D" parent="Interior"]
-position = Vector2(752, 126)
-texture = ExtResource("piece_wall_1")
+position = Vector2(786, 126)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_165" type="Sprite2D" parent="Interior"]
-position = Vector2(779, 126)
-texture = ExtResource("piece_wall_1")
+position = Vector2(815, 126)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_166" type="Sprite2D" parent="Interior"]
-position = Vector2(806, 126)
+position = Vector2(836, 126)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_167" type="Sprite2D" parent="Interior"]
-position = Vector2(833, 126)
-texture = ExtResource("piece_wall_1")
+position = Vector2(863, 126)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_168" type="Sprite2D" parent="Interior"]
-position = Vector2(860, 126)
-texture = ExtResource("piece_wall_4")
+position = Vector2(884, 126)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_169" type="Sprite2D" parent="Interior"]
-position = Vector2(881, 126)
-texture = ExtResource("piece_wall_4")
+position = Vector2(911, 126)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_170" type="Sprite2D" parent="Interior"]
-position = Vector2(902, 126)
-texture = ExtResource("piece_wall_4")
+position = Vector2(938, 126)
+texture = ExtResource("piece_wall_1")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_171" type="Sprite2D" parent="Interior"]
-position = Vector2(923, 126)
-texture = ExtResource("piece_wall_2")
+position = Vector2(965, 126)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_172" type="Sprite2D" parent="Interior"]
-position = Vector2(951, 126)
+position = Vector2(992, 126)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_173" type="Sprite2D" parent="Interior"]
+position = Vector2(1013, 126)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_174" type="Sprite2D" parent="Interior"]
+position = Vector2(1034, 126)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_175" type="Sprite2D" parent="Interior"]
+position = Vector2(1055, 126)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_3_176" type="Sprite2D" parent="Interior"]
+position = Vector2(1083, 126)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_3_173" type="Sprite2D" parent="Interior"]
-position = Vector2(972, 126)
+[node name="Wall_3_177" type="Sprite2D" parent="Interior"]
+position = Vector2(1104, 126)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_3_174" type="Sprite2D" parent="Interior"]
-position = Vector2(1001, 126)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_175" type="Sprite2D" parent="Interior"]
-position = Vector2(1033, 126)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_176" type="Sprite2D" parent="Interior"]
-position = Vector2(1060, 126)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_3_177" type="Sprite2D" parent="Interior"]
-position = Vector2(1088, 126)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_3_178" type="Sprite2D" parent="Interior"]
-position = Vector2(1116, 126)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1133, 126)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_179" type="Sprite2D" parent="Interior"]
-position = Vector2(1143, 126)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1165, 126)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_3_180" type="Sprite2D" parent="Interior"]
-position = Vector2(1175, 126)
-texture = ExtResource("piece_wall_3")
+position = Vector2(1192, 126)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_181" type="Sprite2D" parent="Interior"]
 position = Vector2(-8, 172)
-texture = ExtResource("piece_wall_3")
+texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_182" type="Sprite2D" parent="Interior"]
-position = Vector2(21, 172)
-texture = ExtResource("piece_wall_5")
+position = Vector2(20, 172)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_183" type="Sprite2D" parent="Interior"]
-position = Vector2(53, 172)
+position = Vector2(47, 172)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_184" type="Sprite2D" parent="Interior"]
+position = Vector2(79, 172)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_185" type="Sprite2D" parent="Interior"]
+position = Vector2(108, 172)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_186" type="Sprite2D" parent="Interior"]
+position = Vector2(137, 172)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_187" type="Sprite2D" parent="Interior"]
+position = Vector2(169, 172)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_184" type="Sprite2D" parent="Interior"]
-position = Vector2(74, 172)
+[node name="Wall_4_188" type="Sprite2D" parent="Interior"]
+position = Vector2(190, 172)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_185" type="Sprite2D" parent="Interior"]
-position = Vector2(102, 172)
+[node name="Wall_4_189" type="Sprite2D" parent="Interior"]
+position = Vector2(218, 172)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_186" type="Sprite2D" parent="Interior"]
-position = Vector2(134, 172)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_187" type="Sprite2D" parent="Interior"]
-position = Vector2(161, 172)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_188" type="Sprite2D" parent="Interior"]
-position = Vector2(188, 172)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_189" type="Sprite2D" parent="Interior"]
-position = Vector2(217, 172)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_4_190" type="Sprite2D" parent="Interior"]
-position = Vector2(238, 172)
-texture = ExtResource("piece_wall_4")
+position = Vector2(250, 172)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_191" type="Sprite2D" parent="Interior"]
-position = Vector2(259, 172)
-texture = ExtResource("piece_wall_4")
+position = Vector2(277, 172)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_192" type="Sprite2D" parent="Interior"]
-position = Vector2(280, 172)
+position = Vector2(304, 172)
 texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_193" type="Sprite2D" parent="Interior"]
-position = Vector2(309, 172)
+position = Vector2(333, 172)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_194" type="Sprite2D" parent="Interior"]
-position = Vector2(330, 172)
-texture = ExtResource("piece_wall_2")
+position = Vector2(354, 172)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_195" type="Sprite2D" parent="Interior"]
-position = Vector2(358, 172)
+position = Vector2(375, 172)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_196" type="Sprite2D" parent="Interior"]
-position = Vector2(379, 172)
-texture = ExtResource("piece_wall_5")
+position = Vector2(396, 172)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_197" type="Sprite2D" parent="Interior"]
-position = Vector2(411, 172)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_198" type="Sprite2D" parent="Interior"]
-position = Vector2(438, 172)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_199" type="Sprite2D" parent="Interior"]
-position = Vector2(466, 172)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_200" type="Sprite2D" parent="Interior"]
-position = Vector2(493, 172)
+position = Vector2(425, 172)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_201" type="Sprite2D" parent="Interior"]
-position = Vector2(514, 172)
+[node name="Wall_4_198" type="Sprite2D" parent="Interior"]
+position = Vector2(446, 172)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_202" type="Sprite2D" parent="Interior"]
-position = Vector2(542, 172)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_203" type="Sprite2D" parent="Interior"]
-position = Vector2(569, 172)
-texture = ExtResource("piece_wall_1")
+[node name="Wall_4_199" type="Sprite2D" parent="Interior"]
+position = Vector2(474, 172)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_204" type="Sprite2D" parent="Interior"]
-position = Vector2(596, 172)
+[node name="Wall_4_200" type="Sprite2D" parent="Interior"]
+position = Vector2(495, 172)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_4_201" type="Sprite2D" parent="Interior"]
+position = Vector2(527, 172)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_202" type="Sprite2D" parent="Interior"]
+position = Vector2(554, 172)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_203" type="Sprite2D" parent="Interior"]
+position = Vector2(582, 172)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_204" type="Sprite2D" parent="Interior"]
+position = Vector2(609, 172)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_4_205" type="Sprite2D" parent="Interior"]
-position = Vector2(628, 172)
-texture = ExtResource("piece_wall_3")
+position = Vector2(630, 172)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_206" type="Sprite2D" parent="Interior"]
-position = Vector2(657, 172)
-texture = ExtResource("piece_wall_2")
+position = Vector2(658, 172)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_207" type="Sprite2D" parent="Interior"]
 position = Vector2(685, 172)
-texture = ExtResource("piece_wall_5")
+texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_208" type="Sprite2D" parent="Interior"]
-position = Vector2(717, 172)
-texture = ExtResource("piece_wall_3")
+position = Vector2(712, 172)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_209" type="Sprite2D" parent="Interior"]
-position = Vector2(746, 172)
-texture = ExtResource("piece_wall_5")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_210" type="Sprite2D" parent="Interior"]
-position = Vector2(778, 172)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_211" type="Sprite2D" parent="Interior"]
-position = Vector2(799, 172)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_212" type="Sprite2D" parent="Interior"]
-position = Vector2(826, 172)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_213" type="Sprite2D" parent="Interior"]
-position = Vector2(847, 172)
+position = Vector2(744, 172)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_214" type="Sprite2D" parent="Interior"]
-position = Vector2(876, 172)
+[node name="Wall_4_210" type="Sprite2D" parent="Interior"]
+position = Vector2(773, 172)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_215" type="Sprite2D" parent="Interior"]
-position = Vector2(904, 172)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_4_216" type="Sprite2D" parent="Interior"]
-position = Vector2(933, 172)
+[node name="Wall_4_211" type="Sprite2D" parent="Interior"]
+position = Vector2(801, 172)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_217" type="Sprite2D" parent="Interior"]
-position = Vector2(965, 172)
+[node name="Wall_4_212" type="Sprite2D" parent="Interior"]
+position = Vector2(833, 172)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_4_218" type="Sprite2D" parent="Interior"]
-position = Vector2(994, 172)
+[node name="Wall_4_213" type="Sprite2D" parent="Interior"]
+position = Vector2(862, 172)
+texture = ExtResource("piece_wall_5")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_214" type="Sprite2D" parent="Interior"]
+position = Vector2(894, 172)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_215" type="Sprite2D" parent="Interior"]
+position = Vector2(915, 172)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_216" type="Sprite2D" parent="Interior"]
+position = Vector2(942, 172)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_217" type="Sprite2D" parent="Interior"]
+position = Vector2(963, 172)
 texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_4_218" type="Sprite2D" parent="Interior"]
+position = Vector2(992, 172)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_219" type="Sprite2D" parent="Interior"]
-position = Vector2(1023, 172)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1020, 172)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_220" type="Sprite2D" parent="Interior"]
-position = Vector2(1055, 172)
+position = Vector2(1049, 172)
 texture = ExtResource("piece_wall_5")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_221" type="Sprite2D" parent="Interior"]
-position = Vector2(1087, 172)
+position = Vector2(1081, 172)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_222" type="Sprite2D" parent="Interior"]
-position = Vector2(1116, 172)
+position = Vector2(1110, 172)
 texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_223" type="Sprite2D" parent="Interior"]
-position = Vector2(1145, 172)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1139, 172)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_4_224" type="Sprite2D" parent="Interior"]
-position = Vector2(1172, 172)
-texture = ExtResource("piece_wall_2")
+position = Vector2(1171, 172)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_225" type="Sprite2D" parent="Interior"]
 position = Vector2(-20, 218)
 texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_226" type="Sprite2D" parent="Interior"]
 position = Vector2(9, 218)
-texture = ExtResource("piece_wall_4")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_227" type="Sprite2D" parent="Interior"]
-position = Vector2(30, 218)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_5_227" type="Sprite2D" parent="Interior"]
+position = Vector2(38, 218)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_5_228" type="Sprite2D" parent="Interior"]
-position = Vector2(59, 218)
+position = Vector2(65, 218)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_229" type="Sprite2D" parent="Interior"]
-position = Vector2(87, 218)
+position = Vector2(93, 218)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_230" type="Sprite2D" parent="Interior"]
-position = Vector2(116, 218)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_231" type="Sprite2D" parent="Interior"]
-position = Vector2(137, 218)
+position = Vector2(122, 218)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_5_231" type="Sprite2D" parent="Interior"]
+position = Vector2(143, 218)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_5_232" type="Sprite2D" parent="Interior"]
-position = Vector2(158, 218)
+position = Vector2(172, 218)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_233" type="Sprite2D" parent="Interior"]
-position = Vector2(186, 218)
-texture = ExtResource("piece_wall_2")
+position = Vector2(200, 218)
+texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_234" type="Sprite2D" parent="Interior"]
-position = Vector2(214, 218)
-texture = ExtResource("piece_wall_1")
+position = Vector2(229, 218)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_235" type="Sprite2D" parent="Interior"]
-position = Vector2(241, 218)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_236" type="Sprite2D" parent="Interior"]
-position = Vector2(273, 218)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_237" type="Sprite2D" parent="Interior"]
-position = Vector2(305, 218)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_238" type="Sprite2D" parent="Interior"]
-position = Vector2(333, 218)
-texture = ExtResource("piece_wall_5")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_239" type="Sprite2D" parent="Interior"]
-position = Vector2(365, 218)
+position = Vector2(250, 218)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_240" type="Sprite2D" parent="Interior"]
-position = Vector2(386, 218)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_241" type="Sprite2D" parent="Interior"]
-position = Vector2(413, 218)
+[node name="Wall_5_236" type="Sprite2D" parent="Interior"]
+position = Vector2(271, 218)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_242" type="Sprite2D" parent="Interior"]
-position = Vector2(441, 218)
-texture = ExtResource("piece_wall_3")
+[node name="Wall_5_237" type="Sprite2D" parent="Interior"]
+position = Vector2(299, 218)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_243" type="Sprite2D" parent="Interior"]
-position = Vector2(470, 218)
+[node name="Wall_5_238" type="Sprite2D" parent="Interior"]
+position = Vector2(327, 218)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_244" type="Sprite2D" parent="Interior"]
-position = Vector2(497, 218)
+[node name="Wall_5_239" type="Sprite2D" parent="Interior"]
+position = Vector2(354, 218)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_245" type="Sprite2D" parent="Interior"]
-position = Vector2(529, 218)
-texture = ExtResource("piece_wall_3")
+[node name="Wall_5_240" type="Sprite2D" parent="Interior"]
+position = Vector2(386, 218)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_5_241" type="Sprite2D" parent="Interior"]
+position = Vector2(418, 218)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_242" type="Sprite2D" parent="Interior"]
+position = Vector2(446, 218)
+texture = ExtResource("piece_wall_5")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_243" type="Sprite2D" parent="Interior"]
+position = Vector2(478, 218)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_244" type="Sprite2D" parent="Interior"]
+position = Vector2(499, 218)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_245" type="Sprite2D" parent="Interior"]
+position = Vector2(526, 218)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_5_246" type="Sprite2D" parent="Interior"]
-position = Vector2(558, 218)
+position = Vector2(554, 218)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_247" type="Sprite2D" parent="Interior"]
-position = Vector2(587, 218)
-texture = ExtResource("piece_wall_5")
+position = Vector2(583, 218)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_248" type="Sprite2D" parent="Interior"]
-position = Vector2(619, 218)
-texture = ExtResource("piece_wall_4")
+position = Vector2(610, 218)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_249" type="Sprite2D" parent="Interior"]
-position = Vector2(640, 218)
-texture = ExtResource("piece_wall_4")
+position = Vector2(642, 218)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_250" type="Sprite2D" parent="Interior"]
-position = Vector2(661, 218)
-texture = ExtResource("piece_wall_1")
+position = Vector2(671, 218)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_251" type="Sprite2D" parent="Interior"]
-position = Vector2(688, 218)
-texture = ExtResource("piece_wall_2")
+position = Vector2(700, 218)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_252" type="Sprite2D" parent="Interior"]
-position = Vector2(716, 218)
-texture = ExtResource("piece_wall_3")
+position = Vector2(732, 218)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_253" type="Sprite2D" parent="Interior"]
-position = Vector2(745, 218)
-texture = ExtResource("piece_wall_3")
+position = Vector2(753, 218)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_254" type="Sprite2D" parent="Interior"]
 position = Vector2(774, 218)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_255" type="Sprite2D" parent="Interior"]
+position = Vector2(801, 218)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_255" type="Sprite2D" parent="Interior"]
-position = Vector2(802, 218)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_5_256" type="Sprite2D" parent="Interior"]
-position = Vector2(823, 218)
+position = Vector2(829, 218)
 texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_257" type="Sprite2D" parent="Interior"]
-position = Vector2(852, 218)
-texture = ExtResource("piece_wall_5")
+position = Vector2(858, 218)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_258" type="Sprite2D" parent="Interior"]
-position = Vector2(884, 218)
-texture = ExtResource("piece_wall_1")
+position = Vector2(887, 218)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_5_259" type="Sprite2D" parent="Interior"]
-position = Vector2(911, 218)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_260" type="Sprite2D" parent="Interior"]
-position = Vector2(939, 218)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_261" type="Sprite2D" parent="Interior"]
-position = Vector2(967, 218)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_262" type="Sprite2D" parent="Interior"]
-position = Vector2(996, 218)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_263" type="Sprite2D" parent="Interior"]
-position = Vector2(1023, 218)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_264" type="Sprite2D" parent="Interior"]
-position = Vector2(1051, 218)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_5_265" type="Sprite2D" parent="Interior"]
-position = Vector2(1079, 218)
+position = Vector2(915, 218)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_266" type="Sprite2D" parent="Interior"]
-position = Vector2(1100, 218)
+[node name="Wall_5_260" type="Sprite2D" parent="Interior"]
+position = Vector2(936, 218)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_261" type="Sprite2D" parent="Interior"]
+position = Vector2(965, 218)
 texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_262" type="Sprite2D" parent="Interior"]
+position = Vector2(997, 218)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_267" type="Sprite2D" parent="Interior"]
-position = Vector2(1132, 218)
+[node name="Wall_5_263" type="Sprite2D" parent="Interior"]
+position = Vector2(1024, 218)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_264" type="Sprite2D" parent="Interior"]
+position = Vector2(1052, 218)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_265" type="Sprite2D" parent="Interior"]
+position = Vector2(1080, 218)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_5_266" type="Sprite2D" parent="Interior"]
+position = Vector2(1109, 218)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_5_268" type="Sprite2D" parent="Interior"]
-position = Vector2(1159, 218)
-texture = ExtResource("piece_wall_5")
+[node name="Wall_5_267" type="Sprite2D" parent="Interior"]
+position = Vector2(1136, 218)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_5_268" type="Sprite2D" parent="Interior"]
+position = Vector2(1164, 218)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_5_269" type="Sprite2D" parent="Interior"]
-position = Vector2(1191, 218)
+position = Vector2(1192, 218)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_270" type="Sprite2D" parent="Interior"]
 position = Vector2(-8, 264)
+texture = ExtResource("piece_wall_5")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_271" type="Sprite2D" parent="Interior"]
+position = Vector2(24, 264)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_272" type="Sprite2D" parent="Interior"]
+position = Vector2(51, 264)
+texture = ExtResource("piece_wall_5")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_273" type="Sprite2D" parent="Interior"]
+position = Vector2(83, 264)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_6_271" type="Sprite2D" parent="Interior"]
-position = Vector2(13, 264)
-texture = ExtResource("piece_wall_3")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_272" type="Sprite2D" parent="Interior"]
-position = Vector2(42, 264)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_273" type="Sprite2D" parent="Interior"]
-position = Vector2(70, 264)
-texture = ExtResource("piece_wall_3")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_6_274" type="Sprite2D" parent="Interior"]
-position = Vector2(99, 264)
-texture = ExtResource("piece_wall_1")
+position = Vector2(104, 264)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_275" type="Sprite2D" parent="Interior"]
-position = Vector2(126, 264)
-texture = ExtResource("piece_wall_1")
+position = Vector2(125, 264)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_276" type="Sprite2D" parent="Interior"]
-position = Vector2(153, 264)
-texture = ExtResource("piece_wall_3")
+position = Vector2(154, 264)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_277" type="Sprite2D" parent="Interior"]
 position = Vector2(182, 264)
-texture = ExtResource("piece_wall_4")
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_278" type="Sprite2D" parent="Interior"]
-position = Vector2(203, 264)
-texture = ExtResource("piece_wall_4")
+position = Vector2(211, 264)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_279" type="Sprite2D" parent="Interior"]
-position = Vector2(224, 264)
-texture = ExtResource("piece_wall_2")
+position = Vector2(238, 264)
+texture = ExtResource("piece_wall_1")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_280" type="Sprite2D" parent="Interior"]
-position = Vector2(252, 264)
-texture = ExtResource("piece_wall_4")
+position = Vector2(265, 264)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_281" type="Sprite2D" parent="Interior"]
-position = Vector2(273, 264)
-texture = ExtResource("piece_wall_2")
+position = Vector2(294, 264)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_282" type="Sprite2D" parent="Interior"]
-position = Vector2(301, 264)
-texture = ExtResource("piece_wall_1")
+position = Vector2(315, 264)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_283" type="Sprite2D" parent="Interior"]
-position = Vector2(328, 264)
-texture = ExtResource("piece_wall_3")
+position = Vector2(336, 264)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_284" type="Sprite2D" parent="Interior"]
-position = Vector2(357, 264)
-texture = ExtResource("piece_wall_3")
+position = Vector2(364, 264)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_285" type="Sprite2D" parent="Interior"]
-position = Vector2(386, 264)
-texture = ExtResource("piece_wall_3")
+position = Vector2(385, 264)
+texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_286" type="Sprite2D" parent="Interior"]
-position = Vector2(415, 264)
-texture = ExtResource("piece_wall_3")
+position = Vector2(413, 264)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_287" type="Sprite2D" parent="Interior"]
-position = Vector2(444, 264)
-texture = ExtResource("piece_wall_5")
+position = Vector2(440, 264)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_288" type="Sprite2D" parent="Interior"]
-position = Vector2(476, 264)
+position = Vector2(469, 264)
 texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_289" type="Sprite2D" parent="Interior"]
-position = Vector2(505, 264)
-texture = ExtResource("piece_wall_1")
+position = Vector2(498, 264)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_290" type="Sprite2D" parent="Interior"]
-position = Vector2(532, 264)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_291" type="Sprite2D" parent="Interior"]
-position = Vector2(553, 264)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_292" type="Sprite2D" parent="Interior"]
-position = Vector2(574, 264)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_293" type="Sprite2D" parent="Interior"]
-position = Vector2(595, 264)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_294" type="Sprite2D" parent="Interior"]
-position = Vector2(623, 264)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_295" type="Sprite2D" parent="Interior"]
-position = Vector2(650, 264)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_296" type="Sprite2D" parent="Interior"]
-position = Vector2(682, 264)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_297" type="Sprite2D" parent="Interior"]
-position = Vector2(710, 264)
+position = Vector2(527, 264)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_6_291" type="Sprite2D" parent="Interior"]
+position = Vector2(556, 264)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_292" type="Sprite2D" parent="Interior"]
+position = Vector2(588, 264)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_293" type="Sprite2D" parent="Interior"]
+position = Vector2(617, 264)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_294" type="Sprite2D" parent="Interior"]
+position = Vector2(644, 264)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_295" type="Sprite2D" parent="Interior"]
+position = Vector2(665, 264)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_296" type="Sprite2D" parent="Interior"]
+position = Vector2(686, 264)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_6_297" type="Sprite2D" parent="Interior"]
+position = Vector2(707, 264)
+texture = ExtResource("piece_wall_2")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_6_298" type="Sprite2D" parent="Interior"]
-position = Vector2(739, 264)
+position = Vector2(735, 264)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_299" type="Sprite2D" parent="Interior"]
-position = Vector2(766, 264)
-texture = ExtResource("piece_wall_3")
+position = Vector2(762, 264)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_300" type="Sprite2D" parent="Interior"]
-position = Vector2(795, 264)
+position = Vector2(794, 264)
 texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_301" type="Sprite2D" parent="Interior"]
-position = Vector2(823, 264)
-texture = ExtResource("piece_wall_2")
+position = Vector2(822, 264)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_302" type="Sprite2D" parent="Interior"]
 position = Vector2(851, 264)
-texture = ExtResource("piece_wall_2")
+texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_303" type="Sprite2D" parent="Interior"]
-position = Vector2(879, 264)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_6_304" type="Sprite2D" parent="Interior"]
-position = Vector2(900, 264)
+position = Vector2(878, 264)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_6_304" type="Sprite2D" parent="Interior"]
+position = Vector2(907, 264)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_6_305" type="Sprite2D" parent="Interior"]
-position = Vector2(929, 264)
-texture = ExtResource("piece_wall_5")
+position = Vector2(935, 264)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_306" type="Sprite2D" parent="Interior"]
-position = Vector2(961, 264)
-texture = ExtResource("piece_wall_5")
+position = Vector2(963, 264)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_307" type="Sprite2D" parent="Interior"]
-position = Vector2(993, 264)
+position = Vector2(991, 264)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_308" type="Sprite2D" parent="Interior"]
-position = Vector2(1014, 264)
-texture = ExtResource("piece_wall_4")
+position = Vector2(1012, 264)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_309" type="Sprite2D" parent="Interior"]
-position = Vector2(1035, 264)
-texture = ExtResource("piece_wall_2")
+position = Vector2(1041, 264)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_310" type="Sprite2D" parent="Interior"]
-position = Vector2(1063, 264)
+position = Vector2(1073, 264)
 texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_311" type="Sprite2D" parent="Interior"]
-position = Vector2(1095, 264)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1105, 264)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_312" type="Sprite2D" parent="Interior"]
-position = Vector2(1127, 264)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1126, 264)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_313" type="Sprite2D" parent="Interior"]
-position = Vector2(1154, 264)
+position = Vector2(1147, 264)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_6_314" type="Sprite2D" parent="Interior"]
-position = Vector2(1182, 264)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1175, 264)
+texture = ExtResource("piece_wall_5")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_315" type="Sprite2D" parent="Interior"]
 position = Vector2(-20, 310)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_316" type="Sprite2D" parent="Interior"]
+position = Vector2(12, 310)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_317" type="Sprite2D" parent="Interior"]
+position = Vector2(39, 310)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_318" type="Sprite2D" parent="Interior"]
+position = Vector2(67, 310)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_319" type="Sprite2D" parent="Interior"]
+position = Vector2(94, 310)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_7_316" type="Sprite2D" parent="Interior"]
-position = Vector2(1, 310)
+[node name="Wall_7_320" type="Sprite2D" parent="Interior"]
+position = Vector2(115, 310)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_7_317" type="Sprite2D" parent="Interior"]
-position = Vector2(29, 310)
-texture = ExtResource("piece_wall_4")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_318" type="Sprite2D" parent="Interior"]
-position = Vector2(50, 310)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_319" type="Sprite2D" parent="Interior"]
-position = Vector2(77, 310)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_320" type="Sprite2D" parent="Interior"]
-position = Vector2(109, 310)
-texture = ExtResource("piece_wall_4")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_7_321" type="Sprite2D" parent="Interior"]
-position = Vector2(130, 310)
-texture = ExtResource("piece_wall_3")
+position = Vector2(143, 310)
+texture = ExtResource("piece_wall_4")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_322" type="Sprite2D" parent="Interior"]
-position = Vector2(159, 310)
+position = Vector2(164, 310)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_323" type="Sprite2D" parent="Interior"]
-position = Vector2(186, 310)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_324" type="Sprite2D" parent="Interior"]
-position = Vector2(215, 310)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_325" type="Sprite2D" parent="Interior"]
-position = Vector2(244, 310)
+position = Vector2(191, 310)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_7_324" type="Sprite2D" parent="Interior"]
+position = Vector2(223, 310)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_325" type="Sprite2D" parent="Interior"]
+position = Vector2(244, 310)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_7_326" type="Sprite2D" parent="Interior"]
-position = Vector2(276, 310)
+position = Vector2(273, 310)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_327" type="Sprite2D" parent="Interior"]
-position = Vector2(303, 310)
-texture = ExtResource("piece_wall_4")
+position = Vector2(300, 310)
+texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_328" type="Sprite2D" parent="Interior"]
-position = Vector2(324, 310)
+position = Vector2(329, 310)
 texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_329" type="Sprite2D" parent="Interior"]
-position = Vector2(353, 310)
-texture = ExtResource("piece_wall_1")
+position = Vector2(358, 310)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_330" type="Sprite2D" parent="Interior"]
-position = Vector2(380, 310)
-texture = ExtResource("piece_wall_5")
+position = Vector2(390, 310)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_331" type="Sprite2D" parent="Interior"]
-position = Vector2(412, 310)
-texture = ExtResource("piece_wall_2")
+position = Vector2(417, 310)
+texture = ExtResource("piece_wall_4")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_332" type="Sprite2D" parent="Interior"]
-position = Vector2(440, 310)
-texture = ExtResource("piece_wall_5")
+position = Vector2(438, 310)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_333" type="Sprite2D" parent="Interior"]
-position = Vector2(472, 310)
+position = Vector2(467, 310)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_334" type="Sprite2D" parent="Interior"]
-position = Vector2(499, 310)
+position = Vector2(494, 310)
 texture = ExtResource("piece_wall_5")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_335" type="Sprite2D" parent="Interior"]
-position = Vector2(531, 310)
+position = Vector2(526, 310)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_336" type="Sprite2D" parent="Interior"]
-position = Vector2(559, 310)
-texture = ExtResource("piece_wall_4")
+position = Vector2(554, 310)
+texture = ExtResource("piece_wall_5")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_337" type="Sprite2D" parent="Interior"]
-position = Vector2(580, 310)
-texture = ExtResource("piece_wall_3")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_338" type="Sprite2D" parent="Interior"]
-position = Vector2(609, 310)
-texture = ExtResource("piece_wall_2")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_339" type="Sprite2D" parent="Interior"]
-position = Vector2(637, 310)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_340" type="Sprite2D" parent="Interior"]
-position = Vector2(666, 310)
+position = Vector2(586, 310)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_7_341" type="Sprite2D" parent="Interior"]
-position = Vector2(693, 310)
+[node name="Wall_7_338" type="Sprite2D" parent="Interior"]
+position = Vector2(613, 310)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_339" type="Sprite2D" parent="Interior"]
+position = Vector2(645, 310)
 texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_340" type="Sprite2D" parent="Interior"]
+position = Vector2(673, 310)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_341" type="Sprite2D" parent="Interior"]
+position = Vector2(694, 310)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_342" type="Sprite2D" parent="Interior"]
-position = Vector2(721, 310)
+position = Vector2(723, 310)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_343" type="Sprite2D" parent="Interior"]
-position = Vector2(749, 310)
+position = Vector2(751, 310)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_344" type="Sprite2D" parent="Interior"]
+position = Vector2(780, 310)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_345" type="Sprite2D" parent="Interior"]
+position = Vector2(807, 310)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_7_344" type="Sprite2D" parent="Interior"]
-position = Vector2(777, 310)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_345" type="Sprite2D" parent="Interior"]
-position = Vector2(806, 310)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_7_346" type="Sprite2D" parent="Interior"]
-position = Vector2(833, 310)
-texture = ExtResource("piece_wall_1")
+position = Vector2(835, 310)
+texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_347" type="Sprite2D" parent="Interior"]
-position = Vector2(860, 310)
+position = Vector2(863, 310)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_348" type="Sprite2D" parent="Interior"]
-position = Vector2(888, 310)
-texture = ExtResource("piece_wall_5")
+position = Vector2(891, 310)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_349" type="Sprite2D" parent="Interior"]
 position = Vector2(920, 310)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_350" type="Sprite2D" parent="Interior"]
-position = Vector2(949, 310)
-texture = ExtResource("piece_wall_3")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_7_351" type="Sprite2D" parent="Interior"]
-position = Vector2(978, 310)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_7_352" type="Sprite2D" parent="Interior"]
-position = Vector2(1005, 310)
-texture = ExtResource("piece_wall_5")
+[node name="Wall_7_350" type="Sprite2D" parent="Interior"]
+position = Vector2(947, 310)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_351" type="Sprite2D" parent="Interior"]
+position = Vector2(974, 310)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_352" type="Sprite2D" parent="Interior"]
+position = Vector2(1002, 310)
+texture = ExtResource("piece_wall_5")
+centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_353" type="Sprite2D" parent="Interior"]
-position = Vector2(1037, 310)
-texture = ExtResource("piece_wall_4")
+position = Vector2(1034, 310)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_7_354" type="Sprite2D" parent="Interior"]
+position = Vector2(1063, 310)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_7_354" type="Sprite2D" parent="Interior"]
-position = Vector2(1058, 310)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_7_355" type="Sprite2D" parent="Interior"]
-position = Vector2(1086, 310)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1092, 310)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_356" type="Sprite2D" parent="Interior"]
-position = Vector2(1118, 310)
-texture = ExtResource("piece_wall_3")
+position = Vector2(1119, 310)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_357" type="Sprite2D" parent="Interior"]
-position = Vector2(1147, 310)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1151, 310)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_7_358" type="Sprite2D" parent="Interior"]
-position = Vector2(1179, 310)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1172, 310)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_359" type="Sprite2D" parent="Interior"]
 position = Vector2(-8, 356)
-texture = ExtResource("piece_wall_3")
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_360" type="Sprite2D" parent="Interior"]
-position = Vector2(21, 356)
-texture = ExtResource("piece_wall_1")
+position = Vector2(24, 356)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_361" type="Sprite2D" parent="Interior"]
-position = Vector2(48, 356)
+position = Vector2(53, 356)
+texture = ExtResource("piece_wall_5")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_362" type="Sprite2D" parent="Interior"]
+position = Vector2(85, 356)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_362" type="Sprite2D" parent="Interior"]
-position = Vector2(80, 356)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_8_363" type="Sprite2D" parent="Interior"]
-position = Vector2(107, 356)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_364" type="Sprite2D" parent="Interior"]
-position = Vector2(128, 356)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_365" type="Sprite2D" parent="Interior"]
-position = Vector2(149, 356)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_366" type="Sprite2D" parent="Interior"]
-position = Vector2(170, 356)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_367" type="Sprite2D" parent="Interior"]
-position = Vector2(199, 356)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_368" type="Sprite2D" parent="Interior"]
-position = Vector2(227, 356)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_369" type="Sprite2D" parent="Interior"]
-position = Vector2(254, 356)
+position = Vector2(117, 356)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_8_364" type="Sprite2D" parent="Interior"]
+position = Vector2(146, 356)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_365" type="Sprite2D" parent="Interior"]
+position = Vector2(173, 356)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_366" type="Sprite2D" parent="Interior"]
+position = Vector2(205, 356)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_367" type="Sprite2D" parent="Interior"]
+position = Vector2(232, 356)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_368" type="Sprite2D" parent="Interior"]
+position = Vector2(253, 356)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_369" type="Sprite2D" parent="Interior"]
+position = Vector2(274, 356)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_8_370" type="Sprite2D" parent="Interior"]
-position = Vector2(283, 356)
+position = Vector2(295, 356)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_371" type="Sprite2D" parent="Interior"]
-position = Vector2(312, 356)
+position = Vector2(324, 356)
 texture = ExtResource("piece_wall_2")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_372" type="Sprite2D" parent="Interior"]
-position = Vector2(340, 356)
+position = Vector2(352, 356)
 texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_373" type="Sprite2D" parent="Interior"]
+position = Vector2(379, 356)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_373" type="Sprite2D" parent="Interior"]
-position = Vector2(367, 356)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_8_374" type="Sprite2D" parent="Interior"]
-position = Vector2(388, 356)
-texture = ExtResource("piece_wall_5")
+position = Vector2(408, 356)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_375" type="Sprite2D" parent="Interior"]
-position = Vector2(420, 356)
-texture = ExtResource("piece_wall_3")
+position = Vector2(437, 356)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_376" type="Sprite2D" parent="Interior"]
-position = Vector2(449, 356)
+position = Vector2(465, 356)
 texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_377" type="Sprite2D" parent="Interior"]
-position = Vector2(476, 356)
-texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_8_377" type="Sprite2D" parent="Interior"]
+position = Vector2(492, 356)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_8_378" type="Sprite2D" parent="Interior"]
-position = Vector2(508, 356)
-texture = ExtResource("piece_wall_3")
+position = Vector2(513, 356)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_379" type="Sprite2D" parent="Interior"]
-position = Vector2(537, 356)
-texture = ExtResource("piece_wall_1")
+position = Vector2(545, 356)
+texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_380" type="Sprite2D" parent="Interior"]
-position = Vector2(564, 356)
-texture = ExtResource("piece_wall_5")
+position = Vector2(574, 356)
+texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_381" type="Sprite2D" parent="Interior"]
-position = Vector2(596, 356)
-texture = ExtResource("piece_wall_4")
+position = Vector2(601, 356)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_382" type="Sprite2D" parent="Interior"]
-position = Vector2(617, 356)
-texture = ExtResource("piece_wall_5")
+position = Vector2(633, 356)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_383" type="Sprite2D" parent="Interior"]
-position = Vector2(649, 356)
-texture = ExtResource("piece_wall_2")
+position = Vector2(662, 356)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_384" type="Sprite2D" parent="Interior"]
-position = Vector2(677, 356)
-texture = ExtResource("piece_wall_3")
+position = Vector2(689, 356)
+texture = ExtResource("piece_wall_5")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_385" type="Sprite2D" parent="Interior"]
-position = Vector2(706, 356)
+position = Vector2(721, 356)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_386" type="Sprite2D" parent="Interior"]
+position = Vector2(742, 356)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_386" type="Sprite2D" parent="Interior"]
-position = Vector2(738, 356)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
 [node name="Wall_8_387" type="Sprite2D" parent="Interior"]
-position = Vector2(766, 356)
-texture = ExtResource("piece_wall_4")
+position = Vector2(774, 356)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_388" type="Sprite2D" parent="Interior"]
-position = Vector2(787, 356)
+position = Vector2(802, 356)
 texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_389" type="Sprite2D" parent="Interior"]
-position = Vector2(816, 356)
-texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_390" type="Sprite2D" parent="Interior"]
-position = Vector2(844, 356)
+[node name="Wall_8_389" type="Sprite2D" parent="Interior"]
+position = Vector2(831, 356)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_391" type="Sprite2D" parent="Interior"]
-position = Vector2(876, 356)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_392" type="Sprite2D" parent="Interior"]
-position = Vector2(905, 356)
+[node name="Wall_8_390" type="Sprite2D" parent="Interior"]
+position = Vector2(863, 356)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_8_391" type="Sprite2D" parent="Interior"]
+position = Vector2(891, 356)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_392" type="Sprite2D" parent="Interior"]
+position = Vector2(912, 356)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_8_393" type="Sprite2D" parent="Interior"]
-position = Vector2(933, 356)
-texture = ExtResource("piece_wall_1")
+position = Vector2(941, 356)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_8_394" type="Sprite2D" parent="Interior"]
-position = Vector2(960, 356)
-texture = ExtResource("piece_wall_4")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_395" type="Sprite2D" parent="Interior"]
-position = Vector2(981, 356)
-texture = ExtResource("piece_wall_1")
-centered = false
-flip_h = true
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_396" type="Sprite2D" parent="Interior"]
-position = Vector2(1008, 356)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_397" type="Sprite2D" parent="Interior"]
-position = Vector2(1029, 356)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_398" type="Sprite2D" parent="Interior"]
-position = Vector2(1056, 356)
+position = Vector2(969, 356)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_399" type="Sprite2D" parent="Interior"]
-position = Vector2(1088, 356)
+[node name="Wall_8_395" type="Sprite2D" parent="Interior"]
+position = Vector2(1001, 356)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_400" type="Sprite2D" parent="Interior"]
-position = Vector2(1117, 356)
-texture = ExtResource("piece_wall_3")
+[node name="Wall_8_396" type="Sprite2D" parent="Interior"]
+position = Vector2(1030, 356)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_401" type="Sprite2D" parent="Interior"]
-position = Vector2(1146, 356)
+[node name="Wall_8_397" type="Sprite2D" parent="Interior"]
+position = Vector2(1058, 356)
+texture = ExtResource("piece_wall_1")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_398" type="Sprite2D" parent="Interior"]
+position = Vector2(1085, 356)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_8_402" type="Sprite2D" parent="Interior"]
-position = Vector2(1167, 356)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_8_403" type="Sprite2D" parent="Interior"]
-position = Vector2(1195, 356)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_404" type="Sprite2D" parent="Interior"]
-position = Vector2(-20, 402)
-texture = ExtResource("piece_wall_2")
+[node name="Wall_8_399" type="Sprite2D" parent="Interior"]
+position = Vector2(1106, 356)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
-[node name="Wall_9_405" type="Sprite2D" parent="Interior"]
-position = Vector2(8, 402)
+[node name="Wall_8_400" type="Sprite2D" parent="Interior"]
+position = Vector2(1133, 356)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_8_401" type="Sprite2D" parent="Interior"]
+position = Vector2(1154, 356)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_8_402" type="Sprite2D" parent="Interior"]
+position = Vector2(1181, 356)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_403" type="Sprite2D" parent="Interior"]
+position = Vector2(-20, 402)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_404" type="Sprite2D" parent="Interior"]
+position = Vector2(9, 402)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_405" type="Sprite2D" parent="Interior"]
+position = Vector2(38, 402)
+texture = ExtResource("piece_wall_4")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_9_406" type="Sprite2D" parent="Interior"]
-position = Vector2(35, 402)
+position = Vector2(59, 402)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_407" type="Sprite2D" parent="Interior"]
-position = Vector2(63, 402)
-texture = ExtResource("piece_wall_4")
+position = Vector2(87, 402)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_408" type="Sprite2D" parent="Interior"]
-position = Vector2(84, 402)
-texture = ExtResource("piece_wall_3")
+position = Vector2(115, 402)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_409" type="Sprite2D" parent="Interior"]
-position = Vector2(113, 402)
-texture = ExtResource("piece_wall_3")
+position = Vector2(143, 402)
+texture = ExtResource("piece_wall_1")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_410" type="Sprite2D" parent="Interior"]
-position = Vector2(142, 402)
-texture = ExtResource("piece_wall_1")
+position = Vector2(170, 402)
+texture = ExtResource("piece_wall_2")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_411" type="Sprite2D" parent="Interior"]
-position = Vector2(169, 402)
+position = Vector2(198, 402)
 texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_412" type="Sprite2D" parent="Interior"]
-position = Vector2(190, 402)
+position = Vector2(219, 402)
 texture = ExtResource("piece_wall_3")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_413" type="Sprite2D" parent="Interior"]
-position = Vector2(219, 402)
-texture = ExtResource("piece_wall_4")
+position = Vector2(248, 402)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_414" type="Sprite2D" parent="Interior"]
-position = Vector2(240, 402)
+position = Vector2(277, 402)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_415" type="Sprite2D" parent="Interior"]
-position = Vector2(267, 402)
-texture = ExtResource("piece_wall_2")
+position = Vector2(304, 402)
+texture = ExtResource("piece_wall_4")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_416" type="Sprite2D" parent="Interior"]
-position = Vector2(295, 402)
-texture = ExtResource("piece_wall_4")
+position = Vector2(325, 402)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_417" type="Sprite2D" parent="Interior"]
-position = Vector2(316, 402)
+position = Vector2(354, 402)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_418" type="Sprite2D" parent="Interior"]
-position = Vector2(337, 402)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_419" type="Sprite2D" parent="Interior"]
-position = Vector2(365, 402)
+position = Vector2(375, 402)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_9_419" type="Sprite2D" parent="Interior"]
+position = Vector2(402, 402)
+texture = ExtResource("piece_wall_2")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_9_420" type="Sprite2D" parent="Interior"]
-position = Vector2(392, 402)
-texture = ExtResource("piece_wall_1")
+position = Vector2(430, 402)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_421" type="Sprite2D" parent="Interior"]
-position = Vector2(419, 402)
-texture = ExtResource("piece_wall_2")
+position = Vector2(451, 402)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_422" type="Sprite2D" parent="Interior"]
-position = Vector2(447, 402)
-texture = ExtResource("piece_wall_3")
+position = Vector2(472, 402)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_423" type="Sprite2D" parent="Interior"]
-position = Vector2(476, 402)
+position = Vector2(500, 402)
 texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_424" type="Sprite2D" parent="Interior"]
-position = Vector2(503, 402)
+position = Vector2(527, 402)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_425" type="Sprite2D" parent="Interior"]
-position = Vector2(530, 402)
-texture = ExtResource("piece_wall_1")
+position = Vector2(554, 402)
+texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_426" type="Sprite2D" parent="Interior"]
-position = Vector2(557, 402)
+position = Vector2(582, 402)
 texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_427" type="Sprite2D" parent="Interior"]
-position = Vector2(586, 402)
-texture = ExtResource("piece_wall_4")
+position = Vector2(611, 402)
+texture = ExtResource("piece_wall_1")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_428" type="Sprite2D" parent="Interior"]
-position = Vector2(607, 402)
-texture = ExtResource("piece_wall_3")
+position = Vector2(638, 402)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_429" type="Sprite2D" parent="Interior"]
-position = Vector2(636, 402)
-texture = ExtResource("piece_wall_3")
+position = Vector2(665, 402)
+texture = ExtResource("piece_wall_1")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_430" type="Sprite2D" parent="Interior"]
-position = Vector2(665, 402)
-texture = ExtResource("piece_wall_4")
+position = Vector2(692, 402)
+texture = ExtResource("piece_wall_3")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_431" type="Sprite2D" parent="Interior"]
-position = Vector2(686, 402)
+position = Vector2(721, 402)
 texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_432" type="Sprite2D" parent="Interior"]
-position = Vector2(707, 402)
-texture = ExtResource("piece_wall_5")
+position = Vector2(742, 402)
+texture = ExtResource("piece_wall_3")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_433" type="Sprite2D" parent="Interior"]
-position = Vector2(739, 402)
-texture = ExtResource("piece_wall_1")
+position = Vector2(771, 402)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_434" type="Sprite2D" parent="Interior"]
-position = Vector2(766, 402)
-texture = ExtResource("piece_wall_2")
+position = Vector2(800, 402)
+texture = ExtResource("piece_wall_4")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_435" type="Sprite2D" parent="Interior"]
-position = Vector2(794, 402)
-texture = ExtResource("piece_wall_3")
+position = Vector2(821, 402)
+texture = ExtResource("piece_wall_4")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_436" type="Sprite2D" parent="Interior"]
-position = Vector2(823, 402)
-texture = ExtResource("piece_wall_3")
+position = Vector2(842, 402)
+texture = ExtResource("piece_wall_5")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_437" type="Sprite2D" parent="Interior"]
-position = Vector2(852, 402)
+position = Vector2(874, 402)
 texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_438" type="Sprite2D" parent="Interior"]
-position = Vector2(879, 402)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_439" type="Sprite2D" parent="Interior"]
-position = Vector2(906, 402)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_440" type="Sprite2D" parent="Interior"]
-position = Vector2(927, 402)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_441" type="Sprite2D" parent="Interior"]
-position = Vector2(954, 402)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_442" type="Sprite2D" parent="Interior"]
-position = Vector2(983, 402)
-texture = ExtResource("piece_wall_2")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_443" type="Sprite2D" parent="Interior"]
-position = Vector2(1011, 402)
-texture = ExtResource("piece_wall_5")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_444" type="Sprite2D" parent="Interior"]
-position = Vector2(1043, 402)
+position = Vector2(901, 402)
 texture = ExtResource("piece_wall_2")
 centered = false
 flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
+[node name="Wall_9_439" type="Sprite2D" parent="Interior"]
+position = Vector2(929, 402)
+texture = ExtResource("piece_wall_3")
+centered = false
+flip_h = true
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_440" type="Sprite2D" parent="Interior"]
+position = Vector2(958, 402)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_441" type="Sprite2D" parent="Interior"]
+position = Vector2(987, 402)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_442" type="Sprite2D" parent="Interior"]
+position = Vector2(1014, 402)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_443" type="Sprite2D" parent="Interior"]
+position = Vector2(1041, 402)
+texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
+[node name="Wall_9_444" type="Sprite2D" parent="Interior"]
+position = Vector2(1062, 402)
+texture = ExtResource("piece_wall_1")
+centered = false
+modulate = Color(1.15, 1.1, 1.2, 1)
+
 [node name="Wall_9_445" type="Sprite2D" parent="Interior"]
-position = Vector2(1071, 402)
+position = Vector2(1089, 402)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_446" type="Sprite2D" parent="Interior"]
-position = Vector2(1100, 402)
+position = Vector2(1118, 402)
 texture = ExtResource("piece_wall_2")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_447" type="Sprite2D" parent="Interior"]
-position = Vector2(1128, 402)
-texture = ExtResource("piece_wall_4")
+position = Vector2(1146, 402)
+texture = ExtResource("piece_wall_5")
 centered = false
-flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Wall_9_448" type="Sprite2D" parent="Interior"]
-position = Vector2(1149, 402)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(1.15, 1.1, 1.2, 1)
-
-[node name="Wall_9_449" type="Sprite2D" parent="Interior"]
 position = Vector2(1178, 402)
-texture = ExtResource("piece_wall_3")
+texture = ExtResource("piece_wall_2")
 centered = false
+flip_h = true
 modulate = Color(1.15, 1.1, 1.2, 1)
 
 [node name="Pillar1" type="Sprite2D" parent="Interior"]
@@ -3058,17 +3052,17 @@ modulate = Color(1.2, 1.15, 1.25, 1)
 scroll_scale = Vector2(0.88, 1)
 
 [node name="arch_1" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.596, 0.56, 0.596, 1)
 position = Vector2(240, 324.0)
 texture = ExtResource("decor_arch")
 
 [node name="arch_2" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.596, 0.56, 0.596, 1)
 position = Vector2(600, 324.0)
 texture = ExtResource("decor_arch")
 
 [node name="arch_3" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.596, 0.56, 0.596, 1)
 position = Vector2(960, 324.0)
 texture = ExtResource("decor_arch")
 
@@ -3104,11 +3098,6 @@ one_way_collision = true
 [node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(990.0, 307.0)
 shape = SubResource("Platform2_shape")
-one_way_collision = true
-
-[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(600.0, 256.0)
-shape = SubResource("Platform3_shape")
 one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
@@ -3325,142 +3314,126 @@ texture = ExtResource("piece_ledge_8")
 centered = false
 flip_h = true
 
-[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(540, 250)
-texture = ExtResource("piece_ledge_8")
-centered = false
-
-[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(575, 250)
-texture = ExtResource("piece_ledge_1")
-centered = false
-flip_h = true
-
-[node name="Platform3_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(617, 250)
-texture = ExtResource("piece_ledge_3")
-centered = false
-region_enabled = true
-region_rect = Rect2(0, 0, 43, 46)
-
 [node name="WallL_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 359)
-texture = ExtResource("piece_wall_1")
-centered = false
-modulate = Color(0.8, 0.8, 0.85, 1)
-
-[node name="WallL_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 297)
-texture = ExtResource("piece_wall_4")
-centered = false
-modulate = Color(0.8, 0.8, 0.85, 1)
-
-[node name="WallL_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 235)
-texture = ExtResource("piece_wall_3")
-centered = false
-modulate = Color(0.8, 0.8, 0.85, 1)
-
-[node name="WallL_4" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 172)
+position = Vector2(-4, 357)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
-[node name="WallL_5" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 110)
+[node name="WallL_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 294)
+texture = ExtResource("piece_wall_5")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 232)
 texture = ExtResource("piece_wall_4")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 170)
+texture = ExtResource("piece_wall_3")
+centered = false
+modulate = Color(0.8, 0.8, 0.85, 1)
+
+[node name="WallL_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(-4, 109)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_6" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 48)
-texture = ExtResource("piece_wall_4")
+position = Vector2(-4, 47)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_7" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, -14)
+position = Vector2(-4, -15)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_8" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, -76)
-texture = ExtResource("piece_wall_4")
+position = Vector2(-4, -77)
+texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1174, 358)
-texture = ExtResource("piece_wall_4")
+position = Vector2(1174, 359)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1174, 295)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1174, 297)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(1174, 234)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1174, 235)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_4" type="Sprite2D" parent="Terrain"]
 position = Vector2(1174, 172)
-texture = ExtResource("piece_wall_2")
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_5" type="Sprite2D" parent="Terrain"]
-position = Vector2(1174, 111)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1174, 110)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_6" type="Sprite2D" parent="Terrain"]
-position = Vector2(1174, 49)
-texture = ExtResource("piece_wall_3")
+position = Vector2(1174, 48)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_7" type="Sprite2D" parent="Terrain"]
-position = Vector2(1174, -12)
-texture = ExtResource("piece_wall_1")
+position = Vector2(1174, -14)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_8" type="Sprite2D" parent="Terrain"]
-position = Vector2(1174, -75)
-texture = ExtResource("piece_wall_5")
+position = Vector2(1174, -76)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
+[node name="clutter_brazier_lit_4" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.816, 0.767, 0.816, 1)
+position = Vector2(360, 361.0)
+texture = ExtResource("decor_clutter_brazier_lit")
+
 [node name="DecorFront" type="Node2D" parent="."]
 z_index = 1
+
+[node name="graveyard_coffin_4_5" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.816, 0.767, 0.816, 1)
+position = Vector2(840, 367.0)
+texture = ExtResource("decor_graveyard_coffin_4")
 
 [node name="Props" type="Node2D" parent="."]
 
 [node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(60, 380)
-prop_id = "pot"
+prop_id = "funeral_offering"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(1140, 380)
-prop_id = "pot"
-
-[node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(360, 380)
-prop_id = "rubble"
-
-[node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(840, 380)
-prop_id = "pot"
+prop_id = "funeral_offering"
 
 [node name="Spawns" type="Node2D" parent="."]
 
@@ -3477,6 +3450,7 @@ position = Vector2(1166, 348)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")
+
 
 [node name="Shape" type="CollisionShape2D" parent="Door"]
 shape = SubResource("door_shape")

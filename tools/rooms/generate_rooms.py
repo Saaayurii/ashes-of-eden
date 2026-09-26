@@ -11,6 +11,7 @@ import json
 import os
 import random
 import filecmp
+import sys
 from copy import deepcopy
 
 from PIL import Image, ImageOps
@@ -28,29 +29,210 @@ from painted_rooms import PAINTED, check_reach  # noqa: E402  (rooms drawn as on
 # scaling, seams add real traversal space without fattening characters,
 # masonry, trees and props in the painted panel.
 ROOM_EXPANSION_CUTS = {
-    "village_night": (360, 880), "graveyard_cross": (390, 940),
-    "graveyard_arches": (430, 900), "graveyard_tree": (380, 850),
-    "swamp_moon": (350, 900), "swamp_red": (410, 930),
-    "swamp_crypt": (360, 850), "catacombs_1": (430, 900),
-    "catacombs_2": (370, 890), "catacombs_3": (420, 920),
-    "crypt_skulls": (390, 870), "crypt_lava": (410, 900),
-    "hell_gate": (380, 900), "church": (320, 640), "preacher_nave": (300, 660),
+    "village_night": (625, 950), "graveyard_cross": (765,),
+    "graveyard_arches": (440, 770), "graveyard_tree": (250, 1050),
+    "swamp_moon": (200, 1057), "swamp_red": (180, 1137),
+    "swamp_crypt": (260, 700), "catacombs_1": (390, 750),
+    "catacombs_2": (260, 1020), "catacombs_3": (420, 960),
+    "crypt_skulls": (390, 870), "crypt_lava": (400, 780),
+    "hell_gate": (460, 650), "church": (320, 640), "preacher_nave": (300, 660),
+}
+
+# Small, authored corrections to widened paintings. These are transparent
+# overlays over the generated seam, never over the gameplay collision layer.
+# Keep them separate from *_wide.png so regeneration does not erase the edit.
+AUTHORED_WIDE_OVERLAYS = {
+    "swamp_crypt": [
+        ("seam_overlays/swamp_crypt_tree.png", 710, 5),
+        ("seam_overlays/swamp_crypt_roots_upper.png", 790, 320),
+        ("seam_overlays/swamp_crypt_roots_lower.png", 790, 485),
+    ],
+}
+
+# Keep one-off landmarks out of the mirrored sample. Their exact screen
+# positions are part of the painting, not candidates for background tiling.
+FOCAL_RANGES = {
+    "village_night": ((815, 925),),            # moon
+    "swamp_red": ((310, 520), (660, 765), (850, 1110)),  # castle, moon, old tree
 }
 
 TRAVERSAL_PATCHES = {
-    "village_night": [(430, 275, 80, 10)],
-    "graveyard_cross": [(1320, 350, 80, 10)],
+    "graveyard_cross": [(1160, 350, 80, 10)],
     "graveyard_arches": [(1450, 430, 72, 10)],
-    "swamp_moon": [(425, 315, 90, 10)],
-    "swamp_crypt": [(1440, 245, 80, 10)],
     "catacombs_3": [(480, 225, 80, 10)],
-    "crypt_skulls": [(400, 285, 80, 10), (510, 270, 64, 10)],
-    "hell_gate": [(1420, 310, 72, 10), (1450, 250, 72, 10)],
+    "crypt_skulls": [(400, 285, 80, 10)],
+}
+
+# One visual thought per new seam, not another random barrel on the route.
+# The large painted landmarks are intentionally left alone; these small pieces
+# give the added walking space a place-specific foreground rhythm.
+SEAM_STORIES = {
+    "village_night": ("wilds/brush_2", ""),  # leave the exit bridge clear
+    "graveyard_cross": ("graveyard/cross_3",),  # one safe widening; no split entrance bridge
+    "graveyard_arches": ("", "graveyard/bones_1"),  # no loose coffin at the bridge seam
+    "graveyard_tree": ("", "graveyard/tomb_3"),  # painted roots already establish the entrance
+    "swamp_moon": ("", "wilds/brush_4"),  # the painted roots are enough at the entrance
+    "swamp_red": ("wilds/fallen_2", "wilds/stump_3"),
+    "swamp_crypt": ("wilds/brush_3", ""),  # the crypt sprite hovered above this painted gallery
+    "catacombs_1": ("graveyard/bones_2", "clutter/clutter_3"),
+    "catacombs_2": ("graveyard/coffin_1", "graveyard/bones_1"),
+    "catacombs_3": ("clutter/clutter_4", "graveyard/bones_2"),
+    "crypt_skulls": ("graveyard/bones_1", "graveyard/coffin_3"),
+    "crypt_lava": ("graveyard/bones_2", "clutter/brazier_lit"),
+    "hell_gate": ("graveyard/cross_4", "clutter/brazier_lit"),
+    "preacher_nave": ("clutter/brazier_lit", "graveyard/coffin_4"),
+    "church": ("graveyard/coffin_1", "clutter/altar_lit"),
+}
+
+# These two tall, asymmetric silhouettes break specific mirrored joins in the
+# painted middle distance. Coordinates are in the expanded 1600-pixel room;
+# unlike floor clutter they sit behind the player and have no collision.
+SEAM_SILHOUETTES = {
+    "graveyard_cross": ("graveyard/blue_dead_tree", 845, 417, 0.12, "Color(0.63, 0.69, 0.79, 0.58)"),
+    "swamp_red": ("wilds/red_swamp_fence", 1377, 425, 0.11, "Color(0.82, 0.77, 0.78, 0.92)"),
+}
+
+# Ordinary breakables should explain where they are. Reward chests are never
+# replaced. This also stops medieval storage crates from filling every crypt.
+ROOM_PROP_MOTIFS = {
+    "village_night": {"box_goods": "village_supplies"},
+    "graveyard_cross": {"barrel": "rubble", "crate": "rubble", "sack": "funeral_offering"},
+    "graveyard_arches": {"barrel": "rubble", "box_goods": "funeral_offering", "sack": "rubble"},
+    "graveyard_tree": {"barrel": "rubble", "crate": "rubble"},
+    "swamp_moon": {"barrel": "swamp_bundle", "box_goods": "swamp_bundle", "sack": "swamp_bundle"},
+    "swamp_red": {"barrel": "swamp_bundle", "crate": "rubble", "sack": "swamp_bundle"},
+    "swamp_crypt": {"barrel": "swamp_bundle", "box_goods": "bone_reliquary"},
+    "catacombs_1": {"barrel": "bone_reliquary", "crate": "rubble", "sack": "bone_reliquary"},
+    "catacombs_2": {"barrel": "bone_reliquary", "box_goods": "rubble", "sack": "bone_reliquary"},
+    "catacombs_3": {"barrel": "bone_reliquary", "crate": "rubble"},
+    "crypt_skulls": {"barrel": "bone_reliquary", "box_goods": "bone_reliquary", "sack": "rubble"},
+    "crypt_lava": {"barrel": "rubble", "crate": "rubble", "sack": "bone_reliquary"},
+    "hell_gate": {"barrel": "rubble", "box_goods": "bone_reliquary"},
+    "preacher_nave": {"pot": "funeral_offering"},
+    "church": {},
+}
+
+# Hand-placed openings in each original 1280x720 painting. Coordinates stay
+# away from playable stone silhouettes: only the hidden landscape / recesses
+# are replaced by each room's inpainted plate. They are mapped through the
+# same insertion seams as the artwork, then remain fixed to collision space.
+# A polygon is a mask, not another walkable surface.
+DEPTH_WINDOWS = {
+    "village_night": (0.025, [
+        [(235, 8), (1050, 8), (1045, 174), (945, 205), (770, 202), (600, 205), (400, 182), (235, 165)],
+        [(342, 241), (414, 240), (430, 307), (377, 336), (333, 317)],
+        [(622, 282), (821, 268), (819, 365), (672, 374), (626, 355)],
+    ]),
+    "graveyard_cross": (0.025, [
+        [(190, 8), (1080, 8), (1065, 173), (915, 189), (750, 195), (592, 190), (386, 195), (190, 180)],
+        [(573, 217), (787, 205), (788, 325), (696, 339), (568, 321)],
+        [(593, 365), (797, 355), (793, 477), (592, 472)],
+    ]),
+    "graveyard_arches": (0.028, [
+        [(220, 8), (937, 8), (905, 155), (764, 165), (575, 160), (390, 180), (224, 183)],
+        [(437, 187), (801, 176), (805, 303), (700, 323), (556, 305), (440, 310)],
+        [(733, 353), (887, 342), (880, 465), (748, 483), (733, 447)],
+    ]),
+    "graveyard_tree": (0.024, [
+        [(200, 8), (1030, 8), (1015, 167), (802, 174), (611, 178), (400, 177), (203, 174)],
+        [(377, 191), (622, 184), (628, 304), (540, 333), (379, 318)],
+        [(388, 344), (550, 344), (549, 395), (390, 397)],
+    ]),
+    "swamp_moon": (0.019, [
+        [(392, 8), (855, 8), (847, 167), (735, 182), (522, 177), (399, 172)],
+        [(542, 199), (700, 189), (711, 320), (589, 310)],
+        [(753, 446), (903, 437), (904, 532), (820, 543), (754, 528)],
+    ]),
+    "swamp_red": (0.022, [
+        [(231, 8), (838, 8), (837, 172), (657, 191), (463, 188), (234, 178)],
+        [(351, 212), (635, 210), (675, 320), (501, 329), (353, 306)],
+        [(704, 434), (790, 429), (789, 479), (713, 486), (704, 465)],
+    ]),
+    "swamp_crypt": (0.020, [
+        [(168, 8), (580, 8), (572, 173), (405, 188), (172, 180)],
+        [(174, 210), (456, 206), (468, 240), (283, 246), (174, 240)],
+        [(242, 432), (389, 427), (389, 468), (287, 474), (240, 459)],
+    ]),
+    "catacombs_1": (0.010, [
+        [(433, 78), (514, 74), (518, 195), (435, 205)],
+        [(636, 68), (758, 62), (761, 187), (635, 196)],
+        [(365, 293), (493, 288), (489, 385), (368, 394)],
+        [(1090, 305), (1219, 301), (1212, 385), (1090, 395)],
+    ]),
+    "catacombs_2": (0.009, [
+        [(99, 85), (347, 83), (349, 255), (251, 275), (106, 257)],
+        [(554, 281), (731, 277), (726, 387), (561, 396)],
+        [(855, 293), (969, 289), (966, 389), (855, 398)],
+        [(974, 549), (1102, 545), (1097, 620), (979, 625)],
+    ]),
+    "catacombs_3": (0.011, [
+        [(899, 60), (1168, 52), (1165, 232), (990, 242), (907, 222)],
+        [(790, 428), (992, 423), (986, 520), (805, 529)],
+        [(1018, 540), (1167, 534), (1164, 598), (1020, 608)],
+    ]),
+    "crypt_skulls": (0.032, [
+        [(432, 87), (816, 82), (821, 228), (692, 249), (529, 240), (432, 215)],
+        [(649, 297), (821, 286), (823, 417), (721, 443), (649, 420)],
+        [(548, 514), (693, 507), (695, 610), (549, 613)],
+    ]),
+    "crypt_lava": (0.035, [
+        [(419, 37), (675, 32), (674, 192), (595, 202), (427, 198)],
+        [(532, 298), (669, 286), (670, 338), (545, 344)],
+        [(752, 514), (808, 510), (811, 629), (754, 635)],
+    ]),
+    "hell_gate": (0.036, [
+        [(456, 19), (751, 15), (750, 163), (647, 185), (460, 176)],
+        [(470, 288), (588, 281), (586, 407), (505, 423), (473, 408)],
+        [(585, 515), (686, 510), (688, 552), (588, 552)],
+    ]),
 }
 
 
 def _map_x(x, inserts):
     return round(x + sum(amount for cut, amount in inserts if x >= cut))
+
+
+def _point_in_polygon(x, y, polygon):
+    inside = False
+    for start, end in zip(polygon, polygon[1:] + polygon[:1]):
+        if (start[1] > y) != (end[1] > y):
+            crossing = (end[0] - start[0]) * (y - start[1]) / (end[1] - start[1]) + start[0]
+            if x < crossing:
+                inside = not inside
+    return inside
+
+
+def _validate_depth_windows(name):
+    """Keep painted depth openings off the original walkable collision art."""
+    if name not in DEPTH_WINDOWS:
+        raise ValueError(f"{name}: painted room has no authored depth windows")
+    _, windows = DEPTH_WINDOWS[name]
+    room = PAINTED[name]
+    for kind in ("ground", "ledges", "platforms"):
+        for x, y, width, height in room.get(kind, []):
+            for number, polygon in enumerate(windows, 1):
+                if any(_point_in_polygon(px, py, polygon)
+                       for px in range(int(x) + 2, int(x + width), 4)
+                       for py in range(int(y) + 2, int(y + height), 4)):
+                    raise ValueError(f"{name}: depth window {number} overlaps {kind} at {(x, y, width, height)}")
+
+
+def _validate_expansion_cuts(name, room):
+    cuts = ROOM_EXPANSION_CUTS[name]
+    if tuple(sorted(cuts)) != cuts or cuts[0] <= 0 or cuts[-1] >= room["width"]:
+        raise ValueError(f"{name}: expansion cuts must be sorted and inside the painting")
+    sample_radius = min(max(16, (120 if room.get("interior") else 160) // 2),
+                        room["width"] - cuts[-1])
+    for cut in cuts:
+        for x0, _, x1, _ in room.get("ramps", []):
+            if min(x0, x1) < cut < max(x0, x1):
+                raise ValueError(f"{name}: expansion at {cut} cuts through painted stairs")
+        for x, _, width, _ in room.get("platforms", []):
+            if x < cut < x + width:
+                raise ValueError(f"{name}: expansion at {cut} stretches a small platform")
+        for left, right in FOCAL_RANGES.get(name, ()):
+            if cut < right and cut + sample_radius > left:
+                raise ValueError(f"{name}: expansion at {cut} repeats focal art {left}..{right}")
 
 
 def _expand_panel(painting, inserts):
@@ -67,6 +249,11 @@ def _expand_panel(painting, inserts):
         target.paste(segment, (dst_x, 0))
         dst_x += segment.width
         radius = min(max(16, amount // 2), source.width - cut)
+        if cut == 625 and painting.endswith("graveyard_moon"):
+            # The return step begins at x=690. Sampling through it would
+            # stamp a second, collidable-looking balcony into the seam even
+            # though only the authored copy has a platform collider.
+            radius = min(radius, 64)
         sample = source.crop((cut, 0, cut + radius, source.height))
         half = sample.resize((amount // 2, source.height), Image.Resampling.LANCZOS)
         loop = Image.new("RGBA", (amount, source.height))
@@ -76,6 +263,12 @@ def _expand_panel(painting, inserts):
         dst_x += amount
         src_x = cut
     target.paste(source.crop((src_x, 0, source.width, source.height)), (dst_x, 0))
+    for art, x, y in AUTHORED_WIDE_OVERLAYS.get(painting, ()):
+        overlay_path = os.path.join(ROOT, "assets", "levels", art)
+        overlay = Image.open(overlay_path).convert("RGBA")
+        if x < 0 or y < 0 or x + overlay.width > target.width or y + overlay.height > target.height:
+            raise ValueError(f"{painting}: authored seam overlay exceeds the painting")
+        target.alpha_composite(overlay, (x, y))
     pending_path = output_path + ".pending.png"
     target.save(pending_path)
     # Do not invalidate Godot's imported texture when the painting has not
@@ -90,6 +283,7 @@ def _expand_panel(painting, inserts):
 
 def expand_painted_room(name, room):
     """Return a wider copy, inserting space rather than stretching every gap."""
+    _validate_expansion_cuts(name, room)
     out = deepcopy(room)
     amount = 120 if room.get("interior") else 160
     inserts = [(cut, amount) for cut in ROOM_EXPANSION_CUTS[name]]
@@ -97,7 +291,7 @@ def expand_painted_room(name, room):
     out["width"] = room["width"] + sum(value for _, value in inserts)
     if "painting" in room:
         out["painting_wide"] = room["painting"] + "_wide"
-    for key in ("ground", "ledges", "platforms"):
+    for key in ("ground", "ledges", "platforms", "painted_platforms"):
         out[key] = [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts), h)
                     for x, y, w, h in room.get(key, [])]
     out["ramps"] = [(_map_x(x0, inserts), y0, _map_x(x1, inserts), y1)
@@ -120,34 +314,36 @@ def expand_painted_room(name, room):
 
 
 def _place_expansion_accents(name, room):
-    """Anchor small story props on the actual new walkable seams."""
-    if "swamp" in name:
-        pool = ("swamp_bundle", "rubble", "pot")
-    elif any(word in name for word in ("catacombs", "crypt", "hell")):
-        pool = ("bone_reliquary", "pot", "rubble")
-    elif name == "village_night":
-        pool = ("village_supplies", "barrel", "rubble")
-    elif name == "church":
-        pool = ("funeral_offering", "pot")
-    else:
-        pool = ("funeral_offering", "rubble", "pot")
+    """Dress the two added spans with authored, non-colliding visual beats."""
     for index, (cut, amount) in enumerate(room["_x_inserts"]):
-        x = _map_x(cut, room["_x_inserts"]) - amount // 2
-        surfaces = [(sy, sx, sw) for sx, sy, sw, _ in
-                    room.get("ground", []) + room.get("ledges", []) + room.get("platforms", [])
-                    if sx + 28 <= x <= sx + sw - 28
-                    and sy <= room["height"] - (30 if room.get("interior") else 50)]
-        if not surfaces:
+        center_x = _map_x(cut, room["_x_inserts"]) - amount // 2
+        asset = SEAM_STORIES[name][index]
+        if not asset:
             continue
-        # Prefer a visible route or combat pocket over the invisible catch
-        # floor. Keep a breathing gap around enemies, NPCs and other props.
-        for y, _, _ in sorted(surfaces):
-            occupied = any(abs(px - x) < 52 and abs(py - y) < 35
-                           for _, px, py in room["props"] + room["npcs"])
-            occupied |= any(abs(px - x) < 56 and abs(py + 12 - y) < 35
-                            for _, px, py in room["spawns"])
-            if not occupied:
-                room["props"].append((pool[(index + len(name)) % len(pool)], x, y))
+        art_w, art_h = Image.open(os.path.join(DECOR_DIR, asset + ".png")).size
+        # The tallest surface under the accent becomes its physical baseline.
+        # Mid/front pieces don't parallax away from the floor as the camera moves.
+        placed = False
+        for x in (center_x, center_x - 24, center_x + 24, center_x - 48, center_x + 48):
+            surfaces = [(sy, sx, sw) for sx, sy, sw, _ in
+                        room.get("ground", []) + room.get("ledges", []) + room.get("platforms", [])
+                        if sx + art_w / 2 + 8 <= x <= sx + sw - art_w / 2 - 8
+                        and sy <= room["height"] - (30 if room.get("interior") else 50)]
+            for y, _, _ in sorted(surfaces):
+                occupied = any(abs(px - x) < max(36, art_w / 2 + 18) and abs(py - y) < 35
+                               for _, px, py in room["props"] + room["npcs"])
+                occupied |= any(abs(px - x) < max(48, art_w / 2 + 24) and abs(py + 12 - y) < 40
+                                for _, px, py in room["spawns"])
+                occupied |= any(abs(px - x) < 62 and abs(py + dy - y) < 45
+                                for key, dy in (("player", 20), ("door", 32), ("shrine", 0))
+                                for px, py in [room.get(key, (-1000, -1000))])
+                occupied |= any(abs(px - x) < (art_w + 20) / 2 and abs(py - y) < 25
+                                for _, px, py, _ in room["decor"])
+                if not occupied:
+                    room["decor"].append((asset, x, y, "front" if art_h <= 30 else "mid"))
+                    placed = True
+                    break
+            if placed:
                 break
 
 
@@ -165,7 +361,9 @@ def contextual_props(name, props):
         replacements = {"barrel_apples": "village_supplies", "box_goods": "village_supplies"}
     else:
         replacements = {"barrel_apples": "funeral_offering"}
-    return [(replacements.get(prop_id, prop_id), x, y) for prop_id, x, y in props]
+    motif = ROOM_PROP_MOTIFS.get(name, {})
+    return [(motif.get(prop_id, replacements.get(prop_id, prop_id)), x, y)
+            for prop_id, x, y in props]
 
 ROOMS = {
     # Every room but the boss arenas is two screens tall. Floors are jump-through
@@ -527,12 +725,30 @@ def collider(rects, prefix, parent, one_way=False):
 
 
 def ramp_nodes(ramps, parent):
-    """Solid slopes under painted stairs: a strip from (x0, y0) to (x1, y1)."""
+    """Trace stair treads, not a smooth slope that floats over painted steps.
+
+    A riser is at most 8 px: the hero's 12 px step-up can walk uphill, while
+    downhill movement follows the visible stair instead of skating through it.
+    The strip stays thin so routes below an open staircase remain open.
+    """
     out = []
     for i, (x0, y0, x1, y1) in enumerate(ramps, 1):
-        thick = 16
+        if x1 < x0:
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+        count = max(1, (abs(y1 - y0) + 7) // 8)
+        top = [(float(x0), float(y0))]
+        for step in range(count):
+            right_x = x0 + (x1 - x0) * (step + 1) / count
+            top.append((right_x, y0 + (y1 - y0) * step / count))
+            if step + 1 < count:
+                top.append((right_x, y0 + (y1 - y0) * (step + 1) / count))
+        top.append((float(x1), float(y1)))
+        thick = 16.0
+        polygon = top + [(x, y + thick) for x, y in reversed(top)]
+        coords = ", ".join(f"{round(x, 2)}, {round(y, 2)}" for x, y in polygon)
         out.append(f'[node name="Ramp{i}" type="CollisionPolygon2D" parent="{parent}"]\n'
-                   f'polygon = PackedVector2Array({x0}, {y0}, {x1}, {y1}, {x1}, {y1 + thick}, {x0}, {y0 + thick})\n\n')
+                   f'polygon = PackedVector2Array({coords})\n\n')
     return "".join(out)
 
 
@@ -645,7 +861,7 @@ def terrain_nodes(r, rng, used, walls=True):
                        f'offset_bottom = {y + h}.0\ncolor = {FILL_COLOR}\nmouse_filter = 2\n\n')
         out.append(piece_nodes(layout, y, f"Ground{i}", used))
     for i, (x, y, w, h) in enumerate(r["platforms"], 1):
-        pieces = family("float") if w < 80 else family("ledge")
+        pieces = family("ledge") if r.get("stone_steps") or w >= 80 else family("float")
         out.append(piece_nodes(lay(x, x + w, pieces, rng), y, f"Platform{i}", used))
     if not walls:
         return "".join(out)
@@ -691,14 +907,16 @@ def light_nodes(lights, parent, prefix, scale=1.0):
     return "".join(out)
 
 
-def decor_nodes(decor, layer, parent):
+def decor_nodes(decor, layer, parent, ambient):
     """Sprites anchored at their bottom centre. Back layer is darker and parallaxed."""
     out = []
+    rgb = [int(ambient[i:i + 2], 16) / 255.0 for i in (1, 3, 5)]
+    shade = 0.76 if layer == "back" else 1.04
+    tint = "Color(%s, %s, %s, 1)" % tuple(round(min(1.0, channel * shade), 3) for channel in rgb)
     for i, (name, x, y, where) in enumerate(decor, 1):
         if where != layer:
             continue
         w, h = Image.open(os.path.join(DECOR_DIR, f"{name}.png")).size
-        tint = "Color(0.55, 0.5, 0.55, 1)" if layer == "back" else "Color(0.85, 0.8, 0.85, 1)"
         out.append(f'''[node name="{ident(name)}_{i}" type="Sprite2D" parent="{parent}"]
 modulate = {tint}
 position = Vector2({x}, {y - h / 2})
@@ -810,7 +1028,13 @@ def build(name, r):
     used = set()
     # A painted room draws nothing over its ground and ledges: the panel already
     # has them. Only the extra "platforms" get piece art.
-    terrain = terrain_nodes(dict(r, ground=[], ledges=[]) if painted else r, rng, used, walls=not painted)
+    terrain_room = dict(r, ground=[], ledges=[]) if painted else r
+    if painted:
+        # A hand-painted foothold has its own silhouette and support in the
+        # panel. Drawing a generic terrain sprite over it creates doubled
+        # masonry (or a green island over a wooden swamp pier).
+        terrain_room["platforms"] = [p for p in r["platforms"] if p not in r.get("painted_platforms", [])]
+    terrain = terrain_nodes(terrain_room, rng, used, walls=not painted)
     interior = interior_nodes(r, rng, used) if r.get("interior") else ""
     piece_ext = "".join(f'[ext_resource type="Texture2D" path="res://assets/decor/platforms/{n}.png" id="piece_{n}"]\n'
                         for n in sorted(used))
@@ -835,6 +1059,8 @@ def build(name, r):
                        bscroll_x=bscroll_x, bscroll_y=bscroll_y, shapes=shape_text, decor_ext=decor_ext,
                        piece_ext=piece_ext, ambient=ambient,
                        backdrop_lights=light_nodes(BACKDROP_LIGHTS.get(r.get("backdrop"), []), "Parallax", "Painted", BACKDROP_SCALE))
+    if "void_kill_y" in r:
+        text = text.replace(f'height = {height}\n', f'height = {height}\nvoid_kill_y = {r["void_kill_y"]}\n', 1)
     if r.get("interior"):
         # Inside: no painting, no fog; a stone wall behind everything.
         text = text.replace('[ext_resource type="Texture2D" path="res://assets/backgrounds/.png" id="2_backdrop"]\n', '')
@@ -849,14 +1075,60 @@ def build(name, r):
         # non-uniformly stretched source, so stone and figures keep their scale.
         text = text.replace('[ext_resource type="Texture2D" path="res://assets/backgrounds/.png" id="2_backdrop"]',
                             f'[ext_resource type="Texture2D" path="res://assets/levels/{r["painting_wide"]}.png" id="2_backdrop"]')
+        text = text.replace('[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]',
+                            '[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]\n'
+                            '[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]\n'
+                            f'[ext_resource type="Texture2D" path="res://assets/levels/depth/{r["painting"]}_backfill_wide.png" id="depth_plate"]')
+        if name in SEAM_SILHOUETTES:
+            art, _, _, _, _ = SEAM_SILHOUETTES[name]
+            text = text.replace('[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]',
+                                '[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]\n'
+                                f'[ext_resource type="Texture2D" path="res://assets/decor/{art}.png" id="seam_silhouette"]')
         a = text.index('[node name="Parallax" type="Parallax2D" parent="."]')
         b = text.index('[node name="FogFar" type="Parallax2D" parent="."]')
         text = text[:a] + (f'[node name="Painting" type="Sprite2D" parent="."]\n'
                           'texture_filter = 2\ntexture = ExtResource("2_backdrop")\ncentered = false\n\n') + text[b:]
+        depth_materials = (f'[sub_resource type="ShaderMaterial" id="depth_window_mat"]\n'
+                           f'shader = ExtResource("depth_shader")\n'
+                           f'shader_parameter/plate_width = {width}.0\n\n')
+        text = text.replace('[sub_resource type="Gradient" id="glow_grad"]',
+                            depth_materials + '[sub_resource type="Gradient" id="glow_grad"]', 1)
+        strength, windows = DEPTH_WINDOWS[name]
+        text = text.replace('painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n',
+                            'painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n'
+                            + f'depth_parallax = {strength}\n', 1)
+        masks = '[node name="DepthWindows" type="Node2D" parent="."]\n\n'
+        for i, points in enumerate(windows, 1):
+            mapped = [(_map_x(x, r["_x_inserts"]), y) for x, y in points]
+            center = (round(sum(x for x, _ in mapped) / len(mapped)),
+                      round(sum(y for _, y in mapped) / len(mapped)))
+            for edge in range(len(mapped)):
+                triangle = [center, mapped[edge], mapped[(edge + 1) % len(mapped)]]
+                vertices = ", ".join(str(v) for point in triangle for v in point)
+                masks += (f'[node name="Window{i}Feather{edge + 1}" type="Polygon2D" parent="DepthWindows"]\n'
+                          f'texture_filter = 2\ntexture = ExtResource("depth_plate")\n'
+                          f'material = SubResource("depth_window_mat")\n'
+                          f'polygon = PackedVector2Array({vertices})\n'
+                          f'uv = PackedVector2Array({vertices})\n'
+                          f'vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)\n'
+                          f'antialiased = true\n\n')
+        text = text.replace('[node name="FogFar" type="Parallax2D" parent="."]',
+                            masks + '[node name="FogFar" type="Parallax2D" parent="."]', 1)
+        if name in SEAM_SILHOUETTES:
+            _, x, baseline, art_scale, tint = SEAM_SILHOUETTES[name]
+            art_path = os.path.join(DECOR_DIR, SEAM_SILHOUETTES[name][0] + ".png")
+            art_height = Image.open(art_path).height
+            silhouette = (f'[node name="SeamSilhouette" type="Sprite2D" parent="."]\n'
+                          f'position = Vector2({x}, {round(baseline - art_height * art_scale / 2, 2)})\n'
+                          f'scale = Vector2({art_scale}, {art_scale})\n'
+                          f'modulate = {tint}\ntexture_filter = 2\n'
+                          'texture = ExtResource("seam_silhouette")\n\n')
+            text = text.replace('[node name="FogFar" type="Parallax2D" parent="."]',
+                                silhouette + '[node name="FogFar" type="Parallax2D" parent="."]', 1)
     # decor behind the geometry: slightly parallaxed for depth
     text = text.replace('[node name="Geometry" type="StaticBody2D" parent="."]',
                         '[node name="DecorBack" type="Parallax2D" parent="."]\nscroll_scale = Vector2(0.88, 1)\n\n'
-                        + decor_nodes(decor, "back", "DecorBack")
+                        + decor_nodes(decor, "back", "DecorBack", r["ambient"])
                         + '[node name="Geometry" type="StaticBody2D" parent="."]')
     text += collider(r["ground"], "Ground", "Geometry") + collider(walls, "Wall", "Geometry")
     text += ramp_nodes(r.get("ramps", []), "Geometry")
@@ -867,8 +1139,8 @@ def build(name, r):
     # characters, props, (the run adds enemies and players), low clutter in
     # front of their feet (z 1), weather over it all (z 2), lights.
     text += '[node name="Terrain" type="Node2D" parent="."]\n\n' + terrain
-    text += '[node name="DecorMid" type="Node2D" parent="."]\n\n' + decor_nodes(decor, "mid", "DecorMid")
-    text += '[node name="DecorFront" type="Node2D" parent="."]\nz_index = 1\n\n' + decor_nodes(decor, "front", "DecorFront")
+    text += '[node name="DecorMid" type="Node2D" parent="."]\n\n' + decor_nodes(decor, "mid", "DecorMid", r["ambient"])
+    text += '[node name="DecorFront" type="Node2D" parent="."]\nz_index = 1\n\n' + decor_nodes(decor, "front", "DecorFront", r["ambient"])
     text += '[node name="Props" type="Node2D" parent="."]\n\n'
     for i, (pid, x, y) in enumerate(r.get("props", []), 1):
         text += f'[node name="Prop{i}" parent="Props" instance=ExtResource("7_prop")]\nposition = Vector2({x}, {y})\nprop_id = "{pid}"\n\n'
@@ -912,6 +1184,7 @@ position = Vector2({dx}, {dy})
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")
+{"painted_arch = true" if painted else ""}
 
 [node name="Shape" type="CollisionShape2D" parent="Door"]
 shape = SubResource("door_shape")
@@ -933,7 +1206,7 @@ texture = SubResource("glow_tex")
     text = text.replace("load_steps=0", "load_steps=%d" % (text.count("[ext_resource") + text.count("[sub_resource")))
     path = os.path.join(ROOT, "scenes", "rooms", f"{name}.tscn")
     with open(path, "w") as f:
-        f.write(text)
+        f.write(text.rstrip() + "\n")
     print("wrote", os.path.relpath(path, ROOT))
 
 
@@ -941,9 +1214,17 @@ ROOMS.update({name: expand_painted_room(name, room) if name in ROOM_EXPANSION_CU
               for name, room in PAINTED.items()})
 
 if __name__ == "__main__":
+    selected = set(sys.argv[1:])
+    unknown = selected - ROOMS.keys()
+    if unknown:
+        raise SystemExit("unknown rooms: " + ", ".join(sorted(unknown)))
     for name, room in ROOMS.items():
+        if selected and name not in selected:
+            continue
         if "painting" in room:
+            _validate_depth_windows(name)
             if not check_reach(name, room):
                 raise SystemExit(f"room {name} has an unreachable mandatory route")
             _expand_panel(room["painting"], room["_x_inserts"])
+            _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"])
         build(name, room)

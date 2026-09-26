@@ -253,7 +253,7 @@ func _play_line(chapter: Dictionary) -> void:
 ## already on their feet, and the body cannot fight what it cannot see. Same
 ## two switches the cutscene player uses, so the two never argue over the hands.
 func _hold() -> void:
-	if _held != null:
+	if _held != null or get_tree() == null:
 		return
 	Game.cutscene = true
 	for node in get_tree().get_nodes_in_group("player"):
@@ -276,7 +276,11 @@ func _release() -> void:
 func _wait(seconds: float) -> void:
 	var left := seconds
 	while left > 0.0 and not _skipped:
-		await get_tree().process_frame
+		# An autoload outlives the tree: on the way out there is nothing to wait on.
+		var tree := get_tree()
+		if tree == null:
+			return
+		await tree.process_frame
 		left -= get_process_delta_time()
 
 
@@ -297,7 +301,10 @@ func snap_closed() -> void:
 func _watch_handover() -> void:
 	var waited := 0.0
 	while waited < HANDOVER:
-		await get_tree().process_frame
+		var tree := get_tree()
+		if tree == null:
+			return
+		await tree.process_frame
 		waited += get_process_delta_time()
 		if active or _progress() < 0.99:
 			return  # somebody took it

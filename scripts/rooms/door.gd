@@ -7,6 +7,9 @@ class_name Door
 signal entered
 
 const OPEN_FPS := 12.0
+## Painted rooms already contain an architectural doorway; the generic cage
+## sprite used by constructed rooms would sit visibly on top of that artwork.
+@export var painted_arch := false
 
 var open := false:
 	set(value):
@@ -17,11 +20,16 @@ var open := false:
 @onready var glow: Sprite2D = $Glow
 ## Lit when the chain gives: the way out is the brightest thing in the room.
 var _light: GlowLight
+var _painted_was_open := false
 
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_light = Fx.light(self, Vector2(0, -10), Color(1.0, 0.85, 0.55), 90.0, 0.0, 0.2)
+	gate.visible = not painted_arch
+	if painted_arch:
+		glow.position.y = -8.0
+		glow.scale = Vector2(1.15, 1.45)
 	_refresh()
 
 
@@ -30,11 +38,25 @@ func _refresh() -> void:
 		return
 	glow.visible = open
 	if _light != null and not open:
-		_light.set_base_energy(0.0)
+		_light.set_base_energy(0.12 if painted_arch else 0.0)
 	if not open:
+		_painted_was_open = false
 		gate.frame = 0
+	elif painted_arch:
+		if not _painted_was_open:
+			_painted_was_open = true
+			_open_painted_arch()
 	elif gate.frame == 0:
 		_swing()
+
+
+func _open_painted_arch() -> void:
+	# Keep the masonry and carved entrance from the painting. Only light and
+	# motes change when the passage becomes usable.
+	Fx.sparkle(global_position + Vector2(0, -8), Color(1.0, 0.85, 0.6), 8, 7.0)
+	if _light != null:
+		create_tween().tween_method(_light.set_base_energy, 0.12, 0.55, 0.5)
+	Audio.play(&"door_open", -6.0)
 
 
 ## The chain gives: a puff, a shake, then the gate opens frame by frame.

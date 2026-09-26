@@ -27,6 +27,13 @@ func _run() -> void:
 			shards.append(child)
 	assert(emitters.size() == 4, "two small color accents should accompany each death")
 	assert(shards.size() == 18, "each death should release nine painted shards")
+	var light_colors := {}
+	var dark_colors := {}
+	for index in shards.size():
+		var colors: Dictionary = light_colors if index < 9 else dark_colors
+		colors[shards[index].modulate.to_rgba32()] = true
+	assert(light_colors.size() >= 3 and dark_colors.size() >= 3,
+		"both soul affinities need several small color accents")
 	for shard in shards:
 		assert(shard.scale.x <= 0.4, "death shards should stay smaller than the actor")
 	var sheets := ["res://assets/fx/essence_light_flight_v3.png",

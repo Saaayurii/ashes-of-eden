@@ -5,21 +5,35 @@ every id in data/enemies, synthesised so each reads differently from the next
 rings). Placeholders by design — drop a real <id>_<kind>.ogg beside the .wav
 and Audio takes the real one.
 
-Plus what the sword sounds like landing on each of them: three takes of
-<id>_impact_1..3, built from the enemy's "material" in data/enemies (flesh,
+Every cue comes in several takes — <id>_hurt_1..3 and so on — because a
+creature that answers a sword with the very same clip every time stops being a
+creature. Audio picks one at random (Audio._base_name), and each take is the
+recipe rendered again with the voice a little higher or lower and its noise
+re-rolled, so the takes are the same throat, not four different animals.
+
+Plus what the sword sounds like landing on each of them: IMPACT_TAKES takes of
+<id>_impact_N, built from the enemy's "material" in data/enemies (flesh,
 cloth, mail, plate, bone, feather, spirit, gold) and seeded by its id, so two
 bodies of the same material still do not hit identically. The generic
 hit_<material> set is the fallback for an enemy with no clips of its own.
 
+Everything here is deterministic: the same script writes byte-identical files,
+so regenerating the set does not churn the repository.
+
     python3 tools/audio/generate_voices.py
 """
-import glob, json, math, os, random, struct, wave
+import glob, json, math, os, random, struct, wave, zlib
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, "assets", "audio", "sfx")
 RATE = 22050
 random.seed(7)
+## How many clips of each kind a creature gets. Three is enough that a crowd of
+## the same enemy never lands on one voice; the death rattle plays once, so two.
+VOICE_TAKES = 3
+DEATH_TAKES = 2
+IMPACT_TAKES = 5
 
 
 def t(seconds):
@@ -166,13 +180,25 @@ def seraph(root=55):
     }
 
 
-def caw():
+def caw(base=720):
     pulse = lambda s, f: am(saw(f, s, 0.8) + 0.5 * bandpass(noise(s), 1500, 4000), 45, 0.8) * env(int(s * RATE), 0.02, 0.6)
     return {
-        "alert": norm(np.concatenate([pulse(0.14, 720), np.zeros(int(0.05 * RATE)), pulse(0.14, 680)]), 0.45),
+        "alert": norm(np.concatenate([pulse(0.14, base), np.zeros(int(0.05 * RATE)), pulse(0.14, base * 0.94)]), 0.45),
         "attack": norm(bandpass(noise(0.25), 1200, 5000) * env(int(0.25 * RATE), 0.1, 0.5), 0.35),  # wings
-        "hurt": norm(pulse(0.1, 900), 0.45),
-        "death": norm(np.concatenate([pulse(0.12, 700), pulse(0.2, 500), pulse(0.3, 380)]) , 0.45),
+        "hurt": norm(pulse(0.1, base * 1.25), 0.45),
+        "death": norm(np.concatenate([pulse(0.12, base * 0.97), pulse(0.2, base * 0.69), pulse(0.3, base * 0.53)]) , 0.45),
+    }
+
+
+## The one who calls the others in: a human shout with a bell of zeal under it.
+def caller(base=190):
+    shout = lambda s, gl: lowpass(saw(base, s, gl) + 0.2 * noise(s), 1500)
+    bell = lambda s, f: (sine(f, s) + 0.4 * sine(f * 2.02, s)) * env(int(s * RATE), 0.01, 0.9)
+    return {
+        "alert": norm(shout(0.45, 1.6) * env(int(0.45 * RATE), 0.03, 0.4) + 0.35 * bell(0.45, base * 4)),
+        "attack": norm(shout(0.32, 1.2) * env(int(0.32 * RATE), 0.02, 0.45)),
+        "hurt": norm(shout(0.18, 0.75) * env(int(0.18 * RATE), 0.01, 0.7)),
+        "death": norm(shout(0.8, 0.5) * env(int(0.8 * RATE), 0.03, 0.9) + 0.3 * bell(0.8, base * 2)),
     }
 
 
@@ -216,19 +242,22 @@ def impact(material, rng):
     return norm(layers, 0.62)
 
 
+## id -> its timbre, given a wobble: 1.0 is the voice as written, a take
+## either side of it is the same creature on a different day.
 RECIPES = {
-    "possessed_villager": lambda: growl(85),
-    "elite_possessed": lambda: growl(62, 20, 800, 1.3),
-    "shade": lambda: whisper(500, 2400),
-    "wraith": lambda: whistle(620),
-    "cultist": lambda: grunt(140),
-    "zealot": lambda: chime(880),
-    "fallen_guard": lambda: metal(95),
-    "knight_of_ash": lambda: metal(70),
-    "fallen_champion": lambda: metal(120),
-    "blind_preacher": lambda: choir(220),
-    "ophanim": lambda: seraph(55),
-    "raven": lambda: caw(),
+    "possessed_villager": lambda w: growl(85 * w),
+    "elite_possessed": lambda w: growl(62 * w, 20, 800, 1.3),
+    "shade": lambda w: whisper(500 * w, 2400 * w),
+    "wraith": lambda w: whistle(620 * w),
+    "cultist": lambda w: grunt(140 * w),
+    "cult_caller": lambda w: caller(190 * w),
+    "zealot": lambda w: chime(880 * w),
+    "fallen_guard": lambda w: metal(95 * w),
+    "knight_of_ash": lambda w: metal(70 * w),
+    "fallen_champion": lambda w: metal(120 * w),
+    "blind_preacher": lambda w: choir(220 * w),
+    "ophanim": lambda w: seraph(55 * w),
+    "raven": lambda w: caw(720 * w),
 }
 
 
@@ -253,8 +282,17 @@ def materials():
     return out
 
 
+## Same seed, same clip: the noise in every take is drawn from a stream keyed
+## by what is being made, so two runs of this script agree to the byte.
+def seed(*parts):
+    # crc32, not hash(): Python salts string hashes per process, and a clip
+    # that changes every run would churn the repository for nothing.
+    np.random.seed(zlib.crc32(":".join(str(p) for p in parts).encode()))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
+    seed("thunder")
     write("thunder", thunder())
     material_of = materials()
     made = 0
@@ -263,17 +301,26 @@ def main():
         if recipe is None:
             print("no recipe for", enemy_id, "- it will use the generic cues")
         else:
-            for kind, buf in recipe().items():
-                write(f"{enemy_id}_{kind}", buf)
-                made += 1
+            # One throat, several takes: the voice shifts a little each time and
+            # its noise is re-rolled, so a crowd of the same creature is a crowd.
+            wobble = random.Random("voice:" + enemy_id)
+            for take in range(1, VOICE_TAKES + 1):
+                seed("voice", enemy_id, take)
+                for kind, buf in recipe(wobble.uniform(0.93, 1.08)).items():
+                    if kind == "death" and take > DEATH_TAKES:
+                        continue  # a body only dies once; two rattles are plenty
+                    write(f"{enemy_id}_{kind}_{take}", buf)
+                    made += 1
         rng = random.Random("impact:" + enemy_id)
-        for take in (1, 2, 3):
+        for take in range(1, IMPACT_TAKES + 1):
+            seed("impact", enemy_id, take)
             write(f"{enemy_id}_impact_{take}", impact(material, rng))
             made += 1
     # the fallback set, for an enemy (or a mod) with no clips of its own
     for material in sorted(MATERIALS):
         rng = random.Random("material:" + material)
-        for take in (1, 2, 3):
+        for take in range(1, IMPACT_TAKES + 1):
+            seed("material", material, take)
             write(f"hit_{material}_{take}", impact(material, rng))
             made += 1
     print(made, "voice and impact clips written to", os.path.relpath(OUT, ROOT))

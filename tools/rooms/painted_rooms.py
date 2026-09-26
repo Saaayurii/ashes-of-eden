@@ -110,6 +110,9 @@ def check_reach(name, room):
         if stand is None:
             print(f"  !! {name}: prop {prop_id} at ({x}, {y}) stands on nothing")
             valid = False
+        elif stand not in seen:
+            print(f"  !! {name}: prop {prop_id} at ({x}, {y}) cannot be reached")
+            valid = False
         elif abs(surfaces[stand][1] - y) > 2:
             print(f"  !! {name}: prop {prop_id} at ({x}, {y}) floats above its surface")
             valid = False
@@ -140,16 +143,25 @@ PAINTED = {
         painting="graveyard_moon", width=1280, height=720, weather="ash", fog=0.2, intro="", music="village_night",
         ground=[(0, 195, 310, 24), (0, 395, 80, 20), (80, 405, 40, 20), (120, 420, 80, 20),
                 (280, 527, 320, 30), (600, 538, 40, 30), (640, 560, 200, 40), (840, 520, 120, 60),
-                (960, 625, 70, 30), (1050, 560, 230, 30), (1070, 635, 210, 40), (0, 560, 280, 160),
-                (960, 655, 320, 65)],  # the crypt floor: nothing falls out of the room
-        ramps=[(200, 440, 280, 510)],
+                (960, 625, 70, 30), (1050, 560, 230, 30), (1070, 635, 210, 40),
+                (960, 655, 320, 65)],
+        # The dark bone mound below the first stair is scenery, not a hidden
+        # catch floor. A missed jump there is a fall out of the room.
+        void_kill_y=690,
+        # Cover the whole visible stair, including its upper and lower landings.
+        # The old middle-only ramp left a 17 px wall at the lower foot.
+        ramps=[(200, 420, 300, 527)],
         ledges=[(405, 220, 195, 14), (240, 345, 150, 14), (626, 421, 96, 14), (820, 325, 140, 16), (930, 260, 350, 20)],
-        platforms=[(736, 385, 64, 10), (556, 470, 64, 10), (984, 480, 64, 10), (1080, 400, 64, 10)],
+        # This short return-climb balcony is now part of the painting itself,
+        # supported by the carved stone of the lower shelf. No sheet pieces
+        # or separate grid-textured pillar are drawn on top of it.
+        platforms=[(690, 380, 70, 10)],
+        painted_platforms=[(690, 380, 70, 10)],
         spawns=[("possessed_villager", 470, 515), ("possessed_villager", 760, 548), ("possessed_villager", 1150, 548),
                 ("possessed_villager", 1050, 248), ("possessed_villager", 330, 333),
                 ("shade", 500, 300), ("shade", 900, 200), ("raven", 700, 120)],
-        props=[("pot", 280, 195), ("barrel", 370, 345), ("barrel_apples", 330, 527), ("box_goods", 365, 527), ("rubble", 500, 527),
-               ("pot", 700, 560), ("rubble", 1000, 625), ("chest_wooden", 1200, 635), ("box_goods", 980, 260),
+        props=[("pot", 280, 195), ("rubble", 370, 345), ("barrel_apples", 330, 527), ("box_goods", 365, 527), ("rubble", 500, 527),
+               ("pot", 700, 560), ("rubble", 1000, 625), ("chest_wooden", 1200, 635),
                ("secret_wall_village", 1110, 635)],  # Severin's gate log, bricked up in the crypt (docs/CHAPTER1.md)
         decor=[],
         npcs=[("severin", 300, 345)],  # on the side ledge, where the possessed one spawns
@@ -165,13 +177,16 @@ PAINTED = {
         # crypt bottom left, painted stairs climbing to the right wall.
         painting="graveyard_cross", width=1280, height=720, weather="ash", fog=0.2, intro="", music="graveyard",
         intro_cutscene="stranger_meeting",  # the Stranger waits at the end of the first ledge
-        ground=[(0, 690, 1280, 30)],  # the catch floor under the bone mound
+        # The bottom bone mound is scenery, not a hidden safe floor. Falling
+        # below the crypt's last ledge is a void death instead of a walk under
+        # the level. The visible bridge and stepping route remain intact.
+        ground=[], void_kill_y=690,
         ledges=[(0, 254, 280, 14), (404, 278, 154, 14), (248, 348, 148, 14), (60, 400, 68, 12),
                 (0, 520, 88, 12), (82, 538, 74, 12), (188, 518, 596, 14), (785, 545, 207, 14),
                 (804, 385, 257, 14), (1091, 388, 189, 14), (1016, 220, 264, 16), (0, 655, 155, 14),
                 (1005, 306, 90, 12)],
         ramps=[(985, 545, 1115, 415)],
-        platforms=[(1120, 262, 56, 10), (170, 600, 56, 10), (560, 640, 64, 10), (700, 585, 64, 10)],
+        platforms=[(1120, 262, 56, 10)],  # one exit foothold; the bone mound is not a stepping-stone course
         spawns=[("possessed_villager", 400, 506), ("possessed_villager", 650, 506), ("cultist", 880, 533),
                 ("possessed_villager", 900, 373), ("zealot", 1180, 376), ("shade", 600, 300), ("raven", 800, 150),
                 ("wraith", 300, 600)],
@@ -192,8 +207,8 @@ PAINTED = {
         # The root walk at y=552 must lead back to the first upper patrol.
         # Without this stone the descent was one-way and a living enemy above
         # could keep the exit locked forever.
-        platforms=[(1130, 470, 56, 10), (1080, 350, 56, 10), (250, 570, 56, 10),
-                   (150, 630, 64, 10), (626, 424, 88, 10)],
+        stone_steps=True,  # broken masonry at the tree, not green floating islands
+        platforms=[(1130, 470, 56, 10), (1080, 350, 56, 10)],
         spawns=[("possessed_villager", 500, 338), ("possessed_villager", 450, 540), ("possessed_villager", 600, 540),
                 ("cultist", 800, 582), ("zealot", 1220, 375), ("fallen_guard", 950, 304), ("shade", 750, 250),
                 ("raven", 600, 120), ("wraith", 250, 620)],
@@ -212,7 +227,8 @@ PAINTED = {
                 (799, 380, 183, 14), (991, 365, 63, 12), (1048, 410, 125, 12), (1104, 445, 176, 14),
                 (1071, 339, 50, 12), (1097, 241, 120, 14)],
         ramps=[],
-        platforms=[(1150, 300, 56, 10), (900, 575, 64, 10), (960, 515, 64, 10), (330, 630, 56, 10)],
+        stone_steps=True,
+        platforms=[(1150, 300, 56, 10)],  # the only added step needed to return to the gate
         spawns=[("possessed_villager", 400, 407), ("possessed_villager", 650, 407), ("cultist", 880, 368),
                 ("fallen_guard", 1200, 433), ("possessed_villager", 600, 603), ("zealot", 300, 300),
                 ("shade", 700, 250), ("wraith", 950, 600), ("raven", 500, 150)],
@@ -230,7 +246,7 @@ PAINTED = {
                 (928, 474, 51, 10), (638, 535, 104, 12), (914, 550, 53, 10), (1165, 554, 78, 12), (512, 568, 144, 12),
                 (594, 599, 75, 10), (376, 603, 45, 10), (1077, 413, 194, 14)],
         ramps=[],
-        platforms=[(1000, 440, 56, 10), (1120, 478, 56, 10), (1230, 625, 56, 10)],  # 478: the pier is a sure double jump, not a lucky one
+        platforms=[(1120, 478, 56, 10), (1230, 625, 56, 10)],  # 478: the pier is a sure double jump, not a lucky one
         spawns=[("possessed_villager", 520, 326), ("cultist", 750, 403), ("possessed_villager", 400, 462),
                 ("zealot", 1150, 401), ("fallen_guard", 580, 556), ("shade", 800, 300), ("wraith", 300, 600),
                 ("raven", 900, 150), ("shade", 1000, 250)],
@@ -247,9 +263,10 @@ PAINTED = {
                 (704, 329, 53, 10), (39, 505, 122, 12), (187, 499, 200, 12), (943, 412, 83, 12), (1047, 425, 150, 14),
                 (1121, 255, 159, 14)],
         ramps=[],
-        platforms=[(800, 440, 56, 10), (870, 452, 48, 10), (1220, 370, 56, 10), (1150, 310, 56, 10),
-                   (200, 630, 56, 10), (120, 570, 56, 10), (400, 450, 48, 10),
-                   (1000, 620, 56, 10), (1080, 560, 56, 10), (1150, 495, 56, 10)],
+        # The middle return step is a rotting timber pier rooted in the water
+        # on this painting; only the far-right climb needs separate pieces.
+        platforms=[(860, 452, 60, 10), (1220, 370, 56, 10), (1150, 310, 56, 10)],
+        painted_platforms=[(860, 452, 60, 10)],
         spawns=[("possessed_villager", 200, 335), ("cultist", 600, 422), ("possessed_villager", 300, 487),
                 ("zealot", 1120, 413), ("fallen_guard", 980, 400), ("wraith", 600, 300), ("shade", 850, 250),
                 ("raven", 400, 150), ("elite_possessed", 1180, 243)],
@@ -265,18 +282,18 @@ PAINTED = {
         ledges=[(28, 319, 177, 14), (0, 261, 60, 10), (218, 258, 64, 10), (15, 414, 203, 14), (276, 337, 67, 10),
                 (285, 375, 56, 10), (301, 404, 47, 10), (394, 397, 94, 12), (387, 432, 86, 12), (451, 312, 54, 10),
                 (533, 321, 44, 10), (506, 256, 196, 14), (649, 312, 78, 12), (780, 311, 74, 12), (919, 314, 102, 12),
-                (1116, 311, 149, 14), (1097, 175, 148, 14), (533, 451, 184, 14), (738, 459, 53, 10), (829, 472, 58, 10),
+                (1116, 311, 149, 14), (1105, 240, 75, 10), (1097, 175, 148, 14), (533, 451, 184, 14), (738, 459, 53, 10), (829, 472, 58, 10),
                 (591, 386, 45, 10), (371, 540, 162, 12), (429, 583, 46, 10), (227, 586, 90, 12), (114, 606, 49, 10),
-                (1097, 485, 76, 12), (1220, 488, 60, 12), (901, 548, 58, 10), (1001, 593, 74, 10), (1033, 625, 81, 10),
+                (1097, 485, 76, 12), (1220, 488, 60, 12), (901, 548, 58, 10), (1033, 625, 81, 10),
                 (783, 655, 86, 12)],
         ramps=[(1060, 560, 1130, 630)],
-        platforms=[(900, 640, 56, 10), (480, 490, 48, 10), (1200, 430, 48, 10), (1230, 370, 48, 10)],
+        platforms=[],  # painted masonry and roots already carry the whole route
         spawns=[("possessed_villager", 100, 402), ("cult_caller", 600, 244), ("possessed_villager", 600, 439),
                 ("fallen_guard", 1200, 299), ("preacher_acolyte", 960, 302), ("zealot", 450, 528), ("wraith", 700, 400),
                 ("shade", 300, 200), ("raven", 850, 120), ("elite_possessed", 690, 300)],
-        props=[("barrel", 150, 319), ("chest_iron", 200, 414), ("box_goods", 560, 256), ("rubble", 600, 451), ("barrel_apples", 1000, 314),
+        props=[("barrel", 150, 319), ("chest_iron", 200, 414), ("box_goods", 560, 256), ("rubble", 680, 451), ("barrel_apples", 1000, 314),
                ("chest_wooden", 1130, 485), ("pot", 780, 655), ("box_goods", 1200, 311),
-               ("secret_wall_swamp", 655, 451)],  # the preacher's letters, walled into the tower foot
+               ("secret_wall_swamp", 630, 451)],  # letters behind the tower masonry, not the red root mass
         decor=[], npcs=[], ambient="#c8b0b4", lights="auto",
         player=(40, 299), door=(995, 528), shrine=(925, 548)),
     "catacombs_1": dict(
@@ -291,7 +308,7 @@ PAINTED = {
                 (438, 556, 292, 14), (8, 582, 89, 12), (135, 584, 63, 10), (129, 640, 266, 14), (766, 604, 202, 14),
                 (1004, 643, 168, 14), (1195, 610, 85, 12)],
         ramps=[(170, 350, 250, 405)],
-        platforms=[(1035, 385, 48, 10), (1035, 325, 48, 10), (1035, 268, 48, 10), (420, 600, 48, 10)],
+        platforms=[(1035, 385, 48, 10), (1035, 325, 48, 10), (1035, 268, 48, 10)],
         spawns=[("cultist", 500, 248), ("possessed_villager", 200, 401), ("possessed_villager", 600, 391),
                 ("fallen_guard", 900, 418), ("zealot", 1150, 428), ("cult_caller", 800, 592), ("preacher_acolyte", 1050, 222),
                 ("possessed_villager", 300, 628), ("shade", 700, 300), ("wraith", 400, 500)],
@@ -308,10 +325,11 @@ PAINTED = {
                 (763, 229, 374, 14), (1191, 258, 89, 12), (461, 424, 257, 14), (661, 412, 165, 14), (809, 442, 50, 10),
                 (834, 471, 58, 10), (885, 501, 73, 10), (929, 521, 197, 14), (1017, 499, 96, 12), (1099, 481, 181, 14),
                 (5, 579, 121, 12), (141, 627, 91, 12), (224, 639, 99, 12), (284, 636, 158, 12), (458, 651, 344, 14),
-                (665, 616, 45, 10), (772, 602, 94, 12), (767, 633, 168, 14), (1188, 630, 92, 12), (1212, 640, 60, 10),
-                (1227, 649, 53, 10), (1222, 664, 58, 10), (1232, 678, 48, 10), (893, 695, 387, 12)],
-        ramps=[],
-        platforms=[(400, 295, 48, 10), (1240, 570, 48, 10), (1180, 520, 48, 10), (880, 560, 48, 10)],
+                (665, 616, 45, 10), (772, 602, 94, 12), (767, 633, 168, 14), (893, 695, 387, 12)],
+        # The lower-right painted stair is one continuous climb; overlapping
+        # one-way rectangles left individual treads unreachable in physics.
+        ramps=[(1188, 630, 1260, 680)],
+        platforms=[(400, 295, 48, 10)],
         spawns=[("cultist", 350, 341), ("possessed_villager", 550, 412), ("fallen_guard", 1000, 509),
                 ("zealot", 1200, 469), ("cultist", 700, 216), ("preacher_acolyte", 950, 217),
                 ("possessed_villager", 600, 639), ("possessed_villager", 850, 621), ("shade", 500, 300),
@@ -373,8 +391,7 @@ PAINTED = {
                 (796, 474, 177, 14), (846, 440, 63, 10), (992, 450, 173, 14), (632, 557, 97, 12), (1057, 564, 109, 12),
                 (1155, 607, 60, 10), (116, 581, 47, 10), (227, 615, 59, 10), (306, 666, 131, 12), (472, 670, 111, 12)],
         ramps=[(240, 618, 330, 665)],
-        platforms=[(1010, 505, 48, 10), (1180, 380, 48, 10), (1230, 310, 48, 10), (1240, 250, 40, 10),
-                   (600, 615, 48, 10), (700, 505, 48, 10)],
+        platforms=[],  # use the painted gallery and stair, not blocks over lava
         hazards=[(590, 694, 560, 26)],  # the lava pool under the gallery
         spawns=[("knight_of_ash", 820, 188)],
         props=[("barrel", 120, 173), ("crate", 400, 261), ("pot", 700, 458), ("sack", 900, 474), ("barrel_apples", 1100, 450),
@@ -389,11 +406,11 @@ PAINTED = {
         ground=[(0, 700, 1280, 20), (900, 372, 220, 30)],
         ledges=[(60, 142, 100, 12), (159, 176, 166, 14), (326, 254, 192, 14), (606, 310, 79, 12), (775, 358, 72, 12),
                 (81, 393, 64, 10), (123, 416, 100, 12), (194, 447, 51, 10), (203, 462, 95, 10), (290, 492, 168, 14),
-                (530, 484, 44, 10), (605, 482, 255, 16), (1039, 425, 201, 14), (1160, 199, 51, 10),
+                (530, 484, 44, 10), (605, 482, 255, 16), (1039, 425, 201, 14),
                 (453, 568, 151, 12), (563, 614, 46, 10), (648, 600, 45, 10), (79, 643, 60, 10), (125, 671, 80, 10),
-                (285, 705, 138, 10), (529, 713, 110, 10), (1080, 633, 70, 10)],
+                (1080, 633, 70, 10)],  # no phantom ledges below the continuous floor
         ramps=[(790, 494, 900, 384)],
-        platforms=[(1150, 570, 48, 10), (1200, 505, 48, 10)],
+        platforms=[],  # no isolated stones beside the boss gate
         hazards=[(425, 694, 102, 26), (641, 694, 150, 26), (990, 694, 88, 26)],  # the lakes between the rocks
         spawns=[("ophanim", 1000, 250)],
         props=[("pot", 250, 176), ("barrel", 400, 254), ("box_goods", 700, 482), ("rubble", 350, 492),
@@ -406,7 +423,9 @@ PAINTED = {
         interior=True, floor="ledge", width=960, height=420, weather="none", fog=0.1,
         intro="", intro_cutscene="preacher_arrival", music="arena",
         ground=[(0, 380, 960, 40)],
-        platforms=[(140, 300, 140, 14), (680, 300, 140, 14), (420, 250, 120, 12)],
+        # The central loft was isolated by both expansion seams and had no
+        # combat role; keep the two reachable side balconies around the arena.
+        platforms=[(140, 300, 140, 14), (680, 300, 140, 14)],
         pillars=[(90, 380), (330, 380), (630, 380), (870, 380)],
         decor=[("arch", 240, 360, "back"), ("arch", 480, 360, "back"), ("arch", 720, 360, "back")],
         spawns=[("blind_preacher", 640, 380)],

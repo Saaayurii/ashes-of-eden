@@ -1,0 +1,65 @@
+{
+  "_comment": "Extra takes of the sounds the player hears most, from CC0 packs. tools/audio/fetch_sfx.py downloads each pack once, peak-normalises the members listed here and writes them as <name>_<n>.wav beside the clips that are already there. Audio picks one take at random (Audio._base_name), so a swing, a step or a block never lands on the same recording twice.",
+  "packs": {
+    "swishes": {
+      "author": "artisticdude",
+      "license": "CC0",
+      "page": "https://opengameart.org/content/swishes-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/swishes.zip"
+    },
+    "footsteps": {
+      "author": "HaelDB",
+      "license": "CC0",
+      "page": "https://opengameart.org/content/footsteps-leather-cloth-armor",
+      "url": "https://opengameart.org/sites/default/files/footsteps.zip"
+    },
+    "impacts": {
+      "author": "StarNinjas",
+      "license": "CC0",
+      "page": "https://opengameart.org/content/10-impactshield-blocks",
+      "url": "https://opengameart.org/sites/default/files/impact_-_starninjas.zip"
+    },
+    "rpg_pack": {
+      "author": "artisticdude",
+      "license": "CC0",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip"
+    }
+  },
+  "sounds": [
+    {
+      "name": "enemy_swing",
+      "pack": "swishes",
+      "peak_db": -6.0,
+      "members": ["swishes/swish-2.wav", "swishes/swish-5.wav", "swishes/swish-7.wav",
+                  "swishes/swish-9.wav", "swishes/swish-12.wav"]
+    },
+    {
+      "name": "step",
+      "pack": "footsteps",
+      "peak_db": -9.0,
+      "members": ["footsteps/step_cloth1.ogg", "footsteps/step_cloth3.ogg",
+                  "footsteps/step_lth1.ogg", "footsteps/step_lth4.ogg"]
+    },
+    {
+      "name": "block",
+      "pack": "impacts",
+      "peak_db": -4.0,
+      "members": ["impact.1.ogg", "impact.3.ogg", "impact.5.ogg", "impact.8.ogg"]
+    },
+    {
+      "name": "parry",
+      "pack": "impacts",
+      "peak_db": -3.0,
+      "members": ["impact.2.ogg", "impact.7.ogg", "impact.10.ogg"]
+    },
+    {
+      "name": "draw",
+      "pack": "rpg_pack",
+      "peak_db": -8.0,
+      "members": ["RPG Sound Pack/battle/sword-unsheathe.wav",
+                  "RPG Sound Pack/battle/sword-unsheathe3.wav",
+                  "RPG Sound Pack/battle/sword-unsheathe5.wav"]
+    }
+  ]
+}

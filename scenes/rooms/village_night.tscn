@@ -1,8 +1,10 @@
-[gd_scene load_steps=57 format=3]
+[gd_scene load_steps=51 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_moon_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
+[ext_resource type="Texture2D" path="res://assets/levels/depth/graveyard_moon_backfill_wide.png" id="depth_plate"]
 [ext_resource type="Script" path="res://scripts/rooms/door.gd" id="4_door"]
 [ext_resource type="Script" path="res://scripts/rooms/enemy_spawn.gd" id="5_spawn"]
 [ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="7_prop"]
@@ -15,11 +17,7 @@
 [ext_resource type="Script" path="res://scripts/fx/ambient_light.gd" id="13_ambient"]
 [ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_1.png" id="piece_float_1"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_2.png" id="piece_float_2"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_3.png" id="piece_float_3"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_1.png" id="piece_ledge_1"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_3.png" id="piece_ledge_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/brush_2.png" id="decor_wilds_brush_2"]
 
 [sub_resource type="Gradient" id="fade"]
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
@@ -36,6 +34,10 @@ noise = SubResource("noise")
 shader = ExtResource("3_fog")
 shader_parameter/noise = SubResource("noise_tex")
 shader_parameter/density = 0.2
+
+[sub_resource type="ShaderMaterial" id="depth_window_mat"]
+shader = ExtResource("depth_shader")
+shader_parameter/plate_width = 1600.0
 
 [sub_resource type="Gradient" id="glow_grad"]
 offsets = PackedFloat32Array(0, 1)
@@ -87,10 +89,10 @@ size = Vector2(40, 20)
 size = Vector2(80, 20)
 
 [sub_resource type="RectangleShape2D" id="Ground5_shape"]
-size = Vector2(480, 30)
+size = Vector2(320, 30)
 
 [sub_resource type="RectangleShape2D" id="Ground6_shape"]
-size = Vector2(40, 30)
+size = Vector2(200, 30)
 
 [sub_resource type="RectangleShape2D" id="Ground7_shape"]
 size = Vector2(200, 40)
@@ -108,31 +110,16 @@ size = Vector2(230, 30)
 size = Vector2(210, 40)
 
 [sub_resource type="RectangleShape2D" id="Ground12_shape"]
-size = Vector2(280, 160)
-
-[sub_resource type="RectangleShape2D" id="Ground13_shape"]
 size = Vector2(320, 65)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
-size = Vector2(64, 10)
-
-[sub_resource type="RectangleShape2D" id="Platform2_shape"]
-size = Vector2(64, 10)
-
-[sub_resource type="RectangleShape2D" id="Platform3_shape"]
-size = Vector2(64, 10)
-
-[sub_resource type="RectangleShape2D" id="Platform4_shape"]
-size = Vector2(64, 10)
-
-[sub_resource type="RectangleShape2D" id="Platform5_shape"]
-size = Vector2(80, 10)
+size = Vector2(70, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(195, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge2_shape"]
-size = Vector2(310, 14)
+size = Vector2(150, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge3_shape"]
 size = Vector2(96, 14)
@@ -141,7 +128,7 @@ size = Vector2(96, 14)
 size = Vector2(300, 16)
 
 [sub_resource type="RectangleShape2D" id="Ledge5_shape"]
-size = Vector2(350, 20)
+size = Vector2(510, 20)
 
 [sub_resource type="RectangleShape2D" id="Wall1_shape"]
 size = Vector2(16, 736)
@@ -156,10 +143,12 @@ size = Vector2(1600, 16)
 script = ExtResource("1_room")
 width = 1600
 height = 720
+void_kill_y = 690
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/graveyard_moon_wide.png"
+depth_parallax = 0.025
 
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.753, 0.737, 0.8, 1)
@@ -170,6 +159,170 @@ music = "village_night"
 texture_filter = 2
 texture = ExtResource("2_backdrop")
 centered = false
+
+[node name="DepthWindows" type="Node2D" parent="."]
+
+[node name="Window1Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 235, 8, 1370, 8)
+uv = PackedVector2Array(780, 144, 235, 8, 1370, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 1370, 8, 1365, 174)
+uv = PackedVector2Array(780, 144, 1370, 8, 1365, 174)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 1365, 174, 1105, 205)
+uv = PackedVector2Array(780, 144, 1365, 174, 1105, 205)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 1105, 205, 930, 202)
+uv = PackedVector2Array(780, 144, 1105, 205, 930, 202)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 930, 202, 600, 205)
+uv = PackedVector2Array(780, 144, 930, 202, 600, 205)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather6" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 600, 205, 400, 182)
+uv = PackedVector2Array(780, 144, 600, 205, 400, 182)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather7" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 400, 182, 235, 165)
+uv = PackedVector2Array(780, 144, 400, 182, 235, 165)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather8" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(780, 144, 235, 165, 235, 8)
+uv = PackedVector2Array(780, 144, 235, 165, 235, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 342, 241, 414, 240)
+uv = PackedVector2Array(379, 288, 342, 241, 414, 240)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 414, 240, 430, 307)
+uv = PackedVector2Array(379, 288, 414, 240, 430, 307)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 430, 307, 377, 336)
+uv = PackedVector2Array(379, 288, 430, 307, 377, 336)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 377, 336, 333, 317)
+uv = PackedVector2Array(379, 288, 377, 336, 333, 317)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 333, 317, 342, 241)
+uv = PackedVector2Array(379, 288, 333, 317, 342, 241)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(840, 329, 622, 282, 981, 268)
+uv = PackedVector2Array(840, 329, 622, 282, 981, 268)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(840, 329, 981, 268, 979, 365)
+uv = PackedVector2Array(840, 329, 981, 268, 979, 365)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(840, 329, 979, 365, 832, 374)
+uv = PackedVector2Array(840, 329, 979, 365, 832, 374)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(840, 329, 832, 374, 786, 355)
+uv = PackedVector2Array(840, 329, 832, 374, 786, 355)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(840, 329, 786, 355, 622, 282)
+uv = PackedVector2Array(840, 329, 786, 355, 622, 282)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
 
 [node name="FogFar" type="Parallax2D" parent="."]
 scroll_scale = Vector2(0.75, 0.75)
@@ -204,11 +357,11 @@ position = Vector2(160.0, 430.0)
 shape = SubResource("Ground4_shape")
 
 [node name="Ground5Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(520.0, 542.0)
+position = Vector2(440.0, 542.0)
 shape = SubResource("Ground5_shape")
 
 [node name="Ground6Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(780.0, 553.0)
+position = Vector2(700.0, 553.0)
 shape = SubResource("Ground6_shape")
 
 [node name="Ground7Shape" type="CollisionShape2D" parent="Geometry"]
@@ -232,12 +385,8 @@ position = Vector2(1495.0, 655.0)
 shape = SubResource("Ground11_shape")
 
 [node name="Ground12Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(140.0, 640.0)
-shape = SubResource("Ground12_shape")
-
-[node name="Ground13Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(1440.0, 687.5)
-shape = SubResource("Ground13_shape")
+shape = SubResource("Ground12_shape")
 
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)
@@ -252,44 +401,24 @@ position = Vector2(800.0, -8.0)
 shape = SubResource("Wall3_shape")
 
 [node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(200, 440, 280, 510, 280, 526, 200, 456)
+polygon = PackedVector2Array(200.0, 420.0, 207.14, 420.0, 207.14, 427.64, 214.29, 427.64, 214.29, 435.29, 221.43, 435.29, 221.43, 442.93, 228.57, 442.93, 228.57, 450.57, 235.71, 450.57, 235.71, 458.21, 242.86, 458.21, 242.86, 465.86, 250.0, 465.86, 250.0, 473.5, 257.14, 473.5, 257.14, 481.14, 264.29, 481.14, 264.29, 488.79, 271.43, 488.79, 271.43, 496.43, 278.57, 496.43, 278.57, 504.07, 285.71, 504.07, 285.71, 511.71, 292.86, 511.71, 292.86, 519.36, 300.0, 519.36, 300.0, 527.0, 300.0, 543.0, 300.0, 535.36, 292.86, 535.36, 292.86, 527.71, 285.71, 527.71, 285.71, 520.07, 278.57, 520.07, 278.57, 512.43, 271.43, 512.43, 271.43, 504.79, 264.29, 504.79, 264.29, 497.14, 257.14, 497.14, 257.14, 489.5, 250.0, 489.5, 250.0, 481.86, 242.86, 481.86, 242.86, 474.21, 235.71, 474.21, 235.71, 466.57, 228.57, 466.57, 228.57, 458.93, 221.43, 458.93, 221.43, 451.29, 214.29, 451.29, 214.29, 443.64, 207.14, 443.64, 207.14, 436.0, 200.0, 436.0)
 
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
 collision_mask = 0
 
 [node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(928.0, 390.0)
+position = Vector2(885.0, 385.0)
 shape = SubResource("Platform1_shape")
 one_way_collision = true
 
-[node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(748.0, 475.0)
-shape = SubResource("Platform2_shape")
-one_way_collision = true
-
-[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1336.0, 485.0)
-shape = SubResource("Platform3_shape")
-one_way_collision = true
-
-[node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1432.0, 405.0)
-shape = SubResource("Platform4_shape")
-one_way_collision = true
-
-[node name="Platform5Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(470.0, 280.0)
-shape = SubResource("Platform5_shape")
-one_way_collision = true
-
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(662.5, 227.0)
+position = Vector2(502.5, 227.0)
 shape = SubResource("Ledge1_shape")
 one_way_collision = true
 
 [node name="Ledge2Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(395.0, 352.0)
+position = Vector2(315.0, 352.0)
 shape = SubResource("Ledge2_shape")
 one_way_collision = true
 
@@ -304,96 +433,21 @@ shape = SubResource("Ledge4_shape")
 one_way_collision = true
 
 [node name="Ledge5Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1425.0, 270.0)
+position = Vector2(1345.0, 270.0)
 shape = SubResource("Ledge5_shape")
 one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
 
-[node name="Platform1_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(896, 383)
-texture = ExtResource("piece_float_3")
-centered = false
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(921, 383)
-texture = ExtResource("piece_float_3")
-centered = false
-
-[node name="Platform1_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(928, 384)
-texture = ExtResource("piece_float_1")
-centered = false
-flip_h = true
-
-[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(716, 469)
-texture = ExtResource("piece_float_2")
-centered = false
-flip_h = true
-
-[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(745, 468)
-texture = ExtResource("piece_float_3")
-centered = false
-flip_h = true
-
-[node name="Platform2_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(752, 468)
-texture = ExtResource("piece_float_3")
-centered = false
-
-[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1304, 478)
-texture = ExtResource("piece_float_3")
-centered = false
-flip_h = true
-
-[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1329, 478)
-texture = ExtResource("piece_float_3")
-centered = false
-flip_h = true
-
-[node name="Platform3_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(1336, 479)
-texture = ExtResource("piece_float_2")
-centered = false
-flip_h = true
-
-[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1400, 399)
-texture = ExtResource("piece_float_2")
-centered = false
-flip_h = true
-
-[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1429, 399)
-texture = ExtResource("piece_float_2")
-centered = false
-
-[node name="Platform4_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(1436, 398)
-texture = ExtResource("piece_float_3")
-centered = false
-flip_h = true
-
-[node name="Platform5_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(430, 275)
-texture = ExtResource("piece_ledge_3")
-centered = false
-
-[node name="Platform5_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(477, 275)
-texture = ExtResource("piece_ledge_1")
-centered = false
-region_enabled = true
-region_rect = Rect2(0, 0, 33, 46)
-
 [node name="DecorMid" type="Node2D" parent="."]
 
 [node name="DecorFront" type="Node2D" parent="."]
 z_index = 1
+
+[node name="wilds_brush_2_1" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.783, 0.767, 0.832, 1)
+position = Vector2(705, 523.0)
+texture = ExtResource("decor_wilds_brush_2")
 
 [node name="Props" type="Node2D" parent="."]
 
@@ -402,19 +456,19 @@ position = Vector2(280, 195)
 prop_id = "pot"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(530, 345)
-prop_id = "barrel"
+position = Vector2(370, 345)
+prop_id = "rubble"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(330, 527)
 prop_id = "village_supplies"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(525, 527)
+position = Vector2(365, 527)
 prop_id = "village_supplies"
 
 [node name="Prop5" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(660, 527)
+position = Vector2(500, 527)
 prop_id = "rubble"
 
 [node name="Prop6" parent="Props" instance=ExtResource("7_prop")]
@@ -430,18 +484,6 @@ position = Vector2(1520, 635)
 prop_id = "chest_wooden"
 
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1300, 260)
-prop_id = "village_supplies"
-
-[node name="Prop10" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(440, 345)
-prop_id = "barrel"
-
-[node name="Prop11" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1120, 325)
-prop_id = "rubble"
-
-[node name="Prop12" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(1430, 635)
 prop_id = "secret_wall_village"
 
@@ -461,7 +503,7 @@ lights = true
 [node name="Spawns" type="Node2D" parent="."]
 
 [node name="Spawn1" type="Marker2D" parent="Spawns"]
-position = Vector2(630, 515)
+position = Vector2(470, 515)
 script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
@@ -486,12 +528,12 @@ script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
 [node name="Spawn6" type="Marker2D" parent="Spawns"]
-position = Vector2(660, 300)
+position = Vector2(500, 300)
 script = ExtResource("5_spawn")
 enemy_id = "shade"
 
 [node name="Spawn7" type="Marker2D" parent="Spawns"]
-position = Vector2(1220, 200)
+position = Vector2(1060, 200)
 script = ExtResource("5_spawn")
 enemy_id = "shade"
 
@@ -508,6 +550,7 @@ position = Vector2(1550, 232)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")
+painted_arch = true
 
 [node name="Shape" type="CollisionShape2D" parent="Door"]
 shape = SubResource("door_shape")
@@ -597,7 +640,7 @@ radius = 36.0
 flicker = 0.3
 
 [node name="Light5" type="PointLight2D" parent="Lights"]
-position = Vector2(600, 495)
+position = Vector2(440, 495)
 color = Color(1.0, 0.69, 0.376, 1)
 energy = 0.6
 script = ExtResource("12_light")
@@ -605,7 +648,7 @@ radius = 50.0
 flicker = 0.3
 
 [node name="Light6" type="PointLight2D" parent="Lights"]
-position = Vector2(690, 212)
+position = Vector2(530, 212)
 color = Color(1.0, 0.69, 0.376, 1)
 energy = 0.6
 script = ExtResource("12_light")
@@ -613,7 +656,7 @@ radius = 40.0
 flicker = 0.3
 
 [node name="Light7" type="PointLight2D" parent="Lights"]
-position = Vector2(760, 402)
+position = Vector2(600, 402)
 color = Color(1.0, 0.69, 0.376, 1)
 energy = 0.5
 script = ExtResource("12_light")
@@ -675,4 +718,3 @@ energy = 0.7
 script = ExtResource("12_light")
 radius = 50.0
 flicker = 0.3
-

@@ -35,6 +35,7 @@ Enemies get stronger, the build gets stronger faster: the player ends the run fe
 | Parry | the first 0.22 s of a fresh press: nothing lands, the enemy is open 0.9 s (a boss 0.45 s), the next blow on it is a riposte ×1.5 and a crit; bolts fly back ×1.5. Re-press only after 0.35 s down — a parry re-arms at once | `PARRY_WINDOW`, `BLOCK_RECOVERY`, `Enemy.PARRY_OPENING`, `RIPOSTE_MULTIPLIER` |
 | Armor, regen, lifesteal | 0 | `armor`, `lifesteal` |
 | Healing | 3 charges × 35 HP, 1 s channel; refilled by a boss kill | `heal_charges`, `HEAL_AMOUNT` |
+| Counterattack recovery | for 2.4 s, 35 % of a wound is recoverable (max 15 % max HP); each sword hit returns up to 40 % of its damage from that pool | `RALLY_*` |
 
 Base DPS ≈ 13. Target growth: ×4 over a full run (≈ 25 at 10 min, 40 at 20 min, 50–60 before the boss). Never ×30.
 

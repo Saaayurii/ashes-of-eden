@@ -29,6 +29,7 @@ const POTION_ICON := preload("res://assets/ui/icons/potion.png")
 ## before the run has spawned anyone.
 var _body: Player
 var _toast_tween: Tween
+var _rally_mark: ColorRect
 
 
 func _ready() -> void:
@@ -49,6 +50,11 @@ func _ready() -> void:
 	wave_label.text = ""
 	gifts_label.text = ""
 	combo_label.text = ""
+	_rally_mark = ColorRect.new()
+	_rally_mark.color = Color(1.0, 0.8, 0.4, 0.78)
+	_rally_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_rally_mark.visible = false
+	hp_bar.add_child(_rally_mark)
 	_refresh_keys()
 	Settings.changed.connect(_refresh_keys)
 	# The player may be ready before us, so pull its initial state too.
@@ -66,6 +72,7 @@ func _process(_delta: float) -> void:
 	_set_meter(dash_bar, dash_key, _body.dash_ready_ratio())
 	_set_meter(attack_bar, attack_key, _body.attack_ready_ratio())
 	_set_meter(block_bar, block_key, _body.block_ready_ratio())
+	_update_rally_mark()
 	skill_row.visible = not _body.skill.is_empty()
 	if skill_row.visible:
 		_set_meter(skill_bar, skill_key, _body.skill_ready_ratio())
@@ -101,6 +108,18 @@ func _local_player() -> Player:
 func _on_hp_changed(hp: float, max_hp: float) -> void:
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
+
+
+func _update_rally_mark() -> void:
+	var available := _body.recoverable_hp()
+	_rally_mark.visible = available > 0.0
+	if available <= 0.0:
+		return
+	# Keep the amber segment inside the bar's carved trough, not over its caps.
+	var trough_width := maxf(0.0, hp_bar.size.x - 38.0)
+	var full := maxf(1.0, _body.stats.max_hp)
+	_rally_mark.position = Vector2(26.0 + trough_width * _body.hp / full, 7.0)
+	_rally_mark.size = Vector2(trough_width * available / full, 6.0)
 
 
 func _on_room_started(index: int) -> void:

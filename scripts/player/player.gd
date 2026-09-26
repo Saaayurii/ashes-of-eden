@@ -75,6 +75,12 @@ const PARRY_PUSH := 90.0
 const BLOCK_PUSH := 40.0
 const HEAL_AMOUNT := 35.0
 const HEAL_TIME := 1.0
+## A short counterattack window after a real wound. Only sword hits against
+## living enemies reclaim health; potions and passive healing cannot farm it.
+const RALLY_TIME := 2.4
+const RALLY_DAMAGE_SHARE := 0.35
+const RALLY_HIT_SHARE := 0.4
+const RALLY_MAX_HP_SHARE := 0.15
 ## Ground covered between two footsteps, in pixels.
 const STEP_DISTANCE := 34.0
 const COYOTE_TIME := 0.1
@@ -157,6 +163,8 @@ var _attack_anim_left := 0.0
 var _combo := 0
 var _combo_timer := 0.0
 var _healing_left := 0.0
+var _rally_left := 0.0
+var _rally_pool := 0.0
 var _blocking := false
 ## The button on the previous tick. Freshness is tracked here rather than with
 ## is_action_just_pressed, which belongs to render frames and can be missed by
@@ -203,7 +211,11 @@ func _ready() -> void:
 	EventBus.boss_died.connect(func() -> void: heal_charges = int(stats.heal_charges); _emit_hp())
 	EventBus.enemy_died.connect(_on_enemy_died)
 	EventBus.room_cleared.connect(_on_room_cleared)
-	EventBus.room_started.connect(func(_index: int) -> void: _guard_left = int(stats.guard); _armed = false)
+	EventBus.room_started.connect(func(_index: int) -> void:
+		_guard_left = int(stats.guard)
+		_armed = false
+		_rally_pool = 0.0
+		_rally_left = 0.0)
 	body.modulate = SLOT_TINTS[slot % SLOT_TINTS.size()]
 	_light = Fx.light(self, Vector2(0, -12), LIGHT_COLOR, 110.0, 0.55, 0.0, 0.06)
 	EventBus.alignment_changed.connect(func(_alignment: Dictionary) -> void: _update_aura())
@@ -313,6 +325,7 @@ func _physics_process(delta: float) -> void:
 	_combo_timer = maxf(0.0, _combo_timer - delta)
 	_scripted_left = maxf(0.0, _scripted_left - delta)
 	_block_cd = maxf(0.0, _block_cd - delta)
+	_tick_rally(delta)
 	_turn_lock_left = maxf(0.0, _turn_lock_left - delta)
 	_parry_left = maxf(0.0, _parry_left - delta)
 	if _combo_timer <= 0.0:
@@ -495,7 +508,8 @@ func _check_room_bounds() -> void:
 	if current_room == null:
 		return
 	var in_room := current_room.to_local(global_position)
-	if in_room.y <= float(current_room.height) + 24.0 \
+	var bottom_limit := current_room.void_kill_y if current_room.void_kill_y >= 0.0 else float(current_room.height) + 24.0
+	if in_room.y <= bottom_limit \
 			and in_room.x >= -64.0 and in_room.x <= float(current_room.width) + 64.0:
 		return
 	fell_outside_room = true
@@ -602,10 +616,38 @@ func _arm(with_draw: bool) -> void:
 	_armed = true
 	if with_draw and is_on_floor() and absf(velocity.x) < 10.0 and _attack_anim_left <= 0.0 and _dash_left <= 0.0:
 		_one_shot("draw", 0.55)
+		Audio.play(&"draw", -7.0)
 
 
 func heal(amount: float) -> void:
-	hp = minf(hp + amount, stats.max_hp)
+	var restored := minf(maxf(0.0, amount), stats.max_hp - hp)
+	hp += restored
+	# Flask, gifts and life-steal fill the same missing health; they must not
+	# leave a second, invisible recovery pool behind.
+	_rally_pool = maxf(0.0, _rally_pool - restored)
+	_emit_hp()
+
+
+func recoverable_hp() -> float:
+	return _rally_pool if _rally_left > 0.0 and not _dead else 0.0
+
+
+func _tick_rally(delta: float) -> void:
+	if _rally_left <= 0.0:
+		return
+	_rally_left = maxf(0.0, _rally_left - delta)
+	if _rally_left <= 0.0:
+		_rally_pool = 0.0
+
+
+func _recover_from_strike(damage: float) -> void:
+	if _dead or _rally_left <= 0.0 or _rally_pool <= 0.0:
+		return
+	var restored := minf(minf(_rally_pool, maxf(0.0, damage) * RALLY_HIT_SHARE), stats.max_hp - hp)
+	if restored <= 0.0:
+		return
+	hp += restored
+	_rally_pool -= restored
 	_emit_hp()
 
 
@@ -690,6 +732,9 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 	if stats.thorns > 0.0 and source != null and source != self and source.has_method("take_damage"):
 		source.take_damage(amount * stats.thorns, self)
 	hp -= amount
+	if amount > 0.0 and hp > 0.0:
+		_rally_pool = minf(minf(_rally_pool + amount * RALLY_DAMAGE_SHARE, stats.max_hp * RALLY_MAX_HP_SHARE), stats.max_hp - hp)
+		_rally_left = RALLY_TIME
 	if _healing_left > 0.0:
 		_healing_left = 0.0  # the channel breaks; the charge is kept
 		body.modulate = SLOT_TINTS[slot % SLOT_TINTS.size()]
@@ -713,9 +758,13 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		if stats.extra_lives > 0:
 			stats.extra_lives -= 1
 			hp = stats.max_hp * 0.5
+			_rally_pool = 0.0
+			_rally_left = 0.0
 		else:
 			hp = 0.0
 			_dead = true
+			_rally_pool = 0.0
+			_rally_left = 0.0
 			_emit_hp()
 			_go_down()
 			if Net.active:
@@ -745,6 +794,8 @@ func _net_down() -> void:
 @rpc("authority", "call_remote", "reliable")
 func _net_up() -> void:
 	_dead = false
+	_rally_pool = 0.0
+	_rally_left = 0.0
 	body.modulate = SLOT_TINTS[slot % SLOT_TINTS.size()]
 	_play("idle")
 
@@ -773,6 +824,8 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	global_position = at
 	velocity = Vector2.ZERO
 	_dead = false
+	_rally_pool = 0.0
+	_rally_left = 0.0
 	fell_outside_room = false
 	_healing_left = 0.0
 	_dash_left = 0.0
@@ -1069,6 +1122,7 @@ func _attack() -> void:
 	for target in targets:
 		if target == self or not target.has_method("take_damage"):
 			continue
+		var live_enemy: bool = target is Enemy and not (target as Enemy).is_dead()
 		var damage: float = stats.attack_damage * COMBO_MULTIPLIERS[hit_index]
 		var crit: bool = randf() < stats.crit_chance
 		if crit:
@@ -1077,6 +1131,8 @@ func _attack() -> void:
 		# the enemy (the host, online) knows whether it has and applies it.
 		target.take_damage(damage, self, {"crit": crit, "knockback": 2.0 if hit_index == 2 else 1.0,
 			"sneak": stats.backstab_multiplier, "execute": stats.execute})
+		if live_enemy:
+			_recover_from_strike(damage)
 		hit_something = true
 		hit_crit = hit_crit or crit
 		# Steel on flesh is not steel on plate: the body decides what the blow

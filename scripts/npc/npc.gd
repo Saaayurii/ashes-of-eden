@@ -301,7 +301,8 @@ func _swing(facing: float) -> void:
 	Audio.play(&"swing", -8.0)
 	if _has_anim.has("attack"):
 		sprite.play("attack")
-		sprite.animation_finished.connect(_end_action_animation, CONNECT_ONE_SHOT)
+		if not sprite.animation_finished.is_connected(_end_action_animation):
+			sprite.animation_finished.connect(_end_action_animation, CONNECT_ONE_SHOT)
 	else:
 		# no swing drawn: the body lunges and comes back
 		var tween := create_tween()
@@ -378,7 +379,8 @@ func _talk() -> void:
 		sprite.flip_h = visitor.global_position.x < global_position.x
 	if _has_anim.has("interact"):
 		sprite.play("interact")
-		sprite.animation_finished.connect(_end_action_animation, CONNECT_ONE_SHOT)
+		if not sprite.animation_finished.is_connected(_end_action_animation):
+			sprite.animation_finished.connect(_end_action_animation, CONNECT_ONE_SHOT)
 	Profile.record_met("npc:" + npc_id)
 	var dialogue := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
 	if dialogue and spec.has("dialogue"):

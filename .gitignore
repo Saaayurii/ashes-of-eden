@@ -35,3 +35,7 @@ node_modules/
 package.json
 package-lock.json
 .claude/
+
+# Python bytecode
+__pycache__/
+*.pyc

@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
 [ext_resource type="Texture2D" path="res://assets/decor/arch.png" id="decor_arch"]
+[ext_resource type="Texture2D" path="res://assets/decor/clutter/altar_lit.png" id="decor_clutter_altar_lit"]
+[ext_resource type="Texture2D" path="res://assets/decor/graveyard/coffin_1.png" id="decor_graveyard_coffin_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/float_1.png" id="piece_float_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/float_2.png" id="piece_float_2"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/float_3.png" id="piece_float_3"]
@@ -3035,22 +3037,22 @@ modulate = Color(1.2, 1.15, 1.25, 1)
 scroll_scale = Vector2(0.88, 1)
 
 [node name="arch_1" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.644, 0.62, 0.632, 1)
 position = Vector2(210, 324.0)
 texture = ExtResource("decor_arch")
 
 [node name="arch_2" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.644, 0.62, 0.632, 1)
 position = Vector2(510, 324.0)
 texture = ExtResource("decor_arch")
 
 [node name="arch_3" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.644, 0.62, 0.632, 1)
 position = Vector2(690, 324.0)
 texture = ExtResource("decor_arch")
 
 [node name="arch_4" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.644, 0.62, 0.632, 1)
 position = Vector2(990, 324.0)
 texture = ExtResource("decor_arch")
 
@@ -3442,18 +3444,20 @@ modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
+[node name="clutter_altar_lit_6" type="Sprite2D" parent="DecorMid"]
+modulate = Color(0.881, 0.848, 0.865, 1)
+position = Vector2(820, 361.0)
+texture = ExtResource("decor_clutter_altar_lit")
+
 [node name="DecorFront" type="Node2D" parent="."]
 z_index = 1
 
+[node name="graveyard_coffin_1_5" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.881, 0.848, 0.865, 1)
+position = Vector2(380, 367.0)
+texture = ExtResource("decor_graveyard_coffin_1")
+
 [node name="Props" type="Node2D" parent="."]
-
-[node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(380, 380)
-prop_id = "funeral_offering"
-
-[node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(820, 380)
-prop_id = "pot"
 
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(660, 380)
@@ -3482,6 +3486,7 @@ position = Vector2(1166, 348)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")
+
 
 [node name="Shape" type="CollisionShape2D" parent="Door"]
 shape = SubResource("door_shape")
@@ -3589,4 +3594,3 @@ energy = 1.0
 script = ExtResource("12_light")
 radius = 90.0
 flicker = 0.3
-

@@ -151,7 +151,9 @@ func _collect_surfaces() -> Array:
 				out.append([top_left.x, top_left.y, top_left.x + size.x, top_left.y])
 			elif child is CollisionPolygon2D and child.polygon.size() >= 2:
 				var p0: Vector2 = child.to_global(child.polygon[0])
-				var p1: Vector2 = child.to_global(child.polygon[1])
+				# Stair polygons contain every tread in their first half. The
+				# second point is only the end of the first tread, not the ramp end.
+				var p1: Vector2 = child.to_global(child.polygon[int(child.polygon.size() / 2) - 1])
 				out.append([minf(p0.x, p1.x), p0.y if p0.x < p1.x else p1.y, maxf(p0.x, p1.x), p1.y if p0.x < p1.x else p0.y])
 	return out
 

@@ -124,8 +124,10 @@ func _clouds() -> void:
 		layer.name = "CloudsFar" if i == 0 else "CloudsNear"
 		layer.scroll_scale = Vector2(0.18 + i * 0.14, 0.08 + i * 0.08)
 		layer.repeat_size = Vector2(maxf(width, 960.0), 0.0)
-		layer.z_index = -1
-		add_child(layer)
+		# Clouds belong between the painted horizon and the room's closer
+		# cutouts, never on the ambience's foreground z=2 over hero/stone.
+		layer.z_index = -28
+		get_parent().add_child(layer)
 		_cloud_layers.append(layer)
 		for copy in 2:
 			var cloud := Sprite2D.new()

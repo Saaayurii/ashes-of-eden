@@ -7,10 +7,13 @@ signal cleared
 signal exited
 
 const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
+const DEPTH_LAYERS := preload("res://scripts/rooms/depth_layers.gd")
 
 @export var width := 1280
 ## Rooms can be taller than one screen: the camera scrolls down to here.
 @export var height := 360
+## Optional earlier death line for rooms whose lower painting is only scenery.
+@export var void_kill_y := -1.0
 ## Caption dialogue to play when the room starts (e.g. the boss speaking). Empty = none.
 @export var intro_dialogue := ""
 ## Cutscenes (data/cutscenes) at the start of the room and once it is cleared. Empty = none.
@@ -22,6 +25,8 @@ const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
 ## Original PNG path for a painted room. If its imported texture cache becomes
 ## invalid, load the image directly instead of showing only fog and props.
 @export var painting_source := ""
+## Pixel offset of the inpainted far plate per pixel of horizontal camera travel.
+@export var depth_parallax := 0.0
 
 var alive := 0
 ## The run hands us a spawner when it has one (a session replicates its enemies
@@ -40,12 +45,30 @@ var _map_rects: Array[Rect2] = []
 func _ready() -> void:
 	add_to_group("room")
 	_ensure_painting()
+	DEPTH_LAYERS.attach(self)
 	if music != "":
 		Audio.music(music)
 	# The living details of the place (ravens, wisps, fog, lightning): data/ambience.json.
 	Ambience.attach(self, scene_file_path.get_file().get_basename(), float(width), float(height))
 	door.entered.connect(exited.emit)
 	EventBus.enemy_died.connect(_on_enemy_died)
+
+
+func _process(_delta: float) -> void:
+	if depth_parallax <= 0.0:
+		return
+	var windows := get_node_or_null("DepthWindows")
+	if windows == null or windows.get_child_count() == 0:
+		return
+	var camera := get_viewport().get_camera_2d()
+	if camera == null:
+		return
+	var material := (windows.get_child(0) as Polygon2D).material as ShaderMaterial
+	if material == null:
+		return
+	var half_view := camera.get_viewport_rect().size.x / maxf(camera.zoom.x, 0.001) * 0.5
+	var camera_left := camera.get_screen_center_position().x - half_view - global_position.x
+	material.set_shader_parameter("shift_px", maxf(0.0, camera_left) * depth_parallax)
 
 
 func _ensure_painting() -> void:

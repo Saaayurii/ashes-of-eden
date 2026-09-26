@@ -72,6 +72,7 @@ const MIX := {
 	&"defeat": [-3.0, 0.8, 0.0],
 	&"heal": [-10.0, 1.0, 0.0],
 	# the hero
+	&"draw": [-4.0, 1.0, 0.05],  # the sword coming out when something notices us
 	&"swing": [-6.0, 0.90, 0.07],
 	&"dash": [-2.0, 0.90, 0.08],
 	&"jump": [-10.0, 1.10, 0.08],
@@ -116,6 +117,15 @@ const MIX := {
 ## moment they exist. Checked after the exact name and its take number.
 const SUFFIX_MIX := {
 	&"impact": [-5.0, 1.0, 0.07],
+	# A creature's own cries (tools/audio/generate_voices.py writes three takes
+	# of each). The level stays at 0: the call sites in enemy.gd set it, and
+	# these rows are here for the pitch spread — the same take never lands
+	# twice at the same pitch, so a crowd of one kind is still a crowd.
+	&"alert": [0.0, 1.0, 0.10],
+	&"attack": [0.0, 1.0, 0.07],
+	&"hurt": [0.0, 1.0, 0.12],
+	&"death": [0.0, 1.0, 0.05],
+	&"special": [0.0, 1.0, 0.06],
 }
 
 var _clips := {}

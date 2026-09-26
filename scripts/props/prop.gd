@@ -68,6 +68,9 @@ func _ready() -> void:
 		sprite.flip_h = sin(_phase * 2.31) < 0.0
 		var value_variation := 0.94 + fposmod(absf(cos(_phase * 1.19)), 1.0) * 0.08
 		sprite.modulate = Color(value_variation, value_variation, value_variation, 1.0)
+	# A bricked-up secret can borrow the painted wall beneath it until struck.
+	# This affects only props opting in; damage reveals their normal crack strip.
+	sprite.modulate.a = clampf(float(stats.get("concealed_alpha", 1.0)), 0.0, 1.0)
 	_base_sprite_position = sprite.position
 	_base_sprite_scale = sprite.scale
 	var box: Array = stats.get("hitbox", [20, 20])
@@ -163,6 +166,7 @@ func take_damage(amount: float, _source: Node = null, _info: Dictionary = {}) ->
 	hp -= amount
 	Juice.shake(1.5)
 	if hp > 0.0:
+		sprite.modulate.a = 1.0
 		sprite.frame = mini(int(stats.get("hit_frame", 1)), sprite.hframes - 1)
 		if not stats.get("still", false):
 			_kick = Vector2(randf_range(-2.0, 2.0), -2.5)
@@ -174,6 +178,7 @@ func take_damage(amount: float, _source: Node = null, _info: Dictionary = {}) ->
 
 func _break() -> void:
 	_spent = true
+	sprite.modulate.a = 1.0
 	# take_damage() can reach us from an area callback too (scripts/player/player.gd).
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)

@@ -33,10 +33,14 @@ func _run() -> void:
 		for wall in walls:
 			var hidden: String = wall.stats.reveals
 			var at: Vector2 = wall.global_position
+			if wall.prop_id == "secret_wall_swamp":
+				_assert(wall.sprite.modulate.a < 0.3, "swamp wall blends into painted masonry")
 			var hits := 0
 			while not wall._spent and hits < 20:
 				wall.take_damage(12.0)
 				hits += 1
+				if wall.prop_id == "secret_wall_swamp" and hits == 1:
+					_assert(wall.sprite.modulate.a > 0.99, "first strike reveals swamp wall cracks")
 			_assert(hits >= 2, "%s: takes more than one blow (%d)" % [wall.prop_id, hits])
 			await _settle(0.5)
 			var cache = null
