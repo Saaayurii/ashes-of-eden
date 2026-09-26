@@ -226,3 +226,27 @@ without guesswork. Sources that are already Ogg Vorbis are copied byte for byte.
 | `audio/sfx/parry_*.wav` (3 takes) | StarNinjas | https://opengameart.org/content/10-impactshield-blocks | CC0 — peak-normalised to -3 dBFS by `tools/audio/fetch_sfx.py` |
 | `audio/sfx/draw_*.wav` (3 takes) | artisticdude | https://opengameart.org/content/rpg-sound-pack | CC0 — peak-normalised to -8 dBFS by `tools/audio/fetch_sfx.py` |
 <!-- sfx-manifest:end -->
+
+### Spoken story lines (generated)
+
+Rendered locally by `tools/audio/generate_speech.py` with [Piper](https://github.com/OHF-Voice/piper1-gpl)
+(MIT). The engine's licence is not the point — **a rendered line inherits the licence of the dataset
+its voice was trained on**, so only CC0, public-domain, CC BY and Apache 2.0 voices are used here.
+Each voice's licence comes from its `MODEL_CARD` in
+[rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices); the `.onnx.json` beside a
+downloaded model does not state one. Why several better-sounding Piper voices are excluded:
+[`docs/VOICE.md`](../docs/VOICE.md).
+
+| Files | Voice (Piper) | Dataset source | License / notes |
+|---|---|---|---|
+| `audio/voice/en/*.mp3` (Elian) | `en_US-mike-medium` | https://huggingface.co/rhasspy/piper-voices | CC0 |
+| `audio/voice/en/*.mp3` (Angel, Blind preacher) | `en_US-john-medium` | https://huggingface.co/rhasspy/piper-voices | public domain |
+| `audio/voice/en/*.mp3` (Stranger) | `en_US-joe-medium` | https://huggingface.co/rhasspy/piper-voices | CC0 |
+| `audio/voice/en/*.mp3` (Voice in the dark, Matthew) | `en_US-norman-medium` | https://huggingface.co/rhasspy/piper-voices | public domain |
+| `audio/voice/en/*.mp3` (Ophanim) | `en_US-bryce-medium` | https://huggingface.co/rhasspy/piper-voices | public domain |
+| `audio/voice/ru/*.mp3` (Elian, Stranger, Matthew) | `ru_RU-denis-medium` | https://github.com/OHF-Voice/voice-datasets | CC0 |
+| `audio/voice/ru/*.mp3` (Angel, Voice, Ophanim, preacher) | `ru_RU-dmitri-medium` | https://github.com/OHF-Voice/voice-datasets | CC0 |
+| `audio/voice/uk/*.mp3` (Elian, Ophanim) | `uk_UA-oleksa-high` | https://huggingface.co/rhasspy/piper-voices | Apache 2.0 |
+| `audio/voice/uk/*.mp3` (Angel, Voice, preacher) | `uk_UA-mykyta-high` | https://huggingface.co/rhasspy/piper-voices | Apache 2.0 |
+| `audio/voice/uk/*.mp3` (Stranger, Matthew) | `uk_UA-ukrainian_tts-medium` | https://huggingface.co/rhasspy/piper-voices | CC0 |
+| `audio/voice/zh_CN/*.mp3` (every part) | `zh_CN-chaowen-medium` | https://huggingface.co/rhasspy/piper-voices | CC0 — the only clean-licensed `zh_CN` voice; parts are told apart by pitch and pacing |

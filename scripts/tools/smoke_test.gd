@@ -113,6 +113,12 @@ func _dismiss_ui(dialogue, picker, cut) -> bool:
 		elif picker.visible:
 			saw_picker = true
 			picker.get_node("%Cards").get_child(0).pressed.emit()
+		elif cut.playing == "ch1_prologue":
+			# The one scene worth skipping the way a player does: half a minute
+			# of monologue before the first room, with no choice in it. Waiting
+			# it out would spend this loop's whole budget on the opening.
+			cut._skip()
+			await _settle(0.3)
 		elif cut.playing != "":
 			# A scene is still running: its question has not been asked yet.
 			# (The Stranger's choice comes a couple of seconds into the scene,

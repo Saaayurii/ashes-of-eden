@@ -177,6 +177,13 @@ func _begin() -> void:
 		await get_tree().process_frame
 	if not is_inside_tree():
 		return
+	# Before the angel, Elian alone over a black screen: what he remembers of
+	# the rope and the sentence, and where his own knowledge runs out. It holds
+	# the controls he has not been given yet and hands them back; any button
+	# skips it straight into the wake-up.
+	await cutscene.play("ch1_prologue")
+	if not is_inside_tree():
+		return
 	# The angel talks over the fight; hands stay on the controls from second one.
 	dialogue.play("ch1_intro")
 	# ...except for the first second and a half: Elian rises out of the grave.

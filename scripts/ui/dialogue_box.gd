@@ -136,6 +136,10 @@ func play(dialogue_id: String) -> void:
 					break
 			continue
 		var choice = null
+		# If somebody recorded this line in the language being played, it is
+		# read out over the caption; if not, spoken is 0.0 and everything below
+		# times itself the way it did before there was any voice at all.
+		var spoken := Audio.speak(str(node.get("text", "")))
 		if blocking and _in_bubbles():
 			_show_bubble(node)
 			choice = await _answered
@@ -146,7 +150,8 @@ func play(dialogue_id: String) -> void:
 			caption.text = "%s: %s" % [tr(node.get("speaker", "")), tr(node.get("text", ""))]
 			# Frame-counted rather than a timer: freezes while the game is paused
 			# (gift picker) and can be cut short by _skipped at any moment.
-			var remaining := _caption_seconds(caption.text)
+			# A caption never leaves before the voice reading it has finished.
+			var remaining := maxf(_caption_seconds(caption.text), spoken + 0.35)
 			while remaining > 0.0 and not _skipped:
 				await get_tree().process_frame
 				if not is_inside_tree():
@@ -162,6 +167,8 @@ func play(dialogue_id: String) -> void:
 			EventBus.choice_made.emit(dialogue_id, choice.get("id", ""))
 			node_id = choice.get("next", "")
 
+	# Skipping a scene must not leave a voice talking over the room it cut to.
+	Audio.stop_speech()
 	visible = false
 	_hide_bubbles()
 	if blocking:
@@ -265,7 +272,9 @@ func _show_bubble(node: Dictionary) -> void:
 	_bubble_text.visible_ratio = 0.0
 	_bubble_hint.text = ""
 	_choices = node.get("choices", [])
+	# Same reason as in _show: gone from the tree before the new list exists.
 	for child in _answer_list.get_children():
+		_answer_list.remove_child(child)
 		child.queue_free()
 	_bubble.visible = true
 	_bubble_tail.visible = true
@@ -377,7 +386,13 @@ func _show(node: Dictionary) -> void:
 	Audio.play(&"dialogue_blip")
 	speaker_label.text = node.get("speaker", "")
 	text_label.text = node.get("text", "")
+	# Out of the tree now, not at the end of the frame: queue_free() alone
+	# leaves the previous line's buttons visible and connected for one more
+	# frame, and each is bound to an index into the _choices we are replacing.
+	# A fast click — or an automated one — lands on the old button and reads
+	# past the end of the new list.
 	for child in choices_box.get_children():
+		choices_box.remove_child(child)
 		child.queue_free()
 	_choices = node.get("choices", [])
 	continue_button.visible = _choices.is_empty()
@@ -398,6 +413,11 @@ func _show(node: Dictionary) -> void:
 
 
 func _on_choice(index: int) -> void:
+	# A button that outlived the line it belonged to answers for a choice that
+	# no longer exists. The buttons are removed from the tree now, so this
+	# should not happen; ignoring it beats crashing the conversation if it does.
+	if index < 0 or index >= _choices.size():
+		return
 	answered_locally.emit(index)
 	_answered.emit(_choices[index])
 

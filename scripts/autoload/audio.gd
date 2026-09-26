@@ -15,6 +15,11 @@ extends Node
 
 const SFX_DIR := "res://assets/audio/sfx/"
 const MUSIC_DIR := "res://assets/audio/music/"
+## Spoken story lines: one folder per locale, each file named after the
+## localization key it reads out (tools/audio/generate_speech.py). Nothing
+## requires them — a line with no recording stays a caption, which is how the
+## game played before there were any.
+const SPEECH_DIR := "res://assets/audio/voice/"
 ## Enough voices for a busy room; the oldest is stolen once they are all busy.
 const VOICES := 14
 ## Two of the same sound inside this window is one sound: six enemies dying
@@ -134,6 +139,13 @@ var _clips := {}
 var _variants := {}
 var _voices: Array[AudioStreamPlayer] = []
 var _music: Array[AudioStreamPlayer] = []
+## The one mouth: story lines are one at a time, and a new line cuts the last
+## one off the way a person interrupting does.
+var _speech: AudioStreamPlayer
+## key -> stream, or null for a line nobody has recorded. Filled as lines are
+## asked for: loading all four locales up front would be hundreds of files for
+## the three the player will hear in the next minute.
+var _spoken := {}
 var _next := 0
 var _active := 0
 var _track := &""
@@ -161,6 +173,9 @@ func _ready() -> void:
 		player.volume_db = -80.0
 		add_child(player)
 		_music.append(player)
+	_speech = AudioStreamPlayer.new()
+	_speech.bus = "SFX"
+	add_child(_speech)
 	# Every Button in the project clicks, without touching a single scene.
 	get_tree().node_added.connect(_on_node_added)
 	# The cues that belong to the run rather than to any one body: they arrive
@@ -399,6 +414,49 @@ func _fade(player: AudioStreamPlayer, to_db: float, time: float, stop_after: boo
 	tween.tween_property(player, "volume_db", to_db, time)
 	if stop_after:
 		tween.tween_callback(player.stop)
+
+
+# ---------------------------------------------------------------- speech ---
+
+## How loud a story line sits against everything else in the room.
+const SPEECH_DB := -2.0
+
+
+## Read a line out loud, if anybody has recorded it in the language being
+## played. Returns how long the recording runs, so a caption can stay up for
+## at least as long as the voice saying it; 0.0 means the line is unvoiced and
+## the caller should time it the way it always has.
+##
+## One line at a time: asking for a new one cuts the last one short.
+func speak(key: String) -> float:
+	if key == "":
+		return 0.0
+	var clip := _spoken_clip(key)
+	stop_speech()
+	if clip == null:
+		return 0.0
+	_speech.stream = clip
+	_speech.volume_db = SPEECH_DB
+	_speech.play()
+	return clip.get_length()
+
+
+func stop_speech() -> void:
+	if _speech and _speech.playing:
+		_speech.stop()
+
+
+## Whichever locale the player is reading in; a line recorded for one language
+## is never played under another, and a locale with no folder simply has none.
+func _spoken_clip(key: String) -> AudioStream:
+	var locale := TranslationServer.get_locale()
+	var cache_key := locale + "/" + key
+	if _spoken.has(cache_key):
+		return _spoken[cache_key]
+	var path := SPEECH_DIR + locale + "/" + key + ".mp3"
+	var clip: AudioStream = load(path) if ResourceLoader.exists(path) else null
+	_spoken[cache_key] = clip
+	return clip
 
 
 # -------------------------------------------------------------------- ui ---

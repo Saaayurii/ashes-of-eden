@@ -1,0 +1,16 @@
+{
+  "id": "ch1_prologue",
+  "steps": [
+    {"do": "hold"},
+    {"do": "fade", "to": 1.0, "color": "#000000", "time": 0.0},
+    {"do": "letterbox", "on": true, "time": 0.0},
+    {"do": "wait", "time": 1.2},
+    {"do": "dialogue", "id": "ch1_prologue"},
+    {"do": "wait", "time": 1.0},
+    {"do": "sound", "name": "bell", "volume": -9},
+    {"do": "wait", "time": 1.6},
+    {"do": "fade", "to": 0.0, "color": "#000000", "time": 2.4},
+    {"do": "letterbox", "on": false, "time": 0.6},
+    {"do": "release"}
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "_comment": [
+    "Who sounds like whom, per locale. One entry per speaker id used in",
+    "data/dialogues; a speaker with no entry here goes unvoiced and the line",
+    "stays a caption, which is the fallback the game is built around.",
+    "",
+    "LICENCE RULE. LICENSE-ASSETS.md forbids anything non-commercial or",
+    "no-derivatives from entering this repository, and a rendered line inherits",
+    "the licence of the voice that read it. Only models whose dataset is CC0,",
+    "public domain, CC BY or Apache 2.0 may be named here. That rules out some",
+    "of the best-sounding Piper voices — en_US-ryan, en_US-hfc_male, ru_RU-ruslan",
+    "and zh_CN-xiao_ya are all CC BY-NC-SA, and en_US-lessac carries the Blizzard",
+    "research licence. Check a voice before adding it: its MODEL_CARD at",
+    "huggingface.co/rhasspy/piper-voices names the dataset licence. The .onnx.json",
+    "beside the model does not.",
+    "",
+    "This is why Russian leans on two voices and Mandarin on one: those are the",
+    "clean-licensed ones. See docs/VOICE.md.",
+    "",
+    "model      - a Piper voice (python3 -m piper.download_voices lists them all)",
+    "length     - Piper's --length-scale: above 1.0 is slower, and slower is older,",
+    "             heavier, more certain of itself",
+    "noise      - Piper's --noise-scale: how much the delivery wanders",
+    "pitch      - post-shift in semitones, applied with ffmpeg. This is what keeps",
+    "             two characters apart when a locale has fewer clean voices than it",
+    "             has parts to fill",
+    "echo       - ffmpeg aecho tail, for the things that speak without a body",
+    "gain_db    - trim, so no one is twice as loud as the person they answer"
+  ],
+
+  "SPEAKER_ELIAN": {
+    "_note": "The hanged man. Tired, flat, says less than he knows.",
+    "en": {"model": "en_US-mike-medium", "length": 1.08, "pitch": -1.0},
+    "ru": {"model": "ru_RU-denis-medium", "length": 1.08, "pitch": -1.0},
+    "uk": {"model": "uk_UA-oleksa-high", "length": 1.08, "pitch": -1.0},
+    "zh_CN": {"model": "zh_CN-chaowen-medium", "length": 1.08, "pitch": -1.0},
+    "noise": 0.55, "gain_db": 0.0
+  },
+
+  "SPEAKER_ANGEL": {
+    "_note": "Not kind, not cruel. Even, unhurried, slightly too high to be human.",
+    "en": {"model": "en_US-john-medium", "length": 1.18, "pitch": 1.5},
+    "ru": {"model": "ru_RU-dmitri-medium", "length": 1.18, "pitch": 2.5},
+    "uk": {"model": "uk_UA-mykyta-high", "length": 1.18, "pitch": 2.0},
+    "zh_CN": {"model": "zh_CN-chaowen-medium", "length": 1.18, "pitch": 3.5},
+    "noise": 0.35, "echo": "0.7:0.6:220:0.22", "gain_db": -1.0
+  },
+
+  "SPEAKER_STRANGER": {
+    "_note": "Close to the ear, never raised. The only one who asks a question back.",
+    "en": {"model": "en_US-joe-medium", "length": 1.02, "pitch": -2.5},
+    "ru": {"model": "ru_RU-denis-medium", "length": 0.98, "pitch": -4.0},
+    "uk": {"model": "uk_UA-ukrainian_tts-medium", "length": 1.02, "pitch": -2.5},
+    "zh_CN": {"model": "zh_CN-chaowen-medium", "length": 0.98, "pitch": -4.5},
+    "noise": 0.5, "gain_db": -2.0
+  },
+
+  "SPEAKER_VOICE": {
+    "_note": "No body and no name. Deep, slow, arriving from further away than the room.",
+    "en": {"model": "en_US-norman-medium", "length": 1.3, "pitch": -5.0},
+    "ru": {"model": "ru_RU-dmitri-medium", "length": 1.3, "pitch": -6.0},
+    "uk": {"model": "uk_UA-mykyta-high", "length": 1.3, "pitch": -6.0},
+    "zh_CN": {"model": "zh_CN-chaowen-medium", "length": 1.32, "pitch": -7.0},
+    "noise": 0.45, "echo": "0.8:0.85:480:0.4", "gain_db": -1.5
+  },
+
+  "SPEAKER_OPHANIM": {
+    "_note": "Wheels full of eyes. Grand, certain, and - by the end - confused.",
+    "en": {"model": "en_US-bryce-medium", "length": 1.25, "pitch": -3.5},
+    "ru": {"model": "ru_RU-dmitri-medium", "length": 1.25, "pitch": -3.5},
+    "uk": {"model": "uk_UA-oleksa-high", "length": 1.25, "pitch": -3.5},
+    "zh_CN": {"model": "zh_CN-chaowen-medium", "length": 1.26, "pitch": -2.5},
+    "noise": 0.4, "echo": "0.9:0.8:330:0.35", "gain_db": 0.0
+  },
+
+  "SPEAKER_PREACHER": {
+    "_note": "Blind, preaching to a nave with nobody in it. Fast, pressing.",
+    "en": {"model": "en_US-john-medium", "length": 0.94, "pitch": -2.0},
+    "ru": {"model": "ru_RU-dmitri-medium", "length": 0.94, "pitch": -0.5},
+    "uk": {"model": "uk_UA-mykyta-high", "length": 0.94, "pitch": -0.5},
+    "zh_CN": {"model": "zh_CN-chaowen-medium", "length": 0.92, "pitch": 1.5},
+    "noise": 0.68, "echo": "0.6:0.5:300:0.25", "gain_db": 0.0
+  },
+
+  "NPC_MATTHEW": {
+    "_note": "He signed the sentence. Old, careful, picking every word.",
+    "en": {"model": "en_US-norman-medium", "length": 1.22, "pitch": -1.0},
+    "ru": {"model": "ru_RU-denis-medium", "length": 1.22, "pitch": -3.5},
+    "uk": {"model": "uk_UA-ukrainian_tts-medium", "length": 1.22, "pitch": -3.5},
+    "zh_CN": {"model": "zh_CN-chaowen-medium", "length": 1.22, "pitch": -5.5},
+    "noise": 0.5, "gain_db": -0.5
+  }
+}
