@@ -1,10 +1,10 @@
 extends SceneTree
-## Headless check of the music layer that follows the run's lean (Audio.alignment_layer,
-## fed by Player._update_aura):
-##   godot --headless -s scripts/tools/alignment_layer_test.gd
-## Level counters play nothing, a lean brings the right layer in, a deeper lean
-## is louder, switching sides switches the file, and levelling out fades it
-## away again. Exit code 1 on any failure.
+## Headless check of everything the run's lean changes, sound and body
+## (Audio.alignment_layer and Player._mark_body, both fed by _update_aura):
+##   godot --headless -s scripts/tools/alignment_test.gd
+## Level counters play nothing and mark nothing; a lean brings the right layer
+## in and the right mark on; a deeper lean is louder; switching sides switches
+## both; levelling out takes them away again. Exit code 1 on any failure.
 ## Deliberately untyped w.r.t. game classes, like every -s tool script.
 
 var _failed := false
@@ -75,5 +75,38 @@ func _run() -> void:
 	await _settle(0.2)
 	_check(true, "an unknown path is survived")
 
-	print("ALIGNMENT LAYER TEST " + ("FAILED" if _failed else "PASSED"))
+	# --- the same lean, on the body ------------------------------------------
+	var room = load("res://scenes/rooms/graveyard.tscn").instantiate()
+	root.add_child(room)
+	var player = load("res://scenes/player/player.tscn").instantiate()
+	room.add_child(player)
+	player.global_position = Vector2(300, 220)
+	await _settle(0.4)
+
+	player._mark_body("", 0.0)
+	await _settle()
+	var level_material = player.body.material
+	_check(level_material == null
+			or level_material.get_shader_parameter("strength") == 0.0,
+		"a level run marks the body with nothing")
+
+	for path_mode in [["grace", 0], ["temptation", 1], ["will", 2]]:
+		var path: String = path_mode[0]
+		player._mark_body(path, 0.8)
+		await _settle()
+		var material = player.body.material
+		_check(material is ShaderMaterial, "%s puts a shader on the body" % path)
+		if material is ShaderMaterial:
+			_check(int(material.get_shader_parameter("mode")) == int(path_mode[1]),
+				"  and asks for its own mark (mode %d)" % int(path_mode[1]))
+			_check(absf(float(material.get_shader_parameter("strength")) - 0.8) < 0.01,
+				"  at the strength it was given")
+
+	# Back to level: the shader may stay bound, but it must do nothing.
+	player._mark_body("", 0.0)
+	await _settle()
+	_check(float(player.body.material.get_shader_parameter("strength")) == 0.0,
+		"levelling out turns the mark off")
+
+	print("ALIGNMENT TEST " + ("FAILED" if _failed else "PASSED"))
 	quit(1 if _failed else 0)

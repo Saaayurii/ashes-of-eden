@@ -58,7 +58,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] Story scenes spoken in all four languages (placeholder TTS, `docs/VOICE.md`)
 - [x] NPC dialogues with real consequences; flags read back by later dialogues (Father Matthew reads Mara and the Voice)
 - [x] Alignment shows on the hero: an aura of the leading path and a tint on his light
-- [x] Alignment as a music layer: a loop per path under the room's music, thickening as the counters separate (`alignment_layer_test.gd`) — [ ] eyes / veins on the sprite
+- [x] Alignment on the body and in the score: a music layer per path under the room's track, and a shader on the sprite — light along his edge for grace, veins for temptation, ash for will (`alignment_test.gd`). It works off the sprite's alpha, so it needs no painted mask; glowing *eyes* still would, and wait on art.
 - [x] Saves: autosave + 3 slots, continue / load, export / import (file or text code)
 
 ## v0.4 — Community

@@ -81,6 +81,14 @@ const RALLY_TIME := 2.4
 const RALLY_DAMAGE_SHARE := 0.35
 const RALLY_HIT_SHARE := 0.4
 const RALLY_MAX_HP_SHARE := 0.15
+## The riposte the roll earns. A real enemy blow that the i-frames swallowed
+## leaves the blade hot: the next sword hit that actually lands on something
+## alive is worth a little more. One charge per roll, one swing to spend it,
+## and it never stacks — dodging is meant to be answered, not farmed.
+const DODGE_COUNTER_TIME := 2.0
+const DODGE_COUNTER_BONUS := 0.2
+## Cold steel, the colour the ward and the block already use.
+const DODGE_COUNTER_TINT := Color(0.8, 0.9, 1.0)
 ## Ground covered between two footsteps, in pixels.
 const STEP_DISTANCE := 34.0
 const COYOTE_TIME := 0.1
@@ -176,6 +184,10 @@ const AURA := {
 	"temptation": [Color(0.85, 0.12, 0.15), Vector2(0, 14)],  # embers of blood, sinking
 	"will": [Color(0.72, 0.7, 0.68), Vector2(8, -6)],         # ash, drifting
 }
+## The three marks, in the order assets/shaders/alignment_marks.gdshader
+## expects them.
+const MARK_MODE := {"grace": 0, "temptation": 1, "will": 2}
+const MARKS_SHADER := preload("res://assets/shaders/alignment_marks.gdshader")
 var _aura: CPUParticles2D
 var _shadow: Sprite2D
 var _step_left := 0.0
@@ -184,6 +196,11 @@ var _guard_left := 0
 ## Whoever this roll has already cut, so one roll is one hit per body.
 var _dash_hit := {}
 var _dash_left := 0.0
+## How long the counter the last roll earned is still worth something.
+var _dodge_counter_left := 0.0
+## This roll has already earned its counter: a second blow swallowed by the
+## same i-frames is not a second charge.
+var _dodge_counted := false
 ## Sword out. Sheathed until somebody notices us or we swing; the draw is a
 ## beat of theatre when the first enemy in a room wakes up.
 var _armed := false
@@ -1409,11 +1426,14 @@ func _update_aura() -> void:
 		if _light != null:
 			_light.color = LIGHT_COLOR
 		Audio.alignment_layer("", 0.0)
+		_mark_body("", 0.0)
 		return
 	var strength := clampf((lead - 1) / 5.0, 0.2, 1.0)
 	# The same lean, for the ears: a layer under the room's music that thickens
 	# as the counters separate. Audio ignores a call that changes nothing.
 	Audio.alignment_layer(path, strength)
+	# ...and on the body itself, under whatever frame is showing.
+	_mark_body(path, strength)
 	var look: Array = AURA[path]
 	if _aura == null:
 		_aura = Fx.trail(self, look[0], 16, 1.4)
@@ -1426,6 +1446,28 @@ func _update_aura() -> void:
 	_aura.gravity = look[1]
 	if _light != null:
 		_light.color = LIGHT_COLOR.lerp(look[0], 0.25 + 0.4 * strength)
+
+
+## What the lean has done to the body: light along his edge for grace, veins
+## under the skin for temptation, ash settling on him for will. It reads the
+## sprite's own alpha rather than a painted mask, so it costs no art and holds
+## through every animation. At a lead below 2 the shader is left bound with
+## strength 0, which is a no-op — cheaper than swapping the material about.
+func _mark_body(path: String, strength: float) -> void:
+	if body == null:
+		return
+	if strength <= 0.0:
+		if body.material is ShaderMaterial:
+			(body.material as ShaderMaterial).set_shader_parameter("strength", 0.0)
+		return
+	if not (body.material is ShaderMaterial):
+		var material := ShaderMaterial.new()
+		material.shader = MARKS_SHADER
+		body.material = material
+	var shader_material := body.material as ShaderMaterial
+	shader_material.set_shader_parameter("mode", MARK_MODE.get(path, 2))
+	shader_material.set_shader_parameter("strength", strength)
+	shader_material.set_shader_parameter("tint", (AURA[path] as Array)[0])
 
 
 func skill_ready_ratio() -> float:
