@@ -12,7 +12,7 @@
 ![Языки](https://img.shields.io/badge/языки-EN%20·%20RU%20·%20UK%20·%20ZH-lightgrey.svg)
 ![Платформы](https://img.shields.io/badge/платформы-Windows%20·%20Linux%20·%20macOS%20·%20Web%20·%20Android-lightgrey.svg)
 
-**[▶ Играть в браузере](https://saaayurii.github.io/ashes-of-eden/)**
+**[▶ Играть в браузере](https://saaayurii.github.io/ashes-of-eden/)** · [APK для Android](https://github.com/Saaayurii/ashes-of-eden/actions/workflows/mobile.yml) (debug-подпись, из Actions)
 
 [README in English](README.md) · [Дизайн-документ](docs/GDD.md) · [Планы](docs/ROADMAP.md) · [Как помочь](CONTRIBUTING.md)
 
