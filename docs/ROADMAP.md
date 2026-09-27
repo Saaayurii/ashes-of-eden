@@ -78,4 +78,4 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 
 ## v1.0 — Campaign
 - [ ] Seven regions, four endings
-- [x] iOS export, built unsigned on a macOS runner (`.github/workflows/mobile.yml`) — [ ] signed build, TestFlight, App Store
+- [ ] iOS — the preset and the macOS job exist (`.github/workflows/mobile.yml`), but Godot will not export for iOS without an App Store Team ID, so nothing can be built until there is a paid Apple Developer account. The job skips itself and says so.

@@ -75,9 +75,37 @@ jobs:
     name: iOS (unsigned)
     runs-on: macos-latest
     steps:
+      # Godot refuses to export for iOS at all without an App Store Team ID —
+      # not even the Xcode project on its own, which is all this job wants.
+      # A Team ID comes with a paid Apple Developer account and belongs to
+      # whoever holds it, so there is none in this repository and none can be
+      # invented. Until the secret exists the job says so and stops; it is not
+      # a failure, it is a thing that cannot be done from here.
+      - name: Is there an Apple account to build against?
+        id: gate
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "${TEAM_ID:-}" ]; then
+            echo "have=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### iOS — skipped"
+              echo
+              echo "No \`APPLE_TEAM_ID\` secret. Godot cannot export for iOS without"
+              echo "an App Store Team ID, which needs a paid Apple Developer account."
+              echo "Add the secret and this job builds the unsigned app; add"
+              echo "\`APPLE_CERTIFICATE\`, \`APPLE_CERTIFICATE_PASSWORD\` and"
+              echo "\`APPLE_PROVISIONING_PROFILE\` too and it can be signed."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.have == 'true'
 
       - name: Install Godot and its iOS export templates
+        if: steps.gate.outputs.have == 'true'
         env:
           GODOT_VERSION: 4.7.2
         run: |
@@ -92,6 +120,7 @@ jobs:
           echo "GODOT=$PWD/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
 
       - name: Import and validate
+        if: steps.gate.outputs.have == 'true'
         run: |
           set -eux
           "$GODOT" --headless --import --quit || true
@@ -104,6 +133,7 @@ jobs:
       # of this job. APPLE_TEAM_ID as a secret replaces it once there is an
       # account; nothing signed comes out of this either way.
       - name: Export the Xcode project
+        if: steps.gate.outputs.have == 'true'
         env:
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -116,6 +146,7 @@ jobs:
           ls -la build/ios
 
       - name: Build unsigned
+        if: steps.gate.outputs.have == 'true'
         run: |
           set -eux
           cd build/ios
@@ -129,6 +160,7 @@ jobs:
           find dd -name "*.app" -maxdepth 6 -print
 
       - name: Package
+        if: steps.gate.outputs.have == 'true'
         run: |
           set -eux
           app=$(find build/ios/dd -name "*.app" -maxdepth 6 | head -1)
@@ -139,6 +171,7 @@ jobs:
           { echo "### iOS (unsigned)"; du -h ashes-of-eden-ios-unsigned.ipa; } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
+        if: steps.gate.outputs.have == 'true'
         with:
           name: ashes-of-eden-ios-unsigned
           path: ashes-of-eden-ios-unsigned.ipa
@@ -146,7 +179,7 @@ jobs:
 
   release:
     name: Attach to the release
-    needs: [android, ios]
+    needs: [android]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
