@@ -54,6 +54,8 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 ## v0.3 — Chapter 1: "The First Trumpet"
 - [x] First location: 15 rooms (13 painted panels + church + preacher nave), one route, lava, reach-tested by a bot (`reach_test.gd`)
 - [x] Ophanim boss ("DO NOT BE AFRAID"), Knight of Ash, Blind Preacher
+- [x] Elian's opening monologue over black, in full the first night and two lines every night after
+- [x] Story scenes spoken in all four languages (placeholder TTS, `docs/VOICE.md`)
 - [x] NPC dialogues with real consequences; flags read back by later dialogues (Father Matthew reads Mara and the Voice)
 - [x] Alignment shows on the hero: an aura of the leading path and a tint on his light
 - [ ] Alignment: eyes / veins on the sprite, a music layer
@@ -61,7 +63,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 
 ## v0.4 — Community
 - [x] Mod loading from `user://mods` (extra data folders)
-- [ ] Dialogue validator reports unreachable nodes and untranslated keys per locale
+- [x] Dialogue validator reports unreachable nodes (error) and translations identical to the English (warning), per locale
 - [ ] Contributor art pass, art direction doc
 
 ## v0.5 — Chinese market

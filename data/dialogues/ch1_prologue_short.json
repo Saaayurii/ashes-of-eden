@@ -1,0 +1,9 @@
+{
+  "id": "ch1_prologue_short",
+  "blocking": false,
+  "start": "p1",
+  "nodes": {
+    "p1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_1", "next": "p7"},
+    "p7": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_7"}
+  }
+}

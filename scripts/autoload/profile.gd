@@ -19,6 +19,10 @@ static func _defaults() -> Dictionary:
 		"ash": 0,           # permanent currency (docs/BALANCE.md)
 		"bestiary": {},     # enemy id -> {"seen": bool, "kills": int}; people as "npc:<id>" with "met" (scripts/ui/bestiary.gd)
 		"menu_character": "elian",  # the figure shown on the main menu
+		# Elian's opening monologue plays in full once. Every night after that
+		# he says the first line and the last one and gets up (run.gd _begin).
+		# An older profile without the key reads false and hears it once more.
+		"prologue_seen": false,
 	}
 
 

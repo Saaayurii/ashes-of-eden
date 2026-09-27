@@ -1,0 +1,14 @@
+{
+  "id": "ch1_prologue_short",
+  "steps": [
+    {"do": "hold"},
+    {"do": "fade", "to": 1.0, "color": "#000000", "time": 0.0},
+    {"do": "letterbox", "on": true, "time": 0.0},
+    {"do": "wait", "time": 0.5},
+    {"do": "dialogue", "id": "ch1_prologue_short"},
+    {"do": "wait", "time": 0.4},
+    {"do": "fade", "to": 0.0, "color": "#000000", "time": 1.4},
+    {"do": "letterbox", "on": false, "time": 0.5},
+    {"do": "release"}
+  ]
+}

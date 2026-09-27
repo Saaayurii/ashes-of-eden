@@ -181,7 +181,18 @@ func _begin() -> void:
 	# the rope and the sentence, and where his own knowledge runs out. It holds
 	# the controls he has not been given yet and hands them back; any button
 	# skips it straight into the wake-up.
-	await cutscene.play("ch1_prologue")
+	#
+	# In full the first night only. This is a roguelite: the fifth restart does
+	# not want half a minute of monologue, and a scene worth skipping every time
+	# is a scene nobody hears. Afterwards he says the first line and the last —
+	# the rope, and that it did not end — which is the whole of it in five
+	# seconds. Marked as heard before it plays, so quitting during it still
+	# counts: a monologue you walked out on is one you do not want again.
+	var heard: bool = Profile.data.get("prologue_seen", false)
+	if not heard:
+		Profile.data.prologue_seen = true
+		Profile.save()
+	await cutscene.play("ch1_prologue_short" if heard else "ch1_prologue")
 	if not is_inside_tree():
 		return
 	# The angel talks over the fight; hands stay on the controls from second one.

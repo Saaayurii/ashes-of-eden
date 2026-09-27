@@ -15,6 +15,11 @@ make test       # end-to-end smoke test
 
 Both run in Docker, so you don't need Godot installed to contribute content. CI runs the same commands.
 
+`make validate` fails on a dialogue node nothing can reach, a `next` pointing at a node that is not
+there, a localization key used but not written, and an empty cell in any of the four locales. It
+*warns* — without failing — when a Russian or Ukrainian line reads exactly like the English one,
+which usually means the column was filled in to get the check to pass.
+
 ## What's easy to pick up
 
 | I want to… | Touch |

@@ -42,6 +42,10 @@ const REQUIRED := {
 }
 
 var errors: PackedStringArray = []
+## Printed and counted, but they do not fail the build. A line that reads the
+## same in two languages is usually an untranslated string and occasionally the
+## right answer, and CI is not the one who should decide which.
+var warnings: PackedStringArray = []
 var _dialogue_ids := {}
 var _npc_ids := {}
 var _prop_ids := {}
@@ -83,9 +87,14 @@ func _init() -> void:
 		for i in LOCALES.size():
 			if strings[key][i].strip_edges() == "":
 				_error("empty %s translation for %s" % [LOCALES[i], key])
+	_check_untranslated(strings)
 
+	for w in warnings:
+		print("WARNING: " + w)
 	if errors.is_empty():
-		print("OK: %s, %d localization keys x %d locales" % [counts, strings.size(), LOCALES.size()])
+		print("OK: %s, %d localization keys x %d locales%s"
+			% [counts, strings.size(), LOCALES.size(),
+			   "" if warnings.is_empty() else ", %d warning(s)" % warnings.size()])
 		quit(0)
 	else:
 		for e in errors:
@@ -265,6 +274,74 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					if choice.has("next") and not nodes.has(choice.next):
 						_error("%s: choice -> unknown node \"%s\"" % [node_where, choice.next])
 					_check_effect(choice.get("effect", {}), node_where)
+			_check_reachable(entry, where)
+
+
+## A translation identical to the English is, nine times in ten, a line that
+## was copied across to fill the column and never came back. It is a warning
+## and not an error because the tenth time it is correct: a name, a number, a
+## dash, a word that is the same in both languages. Those cases are listed
+## below so the warning list stays short enough to read.
+##
+## Chinese is exempt: a zh_CN cell that matched the English would be caught by
+## eye immediately, and the ones that legitimately match (numerals, "—") are
+## the same ones listed here anyway.
+const SAME_IN_ANY_LANGUAGE := ["—", "-", "...", "…", "?", "!", "Elian", "Ophanim"]
+
+
+func _check_untranslated(strings: Dictionary) -> void:
+	for key in strings:
+		var english: String = strings[key][0].strip_edges()
+		if english == "" or english in SAME_IN_ANY_LANGUAGE or english.is_valid_float():
+			continue
+		for i in range(1, LOCALES.size()):
+			if LOCALES[i] == "zh_CN":
+				continue
+			if strings[key][i].strip_edges() == english:
+				_warn("%s reads the same as en for %s (\"%s\")"
+					% [LOCALES[i], key, english.left(40)])
+
+
+## Every node has to be walkable to from "start". A node nobody points at is
+## dead weight: a line somebody wrote, translated into four languages, and
+## then orphaned by rewiring the branch that used to reach it. It costs
+## nothing at runtime and it is almost always a mistake, so it is an error
+## rather than a warning — deleting it is one line, and so is linking it back.
+func _check_reachable(entry: Dictionary, where: String) -> void:
+	var nodes: Dictionary = entry.get("nodes", {})
+	var start := str(entry.get("start", ""))
+	if not nodes.has(start):
+		return  # already reported; walking from a node that does not exist finds nothing
+	var seen := {start: true}
+	var queue: Array = [start]
+	while not queue.is_empty():
+		var node: Dictionary = nodes[queue.pop_back()]
+		for next in _exits(node):
+			if nodes.has(next) and not seen.has(next):
+				seen[next] = true
+				queue.append(next)
+	var orphans: Array = []
+	for node_id in nodes:
+		if not seen.has(node_id):
+			orphans.append(str(node_id))
+	if not orphans.is_empty():
+		orphans.sort()
+		_error("%s: node(s) unreachable from \"%s\": %s" % [where, start, ", ".join(orphans)])
+
+
+## Everywhere one node can hand off to another: straight on, through an answer,
+## or through a router's branches and its fallback.
+func _exits(node: Dictionary) -> Array:
+	var out: Array = []
+	if node.has("next"):
+		out.append(str(node.next))
+	for choice in node.get("choices", []):
+		if choice.has("next"):
+			out.append(str(choice.next))
+	for branch in node.get("branches", []):
+		if branch.has("next"):
+			out.append(str(branch.next))
+	return out
 
 
 ## Optional stealth tuning (scripts/enemies/enemy.gd): how far it sees, how it idles.
@@ -446,3 +523,7 @@ func _load_csv(path: String) -> Dictionary:
 
 func _error(message: String) -> void:
 	errors.append(message)
+
+
+func _warn(message: String) -> void:
+	warnings.append(message)
