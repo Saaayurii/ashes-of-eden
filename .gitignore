@@ -6,6 +6,12 @@ tools/audio/.cache/
 *.import
 # …except the painted panels: lossy WebP (q 0.85) is a deliberate choice, 21 → 5 MB
 !assets/levels/*_wide.png.import
+# …and the panels behind them, and the bestiary portraits, for the same reason.
+# These are painted pictures, not pixel art: lossy costs nothing anybody can see
+# and the Web build is the one paying. Without these lines a fresh checkout
+# re-imports them lossless and the saving silently disappears in CI.
+!assets/levels/depth/*_wide.png.import
+!assets/portraits/*.png.import
 localization/*.translation
 export_presets.cfg.bak
 .editor/
