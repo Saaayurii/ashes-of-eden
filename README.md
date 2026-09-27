@@ -97,6 +97,8 @@ has always played. How the cast is put together and what replacing it takes:
 | Move | `A` / `D`, arrows | left stick | virtual joystick (left half) |
 | Jump / double jump | `Space` / `W` / `Up` | A | green button |
 | Roll (i-frames) | `Shift` / `K` | B | blue button |
+| Ground slam | `S` / `Down` in the air | left stick down | stick down |
+| Wall grab · wall jump | hold into a wall in the air, then jump | stick into it, then A | stick into it, then green |
 | Attack | `J` / left mouse | X | gold button |
 | Block (hold) · parry (tap just before a blow lands) | `L` / right mouse | RB | pale blue button |
 | Talk to somebody | `E` | A | tap the prompt |

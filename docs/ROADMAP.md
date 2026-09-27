@@ -43,7 +43,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] Two new enemies (hooded cultist, radiant zealot with projectiles), first boss (Ophanim, summons at 50 %)
 - [x] Damage numbers, smoke puffs on death / roll / projectile burst, boss bar
 - [x] Drop through platforms (down + jump), ledge mantle
-- [ ] Ground slam, wall grab (the rest of the Dead Cells set)
+- [x] Ground slam (down in the air: a fast drop that knocks down what he lands beside) and wall grab (hold into a wall to slide, jump to push off) — `traversal_moves_test.gd`
 - [ ] One new discovery per night (gift / line / enemy unlocked by profile.nights)
 - [ ] Skins as data (`data/skins`) — free skins first; the store comes only with a real storefront (v0.6)
 - [x] 3 more enemy behaviours as data: ranged (zealot, wraith), charger (lunge: raven, Knight of Ash), summoner (Cult caller: `caster` behaviour + `summon` attack)

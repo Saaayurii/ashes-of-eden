@@ -92,6 +92,36 @@ const LEDGE_LAYER := 16
 const STEP_HEIGHT := 12.0
 const MANTLE_RISE := 104.0
 const MANTLE_TIME := 0.22
+
+## --- ground slam ---
+## Down in the air drops him like a stone onto whatever is beneath. It is free
+## — no cooldown, no gift — because what it costs is height and the moment he
+## spends planted afterwards, and because a move with a meter on it stops
+## being one you reach for without thinking.
+const SLAM_SPEED := 760.0
+## Below this there is no room to build the fall, and slamming out of a hop
+## would turn a mistimed jump into an attack nobody meant to make.
+const SLAM_MIN_HEIGHT := 26.0
+const SLAM_RADIUS := 38.0
+## Of attack_damage. Less than a sword because it lands on everything at once
+## and costs no swing; the knockdown is the point, not the number.
+const SLAM_DAMAGE_SHARE := 0.9
+## He cannot steer while falling, and is briefly planted where he lands.
+const SLAM_RECOVERY := 0.22
+
+## --- wall grab ---
+## Pressed into a wall in mid-air he catches it and slides instead of falling.
+## Not a climb: gravity still wins, only slowly, and only while the stick is
+## held into the wall.
+const WALL_SLIDE_SPEED := 72.0
+## A push off the wall, away and up. It costs the air jump it hands back, so a
+## wall is a second chance rather than unlimited height.
+const WALL_JUMP_PUSH := 230.0
+const WALL_JUMP_RISE := 0.92  # of jump_velocity
+## Long enough for the push to carry him clear before the stick can steer back
+## into the wall and stick to it again.
+const WALL_JUMP_TURN_LOCK := 0.16
+
 ## An enemy this close to the rolling body is caught by a cutting roll.
 const DASH_REACH := 22.0
 ## The arc a finisher throws when a gift gives it one.
@@ -131,6 +161,11 @@ var _mantle_left := 0.0
 var _mantle_start := Vector2.ZERO
 var _mantle_end := Vector2.ZERO
 var _was_on_floor := false
+## Falling on purpose: set on the way down, spent on landing.
+var _slamming := false
+var _slam_recovery := 0.0
+## Which way the wall he is holding lies (-1 left of him, 1 right), 0 for none.
+var _wall_side := 0
 ## The soft light the hero carries and the blob under the feet (Fx.light / Fx.shadow).
 var _light: GlowLight
 ## The path the soul leans towards shows on the body (never as numbers): motes
@@ -359,14 +394,18 @@ func _physics_process(delta: float) -> void:
 		_safe_time = 0.0
 	if on_floor:
 		if not _was_on_floor:
-			Audio.play(&"land", -12.0)
-			Fx.dust(global_position + Vector2(0, 14), Vector2.UP, 8)
-			var landing_strength := clampf(_fall_speed / maxf(HARD_LANDING, 1.0), 0.25, 1.35)
-			EventBus.world_impulse.emit(global_position, Vector2(0, 1), landing_strength, &"land")
-			if _fall_speed > HARD_LANDING and _attack_anim_left <= 0.0:
-				_one_shot("land", 0.25)
+			if _slamming:
+				_land_slam()
+			else:
+				Audio.play(&"land", -12.0)
+				Fx.dust(global_position + Vector2(0, 14), Vector2.UP, 8)
+				var landing_strength := clampf(_fall_speed / maxf(HARD_LANDING, 1.0), 0.25, 1.35)
+				EventBus.world_impulse.emit(global_position, Vector2(0, 1), landing_strength, &"land")
+				if _fall_speed > HARD_LANDING and _attack_anim_left <= 0.0:
+					_one_shot("land", 0.25)
 		_jumps_left = int(stats.max_jumps)
 		_coyote = COYOTE_TIME
+		_wall_side = 0
 	else:
 		_coyote -= delta
 		if _was_on_floor and _coyote <= 0.0:
@@ -376,12 +415,28 @@ func _physics_process(delta: float) -> void:
 	_was_on_floor = on_floor
 	_shadow.visible = on_floor
 
+	_slam_recovery = maxf(0.0, _slam_recovery - delta)
+	# Holding into a wall in mid-air catches it. Checked before the jump, so
+	# the jump below can read _wall_side and push off instead of going up.
+	_update_wall_grab(on_floor, dir, delta)
+	if _slamming:
+		velocity.x = 0.0
+		velocity.y = SLAM_SPEED
+		dir = 0.0
+
 	_drop_left -= delta
 	if _drop_left <= 0.0 and not (collision_mask & LEDGE_LAYER):
 		collision_mask |= LEDGE_LAYER
 	if controls_enabled and _healing_left <= 0.0:
 		_jump_buffer = JUMP_BUFFER if Input.is_action_just_pressed("jump") else _jump_buffer - delta
-		if _jump_buffer > 0.0 and on_floor and Input.is_action_pressed("move_down") and _on_ledge():
+		# Down in the air, with room below: fall on it. Down on the ground is
+		# still the drop-through, and down while rolling is nothing at all.
+		if not on_floor and not _slamming and _dash_left <= 0.0 and _mantle_left <= 0.0 \
+				and Input.is_action_just_pressed("move_down") and _room_to_slam():
+			_start_slam()
+		elif _jump_buffer > 0.0 and _wall_side != 0 and not on_floor:
+			_wall_jump()
+		elif _jump_buffer > 0.0 and on_floor and Input.is_action_pressed("move_down") and _on_ledge():
 			_drop_through()
 		elif _jump_buffer > 0.0 and _jumps_left > 0 and _dash_left <= 0.0:
 			velocity.y = -stats.jump_velocity
@@ -400,8 +455,11 @@ func _physics_process(delta: float) -> void:
 			velocity.y = JUMP_CUT_VELOCITY  # short hop
 
 	# --- block ---
+	# A body committed to a slam, or still picking itself up from one, is not
+	# raising a guard.
 	var block_down := controls_enabled and Input.is_action_pressed("block")
-	var wants_block := block_down and _healing_left <= 0.0 and _dash_left <= 0.0 and _attack_anim_left <= 0.0
+	var wants_block := block_down and _healing_left <= 0.0 and _dash_left <= 0.0 and _attack_anim_left <= 0.0 \
+			and not _slamming and _slam_recovery <= 0.0
 	if wants_block and not _blocking:
 		_raise_block(not _block_was_down)
 	elif not wants_block and _blocking:
@@ -415,13 +473,18 @@ func _physics_process(delta: float) -> void:
 		if on_floor:
 			velocity.y = 0.0
 		_dash_hits()
+	elif _slamming:
+		pass  # the fall owns the body; velocity was set above
 	else:
 		var top_speed: float = stats.speed * (BLOCK_SPEED if _blocking else 1.0)
+		if _slam_recovery > 0.0:
+			top_speed = 0.0  # planted where he landed, for a moment
 		velocity.x = move_toward(velocity.x, dir * top_speed, _horizontal_rate(dir, on_floor) * delta)
-		if controls_enabled and _healing_left <= 0.0 and Input.is_action_just_pressed("dash") and _dash_cd <= 0.0:
+		if controls_enabled and _healing_left <= 0.0 and _slam_recovery <= 0.0 \
+				and Input.is_action_just_pressed("dash") and _dash_cd <= 0.0:
 			_roll()
 
-	if controls_enabled and _healing_left <= 0.0:
+	if controls_enabled and _healing_left <= 0.0 and not _slamming and _slam_recovery <= 0.0:
 		if Input.is_action_just_pressed("attack") and _attack_cd <= 0.0:
 			if _blocking:
 				_lower_block()  # the riposte: straight out of the block into the swing
@@ -564,6 +627,12 @@ func _animate(on_floor: bool) -> void:
 	if _dash_left > 0.0:
 		if body.animation != "roll":
 			_play("roll")
+	elif _slamming:
+		if body.animation != "fall":
+			_play("fall")  # no slam frames yet; the plunge reads as a hard fall
+	elif _wall_side != 0:
+		if body.animation != "climb":
+			_play("climb")  # the nearest thing to a body against a wall
 	elif not on_floor:
 		if velocity.y < 0.0 and _inside_ledge():
 			_play("climb")  # pulling up through a jump-through ledge
@@ -779,6 +848,9 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 func _go_down() -> void:
 	_dead = true
 	_healing_left = 0.0
+	_slamming = false
+	_slam_recovery = 0.0
+	_wall_side = 0
 	Audio.play(&"player_death", 0.0, 0.0)
 	_play("death")
 	body.modulate = Color(0.6, 0.55, 0.55)
@@ -828,6 +900,9 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	_rally_left = 0.0
 	fell_outside_room = false
 	_healing_left = 0.0
+	_slamming = false
+	_slam_recovery = 0.0
+	_wall_side = 0
 	_dash_left = 0.0
 	_blocking = false
 	_parry_left = 0.0
@@ -920,6 +995,115 @@ func _roll() -> void:
 	EventBus.world_impulse.emit(global_position, Vector2(facing, -0.15), 1.0, &"dash")
 	body.modulate.a = 0.6
 	get_tree().create_timer(stats.dash_time).timeout.connect(func() -> void: body.modulate.a = 1.0)
+
+
+# ------------------------------------------------------------ ground slam ---
+
+## Is there anything under him worth falling onto? Without this, tapping down
+## at the top of a hop reads as a slam and lands as a fizzle — worse, it eats
+## the input somebody meant as a drop-through a frame before they touched down.
+func _room_to_slam() -> bool:
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsRayQueryParameters2D.create(
+		global_position, global_position + Vector2(0.0, SLAM_MIN_HEIGHT + 14.0))
+	query.exclude = [get_rid()]
+	# The world only. A jump-through ledge is not a floor to slam onto, and
+	# enemies are not solid to walk on.
+	query.collision_mask = 1
+	return space.intersect_ray(query).is_empty()
+
+
+func _start_slam() -> void:
+	if _blocking:
+		_lower_block()
+	_slamming = true
+	_scripted_left = 0.0
+	_attack_anim_left = 0.0
+	velocity = Vector2(0.0, SLAM_SPEED)
+	Audio.play(&"dash", -6.0, 0.7)
+	Fx.puff(global_position, 0.5, Color(1.0, 0.95, 0.85, 0.7))
+	_play("fall")
+
+
+## He arrives. Everything standing close enough is knocked down and away from
+## him, the floor kicks, and he is planted for a beat — the price of a move
+## that costs nothing else.
+func _land_slam() -> void:
+	_slamming = false
+	_slam_recovery = SLAM_RECOVERY
+	velocity = Vector2.ZERO
+	Audio.play(&"land", -2.0, 0.6)
+	Fx.dust(global_position + Vector2(0, 14), Vector2.UP, 22)
+	Fx.puff(global_position + Vector2(0, 10), 1.3, Color(0.95, 0.9, 0.8))
+	Juice.shake(7.0)
+	EventBus.world_impulse.emit(global_position, Vector2(0, 1), 1.6, &"land")
+	_one_shot("land", SLAM_RECOVERY)
+	if not _is_mine():
+		return  # the hit is the owner's to deal; the rest is for everyone to see
+	var damage: float = stats.attack_damage * SLAM_DAMAGE_SHARE
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Node2D
+		if enemy == null or not enemy.has_method("take_damage"):
+			continue
+		var offset := enemy.global_position - global_position
+		# A flat reach: something directly overhead is not under the landing.
+		if absf(offset.x) > SLAM_RADIUS or offset.y < -24.0 or offset.y > 30.0:
+			continue
+		enemy.take_damage(damage, self, {"knockback": 1.6})
+		Fx.puff(enemy.global_position + Vector2(0, -8), 0.7, Color(0.95, 0.9, 0.8))
+
+
+# -------------------------------------------------------------- wall grab ---
+
+## Catch a wall in mid-air by holding the stick into it. Sets _wall_side so the
+## jump can push off, and slows the fall while it is held. Letting go, landing,
+## or the wall ending drops him out of it.
+func _update_wall_grab(on_floor: bool, dir: float, delta: float) -> void:
+	if on_floor or _slamming or _dash_left > 0.0 or _mantle_left > 0.0 \
+			or not controls_enabled or _healing_left > 0.0 or _dead:
+		_wall_side = 0
+		return
+	var side := 0
+	if is_on_wall():
+		var normal := get_wall_normal()
+		if absf(normal.x) > 0.7:
+			side = -signi(int(signf(normal.x)))  # the wall is opposite its normal
+	# Held into it, not merely touching it: brushing a wall on the way past
+	# should not stick.
+	if side == 0 or absf(dir) < 0.2 or signf(dir) != float(side):
+		_wall_side = 0
+		return
+	_wall_side = side
+	facing = side
+	body.flip_h = facing < 0
+	hitbox.scale.x = facing * stats.attack_scale
+	if velocity.y > 0.0:
+		velocity.y = minf(velocity.y, WALL_SLIDE_SPEED)
+		if int(Time.get_ticks_msec() / 90) % 2 == 0:
+			Fx.dust(global_position + Vector2(side * 7.0, 6.0), Vector2(-side, -0.2), 1)
+
+
+func _wall_jump() -> void:
+	var away := -_wall_side
+	velocity = Vector2(away * WALL_JUMP_PUSH, -stats.jump_velocity * WALL_JUMP_RISE)
+	facing = away
+	body.flip_h = facing < 0
+	hitbox.scale.x = facing * stats.attack_scale
+	# Steering is locked briefly so the stick, still held into the wall, does
+	# not pull him straight back onto it.
+	_turn_lock_left = WALL_JUMP_TURN_LOCK
+	_wall_side = 0
+	_jump_buffer = 0.0
+	_coyote = 0.0
+	# The wall gives the air jump back rather than adding to it: two walls are
+	# a route, not a ladder.
+	_jumps_left = maxi(_jumps_left, 1)
+	_jumps_left -= 1
+	Audio.play(&"jump", -6.0, 0.9)
+	Fx.dust(global_position + Vector2(-away * 7.0, 8.0), Vector2(-away, -0.5), 6)
+	EventBus.world_impulse.emit(global_position, Vector2(away, -0.6), 0.6, &"jump")
+	if _attack_anim_left <= 0.0:
+		_one_shot("jump", 0.3)
 
 
 ## A cutting roll catches whatever it passes through, once per roll: rolling
