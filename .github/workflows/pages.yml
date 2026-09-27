@@ -1,0 +1,89 @@
+name: Web build on Pages
+
+# The playable build, rebuilt from main and served at
+# https://saaayurii.github.io/ashes-of-eden/
+#
+# This works on Pages only because the Web preset has variant/thread_support
+# off (export_presets.cfg). With threads on, Godot needs SharedArrayBuffer,
+# which needs the Cross-Origin-Opener-Policy and -Embedder-Policy headers,
+# and Pages does not let you set headers at all. If threads are ever turned
+# back on, this job stops producing a page that boots and the build has to
+# move somewhere that can send headers (itch.io, a host of our own) — see
+# tools/docker/nginx.conf for what those headers are.
+
+on:
+  push:
+    branches: [main]
+    # Nothing here changes the build, and the export is the slow part.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+# One deploy at a time; a newer push supersedes a queued one but never
+# interrupts a deploy half-way.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Export Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Godot image (cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ashes-of-eden/godot:4.7.2
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Validate data & localization
+        run: docker compose run --rm validate
+
+      - name: Export Web
+        run: docker compose run --rm build build Web
+
+      - name: Check the export is there and fits
+        run: |
+          set -eu
+          test -f build/web/index.html
+          test -f build/web/index.pck
+          echo "### Web build" >> "$GITHUB_STEP_SUMMARY"
+          du -h build/web/* | sort -rh | head -10 >> "$GITHUB_STEP_SUMMARY"
+          # Pages refuses a single file over 100 MB and a site over 1 GB.
+          big=$(find build/web -type f -size +99M | head -1 || true)
+          if [ -n "$big" ]; then
+            echo "::error::$big is over 100 MB — GitHub Pages will reject it."
+            echo "Trim the Web preset's exclude_filter (export_presets.cfg)."
+            exit 1
+          fi
+
+      # The browser needs to know what a .pck and a .wasm are; Pages gets this
+      # right for .wasm and serves .pck as octet-stream, which is what we want.
+      - name: Upload
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -14,6 +14,8 @@ that neither Heaven nor the Abyss can claim.*
 ![Languages](https://img.shields.io/badge/languages-EN%20·%20RU%20·%20UK%20·%20ZH-lightgrey.svg)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20·%20Linux%20·%20macOS%20·%20Web%20·%20Android-lightgrey.svg)
 
+**[▶ Play in the browser](https://saaayurii.github.io/ashes-of-eden/)**
+
 [Русская версия README](README.ru.md) · [Design doc](docs/GDD.md) · [Roadmap](docs/ROADMAP.md) · [Contributing](CONTRIBUTING.md)
 
 ![The village, the first night](docs/screenshots/village.webp)

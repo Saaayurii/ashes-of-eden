@@ -35,7 +35,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] Side-view platformer body (Dead Cells-style: double jump, coyote, roll i-frames) instead of top-down
 - [x] Three hand-made rooms with parallax backdrop, fog shader, weather particles, locked door
 - [x] Living main menu from layers: painting, fog, rain, lantern/beam flicker, water shimmer, hero idle
-- [ ] First itch.io / GitHub Pages web build
+- [x] Web build on GitHub Pages, rebuilt from main (`.github/workflows/pages.yml`) — https://saaayurii.github.io/ashes-of-eden/
 
 ## v0.2 — Feel
 - [x] Damage numbers, attack swing arc, roll / landing / step dust

@@ -20,6 +20,10 @@ there, a localization key used but not written, and an empty cell in any of the 
 *warns* — without failing — when a Russian or Ukrainian line reads exactly like the English one,
 which usually means the column was filled in to get the check to pass.
 
+`make test` plays the whole chapter headless at four times speed — about two minutes, not the
+hour it took at 1x. Pass a slower scale if your machine struggles:
+`docker compose run --rm godot godot --headless -s scripts/tools/smoke_test.gd -- 2`.
+
 ## What's easy to pick up
 
 | I want to… | Touch |

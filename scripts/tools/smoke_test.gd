@@ -6,6 +6,19 @@ extends SceneTree
 ## and a recorded profile.
 ## Deliberately untyped: -s scripts compile before autoloads exist, so naming
 ## game classes here would compile them too early and fail on Data/Game.
+##
+## It runs the game faster than real time. Fifteen rooms fought at 1x took the
+## best part of an hour, which is too slow to put in front of every pull
+## request. Engine.time_scale speeds the world up; the test's own waits are
+## made with ignore_time_scale, so polling stays at the same real-world rate
+## and the timeouts keep their meaning in wall-clock seconds while the fights
+## they are waiting on finish sooner.
+##
+## Four is where it stopped paying off here: the physics step is unchanged, so
+## past that the bodies start passing through each other and the failures are
+## the harness's, not the game's. Override for a slow machine:
+##   godot --headless -s scripts/tools/smoke_test.gd -- 2
+const TIME_SCALE := 4.0
 
 var _failed := false
 
@@ -15,6 +28,9 @@ func _init() -> void:
 
 
 func _run() -> void:
+	var args := OS.get_cmdline_user_args()
+	Engine.time_scale = float(args[0]) if args.size() > 0 and args[0].is_valid_float() else TIME_SCALE
+	print("time scale: %.1fx" % Engine.time_scale)
 	var profile = root.get_node("Profile")
 	var game = root.get_node("Game")
 	var nights_before: int = profile.data.nights

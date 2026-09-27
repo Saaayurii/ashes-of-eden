@@ -141,6 +141,14 @@ changes — no code, no data, no import step. Then:
 - add the performer to `assets/CREDITS.md` with the licence they granted;
 - keep it mono and 22 kHz or better, and roughly level with the other lines.
 
+To get the lines out in a form somebody can actually read in a booth — every line one character
+says, in play order, with the filename each take has to land on:
+
+```bash
+python3 tools/audio/export_script.py zh_CN -o /tmp/script.md      # every voiced part
+python3 tools/audio/export_script.py ru --speaker SPEAKER_ELIAN
+```
+
 Recorded contributions are wanted, in any of the four languages — see
 [CONTRIBUTING.md](../CONTRIBUTING.md). Story text and its translations are CC BY 4.0; a recording
 you contribute is yours to license, and CC BY 4.0 is what keeps it in this repository rather than
