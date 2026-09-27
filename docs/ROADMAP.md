@@ -49,7 +49,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] 3 more enemy behaviours as data: ranged (zealot, wraith), charger (lunge: raven, Knight of Ash), summoner (Cult caller: `caster` behaviour + `summon` attack)
 - [x] Elite enemies (elite possessed with a death blast, fallen champion)
 - [x] Active ability slot (U / LB): three skill gifts, one per path — Radiance (nova + heal), Blood Lash (drain), Ash Spear (bolt)
-- [ ] Android export in Docker (SDK + debug keystore in the image) and Play Console internal test
+- [x] Android export in Docker (SDK + debug keystore in the image), built by `.github/workflows/mobile.yml` — [ ] Play Console internal test
 
 ## v0.3 — Chapter 1: "The First Trumpet"
 - [x] First location: 15 rooms (13 painted panels + church + preacher nave), one route, lava, reach-tested by a bot (`reach_test.gd`)
@@ -78,4 +78,4 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 
 ## v1.0 — Campaign
 - [ ] Seven regions, four endings
-- [ ] iOS
+- [x] iOS export, built unsigned on a macOS runner (`.github/workflows/mobile.yml`) — [ ] signed build, TestFlight, App Store

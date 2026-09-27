@@ -1,0 +1,156 @@
+name: Mobile builds
+
+# Android and iOS, built on demand and attached to a tag's release.
+#
+# Neither is a store build.
+#
+# Android comes out debug-signed with the keystore baked into the build image
+# — installable with `adb install -r`, fine for testing, rejected by Play.
+# A Play upload needs your own keystore (docs/RELEASE.md).
+#
+# iOS comes out UNSIGNED, because signing needs a paid Apple Developer
+# account, a certificate and a provisioning profile, none of which live in
+# this repository. What the job produces is the .app that Xcode built, which
+# is enough to prove the export works and to load on a device yourself via
+# Xcode, and is not enough for TestFlight or the App Store. When there is an
+# account, add APPLE_CERTIFICATE / APPLE_CERTIFICATE_PASSWORD /
+# APPLE_PROVISIONING_PROFILE / APPLE_TEAM_ID as secrets and the archive step
+# below turns into a real signed export.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  android:
+    name: Android (debug-signed APK)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Godot image (cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ashes-of-eden/godot:4.7.2
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Building this image accepts Google's Android SDK licence, as the
+      # Dockerfile says. It is a separate image so the everyday CI stays small.
+      - name: Build Android image (JDK + SDK + debug keystore)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/docker/Dockerfile.android
+          load: true
+          tags: ashes-of-eden/godot-android:4.7.2
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Export APK
+        run: |
+          docker run --rm -v "$PWD:/project" --entrypoint bash \
+            ashes-of-eden/godot-android:4.7.2 -c \
+            "cp /project/tools/docker/entrypoint.sh /usr/local/bin/entrypoint \
+             && chmod +x /usr/local/bin/entrypoint && entrypoint build-debug Android"
+
+      - name: Report
+        run: |
+          set -eu
+          test -f build/android/ashes-of-eden.apk
+          { echo "### Android"; du -h build/android/*.apk; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ashes-of-eden-android-debug
+          path: build/android/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS (unsigned)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot and its iOS export templates
+        env:
+          GODOT_VERSION: 4.7.2
+        run: |
+          set -eux
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -fsSL -o godot.zip "${base}/Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
+          unzip -q godot.zip
+          curl -fsSL -o templates.tpz "${base}/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q templates.tpz
+          mkdir -p "$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable"
+          mv templates/* "$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable/"
+          echo "GODOT=$PWD/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+
+      - name: Import and validate
+        run: |
+          set -eux
+          "$GODOT" --headless --import --quit || true
+          "$GODOT" --headless -s scripts/tools/validate_data.gd
+
+      # Without a signing identity Godot cannot produce an .ipa, so it is asked
+      # for the Xcode project instead and xcodebuild takes it from there.
+      - name: Export the Xcode project
+        run: |
+          set -eux
+          mkdir -p build/ios
+          "$GODOT" --headless --export-release iOS build/ios/ashes-of-eden.ipa || true
+          ls -la build/ios
+
+      - name: Build unsigned
+        run: |
+          set -eux
+          cd build/ios
+          project=$(find . -maxdepth 2 -name "*.xcodeproj" | head -1)
+          test -n "$project"
+          xcodebuild -project "$project" -scheme "$(basename "$project" .xcodeproj)" \
+            -configuration Release -sdk iphoneos \
+            -derivedDataPath dd \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            build
+          find dd -name "*.app" -maxdepth 6 -print
+
+      - name: Package
+        run: |
+          set -eux
+          app=$(find build/ios/dd -name "*.app" -maxdepth 6 | head -1)
+          mkdir -p out/Payload
+          cp -R "$app" out/Payload/
+          cd out && zip -qry ../ashes-of-eden-ios-unsigned.ipa Payload
+          cd .. && ls -la ashes-of-eden-ios-unsigned.ipa
+          { echo "### iOS (unsigned)"; du -h ashes-of-eden-ios-unsigned.ipa; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ashes-of-eden-ios-unsigned
+          path: ashes-of-eden-ios-unsigned.ipa
+          if-no-files-found: error
+
+  release:
+    name: Attach to the release
+    needs: [android, ios]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Upload
+        run: |
+          set -eux
+          find dist -type f \( -name "*.apk" -o -name "*.ipa" \) -print
+          gh release upload "${GITHUB_REF_NAME}" \
+            $(find dist -type f \( -name "*.apk" -o -name "*.ipa" \)) --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
