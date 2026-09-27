@@ -201,6 +201,7 @@ func _begin() -> void:
 	# The captions run over it (docs/CORE_LOOP.md).
 	if player:
 		player.wake_up()
+	_announce_unlocks()
 
 
 ## A saved night picks up at the entrance of the room it was saved in, with
@@ -534,18 +535,66 @@ func _offer_gifts() -> void:
 	_picking = false
 
 
-## One gift per path, skipping gifts already taken this run.
+## One gift per path, skipping gifts already taken this run and gifts this
+## profile has not reached yet (see [method gift_locked]).
 func _roll_gifts() -> Array[Dictionary]:
 	var taken := Game.abilities.map(func(a: Dictionary) -> String: return a.id)
 	var result: Array[Dictionary] = []
 	for path in Game.PATHS:
 		var pool := Data.abilities.values().filter(
-			func(a: Dictionary) -> bool: return a.path == path and not taken.has(a.id)
+			func(a: Dictionary) -> bool:
+				return a.path == path and not taken.has(a.id) and not gift_locked(a)
 		)
 		var pick := _weighted_pick(pool)
 		if not pick.is_empty():
 			result.append(pick)
 	return result
+
+
+## Once the angel has had its say, tell the player what tonight opened up —
+## if anything did. It waits for the intro rather than talking over it, and it
+## is a caption like any other, so it yields to a real conversation and can be
+## walked away from.
+func _announce_unlocks() -> void:
+	var unlocked := gifts_unlocked_tonight()
+	if unlocked.is_empty():
+		return
+	var names: Array[String] = []
+	for ability in unlocked:
+		names.append(tr(str(ability.get("name", ""))))
+	names.sort()
+	while dialogue.is_open() and not _finished and is_inside_tree():
+		await get_tree().process_frame
+	if not is_inside_tree() or _finished:
+		return
+	await dialogue.announce(tr("UNLOCKED_TONIGHT") % ", ".join(names))
+
+
+## A gift may name the night it starts appearing on (`"unlock_nights": 3` in
+## data/abilities). Until the profile has finished that many runs it is not in
+## the pool at all, so the fifth night still has a card in it the first one
+## could not have shown — a reason to come back that is not a bigger number.
+##
+## Nothing is locked by default: a gift with no `unlock_nights` has always
+## been available and still is. Locks are also ignored in a duel, where both
+## players must be offered the same cards whatever they have played before.
+static func gift_locked(ability: Dictionary) -> bool:
+	var needs := int(ability.get("unlock_nights", 0))
+	if needs <= 0 or Net.mode == Net.Mode.PVP:
+		return false
+	return int(Profile.data.get("nights", 0)) < needs
+
+
+## What this night opened up, for the line the run shows on its first room.
+## Only the gifts whose night is exactly this one: a list of everything ever
+## unlocked would grow into wallpaper nobody reads.
+static func gifts_unlocked_tonight() -> Array:
+	var nights := int(Profile.data.get("nights", 0))
+	if nights <= 0:
+		return []
+	return Data.abilities.values().filter(
+		func(a: Dictionary) -> bool: return int(a.get("unlock_nights", 0)) == nights
+	)
 
 
 ## Rarity decides how often a gift is offered at all, never how strong it is

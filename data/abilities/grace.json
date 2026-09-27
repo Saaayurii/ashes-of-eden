@@ -16,7 +16,8 @@
         "op": "mul",
         "value": 1.3
       }
-    ]
+    ],
+    "unlock_nights": 2
   },
   {
     "id": "shield_of_faith",
@@ -207,7 +208,8 @@
         "op": "add",
         "value": 1
       }
-    ]
+    ],
+    "unlock_nights": 4
   },
   {
     "id": "aegis_of_ash",

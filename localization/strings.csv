@@ -68,6 +68,7 @@ DLG_CH1_PROLOGUE_4,"Consecrated ground would not take me. Where they put me inst
 DLG_CH1_PROLOGUE_5,"No name over me, no bell.","Ни имени надо мной, ни колокола.","Ні імені наді мною, ні дзвону.","头上没有名字，也没有钟声。"
 DLG_CH1_PROLOGUE_6,"That should have been the end of it.","На этом всё должно было кончиться.","На цьому все мало скінчитися.","本该到此为止。"
 DLG_CH1_PROLOGUE_7,"It was not the end of it.","Оно не кончилось.","Воно не скінчилося.","并没有到此为止。"
+UNLOCKED_TONIGHT,"Tonight the road offers something new: %s","Этой ночью дорога предлагает новое: %s","Цієї ночі дорога пропонує нове: %s","今夜，这条路给出了新的东西：%s"
 DLG_CH1_STRANGER_1,"Do not trust the thing above the temple.","Не верь существу над храмом.","Не вір істоті над храмом.","不要相信神殿上方的那个东西。"
 DLG_CH1_STRANGER_2,"It calls this a Judgement. Ask it who is being judged.","Оно называет это Судом. Спроси, кого судят.","Воно називає це Судом. Спитай, кого судять.","它称这为审判。问问它，受审的是谁。"
 DLG_CH1_STRANGER_KILL,"Strike it down.","Убить.","Убити.","将它击倒。"

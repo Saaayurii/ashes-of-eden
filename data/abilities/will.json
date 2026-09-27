@@ -14,7 +14,8 @@
         "type": "extra_life",
         "value": 1
       }
-    ]
+    ],
+    "unlock_nights": 4
   },
   {
     "id": "steady_hand",
@@ -152,7 +153,8 @@
         "op": "add",
         "value": 3
       }
-    ]
+    ],
+    "unlock_nights": 3
   },
   {
     "id": "momentum",

@@ -135,6 +135,41 @@ func _run() -> void:
 	_assert(counts.common > counts.rare and counts.rare > counts.epic and counts.epic > counts.legendary,
 		"rarity weights order the offers %s" % counts)
 	_assert(counts.legendary > 0, "a legendary still turns up")
+
+	# --- gifts that arrive on a later night ------------------------------------
+	# Some cards name the night they start appearing on, so a fifth run can
+	# hold something the first could not (Run.gift_locked).
+	var gated: Array = data.abilities.values().filter(
+		func(a): return int(a.get("unlock_nights", 0)) > 0)
+	_assert(not gated.is_empty(), "some gifts are held back for a later night")
+	if not gated.is_empty():
+		var profile = root.get_node("Profile")
+		var nights_before: int = profile.data.nights
+		var gate: Dictionary = gated[0]
+		var needs := int(gate.unlock_nights)
+
+		profile.data.nights = 0
+		_assert(run.gift_locked(gate), "on the first night %s is not offered" % gate.id)
+		_assert(run.gifts_unlocked_tonight().is_empty(),
+			"the first night announces nothing")
+
+		profile.data.nights = needs
+		_assert(not run.gift_locked(gate), "on night %d it is" % needs)
+		var tonight: Array = run.gifts_unlocked_tonight().map(func(a): return a.id)
+		_assert(tonight.has(gate.id), "and it is what that night announces %s" % [tonight])
+
+		profile.data.nights = needs + 1
+		_assert(not run.gift_locked(gate), "it stays available afterwards")
+		_assert(not run.gifts_unlocked_tonight().map(func(a): return a.id).has(gate.id),
+			"but is not announced twice")
+
+		# A gift with no night named has always been available.
+		var ungated: Array = data.abilities.values().filter(
+			func(a): return int(a.get("unlock_nights", 0)) == 0)
+		profile.data.nights = 0
+		_assert(not ungated.is_empty() and not run.gift_locked(ungated[0]),
+			"a gift with no night named is never held back")
+		profile.data.nights = nights_before
 	_finish()
 
 

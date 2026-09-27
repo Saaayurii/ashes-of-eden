@@ -22,7 +22,8 @@
         "op": "add",
         "value": -15
       }
-    ]
+    ],
+    "unlock_nights": 2
   },
   {
     "id": "hunger_of_the_abyss",
@@ -190,7 +191,8 @@
         "op": "add",
         "value": 0.6
       }
-    ]
+    ],
+    "unlock_nights": 3
   },
   {
     "id": "crimson_rite",

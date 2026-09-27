@@ -121,6 +121,12 @@ during the wind-up, `death` plays instead of the ash squash):
   "idle": "res://assets/sprites/cultist_idle.png", "walk": "...", "attack": "...", "death": "..."}}
 ```
 
+Optional `unlock_nights`: the night this gift starts appearing on. `"unlock_nights": 3` keeps it out
+of the pool entirely until the profile has finished three runs, so a later night can hold a card an
+earlier one could not. A gift without the field has always been available. Locks are ignored in a
+duel, where both players must be offered the same cards. The night a gift unlocks on, the run says
+so once in a caption (`UNLOCKED_TONIGHT`).
+
 ## Dialogues — `data/dialogues/`
 
 ```json

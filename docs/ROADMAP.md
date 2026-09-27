@@ -44,7 +44,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] Damage numbers, smoke puffs on death / roll / projectile burst, boss bar
 - [x] Drop through platforms (down + jump), ledge mantle
 - [x] Ground slam (down in the air: a fast drop that knocks down what he lands beside) and wall grab (hold into a wall to slide, jump to push off) — `traversal_moves_test.gd`
-- [ ] One new discovery per night (gift / line / enemy unlocked by profile.nights)
+- [x] One new discovery per night: gifts carry `unlock_nights` and stay out of the pool until the profile reaches it; the night one arrives, the run says so (`gift_test.gd`)
 - [ ] Skins as data (`data/skins`) — free skins first; the store comes only with a real storefront (v0.6)
 - [x] 3 more enemy behaviours as data: ranged (zealot, wraith), charger (lunge: raven, Knight of Ash), summoner (Cult caller: `caster` behaviour + `summon` attack)
 - [x] Elite enemies (elite possessed with a death blast, fallen champion)

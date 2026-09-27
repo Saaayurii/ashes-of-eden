@@ -444,6 +444,35 @@ func is_blocking_open() -> bool:
 	return _busy and _blocking
 
 
+## A line of text over the game with nobody saying it — what a night has
+## opened up, and anything else that is the game talking rather than a person.
+## It yields to a real conversation the way any caption does, and it is given
+## the finished string rather than a key because the text is composed at the
+## moment it is shown.
+func announce(text: String) -> void:
+	if _busy or text == "":
+		return
+	_busy = true
+	_blocking = false
+	_skipped = false
+	visible = true
+	panel.visible = false
+	caption.visible = true
+	caption.text = text
+	EventBus.dialogue_started.emit("")
+	var remaining := _caption_seconds(text)
+	while remaining > 0.0 and not _skipped:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		if not get_tree().paused:
+			remaining -= get_process_delta_time()
+	visible = false
+	_busy = false
+	_released.emit()
+	EventBus.dialogue_finished.emit("")
+
+
 ## Cut the running dialogue short from outside (a skipped cutscene).
 func skip() -> void:
 	if _busy:
