@@ -139,6 +139,7 @@ make android    # отладочный APK (сначала `make android-image`)
 ```bash
 python3 tools/audio/generate_voices.py     # голос каждой твари: тревога / атака / боль / смерть
 python3 tools/audio/generate_sfx.py        # звуковые заглушки
+python3 tools/audio/generate_alignment_layers.py  # три музыкальных слоя, по одному на путь
 python3 tools/audio/generate_speech.py     # озвучка реплик, 4 языка (нужен pip install 'piper-tts[zh]', см. docs/VOICE.md)
 python3 tools/rooms/generate_rooms.py      # генерируемые комнаты
 python3 tools/rooms/painted_rooms.py       # нарисованные

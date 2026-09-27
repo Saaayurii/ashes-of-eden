@@ -1408,8 +1408,12 @@ func _update_aura() -> void:
 			_aura.emitting = false
 		if _light != null:
 			_light.color = LIGHT_COLOR
+		Audio.alignment_layer("", 0.0)
 		return
 	var strength := clampf((lead - 1) / 5.0, 0.2, 1.0)
+	# The same lean, for the ears: a layer under the room's music that thickens
+	# as the counters separate. Audio ignores a call that changes nothing.
+	Audio.alignment_layer(path, strength)
 	var look: Array = AURA[path]
 	if _aura == null:
 		_aura = Fx.trail(self, look[0], 16, 1.4)

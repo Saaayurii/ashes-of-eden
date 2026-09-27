@@ -58,7 +58,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] Story scenes spoken in all four languages (placeholder TTS, `docs/VOICE.md`)
 - [x] NPC dialogues with real consequences; flags read back by later dialogues (Father Matthew reads Mara and the Voice)
 - [x] Alignment shows on the hero: an aura of the leading path and a tint on his light
-- [ ] Alignment: eyes / veins on the sprite, a music layer
+- [x] Alignment as a music layer: a loop per path under the room's music, thickening as the counters separate (`alignment_layer_test.gd`) — [ ] eyes / veins on the sprite
 - [x] Saves: autosave + 3 slots, continue / load, export / import (file or text code)
 
 ## v0.4 — Community
@@ -67,8 +67,8 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [ ] Contributor art pass, art direction doc
 
 ## v0.5 — Chinese market
-- [ ] CJK pixel font, full zh_CN review by a native speaker
-- [ ] Web build with fonts embedded
+- [x] A CJK font that ships with the build: Noto Sans SC, subsetted to the characters used (`tools/art/make_cjk_font.py`) — [ ] a *pixel* CJK face to match the Latin one, [ ] full zh_CN review by a native speaker
+- [x] Web build with fonts embedded — the Chinese reads in a browser, where there are no system fonts to fall back on
 
 ## v0.6 — Desktop stores
 - [ ] Steam page, achievements, cloud saves

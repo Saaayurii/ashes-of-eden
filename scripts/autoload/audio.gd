@@ -139,6 +139,11 @@ var _clips := {}
 var _variants := {}
 var _voices: Array[AudioStreamPlayer] = []
 var _music: Array[AudioStreamPlayer] = []
+## The layer that says which way the run leans, under whatever the room is
+## playing (tools/audio/generate_alignment_layers.py). Silent by default and
+## silent again whenever the three counters are close.
+var _layer: AudioStreamPlayer
+var _layer_path := ""
 ## The one mouth: story lines are one at a time, and a new line cuts the last
 ## one off the way a person interrupting does.
 var _speech: AudioStreamPlayer
@@ -173,6 +178,10 @@ func _ready() -> void:
 		player.volume_db = -80.0
 		add_child(player)
 		_music.append(player)
+	_layer = AudioStreamPlayer.new()
+	_layer.bus = "Music"
+	_layer.volume_db = -80.0
+	add_child(_layer)
 	_speech = AudioStreamPlayer.new()
 	_speech.bus = "SFX"
 	add_child(_speech)
@@ -414,6 +423,64 @@ func _fade(player: AudioStreamPlayer, to_db: float, time: float, stop_after: boo
 	tween.tween_property(player, "volume_db", to_db, time)
 	if stop_after:
 		tween.tween_callback(player.stop)
+
+
+# --------------------------------------------------------------- leaning ---
+
+## Loudest the alignment layer ever gets. It is meant to be noticed on the way
+## out of a run, not on the way in, so it sits under the music rather than
+## beside it.
+const LAYER_DB := -19.0
+## Long fades: the lean is a slow thing and the layer arriving should not be
+## an event. Leaving takes longer than arriving, so a brief swing in the
+## counters does not make it flicker.
+const LAYER_IN := 3.5
+const LAYER_OUT := 5.0
+
+
+## Which way the run leans, and how far — [param strength] 0 for level, up to
+## 1 for a run that has committed. Called every frame from the body that owns
+## the alignment (Player._update_aura), so it must be cheap and idempotent:
+## anything already playing at the right volume is left exactly as it is.
+func alignment_layer(path: String, strength: float) -> void:
+	if _layer == null:
+		return
+	strength = clampf(strength, 0.0, 1.0)
+	if path == "" or strength <= 0.0:
+		if _layer_path != "":
+			_layer_path = ""
+			_fade(_layer, -80.0, LAYER_OUT, true)
+		return
+	if path != _layer_path:
+		_layer_path = path
+		var stream := _music_stream(StringName("layer_" + path))
+		if stream == null:
+			return  # a build without the layers is a build without them
+		_layer.stream = stream
+		_layer.volume_db = -80.0
+		_layer.play()
+		_fade(_layer, _layer_db(strength), LAYER_IN, false)
+		return
+	# Same path, new depth: follow it, but only once it has actually moved and
+	# only when no fade is already carrying it somewhere.
+	var wanted := _layer_db(strength)
+	if absf(_layer.volume_db - wanted) > 0.6 and not _fading(_layer):
+		_fade(_layer, wanted, LAYER_IN, false)
+
+
+## How loud the layer sits for a given lean: full at a committed run, ten
+## decibels under that when it has only just begun to tilt.
+func _layer_db(strength: float) -> float:
+	return LAYER_DB + (1.0 - strength) * -10.0
+
+
+## A fade still running on this player. The meta outlives the tween, so the
+## tween itself has to be asked.
+func _fading(player: AudioStreamPlayer) -> bool:
+	if not player.has_meta("fade"):
+		return false
+	var running: Variant = player.get_meta("fade")
+	return running is Tween and (running as Tween).is_valid() and (running as Tween).is_running()
 
 
 # ---------------------------------------------------------------- speech ---

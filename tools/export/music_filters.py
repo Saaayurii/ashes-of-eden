@@ -49,7 +49,12 @@ def lite_set():
     """One track per mood, the lightest one that exists (an OGG original or a
     fetched MP3); the ambient bed always stays."""
     playlists = json.load(open(PLAYLISTS))["playlists"]
-    keep = {"ambient_night.wav"}
+    # The ambient bed and the three alignment layers are not in any playlist
+    # — nothing would pick them — but the game asks for them by name, so a
+    # build without them is a build missing a feature rather than a shorter
+    # playlist (tools/audio/generate_alignment_layers.py).
+    keep = {"ambient_night.wav",
+            "layer_grace.wav", "layer_temptation.wav", "layer_will.wav"}
     for tracks in playlists.values():
         files = [f for f in (_file_of(t) for t in tracks) if f]
         files.sort(key=lambda f: os.path.getsize(os.path.join(MUSIC, f)))

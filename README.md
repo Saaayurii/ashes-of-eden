@@ -141,6 +141,7 @@ hand and regenerating does not churn the repository:
 ```bash
 python3 tools/audio/generate_voices.py     # one voice per creature: alert / attack / hurt / death
 python3 tools/audio/generate_sfx.py        # the placeholder sound effects
+python3 tools/audio/generate_alignment_layers.py  # the three music layers, one per path
 python3 tools/audio/generate_speech.py     # spoken story lines, 4 languages (needs pip install 'piper-tts[zh]', see docs/VOICE.md)
 python3 tools/rooms/generate_rooms.py      # the generated rooms
 python3 tools/rooms/painted_rooms.py       # the hand-painted ones

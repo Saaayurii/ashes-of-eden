@@ -227,6 +227,12 @@ without guesswork. Sources that are already Ogg Vorbis are copied byte for byte.
 | `audio/sfx/draw_*.wav` (3 takes) | artisticdude | https://opengameart.org/content/rpg-sound-pack | CC0 — peak-normalised to -8 dBFS by `tools/audio/fetch_sfx.py` |
 <!-- sfx-manifest:end -->
 
+### Alignment layers (generated)
+
+| Files | Author | Source | License / notes |
+|---|---|---|---|
+| `audio/music/layer_grace.wav`, `layer_temptation.wav`, `layer_will.wav` | generated | `tools/audio/generate_alignment_layers.py` | project — three 16-second loops, one per path, synthesised from sine partials and filtered noise; no third-party material |
+
 ### Fonts
 
 | File(s) | Author | Source | License / notes |
