@@ -40,17 +40,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Building this image accepts Google's Android SDK licence, as the
-      # Dockerfile says. It is a separate image so the everyday CI stays small.
+      # Plain docker build, not buildx: this image is FROM the one above, and
+      # a buildx builder cannot see an image that only exists in the local
+      # daemon — it tries to pull ashes-of-eden/godot from Docker Hub and is
+      # told, correctly, that no such repository exists.
+      #
+      # Building it accepts Google's Android SDK licence, as the Dockerfile says.
+      # It is a separate image so the everyday CI stays small.
       - name: Build Android image (JDK + SDK + debug keystore)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: tools/docker/Dockerfile.android
-          load: true
-          tags: ashes-of-eden/godot-android:4.7.2
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: |
+          docker build -f tools/docker/Dockerfile.android \
+            -t ashes-of-eden/godot-android:4.7.2 .
 
       - name: Export APK
         run: |
@@ -97,13 +97,22 @@ jobs:
           "$GODOT" --headless --import --quit || true
           "$GODOT" --headless -s scripts/tools/validate_data.gd
 
-      # Without a signing identity Godot cannot produce an .ipa, so it is asked
-      # for the Xcode project instead and xcodebuild takes it from there.
+      # Without a signing identity Godot cannot produce an .ipa, so the preset
+      # has export_project_only and xcodebuild takes it from there. Godot still
+      # wants an App Store Team ID even for that, and there is none in this
+      # repository, so an empty one is written into the preset for the length
+      # of this job. APPLE_TEAM_ID as a secret replaces it once there is an
+      # account; nothing signed comes out of this either way.
       - name: Export the Xcode project
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -eux
           mkdir -p build/ios
-          "$GODOT" --headless --export-release iOS build/ios/ashes-of-eden.ipa || true
+          if [ -n "${TEAM_ID:-}" ]; then
+            sed -i '' "s|^application/app_store_team_id=.*|application/app_store_team_id=\"${TEAM_ID}\"|" export_presets.cfg
+          fi
+          "$GODOT" --headless --export-release iOS build/ios/ashes-of-eden.ipa
           ls -la build/ios
 
       - name: Build unsigned
