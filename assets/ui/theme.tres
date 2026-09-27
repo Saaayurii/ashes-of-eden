@@ -1,24 +1,32 @@
-[gd_resource type="Theme" load_steps=6 format=3]
+[gd_resource type="Theme" load_steps=7 format=3]
 
-; Project theme. Two faces, both SIL OFL, both with full Cyrillic (see assets/CREDITS.md):
+; Project theme. Three faces, all SIL OFL (see assets/CREDITS.md):
 ;   Forum       — inscriptional Roman capitals, for titles and buttons.
 ;   EB Garamond — old-style serif, for everything that is read rather than glanced at.
-; Neither covers CJK, so a system CJK font stays at the end of the fallback chain.
-; Web builds have no system fonts: before the first Web/zh_CN release, ship a CJK
-; font file here and put it in the chain (see docs/LOCALIZATION.md).
+;   Noto Sans SC — the Chinese, subsetted to the characters the game uses
+;                  (tools/art/make_cjk_font.py). Neither of the other two has a
+;                  single CJK glyph, and a Web export has no system fonts to fall
+;                  back on: without this file in the chain the whole zh_CN
+;                  translation is tofu in a browser. It is reached only when the
+;                  face in front of it has nothing to draw, so Latin and Cyrillic
+;                  are unaffected. Add Chinese text with a character outside the
+;                  subset and validate_data.gd fails — regenerate and commit.
+; The system font stays behind it, for a desktop player whose OS has something
+; better and for anything the subset does not know about.
 
 [ext_resource type="FontFile" path="res://assets/fonts/EBGaramond-Variable.ttf" id="1_body"]
 [ext_resource type="FontFile" path="res://assets/fonts/Forum-Regular.ttf" id="2_display"]
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSansSC-Subset.ttf" id="3_cjk"]
 
 [sub_resource type="SystemFont" id="cjk_fallback"]
 font_names = PackedStringArray("Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", "Droid Sans Fallback", "Arial Unicode MS")
 
 [sub_resource type="FontVariation" id="body_font"]
-fallbacks = Array[Font]([SubResource("cjk_fallback")])
+fallbacks = Array[Font]([ExtResource("3_cjk"), SubResource("cjk_fallback")])
 base_font = ExtResource("1_body")
 
 [sub_resource type="FontVariation" id="display_font"]
-fallbacks = Array[Font]([ExtResource("1_body"), SubResource("cjk_fallback")])
+fallbacks = Array[Font]([ExtResource("1_body"), ExtResource("3_cjk"), SubResource("cjk_fallback")])
 base_font = ExtResource("2_display")
 
 [resource]

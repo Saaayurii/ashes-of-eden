@@ -43,3 +43,7 @@ __pycache__/
 # g2pW lookup tables, fetched on demand by the Chinese phonemizer
 # (tools/audio/generate_speech.py, see docs/VOICE.md)
 g2pW/
+
+# Noto Sans SC before subsetting: 18 MB, re-downloadable
+# (tools/art/make_cjk_font.py). The subset it produces is committed.
+tools/art/.cache/

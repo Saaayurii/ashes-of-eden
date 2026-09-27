@@ -227,6 +227,12 @@ without guesswork. Sources that are already Ogg Vorbis are copied byte for byte.
 | `audio/sfx/draw_*.wav` (3 takes) | artisticdude | https://opengameart.org/content/rpg-sound-pack | CC0 — peak-normalised to -8 dBFS by `tools/audio/fetch_sfx.py` |
 <!-- sfx-manifest:end -->
 
+### Fonts
+
+| File(s) | Author | Source | License / notes |
+|---|---|---|---|
+| `fonts/NotoSansSC-Subset.ttf` | Google | https://fonts.google.com/noto/specimen/Noto+Sans+SC | SIL OFL 1.1 (`fonts/OFL-NotoSansSC.txt`) — subsetted to the 947 characters the Chinese text uses by `tools/art/make_cjk_font.py`; 18 MB → 436 KB. Neither Latin face has any CJK, and a Web export has no system font to fall back on. |
+
 ### Spoken story lines (generated)
 
 Rendered locally by `tools/audio/generate_speech.py` with [Piper](https://github.com/OHF-Voice/piper1-gpl)

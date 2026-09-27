@@ -88,6 +88,7 @@ func _init() -> void:
 			if strings[key][i].strip_edges() == "":
 				_error("empty %s translation for %s" % [LOCALES[i], key])
 	_check_untranslated(strings)
+	_check_cjk_font(strings)
 
 	for w in warnings:
 		print("WARNING: " + w)
@@ -275,6 +276,40 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 						_error("%s: choice -> unknown node \"%s\"" % [node_where, choice.next])
 					_check_effect(choice.get("effect", {}), node_where)
 			_check_reachable(entry, where)
+
+
+## The Chinese is drawn with a subset of Noto Sans SC holding exactly the
+## characters the game used when it was generated (tools/art/make_cjk_font.py).
+## Add a line of Chinese with a character outside it and a desktop still looks
+## right — Godot falls back to a system font — while the Web build, which has
+## no system fonts, draws tofu. Nobody would catch that until a player did, so
+## it is checked here instead.
+const CJK_FONT := "res://assets/fonts/NotoSansSC-Subset.ttf"
+
+
+func _check_cjk_font(strings: Dictionary) -> void:
+	if not ResourceLoader.exists(CJK_FONT):
+		_error("%s is missing — run tools/art/make_cjk_font.py" % CJK_FONT)
+		return
+	var font: FontFile = load(CJK_FONT)
+	if font == null:
+		_error("%s will not load as a font" % CJK_FONT)
+		return
+	var zh := LOCALES.find("zh_CN")
+	var missing := {}
+	for key in strings:
+		for ch in strings[key][zh]:
+			# Below U+2000 is ASCII and punctuation the Latin faces cover.
+			if ch.unicode_at(0) > 0x2000 and not font.has_char(ch.unicode_at(0)):
+				missing[ch] = key
+	if missing.is_empty():
+		return
+	var chars := missing.keys()
+	chars.sort()
+	_error("%d character(s) in the zh_CN text are not in the subsetted font: %s "
+		% [chars.size(), "".join(chars).left(40)]
+		+ "(first seen in %s) — run tools/art/make_cjk_font.py and commit the result"
+		% missing[chars[0]])
 
 
 ## A translation identical to the English is, nine times in ten, a line that
