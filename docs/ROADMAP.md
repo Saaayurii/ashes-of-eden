@@ -74,7 +74,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [ ] Steam page, achievements, cloud saves
 - [ ] Supporter Pack + OST on itch/Steam; entitlement check against store receipts
 - [ ] Opt-in server-side telemetry: the four numbers in `CORE_LOOP.md`
-- [ ] macOS notarization, Windows signing
+- [x] macOS notarization and Windows signing written and wired into `release.yml`, Android upload-key signing into `mobile.yml` — [ ] the certificates themselves, which have to be bought: `docs/RELEASE.md` says what each costs, what it fixes and in what order it is worth paying
 
 ## v1.0 — Campaign
 - [ ] Seven regions, four endings

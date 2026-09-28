@@ -32,7 +32,40 @@ jobs:
         run: docker compose run --rm build
 
       # Android needs the SDK, a debug keystore and Godot's android build
-      # template inside the image. Tracked in docs/ROADMAP.md (v0.2).
+      # template inside the image; it is built by mobile.yml instead.
+
+      # Unsigned, Windows shows SmartScreen's "Windows protected your PC" and
+      # most people stop there. Signing needs a certificate that belongs to a
+      # person, not to a repository, so this runs only once the secrets exist
+      # and says plainly what is missing when they do not (docs/RELEASE.md).
+      - name: Sign Windows
+        env:
+          CERT: ${{ secrets.WINDOWS_CERTIFICATE }}
+          CERT_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          set -eu
+          if [ -z "${CERT:-}" ]; then
+            {
+              echo "### Windows — not signed"
+              echo
+              echo "No \`WINDOWS_CERTIFICATE\` secret. The .exe ships unsigned and"
+              echo "SmartScreen will warn about it. See docs/RELEASE.md."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends osslsigncode
+          echo "$CERT" | base64 -d > /tmp/cert.pfx
+          exe=$(find build/windows -name "*.exe" | head -1)
+          test -n "$exe"
+          # Timestamped, so the signature outlives the certificate.
+          osslsigncode sign \
+            -pkcs12 /tmp/cert.pfx -pass "$CERT_PASSWORD" \
+            -n "Ashes of Eden" -i https://github.com/Saaayurii/ashes-of-eden \
+            -ts http://timestamp.digicert.com \
+            -in "$exe" -out "$exe.signed"
+          mv "$exe.signed" "$exe"
+          rm -f /tmp/cert.pfx
+          echo "### Windows — signed" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Package
         run: |
@@ -54,3 +87,88 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
+
+
+  sign-macos:
+    name: macOS (sign and notarize)
+    needs: export
+    runs-on: macos-latest
+    steps:
+      # Same shape as the Windows step and the iOS job: the work is written
+      # out in full, and it waits for a certificate somebody has to buy.
+      # An Apple Developer account unblocks this and iOS together.
+      - name: Is there a certificate to sign with?
+        id: gate
+        env:
+          CERT: ${{ secrets.MACOS_CERTIFICATE }}
+        run: |
+          if [ -z "${CERT:-}" ]; then
+            echo "have=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### macOS — not signed"
+              echo
+              echo "No \`MACOS_CERTIFICATE\` secret. The .app ships unsigned, and"
+              echo "Gatekeeper tells the player the developer cannot be verified."
+              echo "docs/RELEASE.md lists the six secrets this needs."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.gate.outputs.have == 'true'
+        with:
+          name: builds
+          path: dist
+
+      - name: Import the certificate
+        if: steps.gate.outputs.have == 'true'
+        env:
+          CERT: ${{ secrets.MACOS_CERTIFICATE }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          set -eu
+          # A keychain of its own, thrown away with the runner.
+          security create-keychain -p runner build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p runner build.keychain
+          echo "$CERT" | base64 -d > /tmp/cert.p12
+          security import /tmp/cert.p12 -k build.keychain -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k runner build.keychain
+          rm -f /tmp/cert.p12
+
+      - name: Sign, notarize, staple
+        if: steps.gate.outputs.have == 'true'
+        env:
+          IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -eux
+          cd dist
+          unzip -q ashes-of-eden-macos.zip -d app
+          target=$(find app -maxdepth 2 -name "*.app" | head -1)
+          test -n "$target"
+          # Hardened runtime, or the notary service refuses it.
+          codesign --force --deep --options runtime --timestamp \
+            --sign "$IDENTITY" "$target"
+          codesign --verify --deep --strict --verbose=2 "$target"
+          # Notarisation takes a zip, and the ticket is stapled to the .app.
+          ditto -c -k --keepParent "$target" notarize.zip
+          xcrun notarytool submit notarize.zip \
+            --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" \
+            --team-id "$TEAM_ID" --wait
+          xcrun stapler staple "$target"
+          spctl -a -vvv -t install "$target"
+          rm -f ashes-of-eden-macos.zip notarize.zip
+          (cd app && zip -qry ../ashes-of-eden-macos.zip .)
+          echo "### macOS — signed and notarized" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Replace the release asset
+        if: steps.gate.outputs.have == 'true' && startsWith(github.ref, 'refs/tags/')
+        run: gh release upload "${GITHUB_REF_NAME}" dist/ashes-of-eden-macos.zip --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
