@@ -33,29 +33,28 @@ float noise(vec2 p) {
 	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
-// How close this texel is to the outside of the silhouette: 1 on the edge,
-// 0 well inside it. Four taps is enough at this size.
-float edge(sampler2D tex, vec2 uv, vec2 texel) {
-	vec2 step_uv = texel * rim_width;
-	float around =
-		texture(tex, uv + vec2(step_uv.x, 0.0)).a +
-		texture(tex, uv - vec2(step_uv.x, 0.0)).a +
-		texture(tex, uv + vec2(0.0, step_uv.y)).a +
-		texture(tex, uv - vec2(0.0, step_uv.y)).a;
-	return clamp(1.0 - around * 0.25, 0.0, 1.0);
-}
-
 void fragment() {
 	vec4 base = texture(TEXTURE, UV);
 	if (base.a < 0.01 || strength <= 0.0) {
 		COLOR = base;
 	} else {
 		vec3 rgb = base.rgb;
+		// Built-in TEXTURE must be sampled inside fragment() in Godot 4.7;
+		// passing it to a helper's sampler argument fails shader compilation.
+		float rim = 0.0;
+		if (mode != 2) {
+			vec2 step_uv = TEXTURE_PIXEL_SIZE * rim_width;
+			float around =
+				texture(TEXTURE, UV + vec2(step_uv.x, 0.0)).a +
+				texture(TEXTURE, UV - vec2(step_uv.x, 0.0)).a +
+				texture(TEXTURE, UV + vec2(0.0, step_uv.y)).a +
+				texture(TEXTURE, UV - vec2(0.0, step_uv.y)).a;
+			rim = clamp(1.0 - around * 0.25, 0.0, 1.0);
+		}
 		if (mode == 0) {
 			// Light along the edge, brightest where the body ends. Steady on
 			// purpose: grace in this game is certainty, and certainty does not
 			// flicker.
-			float rim = edge(TEXTURE, UV, TEXTURE_PIXEL_SIZE);
 			float breath = 0.88 + 0.12 * sin(TIME * 1.1);
 			rgb = mix(rgb, tint.rgb, clamp(rim * strength * breath, 0.0, 0.85));
 		} else if (mode == 1) {
@@ -65,7 +64,7 @@ void fragment() {
 			float threads = noise(p + vec2(0.0, TIME * 0.35));
 			threads = smoothstep(0.62, 0.78, threads);
 			// Away from the edge: veins run under a body, not around it.
-			float inside = 1.0 - edge(TEXTURE, UV, TEXTURE_PIXEL_SIZE);
+			float inside = 1.0 - rim;
 			float pulse = 0.55 + 0.45 * sin(TIME * 2.6);
 			rgb = mix(rgb, tint.rgb, clamp(threads * inside * strength * pulse, 0.0, 0.8));
 		} else {
