@@ -24,6 +24,12 @@ which usually means the column was filled in to get the check to pass.
 hour it took at 1x. Pass a slower scale if your machine struggles:
 `docker compose run --rm godot godot --headless -s scripts/tools/smoke_test.gd -- 2`.
 
+Generated files — the sound, the speech, the alignment layers, the secret walls, the CJK subset —
+are produced by scripts that promise the same bytes every time, so regenerating is never a diff.
+`python3 tools/check_generators.py` proves it (`--all` includes the slow ones). If it says a
+generator no longer reproduces what is committed, either the generator changed or somebody edited
+its output by hand; both need fixing at the source rather than by committing the difference.
+
 ## A word on the repository's size
 
 It is big — about 610 MB of history, most of it the painted panels, sprite sheets and audio in

@@ -31,3 +31,11 @@ jobs:
 
       - name: Crossplay stand (co-op and duel)
         run: docker compose run --rm net-test
+
+      # Half the repository is written by scripts that promise byte-identical
+      # output. Only the quick ones here: the audio generators take minutes and
+      # the font one downloads 25 MB, so those are for `--all` by hand.
+      - name: Generators still reproduce what is committed
+        run: |
+          python3 -m pip install --quiet numpy pillow
+          python3 tools/check_generators.py

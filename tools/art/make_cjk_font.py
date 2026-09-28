@@ -70,6 +70,25 @@ def fetch(url, path, what):
         out.write(response.read())
 
 
+## fontTools stamps head.modified with the moment it ran, and the checksum it
+## writes afterwards covers that stamp, so two runs of the same script produce
+## files that differ in a handful of bytes. The font is identical to read and
+## different to git, which is the worst of both: a regeneration looks like a
+## change and a real change hides among the noise. Pin the timestamps to the
+## epoch the rest of the toolchain uses and the output becomes byte-stable.
+## (tools/check_generators.py is what noticed.)
+def _make_reproducible(path):
+    from fontTools.ttLib import TTFont
+    # recalcTimestamp defaults to True, which puts the current time back into
+    # head.modified on save — undoing the very thing this function is for, and
+    # leaving three bytes of checksum different between runs.
+    font = TTFont(path, recalcTimestamp=False)
+    head = font["head"]
+    head.created = 0
+    head.modified = 0
+    font.save(path)
+
+
 def main():
     try:
         import fontTools  # noqa: F401
@@ -100,6 +119,7 @@ def main():
     ], check=True)
 
     os.remove(SOURCE + ".static.ttf")
+    _make_reproducible(OUT)
     size = os.path.getsize(OUT)
     print("%d characters -> %s (%.0f KB, from %.0f MB)"
           % (len(chars), os.path.relpath(OUT, ROOT), size / 1024,

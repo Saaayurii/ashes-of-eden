@@ -12,6 +12,7 @@ tools/audio/.cache/
 # re-imports them lossless and the saving silently disappears in CI.
 !assets/levels/depth/*_wide.png.import
 !assets/portraits/*.png.import
+!assets/sprites/enemy_atlases/*.png.import
 localization/*.translation
 export_presets.cfg.bak
 .editor/
