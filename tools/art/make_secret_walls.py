@@ -190,7 +190,11 @@ def build(place, spec):
     for index, frame in enumerate(frames):
         strip.paste(frame, (index * w, 0))
     path = os.path.join(OUT, "secret_wall_%s.png" % place)
-    strip.save(path)
+    # Spelled out rather than left to Pillow's defaults. Without this the same
+    # picture compresses differently between Pillow or zlib versions, so the
+    # file changes on a machine that only regenerated it — which is how CI
+    # caught this: identical pixels, different bytes, a diff nobody made.
+    strip.save(path, "PNG", optimize=False, compress_level=6)
     print("%s  %dx%d x%d  palette %s" % (os.path.relpath(path, ROOT), w, h, len(frames), pal["base"]))
 
 

@@ -21,7 +21,7 @@ Exit code 1 if any generator's output differs from what is committed, which
 is either a broken generator or a file somebody edited by hand instead of
 regenerating.
 """
-import argparse, os, subprocess, sys
+import argparse, io, os, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -39,6 +39,34 @@ GENERATORS = [
     ("cjk subset", ["tools/art/make_cjk_font.py"],
      ["assets/fonts/NotoSerifSC-Subset.ttf"], True),
 ]
+
+
+## A PNG whose pixels match but whose bytes do not is a different zlib, not a
+## different picture. That distinction matters: the promise worth keeping is
+## "regenerating does not change the art", and holding every contributor's
+## Pillow to the same build is not a promise this project can make. Reported,
+## not failed.
+def same_picture(path):
+    """True when the working copy differs from HEAD only in compression."""
+    if not path.lower().endswith(".png"):
+        return False
+    try:
+        from PIL import Image
+        import numpy as np
+    except ImportError:
+        return False
+    committed = subprocess.run(["git", "show", "HEAD:" + path], cwd=ROOT,
+                               capture_output=True)
+    if committed.returncode != 0:
+        return False
+    try:
+        before = Image.open(io.BytesIO(committed.stdout)).convert("RGBA")
+        after = Image.open(os.path.join(ROOT, path)).convert("RGBA")
+    except Exception:
+        return False
+    if before.size != after.size:
+        return False
+    return bool((np.asarray(before) == np.asarray(after)).all())
 
 
 def dirty(paths):
@@ -97,11 +125,17 @@ def main():
             failures.append("%s: exited %d" % (name, result.returncode))
             continue
         moved, extra = dirty(paths)
-        if moved:
+        recompressed = [m for m in moved if same_picture(m)]
+        real = [m for m in moved if m not in recompressed]
+        if real:
             failures.append("%s: %d file(s) differ from what is committed:\n      %s"
-                            % (name, len(moved), "\n      ".join(moved[:10])))
-        else:
+                            % (name, len(real), "\n      ".join(real[:10])))
+        elif not moved:
             print("    reproduced exactly")
+        if recompressed:
+            print("    (%d PNG(s) identical in pixels, different in bytes — another "
+                  "zlib: %s)" % (len(recompressed),
+                                 ", ".join(os.path.basename(r) for r in recompressed[:3])))
         if extra:
             print("    (writes %d file(s) the repository does not keep: %s)"
                   % (len(extra), ", ".join(os.path.basename(e) for e in extra[:4])))
