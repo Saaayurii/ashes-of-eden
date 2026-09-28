@@ -278,13 +278,13 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_reachable(entry, where)
 
 
-## The Chinese is drawn with a subset of Noto Sans SC holding exactly the
+## The Chinese is drawn with a subset of Noto Serif SC holding exactly the
 ## characters the game used when it was generated (tools/art/make_cjk_font.py).
 ## Add a line of Chinese with a character outside it and a desktop still looks
 ## right — Godot falls back to a system font — while the Web build, which has
 ## no system fonts, draws tofu. Nobody would catch that until a player did, so
 ## it is checked here instead.
-const CJK_FONT := "res://assets/fonts/NotoSansSC-Subset.ttf"
+const CJK_FONT := "res://assets/fonts/NotoSerifSC-Subset.ttf"
 
 
 func _check_cjk_font(strings: Dictionary) -> void:

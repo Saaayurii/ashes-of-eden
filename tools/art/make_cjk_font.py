@@ -7,11 +7,19 @@ the Chinese reads fine. A Web export has no system fonts, so the same build
 in a browser shows tofu where the Chinese should be, which is the whole
 zh_CN translation invisible.
 
-Shipping Noto Sans SC whole would fix it and cost 18 MB in a build that is
-already too heavy for a browser. Chapter I uses 947 distinct characters. So
-this subsets the font down to exactly what `localization/strings.csv` needs
-— a couple of hundred kilobytes — and `assets/ui/theme.tres` puts the result
-in the fallback chain ahead of the system font.
+Shipping a whole CJK face would fix it and cost 18 MB in a build already too
+heavy for a browser. Chapter I uses 947 distinct characters. So this subsets
+one down to exactly what `localization/strings.csv` needs — a couple of
+hundred kilobytes — and `assets/ui/theme.tres` puts the result in the
+fallback chain ahead of the system font.
+
+The face is **Noto Serif SC**, not Sans. The game is set in EB Garamond and
+Forum — an old-style serif and Roman capitals — and a grotesque beside them
+reads as a different project's text pasted in. Serif SC is Song, which is
+what a Chinese reader expects where a Western reader expects a serif. It is
+also instanced to a regular weight: the variable original defaults to Thin,
+which is what the first version of this shipped and why the Chinese looked
+faint next to the Cyrillic.
 
 The catch is the obvious one: add a line of Chinese with a character not in
 the subset and it renders as tofu. `validate_data.gd` checks for that and
@@ -28,11 +36,14 @@ from urllib.request import urlopen
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 STRINGS = os.path.join(ROOT, "localization", "strings.csv")
 CACHE = os.path.join(ROOT, "tools", "art", ".cache")
-SOURCE = os.path.join(CACHE, "NotoSansSC.ttf")
-OUT = os.path.join(ROOT, "assets", "fonts", "NotoSansSC-Subset.ttf")
-LICENCE = os.path.join(ROOT, "assets", "fonts", "OFL-NotoSansSC.txt")
-URL = "https://github.com/google/fonts/raw/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf"
-LICENCE_URL = "https://github.com/google/fonts/raw/main/ofl/notosanssc/OFL.txt"
+SOURCE = os.path.join(CACHE, "NotoSerifSC.ttf")
+OUT = os.path.join(ROOT, "assets", "fonts", "NotoSerifSC-Subset.ttf")
+LICENCE = os.path.join(ROOT, "assets", "fonts", "OFL-NotoSerifSC.txt")
+URL = "https://github.com/google/fonts/raw/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf"
+## Regular. EB Garamond next to it is a book weight; anything lighter reads as
+## a different voice rather than the same one in another script.
+WEIGHT = 400
+LICENCE_URL = "https://github.com/google/fonts/raw/main/ofl/notoserifsc/OFL.txt"
 
 ## Everything the Latin faces already cover is left to them — this font is
 ## only ever reached as a fallback. What it must carry is anything above
@@ -65,17 +76,22 @@ def main():
     except ImportError:
         sys.exit("make_cjk_font: pip install fonttools")
 
-    fetch(URL, SOURCE, "Noto Sans SC (18 MB, once)")
+    fetch(URL, SOURCE, "Noto Serif SC (once)")
     fetch(LICENCE_URL, LICENCE, "its OFL licence")
 
     chars = wanted()
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    # Pin the weight first. Left variable, the axis defaults to its minimum —
+    # Thin — and the Chinese comes out visibly lighter than the Latin beside
+    # it, which is exactly what happened the first time.
     subprocess.run([
-        sys.executable, "-m", "fontTools.subset", SOURCE,
+        sys.executable, "-m", "fontTools.varLib.instancer", SOURCE,
+        "wght=%d" % WEIGHT, "--output=" + SOURCE + ".static.ttf",
+    ], check=True)
+    subprocess.run([
+        sys.executable, "-m", "fontTools.subset", SOURCE + ".static.ttf",
         "--text=" + "".join(sorted(chars)),
         "--output-file=" + OUT,
-        # Keep the variable axis: the theme asks for a weight, and a static
-        # instance would ignore it. Drop everything else that is not drawing.
         "--layout-features=",
         "--no-hinting",
         "--desubroutinize",
@@ -83,6 +99,7 @@ def main():
         "--drop-tables+=DSIG",
     ], check=True)
 
+    os.remove(SOURCE + ".static.ttf")
     size = os.path.getsize(OUT)
     print("%d characters -> %s (%.0f KB, from %.0f MB)"
           % (len(chars), os.path.relpath(OUT, ROOT), size / 1024,

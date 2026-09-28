@@ -67,7 +67,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [ ] Contributor art pass, art direction doc
 
 ## v0.5 — Chinese market
-- [x] A CJK font that ships with the build: Noto Sans SC, subsetted to the characters used (`tools/art/make_cjk_font.py`) — [ ] a *pixel* CJK face to match the Latin one, [ ] full zh_CN review by a native speaker
+- [x] A CJK font that ships with the build and matches the Latin one: Noto **Serif** SC at weight 400, subsetted (`tools/art/make_cjk_font.py`). The line used to ask for a *pixel* face, from when the art was placeholder rectangles; the game is now set in EB Garamond and Forum, so Song is the face that belongs beside them — [ ] full zh_CN review by a native speaker
 - [x] Web build with fonts embedded — the Chinese reads in a browser, where there are no system fonts to fall back on
 
 ## v0.6 — Desktop stores

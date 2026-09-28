@@ -237,7 +237,7 @@ without guesswork. Sources that are already Ogg Vorbis are copied byte for byte.
 
 | File(s) | Author | Source | License / notes |
 |---|---|---|---|
-| `fonts/NotoSansSC-Subset.ttf` | Google | https://fonts.google.com/noto/specimen/Noto+Sans+SC | SIL OFL 1.1 (`fonts/OFL-NotoSansSC.txt`) — subsetted to the 947 characters the Chinese text uses by `tools/art/make_cjk_font.py`; 18 MB → 436 KB. Neither Latin face has any CJK, and a Web export has no system font to fall back on. |
+| `fonts/NotoSerifSC-Subset.ttf` | Google | https://fonts.google.com/noto/specimen/Noto+Serif+SC | SIL OFL 1.1 (`fonts/OFL-NotoSerifSC.txt`) — instanced to weight 400 and subsetted to the characters the Chinese text uses by `tools/art/make_cjk_font.py`; 25 MB → 343 KB. Serif rather than sans, to sit with EB Garamond; neither Latin face has any CJK, and a Web export has no system font to fall back on. |
 
 ### Spoken story lines (generated)
 

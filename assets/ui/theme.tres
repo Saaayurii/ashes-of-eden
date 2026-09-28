@@ -3,8 +3,11 @@
 ; Project theme. Three faces, all SIL OFL (see assets/CREDITS.md):
 ;   Forum       — inscriptional Roman capitals, for titles and buttons.
 ;   EB Garamond — old-style serif, for everything that is read rather than glanced at.
-;   Noto Sans SC — the Chinese, subsetted to the characters the game uses
-;                  (tools/art/make_cjk_font.py). Neither of the other two has a
+;   Noto Serif SC — the Chinese, subsetted to the characters the game uses
+;                  (tools/art/make_cjk_font.py). Serif, not Sans, and pinned to
+;                  a regular weight: Song is what a Chinese reader expects where
+;                  a Western reader expects a serif, and the variable original
+;                  defaults to Thin. Neither of the other two has a
 ;                  single CJK glyph, and a Web export has no system fonts to fall
 ;                  back on: without this file in the chain the whole zh_CN
 ;                  translation is tofu in a browser. It is reached only when the
@@ -16,7 +19,7 @@
 
 [ext_resource type="FontFile" path="res://assets/fonts/EBGaramond-Variable.ttf" id="1_body"]
 [ext_resource type="FontFile" path="res://assets/fonts/Forum-Regular.ttf" id="2_display"]
-[ext_resource type="FontFile" path="res://assets/fonts/NotoSansSC-Subset.ttf" id="3_cjk"]
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSerifSC-Subset.ttf" id="3_cjk"]
 
 [sub_resource type="SystemFont" id="cjk_fallback"]
 font_names = PackedStringArray("Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", "Droid Sans Fallback", "Arial Unicode MS")
