@@ -26,6 +26,7 @@ jobs:
   android:
     name: Android (debug-signed APK)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -98,6 +99,7 @@ jobs:
   ios:
     name: iOS (unsigned)
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       # Godot refuses to export for iOS at all without an App Store Team ID —
       # not even the Xcode project on its own, which is all this job wants.

@@ -32,6 +32,7 @@ jobs:
   build:
     name: Export Web
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 

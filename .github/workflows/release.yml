@@ -9,6 +9,7 @@ jobs:
   export:
     name: Export all platforms
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: write
     steps:
@@ -93,6 +94,7 @@ jobs:
     name: macOS (sign and notarize)
     needs: export
     runs-on: macos-latest
+    timeout-minutes: 45
     steps:
       # Same shape as the Windows step and the iOS job: the work is written
       # out in full, and it waits for a certificate somebody has to buy.

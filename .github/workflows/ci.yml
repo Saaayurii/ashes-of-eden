@@ -9,6 +9,10 @@ jobs:
   validate:
     name: Validate data & localization
     runs-on: ubuntu-latest
+    # A hung step otherwise holds a runner for the full six hours GitHub
+    # allows. The whole job takes about fifteen minutes when the image has to
+    # be rebuilt from scratch, so this is generous and still finite.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -27,9 +31,13 @@ jobs:
         run: docker compose run --rm validate
 
       - name: Smoke test game loop
+        # It plays the chapter at 4x and lands around two minutes; twelve is a bad day, not a hang.
+        timeout-minutes: 12
         run: docker compose run --rm test
 
       - name: Crossplay stand (co-op and duel)
+        # Two Godot processes finding each other over a socket, which is where a hang is most likely: seen taking two minutes and seen never finishing.
+        timeout-minutes: 12
         run: docker compose run --rm net-test
 
       # Half the repository is written by scripts that promise byte-identical
