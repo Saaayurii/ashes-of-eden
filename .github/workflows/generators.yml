@@ -1,0 +1,72 @@
+name: Generators (full)
+
+# Every generator, including the slow ones, once a week.
+#
+# ci.yml runs `check_generators.py` on each push, but only over the quick
+# generators: the audio ones render minutes of sound and the CJK subset pulls
+# a 25 MB font, which is too much to put in front of every pull request.
+#
+# That left the three largest producers in the repository — the sound effects,
+# the creature voices and the Chinese subset — checked by nobody. The subset
+# turned out not to be reproducible at all (fontTools stamps the moment it ran
+# into the font, and the checksum covers that stamp), and that was only found
+# because it happened to be run twice by hand. The audio generators have still
+# never been run on Linux at all; this is what will tell us.
+#
+# Weekly rather than on push: a generator that drifts does it when a dependency
+# updates, not when somebody edits a script, so the useful cadence is the one
+# that catches a new Pillow or a new fontTools rather than a new commit.
+
+on:
+  schedule:
+    # Sunday, early. Nobody is waiting on the answer.
+    - cron: "17 4 * * 0"
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Every generator reproduces its output
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install what the generators need
+        run: python3 -m pip install --quiet numpy pillow fonttools
+
+      - name: Run them all
+        run: python3 tools/check_generators.py --all
+
+      # A drift is worth a person looking at it, and a cron failure nobody sees
+      # is the same as no check at all.
+      - name: Open an issue if anything drifted
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "A generator no longer reproduces its committed output";
+            const body = [
+              "The weekly full generator check failed:",
+              "",
+              `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              "",
+              "Either a generator changed, a dependency it uses changed, or somebody",
+              "edited its output by hand. `python3 tools/check_generators.py --all`",
+              "reproduces it locally; docs and CONTRIBUTING explain the rule.",
+            ].join("\n");
+            // One open issue at a time: a generator that drifts stays drifted
+            // until it is fixed, and a new issue every Sunday helps nobody.
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: "open", labels: "generators",
+            });
+            if (existing.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ["generators"],
+              });
+            }

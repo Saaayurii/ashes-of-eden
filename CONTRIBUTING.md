@@ -26,7 +26,9 @@ hour it took at 1x. Pass a slower scale if your machine struggles:
 
 Generated files — the sound, the speech, the alignment layers, the secret walls, the CJK subset —
 are produced by scripts that promise the same bytes every time, so regenerating is never a diff.
-`python3 tools/check_generators.py` proves it (`--all` includes the slow ones). If it says a
+`python3 tools/check_generators.py` proves it. CI runs the quick ones on every push and a
+weekly job runs `--all`, which covers the audio and the CJK subset — too slow to put in front
+of a pull request, too large to leave unchecked. If it says a
 generator no longer reproduces what is committed, either the generator changed or somebody edited
 its output by hand; both need fixing at the source rather than by committing the difference.
 
