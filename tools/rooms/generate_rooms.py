@@ -57,10 +57,14 @@ FOCAL_RANGES = {
 }
 
 TRAVERSAL_PATCHES = {
-    "graveyard_cross": [(1160, 350, 80, 10)],
+    "graveyard_cross": [(1220, 338, 80, 10)],
     "graveyard_arches": [(1450, 430, 72, 10)],
+    "swamp_moon": [(1250, 413, 90, 14)],  # trace the painted middle pier, no floating art
+    "swamp_crypt": [(310, 375, 60, 10)],  # two-way route to the entrance pier
     "catacombs_3": [(480, 225, 80, 10)],
     "crypt_skulls": [(400, 285, 80, 10)],
+    "hell_gate": [(1525, 563, 75, 12), (1550, 493, 50, 12),
+                  (265, 315, 125, 12), (225, 405, 65, 12)],  # upper left lip clears the stair underside
 }
 
 # One visual thought per new seam, not another random barrel on the route.
@@ -68,18 +72,18 @@ TRAVERSAL_PATCHES = {
 # give the added walking space a place-specific foreground rhythm.
 SEAM_STORIES = {
     "village_night": ("wilds/brush_2", ""),  # leave the exit bridge clear
-    "graveyard_cross": ("graveyard/cross_3",),  # one safe widening; no split entrance bridge
+    "graveyard_cross": ("",),  # painted crosses already frame the bridge; don't stamp another over its stair
     "graveyard_arches": ("", "graveyard/bones_1"),  # no loose coffin at the bridge seam
-    "graveyard_tree": ("", "graveyard/tomb_3"),  # painted roots already establish the entrance
+    "graveyard_tree": ("", ""),  # keep the painted chapel and its roots unobstructed
     "swamp_moon": ("", "wilds/brush_4"),  # the painted roots are enough at the entrance
-    "swamp_red": ("wilds/fallen_2", "wilds/stump_3"),
+    "swamp_red": ("wilds/fallen_2", ""),  # leave the gate's stone cap clear
     "swamp_crypt": ("wilds/brush_3", ""),  # the crypt sprite hovered above this painted gallery
     "catacombs_1": ("graveyard/bones_2", "clutter/clutter_3"),
     "catacombs_2": ("graveyard/coffin_1", "graveyard/bones_1"),
     "catacombs_3": ("clutter/clutter_4", "graveyard/bones_2"),
     "crypt_skulls": ("graveyard/bones_1", "graveyard/coffin_3"),
     "crypt_lava": ("graveyard/bones_2", "clutter/brazier_lit"),
-    "hell_gate": ("graveyard/cross_4", "clutter/brazier_lit"),
+    "hell_gate": ("graveyard/cross_4", ""),  # the second seam is distant scenery, not a floor
     "preacher_nave": ("clutter/brazier_lit", "graveyard/coffin_4"),
     "church": ("graveyard/coffin_1", "clutter/altar_lit"),
 }
@@ -110,6 +114,10 @@ ROOM_PROP_MOTIFS = {
     "hell_gate": {"barrel": "rubble", "box_goods": "bone_reliquary"},
     "preacher_nave": {"pot": "funeral_offering"},
     "church": {},
+    "graveyard": {"barrel": "funeral_offering", "crates_stacked": "rubble", "sack": "funeral_offering"},
+    "dead_bridge": {"crate": "rubble", "crate_large": "rubble"},
+    "fallen_knight": {"barrel": "rubble", "box_goods": "funeral_offering"},
+    "church_ophanim": {"pot": "funeral_offering", "barrel": "rubble", "crate": "funeral_offering"},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -291,7 +299,7 @@ def expand_painted_room(name, room):
     out["width"] = room["width"] + sum(value for _, value in inserts)
     if "painting" in room:
         out["painting_wide"] = room["painting"] + "_wide"
-    for key in ("ground", "ledges", "platforms", "painted_platforms"):
+    for key in ("ground", "ledges", "platforms", "painted_platforms", "hazards"):
         out[key] = [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts), h)
                     for x, y, w, h in room.get(key, [])]
     out["ramps"] = [(_map_x(x0, inserts), y0, _map_x(x1, inserts), y1)
@@ -309,6 +317,46 @@ def expand_painted_room(name, room):
         out["lights"] = [(_map_x(x, inserts), y, tint, radius, energy, flicker)
                          for x, y, tint, radius, energy, flicker in room["lights"]]
     out["platforms"].extend(TRAVERSAL_PATCHES.get(name, []))
+    if name == "village_night":
+        # The widening creates two distinct bridge caps. Trace their actual
+        # painted ends: a single stretched collider stopped 61 px too early
+        # on the right and floated above the stair on the left.
+        out["ground"][7] = (1063, 520, 117, 60)
+        out["ground"].append((1198, 520, 143, 60))
+    if name == "graveyard_cross":
+        out["painted_cornices"] = True
+    if name == "hell_gate":
+        out["painted_cornices"] = True
+        out["hell_cornice_art"] = True
+        out["cornice_crop"] = (800, 482)  # this room's stone bridge cap, not the lava shelf
+        out["ramp_treads"] = {2: [(270, 176), (282, 176), (282, 188),
+                                  (295, 188), (295, 200), (308, 200),
+                                  (308, 212), (328, 212), (328, 223),
+                                  (344, 223), (344, 231), (364, 231), (364, 239)]}
+    if name == "crypt_lava":
+        # Short intermediate treads let the hero walk over the painting's
+        # taller risers without globally increasing step-up height.
+        out["ramp_treads"] = {2: ((1460,208),(1460,201),(1468,201),(1468,194),(1486,194),(1486,188),(1494,188),(1494,181),(1518,181),(1518,171),(1524,171),(1524,164),(1532,164),(1532,157),(1542,157),(1542,149),(1550,149),(1550,140),(1564,140),(1564,131),(1574,131),(1574,122),(1582,122),(1582,115),(1592,115),(1592,108),(1600,108))}
+    if name in ("graveyard_arches", "graveyard_tree"):
+        out["painted_cornices"] = True
+        out["cornice_crop"] = (1220, 316) if name == "graveyard_arches" else (1418, 241)
+    if name in ("swamp_moon", "swamp_red"):
+        out["painted_cornices"] = True
+        out["cornice_crop"] = (1000, 420) if name == "swamp_moon" else (1430, 255)
+    if name == "swamp_moon":
+        out["painted_platforms"].append((1250, 413, 90, 14))
+    if name == "catacombs_1":
+        out["painted_cornices"] = True
+        out["cornice_crop"] = (1160, 234)
+    if name in ("catacombs_2", "catacombs_3", "crypt_skulls"):
+        out["painted_cornices"] = True
+        out["cornice_crop"] = {"catacombs_2": (580, 228),
+                               "catacombs_3": (620, 242),
+                               "crypt_skulls": (500, 256)}[name]
+    if name == "swamp_crypt":
+        out["painted_cornices"] = True
+        out["cornice_crop"] = (150, 319)
+        out["cornice_post"] = (150, 332, 18, 82)
     _place_expansion_accents(name, out)
     return out
 
@@ -388,7 +436,7 @@ ROOMS = {
                 ("fallen_guard", 800, 668), ("cultist", 1100, 668),
                 ("wraith", 300, 620), ("shade", 600, 380), ("raven", 900, 160), ("wraith", 1050, 260)],
         props=[("pot", 330, 290), ("barrel", 460, 680), ("crates_stacked", 700, 680), ("sack", 880, 680),
-               ("chest_gold", 1050, 190), ("pot", 150, 420), ("barrel_apples", 1150, 550)],
+               ("chest_gold", 1130, 200), ("pot", 150, 420), ("barrel_apples", 1150, 550)],
         decor=[("tree_2", 90, 680, "back"), ("tree_4", 700, 680, "back"), ("crypt_1", 1010, 680, "back"),
                ("crypt_2", 470, 680, "back"), ("monument_1", 640, 680, "back"), ("monument_6", 820, 680, "back"),
                ("monument_9", 1230, 680, "back"), ("monument_8", 250, 290, "back"), ("tree_5", 1000, 290, "back"),
@@ -451,7 +499,7 @@ ROOMS = {
         platforms=[(90, 250, 120, 12), (750, 250, 120, 12), (240, 200, 100, 14), (620, 200, 100, 14), (430, 160, 100, 12)],
         spawns=[("ophanim", 480, 110)],
         npcs=[("matthew", 120, 320)],
-        props=[("pot", 120, 320), ("barrel", 240, 320), ("barrel_apples", 276, 320), ("crate", 830, 320)],
+        props=[("pot", 180, 320), ("barrel", 240, 320), ("barrel_apples", 340, 320), ("crate", 830, 320)],
         decor=[("tree_2", 110, 320, "back"), ("monument_5", 480, 320, "back"), ("monument_2", 800, 320, "back"),
                ("fence_1", 250, 320, "mid"), ("fence_3", 700, 320, "mid"),
                ("grass_1", 150, 250, "front"), ("rocks", 470, 160, "front"), ("grass_2", 800, 250, "front")],
@@ -724,7 +772,7 @@ def collider(rects, prefix, parent, one_way=False):
     return "".join(out)
 
 
-def ramp_nodes(ramps, parent):
+def ramp_nodes(ramps, parent, authored_treads=None):
     """Trace stair treads, not a smooth slope that floats over painted steps.
 
     A riser is at most 8 px: the hero's 12 px step-up can walk uphill, while
@@ -736,14 +784,17 @@ def ramp_nodes(ramps, parent):
         if x1 < x0:
             x0, x1 = x1, x0
             y0, y1 = y1, y0
-        count = max(1, (abs(y1 - y0) + 7) // 8)
-        top = [(float(x0), float(y0))]
-        for step in range(count):
-            right_x = x0 + (x1 - x0) * (step + 1) / count
-            top.append((right_x, y0 + (y1 - y0) * step / count))
-            if step + 1 < count:
-                top.append((right_x, y0 + (y1 - y0) * (step + 1) / count))
-        top.append((float(x1), float(y1)))
+        if authored_treads and i in authored_treads:
+            top = list(authored_treads[i])
+        else:
+            count = max(1, (abs(y1 - y0) + 7) // 8)
+            top = [(float(x0), float(y0))]
+            for step in range(count):
+                right_x = x0 + (x1 - x0) * (step + 1) / count
+                top.append((right_x, y0 + (y1 - y0) * step / count))
+                if step + 1 < count:
+                    top.append((right_x, y0 + (y1 - y0) * (step + 1) / count))
+            top.append((float(x1), float(y1)))
         thick = 16.0
         polygon = top + [(x, y + thick) for x, y in reversed(top)]
         coords = ", ".join(f"{round(x, 2)}, {round(y, 2)}" for x, y in polygon)
@@ -861,6 +912,24 @@ def terrain_nodes(r, rng, used, walls=True):
                        f'offset_bottom = {y + h}.0\ncolor = {FILL_COLOR}\nmouse_filter = 2\n\n')
         out.append(piece_nodes(layout, y, f"Ground{i}", used))
     for i, (x, y, w, h) in enumerate(r["platforms"], 1):
+        if r.get("painted_cornices"):
+            # Reuse this room's painted stone cap, rather than a foreign
+            # grid-textured pier. Both cornices meet the existing arch wall.
+            crop_x, crop_y = r.get("cornice_crop", (990, 385))
+            script = (f'script = ExtResource("hell_cornice")\nwalk_width = {float(w)}\n'
+                      f'wall_on_right = {str(x + w == width).lower()}\n'
+                      if r.get("hell_cornice_art") else "")
+            out.append(f'[node name="Platform{i}_1" type="Sprite2D" parent="Terrain"]\n'
+                       f'{script}'
+                       f'position = Vector2({x}, {y})\ntexture = ExtResource("2_backdrop")\n'
+                       f'centered = false\nregion_enabled = true\nregion_rect = Rect2({crop_x}, {crop_y}, {w}, 12)\n\n')
+            if r.get("cornice_post"):
+                sx, sy, pw, ph = r["cornice_post"]
+                out.append(f'[node name="Platform{i}Post" type="Sprite2D" parent="Terrain"]\n'
+                           f'position = Vector2({x + (w - pw) / 2}, {y + 12})\n'
+                           f'texture = ExtResource("2_backdrop")\ncentered = false\nregion_enabled = true\n'
+                           f'region_rect = Rect2({sx}, {sy}, {pw}, {ph})\n\n')
+            continue
         pieces = family("ledge") if r.get("stone_steps") or w >= 80 else family("float")
         out.append(piece_nodes(lay(x, x + w, pieces, rng), y, f"Platform{i}", used))
     if not walls:
@@ -1131,7 +1200,7 @@ def build(name, r):
                         + decor_nodes(decor, "back", "DecorBack", r["ambient"])
                         + '[node name="Geometry" type="StaticBody2D" parent="."]')
     text += collider(r["ground"], "Ground", "Geometry") + collider(walls, "Wall", "Geometry")
-    text += ramp_nodes(r.get("ramps", []), "Geometry")
+    text += ramp_nodes(r.get("ramps", []), "Geometry", r.get("ramp_treads", {}))
     # Ledges live on their own layer (5) so a body can choose to fall through them.
     text += '[node name="Ledges" type="StaticBody2D" parent="."]\ncollision_layer = 16\ncollision_mask = 0\n\n'
     text += collider(r["platforms"], "Platform", "Ledges", one_way=True) + collider(ledges, "Ledge", "Ledges", one_way=True)
@@ -1203,6 +1272,10 @@ texture = SubResource("glow_tex")
 {motes}[node name="Lights" type="Node2D" parent="."]
 
 {lights}'''
+    if r.get("hell_cornice_art"):
+        text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
+                            '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
+                            '[ext_resource type="Script" path="res://scripts/rooms/hell_cornice.gd" id="hell_cornice"]')
     text = text.replace("load_steps=0", "load_steps=%d" % (text.count("[ext_resource") + text.count("[sub_resource")))
     path = os.path.join(ROOT, "scenes", "rooms", f"{name}.tscn")
     with open(path, "w") as f:

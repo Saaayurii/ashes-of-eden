@@ -433,15 +433,10 @@ one_way_collision = true
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(480, 225)
-texture = ExtResource("piece_ledge_4")
-centered = false
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(528, 225)
-texture = ExtResource("piece_ledge_7")
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 32, 37)
+region_rect = Rect2(620, 242, 80, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
@@ -493,17 +488,8 @@ position = Vector2(860, 538)
 prop_id = "rubble"
 
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1320, 583)
+position = Vector2(1290, 583)
 prop_id = "rubble"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1490, 659)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

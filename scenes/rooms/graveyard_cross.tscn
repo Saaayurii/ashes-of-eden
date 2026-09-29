@@ -347,7 +347,7 @@ position = Vector2(720.0, -8.0)
 shape = SubResource("Wall3_shape")
 
 [node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(1145.0, 545.0, 1152.65, 545.0, 1152.65, 537.35, 1160.29, 537.35, 1160.29, 529.71, 1167.94, 529.71, 1167.94, 522.06, 1175.59, 522.06, 1175.59, 514.41, 1183.24, 514.41, 1183.24, 506.76, 1190.88, 506.76, 1190.88, 499.12, 1198.53, 499.12, 1198.53, 491.47, 1206.18, 491.47, 1206.18, 483.82, 1213.82, 483.82, 1213.82, 476.18, 1221.47, 476.18, 1221.47, 468.53, 1229.12, 468.53, 1229.12, 460.88, 1236.76, 460.88, 1236.76, 453.24, 1244.41, 453.24, 1244.41, 445.59, 1252.06, 445.59, 1252.06, 437.94, 1259.71, 437.94, 1259.71, 430.29, 1267.35, 430.29, 1267.35, 422.65, 1275.0, 422.65, 1275.0, 415.0, 1275.0, 431.0, 1275.0, 438.65, 1267.35, 438.65, 1267.35, 446.29, 1259.71, 446.29, 1259.71, 453.94, 1252.06, 453.94, 1252.06, 461.59, 1244.41, 461.59, 1244.41, 469.24, 1236.76, 469.24, 1236.76, 476.88, 1229.12, 476.88, 1229.12, 484.53, 1221.47, 484.53, 1221.47, 492.18, 1213.82, 492.18, 1213.82, 499.82, 1206.18, 499.82, 1206.18, 507.47, 1198.53, 507.47, 1198.53, 515.12, 1190.88, 515.12, 1190.88, 522.76, 1183.24, 522.76, 1183.24, 530.41, 1175.59, 530.41, 1175.59, 538.06, 1167.94, 538.06, 1167.94, 545.71, 1160.29, 545.71, 1160.29, 553.35, 1152.65, 553.35, 1152.65, 561.0, 1145.0, 561.0)
+polygon = PackedVector2Array(1145, 545, 1152.75, 545, 1152.75, 537.15, 1160.5, 537.15, 1160.5, 529.3, 1168.25, 529.3, 1168.25, 521.45, 1176, 521.45, 1176, 513.6, 1183.75, 513.6, 1183.75, 505.75, 1191.5, 505.75, 1191.5, 497.9, 1199.25, 497.9, 1199.25, 490.05, 1207, 490.05, 1207, 482.2, 1214.75, 482.2, 1214.75, 474.35, 1222.5, 474.35, 1222.5, 466.5, 1230.25, 466.5, 1230.25, 458.65, 1238, 458.65, 1238, 450.8, 1245.75, 450.8, 1245.75, 442.95, 1253.5, 442.95, 1253.5, 435.1, 1261.25, 435.1, 1261.25, 427.25, 1269, 427.25, 1269, 419.4, 1276.75, 419.4, 1276.75, 411.55, 1284.5, 411.55, 1284.5, 403.7, 1292.25, 403.7, 1292.25, 395.85, 1300, 395.85, 1300, 388, 1300, 404, 1300, 411.85, 1292.25, 411.85, 1292.25, 419.7, 1284.5, 419.7, 1284.5, 427.55, 1276.75, 427.55, 1276.75, 435.4, 1269, 435.4, 1269, 443.25, 1261.25, 443.25, 1261.25, 451.1, 1253.5, 451.1, 1253.5, 458.95, 1245.75, 458.95, 1245.75, 466.8, 1238, 466.8, 1238, 474.65, 1230.25, 474.65, 1230.25, 482.5, 1222.5, 482.5, 1222.5, 490.35, 1214.75, 490.35, 1214.75, 498.2, 1207, 498.2, 1207, 506.05, 1199.25, 506.05, 1199.25, 513.9, 1191.5, 513.9, 1191.5, 521.75, 1183.75, 521.75, 1183.75, 529.6, 1176, 529.6, 1176, 537.45, 1168.25, 537.45, 1168.25, 545.3, 1160.5, 545.3, 1160.5, 553.15, 1152.75, 553.15, 1152.75, 561, 1145, 561)
 
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
@@ -359,7 +359,7 @@ shape = SubResource("Platform1_shape")
 one_way_collision = true
 
 [node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1200.0, 355.0)
+position = Vector2(1260.0, 343.0)
 shape = SubResource("Platform2_shape")
 one_way_collision = true
 
@@ -431,35 +431,20 @@ one_way_collision = true
 [node name="Terrain" type="Node2D" parent="."]
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1280, 261)
-texture = ExtResource("piece_float_1")
-centered = false
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1309, 261)
-texture = ExtResource("piece_float_2")
+position = Vector2(1280, 262)
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 27, 30)
+region_rect = Rect2(990, 385, 56, 12)
 
 [node name="Platform2_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1160, 350)
-texture = ExtResource("piece_ledge_6")
-centered = false
-
-[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1200, 350)
-texture = ExtResource("piece_ledge_1")
+position = Vector2(1220, 338)
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 40, 46)
+region_rect = Rect2(990, 385, 80, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
-
-[node name="graveyard_cross_3_1" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.783, 0.767, 0.832, 1)
-position = Vector2(845, 490.0)
-texture = ExtResource("decor_graveyard_cross_3")
 
 [node name="DecorFront" type="Node2D" parent="."]
 z_index = 1
@@ -487,7 +472,7 @@ position = Vector2(70, 655)
 prop_id = "chest_wooden"
 
 [node name="Prop6" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1160, 385)
+position = Vector2(1100, 385)
 prop_id = "funeral_offering"
 
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
@@ -497,15 +482,6 @@ npc_id = "nun"
 [node name="Npc2" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(252, 254)
 npc_id = "stranger"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1310, 220)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

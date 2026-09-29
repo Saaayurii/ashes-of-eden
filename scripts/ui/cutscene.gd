@@ -29,6 +29,8 @@ const SKIP_ACTIONS := ["jump", "attack", "interact", "pause", "ui_cancel", "ui_a
 var playing := ""
 
 var _skipped := false
+var _aborted := false
+var _dialogue_id := ""
 var _bars: Array[ColorRect] = []
 var _fade: ColorRect
 var _hint: Button
@@ -78,6 +80,18 @@ func _ready() -> void:
 	_set_bars(0.0)
 
 
+func _exit_tree() -> void:
+	if playing.is_empty():
+		return
+	# Awaited steps can resume after their owner leaves the tree. Restore
+	# controls here, while the actors and dialogue groups are still available.
+	abort()
+	_camera_home(true)
+	_release()
+	playing = ""
+	_dialogue_id = ""
+
+
 func _input(event: InputEvent) -> void:
 	if playing == "" or _skipped:
 		return
@@ -105,9 +119,11 @@ func play(cutscene_id: String) -> void:
 		# is how a boss used to arrive with no arrival.
 		abort()
 		var frames := 0
-		while playing != "" and frames < 240:
+		while playing != "" and frames < 240 and is_inside_tree():
 			frames += 1
 			await get_tree().process_frame
+		if not is_inside_tree():
+			return
 		if playing != "":
 			push_warning("Cutscene %s would not end, ignoring %s" % [playing, cutscene_id])
 			return
@@ -117,29 +133,36 @@ func play(cutscene_id: String) -> void:
 		return
 	playing = cutscene_id
 	_skipped = false
+	_aborted = false
+	_dialogue_id = ""
 	_goals.clear()
 	_hint.text = "%s  [%s]" % [tr("CUTSCENE_SKIP"), Settings.key_name("jump")]
 	_hint.visible = true
 	EventBus.cutscene_started.emit(cutscene_id)
 	var steps: Array = spec.get("steps", [])
 	var index := 0
-	while index < steps.size() and not _skipped:
+	while index < steps.size() and not _skipped and is_inside_tree():
 		if _passes(steps[index]):
 			await _run(steps[index], false)
 		index += 1
-	if _skipped:
+	if not is_inside_tree():
+		return  # an awaited dialogue outlived the room/session that owned it
+	if _skipped and not _aborted:
 		_kill_tweens()
-		while index < steps.size():
+		while index < steps.size() and is_inside_tree():
 			if _passes(steps[index]):
 				await _run(steps[index], true)
 			index += 1
+	if not is_inside_tree():
+		return
 	_hint.visible = false
 	_release()
 	_camera_home(true)
 	_set_bars(0.0)
 	playing = ""
-	finished.emit(cutscene_id)
-	EventBus.cutscene_finished.emit(cutscene_id)
+	if not _aborted:
+		finished.emit(cutscene_id)
+		EventBus.cutscene_finished.emit(cutscene_id)
 
 
 ## The fade is the one thing a scene can leave behind; whoever loads the next
@@ -155,7 +178,12 @@ func skipping() -> bool:
 ## Cut the running scene short from outside (the room is changing under it).
 func abort() -> void:
 	if playing != "":
+		_aborted = true
 		_skipped = true
+		_kill_tweens()
+		var box := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
+		if box != null and box.is_playing(_dialogue_id):
+			box.skip()
 
 
 # ------------------------------------------------------------------ steps ---
@@ -285,9 +313,9 @@ func _camera_home(_instant: bool) -> void:
 	if home != null:
 		home.make_current()
 		home.reset_smoothing()
-	if _camera != null:
+	if is_instance_valid(_camera):
 		_camera.queue_free()
-		_camera = null
+	_camera = null
 
 
 ## A body slides (or walks) to a point, or by an offset. Only where the body
@@ -342,14 +370,17 @@ func _dialogue(step: Dictionary, instant: bool) -> void:
 	if box == null or instant:
 		return
 	var id := str(step.get("id", ""))
+	_dialogue_id = id
 	var blocking: bool = Data.dialogues.get(id, {}).get("blocking", true)
 	# While the panel is up the game is paused and this scene's own "Skip" could
 	# not answer a click: hide it, the panel has a Skip of its own.
 	_hint.visible = not blocking
 	if blocking and story_hook.is_valid():
 		await story_hook.call(id)  # choices: one answer for the whole session
+		_dialogue_id = ""
 	elif blocking or step.get("wait", true):
 		await box.play(id)
+		_dialogue_id = ""
 	else:
 		box.play(id)
 	_hint.visible = playing != ""
@@ -427,9 +458,11 @@ func _set_bars(share: float) -> void:
 
 
 func _local_player() -> Player:
+	if not is_inside_tree():
+		return null
 	for node in get_tree().get_nodes_in_group("player"):
 		var body := node as Player
-		if body != null and body.is_multiplayer_authority():
+		if body != null and body._is_mine():
 			return body
 	return null
 

@@ -21,6 +21,8 @@ func _capture() -> void:
 	root.add_child(room)
 	var camera := Camera2D.new()
 	camera.position = Vector2(float(args[1]), float(args[2]))
+	if args.size() >= 5:
+		camera.zoom = Vector2.ONE * maxf(0.1, float(args[4]))
 	root.add_child(camera)
 	camera.make_current()
 	await process_frame

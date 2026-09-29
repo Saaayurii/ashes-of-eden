@@ -105,9 +105,6 @@ size = Vector2(59, 10)
 [sub_resource type="RectangleShape2D" id="Ledge5_shape"]
 size = Vector2(56, 10)
 
-[sub_resource type="RectangleShape2D" id="Ledge6_shape"]
-size = Vector2(53, 12)
-
 [sub_resource type="RectangleShape2D" id="Ledge7_shape"]
 size = Vector2(68, 12)
 
@@ -414,11 +411,6 @@ position = Vector2(696.0, 280.0)
 shape = SubResource("Ledge5_shape")
 one_way_collision = true
 
-[node name="Ledge6Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(769.5, 346.0)
-shape = SubResource("Ledge6_shape")
-one_way_collision = true
-
 [node name="Ledge7Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(1273.0, 396.0)
 shape = SubResource("Ledge7_shape")
@@ -532,30 +524,18 @@ one_way_collision = true
 [node name="Terrain" type="Node2D" parent="."]
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(300, 298)
-texture = ExtResource("piece_float_3")
-centered = false
-flip_h = true
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(325, 299)
-texture = ExtResource("piece_float_2")
+position = Vector2(300, 300)
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 31, 30)
+region_rect = Rect2(500, 256, 56, 12)
 
 [node name="Platform2_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(400, 285)
-texture = ExtResource("piece_ledge_2")
-centered = false
-flip_h = true
-
-[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(448, 285)
-texture = ExtResource("piece_ledge_4")
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 32, 46)
+region_rect = Rect2(500, 256, 80, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
@@ -583,7 +563,7 @@ position = Vector2(200, 254)
 prop_id = "bone_reliquary"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(760, 340)
+position = Vector2(1210, 423)
 prop_id = "bone_reliquary"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
@@ -609,15 +589,6 @@ prop_id = "bone_reliquary"
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(1500, 603)
 prop_id = "rubble"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1495, 550)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

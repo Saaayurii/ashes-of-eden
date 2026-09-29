@@ -159,6 +159,7 @@ intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/graveyard_tree_wide.png"
 depth_parallax = 0.024
+void_kill_y = 690.0
 
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.737, 0.722, 0.8, 1)
@@ -332,10 +333,6 @@ scroll_scale = Vector2(0.88, 1)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(800.0, 705.0)
-shape = SubResource("Ground1_shape")
-
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)
 shape = SubResource("Wall1_shape")
@@ -456,21 +453,12 @@ one_way_collision = true
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(1470, 300)
-texture = ExtResource("piece_ledge_7")
+texture = ExtResource("2_backdrop")
 centered = false
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1475, 300)
-texture = ExtResource("piece_ledge_2")
-centered = false
-flip_h = true
+region_enabled = true
+region_rect = Rect2(1418, 241, 56, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
-
-[node name="graveyard_tomb_3_1" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.767, 0.75, 0.832, 1)
-position = Vector2(1290, 345.0)
-texture = ExtResource("decor_graveyard_tomb_3")
 
 [node name="DecorFront" type="Node2D" parent="."]
 z_index = 1
@@ -512,15 +500,6 @@ prop_id = "rubble"
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(1115, 380)
 npc_id = "mara"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1440, 241)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

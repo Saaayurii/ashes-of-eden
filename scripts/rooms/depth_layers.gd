@@ -79,6 +79,10 @@ static func attach(room: Node2D) -> void:
 		_add_interior_light(parent, width, height, key)
 	_make_plane(parent, "HorizonCutouts", layout.get("far", []), width, height, .91, -28 if parent == room else 0, palette, .20)
 	_make_plane(parent, "MiddleCutouts", layout.get("mid", []), width, height, .97, -26 if parent == room else 0, palette, .29)
+	if room.has_meta("authored_sanctum") or room.has_meta("authored_hell_depth"):
+		# Do not stamp unrelated translucent columns over room-specific art.
+		parent.get_node("HorizonCutouts").visible = false
+		parent.get_node("MiddleCutouts").visible = false
 	var decor := room.get_node_or_null("DecorBack") as CanvasItem
 	if decor != null and parent == room:
 		decor.z_index = -25
@@ -91,6 +95,10 @@ static func _make_plane(parent: Node2D, plane_name: String, items: Array, width:
 	plane.scroll_scale = Vector2(scroll, 1.0)
 	plane.z_index = z
 	parent.add_child(plane)
+	if parent.get_node_or_null("Backing") != null:
+		# Interior walls share z=0. A plane appended after their hundreds of
+		# tiles paints over the stone like a sticker; keep it just behind them.
+		parent.move_child(plane, 1 if plane_name == "HorizonCutouts" else 2)
 	for i in items.size():
 		var item: Array = items[i]
 		var path: String = ART.get(str(item[0]), "")
@@ -115,6 +123,11 @@ static func _add_interior_light(interior: Node2D, width: float, height: float, k
 	var shafts := Node2D.new()
 	shafts.name = "WindowLight"
 	interior.add_child(shafts)
+	# The shaft illuminates the wall, while the large foreground pillars mask
+	# it. The silhouettes themselves remain behind the wall's open masonry.
+	var front_pillar := interior.get_node_or_null("Pillar1")
+	if front_pillar != null:
+		interior.move_child(shafts, front_pillar.get_index())
 	var warm := key.contains("church")
 	var tint := Color(0.95, 0.78, 0.52) if warm else Color(0.65, 0.72, 0.91)
 	for fraction in [.24, .73]:

@@ -85,7 +85,7 @@ size = Vector2(1600, 30)
 size = Vector2(56, 10)
 
 [sub_resource type="RectangleShape2D" id="Platform2_shape"]
-size = Vector2(56, 10)
+size = Vector2(90, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(80, 12)
@@ -158,6 +158,7 @@ intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/swamp_moon_wide.png"
+void_kill_y = 690.0
 depth_parallax = 0.019
 
 [node name="Ambient" type="CanvasModulate" parent="."]
@@ -323,10 +324,6 @@ scroll_scale = Vector2(0.88, 1)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(800.0, 705.0)
-shape = SubResource("Ground1_shape")
-
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)
 shape = SubResource("Wall1_shape")
@@ -349,7 +346,7 @@ shape = SubResource("Platform1_shape")
 one_way_collision = true
 
 [node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1578.0, 630.0)
+position = Vector2(1295, 420)
 shape = SubResource("Platform2_shape")
 one_way_collision = true
 
@@ -446,29 +443,11 @@ one_way_collision = true
 [node name="Terrain" type="Node2D" parent="."]
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1440, 477)
-texture = ExtResource("piece_float_1")
-centered = false
-flip_h = true
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1469, 477)
-texture = ExtResource("piece_float_2")
+position = Vector2(1440, 478)
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 27, 30)
-
-[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1550, 623)
-texture = ExtResource("piece_float_3")
-centered = false
-
-[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1575, 624)
-texture = ExtResource("piece_float_2")
-centered = false
-region_enabled = true
-region_rect = Rect2(0, 0, 31, 30)
+region_rect = Rect2(1000, 420, 56, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
@@ -508,15 +487,6 @@ prop_id = "pot"
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(630, 474)
 npc_id = "villager"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1420, 413)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

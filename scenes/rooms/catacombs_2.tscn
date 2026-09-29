@@ -508,17 +508,11 @@ one_way_collision = true
 [node name="Terrain" type="Node2D" parent="."]
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(560, 294)
-texture = ExtResource("piece_float_1")
-centered = false
-flip_h = true
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(589, 293)
-texture = ExtResource("piece_float_3")
+position = Vector2(560, 295)
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 19, 28)
+region_rect = Rect2(580, 228, 48, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
@@ -570,21 +564,12 @@ position = Vector2(860, 651)
 prop_id = "rubble"
 
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1550, 630)
+position = Vector2(1510, 481)
 prop_id = "bone_reliquary"
 
 [node name="Prop10" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(1340, 695)
 prop_id = "secret_wall_catacombs"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1520, 258)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

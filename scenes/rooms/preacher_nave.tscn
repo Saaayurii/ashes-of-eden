@@ -3428,11 +3428,11 @@ texture = ExtResource("decor_graveyard_coffin_4")
 [node name="Props" type="Node2D" parent="."]
 
 [node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(60, 380)
+position = Vector2(120, 380)
 prop_id = "funeral_offering"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1140, 380)
+position = Vector2(1080, 380)
 prop_id = "funeral_offering"
 
 [node name="Spawns" type="Node2D" parent="."]

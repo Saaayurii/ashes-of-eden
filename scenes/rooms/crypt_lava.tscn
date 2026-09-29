@@ -111,7 +111,7 @@ size = Vector2(96, 12)
 size = Vector2(148, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge11_shape"]
-size = Vector2(183, 14)
+size = Vector2(49, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge12_shape"]
 size = Vector2(93, 12)
@@ -319,10 +319,6 @@ scroll_scale = Vector2(0.88, 1)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(800.0, 710.0)
-shape = SubResource("Ground1_shape")
-
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)
 shape = SubResource("Wall1_shape")
@@ -341,6 +337,9 @@ polygon = PackedVector2Array(240.0, 618.0, 255.0, 618.0, 255.0, 625.83, 270.0, 6
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
 collision_mask = 0
+
+[node name="Ramp2" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(1460, 208, 1460, 201, 1468, 201, 1468, 194, 1486, 194, 1486, 188, 1494, 188, 1494, 181, 1518, 181, 1518, 171, 1524, 171, 1524, 164, 1532, 164, 1532, 157, 1542, 157, 1542, 149, 1550, 149, 1550, 140, 1564, 140, 1564, 131, 1574, 131, 1574, 122, 1582, 122, 1582, 115, 1592, 115, 1592, 108, 1600, 108, 1600, 124, 1592, 124, 1592, 131, 1582, 131, 1582, 138, 1574, 138, 1574, 147, 1564, 147, 1564, 156, 1550, 156, 1550, 165, 1542, 165, 1542, 173, 1532, 173, 1532, 180, 1524, 180, 1524, 187, 1518, 187, 1518, 197, 1494, 197, 1494, 204, 1486, 204, 1486, 210, 1468, 210, 1468, 217, 1460, 217, 1460, 224)
 
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(113.0, 180.0)
@@ -393,7 +392,7 @@ shape = SubResource("Ledge10_shape")
 one_way_collision = true
 
 [node name="Ledge11Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1508.5, 215.0)
+position = Vector2(1441.5, 215.0)
 shape = SubResource("Ledge11_shape")
 one_way_collision = true
 
@@ -510,19 +509,10 @@ prop_id = "bone_reliquary"
 position = Vector2(660, 670)
 prop_id = "chest_gold"
 
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1460, 208)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
-
 [node name="Hazard1" type="Area2D" parent="."]
-position = Vector2(590, 694)
+position = Vector2(750, 694)
 script = ExtResource("15_hazard")
-size = Vector2(560, 26)
+size = Vector2(720, 26)
 
 [node name="Spawns" type="Node2D" parent="."]
 
@@ -535,7 +525,7 @@ enemy_id = "knight_of_ash"
 position = Vector2(50, 153)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1560, 176)
+position = Vector2(1450, 176)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

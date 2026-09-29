@@ -34,4 +34,13 @@ func _run() -> void:
 		quit(1)
 		return
 	print("PREACHER_ARRIVAL_OK")
+	current_scene = null
+	run.queue_free()
+	await process_frame
+	await process_frame
+	# Active mixer playbacks otherwise outlive an immediate headless quit.
+	for voice in root.get_node("Audio").get_children():
+		if voice is AudioStreamPlayer:
+			voice.stop()
+	await create_timer(0.15, true, false, true).timeout
 	quit(0)

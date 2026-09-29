@@ -123,7 +123,7 @@ size = Vector2(506, 14)
 size = Vector2(44, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge11_shape"]
-size = Vector2(381, 14)
+size = Vector2(325, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge12_shape"]
 size = Vector2(122, 14)
@@ -164,6 +164,7 @@ intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/graveyard_arches_wide.png"
 depth_parallax = 0.028
+void_kill_y = 690.0
 
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.737, 0.722, 0.8, 1)
@@ -355,10 +356,6 @@ scroll_scale = Vector2(0.88, 1)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(800.0, 705.0)
-shape = SubResource("Ground1_shape")
-
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)
 shape = SubResource("Wall1_shape")
@@ -372,7 +369,7 @@ position = Vector2(800.0, -8.0)
 shape = SubResource("Wall3_shape")
 
 [node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(1205.0, 520.0, 1211.0, 520.0, 1211.0, 527.4, 1217.0, 527.4, 1217.0, 534.8, 1223.0, 534.8, 1223.0, 542.2, 1229.0, 542.2, 1229.0, 549.6, 1235.0, 549.6, 1235.0, 557.0, 1241.0, 557.0, 1241.0, 564.4, 1247.0, 564.4, 1247.0, 571.8, 1253.0, 571.8, 1253.0, 579.2, 1259.0, 579.2, 1259.0, 586.6, 1265.0, 586.6, 1265.0, 594.0, 1265.0, 610.0, 1265.0, 602.6, 1259.0, 602.6, 1259.0, 595.2, 1253.0, 595.2, 1253.0, 587.8, 1247.0, 587.8, 1247.0, 580.4, 1241.0, 580.4, 1241.0, 573.0, 1235.0, 573.0, 1235.0, 565.6, 1229.0, 565.6, 1229.0, 558.2, 1223.0, 558.2, 1223.0, 550.8, 1217.0, 550.8, 1217.0, 543.4, 1211.0, 543.4, 1211.0, 536.0, 1205.0, 536.0)
+polygon = PackedVector2Array(1205, 594, 1210.45, 594, 1210.45, 586.55, 1215.91, 586.55, 1215.91, 579.09, 1221.36, 579.09, 1221.36, 571.64, 1226.82, 571.64, 1226.82, 564.18, 1232.27, 564.18, 1232.27, 556.73, 1237.73, 556.73, 1237.73, 549.27, 1243.18, 549.27, 1243.18, 541.82, 1248.64, 541.82, 1248.64, 534.36, 1254.09, 534.36, 1254.09, 526.91, 1259.55, 526.91, 1259.55, 519.45, 1265, 519.45, 1265, 512, 1265, 528, 1265, 535.45, 1259.55, 535.45, 1259.55, 542.91, 1254.09, 542.91, 1254.09, 550.36, 1248.64, 550.36, 1248.64, 557.82, 1243.18, 557.82, 1243.18, 565.27, 1237.73, 565.27, 1237.73, 572.73, 1232.27, 572.73, 1232.27, 580.18, 1226.82, 580.18, 1226.82, 587.64, 1221.36, 587.64, 1221.36, 595.09, 1215.91, 595.09, 1215.91, 602.55, 1210.45, 602.55, 1210.45, 610, 1205, 610)
 
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
@@ -444,7 +441,7 @@ shape = SubResource("Ledge10_shape")
 one_way_collision = true
 
 [node name="Ledge11Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1070.5, 601.0)
+position = Vector2(1042.5, 601.0)
 shape = SubResource("Ledge11_shape")
 one_way_collision = true
 
@@ -459,7 +456,7 @@ shape = SubResource("Ledge13_shape")
 one_way_collision = true
 
 [node name="Ledge14Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1233.5, 518.0)
+position = Vector2(1283.5, 518.0)
 shape = SubResource("Ledge14_shape")
 one_way_collision = true
 
@@ -487,37 +484,24 @@ one_way_collision = true
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(1450, 470)
-texture = ExtResource("piece_ledge_5")
+texture = ExtResource("2_backdrop")
 centered = false
-flip_h = true
-
-[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1455, 470)
-texture = ExtResource("piece_ledge_2")
-centered = false
+region_enabled = true
+region_rect = Rect2(1220, 316, 56, 12)
 
 [node name="Platform2_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(1400, 350)
-texture = ExtResource("piece_ledge_2")
+texture = ExtResource("2_backdrop")
 centered = false
-
-[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1411, 350)
-texture = ExtResource("piece_ledge_1")
-centered = false
+region_enabled = true
+region_rect = Rect2(1220, 316, 56, 12)
 
 [node name="Platform3_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(1450, 430)
-texture = ExtResource("piece_ledge_1")
-centered = false
-flip_h = true
-
-[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1492, 430)
-texture = ExtResource("piece_ledge_6")
+texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 30, 46)
+region_rect = Rect2(1220, 316, 72, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
@@ -544,7 +528,7 @@ position = Vector2(380, 552)
 prop_id = "funeral_offering"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1220, 594)
+position = Vector2(1170, 594)
 prop_id = "rubble"
 
 [node name="Prop5" parent="Props" instance=ExtResource("7_prop")]
@@ -552,21 +536,12 @@ position = Vector2(1320, 603)
 prop_id = "funeral_offering"
 
 [node name="Prop6" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(40, 389)
+position = Vector2(242, 494)
 prop_id = "chest_gold"
 
 [node name="Prop7" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(1550, 387)
 prop_id = "pot"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1382, 292)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

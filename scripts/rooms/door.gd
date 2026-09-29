@@ -21,6 +21,7 @@ var open := false:
 ## Lit when the chain gives: the way out is the brightest thing in the room.
 var _light: GlowLight
 var _painted_was_open := false
+var _entered_once := false
 
 
 func _ready() -> void:
@@ -41,6 +42,7 @@ func _refresh() -> void:
 		_light.set_base_energy(0.12 if painted_arch else 0.0)
 	if not open:
 		_painted_was_open = false
+		_entered_once = false
 		gate.frame = 0
 	elif painted_arch:
 		if not _painted_was_open:
@@ -48,6 +50,19 @@ func _refresh() -> void:
 			_open_painted_arch()
 	elif gate.frame == 0:
 		_swing()
+	if open:
+		# Opening does not generate body_entered for a hero already waiting
+		# inside the locked gate. Defer until room listeners are connected.
+		call_deferred("_check_waiting_player")
+
+
+func _check_waiting_player() -> void:
+	if not open or _entered_once or not is_inside_tree():
+		return
+	for body in get_overlapping_bodies():
+		_on_body_entered(body)
+		if _entered_once:
+			return
 
 
 func _open_painted_arch() -> void:
@@ -77,5 +92,7 @@ func _swing() -> void:
 func _on_body_entered(body: Node) -> void:
 	# Teleporting from a previous room can leave a queued body_entered event.
 	# Accept only a body that is still physically at this gate now.
-	if open and body is Player and (body.global_position - global_position).length_squared() < 48.0 * 48.0:
+	if open and not _entered_once and body is Player and not body.is_dead() \
+			and (body.global_position - global_position).length_squared() < 48.0 * 48.0:
+		_entered_once = true
 		entered.emit()

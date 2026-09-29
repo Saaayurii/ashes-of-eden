@@ -1,4 +1,4 @@
-[gd_scene load_steps=51 format=3]
+[gd_scene load_steps=52 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_moon_wide.png" id="2_backdrop"]
@@ -98,19 +98,22 @@ size = Vector2(200, 30)
 size = Vector2(200, 40)
 
 [sub_resource type="RectangleShape2D" id="Ground8_shape"]
-size = Vector2(280, 60)
+size = Vector2(117, 60)
+
+[sub_resource type="RectangleShape2D" id="Ground13_shape"]
+size = Vector2(143, 60)
 
 [sub_resource type="RectangleShape2D" id="Ground9_shape"]
-size = Vector2(70, 30)
+size = Vector2(250, 30)
 
 [sub_resource type="RectangleShape2D" id="Ground10_shape"]
-size = Vector2(230, 30)
+size = Vector2(185, 30)
 
 [sub_resource type="RectangleShape2D" id="Ground11_shape"]
-size = Vector2(210, 40)
+size = Vector2(50, 20)
 
 [sub_resource type="RectangleShape2D" id="Ground12_shape"]
-size = Vector2(320, 65)
+size = Vector2(220, 65)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
 size = Vector2(70, 10)
@@ -369,23 +372,27 @@ position = Vector2(900.0, 580.0)
 shape = SubResource("Ground7_shape")
 
 [node name="Ground8Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1140.0, 550.0)
+position = Vector2(1121.5, 550.0)
 shape = SubResource("Ground8_shape")
 
+[node name="Ground13Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1269.5, 550.0)
+shape = SubResource("Ground13_shape")
+
 [node name="Ground9Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1315.0, 640.0)
+position = Vector2(1225.0, 640.0)
 shape = SubResource("Ground9_shape")
 
 [node name="Ground10Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1485.0, 575.0)
+position = Vector2(1507.5, 535.0)
 shape = SubResource("Ground10_shape")
 
 [node name="Ground11Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1495.0, 655.0)
+position = Vector2(1390.0, 570.0)
 shape = SubResource("Ground11_shape")
 
 [node name="Ground12Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1440.0, 687.5)
+position = Vector2(1490.0, 687.5)
 shape = SubResource("Ground12_shape")
 
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
@@ -480,25 +487,16 @@ position = Vector2(1320, 625)
 prop_id = "rubble"
 
 [node name="Prop8" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1520, 635)
+position = Vector2(1520, 655)
 prop_id = "chest_wooden"
 
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1430, 635)
+position = Vector2(1430, 655)
 prop_id = "secret_wall_village"
 
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(300, 345)
 npc_id = "severin"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1470, 260)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 
@@ -513,7 +511,7 @@ script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
 [node name="Spawn3" type="Marker2D" parent="Spawns"]
-position = Vector2(1470, 548)
+position = Vector2(1470, 508)
 script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
