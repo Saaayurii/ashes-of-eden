@@ -34,6 +34,8 @@
     "damage": 10,
     "cooldown": 2.3,
     "projectile_speed": 160,
+    "projectile_motion": "accelerate",
+    "motion_amount": 0.55,
     "projectile_style": "zealot",
     "color": "#ffd27a"
   },

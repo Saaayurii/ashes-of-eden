@@ -4,6 +4,10 @@ extends Area2D
 var damage := 10.0
 var speed := 170.0
 var direction := Vector2.RIGHT
+## Flight geometry is chosen by the attack data, independently of the sprite.
+## wave: lateral sway; accelerate: gathers speed; arc: bends toward the floor.
+var motion := "straight"
+var motion_amount := 0.0
 var tint := Color(1, 0.85, 0.5)
 ## blade, sacred, umbral or wraith; set by the firing actor.
 var visual_style := ""
@@ -32,6 +36,7 @@ var friendly := false
 var _life := 4.0
 var _reflected := false
 var _flight_clock := 0.0
+var _lateral_offset := 0.0
 
 
 func _ready() -> void:
@@ -51,12 +56,26 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	position += direction * speed * delta
+	_advance_motion(delta)
 	_life -= delta
-	_flight_clock += delta
 	_animate_art()
 	if _life <= 0.0:
 		_burst()
+
+
+func _advance_motion(delta: float) -> void:
+	_flight_clock += delta
+	var travel := speed * delta
+	match motion:
+		"accelerate":
+			travel *= 1.0 + minf(_flight_clock, 2.0) * motion_amount
+		"arc":
+			position.y += motion_amount * _flight_clock * delta
+		"wave":
+			var lateral := sin(_flight_clock * 9.0) * motion_amount
+			position += direction.orthogonal() * (lateral - _lateral_offset)
+			_lateral_offset = lateral
+	position += direction * travel
 
 
 func _on_body_entered(body: Node) -> void:
@@ -79,6 +98,8 @@ func reflect(_by: Node2D) -> void:
 	_reflected = true
 	friendly = true
 	direction = -direction
+	motion = "straight"
+	_lateral_offset = 0.0
 	speed *= 1.35
 	damage *= 1.5
 	_life = 4.0

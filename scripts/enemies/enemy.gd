@@ -916,7 +916,9 @@ func _strike(to_target: Vector2) -> void:
 				_spawn_projectile(origin, shot, false)
 				if Net.active:
 					_net_projectile.rpc(origin, shot, float(_attack.get("projectile_speed", 170)),
-						str(_attack.get("color", "#ffd27a")), _projectile_style())
+						str(_attack.get("color", "#ffd27a")), _projectile_style(),
+						str(_attack.get("projectile_motion", "straight")),
+						float(_attack.get("motion_amount", 0.0)))
 		"lunge":
 			_set_state(State.STRIKE, float(_attack.get("lunge_time", 0.45)))
 			_lunge_dir = (to_target + Vector2(0, -10)).normalized()
@@ -1016,6 +1018,8 @@ func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool) -> v
 	projectile.direction = direction
 	projectile.tint = Color(_attack.get("color", "#ffd27a"))
 	projectile.visual_style = _projectile_style()
+	projectile.motion = str(_attack.get("projectile_motion", "straight"))
+	projectile.motion_amount = float(_attack.get("motion_amount", 0.0))
 	projectile.cosmetic = cosmetic
 	get_parent().add_child(projectile)
 	projectile.global_position = origin
@@ -1028,16 +1032,19 @@ func _cast_flare(origin: Vector2, tint: Color) -> void:
 	Fx.impact(origin, Vector2(facing, 0), tint, 5)
 
 
-## Bolts fly straight at a constant speed, so a client can draw its own copy
-## instead of paying for a replicated node per shot. Only the host's bolt bites.
+## Motion is deterministic from launch parameters, so peers draw their own copy.
+## Only the host's bolt bites.
 @rpc("authority", "call_remote", "reliable")
-func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: String, style: String) -> void:
+func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: String,
+		style: String, motion: String, motion_amount: float) -> void:
 	var projectile := PROJECTILE_SCENE.instantiate()
 	projectile.damage = 0.0
 	projectile.speed = speed
 	projectile.direction = direction
 	projectile.tint = Color(color)
 	projectile.visual_style = style
+	projectile.motion = motion
+	projectile.motion_amount = motion_amount
 	projectile.cosmetic = true
 	get_parent().add_child(projectile)
 	projectile.global_position = origin

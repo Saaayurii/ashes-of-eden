@@ -32,6 +32,7 @@ var _skipped := false
 var _aborted := false
 var _dialogue_id := ""
 var _bars: Array[ColorRect] = []
+var _panel: TextureRect
 var _fade: ColorRect
 var _hint: Button
 var _camera: Camera2D
@@ -45,6 +46,13 @@ var _goals := {}
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
 	set_anchors_preset(PRESET_FULL_RECT)
+	_panel = TextureRect.new()
+	_panel.mouse_filter = MOUSE_FILTER_IGNORE
+	_panel.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_panel.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_panel.set_anchors_preset(PRESET_FULL_RECT)
+	_panel.visible = false
+	add_child(_panel)
 	_fade = ColorRect.new()
 	_fade.color = Color(0, 0, 0, 0)
 	_fade.mouse_filter = MOUSE_FILTER_IGNORE
@@ -159,6 +167,8 @@ func play(cutscene_id: String) -> void:
 	_release()
 	_camera_home(true)
 	_set_bars(0.0)
+	_panel.visible = false
+	_panel.texture = null
 	playing = ""
 	if not _aborted:
 		finished.emit(cutscene_id)
@@ -169,6 +179,8 @@ func play(cutscene_id: String) -> void:
 ## room clears it.
 func clear() -> void:
 	_fade.color.a = 0.0
+	_panel.visible = false
+	_panel.texture = null
 
 
 func skipping() -> bool:
@@ -181,6 +193,7 @@ func abort() -> void:
 		_aborted = true
 		_skipped = true
 		_kill_tweens()
+		_panel.visible = false
 		var box := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
 		if box != null and box.is_playing(_dialogue_id):
 			box.skip()
@@ -246,6 +259,10 @@ func _run(step: Dictionary, instant: bool) -> void:
 				Audio.play(StringName(str(step.get("name", ""))), float(step.get("volume", 0.0)))
 		"music":
 			Audio.music(StringName(str(step.get("name", ""))))
+		"panel":
+			await _show_panel(str(step.get("image", "")), seconds)
+		"panel_clear":
+			await _hide_panel(seconds)
 		"fade":
 			var to := float(step.get("to", 1.0))
 			_fade.color = Color(Color(str(step.get("color", "#000000"))), _fade.color.a)
@@ -257,6 +274,40 @@ func _run(step: Dictionary, instant: bool) -> void:
 				await _sleep(seconds)
 		_:
 			push_warning("Cutscene %s: unknown step %s" % [playing, step])
+
+
+func _panel_texture(path: String) -> Texture2D:
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	if not FileAccess.file_exists(path):
+		return null
+	var picture := Image.load_from_file(path)
+	return null if picture.is_empty() else ImageTexture.create_from_image(picture)
+
+
+func _show_panel(path: String, seconds: float) -> void:
+	var texture := _panel_texture(path)
+	if texture == null:
+		push_warning("Cutscene %s: missing panel %s" % [playing, path])
+		return
+	_panel.texture = texture
+	_panel.modulate.a = 0.0 if seconds > 0.0 else 1.0
+	_panel.visible = true
+	if seconds > 0.0:
+		var tween := _tween()
+		tween.tween_property(_panel, "modulate:a", 1.0, seconds)
+		await _sleep(seconds)
+
+
+func _hide_panel(seconds: float) -> void:
+	if not _panel.visible:
+		return
+	if seconds > 0.0:
+		var tween := _tween()
+		tween.tween_property(_panel, "modulate:a", 0.0, seconds)
+		await _sleep(seconds)
+	_panel.visible = false
+	_panel.texture = null
 
 
 ## Hands off: the local body stops listening, every enemy holds its ground.

@@ -46,9 +46,11 @@
       "type": "ranged",
       "range": 300,
       "windup": 0.8,
-      "damage": 15,
+      "damage": 8,
       "cooldown": 2.0,
       "projectile_speed": 190,
+      "projectiles": 3,
+      "spread": 18,
       "projectile_style": "preacher",
       "color": "#fff1c2",
       "weight": 1

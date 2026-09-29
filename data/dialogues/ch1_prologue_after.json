@@ -1,0 +1,11 @@
+{
+  "id": "ch1_prologue_after",
+  "blocking": false,
+  "start": "p4",
+  "nodes": {
+    "p4": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_4", "next": "p5"},
+    "p5": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_5", "next": "p6"},
+    "p6": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_6", "next": "p7"},
+    "p7": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_7"}
+  }
+}

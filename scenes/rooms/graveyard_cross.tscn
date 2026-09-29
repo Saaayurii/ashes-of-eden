@@ -1,6 +1,7 @@
-[gd_scene load_steps=49 format=3]
+[gd_scene load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_cross_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
 [ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
@@ -430,6 +431,11 @@ one_way_collision = true
 position = Vector2(1210.0, 312.0)
 shape = SubResource("Ledge14_shape")
 one_way_collision = true
+
+[node name="CrumblingPlatform1" type="StaticBody2D" parent="."]
+position = Vector2(301, 264)
+script = ExtResource("crumbling_platform")
+walk_width = 80.0
 
 [node name="Terrain" type="Node2D" parent="."]
 

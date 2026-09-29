@@ -103,6 +103,8 @@
       "damage": 12,
       "cooldown": 2.2,
       "projectile_speed": 210,
+      "projectiles": 3,
+      "spread": 36,
       "projectile_style": "ophanim",
       "color": "#fff3c4",
       "weight": 2,

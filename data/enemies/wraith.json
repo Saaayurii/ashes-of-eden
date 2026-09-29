@@ -35,6 +35,8 @@
     "damage": 10,
     "cooldown": 2.3,
     "projectile_speed": 150,
+    "projectile_motion": "wave",
+    "motion_amount": 13,
     "projectile_style": "wraith",
     "color": "#7dffc4"
   },

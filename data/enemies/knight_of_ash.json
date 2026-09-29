@@ -59,6 +59,8 @@
       "damage": 14,
       "cooldown": 3.0,
       "projectile_speed": 230,
+      "projectile_motion": "arc",
+      "motion_amount": 46,
       "projectile_style": "ash",
       "color": "#ff5a4a",
       "weight": 2,

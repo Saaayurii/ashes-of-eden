@@ -48,6 +48,8 @@
       "damage": 9,
       "cooldown": 2.4,
       "projectile_speed": 150,
+      "projectile_motion": "wave",
+      "motion_amount": 8,
       "projectile_style": "cult",
       "color": "#b07cff",
       "animation": "special",

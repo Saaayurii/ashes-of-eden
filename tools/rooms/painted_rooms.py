@@ -177,6 +177,9 @@ PAINTED = {
         # or separate grid-textured pillar are drawn on top of it.
         platforms=[(690, 380, 70, 10)],
         painted_platforms=[(690, 380, 70, 10)],
+        # The upper bridge breaks at the stair. The loose stone is visible,
+        # holds long enough to react, then drops away and returns.
+        crumbling_platforms=[(328, 217, 68)],
         spawns=[("possessed_villager", 470, 515), ("possessed_villager", 760, 548), ("possessed_villager", 1150, 508),
                 ("possessed_villager", 1050, 248), ("possessed_villager", 330, 333),
                 ("shade", 500, 300), ("shade", 900, 200), ("raven", 700, 120)],
@@ -209,6 +212,7 @@ PAINTED = {
         ramps=[(985, 545, 1140, 388)],
         stone_steps=True,  # wall-mounted stone cornices, not green islands at the exit
         platforms=[(1120, 262, 56, 10)],  # one exit foothold; the bone mound is not a stepping-stone course
+        crumbling_platforms=[(301, 264, 80)],
         spawns=[("possessed_villager", 400, 506), ("possessed_villager", 650, 506), ("cultist", 880, 533),
                 ("possessed_villager", 900, 373), ("zealot", 1180, 376), ("shade", 600, 300), ("raven", 800, 150),
                 ("wraith", 300, 600)],
@@ -269,6 +273,7 @@ PAINTED = {
                 (594, 599, 75, 10), (376, 603, 45, 10), (1077, 413, 194, 14)],
         ramps=[],
         platforms=[(1120, 478, 56, 10)],  # timber return step under the exit pier
+        crumbling_platforms=[(325, 303, 72)],
         spawns=[("possessed_villager", 520, 326), ("cultist", 750, 403), ("possessed_villager", 400, 462),
                 ("zealot", 1150, 401), ("fallen_guard", 580, 556), ("shade", 800, 300), ("wraith", 300, 600),
                 ("raven", 900, 150), ("shade", 1000, 250)],
@@ -289,6 +294,7 @@ PAINTED = {
         # on this painting; only the far-right climb needs separate pieces.
         platforms=[(860, 452, 60, 10), (1220, 370, 56, 10), (1220, 310, 56, 10)],
         painted_platforms=[(860, 452, 60, 10)],
+        crumbling_platforms=[(778, 366, 70)],
         spawns=[("possessed_villager", 200, 335), ("cultist", 600, 422), ("possessed_villager", 300, 487),
                 ("zealot", 1120, 413), ("fallen_guard", 980, 400), ("wraith", 600, 300), ("shade", 850, 250),
                 ("raven", 400, 150), ("elite_possessed", 1180, 243)],

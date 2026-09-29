@@ -434,6 +434,8 @@ def expand_painted_room(name, room):
     for key in ("ground", "ledges", "platforms", "painted_platforms", "hazards"):
         out[key] = [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts), h)
                     for x, y, w, h in room.get(key, [])]
+    out["crumbling_platforms"] = [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts))
+                                   for x, y, w in room.get("crumbling_platforms", [])]
     out["ramps"] = [(_map_x(x0, inserts), y0, _map_x(x1, inserts), y1)
                     for x0, y0, x1, y1 in room.get("ramps", [])]
     # ("rubble", 1130, 583, "wide") is already in the widened room: the only
@@ -1377,6 +1379,11 @@ def build(name, r):
     # Ledges live on their own layer (5) so a body can choose to fall through them.
     text += '[node name="Ledges" type="StaticBody2D" parent="."]\ncollision_layer = 16\ncollision_mask = 0\n\n'
     text += collider(r["platforms"], "Platform", "Ledges", one_way=True, names=r.get("platform_names")) + collider(ledges, "Ledge", "Ledges", one_way=True)
+    for i, (x, y, w) in enumerate(r.get("crumbling_platforms", []), 1):
+        text += (f'[node name="CrumblingPlatform{i}" type="StaticBody2D" parent="."]\n'
+                 f'position = Vector2({x}, {y})\n'
+                 'script = ExtResource("crumbling_platform")\n'
+                 f'walk_width = {float(w)}\n\n')
     # Draw order from here: terrain, then what stands on the lanes behind the
     # characters, props, (the run adds enemies and players), low clutter in
     # front of their feet (z 1), weather over it all (z 2), lights.
@@ -1454,6 +1461,10 @@ texture = SubResource("glow_tex")
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
                             '[ext_resource type="Script" path="res://scripts/rooms/hell_cornice.gd" id="hell_cornice"]')
+    if r.get("crumbling_platforms"):
+        text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
+                            '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
+                            '[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]')
     text = text.replace("load_steps=0", "load_steps=%d" % (text.count("[ext_resource") + text.count("[sub_resource")))
     path = os.path.join(ROOT, "scenes", "rooms", f"{name}.tscn")
     with open(path, "w") as f:

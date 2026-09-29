@@ -37,7 +37,7 @@ const CUTSCENE_STEPS := {
 	"hold": [], "release": [], "letterbox": [], "wait": ["time"], "camera": ["to"],
 	"move": ["who"], "walk": ["who"], "anim": ["who", "anim"], "face": ["who", "dir"],
 	"dialogue": ["id"], "shake": [], "sound": ["name"], "music": ["name"], "fade": ["to"],
-	"appear": ["who"], "vanish": ["who"],
+	"appear": ["who"], "vanish": ["who"], "panel": ["image"], "panel_clear": [],
 }
 const CUTSCENE_ACTORS := ["player", "boss", "door"]
 const REQUIRED := {
@@ -541,6 +541,13 @@ func _check_enemy_strips() -> void:
 		for attack in attacks:
 			if attack.get("type") == "ranged" and not FLIGHT_STYLES.has(str(attack.get("projectile_style", ""))):
 				_error("enemies/%s: a ranged attack needs a projectile_style from %s" % [id, FLIGHT_STYLES])
+			if attack.get("type") == "ranged":
+				var motion := str(attack.get("projectile_motion", "straight"))
+				var amount := float(attack.get("motion_amount", 0.0))
+				if not motion in ["straight", "wave", "accelerate", "arc"]:
+					_error("enemies/%s: unknown projectile_motion %s" % [id, motion])
+				elif motion != "straight" and amount <= 0.0:
+					_error("enemies/%s: %s needs positive motion_amount" % [id, motion])
 
 
 ## Every step is a known kind with its required fields; actors and dialogue
@@ -567,6 +574,8 @@ func _check_cutscene(entry: Dictionary, where: String) -> void:
 				_error("%s: step %s needs \"to\" or \"by\"" % [where, kind])
 		if kind == "dialogue" and not _dialogue_ids.has(str(step.get("id", ""))):
 			_error("%s: unknown dialogue \"%s\"" % [where, step.get("id", "")])
+		if kind == "panel" and not FileAccess.file_exists(str(step.get("image", ""))):
+			_error("%s: missing cutscene panel \"%s\"" % [where, step.get("image", "")])
 		if step.has("path") and not PATHS.has(str(step.path)):
 			_error("%s: step %s: path must be one of %s" % [where, kind, PATHS])
 		for key in ["if", "unless"]:
