@@ -258,7 +258,7 @@ func _hold() -> void:
 	Game.cutscene = true
 	for node in get_tree().get_nodes_in_group("player"):
 		var body := node as Player
-		if body != null and body.is_multiplayer_authority():
+		if body != null and body._is_mine():
 			body.controls_enabled = false
 			_held = body
 			return

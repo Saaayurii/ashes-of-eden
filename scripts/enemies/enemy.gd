@@ -308,13 +308,12 @@ func _physics_process(delta: float) -> void:
 	_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
 	move_and_slide()
 
-	var contact_damage := float(stats.get("damage", 5))
+	# Only a telegraphed lunge hurts by bodily contact. Walkers and flyers
+	# otherwise use their attack hitboxes: simply closing distance must not
+	# become an invisible attack, or add a second hit to a melee swing.
+	var contact_damage := 0.0
 	if state == State.STRIKE and _attack.get("type") == "lunge":
-		contact_damage = float(_attack.get("damage", contact_damage))
-	# A flyer may pass close, but only a telegraphed dive may hurt by touch.
-	# Ground enemies retain their ordinary contact threat.
-	if _is_flying() and not (state == State.STRIKE and _attack.get("type") == "lunge"):
-		contact_damage = 0.0
+		contact_damage = float(_attack.get("damage", stats.get("damage", 5)))
 	if contact_damage > 0.0 and _contact_cd <= 0.0:
 		for touched in contact_area.get_overlapping_bodies():
 			if touched is Player and not touched.is_dead():

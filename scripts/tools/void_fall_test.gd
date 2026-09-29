@@ -52,8 +52,24 @@ func _run() -> void:
 			break
 		await physics_frame
 	passed = passed and falling_player.is_dead() and falling_player.fell_outside_room
-	print("VOID FALL TEST %s" % ("PASSED" if passed else "FAILED"))
 	current_scene = null
 	cross.queue_free()
 	await process_frame
+	for key in ["graveyard_arches", "graveyard_tree", "swamp_moon", "swamp_red", "swamp_crypt"]:
+		var panel = load("res://scenes/rooms/%s.tscn" % key).instantiate()
+		root.add_child(panel)
+		current_scene = panel
+		var body = load("res://scenes/player/player.tscn").instantiate()
+		panel.add_child(body)
+		await process_frame
+		body.place_in_room(Vector2(1100, 665))
+		for frame in 90:
+			if body.is_dead():
+				break
+			await physics_frame
+		passed = passed and body.is_dead() and body.fell_outside_room
+		current_scene = null
+		panel.queue_free()
+		await process_frame
+	print("VOID FALL TEST %s" % ("PASSED" if passed else "FAILED"))
 	quit(0 if passed else 1)

@@ -8,6 +8,8 @@ signal exited
 
 const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
 const DEPTH_LAYERS := preload("res://scripts/rooms/depth_layers.gd")
+const INTERIOR_ARCHITECTURE := preload("res://scripts/rooms/interior_architecture.gd")
+const HELL_DEPTH := preload("res://scripts/rooms/hell_depth.gd")
 
 @export var width := 1280
 ## Rooms can be taller than one screen: the camera scrolls down to here.
@@ -37,6 +39,8 @@ var spawn_hook := Callable()
 var authoritative := true
 
 var _map_rects: Array[Rect2] = []
+var _depth_window_materials: Dictionary = {}
+var _depth_window_factors: Dictionary = {}
 
 @onready var door: Door = $Door
 @onready var player_spawn: Marker2D = $PlayerSpawn
@@ -45,6 +49,9 @@ var _map_rects: Array[Rect2] = []
 func _ready() -> void:
 	add_to_group("room")
 	_ensure_painting()
+	_configure_depth_windows()
+	HELL_DEPTH.attach(self)
+	INTERIOR_ARCHITECTURE.attach(self)
 	DEPTH_LAYERS.attach(self)
 	if music != "":
 		Audio.music(music)
@@ -63,12 +70,35 @@ func _process(_delta: float) -> void:
 	var camera := get_viewport().get_camera_2d()
 	if camera == null:
 		return
-	var material := (windows.get_child(0) as Polygon2D).material as ShaderMaterial
-	if material == null:
-		return
 	var half_view := camera.get_viewport_rect().size.x / maxf(camera.zoom.x, 0.001) * 0.5
 	var camera_left := camera.get_screen_center_position().x - half_view - global_position.x
-	material.set_shader_parameter("shift_px", maxf(0.0, camera_left) * depth_parallax)
+	var travel := maxf(0.0, camera_left) * depth_parallax
+	for group: String in _depth_window_materials:
+		var material: ShaderMaterial = _depth_window_materials[group]
+		# Keep the sampled inpainting within its hand-cut opening. Large shifts
+		# make a painted wall look like a loose decal at the room's far edge.
+		material.set_shader_parameter("shift_px", minf(travel * _depth_window_factors[group], 16.0))
+
+
+func _configure_depth_windows() -> void:
+	var windows := get_node_or_null("DepthWindows")
+	if windows == null:
+		return
+	for child in windows.get_children():
+		var polygon := child as Polygon2D
+		if polygon == null:
+			continue
+		var source := polygon.material as ShaderMaterial
+		if source == null:
+			continue
+		# All feather triangles of one opening must sample the same plate offset;
+		# neighbouring openings can sit at a different apparent depth.
+		var group := polygon.name.get_slice("Feather", 0)
+		if not _depth_window_materials.has(group):
+			_depth_window_materials[group] = source.duplicate() as ShaderMaterial
+			var index := maxi(1, int(group.trim_prefix("Window")))
+			_depth_window_factors[group] = clampf(0.68 + 0.16 * (index - 1), 0.68, 1.16)
+		polygon.material = _depth_window_materials[group]
 
 
 func _ensure_painting() -> void:

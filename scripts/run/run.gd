@@ -191,11 +191,12 @@ func _begin() -> void:
 	# seconds. Marked as heard before it plays, so quitting during it still
 	# counts: a monologue you walked out on is one you do not want again.
 	var heard: bool = Profile.data.get("prologue_seen", false)
+	var opening_room := room
 	if not heard:
 		Profile.data.prologue_seen = true
 		Profile.save()
 	await cutscene.play("ch1_prologue_short" if heard else "ch1_prologue")
-	if not is_inside_tree():
+	if not is_inside_tree() or room != opening_room:
 		return
 	# The angel talks over the fight; hands stay on the controls from second one.
 	dialogue.play("ch1_intro")
@@ -354,8 +355,12 @@ func _build_room(index: int) -> void:
 		if room.exited.is_connected(_on_room_exited):
 			room.exited.disconnect(_on_room_exited)
 		room.queue_free()
-	for leftover in entities.get_children():
-		leftover.queue_free()
+	# The spawner owns replicated enemy lifetimes. A guest freeing them here
+	# races the host's despawn packets and rejects those packets as unknown IDs.
+	# Their authoritative removal arrives under the closed curtain instead.
+	if not Net.active or _is_server():
+		for leftover in entities.get_children():
+			leftover.queue_free()
 	room_index = index
 	_placed_for_room = -1
 	_dead_peers.clear()
@@ -386,8 +391,7 @@ func _place_local_player() -> void:
 	if player.is_dead():
 		player.revive(at, REVIVE_FRACTION)
 	else:
-		player.global_position = at
-		player.velocity = Vector2.ZERO
+		player.place_in_room(at)
 	player.camera.limit_right = room.width
 	player.camera.limit_bottom = room.height
 	player.camera.reset_smoothing()
@@ -628,7 +632,7 @@ func _story(dialogue_id: String) -> void:
 		return
 	_story_done = false
 	_net_story.rpc(dialogue_id, Net.chooser_id())
-	while not _story_done and not _finished:
+	while is_inside_tree() and Net.active and not _story_done and not _finished:
 		await get_tree().process_frame
 
 
@@ -646,8 +650,10 @@ func _cutscene_story(dialogue_id: String) -> void:
 			ended[0] = true
 	EventBus.dialogue_finished.connect(on_end)
 	var waited := 0.0
-	while not ended[0] and not _finished and waited < 45.0 and cutscene.playing != "" and not cutscene.skipping():
+	while is_inside_tree() and Net.active and not ended[0] and not _finished and waited < 45.0 and cutscene.playing != "" and not cutscene.skipping():
 		await get_tree().process_frame
+		if not is_inside_tree():
+			break
 		waited += get_process_delta_time()
 	EventBus.dialogue_finished.disconnect(on_end)
 
@@ -656,6 +662,8 @@ func _cutscene_story(dialogue_id: String) -> void:
 func _net_story(dialogue_id: String, chooser: int) -> void:
 	dialogue.remote = multiplayer.get_unique_id() != chooser
 	await dialogue.play(dialogue_id)
+	if not is_inside_tree() or not Net.active:
+		return
 	dialogue.remote = false
 	if multiplayer.get_unique_id() == chooser:
 		_story_finished.rpc_id(1)
@@ -673,7 +681,7 @@ func _net_answer(choice_index: int) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _story_finished() -> void:
-	if multiplayer.is_server():
+	if Net.active and multiplayer.is_server():
 		_story_done = true
 
 

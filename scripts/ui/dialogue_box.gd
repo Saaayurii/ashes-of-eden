@@ -26,6 +26,7 @@ var remote := false
 
 var _skipped := false
 var _busy := false
+var _dialogue_id := ""
 var _blocking := true
 var _choices: Array = []
 
@@ -49,6 +50,21 @@ var _typing: Tween
 @onready var choices_box: VBoxContainer = %Choices
 @onready var continue_button: Button = %Continue
 @onready var skip_button: Button = %Skip
+
+
+func _exit_tree() -> void:
+	# A scene change can destroy the signal we are awaiting. Do not rely on
+	# play() resuming to release an autoload voice or a blocking dialogue's pause.
+	if not _busy:
+		return
+	_skipped = true
+	if _typing != null and _typing.is_valid():
+		_typing.kill()
+	Audio.stop_speech()
+	if _blocking:
+		Net.set_paused(false)
+	_busy = false
+	_dialogue_id = ""
 
 
 func _ready() -> void:
@@ -106,6 +122,7 @@ func play(dialogue_id: String) -> void:
 
 	var blocking: bool = dialogue.get("blocking", true)
 	_busy = true
+	_dialogue_id = dialogue_id
 	_blocking = blocking
 	_skipped = false
 	if blocking:
@@ -174,6 +191,7 @@ func play(dialogue_id: String) -> void:
 	if blocking:
 		Net.set_paused(false)
 	_busy = false
+	_dialogue_id = ""
 	_released.emit()
 	EventBus.dialogue_finished.emit(dialogue_id)
 
@@ -436,6 +454,11 @@ func _on_skip() -> void:
 ## Whether a dialogue is on screen in any form (panel, captions or bubbles).
 func is_open() -> bool:
 	return _busy
+
+
+## Used by a cutscene to cancel only its own line, not an unrelated talk.
+func is_playing(dialogue_id: String) -> bool:
+	return _busy and not dialogue_id.is_empty() and _dialogue_id == dialogue_id
 
 
 ## A conversation that holds the game (panel or bubbles). Captions do not count:

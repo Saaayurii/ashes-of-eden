@@ -81,6 +81,9 @@ const RALLY_TIME := 2.4
 const RALLY_DAMAGE_SHARE := 0.35
 const RALLY_HIT_SHARE := 0.4
 const RALLY_MAX_HP_SHARE := 0.15
+## A landed blow must not become several wounds just because two attack
+## hitboxes overlap on the same frame. Hazards and scripted damage bypass it.
+const HURT_GRACE_TIME := 0.24
 ## The riposte the roll earns. A real enemy blow that the i-frames swallowed
 ## leaves the blade hot: the next sword hit that actually lands on something
 ## alive is worth a little more. One charge per roll, one swing to spend it,
@@ -201,6 +204,7 @@ var _dodge_counter_left := 0.0
 ## This roll has already earned its counter: a second blow swallowed by the
 ## same i-frames is not a second charge.
 var _dodge_counted := false
+var _hurt_grace_left := 0.0
 ## Sword out. Sheathed until somebody notices us or we swing; the draw is a
 ## beat of theatre when the first enemy in a room wakes up.
 var _armed := false
@@ -267,7 +271,8 @@ func _ready() -> void:
 		_guard_left = int(stats.guard)
 		_armed = false
 		_rally_pool = 0.0
-		_rally_left = 0.0)
+		_rally_left = 0.0
+		_hurt_grace_left = 0.0)
 	body.modulate = SLOT_TINTS[slot % SLOT_TINTS.size()]
 	_light = Fx.light(self, Vector2(0, -12), LIGHT_COLOR, 110.0, 0.55, 0.0, 0.06)
 	EventBus.alignment_changed.connect(func(_alignment: Dictionary) -> void: _update_aura())
@@ -378,6 +383,8 @@ func _physics_process(delta: float) -> void:
 	_scripted_left = maxf(0.0, _scripted_left - delta)
 	_block_cd = maxf(0.0, _block_cd - delta)
 	_tick_rally(delta)
+	_hurt_grace_left = maxf(0.0, _hurt_grace_left - delta)
+	_dodge_counter_left = maxf(0.0, _dodge_counter_left - delta)
 	_turn_lock_left = maxf(0.0, _turn_lock_left - delta)
 	_parry_left = maxf(0.0, _parry_left - delta)
 	if _combo_timer <= 0.0:
@@ -785,16 +792,29 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 @rpc("any_peer", "call_remote", "reliable")
 func _net_damage(amount: float, from_x: float, source_path: NodePath) -> void:
 	var source: Node = null if source_path.is_empty() else get_node_or_null(source_path)
-	_apply_damage(amount, source, {"from_x": from_x})
+	# A projectile can already have burst before this RPC arrives. Its nonempty
+	# path still identifies combat damage, even if there is no node to resolve.
+	_apply_damage(amount, source, {"from_x": from_x, "combat_hit": not source_path.is_empty()})
 
 
 func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) -> void:
-	if _dead or _dash_left > 0.0:  # rolling grants i-frames
+	if _dead:
+		return
+	if _dash_left > 0.0:  # rolling grants i-frames
+		# Only a real enemy attack earns the answer, once per roll. Hazards,
+		# furniture and a teammate's tests cannot charge it for free.
+		if amount > 0.0 and source is Enemy and not _dodge_counted:
+			_dodge_counted = true
+			_dodge_counter_left = DODGE_COUNTER_TIME
+			Fx.sparkle(global_position + Vector2(0, -12), DODGE_COUNTER_TINT, 6, 8.0)
 		return
 	var from_x := _attacker_x(source, info)
+	var combat_hit := not source is Hazard and (source != null or bool(info.get("combat_hit", false)))
 	var blocked := _blocking and _faces(from_x)
 	if blocked and _parry_left > 0.0:
 		_parry(source, from_x)
+		return
+	if _hurt_grace_left > 0.0 and combat_hit:
 		return
 	# The present backstab still lands, but the next blow should not catch an
 	# oblivious back. Briefly keep the hit reaction facing its actual source.
@@ -818,6 +838,8 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 	if stats.thorns > 0.0 and source != null and source != self and source.has_method("take_damage"):
 		source.take_damage(amount * stats.thorns, self)
 	hp -= amount
+	if amount > 0.0 and not blocked and combat_hit:
+		_hurt_grace_left = HURT_GRACE_TIME
 	if amount > 0.0 and hp > 0.0:
 		_rally_pool = minf(minf(_rally_pool + amount * RALLY_DAMAGE_SHARE, stats.max_hp * RALLY_MAX_HP_SHARE), stats.max_hp - hp)
 		_rally_left = RALLY_TIME
@@ -864,6 +886,9 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 
 func _go_down() -> void:
 	_dead = true
+	_hurt_grace_left = 0.0
+	_dodge_counter_left = 0.0
+	_dodge_counted = false
 	_healing_left = 0.0
 	_slamming = false
 	_slam_recovery = 0.0
@@ -908,10 +933,32 @@ func is_dead() -> bool:
 	return _dead
 
 
-## Back on your feet: between rooms in co-op, between rounds in a duel.
-func revive(at: Vector2, fraction := 1.0) -> void:
+## Teleports must not carry a climb's old coordinates, a disabled ledge mask,
+## or a hazard's return point into the next room. Health and gifts stay intact.
+func place_in_room(at: Vector2) -> void:
 	global_position = at
 	velocity = Vector2.ZERO
+	_mantle_left = 0.0
+	_mantle_start = at
+	_mantle_end = at
+	_drop_left = 0.0
+	collision_mask |= LEDGE_LAYER
+	_jump_buffer = 0.0
+	_coyote = 0.0
+	_was_on_floor = false
+	_jumps_left = int(stats.max_jumps)
+	_wall_side = 0
+	_slamming = false
+	_slam_recovery = 0.0
+	_dash_left = 0.0
+	_safe_position = at
+	_safe_time = 0.0
+	_scripted_left = 0.0
+
+
+## Back on your feet: between rooms in co-op, between rounds in a duel.
+func revive(at: Vector2, fraction := 1.0) -> void:
+	place_in_room(at)
 	_dead = false
 	_rally_pool = 0.0
 	_rally_left = 0.0
@@ -921,6 +968,9 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	_slam_recovery = 0.0
 	_wall_side = 0
 	_dash_left = 0.0
+	_hurt_grace_left = 0.0
+	_dodge_counter_left = 0.0
+	_dodge_counted = false
 	_blocking = false
 	_parry_left = 0.0
 	hp = stats.max_hp * clampf(fraction, 0.05, 1.0)
@@ -1003,6 +1053,8 @@ func _roll() -> void:
 	Audio.play(&"dash", -4.0)
 	_scripted_left = 0.0
 	_dash_hit.clear()
+	_dodge_counter_left = 0.0
+	_dodge_counted = false
 	_dash_left = stats.dash_time
 	_dash_cd = stats.dash_cooldown
 	# Enemy body collision is always non-solid; the roll still grants i-frames and
@@ -1163,6 +1215,8 @@ func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
 
 
 func _on_room_cleared(_index: int) -> void:
+	_dodge_counter_left = 0.0
+	_dodge_counted = false
 	if not _is_mine() or _dead or stats.clear_heal <= 0.0:
 		return
 	heal(stats.clear_heal)
@@ -1325,6 +1379,10 @@ func _attack() -> void:
 			continue
 		var live_enemy: bool = target is Enemy and not (target as Enemy).is_dead()
 		var damage: float = stats.attack_damage * COMBO_MULTIPLIERS[hit_index]
+		var counter_hit := live_enemy and _dodge_counter_left > 0.0
+		if counter_hit:
+			damage *= 1.0 + DODGE_COUNTER_BONUS
+			_dodge_counter_left = 0.0
 		var crit: bool = randf() < stats.crit_chance
 		if crit:
 			damage *= stats.crit_multiplier
@@ -1334,6 +1392,8 @@ func _attack() -> void:
 			"sneak": stats.backstab_multiplier, "execute": stats.execute})
 		if live_enemy:
 			_recover_from_strike(damage)
+			if counter_hit:
+				Fx.sparkle(target.global_position + Vector2(0, -12), DODGE_COUNTER_TINT, 9, 14.0)
 		hit_something = true
 		hit_crit = hit_crit or crit
 		# Steel on flesh is not steel on plate: the body decides what the blow

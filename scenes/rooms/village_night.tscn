@@ -1,4 +1,4 @@
-[gd_scene load_steps=60 format=3]
+[gd_scene load_steps=52 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_moon_wide.png" id="2_backdrop"]
@@ -92,46 +92,28 @@ size = Vector2(80, 20)
 size = Vector2(320, 30)
 
 [sub_resource type="RectangleShape2D" id="Ground6_shape"]
-size = Vector2(44, 30)
+size = Vector2(200, 30)
 
 [sub_resource type="RectangleShape2D" id="Ground7_shape"]
-size = Vector2(34, 30)
-
-[sub_resource type="RectangleShape2D" id="Ground8_shape"]
-size = Vector2(122, 40)
-
-[sub_resource type="RectangleShape2D" id="Ground9_shape"]
 size = Vector2(200, 40)
 
-[sub_resource type="RectangleShape2D" id="Ground10_shape"]
-size = Vector2(55, 40)
-
-[sub_resource type="RectangleShape2D" id="Ground11_shape"]
-size = Vector2(10, 51)
-
-[sub_resource type="RectangleShape2D" id="Ground12_shape"]
-size = Vector2(115, 26)
+[sub_resource type="RectangleShape2D" id="Ground8_shape"]
+size = Vector2(117, 60)
 
 [sub_resource type="RectangleShape2D" id="Ground13_shape"]
-size = Vector2(140, 26)
+size = Vector2(143, 60)
 
-[sub_resource type="RectangleShape2D" id="Ground14_shape"]
-size = Vector2(242, 94)
+[sub_resource type="RectangleShape2D" id="Ground9_shape"]
+size = Vector2(250, 30)
 
-[sub_resource type="RectangleShape2D" id="Ground15_shape"]
-size = Vector2(49, 22)
+[sub_resource type="RectangleShape2D" id="Ground10_shape"]
+size = Vector2(185, 30)
 
-[sub_resource type="RectangleShape2D" id="Ground16_shape"]
-size = Vector2(185, 56)
+[sub_resource type="RectangleShape2D" id="Ground11_shape"]
+size = Vector2(50, 20)
 
-[sub_resource type="RectangleShape2D" id="Ground17_shape"]
-size = Vector2(43, 85)
-
-[sub_resource type="RectangleShape2D" id="Ground18_shape"]
-size = Vector2(40, 73)
-
-[sub_resource type="RectangleShape2D" id="Ground19_shape"]
-size = Vector2(135, 61)
+[sub_resource type="RectangleShape2D" id="Ground12_shape"]
+size = Vector2(220, 65)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
 size = Vector2(70, 10)
@@ -143,18 +125,12 @@ size = Vector2(195, 14)
 size = Vector2(150, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge3_shape"]
-size = Vector2(158, 14)
-
-[sub_resource type="RectangleShape2D" id="Ledge4_shape"]
 size = Vector2(96, 14)
 
+[sub_resource type="RectangleShape2D" id="Ledge4_shape"]
+size = Vector2(300, 16)
+
 [sub_resource type="RectangleShape2D" id="Ledge5_shape"]
-size = Vector2(140, 16)
-
-[sub_resource type="RectangleShape2D" id="Ledge6_shape"]
-size = Vector2(20, 16)
-
-[sub_resource type="RectangleShape2D" id="Ledge7_shape"]
 size = Vector2(510, 20)
 
 [sub_resource type="RectangleShape2D" id="Wall1_shape"]
@@ -380,7 +356,7 @@ position = Vector2(100.0, 415.0)
 shape = SubResource("Ground3_shape")
 
 [node name="Ground4Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(160.0, 428.0)
+position = Vector2(160.0, 430.0)
 shape = SubResource("Ground4_shape")
 
 [node name="Ground5Shape" type="CollisionShape2D" parent="Geometry"]
@@ -388,60 +364,36 @@ position = Vector2(440.0, 542.0)
 shape = SubResource("Ground5_shape")
 
 [node name="Ground6Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(622.0, 553.0)
+position = Vector2(700.0, 553.0)
 shape = SubResource("Ground6_shape")
 
 [node name="Ground7Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(783.0, 553.0)
+position = Vector2(900.0, 580.0)
 shape = SubResource("Ground7_shape")
 
 [node name="Ground8Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(705.0, 580.0)
+position = Vector2(1121.5, 550.0)
 shape = SubResource("Ground8_shape")
 
+[node name="Ground13Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1269.5, 550.0)
+shape = SubResource("Ground13_shape")
+
 [node name="Ground9Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(900.0, 580.0)
+position = Vector2(1225.0, 640.0)
 shape = SubResource("Ground9_shape")
 
 [node name="Ground10Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1027.5, 560.0)
+position = Vector2(1507.5, 535.0)
 shape = SubResource("Ground10_shape")
 
 [node name="Ground11Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1060.0, 554.5)
+position = Vector2(1390.0, 570.0)
 shape = SubResource("Ground11_shape")
 
 [node name="Ground12Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1122.5, 532.0)
+position = Vector2(1490.0, 687.5)
 shape = SubResource("Ground12_shape")
-
-[node name="Ground13Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1270.0, 532.0)
-shape = SubResource("Ground13_shape")
-
-[node name="Ground14Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1229.0, 673.0)
-shape = SubResource("Ground14_shape")
-
-[node name="Ground15Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1390.5, 569.0)
-shape = SubResource("Ground15_shape")
-
-[node name="Ground16Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1507.5, 547.0)
-shape = SubResource("Ground16_shape")
-
-[node name="Ground17Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1403.5, 677.5)
-shape = SubResource("Ground17_shape")
-
-[node name="Ground18Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1445.0, 683.5)
-shape = SubResource("Ground18_shape")
-
-[node name="Ground19Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1532.5, 689.5)
-shape = SubResource("Ground19_shape")
 
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)
@@ -478,28 +430,18 @@ shape = SubResource("Ledge2_shape")
 one_way_collision = true
 
 [node name="Ledge3Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(705.0, 428.0)
+position = Vector2(834.0, 428.0)
 shape = SubResource("Ledge3_shape")
 one_way_collision = true
 
 [node name="Ledge4Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(834.0, 428.0)
+position = Vector2(1130.0, 333.0)
 shape = SubResource("Ledge4_shape")
 one_way_collision = true
 
 [node name="Ledge5Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1050.0, 333.0)
-shape = SubResource("Ledge5_shape")
-one_way_collision = true
-
-[node name="Ledge6Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1270.0, 333.0)
-shape = SubResource("Ledge6_shape")
-one_way_collision = true
-
-[node name="Ledge7Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(1345.0, 270.0)
-shape = SubResource("Ledge7_shape")
+shape = SubResource("Ledge5_shape")
 one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
@@ -511,7 +453,7 @@ z_index = 1
 
 [node name="wilds_brush_2_1" type="Sprite2D" parent="DecorFront"]
 modulate = Color(0.783, 0.767, 0.832, 1)
-position = Vector2(705, 406.0)
+position = Vector2(705, 523.0)
 texture = ExtResource("decor_wilds_brush_2")
 
 [node name="Props" type="Node2D" parent="."]
@@ -541,29 +483,20 @@ position = Vector2(860, 560)
 prop_id = "pot"
 
 [node name="Prop7" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1320, 626)
+position = Vector2(1320, 625)
 prop_id = "rubble"
 
 [node name="Prop8" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1565, 659)
+position = Vector2(1520, 655)
 prop_id = "chest_wooden"
 
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1442, 647)
+position = Vector2(1430, 655)
 prop_id = "secret_wall_village"
 
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(300, 345)
 npc_id = "severin"
-
-[node name="Shrine" type="Sprite2D" parent="."]
-position = Vector2(1470, 260)
-texture = ExtResource("9_shrine")
-hframes = 7
-centered = false
-offset = Vector2(-24, -64)
-script = ExtResource("10_fixture")
-lights = true
 
 [node name="Spawns" type="Node2D" parent="."]
 
@@ -578,7 +511,7 @@ script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
 [node name="Spawn3" type="Marker2D" parent="Spawns"]
-position = Vector2(1470, 507)
+position = Vector2(1470, 508)
 script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 

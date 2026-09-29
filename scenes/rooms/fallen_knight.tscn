@@ -612,11 +612,11 @@ texture = ExtResource("decor_graveyard_bones_1")
 
 [node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(110, 320)
-prop_id = "barrel"
+prop_id = "rubble"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(960, 320)
-prop_id = "box_goods"
+prop_id = "funeral_offering"
 
 [node name="Barrier1" type="Sprite2D" parent="."]
 position = Vector2(36, 320)
@@ -753,4 +753,3 @@ energy = 0.6
 script = ExtResource("12_light")
 radius = 60.0
 flicker = 0.3
-

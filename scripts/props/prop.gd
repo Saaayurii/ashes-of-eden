@@ -31,6 +31,9 @@ var _kick_rotation := 0.0
 var _ambient_timer: Timer
 var _base_sprite_position := Vector2.ZERO
 var _base_sprite_scale := Vector2.ONE
+var _idle_offsets: Array[float] = []
+var _authored_sprite_offset := Vector2.ZERO
+static var _floor_padding_cache := {}
 ## A chest glows in its own colour until it is opened (Fx.light).
 var _light: GlowLight
 
@@ -55,12 +58,16 @@ func _ready() -> void:
 	sprite.centered = false
 	# The strips reserve one or two transparent rows below the drawing. Place
 	# the lowest painted pixel, not the cell border, on the platform line.
-	var ground_pad := float(spec.get("ground_pad", 1.0))
+	var ground_pad := float(spec.get("ground_pad", _floor_padding(texture, sprite.hframes)))
 	sprite.offset = Vector2(-texture.get_width() / sprite.hframes / 2.0,
 		-texture.get_height() + ground_pad)
 	sprite.frame = 0
-	# Position-derived variation is stable between runs. Nearby copies no longer
-	# breathe in lockstep or read like objects stamped from a level editor.
+	_authored_sprite_offset = sprite.offset
+	var idle_count := mini(int(stats.get("idle_frames", 1)), sprite.hframes)
+	for frame in idle_count:
+		_idle_offsets.append(-texture.get_height() + _frame_padding(texture, sprite.hframes, frame))
+	# Position-derived material variation is stable between runs. Nearby copies
+	# differ subtly without lifting their feet or breathing like living bodies.
 	_phase = fposmod(global_position.x * 0.071 + global_position.y * 0.037 + prop_id.hash() * 0.001, TAU)
 	if not stats.get("still", false):
 		var size_variation := 0.96 + fposmod(absf(sin(_phase * 1.73)), 1.0) * 0.08
@@ -91,6 +98,31 @@ func _ready() -> void:
 	set_process(true)
 
 
+## Ground the drawing, not a cell's transparent border. Frame zero also sets
+## the authored baseline for opening, bursting and remains.
+static func _floor_padding(texture: Texture2D, frames: int) -> int:
+	return _frame_padding(texture, frames, 0)
+
+
+static func _frame_padding(texture: Texture2D, frames: int, frame: int) -> int:
+	var key := "%s:%d:%d" % [texture.get_instance_id(), frames, frame]
+	if _floor_padding_cache.has(key):
+		return _floor_padding_cache[key]
+	var image := texture.get_image()
+	if image == null:
+		return 1
+	if image.is_compressed():
+		image.decompress()
+	var cell_width := int(image.get_width() / frames)
+	for y in range(image.get_height() - 1, -1, -1):
+		for x in range(frame * cell_width, (frame + 1) * cell_width):
+			if image.get_pixel(x, y).a >= 0.1:
+				var padding := image.get_height() - y - 1
+				_floor_padding_cache[key] = padding
+				return padding
+	return 1
+
+
 func _process(delta: float) -> void:
 	if _spent or stats.get("still", false):
 		return
@@ -100,15 +132,17 @@ func _process(delta: float) -> void:
 		_idle_clock = 0.0
 		_idle_frame = (_idle_frame + 1) % idle_frames
 		sprite.frame = _idle_frame
-	var t := Time.get_ticks_msec() * 0.001 + _phase
-	# Deliberately tiny: the prop feels inhabited by the weather without
-	# floating off the floor or making its collision shape swim around.
-	var breathe := sin(t * 1.35) * (0.012 if stats.get("ambient", "") != "" else 0.004)
+	# Only intact idle cells are grounded independently. Bursting / remains
+	# retain their authored vertical motion and are never snapped upward.
+	if sprite.frame < _idle_offsets.size():
+		sprite.offset.y = _idle_offsets[sprite.frame]
+	else:
+		sprite.offset = _authored_sprite_offset
 	_kick = _kick.lerp(Vector2.ZERO, minf(1.0, delta * 9.0))
 	_kick_rotation = lerpf(_kick_rotation, 0.0, minf(1.0, delta * 11.0))
 	sprite.position = _base_sprite_position + _kick
-	sprite.rotation = sin(t * 0.73) * 0.006 + _kick_rotation
-	sprite.scale = _base_sprite_scale * (1.0 + breathe)
+	sprite.rotation = _kick_rotation
+	sprite.scale = _base_sprite_scale
 
 
 func _on_world_impulse(at: Vector2, direction: Vector2, strength: float, kind: StringName) -> void:
@@ -120,8 +154,8 @@ func _on_world_impulse(at: Vector2, direction: Vector2, strength: float, kind: S
 		return
 	var falloff := 1.0 - distance / reach
 	var push := direction.normalized() if direction.length_squared() > 0.01 else Vector2.UP
-	_kick += Vector2(push.x * 2.4, -absf(push.y) * 1.2 - 0.8) * strength * falloff
-	_kick_rotation += push.x * 0.07 * strength * falloff
+	_kick += Vector2(push.x * 1.2, 0) * strength * falloff
+	_kick_rotation += push.x * 0.015 * strength * falloff
 
 
 func _setup_ambient() -> void:
@@ -168,9 +202,10 @@ func take_damage(amount: float, _source: Node = null, _info: Dictionary = {}) ->
 	if hp > 0.0:
 		sprite.modulate.a = 1.0
 		sprite.frame = mini(int(stats.get("hit_frame", 1)), sprite.hframes - 1)
+		sprite.offset = _authored_sprite_offset
 		if not stats.get("still", false):
-			_kick = Vector2(randf_range(-2.0, 2.0), -2.5)
-			_kick_rotation = randf_range(-0.08, 0.08)
+			_kick = Vector2(randf_range(-1.2, 1.2), 0)
+			_kick_rotation = randf_range(-0.015, 0.015)
 		Fx.puff(global_position + Vector2(0, -8), 0.3, Color(0.8, 0.7, 0.55, 0.7))
 		return
 	_break()
@@ -178,6 +213,7 @@ func take_damage(amount: float, _source: Node = null, _info: Dictionary = {}) ->
 
 func _break() -> void:
 	_spent = true
+	_rest_on_floor()
 	sprite.modulate.a = 1.0
 	# take_damage() can reach us from an area callback too (scripts/player/player.gd).
 	set_deferred("monitoring", false)
@@ -198,6 +234,7 @@ func _on_body_entered(body: Node) -> void:
 	if _spent or not (body is Player):
 		return
 	_spent = true
+	_rest_on_floor()
 	# We are inside the area's own body_entered: physics is mid-flush and will
 	# not let us switch monitoring off until it is done.
 	set_deferred("monitoring", false)
@@ -214,6 +251,15 @@ func _on_body_entered(body: Node) -> void:
 		if not is_inside_tree():
 			return
 		sprite.frame = frame
+
+
+func _rest_on_floor() -> void:
+	sprite.offset = _authored_sprite_offset
+	sprite.position = _base_sprite_position
+	sprite.rotation = 0.0
+	sprite.scale = _base_sprite_scale
+	_kick = Vector2.ZERO
+	_kick_rotation = 0.0
 
 
 ## What was inside, drawn for a moment above the open lid.

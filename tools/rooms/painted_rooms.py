@@ -141,15 +141,10 @@ PAINTED = {
         # only), "platforms" are extra broken steps drawn with sheet pieces
         # where the painting leaves a gap no double jump can cross.
         painting="graveyard_moon", width=1280, height=720, weather="ash", fog=0.2, intro="", music="village_night",
-        ground=[(0, 195, 310, 24), (0, 395, 80, 20), (80, 405, 40, 20), (120, 418, 80, 20),
-                (280, 527, 320, 30), (600, 538, 40, 30), (640, 560, 200, 40),
-                # the chain bridge: a low step by the fence, then its slab
-                (840, 540, 55, 40), (895, 529, 10, 51), (905, 519, 115, 26),
-                (948, 626, 82, 94),  # the slab over the waterfall; the fall itself is open
-                # the crypt: its roof is the upper street, the floor is the
-                # lit one by the brazier, reached down a slope of rubble
-                (1046, 558, 49, 22), (1095, 519, 185, 56),
-                (1062, 635, 43, 85), (1105, 647, 40, 73), (1145, 659, 135, 61)],
+        ground=[(0, 195, 310, 24), (0, 395, 80, 20), (80, 405, 40, 20), (120, 420, 80, 20),
+                (280, 527, 320, 30), (600, 538, 40, 30), (640, 560, 200, 40), (840, 520, 120, 60),
+                (940, 625, 90, 30), (1095, 520, 185, 30), (1045, 560, 50, 20),
+                (1060, 655, 220, 65)],
         # The dark bone mound below the first stair is scenery, not a hidden
         # catch floor. A missed jump there is a fall out of the room.
         void_kill_y=690,
@@ -162,12 +157,12 @@ PAINTED = {
         # or separate grid-textured pillar are drawn on top of it.
         platforms=[(690, 380, 70, 10)],
         painted_platforms=[(690, 380, 70, 10)],
-        spawns=[("possessed_villager", 470, 515), ("possessed_villager", 760, 548), ("possessed_villager", 1150, 507),
+        spawns=[("possessed_villager", 470, 515), ("possessed_villager", 760, 548), ("possessed_villager", 1150, 508),
                 ("possessed_villager", 1050, 248), ("possessed_villager", 330, 333),
                 ("shade", 500, 300), ("shade", 900, 200), ("raven", 700, 120)],
         props=[("pot", 280, 195), ("rubble", 370, 345), ("barrel_apples", 330, 527), ("box_goods", 365, 527), ("rubble", 500, 527),
-               ("pot", 700, 560), ("rubble", 1000, 626), ("chest_wooden", 1245, 659),
-               ("secret_wall_village", 1122, 647)],  # Severin's gate log, bricked up in the crypt (docs/CHAPTER1.md)
+               ("pot", 700, 560), ("rubble", 1000, 625), ("chest_wooden", 1200, 655),
+               ("secret_wall_village", 1110, 655)],  # Gate log at the crypt's painted floor, not an invisible shelf
         decor=[],
         npcs=[("severin", 300, 345)],  # on the side ledge, where the possessed one spawns
         ambient="#c0bccc",
@@ -176,7 +171,7 @@ PAINTED = {
                 (600, 402, "#ffb060", 36, 0.5, 0.3), (780, 552, "#ffb060", 36, 0.5, 0.3), (850, 640, "#ffb060", 40, 0.5, 0.3),
                 (1235, 465, "#ff9a40", 70, 0.9, 0.3), (1190, 638, "#ff9a40", 50, 0.7, 0.3), (1090, 250, "#ffb060", 40, 0.6, 0.3),
                 (1238, 245, "#ffb060", 50, 0.7, 0.3), (875, 75, "#c8d4ff", 220, 0.5, 0.0)],
-        player=(40, 175), door=(1230, 232), shrine=(1150, 260)),
+        player=(40, 175), door=(1230, 232)),
     "graveyard_cross": dict(
         # Second panel: the cross ledge over the chapel, a descent to the bone
         # crypt bottom left, painted stairs climbing to the right wall.
@@ -185,148 +180,123 @@ PAINTED = {
         # The bottom bone mound is scenery, not a hidden safe floor. Falling
         # below the crypt's last ledge is a void death instead of a walk under
         # the level. The visible bridge and stepping route remain intact.
-        # the masonry under the end of the long bridge is one block, not a ledge
-        # to walk under: the floor below it meets a wall
-        ground=[(745, 518, 40, 60)], void_kill_y=690,
-        ledges=[(0, 254, 280, 14), (404, 278, 154, 14), (208, 349, 188, 14), (60, 404, 68, 12),
-                (0, 520, 88, 12), (82, 538, 74, 12), (188, 518, 596, 14), (785, 545, 190, 14),
-                (804, 385, 287, 14), (1091, 388, 189, 14), (1016, 220, 264, 16),
-                (0, 659, 100, 14), (100, 651, 55, 14)],  # the crypt floor under the nun is two stones
-        # Through the middle of each painted tread, landing to landing: the old
-        # line ran a tread below the stones and the hero waded up the stair.
-        ramps=[(973, 545, 1168, 388)],
-        # The arch has no ledge of its own: both climbing steps are drawn.
-        platforms=[(1120, 262, 56, 10), (1005, 306, 90, 12)],  # one exit foothold; the bone mound is not a stepping-stone course
+        ground=[], void_kill_y=690,
+        ledges=[(0, 254, 280, 14), (404, 278, 154, 14), (248, 348, 148, 14), (60, 400, 68, 12),
+                (0, 520, 88, 12), (82, 538, 74, 12), (188, 518, 596, 14), (785, 545, 207, 14),
+                (804, 385, 257, 14), (1091, 388, 189, 14), (1016, 220, 264, 16), (0, 655, 155, 14),
+                (1005, 306, 90, 12)],
+        ramps=[(985, 545, 1140, 388)],
+        stone_steps=True,  # wall-mounted stone cornices, not green islands at the exit
+        platforms=[(1120, 262, 56, 10)],  # one exit foothold; the bone mound is not a stepping-stone course
         spawns=[("possessed_villager", 400, 506), ("possessed_villager", 650, 506), ("cultist", 880, 533),
                 ("possessed_villager", 900, 373), ("zealot", 1180, 376), ("shade", 600, 300), ("raven", 800, 150),
                 ("wraith", 300, 600)],
-        props=[("pot", 200, 254), ("barrel", 300, 349), ("crate", 700, 518), ("sack", 860, 545),
-               ("chest_wooden", 70, 659), ("barrel_apples", 1000, 385)],
-        decor=[], npcs=[("nun", 122, 651), ("stranger", 252, 254)], ambient="#c0bccc", lights="auto",
-        player=(30, 234), door=(1240, 188), shrine=(1150, 220)),
+        props=[("pot", 200, 254), ("barrel", 300, 348), ("crate", 700, 518), ("sack", 860, 545),
+               ("chest_wooden", 70, 655), ("barrel_apples", 940, 385)],
+        decor=[], npcs=[("nun", 122, 655), ("stranger", 252, 254)], ambient="#c0bccc", lights="auto",
+        player=(30, 234), door=(1240, 188)),
     "graveyard_arches": dict(
         # Third panel: the old tree takes the right half; the way out is the
         # ruined arch with a candle, reached over the tree's roots.
-        painting="graveyard_arches", width=1280, height=720, weather="ash", fog=0.2, intro="", music="graveyard",
-        ground=[(0, 690, 1280, 30)],
-        # the entrance shelf stops where its stones do, under the fence; the
-        # gallery by the fence is a step lower than the one by the tomb
-        ledges=[(0, 221, 219, 14), (223, 257, 112, 12), (373, 275, 61, 12), (393, 361, 155, 14), (548, 350, 125, 14),
-                (6, 389, 70, 12),
+        painting="graveyard_arches", width=1280, height=720, weather="ash", fog=0.2, intro="", music="graveyard", void_kill_y=690,
+        ground=[],
+        ledges=[(0, 220, 265, 14), (223, 257, 112, 12), (373, 275, 61, 12), (393, 350, 280, 14), (6, 389, 70, 12),
                 (214, 494, 72, 12), (276, 513, 47, 10), (297, 525, 71, 10), (350, 552, 346, 14), (672, 572, 44, 10),
-                (720, 594, 221, 14), (935, 603, 122, 14), (675, 484, 72, 14), (890, 512, 47, 12),
+                (720, 594, 165, 14), (935, 603, 122, 14), (675, 484, 72, 14), (940, 512, 47, 12),
                 (1066, 528, 44, 12), (1169, 387, 99, 14), (900, 316, 112, 14), (1050, 292, 110, 14)],
-        ramps=[(945, 594, 885, 520)],
+        ramps=[(885, 594, 945, 512)],
         # The root walk at y=552 must lead back to the first upper patrol.
         # Without this stone the descent was one-way and a living enemy above
         # could keep the exit locked forever.
         stone_steps=True,  # broken masonry at the tree, not green floating islands
         platforms=[(1130, 470, 56, 10), (1080, 350, 56, 10)],
-        spawns=[("possessed_villager", 500, 349), ("possessed_villager", 450, 540), ("possessed_villager", 600, 540),
+        spawns=[("possessed_villager", 500, 338), ("possessed_villager", 450, 540), ("possessed_villager", 600, 540),
                 ("cultist", 800, 582), ("zealot", 1220, 375), ("fallen_guard", 950, 304), ("shade", 750, 250),
                 ("raven", 600, 120), ("wraith", 250, 620)],
-        props=[("chest_iron", 150, 221), ("barrel", 420, 361), ("box_goods", 380, 552), ("sack", 900, 594), ("barrel_apples", 1000, 603),
-               ("chest_gold", 40, 389), ("pot", 1230, 387)],
+        props=[("chest_iron", 150, 220), ("barrel", 420, 350), ("box_goods", 380, 552), ("sack", 850, 594), ("barrel_apples", 1000, 603),
+               ("chest_gold", 242, 494), ("pot", 1230, 387)],
         decor=[], npcs=[], ambient="#bcb8cc", lights="auto",
-        player=(30, 200), door=(1120, 260), shrine=(1062, 292)),
+        player=(30, 200), door=(1120, 260)),
     "graveyard_tree": dict(
         # Fourth panel: the tree has grown over everything; a long bridge of
         # roots and stone leads to the chapel, the tower gate is top right.
-        painting="graveyard_tree", width=1280, height=720, weather="ash", fog=0.25, intro="", music="graveyard",
-        ground=[(0, 690, 1280, 30)],
-        # the bridge over the arch settles by a few pixels towards its far end
-        ledges=[(40, 265, 60, 12), (80, 289, 64, 12), (137, 313, 110, 14), (247, 316, 55, 14), (302, 319, 75, 14),
-                (42, 389, 77, 12), (289, 419, 480, 16),
-                (101, 497, 51, 10), (120, 522, 95, 10), (180, 541, 60, 10), (225, 564, 100, 10),
+        painting="graveyard_tree", width=1280, height=720, weather="ash", fog=0.25, intro="", music="graveyard", void_kill_y=690,
+        ground=[],
+        ledges=[(40, 265, 60, 12), (80, 289, 64, 12), (137, 312, 240, 14), (42, 389, 77, 12), (289, 419, 480, 16),
+                (101, 497, 51, 10), (120, 522, 95, 10), (180, 541, 60, 10), (225, 563, 71, 10),
                 (435, 583, 60, 10), (481, 604, 56, 10), (538, 615, 270, 14), (732, 635, 150, 14),
-                (799, 380, 183, 14), (991, 365, 63, 12), (1048, 410, 62, 12), (1110, 419, 63, 12),
-                (1104, 448, 176, 14), (1071, 339, 50, 12), (1097, 241, 120, 14)],
-        # the grass bank between the steps and the chapel graves: it is ground,
-        # the graves stand on it, and it used to drop the hero to the roots
-        ramps=[(325, 566, 435, 583)],
+                (799, 380, 183, 14), (991, 365, 63, 12), (1048, 410, 125, 12), (1104, 445, 176, 14),
+                (1071, 339, 50, 12), (1097, 241, 120, 14)],
+        ramps=[],
         stone_steps=True,
         platforms=[(1150, 300, 56, 10)],  # the only added step needed to return to the gate
         spawns=[("possessed_villager", 400, 407), ("possessed_villager", 650, 407), ("cultist", 880, 368),
-                ("fallen_guard", 1200, 436), ("possessed_villager", 600, 603), ("zealot", 300, 307),
+                ("fallen_guard", 1200, 433), ("possessed_villager", 600, 603), ("zealot", 300, 300),
                 ("shade", 700, 250), ("wraith", 950, 600), ("raven", 500, 150)],
-        props=[("pot", 110, 289), ("barrel", 350, 319), ("crate", 500, 419), ("rubble", 720, 419), ("barrel_apples", 1000, 365),
-               ("chest_wooden", 760, 635), ("pot", 250, 564), ("crate", 1250, 448)],
+        props=[("pot", 110, 289), ("barrel", 350, 312), ("crate", 500, 419), ("rubble", 720, 419), ("barrel_apples", 1000, 365),
+               ("chest_wooden", 760, 635), ("pot", 250, 563), ("crate", 1250, 445)],
         decor=[], npcs=[("mara", 955, 380)], ambient="#bcb8cc", lights="auto",
-        player=(60, 245), door=(1180, 209), shrine=(1120, 241)),
+        player=(60, 245), door=(1180, 209)),
     "swamp_moon": dict(
         # Fifth panel: the graveyard sinks into a swamp; rotten piers over
         # black water, the lantern post on the far pier marks the way on.
-        painting="swamp_moon", width=1280, height=720, weather="fireflies", fog=0.3, intro="", music="graveyard",
-        ground=[(0, 690, 1280, 30)],  # the swamp bed
+        painting="swamp_moon", width=1280, height=720, weather="fireflies", fog=0.3, intro="", music="graveyard", void_kill_y=690,
+        ground=[],  # the painted water is not a walkable swamp bed
         ledges=[(10, 201, 80, 12), (130, 231, 57, 10), (172, 252, 57, 10), (153, 264, 144, 12), (17, 351, 157, 14),
-                # the ground the arch and the fence stand on, down to the gallery
-                (298, 315, 40, 10), (338, 318, 62, 10), (400, 329, 25, 10),
-                (425, 338, 236, 14), (216, 456, 48, 10), (286, 474, 216, 14),
-                (715, 420, 222, 14),  # the mound and its planks; left of it is open water
-                (638, 535, 104, 12), (1165, 554, 78, 12), (512, 568, 144, 12),
+                (425, 338, 236, 14), (216, 456, 48, 10), (286, 474, 216, 14), (656, 415, 226, 14), (626, 474, 61, 10),
+                (928, 474, 51, 10), (638, 535, 104, 12), (914, 550, 53, 10), (1165, 554, 78, 12), (512, 568, 144, 12),
                 (594, 599, 75, 10), (376, 603, 45, 10), (1077, 413, 194, 14)],
-        ramps=[(669, 606, 800, 637)],  # the mound under the lower gallery steps down into the water
-        # 478: the pier is a sure double jump, not a lucky one. The three
-        # stepping stones over open water are drawn: nothing is painted there.
-        platforms=[(1120, 478, 56, 10), (1230, 625, 56, 10),
-                   (626, 474, 61, 10), (928, 474, 51, 10), (914, 550, 53, 10)],
-        spawns=[("possessed_villager", 520, 326), ("cultist", 760, 408), ("possessed_villager", 400, 462),
+        ramps=[],
+        platforms=[(1120, 478, 56, 10)],  # timber return step under the exit pier
+        spawns=[("possessed_villager", 520, 326), ("cultist", 750, 403), ("possessed_villager", 400, 462),
                 ("zealot", 1150, 401), ("fallen_guard", 580, 556), ("shade", 800, 300), ("wraith", 300, 600),
                 ("raven", 900, 150), ("shade", 1000, 250)],
-        props=[("barrel", 250, 264), ("pot", 600, 338), ("box_goods", 740, 420), ("sack", 350, 474),
+        props=[("barrel", 250, 264), ("pot", 600, 338), ("box_goods", 700, 415), ("sack", 350, 474),
                ("chest_wooden", 1200, 554), ("barrel_apples", 100, 351), ("pot", 680, 535)],
         decor=[], npcs=[("villager", 470, 474)], ambient="#b4b8cc", lights="auto",
-        player=(40, 181), door=(1240, 381), shrine=(1100, 413)),
+        player=(40, 181), door=(1240, 381)),
     "swamp_red": dict(
         # Sixth panel: the moon turns red over the swamp. Stepping stones and
         # pier stumps across the water; the fenced bank top right leads on.
-        painting="swamp_red", width=1280, height=720, weather="embers", fog=0.3, intro="", music="dead_bridge",
-        ground=[(0, 690, 1280, 30)],
-        ledges=[(38, 344, 274, 14), (323, 410, 48, 10), (571, 405, 91, 12), (497, 433, 192, 12),
-                (704, 329, 53, 10), (39, 505, 122, 12), (161, 499, 226, 12), (943, 412, 83, 12),
-                (1030, 420, 167, 14),  # the middle of the dirt road, not its far kerb
+        painting="swamp_red", width=1280, height=720, weather="embers", fog=0.3, intro="", music="dead_bridge", void_kill_y=690,
+        ground=[],
+        ledges=[(38, 347, 274, 14), (323, 404, 48, 10), (470, 395, 49, 10), (571, 405, 91, 12), (522, 434, 167, 12),
+                (704, 329, 53, 10), (39, 505, 122, 12), (187, 499, 200, 12), (943, 412, 83, 12), (1047, 425, 150, 14),
                 (1121, 255, 159, 14)],
         ramps=[],
         # The middle return step is a rotting timber pier rooted in the water
         # on this painting; only the far-right climb needs separate pieces.
-        # (470, 395): only roots of the dead tree stand in the water there
-        platforms=[(860, 452, 60, 10), (1220, 370, 56, 10), (1150, 310, 56, 10), (470, 395, 49, 10)],
+        platforms=[(860, 452, 60, 10), (1220, 370, 56, 10), (1220, 310, 56, 10)],
         painted_platforms=[(860, 452, 60, 10)],
-        spawns=[("possessed_villager", 200, 332), ("cultist", 600, 422), ("possessed_villager", 300, 487),
-                ("zealot", 1120, 408), ("fallen_guard", 980, 400), ("wraith", 600, 300), ("shade", 850, 250),
+        spawns=[("possessed_villager", 200, 335), ("cultist", 600, 422), ("possessed_villager", 300, 487),
+                ("zealot", 1120, 413), ("fallen_guard", 980, 400), ("wraith", 600, 300), ("shade", 850, 250),
                 ("raven", 400, 150), ("elite_possessed", 1180, 243)],
-        props=[("barrel", 120, 344), ("crate", 280, 344), ("pot", 640, 405), ("sack", 250, 499), ("barrel_apples", 1100, 420),
+        props=[("barrel", 120, 347), ("crate", 280, 347), ("pot", 640, 405), ("sack", 250, 499), ("barrel_apples", 1100, 425),
                ("chest_cursed", 80, 505), ("pot", 1160, 255)],
         decor=[], npcs=[], ambient="#c8b0b4", lights="auto",
-        player=(60, 327), door=(1240, 223), shrine=(1140, 255)),  # the bank starts at x 38
+        player=(60, 327), door=(1240, 223)),  # the bank starts at x 38
     "swamp_crypt": dict(
         # Seventh panel: the swamp ends at a crypt door lit by candles; the
         # stairs beside it go down into the catacombs.
-        painting="swamp_crypt", width=1280, height=720, weather="embers", fog=0.3, intro="", music="dead_bridge",
-        ground=[(0, 690, 1280, 30), (930, 560, 130, 20)],
-        ledges=[(28, 319, 177, 14), (0, 261, 60, 10), (218, 258, 64, 10), (15, 414, 203, 14),
-                (262, 349, 138, 10),  # the boardwalk behind the fence, not the fence rail
-                (345, 379, 35, 10), (380, 365, 95, 12), (475, 375, 40, 10),  # the island of graves
-                (301, 404, 47, 10), (506, 256, 196, 14),
-                (649, 312, 616, 14),  # the graveyard is one floor from the gallery to the tower
-                (1105, 240, 75, 10), (1097, 175, 148, 14), (533, 451, 184, 14), (738, 459, 53, 10), (829, 472, 58, 10),
-                (1097, 485, 76, 12), (1220, 488, 60, 12), (901, 548, 58, 10)],
-        ramps=[(1060, 560, 1130, 630)],
-        # Nothing is painted under these: open red water, the far ruin in the
-        # fog and the round stones of the tower wall. They are stepping stones
-        # set into the picture, so the hero stands on something he can see.
-        step_pieces="rock",
-        platforms=[(387, 432, 86, 12), (451, 312, 54, 10), (533, 321, 44, 10), (591, 386, 45, 10),
-                   (371, 540, 162, 12), (429, 583, 46, 10), (263, 586, 56, 12), (114, 606, 49, 10),
-                   (1033, 625, 81, 10), (783, 655, 86, 12)],
+        painting="swamp_crypt", width=1280, height=720, weather="embers", fog=0.3, intro="", music="dead_bridge", void_kill_y=690,
+        ground=[(930, 560, 70, 20)],
+        ledges=[(28, 319, 177, 14), (0, 261, 60, 10), (218, 258, 64, 10), (15, 414, 203, 14), (276, 337, 67, 10),
+                (285, 375, 56, 10), (301, 404, 47, 10), (394, 397, 94, 12), (387, 432, 86, 12), (451, 312, 54, 10),
+                (533, 321, 44, 10), (506, 256, 196, 14), (649, 312, 78, 12), (780, 311, 74, 12), (919, 314, 102, 12),
+                (1116, 311, 149, 14), (1105, 240, 75, 10), (1097, 175, 148, 14), (533, 451, 184, 14), (738, 459, 53, 10), (829, 472, 58, 10),
+                (591, 386, 45, 10), (371, 540, 162, 12), (429, 583, 46, 10), (227, 586, 90, 12), (114, 606, 49, 10),
+                (1097, 485, 76, 12), (1220, 488, 60, 12), (901, 548, 58, 10), (1060, 603, 54, 10),
+                (783, 655, 86, 12)],
+        ramps=[(1000, 560, 1060, 603)],
+        platforms=[],  # painted masonry and roots already carry the whole route
         spawns=[("possessed_villager", 100, 402), ("cult_caller", 600, 244), ("possessed_villager", 600, 439),
                 ("fallen_guard", 1200, 299), ("preacher_acolyte", 960, 302), ("zealot", 450, 528), ("wraith", 700, 400),
                 ("shade", 300, 200), ("raven", 850, 120), ("elite_possessed", 690, 300)],
         props=[("barrel", 150, 319), ("chest_iron", 200, 414), ("box_goods", 560, 256), ("rubble", 680, 451), ("barrel_apples", 1000, 314),
-               ("chest_wooden", 1130, 485), ("pot", 780, 655), ("box_goods", 1200, 311),
+               ("chest_wooden", 1130, 485), ("pot", 810, 655), ("box_goods", 1200, 311),
                ("secret_wall_swamp", 630, 451)],  # letters behind the tower masonry, not the red root mass
         decor=[], npcs=[], ambient="#c8b0b4", lights="auto",
-        player=(40, 299), door=(995, 528), shrine=(925, 548)),
+        player=(40, 299), door=(995, 528)),
     "catacombs_1": dict(
         # Eighth panel: inside. Galleries of bones on four floors, a ladder up
         # to the ossuary with the gilded coffin, the way on at the bottom right.
@@ -336,9 +306,7 @@ PAINTED = {
         ledges=[(50, 157, 196, 14), (297, 178, 87, 12), (365, 260, 274, 14), (769, 204, 139, 12), (859, 240, 99, 12),
                 (956, 234, 182, 14), (1109, 234, 171, 14), (1047, 191, 154, 12), (31, 332, 80, 12), (100, 344, 100, 12),
                 (0, 413, 344, 14), (618, 356, 126, 12), (511, 403, 337, 14), (817, 430, 160, 14), (1003, 440, 277, 14),
-                (438, 556, 292, 14), (8, 582, 89, 12), (135, 584, 63, 10),
-                (128, 619, 97, 10), (146, 647, 250, 14),  # the bone step, then the lower gallery's own floor
-                (766, 604, 202, 14),
+                (438, 556, 292, 14), (8, 582, 89, 12), (135, 584, 63, 10), (129, 640, 266, 14), (766, 604, 202, 14),
                 (1004, 643, 168, 14), (1195, 610, 85, 12)],
         ramps=[(170, 350, 250, 405)],
         platforms=[(1035, 385, 48, 10), (1035, 325, 48, 10), (1035, 268, 48, 10)],
@@ -348,115 +316,109 @@ PAINTED = {
         props=[("pot", 150, 157), ("barrel", 420, 260), ("crate", 700, 403), ("sack", 1200, 440), ("chest_gold", 1150, 191),
                ("barrel_apples", 250, 413), ("pot", 600, 556), ("crate", 900, 604), ("sack", 80, 582)],
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
-        player=(70, 137), door=(1250, 578), shrine=(1205, 610)),
+        player=(70, 137), door=(1250, 578)),
     "catacombs_2": dict(
         # Ninth panel: deeper galleries; the upper floor runs the whole width
         # and ends at the torch-lit arch top right.
         painting="catacombs_2", width=1280, height=720, weather="none", fog=0.15, intro="", music="dead_bridge",
         ground=[(0, 700, 1280, 20)],
-        ledges=[(0, 298, 113, 12), (119, 335, 44, 10), (171, 353, 246, 14), (443, 228, 308, 14),
-                # the upper floor, the raised bone gallery on it, and its steps down to the arch
-                (763, 229, 183, 14), (946, 206, 191, 14), (1137, 218, 48, 10),
-                (1191, 258, 89, 12), (461, 424, 257, 14), (661, 412, 165, 14), (809, 442, 50, 10),
+        ledges=[(41, 298, 72, 12), (119, 335, 44, 10), (171, 353, 246, 14), (443, 228, 308, 14), (609, 220, 117, 12),
+                (763, 229, 374, 14), (1191, 258, 89, 12), (461, 424, 257, 14), (661, 412, 165, 14), (809, 442, 50, 10),
                 (834, 471, 58, 10), (885, 501, 73, 10), (929, 521, 197, 14), (1017, 499, 96, 12), (1099, 481, 181, 14),
-                (5, 579, 121, 12), (141, 627, 91, 12), (224, 639, 99, 12), (323, 632, 119, 12), (458, 651, 344, 14),
+                (5, 579, 121, 12), (141, 627, 91, 12), (224, 639, 99, 12), (284, 636, 158, 12), (458, 651, 344, 14),
                 (665, 616, 45, 10), (772, 602, 94, 12), (767, 633, 168, 14), (893, 695, 387, 12)],
         # The lower-right painted stair is one continuous climb; overlapping
         # one-way rectangles left individual treads unreachable in physics.
         ramps=[(1188, 630, 1260, 680)],
         platforms=[(400, 295, 48, 10)],
         spawns=[("cultist", 350, 341), ("possessed_villager", 550, 412), ("fallen_guard", 1000, 509),
-                ("zealot", 1200, 469), ("cultist", 700, 216), ("preacher_acolyte", 960, 194),
+                ("zealot", 1200, 469), ("cultist", 700, 216), ("preacher_acolyte", 950, 217),
                 ("possessed_villager", 600, 639), ("possessed_villager", 850, 621), ("shade", 500, 300),
-                ("wraith", 1000, 380), ("elite_possessed", 1050, 194)],
+                ("wraith", 1000, 380), ("elite_possessed", 1050, 217)],
         props=[("pot", 80, 298), ("barrel", 250, 353), ("box_goods", 600, 424), ("sack", 1050, 521), ("barrel_apples", 500, 228),
-               ("chest_wooden", 60, 579), ("pot", 300, 639), ("box_goods", 700, 651), ("sack", 1230, 630),
+               ("chest_wooden", 60, 579), ("pot", 300, 636), ("box_goods", 700, 651), ("sack", 1190, 481),
                ("secret_wall_catacombs", 1020, 695)],  # the bricked-up ossuary niche: names under the lid
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
-        player=(60, 278), door=(1235, 226), shrine=(1200, 258)),
+        player=(60, 278), door=(1235, 226)),
     "catacombs_3": dict(
         # Tenth panel: the galleries give way to a cave on the right; the
         # tunnel keeps going down at the bottom right.
         painting="catacombs_3", width=1280, height=720, weather="none", fog=0.15, intro="", music="dead_bridge",
         ground=[(0, 700, 1280, 20)],
-        # (no ledge at the wall sconce over the entrance: the hero starts on the floor)
-        ledges=[(2, 232, 201, 14), (139, 205, 278, 14), (444, 242, 228, 14), (742, 312, 274, 14),
-                (1110, 382, 44, 10), (1160, 410, 120, 12), (214, 405, 90, 10), (1, 442, 539, 14), (576, 458, 111, 12), (675, 538, 49, 10),
+        ledges=[(46, 146, 80, 12), (2, 232, 201, 14), (139, 205, 278, 14), (444, 242, 228, 14), (742, 312, 274, 14),
+                (1110, 382, 44, 10), (214, 405, 90, 10), (1, 442, 539, 14), (576, 458, 111, 12), (675, 538, 49, 10),
                 (806, 550, 144, 14), (946, 583, 50, 10), (3, 603, 85, 12), (1085, 637, 57, 10), (1086, 653, 75, 10),
-                (1151, 659, 129, 12), (150, 664, 357, 14), (507, 667, 121, 12), (625, 691, 149, 10)],
-        ramps=[(583, 460, 675, 535), (996, 592, 1085, 637)],  # the gallery and the bloody stair down to the tunnel
+                (1151, 659, 129, 12), (165, 664, 173, 14), (507, 667, 121, 12), (625, 691, 149, 10)],
+        ramps=[(583, 460, 675, 535)],
         platforms=[],
         spawns=[("cultist", 300, 193), ("possessed_villager", 550, 230), ("fallen_guard", 850, 300),
                 ("zealot", 400, 430), ("possessed_villager", 100, 430), ("cultist", 880, 538),
                 ("preacher_acolyte", 250, 652), ("possessed_villager", 560, 655), ("shade", 900, 450),
                 ("wraith", 1150, 500), ("elite_possessed", 1180, 647)],
         props=[("pot", 100, 232), ("barrel", 200, 205), ("crate", 600, 242), ("rubble", 950, 312), ("barrel_apples", 150, 442),
-               ("chest_gold", 60, 603), ("pot", 300, 664), ("crate", 700, 538), ("rubble", 1000, 583)],
+               ("chest_gold", 60, 603), ("pot", 300, 664), ("crate", 700, 538), ("rubble", 970, 583)],
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
-        player=(60, 212), door=(1250, 627), shrine=(1170, 659)),
+        player=(60, 126), door=(1250, 627)),
     "crypt_skulls": dict(
         # Eleventh panel: the blue crypt over the underground river; the gate
         # with candles on the right wall.
         painting="crypt_skulls", width=1280, height=720, weather="none", fog=0.2, intro="", music="dead_bridge",
         ground=[(0, 700, 1280, 20)],
-        ledges=[(43, 218, 65, 10), (37, 254, 196, 14), (233, 259, 185, 12), (418, 256, 53, 10),  # 233: the old wall under the roots (458, 268, 59, 10), (508, 275, 56, 10),
-                (583, 340, 53, 12), (919, 390, 68, 12), (836, 423, 206, 14), (1043, 404, 80, 12), (807, 449, 48, 10),
+        ledges=[(43, 218, 65, 10), (37, 254, 196, 14), (418, 256, 53, 10), (458, 268, 59, 10), (508, 275, 56, 10),
+                (919, 390, 68, 12), (836, 423, 206, 14), (1043, 404, 80, 12), (807, 449, 48, 10),
                 (639, 457, 169, 14), (583, 472, 60, 10), (112, 428, 52, 10), (4, 465, 103, 12), (93, 475, 132, 12),
                 (181, 464, 45, 10), (362, 569, 45, 10), (381, 581, 129, 12), (1160, 550, 120, 12), (1146, 603, 112, 12),
                 (1004, 615, 104, 12), (886, 626, 79, 12), (929, 643, 70, 10), (853, 678, 45, 10), (687, 691, 107, 10),
                 (593, 627, 62, 10), (675, 628, 45, 10), (282, 661, 63, 10)],
-        ramps=[(190, 490, 320, 522), (320, 522, 365, 567)],  # the stair goes on down to the lower terrace
+        ramps=[(190, 490, 320, 522)],
         platforms=[(300, 300, 56, 10)],
         spawns=[("possessed_villager", 500, 263), ("fallen_guard", 700, 445), ("zealot", 950, 411),
                 ("cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
                 ("preacher_acolyte", 950, 631), ("wraith", 500, 400), ("shade", 800, 250), ("shade", 1100, 300)],
-        props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 600, 340), ("sack", 750, 457), ("barrel_apples", 1000, 423),
+        props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 890, 423), ("sack", 750, 457), ("barrel_apples", 1000, 423),
                ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1050, 615), ("sack", 1180, 603)],
         decor=[], npcs=[], ambient="#b8bccc", lights="auto",
-        player=(60, 234), door=(1225, 518), shrine=(1175, 550)),
+        player=(60, 234), door=(1225, 518)),
     "crypt_lava": dict(
         # Twelfth panel, the Knight of Ash: the crypt cracks open over lava. He
         # waits on the long gallery in the middle; the way on is the dark arch
-        # top right. (The lava at the bottom is drawn only: a floor catches you.)
+        # top right. Lava burns and returns the hero to safe footing; beyond
+        # the panel there is no invisible safety floor.
         painting="crypt_lava", width=1280, height=720, weather="embers", fog=0.2, intro="", music="boss_knight",
         intro_cutscene="knight_arrival",
-        ground=[(0, 700, 1280, 20)],
-        # (no ledge on the iron fence at 821: the Knight stands on the gallery)
-        ledges=[(28, 176, 170, 14), (103, 222, 100, 10), (188, 235, 96, 10), (266, 252, 47, 10), (278, 261, 262, 14),
-                (613, 259, 46, 10), (672, 200, 301, 16), (956, 180, 96, 12), (958, 226, 148, 12),
-                (1097, 208, 183, 14), (581, 362, 93, 12), (424, 401, 98, 12), (513, 428, 54, 10), (584, 458, 208, 14),
+        ground=[],
+        ledges=[(28, 173, 170, 14), (103, 222, 100, 10), (188, 235, 96, 10), (266, 252, 47, 10), (278, 261, 262, 14),
+                (613, 259, 46, 10), (672, 200, 301, 16), (821, 180, 61, 10), (956, 180, 96, 12), (958, 226, 148, 12),
+                (1097, 208, 49, 14), (581, 362, 93, 12), (424, 401, 98, 12), (513, 428, 54, 10), (584, 458, 208, 14),
                 (796, 474, 177, 14), (846, 440, 63, 10), (992, 450, 173, 14), (632, 557, 97, 12), (1057, 564, 109, 12),
                 (1155, 607, 60, 10), (116, 581, 47, 10), (227, 615, 59, 10), (306, 666, 131, 12), (472, 670, 111, 12)],
-        ramps=[(240, 618, 330, 665)],
+        ramps=[(240, 618, 330, 665), (1140, 208, 1280, 108)],
         platforms=[],  # use the painted gallery and stair, not blocks over lava
         hazards=[(590, 694, 560, 26)],  # the lava pool under the gallery
         spawns=[("knight_of_ash", 820, 188)],
-        props=[("barrel", 120, 176), ("crate", 400, 261), ("pot", 700, 458), ("sack", 900, 474), ("barrel_apples", 1100, 450),
+        props=[("barrel", 120, 173), ("crate", 400, 261), ("pot", 700, 458), ("sack", 900, 474), ("barrel_apples", 1100, 450),
                ("chest_gold", 500, 670)],
         decor=[], npcs=[], ambient="#d0b4b0", lights="auto",
-        player=(50, 156), door=(1240, 176), shrine=(1140, 208)),
+        player=(50, 153), door=(1130, 176)),
     "hell_gate": dict(
         # Thirteenth panel, the Ophanim: the locked gate of the pit, a grand
         # stair up to it over a bridge of bone. The gate is the exit.
         painting="hell_gate", width=1280, height=720, weather="embers", fog=0.15, intro="ch1_ophanim", music="boss_ophanim",
         intro_cutscene="ophanim_arrival", outro_cutscene="ch1_finale",
-        ground=[(0, 700, 1280, 20), (900, 372, 220, 30)],
-        # 340: the gallery under the cages is its stones, not the fence past them
-        ledges=[(60, 142, 100, 12), (159, 176, 141, 14), (340, 241, 115, 14), (455, 285, 100, 12), (590, 312, 95, 12), (775, 358, 72, 12),  # 455, 556: the two arches of the bridge
-                (81, 393, 64, 10), (290, 492, 168, 14),
+        ground=[(900, 372, 220, 30)],
+        ledges=[(60, 142, 100, 12), (159, 176, 111, 14), (364, 239, 154, 14),
+                (81, 393, 64, 10), (123, 416, 100, 12), (194, 447, 51, 10), (203, 462, 95, 10), (290, 492, 168, 14),
                 (530, 484, 44, 10), (605, 482, 255, 16), (1039, 425, 201, 14),
                 (453, 568, 151, 12), (563, 614, 46, 10), (648, 600, 45, 10), (79, 643, 60, 10), (125, 671, 80, 10),
                 (1080, 633, 70, 10)],  # no phantom ledges below the continuous floor
-        # the grand stair to the gate, then the two painted stairs on the left:
-        # down from the high shelf to the gallery, down from the candles to the bridge
-        ramps=[(790, 494, 900, 384), (300, 178, 372, 241), (140, 402, 290, 490)],
+        ramps=[(790, 494, 900, 384), (270, 176, 364, 239)],
         platforms=[],  # no isolated stones beside the boss gate
         hazards=[(425, 694, 102, 26), (641, 694, 150, 26), (990, 694, 88, 26)],  # the lakes between the rocks
         spawns=[("ophanim", 1000, 250)],
-        props=[("pot", 250, 176), ("barrel", 400, 241), ("box_goods", 700, 482), ("rubble", 350, 492),
-               ("chest_cursed", 1100, 633)],
+        props=[("pot", 250, 176), ("barrel", 400, 239), ("box_goods", 740, 482), ("rubble", 350, 492),
+               ("chest_cursed", 670, 482)],  # reachable bridge cache, not a one-way drop into lava
         decor=[], npcs=[], ambient="#d8b8b0", lights="auto",
-        player=(80, 122), door=(1000, 340), shrine=(930, 372)),
+        player=(80, 122), door=(1000, 340)),
     "preacher_nave": dict(
         # The Blind Preacher's arena (docs/CHAPTER1.md, scene 7): the nave he
         # preached in, before the church proper. One fight, no adds but his own.
@@ -469,7 +431,7 @@ PAINTED = {
         pillars=[(90, 380), (330, 380), (630, 380), (870, 380)],
         decor=[("arch", 240, 360, "back"), ("arch", 480, 360, "back"), ("arch", 720, 360, "back")],
         spawns=[("blind_preacher", 640, 380)],
-        props=[("pot", 60, 380), ("pot", 900, 380)],
+        props=[("pot", 120, 380), ("pot", 840, 380)],
         npcs=[],
         ambient="#c8bcc8",
         lights=[(90, 360, "#ffb060", 90, 1.0, 0.3), (330, 360, "#ffb060", 90, 1.0, 0.3), (630, 360, "#ffb060", 90, 1.0, 0.3),

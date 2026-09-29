@@ -122,4 +122,8 @@ Regenerate the covers with:
 python3 tools/art/make_store_art.py
 ```
 
-`tools/check_generators.py` verifies they still reproduce.
+Then look at them and commit them. Unlike the other generators this one is
+not in `tools/check_generators.py`: FreeType rasterises the title differently
+between builds — thousands of pixels apart between this machine and a CI
+runner, on the same Pillow and the same font — so there is no byte-identical
+output to promise. The covers are committed art, like `docs/screenshots/`.

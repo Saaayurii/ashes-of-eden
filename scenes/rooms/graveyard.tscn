@@ -1556,18 +1556,18 @@ prop_id = "pot"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(460, 680)
-prop_id = "barrel"
+prop_id = "funeral_offering"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(700, 680)
-prop_id = "crates_stacked"
+prop_id = "rubble"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(880, 680)
-prop_id = "sack"
+prop_id = "funeral_offering"
 
 [node name="Prop5" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1050, 190)
+position = Vector2(1130, 200)
 prop_id = "chest_gold"
 
 [node name="Prop6" parent="Props" instance=ExtResource("7_prop")]
@@ -1753,4 +1753,3 @@ energy = 0.6
 script = ExtResource("12_light")
 radius = 60.0
 flicker = 0.3
-

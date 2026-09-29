@@ -8,7 +8,7 @@
     "path": "res://assets/props/bone_reliquary.png",
     "frame_w": 48,
     "frame_h": 44,
-    "ground_pad": 2,
+    "ground_pad": 5,
     "frames": 4
   },
   "ambient": "soul",

@@ -146,7 +146,7 @@ func _reveal() -> void:
 func _own_body() -> Player:
 	for node in get_tree().get_nodes_in_group("player"):
 		var body := node as Player
-		if body != null and body.is_multiplayer_authority():
+		if body != null and body._is_mine():
 			return body
 	return null
 
@@ -317,7 +317,7 @@ func _draw_players(origin: Vector2, scale: float, room_origin: Vector2, t: float
 			continue
 		var at := origin + (body.global_position - room_origin) * scale + Vector2(0, -2)
 		var tint: Color = Player.SLOT_TINTS[body.slot % Player.SLOT_TINTS.size()]
-		var mine := body.is_multiplayer_authority()
+		var mine := body._is_mine()
 		if mine:
 			_glow(at, 5.0 + sin(t * 2.5), Color(1, 1, 1), 0.22)
 		# A chevron pointing the way the body faces.

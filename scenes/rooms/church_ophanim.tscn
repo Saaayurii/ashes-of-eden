@@ -618,20 +618,20 @@ texture = ExtResource("decor_grass_2")
 [node name="Props" type="Node2D" parent="."]
 
 [node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(120, 320)
-prop_id = "pot"
+position = Vector2(180, 320)
+prop_id = "funeral_offering"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(240, 320)
-prop_id = "barrel"
+prop_id = "rubble"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(276, 320)
+position = Vector2(340, 320)
 prop_id = "funeral_offering"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(830, 320)
-prop_id = "crate"
+prop_id = "funeral_offering"
 
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(120, 320)
@@ -758,4 +758,3 @@ energy = 0.6
 script = ExtResource("12_light")
 radius = 60.0
 flicker = 0.3
-

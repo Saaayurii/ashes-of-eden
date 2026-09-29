@@ -1,6 +1,7 @@
 extends SceneTree
 ## Every room, played by a bot with the hero's real body and physics:
 ##   godot --headless --fixed-fps 60 --path . -s scripts/tools/reach_test.gd [-- room_name]
+## Add `props` after the room filter to require every prop surface too.
 ##
 ## The room's colliders (Geometry, Ledges, ramps) are its surfaces. From the
 ## entrance the bot tries hops to every surface in rough reach — run to the
@@ -22,6 +23,8 @@ var run
 var player
 var surfaces: Array = []  # [x0, y0, x1, y1]
 var failures := 0
+var _allow_mantle := false
+var _hop_strategies: Array = STRATEGIES
 
 
 func _init() -> void:
@@ -39,6 +42,11 @@ func _main() -> void:
 	for i in 4:
 		await process_frame
 	player = run.player
+	# Failed exploratory hops are retried. They must not open the verdict and
+	# pause every subsequent attempt, or write hundreds of QA deaths to Profile.
+	var death_handler: Callable = run._on_local_death
+	if player.died.is_connected(death_handler):
+		player.died.disconnect(death_handler)
 	for index in run.ROOMS.size():
 		var path: String = run.ROOMS[index]
 		if only != "" and not Array(only.split("|")).any(func(part: String) -> bool: return path.contains(part)):
@@ -50,6 +58,18 @@ func _main() -> void:
 			player.revive(player.global_position, 1.0)
 			if not await _test_room(index, path):
 				failures += 1
+		var return_starts := {
+			"village_night": Vector2(1480, 635), "graveyard_cross": Vector2(70, 635),
+			"graveyard_arches": Vector2(1120, 574), "graveyard_tree": Vector2(920, 615),
+			"swamp_moon": Vector2(1520, 534), "swamp_red": Vector2(80, 485),
+			"swamp_crypt": Vector2(1100, 635), "catacombs_1": Vector2(1370, 623),
+			"hell_gate": Vector2(1435, 618),
+			"crypt_lava": Vector2(660, 655),
+		}
+		if args.has("reverse") and return_starts.has(path.get_file().get_basename()):
+			var crypt_start: Vector2 = return_starts[path.get_file().get_basename()]
+			if not await _test_room(index, path, crypt_start):
+				failures += 1
 	print("REACH TEST PASSED" if failures == 0 else "REACH TEST FAILED (%d rooms)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -57,7 +77,9 @@ func _main() -> void:
 # ------------------------------------------------------------------ room ---
 
 ## True when the door and every walker were reached.
-func _test_room(index: int, path: String) -> bool:
+func _test_room(index: int, path: String, from_crypt: Variant = null) -> bool:
+	_allow_mantle = from_crypt != null and not OS.get_cmdline_user_args().has("no_mantle")
+	_hop_strategies = STRATEGIES + ([[0, 18, 36], [0, 28, 46]] if _allow_mantle else [])
 	# the load closes a curtain, builds the room and opens it (title cards too)
 	await run._load_room(index)
 	for i in 3:
@@ -66,18 +88,33 @@ func _test_room(index: int, path: String) -> bool:
 	for i in 3:
 		await physics_frame
 	surfaces = _collect_surfaces()
-	var start := _surface_under(run.room.player_spawn.global_position, 60.0)
+	var entrance := _surface_under(run.room.player_spawn.global_position, 60.0)
+	var start := entrance if from_crypt == null else _surface_under(from_crypt, 60.0)
 	var door := _surface_under(run.room.door.global_position, 80.0)
 	var goals := {}  # surface -> what stands there
 	if door >= 0:
 		goals[door] = "door"
+	if from_crypt != null and entrance >= 0:
+		goals[entrance] = "return to entrance"
 	for spawn in run.room.get_node("Spawns").get_children():
 		if FLYERS.has(spawn.get("enemy_id")):
 			continue
 		var s := _surface_under(spawn.global_position, 40.0)
 		if s >= 0:
 			goals[s] = str(spawn.get("enemy_id"))
+	if from_crypt != null or OS.get_cmdline_user_args().has("props"):
+		for prop in run.room.get_node("Props").get_children():
+			if prop is Area2D:
+				var s := _surface_under(prop.global_position, 12.0)
+				if s >= 0:
+					goals[s] = str(prop.get("prop_id"))
 	var name := path.get_file().get_basename()
+	if OS.get_cmdline_user_args().has("all_surfaces"):
+		for surface in surfaces.size():
+			if not goals.has(surface):
+				goals[surface] = "surface"
+	if from_crypt != null:
+		name += " (return from lower ledge)" if name == "hell_gate" else " (return from crypt)"
 	if start < 0 or door < 0:
 		print("  FAIL %s: entrance or door stands on nothing" % name)
 		return false
@@ -105,7 +142,7 @@ func _test_room(index: int, path: String) -> bool:
 		if not reached.has(s):
 			missing.append("%s at %s" % [goals[s], _describe(s)])
 	if missing.is_empty():
-		print("  ok   %s: door and %d walkers reachable (%d/%d surfaces, %d hops)" %
+		print("  ok   %s: door and %d targets reachable (%d/%d surfaces, %d hops)" %
 			[name, goals.size() - 1, reached.size(), surfaces.size(), hops])
 	else:
 		print("  FAIL %s: cannot reach %s (%d/%d surfaces)" % [name, ", ".join(missing), reached.size(), surfaces.size()])
@@ -133,6 +170,7 @@ func _quiet_room() -> void:
 		run.dialogue.call("_on_skip")  # a blocking line pauses the tree
 	paused = false
 	player.controls_enabled = true
+	player.release_body()
 
 
 func _collect_surfaces() -> Array:
@@ -194,7 +232,7 @@ func _candidates(a: int, reached: Dictionary) -> Array:
 		var sb: Array = surfaces[b]
 		var gap: float = maxf(0.0, maxf(sb[0] - sa[2], sa[0] - sb[2]))
 		var rise: float = minf(sa[1], sa[3]) - maxf(sb[1], sb[3])
-		if rise > MAX_RISE or gap > MAX_GAP:
+		if rise > (190.0 if _allow_mantle else MAX_RISE) or gap > MAX_GAP:
 			continue
 		list.append([gap + maxf(rise, 0.0), b])
 	list.sort_custom(func(p, q): return p[0] < q[0])
@@ -225,13 +263,13 @@ func _try_hop(a: int, b: int) -> int:
 		# b straight above part of a: jump through it from under its middle or an edge
 		for x in [clampf(b_mid, sa[0] + 6.0, sa[2] - 6.0), clampf(sb[0] + 8.0, sa[0] + 6.0, sa[2] - 6.0),
 				clampf(sb[2] - 8.0, sa[0] + 6.0, sa[2] - 6.0)]:
-			for strategy in STRATEGIES:
+			for strategy in _hop_strategies:
 				tries.append([x, clampf(x, sb[0] + 10.0, sb[2] - 10.0), strategy, false])
 	else:
 		var dir: float = 1.0 if b_mid > sa[2] else -1.0
 		var edge: float = sa[2] - 4.0 if dir > 0.0 else sa[0] + 4.0
 		for x in [edge, edge - dir * 20.0]:
-			for strategy in STRATEGIES:
+			for strategy in _hop_strategies:
 				tries.append([x, clampf(x, sb[0] + 10.0, sb[2] - 10.0), strategy, false])
 	var fallback := -1
 	for attempt in tries:
@@ -247,17 +285,21 @@ func _hop(a: int, takeoff_x: float, target_x: float, strategy: Array, drop: bool
 	var dir: float = signf(target_x - takeoff_x)
 	var jump_at: int = strategy[0]
 	var double_at: int = strategy[1]
+	var mantle_at: int = strategy[2] if strategy.size() > 2 else -1
 	_release()
 	if player.is_dead():
 		player.revive(player.global_position, 1.0)
-	player.global_position = Vector2(takeoff_x, _y_at(a, takeoff_x) - FEET - 1.0)
-	player.velocity = Vector2.ZERO
-	for i in 4:
+	# Start clear of the one-way collision margin. A teleport directly
+	# against it can preserve the previous hop's contact recovery.
+	player.place_in_room(Vector2(takeoff_x, _y_at(a, takeoff_x) - FEET - 12.0))
+	for i in 24:
+		_resume_physics_qa()
 		await physics_frame
 	if not player.is_on_floor():
 		return -1
 	var airborne := 0
 	for frame in HOP_FRAMES:
+		_resume_physics_qa()
 		await physics_frame
 		var x: float = player.global_position.x
 		var steer := dir
@@ -267,7 +309,8 @@ func _hop(a: int, takeoff_x: float, target_x: float, strategy: Array, drop: bool
 		_hold("move_left", steer < 0.0)
 		_hold("move_down", drop and frame < 20)
 		_hold("jump", (jump_at >= 0 and frame >= jump_at and frame < jump_at + 14)
-			or (double_at >= 0 and frame >= double_at and frame < double_at + 14))
+			or (double_at >= 0 and frame >= double_at and frame < double_at + 14)
+			or (mantle_at >= 0 and frame >= mantle_at and frame < mantle_at + 14))
 		if not player.is_on_floor():
 			airborne += 1
 		elif airborne > 2:
@@ -278,6 +321,17 @@ func _hop(a: int, takeoff_x: float, target_x: float, strategy: Array, drop: bool
 			break
 	_release()
 	return -1
+
+
+func _resume_physics_qa() -> void:
+	# Room interactions can show a blocking panel during an exploratory hop.
+	# This test measures traversal, not that panel: physics_frame still fires
+	# in a paused tree, otherwise later hops silently never move the hero.
+	if paused:
+		if run.dialogue.visible:
+			run.dialogue.call("_on_skip")
+		paused = false
+		player.controls_enabled = true
 
 
 func _hold(action: String, down: bool) -> void:
