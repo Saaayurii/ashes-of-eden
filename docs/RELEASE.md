@@ -105,7 +105,11 @@ the rest of the way.
 ## The order that costs least
 
 1. **Nothing.** Ship Web and Linux, and tell Windows and macOS players what they will see. This is
-   where the project is now, and it is a legitimate place to be.
+   where the project is now, and it is a legitimate place to be. Put the build somewhere people
+   browse while you are there: [itch.io](ITCH.md) costs nothing, wants no developer account and no
+   review, and takes both the browser build and the desktop zips. It is the only store on this page
+   with no entry fee — the App Store's 99 USD a year and Google Play's 25 USD are not optional, and
+   neither is waivable for an open-source or free game.
 2. **99 USD.** The Apple account. It unblocks macOS notarization *and* iOS, which is two of the
    three problems for one price.
 3. **Windows.** Only worth it once enough people are downloading the Windows build for SmartScreen

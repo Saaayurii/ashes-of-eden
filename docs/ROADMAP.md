@@ -55,7 +55,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] First location: 15 rooms (13 painted panels + church + preacher nave), one route, lava, reach-tested by a bot (`reach_test.gd`)
 - [x] Ophanim boss ("DO NOT BE AFRAID"), Knight of Ash, Blind Preacher
 - [x] Elian's opening monologue over black, in full the first night and two lines every night after
-- [x] Story scenes spoken in all four languages (placeholder TTS, `docs/VOICE.md`)
+- [x] Story scenes spoken in all four languages (Piper, clean-licensed voices only; pitch through the WORLD vocoder so formants stay put, and a switch in Settings to turn it off — `docs/VOICE.md`)
 - [x] NPC dialogues with real consequences; flags read back by later dialogues (Father Matthew reads Mara and the Voice)
 - [x] Alignment shows on the hero: an aura of the leading path and a tint on his light
 - [x] Alignment on the body and in the score: a music layer per path under the room's track, and a shader on the sprite — light along his edge for grace, veins for temptation, ash for will (`alignment_test.gd`). It works off the sprite's alpha, so it needs no painted mask; glowing *eyes* still would, and wait on art.
@@ -69,9 +69,11 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 ## v0.5 — Chinese market
 - [x] A CJK font that ships with the build and matches the Latin one: Noto **Serif** SC at weight 400, subsetted (`tools/art/make_cjk_font.py`). The line used to ask for a *pixel* face, from when the art was placeholder rectangles; the game is now set in EB Garamond and Forum, so Song is the face that belongs beside them — [ ] full zh_CN review by a native speaker
 - [x] Web build with fonts embedded — the Chinese reads in a browser, where there are no system fonts to fall back on
+- [x] The browser build opens on its own page rather than Godot's: the chapter-one graveyard panel with Elian's idle sprite standing in it, generated from the game's own art by `tools/art/make_web_gate.py`. It also fixes the two things the default shell got wrong — audio, which a browser will not start without a click, and the touch pad, which appeared on every desktop browser because a Web export has no `pc` feature
 
 ## v0.6 — Desktop stores
 - [ ] Steam page, achievements, cloud saves
+- [x] itch.io publishing wired (`.github/workflows/itch.yml`): the web build on every push to main, the desktop zips when a release is published, and a cover composed from the game's own art by `tools/art/make_store_art.py` — [ ] the page itself, which needs an account and a `BUTLER_API_KEY` (`docs/ITCH.md`). The only store here with no entry fee.
 - [ ] Supporter Pack + OST on itch/Steam; entitlement check against store receipts
 - [ ] Opt-in server-side telemetry: the four numbers in `CORE_LOOP.md`
 - [x] macOS notarization and Windows signing written and wired into `release.yml`, Android upload-key signing into `mobile.yml` — [ ] the certificates themselves, which have to be bought: `docs/RELEASE.md` says what each costs, what it fixes and in what order it is worth paying
