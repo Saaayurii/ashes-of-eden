@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3]
+[gd_scene load_steps=70 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_tree_wide.png" id="2_backdrop"]
@@ -91,54 +91,96 @@ size = Vector2(60, 12)
 size = Vector2(64, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge3_shape"]
-size = Vector2(400, 14)
+size = Vector2(110, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge4_shape"]
-size = Vector2(77, 12)
+size = Vector2(55, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge5_shape"]
-size = Vector2(480, 16)
+size = Vector2(104, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge6_shape"]
-size = Vector2(51, 10)
+size = Vector2(56, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge7_shape"]
-size = Vector2(95, 10)
+size = Vector2(75, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge8_shape"]
-size = Vector2(60, 10)
+size = Vector2(77, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge9_shape"]
-size = Vector2(231, 10)
+size = Vector2(82, 16)
 
 [sub_resource type="RectangleShape2D" id="Ledge10_shape"]
-size = Vector2(60, 10)
+size = Vector2(480, 16)
 
 [sub_resource type="RectangleShape2D" id="Ledge11_shape"]
-size = Vector2(56, 10)
+size = Vector2(51, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge12_shape"]
-size = Vector2(270, 14)
+size = Vector2(95, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge13_shape"]
-size = Vector2(150, 14)
+size = Vector2(60, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge14_shape"]
-size = Vector2(183, 14)
+size = Vector2(100, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge15_shape"]
-size = Vector2(223, 12)
+size = Vector2(150, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge16_shape"]
-size = Vector2(285, 12)
+size = Vector2(60, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge17_shape"]
-size = Vector2(176, 14)
+size = Vector2(56, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge18_shape"]
-size = Vector2(50, 12)
+size = Vector2(270, 14)
 
 [sub_resource type="RectangleShape2D" id="Ledge19_shape"]
+size = Vector2(150, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge20_shape"]
+size = Vector2(183, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge21_shape"]
+size = Vector2(63, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge22_shape"]
+size = Vector2(8, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge23_shape"]
+size = Vector2(62, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge24_shape"]
+size = Vector2(120, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge25_shape"]
+size = Vector2(40, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge26_shape"]
+size = Vector2(63, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge27_shape"]
+size = Vector2(52, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge28_shape"]
+size = Vector2(176, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge29_shape"]
+size = Vector2(50, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge30_shape"]
+size = Vector2(50, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge31_shape"]
+size = Vector2(50, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge32_shape"]
+size = Vector2(66, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge33_shape"]
 size = Vector2(120, 14)
 
 [sub_resource type="RectangleShape2D" id="Wall1_shape"]
@@ -348,6 +390,9 @@ shape = SubResource("Wall2_shape")
 position = Vector2(800.0, -8.0)
 shape = SubResource("Wall3_shape")
 
+[node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(485.0, 566.0, 521.67, 566.0, 521.67, 571.67, 558.33, 571.67, 558.33, 577.33, 595.0, 577.33, 595.0, 583.0, 595.0, 599.0, 595.0, 593.33, 558.33, 593.33, 558.33, 587.67, 521.67, 587.67, 521.67, 582.0, 485.0, 582.0)
+
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
 collision_mask = 0
@@ -368,88 +413,158 @@ shape = SubResource("Ledge2_shape")
 one_way_collision = true
 
 [node name="Ledge3Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(337.0, 319.0)
+position = Vector2(192.0, 320.0)
 shape = SubResource("Ledge3_shape")
 one_way_collision = true
 
 [node name="Ledge4Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(80.5, 395.0)
+position = Vector2(274.5, 323.0)
 shape = SubResource("Ledge4_shape")
 one_way_collision = true
 
 [node name="Ledge5Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(689.0, 427.0)
+position = Vector2(410.0, 323.0)
 shape = SubResource("Ledge5_shape")
 one_way_collision = true
 
 [node name="Ledge6Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(126.5, 502.0)
+position = Vector2(330.0, 326.0)
 shape = SubResource("Ledge6_shape")
 one_way_collision = true
 
 [node name="Ledge7Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(167.5, 527.0)
+position = Vector2(499.5, 326.0)
 shape = SubResource("Ledge7_shape")
 one_way_collision = true
 
 [node name="Ledge8Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(210.0, 546.0)
+position = Vector2(80.5, 395.0)
 shape = SubResource("Ledge8_shape")
 one_way_collision = true
 
 [node name="Ledge9Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(340.5, 568.0)
+position = Vector2(330.0, 427.0)
 shape = SubResource("Ledge9_shape")
 one_way_collision = true
 
 [node name="Ledge10Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(625.0, 588.0)
+position = Vector2(689.0, 427.0)
 shape = SubResource("Ledge10_shape")
 one_way_collision = true
 
 [node name="Ledge11Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(669.0, 609.0)
+position = Vector2(126.5, 502.0)
 shape = SubResource("Ledge11_shape")
 one_way_collision = true
 
 [node name="Ledge12Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(833.0, 622.0)
+position = Vector2(167.5, 527.0)
 shape = SubResource("Ledge12_shape")
 one_way_collision = true
 
 [node name="Ledge13Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(967.0, 642.0)
+position = Vector2(210.0, 546.0)
 shape = SubResource("Ledge13_shape")
 one_way_collision = true
 
 [node name="Ledge14Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1050.5, 387.0)
+position = Vector2(275.0, 569.0)
 shape = SubResource("Ledge14_shape")
 one_way_collision = true
 
 [node name="Ledge15Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1262.5, 371.0)
+position = Vector2(410.0, 569.0)
 shape = SubResource("Ledge15_shape")
 one_way_collision = true
 
 [node name="Ledge16Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1350.5, 416.0)
+position = Vector2(625.0, 588.0)
 shape = SubResource("Ledge16_shape")
 one_way_collision = true
 
 [node name="Ledge17Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1512.0, 452.0)
+position = Vector2(669.0, 609.0)
 shape = SubResource("Ledge17_shape")
 one_way_collision = true
 
 [node name="Ledge18Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1416.0, 345.0)
+position = Vector2(833.0, 622.0)
 shape = SubResource("Ledge18_shape")
 one_way_collision = true
 
 [node name="Ledge19Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1477.0, 248.0)
+position = Vector2(967.0, 642.0)
 shape = SubResource("Ledge19_shape")
+one_way_collision = true
+
+[node name="Ledge20Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1050.5, 387.0)
+shape = SubResource("Ledge20_shape")
+one_way_collision = true
+
+[node name="Ledge21Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1182.5, 371.0)
+shape = SubResource("Ledge21_shape")
+one_way_collision = true
+
+[node name="Ledge22Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1370.0, 371.0)
+shape = SubResource("Ledge22_shape")
+one_way_collision = true
+
+[node name="Ledge23Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1239.0, 416.0)
+shape = SubResource("Ledge23_shape")
+one_way_collision = true
+
+[node name="Ledge24Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1370.0, 416.0)
+shape = SubResource("Ledge24_shape")
+one_way_collision = true
+
+[node name="Ledge25Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1290.0, 425.0)
+shape = SubResource("Ledge25_shape")
+one_way_collision = true
+
+[node name="Ledge26Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1461.5, 425.0)
+shape = SubResource("Ledge26_shape")
+one_way_collision = true
+
+[node name="Ledge27Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1290.0, 455.0)
+shape = SubResource("Ledge27_shape")
+one_way_collision = true
+
+[node name="Ledge28Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1512.0, 455.0)
+shape = SubResource("Ledge28_shape")
+one_way_collision = true
+
+[node name="Ledge29Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1256.0, 345.0)
+shape = SubResource("Ledge29_shape")
+one_way_collision = true
+
+[node name="Ledge30Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1324.0, 345.0)
+shape = SubResource("Ledge30_shape")
+one_way_collision = true
+
+[node name="Ledge31Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1416.0, 345.0)
+shape = SubResource("Ledge31_shape")
+one_way_collision = true
+
+[node name="Ledge32Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1290.0, 248.0)
+shape = SubResource("Ledge32_shape")
+one_way_collision = true
+
+[node name="Ledge33Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1477.0, 248.0)
+shape = SubResource("Ledge33_shape")
 one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
@@ -469,7 +584,7 @@ flip_h = true
 
 [node name="graveyard_tomb_3_1" type="Sprite2D" parent="DecorMid"]
 modulate = Color(0.767, 0.75, 0.832, 1)
-position = Vector2(1290, 345.0)
+position = Vector2(1290, 221.0)
 texture = ExtResource("decor_graveyard_tomb_3")
 
 [node name="DecorFront" type="Node2D" parent="."]
@@ -482,7 +597,7 @@ position = Vector2(110, 289)
 prop_id = "pot"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(510, 312)
+position = Vector2(510, 319)
 prop_id = "rubble"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
@@ -502,11 +617,11 @@ position = Vector2(920, 635)
 prop_id = "chest_wooden"
 
 [node name="Prop7" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(410, 563)
+position = Vector2(410, 564)
 prop_id = "pot"
 
 [node name="Prop8" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1570, 445)
+position = Vector2(1570, 448)
 prop_id = "rubble"
 
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
@@ -540,7 +655,7 @@ script = ExtResource("5_spawn")
 enemy_id = "cultist"
 
 [node name="Spawn4" type="Marker2D" parent="Spawns"]
-position = Vector2(1520, 433)
+position = Vector2(1520, 436)
 script = ExtResource("5_spawn")
 enemy_id = "fallen_guard"
 
@@ -550,7 +665,7 @@ script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
 [node name="Spawn6" type="Marker2D" parent="Spawns"]
-position = Vector2(460, 300)
+position = Vector2(460, 307)
 script = ExtResource("5_spawn")
 enemy_id = "zealot"
 

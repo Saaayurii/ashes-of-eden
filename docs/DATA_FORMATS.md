@@ -323,11 +323,16 @@ generator's `lights=[(x, y, colour, radius, energy, flicker)]`; `ambient="#rrggb
 (`assets/levels/<name>.png`, normally 1280x720, made by `tools/rooms/trace_panel.py` from the generated
 picture) and the colliders trace what is drawn on it. `generate_rooms.py` inserts two scenery bands into
 each panel and shifts the colliders, lights, props and spawns with them; the figures and masonry keep their
-original size. A conservative reachability check fails generation if a mandatory path breaks. Instead of
+original size. A band is the strip right of its cut and that strip mirrored, so it repeats whatever ledge
+stands there: painted `ground`, `ledges` and `hazards` are copied into the band exactly where it shows
+them (`_map_span`), and a ledge that ends inside the strip becomes ledge, gap, ledge — never one long
+collider over painted air. A conservative reachability check fails generation if a mandatory path breaks. Instead of
 `backdrop`, the room has `painting`;
 `ground` (solid) and `ledges` (jump-through) are painted and get no art; `ramps=[(x0, y0, x1, y1)]` are
 painted stairs as slopes; `platforms` are extra broken steps drawn with sheet pieces, used only where the
-painting leaves a gap no double jump can cross; `lights="auto"` places `GlowLight`s on the candles the
+painting leaves a gap no double jump can cross (`step_pieces="rock"` draws them as stones standing in the
+water rather than mossy floating islands), and a `painted_platforms` entry is one the panel already shows;
+`lights="auto"` places `GlowLight`s on the candles the
 tracer found (`<name>.lights.json`). Every room has its entrance on the left (`player`) and its exit on
 the right (`door`); the generator's `check_reach` proves the exit, every walker and every prop can be
 reached from the entrance (single jump 46 px, double 93 px, ~165 px across) and prints what cannot.

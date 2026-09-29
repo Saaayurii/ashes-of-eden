@@ -182,7 +182,7 @@ DEPTH_WINDOWS = {
     ]),
     "hell_gate": (0.036, [
         [(456, 19), (751, 15), (750, 163), (647, 185), (460, 176)],
-        [(470, 288), (588, 281), (586, 407), (505, 423), (473, 408)],
+        [(470, 298), (588, 297), (586, 407), (505, 423), (473, 408)],  # under the deck, not over it
         [(585, 515), (686, 510), (688, 552), (588, 552)],
     ]),
 }
@@ -190,6 +190,58 @@ DEPTH_WINDOWS = {
 
 def _map_x(x, inserts):
     return round(x + sum(amount for cut, amount in inserts if x >= cut))
+
+
+def _seam_radius(painting, cut, amount, source_width):
+    """How much painting right of a cut one half of its seam is sampled from."""
+    radius = min(max(16, amount // 2), source_width - cut)
+    if cut == 625 and painting.endswith("graveyard_moon"):
+        # The return step begins at x=690. Sampling through it would
+        # stamp a second, collidable-looking balcony into the seam even
+        # though only the authored copy has a platform collider.
+        radius = min(radius, 64)
+    return radius
+
+
+def _map_span(x0, x1, inserts, radii):
+    """Every place the painted span [x0, x1) shows up in the widened panel.
+
+    Its own pixels, shifted past the seams to their left and split where a seam
+    opens inside it, plus the copies each seam paints of it: a seam is the
+    painting just right of its cut, then that strip mirrored. A ledge that ends
+    30 px past a cut therefore shows as ledge, gap, ledge across the seam, and a
+    ledge that starts 20 px past it is seen twice before its real self. The
+    colliders have to be exactly that, or the hero stands on painted air and
+    drops through painted stone.
+    """
+    pieces = []
+    offset = 0
+    start = x0
+    for cut, amount in inserts:
+        if start < cut < x1:
+            pieces.append((start + offset, cut + offset))
+            start = cut
+        if cut <= start:
+            offset += amount
+    pieces.append((start + offset, x1 + sum(amount for cut, amount in inserts if cut < x1)))
+    offset = 0
+    for (cut, amount), radius in zip(inserts, radii):
+        seam = cut + offset
+        a, b = max(x0, cut), min(x1, cut + radius)
+        if a < b:
+            k = (amount // 2) / radius
+            pieces.append((seam + (a - cut) * k, seam + (b - cut) * k))
+            pieces.append((seam + amount - (b - cut) * k, seam + amount - (a - cut) * k))
+        offset += amount
+    pieces.sort()
+    merged = []
+    for a, b in pieces:
+        if merged and a <= merged[-1][1] + 1:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], b))
+        else:
+            merged.append((a, b))
+    # a sliver a boot cannot land on is left as scenery
+    return [(round(a), round(b)) for a, b in merged if b - a >= 8]
 
 
 def _point_in_polygon(x, y, polygon):
@@ -248,12 +300,7 @@ def _expand_panel(painting, inserts):
         segment = source.crop((src_x, 0, cut, source.height))
         target.paste(segment, (dst_x, 0))
         dst_x += segment.width
-        radius = min(max(16, amount // 2), source.width - cut)
-        if cut == 625 and painting.endswith("graveyard_moon"):
-            # The return step begins at x=690. Sampling through it would
-            # stamp a second, collidable-looking balcony into the seam even
-            # though only the authored copy has a platform collider.
-            radius = min(radius, 64)
+        radius = _seam_radius(painting, cut, amount, source.width)
         sample = source.crop((cut, 0, cut + radius, source.height))
         half = sample.resize((amount // 2, source.height), Image.Resampling.LANCZOS)
         loop = Image.new("RGBA", (amount, source.height))
@@ -291,9 +338,23 @@ def expand_painted_room(name, room):
     out["width"] = room["width"] + sum(value for _, value in inserts)
     if "painting" in room:
         out["painting_wide"] = room["painting"] + "_wide"
-    for key in ("ground", "ledges", "platforms", "painted_platforms"):
-        out[key] = [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts), h)
-                    for x, y, w, h in room.get(key, [])]
+    radii = [_seam_radius(room.get("painting", ""), cut, amount, room["width"]) for cut, amount in inserts]
+    out["_seam_radii"] = radii
+
+    def painted(rects):
+        # what the picture shows goes where the picture shows it, seam copies too
+        return [(a, y, b - a, h) for x, y, w, h in rects for a, b in _map_span(x, x + w, inserts, radii)]
+
+    def drawn(rects):
+        # sheet-piece platforms are drawn over the panel: one of each, moved along
+        return [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts), h) for x, y, w, h in rects]
+
+    painted_platforms = room.get("painted_platforms", [])
+    out["ground"] = painted(room.get("ground", []))
+    out["ledges"] = painted(room.get("ledges", []))
+    out["hazards"] = painted(room.get("hazards", []))
+    out["painted_platforms"] = painted(painted_platforms)
+    out["platforms"] = drawn([p for p in room.get("platforms", []) if p not in painted_platforms]) + out["painted_platforms"]
     out["ramps"] = [(_map_x(x0, inserts), y0, _map_x(x1, inserts), y1)
                     for x0, y0, x1, y1 in room.get("ramps", [])]
     for key in ("spawns", "props", "npcs"):
@@ -785,7 +846,7 @@ def lay(x0, x1, pieces, rng, left_cap=None, right_cap=None):
     return out
 
 
-def piece_nodes(layout, top_y, prefix, used):
+def piece_nodes(layout, top_y, prefix, used, tint=None):
     """Sprites for a lay() result, each piece's walkable top on top_y."""
     out = []
     for i, (name, x, w, flip) in enumerate(layout, 1):
@@ -795,6 +856,7 @@ def piece_nodes(layout, top_y, prefix, used):
                    f'position = Vector2({x}, {top_y - info["top"]})\n'
                    f'texture = ExtResource("piece_{name}")\ncentered = false\n'
                    + ("flip_h = true\n" if flip else "")
+                   + (f"modulate = {tint}\n" if tint else "")
                    + (f'region_enabled = true\nregion_rect = Rect2(0, 0, {w}, {info["h"]})\n' if w < info["w"] else "")
                    + "\n")
     return "".join(out)
@@ -861,8 +923,15 @@ def terrain_nodes(r, rng, used, walls=True):
                        f'offset_bottom = {y + h}.0\ncolor = {FILL_COLOR}\nmouse_filter = 2\n\n')
         out.append(piece_nodes(layout, y, f"Ground{i}", used))
     for i, (x, y, w, h) in enumerate(r["platforms"], 1):
-        pieces = family("ledge") if r.get("stone_steps") or w >= 80 else family("float")
-        out.append(piece_nodes(lay(x, x + w, pieces, rng), y, f"Platform{i}", used))
+        tint = None
+        if r.get("step_pieces"):
+            pieces = family(r["step_pieces"])  # stones standing in water rather than floating islands
+            # grey stone would glow against a dark panel: take the room's light
+            tint = "Color(%s, %s, %s, 1)" % tuple(round(int(r["ambient"][i:i + 2], 16) / 255.0 * 0.8, 3)
+                                                 for i in (1, 3, 5))
+        else:
+            pieces = family("ledge") if r.get("stone_steps") or w >= 80 else family("float")
+        out.append(piece_nodes(lay(x, x + w, pieces, rng), y, f"Platform{i}", used, tint))
     if not walls:
         return "".join(out)
     # the room's edges: a mossy wall on each side, behind everything
