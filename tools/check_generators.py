@@ -45,32 +45,46 @@ GENERATORS = [
 ]
 
 
-## A PNG whose pixels match but whose bytes do not is a different zlib, not a
-## different picture. That distinction matters: the promise worth keeping is
+## Two ways a regenerated picture can differ without the art having changed,
+## and neither is worth failing over. The promise worth keeping is
 ## "regenerating does not change the art", and holding every contributor's
-## Pillow to the same build is not a promise this project can make. Reported,
-## not failed.
+## Pillow to the same build is not a promise this project can make.
+##
+##   zlib      — the pixels are identical, the bytes are not. A different
+##               zlib build, nothing more.
+##   rounding  — a pixel or two off by one. Pillow 12.1 and 12.3 resample a
+##               1600 px panel one unit apart in one dark pixel out of half a
+##               million; an actual edit to the art does not move a pixel by
+##               one, it moves many by a lot. A whole image off by one is
+##               still rounding; a single pixel off by two is not.
+##
+## Reported either way, so a drift that turns out to matter is still visible.
 def same_picture(path):
-    """True when the working copy differs from HEAD only in compression."""
+    """None when the picture really changed, else why it only looks changed."""
     if not path.lower().endswith(".png"):
-        return False
+        return None
     try:
         from PIL import Image
         import numpy as np
     except ImportError:
-        return False
+        return None
     committed = subprocess.run(["git", "show", "HEAD:" + path], cwd=ROOT,
                                capture_output=True)
     if committed.returncode != 0:
-        return False
+        return None
     try:
         before = Image.open(io.BytesIO(committed.stdout)).convert("RGBA")
         after = Image.open(os.path.join(ROOT, path)).convert("RGBA")
     except Exception:
-        return False
+        return None
     if before.size != after.size:
-        return False
-    return bool((np.asarray(before) == np.asarray(after)).all())
+        return None
+    a = np.asarray(before).astype(np.int16)
+    b = np.asarray(after).astype(np.int16)
+    worst = int(np.abs(a - b).max())
+    if worst == 0:
+        return "zlib"
+    return "rounding" if worst <= 1 else None
 
 
 def dirty(paths):
@@ -129,8 +143,10 @@ def main():
             failures.append("%s: exited %d" % (name, result.returncode))
             continue
         moved, extra = dirty(paths)
-        recompressed = [m for m in moved if same_picture(m)]
-        real = [m for m in moved if m not in recompressed]
+        excused = {m: same_picture(m) for m in moved}
+        recompressed = [m for m, why in excused.items() if why == "zlib"]
+        rounded = [m for m, why in excused.items() if why == "rounding"]
+        real = [m for m, why in excused.items() if why is None]
         if real:
             failures.append("%s: %d file(s) differ from what is committed:\n      %s"
                             % (name, len(real), "\n      ".join(real[:10])))
@@ -140,6 +156,10 @@ def main():
             print("    (%d PNG(s) identical in pixels, different in bytes — another "
                   "zlib: %s)" % (len(recompressed),
                                  ", ".join(os.path.basename(r) for r in recompressed[:3])))
+        if rounded:
+            print("    (%d PNG(s) off by one somewhere — another Pillow's "
+                  "resampling: %s)" % (len(rounded),
+                                       ", ".join(os.path.basename(r) for r in rounded[:3])))
         if extra:
             print("    (writes %d file(s) the repository does not keep: %s)"
                   % (len(extra), ", ".join(os.path.basename(e) for e in extra[:4])))
