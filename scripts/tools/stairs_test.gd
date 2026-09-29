@@ -1,53 +1,72 @@
 extends SceneTree
-## Walk the player uphill over every painted stair, without enemies or input UI.
+## Walk every painted stair of every room of the run, up and back down,
+## on foot — no jump — without enemies or input UI. A stair you can climb
+## but not come back down (or the reverse) turns a room into a one-way trip.
 ## godot --headless --fixed-fps 60 --path . -s scripts/tools/stairs_test.gd
-
-const ROOMS := [
-	"village_night", "graveyard_cross", "graveyard_arches", "swamp_crypt",
-	"catacombs_1", "catacombs_2", "catacombs_3", "crypt_skulls", "crypt_lava", "hell_gate",
-]
 
 
 func _init() -> void:
 	call_deferred("_run")
 
 
+## Walks from one end of the stair toward the other; the position where the
+## body stood when it got there, or null when it never did.
+func _walk(hero: CharacterBody2D, from: Vector2, to: Vector2) -> Variant:
+	var dir := signf(to.x - from.x)
+	hero.place_in_room(from + Vector2(dir * 4.0, -16.0))
+	for settle in 12:
+		await physics_frame
+	var action := "move_right" if dir > 0.0 else "move_left"
+	Input.action_press(action)
+	var arrived: Variant = null
+	for frame in 240:
+		await physics_frame
+		# over the last tread (some stairs end at a wall or a drop, not a landing)
+		if (hero.global_position.x - from.x) * dir >= absf(to.x - from.x) - 8.0 and hero.is_on_floor():
+			arrived = hero.global_position
+			break
+	Input.action_release(action)
+	if arrived == null:
+		print("       stopped at ", hero.global_position, " on the floor: ", hero.is_on_floor())
+	for settle in 4:
+		await physics_frame
+	return arrived
+
+
 func _run() -> void:
 	var failures: Array[String] = []
-	for name in ROOMS:
-		var room: Node2D = load("res://scenes/rooms/%s.tscn" % name).instantiate()
+	var rooms: Array = load("res://scripts/run/run.gd").get_script_constant_map()["ROOMS"]
+	for path in rooms:
+		var name: String = path.get_file().get_basename()
+		var room: Node2D = load(path).instantiate()
 		root.add_child(room)
-		var ramp := room.get_node("Geometry/Ramp1") as CollisionPolygon2D
-		var top_count := int(ramp.polygon.size() / 2)
-		var left := ramp.polygon[0]
-		var right := ramp.polygon[top_count - 1]
-		var low: Vector2 = left if left.y > right.y else right
-		var high: Vector2 = right if left.y > right.y else left
-		var dir := signf(high.x - low.x)
+		current_scene = room
 		var hero: CharacterBody2D = load("res://scenes/player/player.tscn").instantiate()
-		root.add_child(hero)
+		room.add_child(hero)
+		await physics_frame
 		hero.controls_enabled = true
-		hero.global_position = low + Vector2(dir * 3.0, -15.0)
-		hero.velocity = Vector2.ZERO
-		for settle in 3:
-			await physics_frame
-		Input.action_press("move_right" if dir > 0.0 else "move_left")
-		var crossed := false
-		var at_crossing := hero.global_position
-		for frame in 110:
-			await physics_frame
-			if (hero.global_position.x - low.x) * dir >= absf(high.x - low.x) * 0.75:
-				crossed = true
-				at_crossing = hero.global_position
-				break
-		Input.action_release("move_right" if dir > 0.0 else "move_left")
-		var climbed: bool = crossed and at_crossing.y < low.y - 15.0 - absf(low.y - high.y) * 0.45
-		if not climbed:
-			failures.append(name)
-			print("STAIRS_FAIL ", name, " from=", low, " to=", high, " player=", at_crossing)
-		else:
-			print("STAIRS_OK ", name)
-		hero.queue_free()
+		for ramp in room.get_node("Geometry").get_children():
+			if not ramp is CollisionPolygon2D:
+				continue
+			var top_count := int(ramp.polygon.size() / 2)
+			var left: Vector2 = ramp.to_global(ramp.polygon[0])
+			var right: Vector2 = ramp.to_global(ramp.polygon[top_count - 1])
+			var low: Vector2 = left if left.y > right.y else right
+			var high: Vector2 = right if left.y > right.y else left
+			var label := "%s/%s" % [name, ramp.name]
+			var up: Variant = await _walk(hero, low, high)
+			# on the far landing: most of the stair's height away from where it
+			# started (a landing may sit a tread off the stair's last point)
+			var drop := absf(low.y - high.y)
+			var climbed: bool = up != null and up.y + 15.0 < low.y - drop * 0.6
+			var down: Variant = await _walk(hero, high, low) if climbed else null
+			var descended: bool = down != null and down.y + 15.0 > high.y + drop * 0.6
+			if climbed and descended:
+				print("STAIRS_OK ", label)
+			else:
+				failures.append(label)
+				print("STAIRS_FAIL ", label, " low=", low, " high=", high, " up=", up, " down=", down)
+		current_scene = null
 		room.queue_free()
 		await physics_frame
 	# The old test started on the stair itself. The reported failure was at its

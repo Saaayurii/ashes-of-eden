@@ -1,4 +1,4 @@
-[gd_scene load_steps=69 format=3]
+[gd_scene load_steps=70 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/crypt_skulls_wide.png" id="2_backdrop"]
@@ -82,7 +82,10 @@ blend_mode = 1
 size = Vector2(20, 56)
 
 [sub_resource type="RectangleShape2D" id="Ground1_shape"]
-size = Vector2(1600, 20)
+size = Vector2(230, 20)
+
+[sub_resource type="RectangleShape2D" id="Ground2_shape"]
+size = Vector2(760, 20)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
 size = Vector2(56, 10)
@@ -354,8 +357,12 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(800.0, 710.0)
+position = Vector2(115.0, 710.0)
 shape = SubResource("Ground1_shape")
+
+[node name="Ground2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1220.0, 710.0)
+shape = SubResource("Ground2_shape")
 
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)

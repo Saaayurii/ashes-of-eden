@@ -363,7 +363,8 @@ PAINTED = {
         # Eleventh panel: the blue crypt over the underground river; the gate
         # with candles on the right wall.
         painting="crypt_skulls", width=1280, height=720, weather="none", fog=0.2, intro="", music="dead_bridge",
-        ground=[(0, 700, 1280, 20)],
+        # the rock on either bank; the river between them is the edge of the map
+        ground=[(0, 700, 230, 20), (680, 700, 600, 20)],
         ledges=[(43, 218, 65, 10), (37, 254, 196, 14), (418, 256, 53, 10), (458, 268, 59, 10), (508, 275, 56, 10),
                 (919, 390, 68, 12), (836, 423, 206, 14), (1043, 404, 80, 12), (807, 449, 48, 10),
                 (639, 457, 169, 14), (583, 472, 60, 10), (112, 428, 52, 10), (4, 465, 103, 12), (93, 475, 132, 12),

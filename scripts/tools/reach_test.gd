@@ -1,7 +1,7 @@
 extends SceneTree
 ## Every room, played by a bot with the hero's real body and physics:
 ##   godot --headless --fixed-fps 60 --path . -s scripts/tools/reach_test.gd [-- room_name]
-## Add `props` after the room filter to require every prop surface too.
+## Every prop's footing is a goal as well: secrets included.
 ##
 ## The room's colliders (Geometry, Ledges, ramps) are its surfaces. From the
 ## entrance the bot tries hops to every surface in rough reach — run to the
@@ -9,6 +9,12 @@ extends SceneTree
 ## player would, and records where it actually lands. A room passes when the
 ## door and every walker's footing were reached. tools/rooms/painted_rooms.py
 ## (check_reach) predicts the same on paper; this proves it in the engine.
+##
+## Then the way back: from every surface the bot reached — a stair, an upper
+## platform, a secret's cache, the door's own ledge — it must find hops that
+## lead to the entrance again (a climb onto a ledge counts, the hero has one).
+## A place you can get to but never leave is a trap, not a route. Add
+## `one_way` after the room filter to report those without failing.
 ## Exit code 1 when a room fails.
 
 const FEET := 15.0          # body origin to the soles
@@ -102,12 +108,12 @@ func _test_room(index: int, path: String, from_crypt: Variant = null) -> bool:
 		var s := _surface_under(spawn.global_position, 40.0)
 		if s >= 0:
 			goals[s] = str(spawn.get("enemy_id"))
-	if from_crypt != null or OS.get_cmdline_user_args().has("props"):
-		for prop in run.room.get_node("Props").get_children():
-			if prop is Area2D:
-				var s := _surface_under(prop.global_position, 12.0)
-				if s >= 0:
-					goals[s] = str(prop.get("prop_id"))
+	# props too: a secret wall and its cache are places to get to and back from
+	for prop in run.room.get_node("Props").get_children():
+		if prop is Area2D:
+			var s := _surface_under(prop.global_position, 12.0)
+			if s >= 0:
+				goals[s] = str(prop.get("prop_id"))
 	var name := path.get_file().get_basename()
 	if OS.get_cmdline_user_args().has("all_surfaces"):
 		for surface in surfaces.size():
@@ -152,7 +158,68 @@ func _test_room(index: int, path: String, from_crypt: Variant = null) -> bool:
 			lost.append(_describe(i))
 	if not lost.is_empty():
 		print("       unreached: %s" % ", ".join(lost))
-	return missing.is_empty()
+	if not missing.is_empty() or from_crypt != null:
+		return missing.is_empty()
+	var trapped: Array = await _way_back(start, reached)
+	if trapped.is_empty():
+		print("  ok   %s: back to the entrance from all %d reached surfaces" % [name, reached.size()])
+		return true
+	print("  %s %s: no way back to the entrance from %s" %
+		["warn" if OS.get_cmdline_user_args().has("one_way") else "FAIL", name, ", ".join(trapped)])
+	return OS.get_cmdline_user_args().has("one_way")
+
+
+## Surfaces in `reached` from which no chain of hops leads back to `home`.
+## Every landing the bot makes is kept as an edge, so a surface that only
+## gets home through another one is freed as soon as that one is.
+func _way_back(home: int, reached: Dictionary) -> Array:
+	_allow_mantle = true
+	_hop_strategies = STRATEGIES + [[0, 18, 36], [0, 28, 46]]
+	var back := {home: true}
+	var edges := {}  # a -> {landed: true}
+	for attempt in 3:
+		var before := back.size()
+		for a in reached:
+			if back.has(a):
+				continue
+			var targets: Array = _candidates(a, {}).filter(func(b: int) -> bool: return reached.has(b))
+			# the ones already known to lead home first
+			targets = targets.filter(func(b: int) -> bool: return back.has(b)) \
+				+ targets.filter(func(b: int) -> bool: return not back.has(b))
+			for b in targets:
+				if _leads_home(a, back, edges):
+					break
+				if edges.get(a, {}).has(b):
+					continue
+				var landed: int = await _try_hop(a, b)
+				if landed >= 0 and landed != a:
+					if not edges.has(a):
+						edges[a] = {}
+					edges[a][landed] = true
+		# propagate: anything with an edge into the home set is home too
+		var grew := true
+		while grew:
+			grew = false
+			for a in edges:
+				if not back.has(a) and _leads_home(a, back, edges):
+					back[a] = true
+					grew = true
+		if back.size() == before:
+			break
+	_allow_mantle = false
+	_hop_strategies = STRATEGIES
+	var trapped: Array = []
+	for a in reached:
+		if not back.has(a):
+			trapped.append(_describe(a))
+	return trapped
+
+
+func _leads_home(a: int, back: Dictionary, edges: Dictionary) -> bool:
+	for b in edges.get(a, {}):
+		if back.has(b):
+			return true
+	return false
 
 
 ## Nobody to fight, nobody to talk to, no door to walk through, no lava.
@@ -261,6 +328,8 @@ func _try_hop(a: int, b: int) -> int:
 		tries.append([x, x, [0, -1], true])
 	elif overlap:
 		# b straight above part of a: jump through it from under its middle or an edge
+		# a stair's foot and the floor it stands on: just walk across
+		tries.append([clampf(b_mid, sa[0] + 6.0, sa[2] - 6.0), clampf(b_mid, sb[0] + 10.0, sb[2] - 10.0), [-1, -1], false])
 		for x in [clampf(b_mid, sa[0] + 6.0, sa[2] - 6.0), clampf(sb[0] + 8.0, sa[0] + 6.0, sa[2] - 6.0),
 				clampf(sb[2] - 8.0, sa[0] + 6.0, sa[2] - 6.0)]:
 			for strategy in _hop_strategies:
@@ -313,6 +382,10 @@ func _hop(a: int, takeoff_x: float, target_x: float, strategy: Array, drop: bool
 			or (mantle_at >= 0 and frame >= mantle_at and frame < mantle_at + 14))
 		if not player.is_on_floor():
 			airborne += 1
+		elif airborne == 0 and jump_at < 0 and not drop and frame > 4 and absf(x - target_x) <= 3.0:
+			# walked all the way there without leaving the ground
+			_release()
+			return _surface_under(player.global_position + Vector2(0, FEET - 4), 12.0)
 		elif airborne > 2:
 			_release()
 			var feet: Vector2 = player.global_position + Vector2(0, FEET)
