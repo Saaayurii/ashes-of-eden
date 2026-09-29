@@ -1,0 +1,174 @@
+name: itch.io
+
+# Publishes to itch.io with butler. Two jobs, on purpose:
+#
+#   web      — every push to main, so the page's playable build is whatever
+#              main is, the same as the Pages deploy beside it.
+#   desktop  — when a release is published, uploading the zips release.yml
+#              already built rather than exporting them a second time. A full
+#              export is an hour of somebody's runner; downloading four zips
+#              is a minute.
+#
+# itch.io is worth having next to Pages rather than instead of it. Pages
+# cannot send headers at all, so the Web preset has to keep threads off
+# (see pages.yml); itch serves Cross-Origin-Opener-Policy and -Embedder-Policy
+# when "SharedArrayBuffer support" is ticked on the page, so if the game ever
+# needs threads, this is the host that can carry it. itch also takes the
+# desktop builds, which Pages has nowhere to put.
+#
+# Everything here is gated on BUTLER_API_KEY. Without it the jobs say what is
+# missing in the run summary and succeed, because a fork should not see a red
+# tick for not having somebody else's publishing credentials.
+#
+# Setup: an itch.io account, a new project page, then
+#   https://itch.io/user/settings/api-keys → generate a key
+#   gh secret set BUTLER_API_KEY
+# and set ITCH_TARGET below to <your-username>/<the page's url slug>.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/release.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  # The page's URL, not its title: itch.io/<user>/<slug>.
+  ITCH_TARGET: saaayurii/ashes-of-eden
+
+concurrency:
+  group: itch
+  cancel-in-progress: false
+
+jobs:
+  web:
+    name: Playable build
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is there a key to publish with?
+        id: gate
+        env:
+          KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          set -eu
+          if [ -z "${KEY:-}" ]; then
+            {
+              echo "### itch.io — not published"
+              echo
+              echo "No \`BUTLER_API_KEY\` secret, so nothing was uploaded."
+              echo "See docs/ITCH.md; the Pages build is unaffected."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "have=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.gate.outputs.have == 'true'
+
+      - name: Build Godot image (cached)
+        if: steps.gate.outputs.have == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ashes-of-eden/godot:4.7.2
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Export Web
+        if: steps.gate.outputs.have == 'true'
+        run: docker compose run --rm build build Web
+
+      - name: Upload
+        if: steps.gate.outputs.have == 'true'
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          set -eu
+          test -f build/web/index.html
+          curl -sL -o butler.zip \
+            https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip -d butler && chmod +x butler/butler
+          # The version is what itch shows beside the upload. A short sha is
+          # the only thing that is true for a build off main: there is no tag.
+          ./butler/butler push build/web "$ITCH_TARGET:html5" \
+            --userversion "main-$(git rev-parse --short HEAD)"
+          echo "### Published to itch.io" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://itch.io/$ITCH_TARGET" >> "$GITHUB_STEP_SUMMARY"
+
+  desktop:
+    name: Release builds
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is there a key to publish with?
+        id: gate
+        env:
+          KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          set -eu
+          if [ -z "${KEY:-}" ]; then
+            echo "### itch.io — not published" >> "$GITHUB_STEP_SUMMARY"
+            echo "No \`BUTLER_API_KEY\` secret. See docs/ITCH.md." >> "$GITHUB_STEP_SUMMARY"
+            echo "have=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The zips release.yml built. macOS is downloaded last on purpose: the
+      # notarised one replaces the unsigned asset a few minutes after the
+      # release is published, and a run that started immediately would
+      # otherwise upload the version SmartScreen's Apple equivalent rejects.
+      - name: Fetch the release assets
+        if: steps.gate.outputs.have == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          mkdir -p dist
+          gh release download "${{ github.event.release.tag_name }}" \
+            --dir dist --pattern "ashes-of-eden-*.zip"
+          ls -la dist
+
+      - name: Upload
+        if: steps.gate.outputs.have == 'true'
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          set -eu
+          curl -sL -o butler.zip \
+            https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip -d butler && chmod +x butler/butler
+          # butler takes a directory or a zip; a zip it unpacks itself, which
+          # is what keeps the channel's file list clean between versions.
+          for pair in windows:windows linux:linux macos:osx; do
+            platform="${pair%%:*}"
+            channel="${pair##*:}"
+            zip="dist/ashes-of-eden-$platform.zip"
+            if [ ! -f "$zip" ]; then
+              echo "::warning::$zip is not in the release; skipping $channel."
+              continue
+            fi
+            ./butler/butler push "$zip" "$ITCH_TARGET:$channel" \
+              --userversion "$VERSION"
+          done
+          {
+            echo "### Published $VERSION to itch.io"
+            echo "https://itch.io/$ITCH_TARGET"
+          } >> "$GITHUB_STEP_SUMMARY"

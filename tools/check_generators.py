@@ -38,6 +38,8 @@ GENERATORS = [
      ["assets/props"], False),
     ("web gate", ["tools/art/make_web_gate.py"],
      ["tools/web/shell.html"], False),
+    ("store art", ["tools/art/make_store_art.py"],
+     ["docs/store"], False),
     ("cjk subset", ["tools/art/make_cjk_font.py"],
      ["assets/fonts/NotoSerifSC-Subset.ttf"], True),
 ]

@@ -20,6 +20,9 @@ on:
       - "docs/**"
       - ".github/workflows/ci.yml"
       - ".github/workflows/release.yml"
+      - ".github/workflows/itch.yml"
+      - ".github/workflows/mobile.yml"
+      - ".github/workflows/generators.yml"
   workflow_dispatch:
 
 # One deploy at a time; a newer push supersedes a queued one but never
