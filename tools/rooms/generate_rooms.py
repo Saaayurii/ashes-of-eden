@@ -63,6 +63,7 @@ TRAVERSAL_PATCHES = {
     "swamp_crypt": [(310, 375, 60, 10)],  # two-way route to the entrance pier
     "catacombs_3": [(480, 225, 80, 10)],
     "crypt_skulls": [(400, 285, 80, 10)],
+    "crypt_lava": [(730, 610, 100, 12), (700, 315, 85, 12)],  # treasure terrace and gallery return
     "hell_gate": [(1525, 563, 75, 12), (1550, 493, 50, 12),
                   (265, 315, 125, 12), (225, 405, 65, 12)],  # upper left lip clears the stair underside
 }
@@ -334,6 +335,12 @@ def expand_painted_room(name, room):
                                   (308, 212), (328, 212), (328, 223),
                                   (344, 223), (344, 231), (364, 231), (364, 239)]}
     if name == "crypt_lava":
+        out["painted_cornices"] = True
+        out["cornice_crop"] = (860, 458)
+        out["cornice_supports"] = {
+            1: [(0, 10), (100, 10), (100, 20), (15, 40), (0, 60), (-25, 60), (-25, 52)],
+            2: [(-55, 10), (85, 10), (85, 18), (24, 43), (-55, 48)],
+        }
         # Short intermediate treads let the hero walk over the painting's
         # taller risers without globally increasing step-up height.
         out["ramp_treads"] = {2: ((1460,208),(1460,201),(1468,201),(1468,194),(1486,194),(1486,188),(1494,188),(1494,181),(1518,181),(1518,171),(1524,171),(1524,164),(1532,164),(1532,157),(1542,157),(1542,149),(1550,149),(1550,140),(1564,140),(1564,131),(1574,131),(1574,122),(1582,122),(1582,115),(1592,115),(1592,108),(1600,108))}
@@ -929,6 +936,13 @@ def terrain_nodes(r, rng, used, walls=True):
                            f'position = Vector2({x + (w - pw) / 2}, {y + 12})\n'
                            f'texture = ExtResource("2_backdrop")\ncentered = false\nregion_enabled = true\n'
                            f'region_rect = Rect2({sx}, {sy}, {pw}, {ph})\n\n')
+            support = r.get("cornice_supports", {}).get(i)
+            if support:
+                polygon = ", ".join(str(v) for point in support for v in point)
+                uv = ", ".join(str(v) for px, py in support for v in (crop_x + px, crop_y + py))
+                out.append(f'[node name="Platform{i}Support" type="Polygon2D" parent="Terrain"]\n'
+                           f'position = Vector2({x}, {y})\ntexture = ExtResource("2_backdrop")\n'
+                           f'polygon = PackedVector2Array({polygon})\nuv = PackedVector2Array({uv})\n\n')
             continue
         pieces = family("ledge") if r.get("stone_steps") or w >= 80 else family("float")
         out.append(piece_nodes(lay(x, x + w, pieces, rng), y, f"Platform{i}", used))

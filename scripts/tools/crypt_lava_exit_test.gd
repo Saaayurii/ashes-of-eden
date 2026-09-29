@@ -11,6 +11,13 @@ func _run() -> void:
 	room.add_child(hero)
 	hero.controls_enabled = true
 	var failures := 0
+	for pair in [["LowerReturnShape", "LowerReturnCornice"], ["GalleryReturnShape", "GalleryReturnCornice"]]:
+		var shape := room.get_node("Ledges/" + pair[0]) as CollisionShape2D
+		var art := room.get_node("Terrain/" + pair[1]) as Sprite2D
+		var top: Vector2 = shape.position - shape.shape.size * 0.5
+		if not shape.one_way_collision or top != art.position or shape.shape.size != art.region_rect.size:
+			failures += 1
+			push_error("Crypt return art/collision mismatch: " + pair[0])
 	if room.door.position != Vector2(1450, 176) or not room.door.painted_arch:
 		failures += 1
 	for uphill in [true, false]:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=60 format=3]
+[gd_scene load_steps=62 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/crypt_lava_wide.png" id="2_backdrop"]
@@ -154,6 +154,12 @@ size = Vector2(291, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge25_shape"]
 size = Vector2(111, 12)
+
+[sub_resource type="RectangleShape2D" id="LowerReturn_shape"]
+size = Vector2(100, 12)
+
+[sub_resource type="RectangleShape2D" id="GalleryReturn_shape"]
+size = Vector2(85, 12)
 
 [sub_resource type="RectangleShape2D" id="Wall1_shape"]
 size = Vector2(16, 736)
@@ -467,6 +473,42 @@ shape = SubResource("Ledge25_shape")
 one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
+
+[node name="LowerReturnShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(780, 616)
+shape = SubResource("LowerReturn_shape")
+one_way_collision = true
+
+[node name="LowerReturnCornice" type="Sprite2D" parent="Terrain"]
+position = Vector2(730, 610)
+texture = ExtResource("2_backdrop")
+centered = false
+region_enabled = true
+region_rect = Rect2(860, 458, 100, 12)
+
+[node name="LowerReturnSupport" type="Polygon2D" parent="Terrain"]
+position = Vector2(730, 610)
+texture = ExtResource("2_backdrop")
+polygon = PackedVector2Array(0, 10, 100, 10, 100, 20, 15, 40, 0, 60, -25, 60, -25, 52)
+uv = PackedVector2Array(860, 470, 960, 470, 960, 480, 875, 500, 860, 520, 835, 520, 835, 512)
+
+[node name="GalleryReturnShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(742.5, 321)
+shape = SubResource("GalleryReturn_shape")
+one_way_collision = true
+
+[node name="GalleryReturnCornice" type="Sprite2D" parent="Terrain"]
+position = Vector2(700, 315)
+texture = ExtResource("2_backdrop")
+centered = false
+region_enabled = true
+region_rect = Rect2(860, 458, 85, 12)
+
+[node name="GalleryReturnSupport" type="Polygon2D" parent="Terrain"]
+position = Vector2(700, 315)
+texture = ExtResource("2_backdrop")
+polygon = PackedVector2Array(-55, 10, 85, 10, 85, 18, 24, 43, -55, 48)
+uv = PackedVector2Array(805, 468, 945, 468, 945, 476, 884, 501, 805, 506)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
