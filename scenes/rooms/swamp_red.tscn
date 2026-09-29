@@ -418,14 +418,14 @@ position = Vector2(1540, 370)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(1430, 255, 56, 12)
+region_rect = Rect2(1480, 255, 56, 12)
 
 [node name="Platform2_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(1540, 310)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(1430, 255, 56, 12)
+region_rect = Rect2(1480, 255, 56, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 

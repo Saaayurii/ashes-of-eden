@@ -456,7 +456,7 @@ position = Vector2(265, 315)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(800, 482, 125, 12)
+region_rect = Rect2(1000, 482, 125, 12)
 
 [node name="LeftReturnLowerCornice" type="Sprite2D" parent="Terrain"]
 script = ExtResource("hell_cornice")
@@ -465,7 +465,7 @@ position = Vector2(225, 405)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(800, 482, 65, 12)
+region_rect = Rect2(1000, 482, 65, 12)
 
 [node name="Return1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(1562.5, 569)
@@ -485,7 +485,7 @@ position = Vector2(1525, 563)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(800, 482, 75, 12)
+region_rect = Rect2(1000, 482, 75, 12)
 
 [node name="ReturnCornice2" type="Sprite2D" parent="Terrain"]
 script = ExtResource("hell_cornice")
@@ -495,7 +495,7 @@ position = Vector2(1550, 493)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
-region_rect = Rect2(800, 482, 50, 12)
+region_rect = Rect2(1000, 482, 50, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 

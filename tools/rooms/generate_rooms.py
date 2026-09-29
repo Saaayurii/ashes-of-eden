@@ -14,6 +14,7 @@ import filecmp
 import sys
 from copy import deepcopy
 
+import numpy as np
 from PIL import Image, ImageOps
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -244,8 +245,137 @@ def _validate_expansion_cuts(name, room):
                 raise ValueError(f"{name}: expansion at {cut} repeats focal art {left}..{right}")
 
 
-def _expand_panel(painting, inserts):
-    """Insert seamless mirrored local bands; preserve every original pixel."""
+def _painted_floors(room):
+    """Walkable tops the painting itself must show: (x, y, w), widened coordinates."""
+    drawn = set(room.get("platforms", [])) - set(room.get("painted_platforms", []))
+    return [(x, y, w) for key in ("ground", "ledges", "painted_platforms", "platforms")
+            for x, y, w, _ in room.get(key, []) if key != "platforms" or (x, y, w, _) not in drawn]
+
+
+def _quilt_band(source, cut, amount, a_limit=None, focal=()):
+    """The band inserted at `cut`: no mirror, no stretch.
+
+    A mirrored band paints a Rorschach blot on the seam: every gallows, tree
+    and crypt front near a cut gets a symmetrical twin, which is the first
+    thing an eye finds. Instead the band is two ordinary copies stitched
+    together (image quilting): its left part continues the painting from the
+    right of the cut, its right part the painting from the left of it, so
+    both edges meet their neighbours exactly. Where one copy gives way to the
+    other is a vertical path that runs, row by row, through the pixels where
+    the two copies already agree most — through fog and dark stone rather
+    than across a window or a railing — with a few pixels of feather.
+    `a_limit` keeps the right-hand copy narrower than that, for a cut whose
+    right side holds something that must not be seen twice; `focal` are
+    source spans (a moon, a castle) neither copy may repeat.
+    """
+    pixels = np.asarray(source, dtype=np.float32)
+    height = pixels.shape[0]
+    right = pixels[:, cut:cut + amount]   # continues the left edge
+    if right.shape[1] < amount:
+        # a cut near the panel's edge: only that much can be copied from the right
+        a_limit = min(a_limit or amount, right.shape[1] - 5)
+        right = np.pad(right, ((0, 0), (0, amount - right.shape[1]), (0, 0)), mode="edge")
+    left = pixels[:, cut - amount:cut]    # continues the right edge
+    cost = np.abs(right[..., :3] - left[..., :3]).sum(axis=2)
+    # judge a neighbourhood, not a pixel: a path through noise is still a seam
+    padded = np.pad(cost, 3, mode="edge")
+    smooth = np.zeros_like(cost)
+    for dy in range(7):
+        for dx in range(7):
+            smooth += padded[dy:dy + height, dx:dx + amount]
+    margin = 24
+    feather = 8
+    hi = amount - margin if a_limit is None else min(amount - margin, a_limit)
+    lo = margin
+    for left_x, right_x in focal:
+        if right_x > cut and left_x < cut + amount:   # in the right-hand copy
+            hi = min(hi, max(lo + 1, left_x - cut - feather))
+        if left_x < cut and right_x > cut - amount:   # in the left-hand copy
+            lo = max(lo, min(hi - 1, right_x - (cut - amount) + feather))
+    smooth[:, :lo] = np.inf
+    smooth[:, hi:] = np.inf
+    total = smooth.copy()
+    step = np.zeros((height, amount), dtype=np.int64)
+    for y in range(1, height):
+        above = total[y - 1]
+        options = np.stack([np.roll(above, 1), above, np.roll(above, -1)])
+        options[0, 0] = np.inf
+        options[2, -1] = np.inf
+        choice = options.argmin(axis=0)
+        total[y] += options[choice, np.arange(amount)]
+        step[y] = np.arange(amount) + choice - 1
+    path = np.zeros(height, dtype=np.int64)
+    path[-1] = int(total[-1].argmin())
+    for y in range(height - 1, 0, -1):
+        path[y - 1] = step[y, path[y]]
+    # Meet halfway where they still differ (a sky a shade lighter on one side):
+    # each copy bends by half the difference at the path, the bend fading out
+    # towards its own edge, so the edges stay exact and the path leaves no line.
+    rows = np.arange(height)
+    near = np.clip(path[:, None] + np.arange(-2, 3)[None, :], 0, amount - 1)
+    gap = (right[rows[:, None], near] - left[rows[:, None], near]).mean(axis=1)
+    kernel = np.ones(9, dtype=np.float32) / 9.0
+    gap = np.stack([np.convolve(np.pad(gap[:, c], 4, mode="edge"), kernel, mode="valid")
+                    for c in range(gap.shape[1])], axis=1)
+    gap[:, 3] = 0.0  # never bend alpha
+    columns = np.arange(amount, dtype=np.float32)[None, :]
+    toward_left = np.clip(columns / np.maximum(path[:, None], 1), 0.0, 1.0)
+    toward_right = np.clip((amount - 1 - columns) / np.maximum(amount - 1 - path[:, None], 1), 0.0, 1.0)
+    right = right - 0.5 * gap[:, None, :] * toward_left[..., None]
+    left = left + 0.5 * gap[:, None, :] * toward_right[..., None]
+    weight = np.clip((columns - path[:, None] + feather) / (2 * feather), 0.0, 1.0)[..., None]
+    band = right * (1.0 - weight) + left * weight
+    return Image.fromarray(np.clip(band + 0.5, 0, 255).astype(np.uint8), "RGBA")
+
+
+def _mirror_band(source, cut, amount, radius):
+    """The old band: the strip right of the cut, then that strip mirrored."""
+    sample = source.crop((cut, 0, cut + radius, source.height))
+    half = sample.resize((amount // 2, source.height), Image.Resampling.LANCZOS)
+    loop = Image.new("RGBA", (amount, source.height))
+    loop.paste(half, (0, 0))
+    loop.paste(ImageOps.mirror(half), (amount - half.width, 0))
+    return loop
+
+
+def _floor_fit(band, y, x0, x1):
+    """How much of [x0, x1) of the band shows a lit stone top within 5 px of y."""
+    lum = np.asarray(band.convert("L"), dtype=np.float32)
+    top, bottom = max(0, y - 5), min(lum.shape[0] - 9, y + 6)
+    if bottom <= top or x1 <= x0:
+        return 1.0
+    below = sum(lum[top + dy:bottom + dy, x0:x1] for dy in range(2, 9)) / 7.0
+    edge = lum[top:bottom, x0:x1] - below
+    edge[lum[top:bottom, x0:x1] < 40] = 0
+    return float((edge.max(axis=0) > 20).mean())
+
+
+def _keep_floors(quilted, mirrored, floors, seam_x, amount):
+    """A floor collider across a seam needs its stone painted across it too.
+
+    The quilted band can end a ledge where the copy it came from ends; the
+    mirrored one repeats the ledge right of the cut both ways. Where a floor
+    crosses the band and the mirror carries its stone better, that floor's
+    rows are taken from the mirror, faded in and out over a few rows: a
+    symmetric strip of ledge reads as masonry, a symmetric gallows does not.
+    """
+    out = np.asarray(quilted, dtype=np.float32).copy()
+    mirror = np.asarray(mirrored, dtype=np.float32)
+    for x, y, w in floors:
+        x0, x1 = max(0, int(x) - seam_x), min(amount, int(x + w) - seam_x)
+        if x1 - x0 < 8:
+            continue
+        if _floor_fit(mirrored, int(y), x0, x1) <= _floor_fit(quilted, int(y), x0, x1) + 0.15:
+            continue
+        top, bottom, fade = int(y) - 20, int(y) + 24, 6
+        for row in range(max(0, top - fade), min(out.shape[0], bottom + fade)):
+            t = min(1.0, (row - (top - fade)) / fade, ((bottom + fade) - row) / fade)
+            out[row] = out[row] * (1.0 - t) + mirror[row] * t
+    return Image.fromarray(np.clip(out + 0.5, 0, 255).astype(np.uint8), "RGBA")
+
+
+def _expand_panel(painting, inserts, focal=(), floors=()):
+    """Insert quilted local bands (_quilt_band); preserve every original pixel."""
     source_path = os.path.join(ROOT, "assets", "levels", painting + ".png")
     output_name = painting + "_wide"
     output_path = os.path.join(ROOT, "assets", "levels", output_name + ".png")
@@ -257,18 +387,17 @@ def _expand_panel(painting, inserts):
         segment = source.crop((src_x, 0, cut, source.height))
         target.paste(segment, (dst_x, 0))
         dst_x += segment.width
-        radius = min(max(16, amount // 2), source.width - cut)
+        a_limit = None
         if cut == 625 and painting.endswith("graveyard_moon"):
-            # The return step begins at x=690. Sampling through it would
+            # The return step begins at x=690. Copying through it would
             # stamp a second, collidable-looking balcony into the seam even
             # though only the authored copy has a platform collider.
-            radius = min(radius, 64)
-        sample = source.crop((cut, 0, cut + radius, source.height))
-        half = sample.resize((amount // 2, source.height), Image.Resampling.LANCZOS)
-        loop = Image.new("RGBA", (amount, source.height))
-        loop.paste(half, (0, 0))
-        loop.paste(ImageOps.mirror(half), (amount - half.width, 0))
-        target.paste(loop, (dst_x, 0))
+            a_limit = 60
+        band = _quilt_band(source, cut, amount, a_limit, focal)
+        if floors:
+            radius = min(max(16, amount // 2), source.width - cut, 64 if a_limit else amount)
+            band = _keep_floors(band, _mirror_band(source, cut, amount, radius), floors, dst_x, amount)
+        target.paste(band, (dst_x, 0))
         dst_x += amount
         src_x = cut
     target.paste(source.crop((src_x, 0, source.width, source.height)), (dst_x, 0))
@@ -329,7 +458,7 @@ def expand_painted_room(name, room):
     if name == "hell_gate":
         out["painted_cornices"] = True
         out["hell_cornice_art"] = True
-        out["cornice_crop"] = (800, 482)  # this room's stone bridge cap, not the lava shelf
+        out["cornice_crop"] = (1000, 482)  # this room's stone bridge cap, not the lava shelf; clear of the seams
         out["ramp_treads"] = {2: [(270, 176), (282, 176), (282, 188),
                                   (295, 188), (295, 200), (308, 200),
                                   (308, 212), (328, 212), (328, 223),
@@ -349,7 +478,7 @@ def expand_painted_room(name, room):
         out["cornice_crop"] = (1220, 316) if name == "graveyard_arches" else (1418, 241)
     if name in ("swamp_moon", "swamp_red"):
         out["painted_cornices"] = True
-        out["cornice_crop"] = (1000, 420) if name == "swamp_moon" else (1430, 255)
+        out["cornice_crop"] = (1000, 420) if name == "swamp_moon" else (1480, 255)
     if name == "swamp_moon":
         out["painted_platforms"].append((1250, 413, 90, 14))
     if name == "catacombs_1":
@@ -359,7 +488,7 @@ def expand_painted_room(name, room):
         out["painted_cornices"] = True
         out["cornice_crop"] = {"catacombs_2": (580, 228),
                                "catacombs_3": (620, 242),
-                               "crypt_skulls": (500, 256)}[name]
+                               "crypt_skulls": (100, 254)}[name]
     if name == "swamp_crypt":
         out["painted_cornices"] = True
         out["cornice_crop"] = (150, 319)
@@ -1312,6 +1441,6 @@ if __name__ == "__main__":
             _validate_depth_windows(name)
             if not check_reach(name, room):
                 raise SystemExit(f"room {name} has an unreachable mandatory route")
-            _expand_panel(room["painting"], room["_x_inserts"])
-            _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"])
+            _expand_panel(room["painting"], room["_x_inserts"], FOCAL_RANGES.get(name, ()), _painted_floors(room))
+            _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"], FOCAL_RANGES.get(name, ()))
         build(name, room)

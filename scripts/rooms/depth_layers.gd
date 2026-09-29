@@ -59,6 +59,21 @@ static func attach(room: Node2D) -> void:
 		base = room.get_node_or_null("Parallax") as CanvasItem
 	if parent == null and base == null:
 		return
+	if parent == null and room.get_node_or_null("Painting") != null:
+		# A painted room is its own composition: stock trees and crypts
+		# stamped over it as translucent silhouettes, sliding at another speed,
+		# read as stickers on the picture. Its depth is RoomLayers' far plane.
+		base.z_index = -30
+		var painted_windows := room.get_node_or_null("DepthWindows") as CanvasItem
+		if painted_windows != null:
+			painted_windows.z_index = -29
+		var painted_fog := room.get_node_or_null("FogFar") as CanvasItem
+		if painted_fog != null:
+			painted_fog.z_index = -27
+		var painted_decor := room.get_node_or_null("DecorBack") as CanvasItem
+		if painted_decor != null:
+			painted_decor.z_index = -25
+		return
 	if parent == null:
 		base.z_index = -30
 		var windows := room.get_node_or_null("DepthWindows") as CanvasItem

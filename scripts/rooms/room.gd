@@ -57,6 +57,8 @@ func _ready() -> void:
 		Audio.music(music)
 	# The living details of the place (ravens, wisps, fog, lightning): data/ambience.json.
 	Ambience.attach(self, scene_file_path.get_file().get_basename(), float(width), float(height))
+	# far, middle and front kept apart: after the clouds exist (Ambience)
+	RoomLayers.arrange(self)
 	door.entered.connect(exited.emit)
 	EventBus.enemy_died.connect(_on_enemy_died)
 
@@ -97,7 +99,8 @@ func _configure_depth_windows() -> void:
 		if not _depth_window_materials.has(group):
 			_depth_window_materials[group] = source.duplicate() as ShaderMaterial
 			var index := maxi(1, int(group.trim_prefix("Window")))
-			_depth_window_factors[group] = clampf(0.68 + 0.16 * (index - 1), 0.68, 1.16)
+			_depth_window_factors[group] = RoomLayers.window_factor(self, index,
+				clampf(0.68 + 0.16 * (index - 1), 0.68, 1.16))
 		polygon.material = _depth_window_materials[group]
 
 

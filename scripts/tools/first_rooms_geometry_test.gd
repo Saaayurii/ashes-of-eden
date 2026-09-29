@@ -123,10 +123,14 @@ func _run() -> void:
 		await _frames(4)
 		_check(polygon.global_position == anchor and room.get_node("Ledges/Ledge1Shape").global_position == shape_anchor,
 			"%s moved masks or colliders with the camera" % key)
+		# only an opening that looks out moves (RoomLayers.FAR_WINDOWS); a recess
+		# in the room's own masonry stays put
 		var shift: float = polygon.material.get_shader_parameter("shift_px")
-		_check(shift > 0 and shift <= 16, "%s far plate has no bounded parallax" % key)
-		_check(room.get_node("HorizonCutouts").scroll_scale.x < room.get_node("MiddleCutouts").scroll_scale.x,
-			"%s scenic planes have no depth separation" % key)
+		var looks_out: bool = RoomLayers.FAR_WINDOWS.get(key, [1]).has(1)
+		_check((shift > 0 and shift <= 16) if looks_out else shift == 0.0,
+			"%s far plate has no bounded parallax (%s)" % [key, shift])
+		_check(room.get_node_or_null("HorizonCutouts") == null and room.get_node("FogFar").scroll_scale == Vector2.ONE,
+			"%s slides stock cutouts or fog over its painting" % key)
 		current_scene = null
 		room.queue_free()
 		await _frames(3)

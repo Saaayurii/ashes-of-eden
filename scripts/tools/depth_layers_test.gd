@@ -16,7 +16,12 @@ func _run() -> void:
 		var parent = room.get_node_or_null("Interior")
 		if parent == null:
 			parent = room
+		var painted: bool = room.get_node_or_null("Painting") != null
 		for name in ["HorizonCutouts", "MiddleCutouts"]:
+			if painted:
+				# a painted room is its own composition (RoomLayers)
+				assert(parent.get_node_or_null(name) == null, "%s stamps %s over its painting" % [key, name])
+				continue
 			var plane = parent.get_node_or_null(name)
 			assert(plane != null, "%s missing %s" % [key, name])
 			assert(plane.get_child_count() == 2, "%s has incomplete %s" % [key, name])
@@ -34,8 +39,9 @@ func _run() -> void:
 			assert(parent.get_node("WindowLight").get_index() < parent.get_node("Pillar1").get_index(),
 				"%s paints light over its foreground pillars" % key)
 		if key == "village_night":
-			assert(room.get_node_or_null("CloudsFar") != null, "distant clouds behind gameplay")
-			assert(room.get_node("CloudsFar").z_index == -28)
+			# the clouds drift inside the sky's opening, never over stone
+			assert(room.get_node_or_null("SkyClip/CloudsFar") != null, "distant clouds clipped to the sky")
+			assert(room.get_node("SkyClip").z_index == -28)
 		var windows = room.get_node_or_null("DepthWindows")
 		if windows != null:
 			var group_materials: Dictionary = {}
