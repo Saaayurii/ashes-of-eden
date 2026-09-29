@@ -17,6 +17,9 @@ signal player_waking(seconds: float)
 signal room_started(index: int)
 signal room_cleared(index: int)
 signal ability_acquired(ability: Dictionary)
+signal item_found(item: Dictionary)
+## Our own body rested at a rest point (scripts/rooms/rest_point.gd), in this room.
+signal player_rested(room_path: String)
 signal alignment_changed(alignment: Dictionary)
 signal boss_hp_changed(name_key: String, hp: float, max_hp: float)
 signal boss_died

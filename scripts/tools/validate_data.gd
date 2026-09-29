@@ -18,7 +18,12 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"attack_damage", "attack_cooldown", "attack_scale", "crit_chance", "crit_multiplier",
 	"backstab_multiplier", "dash_speed", "dash_time", "dash_cooldown", "armor", "lifesteal",
 	"extra_lives", "heal_charges", "thorns", "execute", "kill_heal", "clear_heal", "dash_damage",
-	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction"]
+	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction",
+	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
+	"desperate_crit_heal"]
+## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
+const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
+	"wrath_after_hit", "desperate_crit_heal"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
 const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
@@ -42,6 +47,8 @@ const REQUIRED := {
 	"npcs": ["id", "name", "dialogue", "sprite"],
 	"props": ["id", "kind", "sprite"],
 	"notes": ["id", "name", "dialogue"],
+	"items": ["id", "name", "description", "rarity", "icon", "effects"],
+	"rest_points": ["id", "at"],
 }
 
 var errors: PackedStringArray = []
@@ -224,6 +231,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 		"props":
 			if not PROP_KINDS.has(entry.get("kind")):
 				_error("%s: kind must be one of %s" % [where, PROP_KINDS])
+			if entry.has("item") and (entry.get("kind") != "chest" or not ["common", "rare"].has(entry.item)):
+				_error("%s: item is \"common\" or \"rare\", on a chest" % where)
 			if entry.get("kind") == "destructible" and float(entry.get("hp", 0)) <= 0.0:
 				_error("%s: a destructible needs positive hp" % where)
 			_check_sprite(entry.get("sprite", {}), where)
@@ -248,6 +257,24 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: unknown note %s" % [where, entry.note])
 			if int(entry.get("ash", 0)) > 0 and not entry.has("note"):
 				_error("%s: ash is paid once per record; a cache with ash needs a note" % where)
+		"items":
+			_use_key(entry.get("name", ""), where)
+			_use_key(entry.get("description", ""), where)
+			if not ["common", "rare"].has(entry.get("rarity", "")):
+				_error("%s: rarity must be common or rare" % where)
+			if not ResourceLoader.exists(str(entry.get("icon", ""))):
+				_error("%s: icon not found: %s" % [where, entry.get("icon", "")])
+			for effect in entry.get("effects", []):
+				# an item changes how something behaves: a mechanic stat, never a raw number
+				if effect.get("type") != "stat" or not ITEM_STATS.has(effect.get("stat")):
+					_error("%s: an item's effect is one of the item mechanics %s" % [where, ITEM_STATS])
+		"rest_points":
+			# the id is the room it stands in
+			if not FileAccess.file_exists("res://scenes/rooms/%s.tscn" % entry.get("id", "")):
+				_error("%s: no room scene of that name" % where)
+			var at = entry.get("at", [])
+			if not at is Array or at.size() != 2:
+				_error("%s: at is [x, y] on the room's floor" % where)
 		"notes":
 			_use_key(entry.get("name", ""), where)
 			if not _dialogue_ids.has(entry.get("dialogue", "")):

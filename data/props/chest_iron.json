@@ -41,5 +41,6 @@
     "res://assets/icons/quest/flask_4.png",
     "res://assets/icons/quest/flask_5.png",
     "res://assets/icons/quest/flask_6.png"
-  ]
+  ],
+  "item": "common"
 }

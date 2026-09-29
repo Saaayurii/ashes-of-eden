@@ -13,6 +13,10 @@ var flags: Dictionary = {}
 ## A cutscene is playing: enemies hold where they stand, the player's hands are off the controls.
 var cutscene := false
 var abilities: Array[Dictionary] = []
+## Items found this run, by id (ItemSystem): each at most once.
+var items: Array[String] = []
+## Rest points used this night, by room scene path: each once.
+var rested: Dictionary = {}
 var wave := 0
 ## Which place of the chapter we are in (data/chapters/*.json, an id). The
 ## curtain announces it; the bestiary remembers where a creature was first met.
@@ -36,6 +40,8 @@ func new_run() -> void:
 	alignment = {PATH_GRACE: 0, PATH_TEMPTATION: 0, PATH_WILL: 0}
 	flags = {}
 	abilities = []
+	items = []
+	rested = {}
 	wave = 0
 	place = ""
 	elapsed = 0.0

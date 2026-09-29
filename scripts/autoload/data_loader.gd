@@ -22,6 +22,10 @@ var npcs: Dictionary = {}
 var props: Dictionary = {}
 ## Records found in secret caches (data/notes): a name, the caption dialogue that reads them.
 var notes: Dictionary = {}
+## What a chest can hold besides essence (data/items, scripts/combat/item_system.gd).
+var items: Dictionary = {}
+## Rest points, one per room at most, by room scene name (data/rest_points).
+var rest_points: Dictionary = {}
 
 
 func _ready() -> void:
@@ -40,6 +44,8 @@ func reload() -> void:
 	props = _load_collection("props", roots)
 	npcs = _load_collection("npcs", roots)
 	notes = _load_collection("notes", roots)
+	items = _load_collection("items", roots)
+	rest_points = _load_collection("rest_points", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

@@ -8,6 +8,11 @@
   "essence": 50,
   "color": "#c04040",
   "material": "flesh",
+  "tags": [
+    "human",
+    "possessed",
+    "elite"
+  ],
   "attack": {
     "damage": 11
   },

@@ -44,7 +44,20 @@ const BASE_STATS := {
 	"wave_damage": 0.0,     # the finisher's arc, as a fraction of attack_damage
 	"guard": 0,             # blows absorbed outright, refilled each room
 	"essence_bonus": 0.0,   # extra essence from every kill
+	# Item mechanics (data/items): interactions, not bigger numbers. Zero = absent.
+	"heal_burst": 0.0,          # the flask also scorches every enemy within HEAL_BURST_RADIUS for this much
+	"parry_stun": 0.0,          # a parry also stops every enemy within PARRY_STUN_RADIUS for this long
+	"chest_heal": 0.0,          # health an opened chest is worth
+	"backstab_refresh": 0.0,    # 1 = a backstab gives the roll back at once
+	"clean_clear_charge": 0.0,  # 1 = a room cleared without a wound refills one flask
+	"wrath_after_hit": 0.0,     # after a wound, the next swing inside WRATH_TIME is worth this much more
+	"desperate_crit_heal": 0.0, # under a third of the bar, each critical blow heals this much
 }
+## Where the item mechanics above reach.
+const HEAL_BURST_RADIUS := 72.0
+const PARRY_STUN_RADIUS := 90.0
+const WRATH_TIME := 2.0
+const DESPERATE_SHARE := 0.33
 const COMBO_MULTIPLIERS := [1.0, 1.1, 1.6]  # 10 · 11 · 16
 ## A chain is meant to be chainable: the first two swings recover in a fraction
 ## of [code]attack_cooldown[/code], only the finisher costs the full swing. With
@@ -151,6 +164,9 @@ var stats: Dictionary = BASE_STATS.duplicate()
 var hp: float
 var facing := 1  # -1 left, 1 right
 var heal_charges := 3
+## Item state: a wound this room (clean_clear_charge), the wrath window (wrath_after_hit).
+var _wounded_this_room := false
+var _wrath_left := 0.0
 var controls_enabled := true
 ## Which of the two seats this body is. Drives spawn point and tint.
 var slot := 0
@@ -272,7 +288,8 @@ func _ready() -> void:
 		_armed = false
 		_rally_pool = 0.0
 		_rally_left = 0.0
-		_hurt_grace_left = 0.0)
+		_hurt_grace_left = 0.0
+		_wounded_this_room = false)
 	body.modulate = SLOT_TINTS[slot % SLOT_TINTS.size()]
 	_light = Fx.light(self, Vector2(0, -12), LIGHT_COLOR, 110.0, 0.55, 0.0, 0.06)
 	EventBus.alignment_changed.connect(func(_alignment: Dictionary) -> void: _update_aura())
@@ -384,6 +401,7 @@ func _physics_process(delta: float) -> void:
 	_block_cd = maxf(0.0, _block_cd - delta)
 	_tick_rally(delta)
 	_hurt_grace_left = maxf(0.0, _hurt_grace_left - delta)
+	_wrath_left = maxf(0.0, _wrath_left - delta)
 	_dodge_counter_left = maxf(0.0, _dodge_counter_left - delta)
 	_turn_lock_left = maxf(0.0, _turn_lock_left - delta)
 	_parry_left = maxf(0.0, _parry_left - delta)
@@ -522,6 +540,8 @@ func _physics_process(delta: float) -> void:
 		if _healing_left <= 0.0:
 			heal_charges -= 1
 			heal(HEAL_AMOUNT)
+			if stats.heal_burst > 0.0:
+				_heal_burst()
 			Fx.puff(global_position + Vector2(0, -10), 0.9, Color(0.9, 1.0, 0.7))
 			Fx.sparkle(global_position + Vector2(0, 4), Color(0.75, 1.0, 0.7), 16, 10.0)
 			Fx.flash(global_position + Vector2(0, -12), Color(0.7, 1.0, 0.75), 90.0, 0.5)
@@ -712,6 +732,24 @@ func _arm(with_draw: bool) -> void:
 		Audio.play(&"draw", -7.0)
 
 
+## A rest point: whole again, every flask full, nothing left to recover.
+func rest() -> void:
+	hp = stats.max_hp
+	heal_charges = int(stats.heal_charges)
+	_rally_pool = 0.0
+	_rally_left = 0.0
+	_emit_hp()
+
+
+## The censer (item "heal_burst"): the flask's warmth goes out as a scorch.
+func _heal_burst() -> void:
+	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.7, 0.35), HEAL_BURST_RADIUS, 0.5, 1.2)
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Enemy
+		if enemy != null and not enemy.is_dead() and enemy.global_position.distance_to(global_position) <= HEAL_BURST_RADIUS:
+			enemy.take_damage(stats.heal_burst, self)
+
+
 func heal(amount: float) -> void:
 	var restored := minf(maxf(0.0, amount), stats.max_hp - hp)
 	hp += restored
@@ -838,6 +876,10 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 	if stats.thorns > 0.0 and source != null and source != self and source.has_method("take_damage"):
 		source.take_damage(amount * stats.thorns, self)
 	hp -= amount
+	if amount > 0.0 and not blocked:
+		_wounded_this_room = true
+		if stats.wrath_after_hit > 0.0:
+			_wrath_left = WRATH_TIME
 	if amount > 0.0 and not blocked and combat_hit:
 		_hurt_grace_left = HURT_GRACE_TIME
 	if amount > 0.0 and hp > 0.0:
@@ -1217,6 +1259,11 @@ func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
 func _on_room_cleared(_index: int) -> void:
 	_dodge_counter_left = 0.0
 	_dodge_counted = false
+	if _is_mine() and not _dead and stats.clean_clear_charge > 0.0 and not _wounded_this_room \
+			and heal_charges < int(stats.heal_charges):
+		heal_charges += 1
+		_emit_hp()
+		Fx.sparkle(global_position + Vector2(0, -12), Color(0.75, 1.0, 0.7), 10, 10.0)
 	if not _is_mine() or _dead or stats.clear_heal <= 0.0:
 		return
 	heal(stats.clear_heal)
@@ -1269,6 +1316,12 @@ func _parry(source: Node, from_x: float) -> void:
 		source.reflect(self)
 	elif source != null and source.has_method("parried"):
 		source.parried(self)
+	if stats.parry_stun > 0.0:
+		for node in get_tree().get_nodes_in_group("enemies"):
+			var enemy := node as Enemy
+			if enemy != null and not enemy.is_dead() and enemy.global_position.distance_to(global_position) <= PARRY_STUN_RADIUS:
+				enemy.stagger(stats.parry_stun)
+		Fx.flash(global_position + Vector2(0, -12), Color(0.95, 0.9, 0.7), PARRY_STUN_RADIUS, 0.4)
 
 
 ## Steel on steel: the block held, the blow is a thud and a few cold sparks.
@@ -1386,6 +1439,13 @@ func _attack() -> void:
 		var crit: bool = randf() < stats.crit_chance
 		if crit:
 			damage *= stats.crit_multiplier
+		if live_enemy and _wrath_left > 0.0:
+			damage *= 1.0 + stats.wrath_after_hit
+			_wrath_left = 0.0  # one swing answers one wound
+		if live_enemy and stats.backstab_refresh > 0.0 and (target as Enemy).is_unaware():
+			_dash_cd = 0.0
+		if live_enemy and crit and stats.desperate_crit_heal > 0.0 and hp < stats.max_hp * DESPERATE_SHARE:
+			heal(stats.desperate_crit_heal)
 		# "sneak" is what the blow is worth on an enemy that has not noticed us;
 		# the enemy (the host, online) knows whether it has and applies it.
 		target.take_damage(damage, self, {"crit": crit, "knockback": 2.0 if hit_index == 2 else 1.0,

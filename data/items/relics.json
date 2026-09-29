@@ -1,0 +1,107 @@
+[
+  {
+    "id": "censer_ember",
+    "name": "ITEM_CENSER_EMBER_NAME",
+    "description": "ITEM_CENSER_EMBER_DESC",
+    "rarity": "common",
+    "icon": "res://assets/icons/quest/curio_2.png",
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "heal_burst",
+        "op": "add",
+        "value": 18
+      }
+    ]
+  },
+  {
+    "id": "cracked_bell",
+    "name": "ITEM_CRACKED_BELL_NAME",
+    "description": "ITEM_CRACKED_BELL_DESC",
+    "rarity": "common",
+    "icon": "res://assets/icons/quest/curio_4.png",
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "parry_stun",
+        "op": "add",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "id": "pilgrims_knot",
+    "name": "ITEM_PILGRIMS_KNOT_NAME",
+    "description": "ITEM_PILGRIMS_KNOT_DESC",
+    "rarity": "common",
+    "icon": "res://assets/icons/quest/keepsake_5.png",
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "chest_heal",
+        "op": "add",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "id": "grave_salt",
+    "name": "ITEM_GRAVE_SALT_NAME",
+    "description": "ITEM_GRAVE_SALT_DESC",
+    "rarity": "common",
+    "icon": "res://assets/icons/quest/curio_3.png",
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "backstab_refresh",
+        "op": "add",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "vigil_glass",
+    "name": "ITEM_VIGIL_GLASS_NAME",
+    "description": "ITEM_VIGIL_GLASS_DESC",
+    "rarity": "common",
+    "icon": "res://assets/icons/quest/curio_1.png",
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "clean_clear_charge",
+        "op": "add",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "broken_halo",
+    "name": "ITEM_BROKEN_HALO_NAME",
+    "description": "ITEM_BROKEN_HALO_DESC",
+    "rarity": "rare",
+    "icon": "res://assets/icons/quest/keepsake_4.png",
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "wrath_after_hit",
+        "op": "add",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "id": "fallen_feather",
+    "name": "ITEM_FALLEN_FEATHER_NAME",
+    "description": "ITEM_FALLEN_FEATHER_DESC",
+    "rarity": "rare",
+    "icon": "res://assets/icons/quest/keepsake_7.png",
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "desperate_crit_heal",
+        "op": "add",
+        "value": 6
+      }
+    ]
+  }
+]

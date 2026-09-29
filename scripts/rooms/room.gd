@@ -4,6 +4,8 @@ class_name Room
 ## door when the last one dies. The Run scene chains rooms together.
 
 signal cleared
+## The door opened again: the room was cleared once, rested in, and cleared again.
+signal reopened
 signal exited
 
 const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
@@ -37,6 +39,9 @@ var alive := 0
 var spawn_hook := Callable()
 ## False on a peer that only watches: the host decides when the door opens.
 var authoritative := true
+## Every enemy placed from a marker, [marker, body], for a rest to raise again.
+var _from_markers: Array = []
+var _cleared_once := false
 
 var _map_rects: Array[Rect2] = []
 var _depth_window_materials: Dictionary = {}
@@ -53,6 +58,7 @@ func _ready() -> void:
 	HELL_DEPTH.attach(self)
 	INTERIOR_ARCHITECTURE.attach(self)
 	DEPTH_LAYERS.attach(self)
+	RestPoint.attach(self)
 	if music != "":
 		Audio.music(music)
 	# The living details of the place (ravens, wisps, fog, lightning): data/ambience.json.
@@ -147,9 +153,29 @@ func map_rects() -> Array[Rect2]:
 func populate() -> void:
 	for spawn in $Spawns.get_children():
 		if spawn is EnemySpawn:
-			spawn_enemy(spawn.enemy_id, spawn.global_position)
+			_from_markers.append([spawn, spawn_enemy(spawn.enemy_id, spawn.global_position)])
 	if alive == 0:
 		door.open = true
+
+
+## A rest (scripts/rooms/rest_point.gd), on the host: the room's common dead
+## stand up again where they first stood, unaware. Elites and bosses stay down.
+## Returns how many got up; the door shuts behind them until they are down.
+func respawn_commons() -> int:
+	var risen := 0
+	for pair in _from_markers:
+		var spawn: EnemySpawn = pair[0]
+		var enemy = pair[1]
+		if is_instance_valid(enemy) and not (enemy as Enemy).is_dead():
+			continue
+		var data: Dictionary = Data.enemies.get(spawn.enemy_id, {})
+		if data.get("boss", false) or data.get("tags", []).has("elite"):
+			continue
+		pair[1] = spawn_enemy(spawn.enemy_id, spawn.global_position)
+		risen += 1
+	if risen > 0:
+		door.open = false
+	return risen
 
 
 ## Also used by bosses that summon: everything spawned here must die before the door opens.
@@ -172,4 +198,8 @@ func _on_enemy_died(_id: StringName, _position: Vector2) -> void:
 	alive -= 1
 	if alive == 0 and not door.open:
 		door.open = true
-		cleared.emit()
+		if _cleared_once:
+			reopened.emit()  # cleared again after a rest: the door, not the rewards
+		else:
+			_cleared_once = true
+			cleared.emit()

@@ -39,11 +39,11 @@ CACHE = os.path.join(ROOT, "tools", "art", ".cache")
 SOURCE = os.path.join(CACHE, "NotoSerifSC.ttf")
 OUT = os.path.join(ROOT, "assets", "fonts", "NotoSerifSC-Subset.ttf")
 LICENCE = os.path.join(ROOT, "assets", "fonts", "OFL-NotoSerifSC.txt")
-URL = "https://github.com/google/fonts/raw/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf"
+URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf"
 ## Regular. EB Garamond next to it is a book weight; anything lighter reads as
 ## a different voice rather than the same one in another script.
 WEIGHT = 400
-LICENCE_URL = "https://github.com/google/fonts/raw/main/ofl/notoserifsc/OFL.txt"
+LICENCE_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/OFL.txt"
 
 ## Everything the Latin faces already cover is left to them — this font is
 ## only ever reached as a fallback. What it must carry is anything above

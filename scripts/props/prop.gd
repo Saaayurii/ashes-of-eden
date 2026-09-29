@@ -312,6 +312,19 @@ func _pay_out(taker: Player = null) -> void:
 	var heal := float(stats.get("heal", 0.0))
 	if heal > 0.0 and taker != null:
 		taker.heal(heal)
+	if taker != null and stats.get("kind", "") == "chest" and taker.is_multiplayer_authority():
+		if taker.stats.chest_heal > 0.0:
+			taker.heal(taker.stats.chest_heal)
+		# the item is the opener's: it goes onto their body, on their machine
+		var rarity := str(stats.get("item", ""))
+		if rarity != "":
+			var rng := RandomNumberGenerator.new()
+			rng.randomize()
+			var id := ItemSystem.roll(rarity, rng)
+			if id != "":
+				ItemSystem.give(taker, id)
+				Fx.popup(global_position + Vector2(0, -40),
+					tr("HUD_ITEM_FOUND") % tr(str(Data.items[id].name)), Color(1.0, 0.86, 0.55), 9)
 	# A record is ours only when our own body opened it (online, the other
 	# player's puppet walks into chests on this machine too).
 	var note := str(stats.get("note", ""))

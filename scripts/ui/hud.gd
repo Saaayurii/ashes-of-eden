@@ -37,6 +37,7 @@ func _ready() -> void:
 	EventBus.room_started.connect(_on_room_started)
 	EventBus.room_cleared.connect(_on_room_cleared)
 	EventBus.ability_acquired.connect(_on_ability_acquired)
+	EventBus.item_found.connect(func(_item: Dictionary) -> void: _on_ability_acquired({}))
 	EventBus.boss_hp_changed.connect(_on_boss_hp_changed)
 	EventBus.essence_changed.connect(_on_essence_changed)
 	EventBus.heal_charges_changed.connect(_on_charges_changed)
@@ -131,7 +132,10 @@ func _on_room_cleared(index: int) -> void:
 
 
 func _on_ability_acquired(_ability: Dictionary) -> void:
-	gifts_label.text = "\n".join(Game.abilities.map(func(a: Dictionary) -> String: return tr(a.name)))
+	var lines: Array = Game.abilities.map(func(a: Dictionary) -> String: return tr(a.name))
+	for id in Game.items:
+		lines.append("· " + tr(str(Data.items.get(id, {}).get("name", id))))
+	gifts_label.text = "\n".join(lines)
 
 
 func _on_boss_hp_changed(name_key: String, hp: float, max_hp: float) -> void:

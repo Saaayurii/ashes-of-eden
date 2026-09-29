@@ -1,0 +1,26 @@
+[
+  {
+    "id": "graveyard_tree",
+    "at": [
+      985,
+      380
+    ],
+    "_comment": "the chapel of the praying statue, past the first graveyard"
+  },
+  {
+    "id": "catacombs_1",
+    "at": [
+      1232,
+      430
+    ],
+    "_comment": "the knight's niche with its candles, where the catacombs begin"
+  },
+  {
+    "id": "church",
+    "at": [
+      600,
+      380
+    ],
+    "_comment": "the altar, before the arenas"
+  }
+]

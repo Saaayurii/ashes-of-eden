@@ -177,6 +177,11 @@ func validate(raw: Variant) -> Dictionary:
 		if id is String and Data.abilities.has(id):
 			gifts.append(id)
 	state["abilities"] = gifts
+	var found: Array = []
+	for id in state.get("items", []):
+		if id is String and Data.items.has(id):
+			found.append(id)
+	state["items"] = found  # an item that no longer exists is dropped, not fatal
 	for key in ["level", "essence", "elapsed", "kills"]:
 		if not (state.get(key, 0) is float or state.get(key, 0) is int):
 			return {}
@@ -206,6 +211,8 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"alignment": Game.alignment.duplicate(),
 			"flags": Game.flags.duplicate(),
 			"abilities": Game.abilities.map(func(a: Dictionary) -> String: return a.id),
+			"items": Game.items.duplicate(),
+			"rested": Game.rested.keys(),
 			"essence": Game.essence,
 			"level": Game.level,
 			"ash": Game.ash_earned,
@@ -232,6 +239,13 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.flags = state.get("flags", {}).duplicate()
 	for id in state.get("abilities", []):
 		Game.abilities.append(Data.abilities[id])
+	# the items' effects are in the body's stats below; this is the list of them
+	for id in state.get("items", []):
+		if id is String and Data.items.has(id):
+			Game.items.append(id)
+	for path in state.get("rested", []):
+		if path is String:
+			Game.rested[path] = true
 	Game.level = maxi(1, int(state.get("level", 1)))
 	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
 	Game.ash_earned = int(state.get("ash", 0))

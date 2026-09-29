@@ -1089,6 +1089,35 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		_die()
 
 
+## Stopped where it stands for [param duration] (the cracked bell's parry, an
+## item): the wind-up breaks off, as a flinch would. A boss shrugs it off in
+## half the time. Decided by the host, like damage.
+func stagger(duration: float) -> void:
+	if Net.active and not multiplayer.is_server():
+		if multiplayer.get_peers().has(1):
+			_net_stagger.rpc_id(1, duration)
+		return
+	_apply_stagger(duration)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_stagger(duration: float) -> void:
+	_apply_stagger(duration)
+
+
+func _apply_stagger(duration: float) -> void:
+	if state == State.DEAD or stats.get("behaviour", "walker") == "seal" or _sealed:
+		return
+	if stats.get("boss", false):
+		duration *= 0.5
+	if state == State.WINDUP:
+		_cancel_telegraph()
+		if Net.active:
+			_net_cancel_telegraph.rpc()
+	_set_state(State.RECOVER, duration)
+	_attack_cd = maxf(_attack_cd, duration + HIT_ATTACK_DELAY)
+
+
 ## The player's block caught this swing on the beat (Player._parry): the blow is
 ## dead, the attack is abandoned and the body is open for a riposte. Enemies
 ## live on the host, so a client reports the parry and lets the host act on it.

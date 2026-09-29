@@ -106,9 +106,18 @@ Death keeps: Ash, codex entries, story knowledge, achievements, unlocks. Death l
 
 ## Not yet implemented (roadmap)
 
-Parry (180 ms, 220–250 on mobile; stagger 1.2 s, boss 0.5 s) · save points (full heal + charges, commons
-respawn, elites don't) · items (3–5 normal, 1–2 rare, 0–1 legendary; interactions, not "+3 damage") ·
-Silver / shop.
+Silver / shop · legendary items.
+
+**Rest points** (`data/rest_points`, `scripts/rooms/rest_point.gd`): three in chapter I — the praying statue in
+`graveyard_tree`, the knight's niche in `catacombs_1`, the church altar. With no awake enemy within 220 px,
+`interact` rests: full health, every flask full, the autosave remembers it; the room's common dead stand up where
+they first stood and the door shuts until they are down again. Elites and bosses stay dead. Once a night each.
+
+**Items** (`data/items`, `scripts/combat/item_system.gd`): what a chest holds besides essence. Iron and cursed
+chests hold a common item, a gold chest a rare one (a common one once the rares are gone); each item once a night,
+so a run finds about 3–5 commons and 1–2 rares. Every one changes how something behaves — the flask scorches
+(18), a parry stops everyone near (0.8 s), a chest heals (14), a backstab returns the roll, a clean room refills a
+flask, a wound makes the next swing ×1.8, a crit under a third of the bar heals (6) — never "+3 damage".
 
 The Ophanim's seal phase is in (`seal_phase` in `data/enemies/ophanim.json`): at 50 % it closes its eyes and is
 untouchable; three seals of 45 HP hang over the arena's floors; while they stand it keeps out of reach and only

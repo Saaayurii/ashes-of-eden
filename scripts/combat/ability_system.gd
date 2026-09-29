@@ -28,6 +28,14 @@ const CAPS := {
 	"wave_damage": [0.0, 1.2],
 	"essence_bonus": [0.0, 0.6],
 	"guard": [0.0, 3.0],
+	# item mechanics (data/items)
+	"heal_burst": [0.0, 60.0],
+	"parry_stun": [0.0, 1.5],
+	"chest_heal": [0.0, 40.0],
+	"backstab_refresh": [0.0, 1.0],
+	"clean_clear_charge": [0.0, 1.0],
+	"wrath_after_hit": [0.0, 1.0],
+	"desperate_crit_heal": [0.0, 12.0],
 }
 ## Caps expressed as multipliers of the base value rather than absolutes.
 const RELATIVE := ["attack_cooldown", "speed"]

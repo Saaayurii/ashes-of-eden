@@ -33,5 +33,6 @@
     "res://assets/icons/quest/ritual_6.png",
     "res://assets/icons/quest/ritual_7.png",
     "res://assets/icons/quest/essence_7.png"
-  ]
+  ],
+  "item": "common"
 }

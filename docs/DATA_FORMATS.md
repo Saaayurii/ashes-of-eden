@@ -374,6 +374,15 @@ For a living four-frame prop use `"idle_frames": 2, "hit_frame": 2`: frames 0–
 frame 2 is the hit/break reaction, and the last frame is the remains. `ambient` may be `candle`, `spores`,
 `soul`, `bottles` or `dust` (grit trickling from a secret wall); it adds a restrained light or particle accent.
 
+Items: a chest with `"item": "common"` or `"rare"` also holds one item from `data/items/` —
+`{"id", "name", "description", "rarity": "common" | "rare", "icon", "effects": [{"type": "stat", "stat", "op", "value"}]}`,
+where the stat is one of the item mechanics (`heal_burst`, `parry_stun`, `chest_heal`, `backstab_refresh`,
+`clean_clear_charge`, `wrath_after_hit`, `desperate_crit_heal`; the validator refuses anything else). The item goes
+onto the body of whoever opened the chest, each item once a night; a rare chest falls back to a common item.
+
+Rest points: `data/rest_points/*.json`, `{"id": "<room scene name>", "at": [x, y]}` — a spot on the room's floor, at
+something the painting already shows (an altar, a statue with candles). See `scripts/rooms/rest_point.gd`.
+
 Secrets: a destructible with `"reveals": "<prop id>"` leaves that prop where it broke (a bricked-up
 doorway and the cache behind it); `"still": true` turns off the variation and sway for masonry. A secret
 wall must read as a bricked-up doorway: either the painting already has the arch it stands in (listed in

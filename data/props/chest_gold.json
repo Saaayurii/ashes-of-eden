@@ -38,5 +38,6 @@
     "res://assets/icons/quest/emblem_4.png",
     "res://assets/icons/quest/emblem_5.png",
     "res://assets/icons/quest/emblem_6.png"
-  ]
+  ],
+  "item": "rare"
 }

@@ -98,6 +98,7 @@ func _ready() -> void:
 	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void: kills += 1)
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
+	EventBus.player_rested.connect(_on_player_rested)
 	# A record from a secret cache is read out over play, like a caption.
 	EventBus.note_found.connect(func(note_id: String, _first: bool) -> void:
 		dialogue.play(str(Data.notes.get(note_id, {}).get("dialogue", ""))))
@@ -371,6 +372,7 @@ func _build_room(index: int) -> void:
 	room.spawn_hook = _spawn_enemy
 	room_holder.add_child(room)
 	room.cleared.connect(_on_room_cleared)
+	room.reopened.connect(_on_room_reopened)
 	room.exited.connect(_on_room_exited)
 	_place_local_player()
 	if not Net.active and player != null:
@@ -403,6 +405,46 @@ func _on_room_cleared() -> void:
 		_net_room_cleared.rpc()
 	if room.outro_cutscene != "":
 		cutscene.play(room.outro_cutscene)
+
+
+## Cleared again after a rest: the way opens, and nothing else happens twice.
+func _on_room_reopened() -> void:
+	if Net.active and multiplayer.is_server():
+		_net_door.rpc(true)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_door(open: bool) -> void:
+	if room:
+		room.door.open = open
+
+
+## Our body rested (scripts/rooms/rest_point.gd): the checkpoint remembers a
+## whole body and full flasks — the room itself still restarts from its
+## entrance — and the host raises the room's common dead.
+func _on_player_rested(room_path: String) -> void:
+	if not Net.active and not checkpoint.is_empty() and player != null:
+		checkpoint.player.hp = player.stats.max_hp
+		checkpoint.player.heal_charges = int(player.stats.heal_charges)
+		checkpoint.game_state.rested = Game.rested.keys()
+		Saves.write(Saves.AUTO, checkpoint)
+	if _is_server():
+		_raise_commons()
+	elif multiplayer.get_peers().has(1):
+		_net_rest_raise.rpc_id(1)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_rest_raise() -> void:
+	if _is_server():
+		_raise_commons()
+
+
+func _raise_commons() -> void:
+	if room == null:
+		return
+	if room.respawn_commons() > 0 and Net.active:
+		_net_door.rpc(false)
 
 
 ## The host counts the corpses; the clients are told when the way is open.
