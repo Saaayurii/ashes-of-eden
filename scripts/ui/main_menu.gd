@@ -70,6 +70,11 @@ func _ready() -> void:
 	%OpenSettings.pressed.connect(%Settings.open)
 	%Settings.closed.connect(%OpenSettings.grab_focus)
 	%OpenBestiary.pressed.connect(%Bestiary.open)
+	# the practice yard with its straw man: the moves, without a night at stake
+	Game.practice = ""
+	%OpenPractice.pressed.connect(func() -> void:
+		Game.practice = "training_dummy"
+		Curtain.change_scene(RUN_SCENE))
 	%Bestiary.closed.connect(%OpenBestiary.grab_focus)
 	quit_button.visible = not (OS.has_feature("web") or OS.has_feature("mobile"))
 	quit_button.pressed.connect(func() -> void: get_tree().quit())

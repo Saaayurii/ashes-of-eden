@@ -227,6 +227,27 @@ talked to on E (the Stranger, `data/npcs/stranger.json`).
 Online, every peer plays the scene itself (rooms load on every peer); a body is only moved by the peer that
 simulates it and arrives elsewhere through the synchronizer.
 
+## Forks — `data/forks/`
+
+Where the chapter's way splits and joins again (scripts/run/route.gd, docs/CHAPTER1.md).
+
+```json
+{
+  "id": "swamp_fork",
+  "after": "res://scenes/rooms/swamp_moon.tscn",
+  "dialogue": "fork_swamp",
+  "options": {"red": "res://scenes/rooms/swamp_red.tscn", "crypt": "res://scenes/rooms/swamp_crypt.tscn"},
+  "then": "res://scenes/rooms/catacombs_1.tscn"
+}
+```
+
+- Leaving `after`, the Run plays `dialogue`; the id of the answer picked is a key of `options`, and that
+  room comes next (skipped or unanswered: the first). Out of any option the next room is `then`.
+- The options stand next to each other in `ROOMS`; every room stays in `ROOMS`, a fork only decides
+  which ones a night walks. `Route.step` numbers the rooms along the way walked, with no gap.
+- An option must carry no story — no `intro_cutscene`/`outro_cutscene`/`intro_dialogue`, no NPC, no
+  rest point — or the night that took the other way would lose it; the validator refuses one.
+
 ## Chapters — `data/chapters/`
 
 The places a run walks through, and what the curtain between two rooms says. One entry covers a stretch

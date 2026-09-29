@@ -124,7 +124,11 @@ func _update_rally_mark() -> void:
 
 
 func _on_room_started(index: int) -> void:
-	wave_label.text = tr("HUD_AREA") % index
+	if Game.practice != "":
+		wave_label.text = ""  # the move list says where we are (MoveList)
+		return
+	# the number along the way walked (a fork skips one of its ways)
+	wave_label.text = tr("HUD_AREA") % (Route.step(Route.rooms(), index - 1) + 1)
 
 
 func _on_room_cleared(index: int) -> void:

@@ -16,6 +16,12 @@ signal player_hurt(fraction: float)
 signal player_waking(seconds: float)
 signal room_started(index: int)
 signal room_cleared(index: int)
+## Our own body came through the room it just cleared without a wound
+## (Player._on_room_cleared); the Run pays for it.
+signal player_unscathed(index: int)
+## One of the moves in data/techniques was just done by our own body (or,
+## for riposte and backstab, landed on an enemy): the practice yard ticks it.
+signal technique_performed(technique_id: String)
 signal ability_acquired(ability: Dictionary)
 signal item_found(item: Dictionary)
 ## Our own body rested at a rest point (scripts/rooms/rest_point.gd), in this room.

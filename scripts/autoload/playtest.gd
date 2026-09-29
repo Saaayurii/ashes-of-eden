@@ -32,6 +32,7 @@ func _ready() -> void:
 		return
 	EventBus.room_started.connect(_on_room_started)
 	EventBus.room_cleared.connect(_on_room_cleared)
+	EventBus.player_unscathed.connect(_on_unscathed)
 	EventBus.player_hurt.connect(_on_hurt)
 	EventBus.player_died.connect(_on_died)
 	EventBus.boss_hp_changed.connect(_on_boss_hp)
@@ -107,6 +108,10 @@ func _on_room_cleared(_index: int) -> void:
 		"damage": snappedf(_room_damage, 0.01), "deaths": _room_deaths})
 
 
+func _on_unscathed(_index: int) -> void:
+	_write("unscathed", {"room": _room})
+
+
 func _on_hurt(fraction: float) -> void:
 	_room_damage += fraction
 	_write("hurt", {"room": _room, "fraction": snappedf(fraction, 0.001)})
@@ -141,7 +146,7 @@ func _on_gift(ability: Dictionary) -> void:
 
 
 func _write(kind: String, fields: Dictionary) -> void:
-	if not _active or _file == null:
+	if not _active or _file == null or Game.practice != "":  # practice is not a night
 		return
 	fields["e"] = kind
 	fields["t"] = snappedf(_clock, 0.1)

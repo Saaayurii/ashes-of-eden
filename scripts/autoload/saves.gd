@@ -206,7 +206,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 		"game": GAME_ID,
 		"format": FORMAT,
 		"room": room_path,
-		"room_number": room_index(room_path) + 1,
+		"room_number": Route.step(Route.rooms(), room_index(room_path)) + 1,
 		"game_state": {
 			"alignment": Game.alignment.duplicate(),
 			"flags": Game.flags.duplicate(),
@@ -216,6 +216,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"essence": Game.essence,
 			"level": Game.level,
 			"ash": Game.ash_earned,
+			"unscathed": Game.unscathed,
 			"elapsed": elapsed,
 			"kills": kills,
 			"difficulty": Settings.difficulty,
@@ -249,6 +250,7 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.level = maxi(1, int(state.get("level", 1)))
 	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
 	Game.ash_earned = int(state.get("ash", 0))
+	Game.unscathed = maxi(0, int(state.get("unscathed", 0)))
 	Game.elapsed = float(state.get("elapsed", 0.0))
 	# The stats are the body's whole story (gifts applied, extra lives spent):
 	# restored as they were rather than replayed gift by gift.

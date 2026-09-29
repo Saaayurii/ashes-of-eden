@@ -42,10 +42,16 @@ func _run() -> void:
 	var picker = run.get_node("UI/AbilityPicker")
 	var run_end = run.get_node("UI/RunEnd")
 	var cut = run.get_node("UI/Cutscene")
-	var total_rooms: int = run.ROOMS.size()
+	# the night follows the chapter's way (scripts/run/route.gd): at a fork the
+	# question is skipped below, so it takes the first way, and one room of
+	# each fork is never walked
+	var route = load("res://scripts/run/route.gd")
+	var total_rooms: int = route.length(run.ROOMS)
 	var expected_kills := 0
+	var index := 0
+	var walked := 0
 
-	for index in total_rooms:
+	while index < run.ROOMS.size():
 		await _dismiss_ui(dialogue, picker, cut)
 		# a quiet room (the church) has nobody to fight: its door is open from the start
 		await _wait_until(func(): return run.room_index == index and run.room != null and (run.room.alive > 0 or run.room.get_node("Spawns").get_child_count() == 0), "room %d started with enemies" % (index + 1))
@@ -77,6 +83,20 @@ func _run() -> void:
 		var pool_dry: bool = game.abilities.size() >= root.get_node("Data").abilities.size()
 		if ends_place:
 			_assert(saw_picker or pool_dry, "gift picker after door %d, where the place ends" % (index + 1))
+		walked += 1
+		if index + 1 >= run.ROOMS.size():
+			break
+		# whichever way the answers above took: follow the Run, and check it
+		# is one the route allows (the next room, or a way of the fork)
+		var was := index
+		await _wait_until(func(): return run.room_index != was, "walked out of room %d" % (was + 1))
+		index = run.room_index
+		var fork: Dictionary = route.fork_after(run.ROOMS[was])
+		var allowed: Array = fork.options.values().map(func(p): return run.ROOMS.find(p)) if not fork.is_empty() \
+			else [route.next_index(run.ROOMS, was)]
+		_assert(allowed.has(index), "room %d leads where the route says" % (was + 1))
+
+	_assert(walked == total_rooms, "the night walked %d rooms, one way through each fork" % walked)
 
 	await _settle()
 	_assert(run_end.visible, "run end screen shown")

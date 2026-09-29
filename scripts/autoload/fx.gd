@@ -538,6 +538,12 @@ static func _strip_frames(path: String, cell: Vector2i, fps: float, animation :=
 		push_warning("[Fx] missing strip %s" % path)
 		return null
 	var frames := SpriteFrames.new()
+	if texture.get_width() % cell.x != 0 or texture.get_height() != cell.y:
+		# Almost always a stale import after a pull that changed the strip and
+		# its cell together: every frame would straddle two poses, and the
+		# creature would look split in two. `make import` fixes it.
+		push_error("[Fx] %s is %dx%d, not whole %dx%d frames — re-import (make import) or fix the cell"
+			% [path, texture.get_width(), texture.get_height(), cell.x, cell.y])
 	if not frames.has_animation(animation):
 		frames.add_animation(animation)
 	frames.set_animation_speed(animation, fps)
@@ -559,6 +565,12 @@ static func add_strip(frames: SpriteFrames, path: String, cell: Vector2i, fps: f
 	if texture == null:
 		push_warning("[Fx] missing strip %s" % path)
 		return false
+	if texture.get_width() % cell.x != 0 or texture.get_height() != cell.y:
+		# Almost always a stale import after a pull that changed the strip and
+		# its cell together: every frame would straddle two poses, and the
+		# creature would look split in two. `make import` fixes it.
+		push_error("[Fx] %s is %dx%d, not whole %dx%d frames — re-import (make import) or fix the cell"
+			% [path, texture.get_width(), texture.get_height(), cell.x, cell.y])
 	if not frames.has_animation(animation):
 		frames.add_animation(animation)
 	frames.set_animation_speed(animation, fps)

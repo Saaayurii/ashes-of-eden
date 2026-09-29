@@ -132,6 +132,10 @@ var _band_depth := 36.0
 ## How many of its kind stand between it and its target on its side (walkers)
 ## or hunt the same player (flyers). Recounted with the target.
 var _crowd_rank := 0
+## How long a flyer has been on its attack run without striking: past
+## PECK_PATIENCE it gives the run up and pulls out (never hang on the body).
+var _peck_time := 0.0
+const PECK_PATIENCE := 0.6
 var _summoned := false
 var _home := Vector2.ZERO  # where it was spawned; the patrol is around this
 var _patrol_goal := Vector2.ZERO
@@ -148,6 +152,8 @@ var _sealed := false
 var _seal_done := false
 ## The damage phase after the seals break: open, low, not attacking.
 var _exposed_left := 0.0
+## A training dummy's quiet time left before it is whole again.
+var _dummy_rest := 0.0
 var _ward: Line2D
 
 @onready var body: ColorRect = $Body
@@ -311,6 +317,19 @@ func _physics_process(delta: float) -> void:
 	if stats.get("behaviour", "walker") == "seal":
 		# it hangs where it was set; a blow only plays its crack
 		velocity = Vector2.ZERO
+		if not sprite.is_playing():
+			_play("idle")
+		return
+	if stats.get("behaviour", "walker") == "dummy":
+		# the practice yard's straw man: it stands, rocks when struck, and
+		# fills up again once left alone (_apply_damage keeps it standing)
+		_hold(delta)
+		_knockback = _knockback.move_toward(Vector2.ZERO, 900.0 * delta)
+		move_and_slide()
+		_dummy_rest -= delta
+		if _dummy_rest <= 0.0 and hp < _max_hp:
+			hp = _max_hp
+			hp_bar.visible = false
 		if not sprite.is_playing():
 			_play("idle")
 		return
@@ -607,6 +626,18 @@ func _chase(to_target: Vector2, delta: float) -> void:
 					pecking = true  # an attack run: in to its beak's reach at head height
 					distance = reach * 0.7
 					height = 16.0
+			if pecking:
+				_peck_time += delta
+				if _peck_time > PECK_PATIENCE:
+					# the run came to nothing (another move was picked, or none):
+					# out, rather than hanging over his head
+					pecking = false
+					_peck_time = 0.0
+					_disengage_left = randf_range(0.6, 0.9)
+					distance += 60.0
+					height += 26.0
+			else:
+				_peck_time = 0.0
 			var goal := to_target - Vector2(side * distance, height)
 			if goal.length() > 6.0:
 				chase = goal.normalized() * minf(speed, goal.length() * 3.0)
@@ -1202,6 +1233,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	if backstab:
 		amount *= sneak
 		crit = true
+		EventBus.technique_performed.emit("backstab")
 	# The execution: worth nothing on a healthy body, everything on a spent one.
 	# Only this side knows how much is left, so the multiplier is applied here.
 	if execute > 0.0 and hp <= _max_hp * EXECUTE_BELOW:
@@ -1210,10 +1242,14 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	var riposte := _open_left > 0.0
 	if riposte:
 		_open_left = 0.0  # one riposte per parry
+		EventBus.technique_performed.emit("riposte")
 		amount *= RIPOSTE_MULTIPLIER
 		crit = true
 	amount *= 1.0 - clampf(float(stats.get("armor", 0.0)), 0.0, 0.5)  # FinalDamage = Base × (1 − armor)
 	hp -= amount
+	if stats.get("behaviour", "walker") == "dummy":
+		hp = maxf(hp, 1.0)  # straw does not die; it shows the number and stands again
+		_dummy_rest = 2.0
 	var phase: Dictionary = stats.get("seal_phase", {})
 	var seal_now := not phase.is_empty() and not _seal_done and hp <= _max_hp * float(phase.get("at_hp", 0.5))
 	if seal_now:
@@ -1559,10 +1595,11 @@ func _die() -> void:
 	state = State.DEAD
 	EventBus.enemy_died.emit(StringName(enemy_id), global_position)
 	var is_boss: bool = stats.get("boss", false)
-	if _simulated:
+	if _simulated and Game.practice == "":  # practice pays nothing
 		Game.add_essence(float(stats.get("essence", 10)))
 		if is_boss:
 			Game.ash_earned += int(stats.get("ash", 10))
+	if _simulated:  # but a corpse that bursts still bursts: that is what is practised
 		match stats.get("on_death", {}).get("type", ""):
 			"explode":
 				_explode(stats.on_death)

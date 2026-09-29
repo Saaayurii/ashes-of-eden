@@ -28,6 +28,11 @@ var items: Dictionary = {}
 var rest_points: Dictionary = {}
 ## The hero's cloaks (data/skins): free ones unlock by play, a "sku" one only by a store.
 var skins: Dictionary = {}
+## The hero's moves as a list to learn (data/techniques, docs/TECHNIQUES.md):
+## names and inputs for the practice yard; the moves themselves are Player's.
+var techniques: Dictionary = {}
+## Where the chapter's way splits (data/forks, scripts/run/route.gd).
+var forks: Dictionary = {}
 
 
 func _ready() -> void:
@@ -49,6 +54,8 @@ func reload() -> void:
 	items = _load_collection("items", roots)
 	rest_points = _load_collection("rest_points", roots)
 	skins = _load_collection("skins", roots)
+	techniques = _load_collection("techniques", roots)
+	forks = _load_collection("forks", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

@@ -104,6 +104,10 @@ Ash (unlocks) and Silver (shop, consumables, cosmetics). No paid stats, ever (se
 
 Death keeps: Ash, codex entries, story knowledge, achievements, unlocks. Death loses: build, Essence, items.
 
+Where Ash comes from in a night: a boss 10–25, a record cache 15, and 3 for every room cleared without a wound
+(9 where a boss stood, `Run.UNSCATHED_ASH`). Fifteen clean rooms are worth about one boss: a tip for clean play,
+never a reason to crawl.
+
 ## Not yet implemented (roadmap)
 
 Silver / shop · legendary items.

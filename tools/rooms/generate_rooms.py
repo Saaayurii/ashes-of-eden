@@ -649,6 +649,24 @@ ROOMS = {
         barriers=[(36, 320), (1000, 320)],
         ambient="#8688a8", lights=[(990, 261, "#ffb877", 60, 0.6, 0.3), (512, 250, "#ff6a4a", 100, 0.5, 0.2)],
         player=(60, 300), door=(990, 288), shrine=(900, 320), dress=("arena", 9)),
+    "practice_yard": dict(
+        # The practice yard (docs/PRACTICE.md): a cloister at dusk, one screen,
+        # entered from the bestiary or the main menu, never from the chapter.
+        # Painted by tools/art/make_practice_yard.py. A flat floor for footwork,
+        # a ledge each side and one over the middle for the moves in the air.
+        backdrop="practice_yard", width=960, height=360, weather="none", fog=0.2, intro="", music="arena",
+        ground=[(0, 320, 960, 40)],
+        platforms=[(96, 244, 120, 12), (744, 244, 120, 12), (420, 196, 120, 12)],
+        spawns=[],
+        props=[],
+        decor=[("practice/dummy", 150, 320, "mid"), ("practice/rack", 214, 320, "mid"),
+               ("practice/dummy", 262, 320, "mid"), ("clutter/brazier_lit", 330, 320, "mid"),
+               ("clutter/brazier_lit", 630, 320, "mid"), ("practice/rack", 760, 320, "mid"),
+               ("practice/dummy", 830, 320, "mid"), ("grass_1", 60, 320, "front"), ("rocks", 900, 320, "front")],
+        ambient="#b8a4a4",
+        lights=[(330, 300, "#ffb060", 90, 1.0, 0.3), (630, 300, "#ffb060", 90, 1.0, 0.3),
+                (480, 190, "#ffc890", 200, 0.5, 0.05)],
+        player=(120, 300), door=(926, 288)),
     "church_ophanim": dict(
         # Boss arena, one screen: a symmetrical nave with a high altar in the middle.
         backdrop="village_night", width=960, height=360, weather="embers", fog=0.3, intro="ch1_ophanim", music="boss_ophanim",

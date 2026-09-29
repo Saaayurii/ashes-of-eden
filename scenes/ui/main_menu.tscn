@@ -258,6 +258,12 @@ custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "MENU_BESTIARY"
 
+[node name="OpenPractice" type="Button" parent="Center/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "MENU_PRACTICE"
+
 [node name="LanguageRow" type="HBoxContainer" parent="Center/VBox"]
 layout_mode = 2
 
@@ -331,4 +337,5 @@ layout_mode = 1
 [node name="Bestiary" parent="." instance=ExtResource("8_bestiary")]
 unique_name_in_owner = true
 visible = false
+allow_practice = true
 layout_mode = 1

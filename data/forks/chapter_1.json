@@ -1,0 +1,24 @@
+[
+  {
+    "id": "swamp_fork",
+    "_comment": "Past the crone's hut the swamp splits: the red water, or down into the drowned crypt. Both come out at the catacombs.",
+    "after": "res://scenes/rooms/swamp_moon.tscn",
+    "dialogue": "fork_swamp",
+    "options": {
+      "red": "res://scenes/rooms/swamp_red.tscn",
+      "crypt": "res://scenes/rooms/swamp_crypt.tscn"
+    },
+    "then": "res://scenes/rooms/catacombs_1.tscn"
+  },
+  {
+    "id": "catacombs_fork",
+    "_comment": "Past the knight's niche the ossuary opens two galleries. Both come out at the skull crypt.",
+    "after": "res://scenes/rooms/catacombs_1.tscn",
+    "dialogue": "fork_catacombs",
+    "options": {
+      "upper": "res://scenes/rooms/catacombs_2.tscn",
+      "lower": "res://scenes/rooms/catacombs_3.tscn"
+    },
+    "then": "res://scenes/rooms/crypt_skulls.tscn"
+  }
+]

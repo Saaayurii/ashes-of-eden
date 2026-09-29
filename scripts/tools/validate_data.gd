@@ -24,7 +24,9 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
-const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal"]
+## The moves Player reports through EventBus.technique_performed.
+const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
+const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
 ## The animated bolts (Projectile.FLIGHT_FPS); a ranged enemy attack names one.
 const FLIGHT_STYLES := ["wraith", "zealot", "acolyte", "preacher", "cult", "ash", "ophanim"]
@@ -52,6 +54,8 @@ const REQUIRED := {
 	"items": ["id", "name", "description", "rarity", "icon", "effects"],
 	"rest_points": ["id", "at"],
 	"skins": ["id", "name", "description", "unlock"],
+	"techniques": ["id", "name", "input"],
+	"forks": ["id", "after", "dialogue", "options", "then"],
 }
 
 var errors: PackedStringArray = []
@@ -272,6 +276,14 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				# an item changes how something behaves: a mechanic stat, never a raw number
 				if effect.get("type") != "stat" or not ITEM_STATS.has(effect.get("stat")):
 					_error("%s: an item's effect is one of the item mechanics %s" % [where, ITEM_STATS])
+		"forks":
+			_check_fork(entry, where)
+		"techniques":
+			_use_key(entry.get("name", ""), where)
+			_use_key(entry.get("input", ""), where)
+			# the moves the yard lists are the ones the body can do
+			if not TECHNIQUES.has(entry.get("id", "")):
+				_error("%s: no such move in Player (known: %s)" % [where, TECHNIQUES])
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -548,6 +560,53 @@ func _check_enemy_strips() -> void:
 					_error("enemies/%s: unknown projectile_motion %s" % [id, motion])
 				elif motion != "straight" and amount <= 0.0:
 					_error("enemies/%s: %s needs positive motion_amount" % [id, motion])
+
+
+## A fork (data/forks, scripts/run/route.gd) splits the chapter's way and
+## joins it again. Its rooms must exist, its question must be a dialogue
+## whose answers are its options, and no option may carry story: a scene, a
+## person, a rest point — the night that did not take that way would lose it.
+func _check_fork(entry: Dictionary, where: String) -> void:
+	for key in ["after", "then"]:
+		if not FileAccess.file_exists(str(entry.get(key, ""))):
+			_error("%s: %s room not found: %s" % [where, key, entry.get(key, "")])
+	var options: Dictionary = entry.get("options", {})
+	if options.size() < 2:
+		_error("%s: a fork needs two ways at least" % where)
+	var question: Dictionary = {}
+	for dialogue in _load_entries("res://data/dialogues"):
+		if dialogue.get("id", "") == entry.get("dialogue", ""):
+			question = dialogue
+	if question.is_empty():
+		_error("%s: no dialogue %s asks the way" % [where, entry.get("dialogue", "")])
+	else:
+		var answers := {}
+		for node in question.get("nodes", {}).values():
+			for choice in node.get("choices", []):
+				answers[str(choice.get("id", ""))] = true
+		for key in options:
+			if not answers.has(key):
+				_error("%s: no answer in %s picks the way \"%s\"" % [where, question.id, key])
+	var rested := {}
+	for point in _load_entries("res://data/rest_points"):
+		rested[str(point.get("id", ""))] = true
+	for key in options:
+		var path := str(options[key])
+		if not FileAccess.file_exists(path):
+			_error("%s: option %s not found: %s" % [where, key, path])
+			continue
+		var scene := FileAccess.get_file_as_string(path)
+		var story := []
+		for field in ["intro_cutscene", "outro_cutscene", "intro_dialogue"]:
+			var at := scene.find(field + " = \"")
+			if at >= 0 and scene.substr(at + field.length() + 4, 1) != "\"":
+				story.append(field)
+		if scene.find("npc_id = ") >= 0:
+			story.append("a person")
+		if rested.has(path.get_file().get_basename()):
+			story.append("a rest point")
+		if not story.is_empty():
+			_error("%s: %s carries story (%s) and cannot be a way some nights skip" % [where, path.get_file(), ", ".join(story)])
 
 
 ## Every step is a known kind with its required fields; actors and dialogue

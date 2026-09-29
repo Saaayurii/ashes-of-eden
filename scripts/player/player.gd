@@ -70,6 +70,24 @@ const COMBO_WINDOW := 1.0
 const SWING_TIME := {"attack": 0.25, "attack2": 0.27, "attack3": 0.31, "thrust": 0.25, "rising": 0.25, "dash_strike": 0.25}
 ## The chain's three swings, in order.
 const SWING_ANIMATIONS := ["attack", "attack2", "attack3"]
+## The special moves (docs/TECHNIQUES.md). Lunge: back, then forward, then
+## attack, each within LUNGE_WINDOW; a short rush that runs the sword through
+## everything in the way. Cleave: attack held CHARGE_AFTER past a swing starts
+## a charge (slow feet, the blade drawn back); let go after CHARGE_FULL and it
+## comes down hard and stops what it lands on. Sweep: down + attack on the
+## ground, a low cut that takes the legs from under a walker.
+const LUNGE_WINDOW := 0.3
+const LUNGE_SPEED := 360.0
+const LUNGE_TIME := 0.18
+const LUNGE_MULTIPLIER := 1.6
+const CHARGE_AFTER := 0.3
+const CHARGE_FULL := 0.6
+const CHARGE_SPEED := 0.35
+const CLEAVE_MULTIPLIER := 2.4
+const CLEAVE_STAGGER := 0.6
+const SWEEP_MULTIPLIER := 0.8
+const SWEEP_STAGGER := 0.9
+const TECHNIQUE_TIME := {"lunge": 0.3, "cleave": 0.35, "sweep": 0.3}
 ## Landing faster than this earns the crouch.
 const HARD_LANDING := 300.0
 ## A blow worth this much of the bar throws the body off its feet (visually).
@@ -243,6 +261,17 @@ var _attack_cd := 0.0
 var _attack_cd_total := 0.0
 var _attack_anim_left := 0.0
 var _combo := 0
+## Special-move input: a tap opens the lunge window, a tap the other way
+## inside it arms the lunge. _tap_facing is the first tap's direction.
+var _back_tap_left := 0.0
+var _tap_facing := 1
+var _lunge_armed_left := 0.0
+var _lunge_left := 0.0
+## How long attack has been held, and the charge it became.
+var _attack_held := 0.0
+var _charging := false
+var _charge_time := 0.0
+var _charge_ready := false
 var _combo_timer := 0.0
 var _healing_left := 0.0
 var _rally_left := 0.0
@@ -529,22 +558,32 @@ func _physics_process(delta: float) -> void:
 		if on_floor:
 			velocity.y = 0.0
 		_dash_hits()
+	elif _lunge_left > 0.0:
+		_lunge_left -= delta
+		velocity.x = facing * LUNGE_SPEED
 	elif _slamming:
 		pass  # the fall owns the body; velocity was set above
 	else:
 		var top_speed: float = stats.speed * (BLOCK_SPEED if _blocking else 1.0)
 		if _slam_recovery > 0.0:
 			top_speed = 0.0  # planted where he landed, for a moment
+		elif _charging:
+			top_speed *= CHARGE_SPEED
 		velocity.x = move_toward(velocity.x, dir * top_speed, _horizontal_rate(dir, on_floor) * delta)
 		if controls_enabled and _healing_left <= 0.0 and _slam_recovery <= 0.0 \
 				and Input.is_action_just_pressed("dash") and _dash_cd <= 0.0:
 			_roll()
 
 	if controls_enabled and _healing_left <= 0.0 and not _slamming and _slam_recovery <= 0.0:
-		if Input.is_action_just_pressed("attack") and _attack_cd <= 0.0:
+		_read_technique_input(delta, on_floor)
+		if Input.is_action_just_pressed("attack") and _attack_cd <= 0.0 and not _charging:
 			if _blocking:
 				_lower_block()  # the riposte: straight out of the block into the swing
-			_attack()
+			var technique := _technique_for_press(on_floor)
+			if technique != "":
+				_technique(technique)
+			else:
+				_attack()
 		elif Input.is_action_just_pressed("heal") and heal_charges > 0 and on_floor and hp < stats.max_hp \
 				and not _blocking:
 			_start_heal()
@@ -674,6 +713,8 @@ func _footsteps(on_floor: bool, delta: float) -> void:
 func _animate(on_floor: bool) -> void:
 	if _attack_anim_left > 0.0 or _scripted_left > 0.0:
 		return  # the swing (or a one-shot: draw, hurt, land) owns the body until it lands
+	if _charging:
+		return  # the drawn-back blade, glowing, until it is let go
 	if not controls_enabled:
 		return  # a scripted animation (waking up) owns the body
 	if _healing_left > 0.0:
@@ -892,6 +933,8 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 	hp -= amount
 	if amount > 0.0 and not blocked:
 		_wounded_this_room = true
+		if _charging:
+			_cancel_charge()  # a wound breaks the charge; the blade was not ready
 		if stats.wrath_after_hit > 0.0:
 			_wrath_left = WRATH_TIME
 	if amount > 0.0 and not blocked and combat_hit:
@@ -1139,6 +1182,7 @@ func _room_to_slam() -> bool:
 
 
 func _start_slam() -> void:
+	EventBus.technique_performed.emit("slam")
 	if _blocking:
 		_lower_block()
 	_slamming = true
@@ -1209,6 +1253,7 @@ func _update_wall_grab(on_floor: bool, dir: float, delta: float) -> void:
 
 
 func _wall_jump() -> void:
+	EventBus.technique_performed.emit("wall_jump")
 	var away := -_wall_side
 	velocity = Vector2(away * WALL_JUMP_PUSH, -stats.jump_velocity * WALL_JUMP_RISE)
 	facing = away
@@ -1270,9 +1315,11 @@ func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
 	Fx.puff(global_position + Vector2(0, -12), 0.5, Color(0.8, 1.0, 0.75))
 
 
-func _on_room_cleared(_index: int) -> void:
+func _on_room_cleared(index: int) -> void:
 	_dodge_counter_left = 0.0
 	_dodge_counted = false
+	if _is_mine() and not _dead and not _wounded_this_room:
+		EventBus.player_unscathed.emit(index)
 	if _is_mine() and not _dead and stats.clean_clear_charge > 0.0 and not _wounded_this_room \
 			and heal_charges < int(stats.heal_charges):
 		heal_charges += 1
@@ -1428,6 +1475,18 @@ func _attack() -> void:
 		Vector2.UP if aim_up else Vector2(facing, -0.15), 0.45 + hit_index * 0.2, &"attack")
 	if Net.active:
 		_net_swing.rpc(hit_index, arc)
+	if animation != SWING_ANIMATIONS[hit_index] and animation != "thrust":
+		EventBus.technique_performed.emit(animation)  # rising, dash_strike
+	await _land_hits(COMBO_MULTIPLIERS[hit_index], 2.0 if hit_index == 2 else 1.0, hit_index == 2)
+
+
+## Everything a swing does once it is in the air: the hitbox (already placed
+## and sized by the caller) opens for two physics ticks, and each body in it
+## takes [param multiplier] of a blow, pushed by [param knockback]; a [param
+## heavy] one lands like the chain's finisher, and [param stagger] seconds
+## stop what it was doing (the cleave, the sweep). The chain and the special
+## moves share it, so every gift and item that reads a hit reads theirs too.
+func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0) -> void:
 	hitbox.monitoring = true
 	# Area2D needs a physics tick to register overlaps after monitoring is enabled.
 	await get_tree().physics_frame
@@ -1445,7 +1504,7 @@ func _attack() -> void:
 		if target == self or not target.has_method("take_damage"):
 			continue
 		var live_enemy: bool = target is Enemy and not (target as Enemy).is_dead()
-		var damage: float = stats.attack_damage * COMBO_MULTIPLIERS[hit_index]
+		var damage: float = stats.attack_damage * multiplier
 		var counter_hit := live_enemy and _dodge_counter_left > 0.0
 		if counter_hit:
 			damage *= 1.0 + DODGE_COUNTER_BONUS
@@ -1462,8 +1521,10 @@ func _attack() -> void:
 			heal(stats.desperate_crit_heal)
 		# "sneak" is what the blow is worth on an enemy that has not noticed us;
 		# the enemy (the host, online) knows whether it has and applies it.
-		target.take_damage(damage, self, {"crit": crit, "knockback": 2.0 if hit_index == 2 else 1.0,
+		target.take_damage(damage, self, {"crit": crit, "knockback": knockback,
 			"sneak": stats.backstab_multiplier, "execute": stats.execute})
+		if live_enemy and stagger > 0.0:
+			(target as Enemy).stagger(stagger)
 		if live_enemy:
 			_recover_from_strike(damage)
 			if counter_hit:
@@ -1478,16 +1539,143 @@ func _attack() -> void:
 			Audio.play_at(&"hit", target.global_position)
 		if stats.lifesteal > 0.0:
 			heal(damage * stats.lifesteal)
-	if hit_index == 2 and stats.wave_damage > 0.0:
+	if heavy and stats.wave_damage > 0.0:
 		_throw_wave()
 	if hit_something:
-		Juice.hit_stop(0.06 if hit_index == 2 else 0.04)
-		Juice.shake(2.5 if hit_index == 2 else 1.5)
+		Juice.hit_stop(0.06 if heavy else 0.04)
+		Juice.shake(2.5 if heavy else 1.5)
 		if hit_crit:
 			Audio.play(&"hit_crit", -7.0)  # the bright ring over whatever it landed on
 	hitbox.monitoring = false
 	hitbox_collision.position = Vector2(24, -4)
 	(hitbox_collision.shape as RectangleShape2D).size = Vector2(30, 30)
+
+
+# ------------------------------------------------------------ special moves ---
+
+## Reads the taps and the held button the moves are made of. Only our own
+## body, only with the controls ours (the caller checks both).
+func _read_technique_input(delta: float, on_floor: bool) -> void:
+	_back_tap_left = maxf(0.0, _back_tap_left - delta)
+	_lunge_armed_left = maxf(0.0, _lunge_armed_left - delta)
+	var right := Input.is_action_just_pressed("move_right")
+	var left := Input.is_action_just_pressed("move_left")
+	if right or left:
+		# Two taps the opposite ways: the first is "back", the second "forward",
+		# and the lunge goes where the second one points. The facing is not
+		# asked: by the time this runs the first tap has already turned him.
+		var tap := 1 if right else -1
+		if _back_tap_left > 0.0 and tap == -_tap_facing:
+			_lunge_armed_left = LUNGE_WINDOW  # back, forward: the lunge waits for the blow
+			_back_tap_left = 0.0
+		else:
+			_tap_facing = tap
+			_back_tap_left = LUNGE_WINDOW
+	# the charge: attack still held after the swing it started
+	if Input.is_action_pressed("attack") and not _blocking and _dash_left <= 0.0:
+		_attack_held += delta
+	else:
+		if _charging:
+			_release_charge()
+		_attack_held = 0.0
+	if not _charging and _attack_held >= CHARGE_AFTER and on_floor and _attack_anim_left <= 0.0 \
+			and _lunge_left <= 0.0:
+		_charging = true
+		_charge_time = 0.0
+		_charge_ready = false
+		_play("charge")
+	if _charging:
+		if not on_floor or _dash_left > 0.0 or _healing_left > 0.0:
+			_cancel_charge()
+			return
+		_charge_time += delta
+		if not _charge_ready and _charge_time >= CHARGE_FULL:
+			_charge_ready = true  # the ping: let go now and it lands
+			Fx.flash(global_position + Vector2(0, -16), Color(1.0, 0.84, 0.47), 50.0, 0.25, 1.4)
+			Fx.sparkle(global_position + Vector2(-facing * 6.0, -24.0), Color(1.0, 0.86, 0.5), 8, 6.0)
+			Audio.play(&"draw", -4.0, 1.3)
+
+
+## Which special move a fresh attack press makes, or "" for the chain.
+func _technique_for_press(on_floor: bool) -> String:
+	if not on_floor or _dash_left > 0.0:
+		return ""
+	if _lunge_armed_left > 0.0:
+		return "lunge"
+	if Input.is_action_pressed("move_down"):
+		return "sweep"
+	return ""
+
+
+func _release_charge() -> void:
+	var ready := _charge_ready
+	_cancel_charge()
+	if ready and _attack_cd <= 0.0:
+		_technique("cleave")
+
+
+func _cancel_charge() -> void:
+	_charging = false
+	_charge_ready = false
+	_charge_time = 0.0
+	_attack_held = 0.0
+
+
+## A special move: its pose, its reach, and then the same hit as any swing
+## (_land_hits), so gifts, items, crits and backstabs all apply to it.
+func _technique(id: String) -> void:
+	_armed = true
+	_scripted_left = 0.0
+	_combo = 0
+	_combo_timer = 0.0
+	_lunge_armed_left = 0.0
+	_back_tap_left = 0.0
+	var reach := Vector2(30, 30)
+	var at := Vector2(24, -4)
+	var multiplier := 1.0
+	var knockback := 1.0
+	var stagger := 0.0
+	var heavy := false
+	match id:
+		"lunge":
+			_attack_cd = stats.attack_cooldown * 0.9
+			_lunge_left = LUNGE_TIME
+			reach = Vector2(68, 26)
+			at = Vector2(34, -6)
+			multiplier = LUNGE_MULTIPLIER
+			knockback = 1.6
+			Fx.dust(global_position + Vector2(-facing * 8.0, 12.0), Vector2(-facing, -0.3), 6)
+			Audio.play(&"dash", -6.0)
+		"cleave":
+			_attack_cd = stats.attack_cooldown * 1.2
+			reach = Vector2(56, 44)
+			at = Vector2(30, -8)
+			multiplier = CLEAVE_MULTIPLIER
+			knockback = 2.6
+			stagger = CLEAVE_STAGGER
+			heavy = true
+			Juice.shake(4.5)
+			Fx.ring(global_position + Vector2(facing * 30.0, 10.0), 34.0, Color(1.0, 0.78, 0.4), 0.3)
+			Fx.debris(global_position + Vector2(facing * 30.0, 12.0), Color(0.55, 0.48, 0.42), 8)
+		"sweep":
+			_attack_cd = stats.attack_cooldown * 0.8
+			reach = Vector2(48, 14)
+			at = Vector2(22, 8)
+			multiplier = SWEEP_MULTIPLIER
+			knockback = 0.6
+			stagger = SWEEP_STAGGER
+			Fx.dust(global_position + Vector2(facing * 18.0, 12.0), Vector2(facing, -0.2), 8)
+	_attack_cd_total = _attack_cd
+	hitbox_collision.position = at
+	(hitbox_collision.shape as RectangleShape2D).size = reach
+	_play(id)
+	_attack_anim_left = float(TECHNIQUE_TIME[id])
+	Audio.play(&"swing", -2.0 if heavy else -4.0, 0.85 if heavy else 1.0)
+	EventBus.world_impulse.emit(global_position + Vector2(facing * 14.0, -6.0), Vector2(facing, -0.1),
+		0.9 if heavy else 0.6, &"attack")
+	if _is_mine():
+		EventBus.technique_performed.emit(id)
+	await _land_hits(multiplier, knockback, heavy, stagger)
 
 
 ## An enemy in front of the sword that has not noticed us: the first blow of
