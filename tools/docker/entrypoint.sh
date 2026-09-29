@@ -30,6 +30,7 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/alignment_test.gd
         godot --headless -s scripts/tools/layers_test.gd
         godot --headless -s scripts/tools/exits_test.gd
+        godot --headless -s scripts/tools/seal_phase_test.gd
         ;;
     net-test)
         shift

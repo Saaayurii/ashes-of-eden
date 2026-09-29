@@ -34,6 +34,43 @@
     "count": 2,
     "at_hp": 0.66
   },
+  "seal_phase": {
+    "at_hp": 0.5,
+    "seal": "ophanim_seal",
+    "points": {
+      "hell_gate": [
+        [
+          900,
+          460
+        ],
+        [
+          1330,
+          350
+        ],
+        [
+          1500,
+          403
+        ]
+      ],
+      "church_ophanim": [
+        [
+          150,
+          228
+        ],
+        [
+          480,
+          138
+        ],
+        [
+          810,
+          228
+        ]
+      ]
+    },
+    "exposed": 6.0,
+    "exposed_bonus": 0.5,
+    "sealed_cooldown": 1.6
+  },
   "attacks": [
     {
       "type": "lunge",

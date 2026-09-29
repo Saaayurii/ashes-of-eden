@@ -4,6 +4,16 @@ class_name Enemy
 ## (see docs/DATA_FORMATS.md):
 ##   behaviour  walker | flyer | boss_ophanim | caster (a walker that backs
 ##              away from a player closer than "keep_away", never off a ledge)
+##              | seal (hangs where it was put and does nothing but break)
+##   seal_phase {"at_hp", "seal", "points": {room: [[x, y], ...]}, "exposed",
+##              "exposed_bonus", "sealed_cooldown"}: at that share of its
+##              health the boss closes its eyes. Nothing hurts it; one seal
+##              appears at each of the room's points, and the boss hangs out of
+##              reach and only uses the attacks marked "sealed": true, slower
+##              ("sealed_only": true keeps one for this phase alone).
+##              When the last seal breaks it opens its eyes, drops low and takes
+##              "exposed_bonus" more from every blow for "exposed" seconds,
+##              without attacking — the damage phase. Once per fight.
 ##   attacks    optional telegraphed attacks: [{"type": "melee" | "ranged" | "lunge" | "beam" | "nova", "windup", ...}]
 ##              (a single "attack" object is accepted too). One is picked by weight among those in range,
 ##              with a strong penalty for repeating while another is available.
@@ -113,6 +123,12 @@ var _simulated := true  # false on a client: the host drives this body
 ## Optional glow from data ("light": colour, radius, energy): spirits, relics, the boss.
 var _light: GlowLight
 var _shadow: Sprite2D
+## The seal phase (see "seal_phase" above): eyes closed, warded, waiting on its seals.
+var _sealed := false
+var _seal_done := false
+## The damage phase after the seals break: open, low, not attacking.
+var _exposed_left := 0.0
+var _ward: Line2D
 
 @onready var body: ColorRect = $Body
 @onready var sprite: AnimatedSprite2D = $Sprite
@@ -192,7 +208,7 @@ func _ready() -> void:
 
 
 func _is_flying() -> bool:
-	return stats.get("behaviour", "walker") in ["flyer", "boss_ophanim"]
+	return stats.get("behaviour", "walker") in ["flyer", "boss_ophanim", "seal"]
 
 
 func is_dead() -> bool:
@@ -212,7 +228,7 @@ func _setup_sprite(spec: Dictionary) -> void:
 	var fps := float(spec.get("fps", 6))
 	if spec.has("animations"):
 		for anim in spec.animations:
-			var loop: bool = anim in ["idle", "walk"]
+			var loop: bool = anim in ["idle", "walk", "special"]
 			if Fx.add_strip(frames, spec.animations[anim], cell, fps, anim, loop):
 				_has_anim[anim] = true
 	elif spec.has("path"):
@@ -237,6 +253,13 @@ func _setup_sprite(spec: Dictionary) -> void:
 func _physics_process(delta: float) -> void:
 	if state == State.DEAD:
 		return
+	if stats.get("behaviour", "walker") == "seal":
+		# it hangs where it was set; a blow only plays its crack
+		velocity = Vector2.ZERO
+		if not sprite.is_playing():
+			_play("idle")
+		return
+	_exposed_left = maxf(0.0, _exposed_left - delta)
 	if Game.cutscene:
 		# A scene is playing: everybody holds where they stand (walkers keep
 		# their gravity, a flyer hangs still so the scene can place it).
@@ -527,6 +550,13 @@ func _chase(to_target: Vector2, delta: float) -> void:
 				_hover_timer = randf_range(2.5, 4.5)
 			var hover := _target.global_position + Vector2(150.0 * _hover_side, -100.0)
 			hover.y = clampf(hover.y, 70.0, 250.0)
+			if _sealed:
+				# high over the fight, out of a sword's reach: the seals are the way
+				hover = _target.global_position + Vector2(120.0 * _hover_side, -190.0)
+				hover.y = clampf(hover.y, 40.0, 250.0)
+			elif _exposed_left > 0.0:
+				# spent: it sinks to where a blade can reach it
+				hover = _target.global_position + Vector2(70.0 * _hover_side, -38.0)
 			var goal := hover - global_position
 			if goal.length() > 8.0:
 				chase = goal.normalized() * minf(speed, goal.length() * 3.0)
@@ -590,11 +620,17 @@ func _hold(delta: float) -> void:
 ## The last attack is less likely while another one is available; a single
 ## attack (or only one in range) repeats normally. Returns an index, -1 for none.
 func _choose_attack(to_target: Vector2) -> int:
+	if _exposed_left > 0.0:
+		return -1  # the damage phase: open and not fighting back
 	var candidates: Array[int] = []
 	var fraction := hp / _max_hp
 	for i in _attacks.size():
 		var attack: Dictionary = _attacks[i]
 		if fraction > float(attack.get("from_hp", 1.0)) or fraction <= float(attack.get("until_hp", 0.0)):
+			continue
+		if _sealed and not attack.get("sealed", false):
+			continue
+		if not _sealed and attack.get("sealed_only", false):
 			continue
 		if _in_attack_range(attack, to_target):
 			candidates.append(i)
@@ -685,6 +721,8 @@ func _net_cancel_telegraph() -> void:
 
 func _strike(to_target: Vector2) -> void:
 	_attack_cd = float(_attack.get("cooldown", 1.5))
+	if _sealed:
+		_attack_cd *= float(stats.get("seal_phase", {}).get("sealed_cooldown", 1.6))
 	if _attack.get("type") == "melee" and not stats.get("boss", false):
 		# Include the strike and recovery in the timer, leaving a visible
 		# backstep once CHASE resumes without delaying the next ready attack.
@@ -929,6 +967,8 @@ func _set_state(new_state: State, duration: float) -> void:
 
 
 func _play(animation: String, hold_first_frame := false) -> void:
+	if _sealed and animation in ["idle", "walk", "hurt"] and _has_anim.has("special"):
+		animation = "special"  # eyes closed: the wheels turn in on themselves
 	if not _has_anim.has(animation) or sprite.animation == animation and sprite.is_playing() and not hold_first_frame:
 		return
 	sprite.play(animation)
@@ -973,6 +1013,14 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		execute := 0.0) -> void:
 	if state == State.DEAD:
 		return
+	if _sealed:
+		# warded: the blade rings off, nothing gets through
+		_warded_fx()
+		if Net.active:
+			_net_warded_fx.rpc()
+		return
+	if _exposed_left > 0.0:
+		amount *= 1.0 + float(stats.get("seal_phase", {}).get("exposed_bonus", 0.5))
 	var backstab := is_unaware() and sneak > 1.0
 	if backstab:
 		amount *= sneak
@@ -989,6 +1037,11 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		crit = true
 	amount *= 1.0 - clampf(float(stats.get("armor", 0.0)), 0.0, 0.5)  # FinalDamage = Base × (1 − armor)
 	hp -= amount
+	var phase: Dictionary = stats.get("seal_phase", {})
+	var seal_now := not phase.is_empty() and not _seal_done and hp <= _max_hp * float(phase.get("at_hp", 0.5))
+	if seal_now:
+		# the threshold is a floor until the seals are broken: no blow skips the phase
+		hp = _max_hp * float(phase.get("at_hp", 0.5))
 	var away := signf(global_position.x - from.x)
 	if away == 0.0:
 		away = float(facing)
@@ -1025,6 +1078,8 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 			_play("idle")
 	if hp > 0.0:
 		_play("hurt")
+	if seal_now:
+		_enter_seal()
 	if stats.get("boss", false) and not _summoned and stats.has("summons") \
 			and hp <= _max_hp * float(stats.summons.get("at_hp", 0.5)):
 		_summon()
@@ -1181,6 +1236,105 @@ func _summon() -> void:
 		# The run owns spawning: in a session it also has to be replicated.
 		EventBus.enemy_spawn_requested.emit(str(stats.summons.get("id", "shade")), global_position + offset)
 		Fx.puff(global_position + offset, 1.2, Color(0.6, 0.4, 0.7))
+
+
+## The seal phase begins (host): the wind-up breaks off, the eyes close and a
+## seal appears at each of the room's points. The run spawns them, so a
+## session replicates them like any summons.
+func _enter_seal() -> void:
+	var phase: Dictionary = stats.seal_phase
+	_seal_done = true
+	_cancel_telegraph()
+	if Net.active:
+		_net_cancel_telegraph.rpc()
+	_set_state(State.RECOVER, 1.0)
+	_attack_cd = maxf(_attack_cd, 2.0)
+	_show_sealed(true)
+	if Net.active:
+		_net_sealed.rpc(true, false)
+	var room := get_tree().get_first_node_in_group("room") as Node2D
+	var key := room.scene_file_path.get_file().get_basename() if room != null else ""
+	var points: Array = phase.get("points", {}).get(key, [])
+	if points.is_empty():
+		points = [[-140, 40], [0, -60], [140, 40]]  # an unlisted room: about the boss
+		for i in points.size():
+			points[i] = [global_position.x + points[i][0], global_position.y + points[i][1]]
+	if not EventBus.enemy_died.is_connected(_on_seal_broken):
+		EventBus.enemy_died.connect(_on_seal_broken)
+	for point in points:
+		var at := Vector2(float(point[0]), float(point[1]))
+		if room != null and not phase.get("points", {}).get(key, []).is_empty():
+			at = room.to_global(at)
+		EventBus.enemy_spawn_requested.emit(str(phase.get("seal", "ophanim_seal")), at)
+		Fx.flash(at, Color(1.0, 0.85, 0.5), 70.0, 0.6)
+
+
+## Host: a seal died. The last one opens the eyes.
+func _on_seal_broken(dead_id: StringName, _at: Vector2) -> void:
+	if not _sealed or state == State.DEAD or str(dead_id) != str(stats.seal_phase.get("seal", "ophanim_seal")):
+		return
+	for other in get_tree().get_nodes_in_group("enemies"):
+		var seal := other as Enemy
+		if seal != null and seal != self and seal.enemy_id == str(dead_id) and not seal.is_dead():
+			return
+	EventBus.enemy_died.disconnect(_on_seal_broken)
+	_exposed_left = float(stats.seal_phase.get("exposed", 6.0))
+	_attack_cd = maxf(_attack_cd, _exposed_left)
+	_show_sealed(false, true)
+	if Net.active:
+		_net_sealed.rpc(false, true)
+
+
+## Every peer: how the phase looks. Closed, a ring of light turns round it;
+## broken open, the ring bursts and the wheel sags.
+func _show_sealed(on: bool, broken := false) -> void:
+	_sealed = on
+	if on:
+		Audio.play(&"summon", -2.0, 0.0)
+		if _ward == null:
+			_ward = Line2D.new()
+			_ward.name = "Ward"
+			_ward.width = 2.0
+			_ward.default_color = Color(1.0, 0.86, 0.45, 0.7)
+			for i in 33:
+				var a := TAU * i / 32.0
+				_ward.add_point(Vector2(cos(a), sin(a)) * 50.0 + Vector2(0, -10))
+			add_child(_ward)
+			var spin := _ward.create_tween().set_loops()
+			spin.tween_property(_ward, "rotation", TAU, 6.0).from(0.0)
+		visual.modulate = Color(1.25, 1.1, 0.8)
+		_play("special")
+		Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.85, 0.5), 150.0, 0.8, 1.2)
+		return
+	if _ward != null:
+		_ward.queue_free()
+		_ward = null
+	visual.modulate = Color.WHITE
+	if broken:
+		Audio.play(&"boss_ophanim", -2.0)
+		Juice.shake(6.0)
+		Juice.hit_stop(0.15, 0.08)
+		Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.95, 0.8), 180.0, 0.9, 1.4)
+		Fx.sparkle(global_position + Vector2(0, -10), Color(1.0, 0.85, 0.5), 28, 30.0)
+		_play("hurt")
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_sealed(on: bool, broken: bool) -> void:
+	_show_sealed(on, broken)
+
+
+func _warded_fx() -> void:
+	Audio.play_at(&"block", global_position, -4.0)
+	Fx.sparkle(global_position + Vector2(0, -10), Color(1.0, 0.85, 0.5), 8, 16.0)
+	if _ward != null:
+		_ward.default_color = Color(1.0, 0.95, 0.75, 1.0)
+		create_tween().tween_property(_ward, "default_color", Color(1.0, 0.86, 0.45, 0.7), 0.25)
+
+
+@rpc("authority", "call_remote", "unreliable")
+func _net_warded_fx() -> void:
+	_warded_fx()
 
 
 ## Counts as dead immediately; the body plays its death strip or an "ash" squash.

@@ -73,7 +73,15 @@ without duplicating the base health and movement record.
 ```
 
 - `behaviour`: `walker` (gravity, walks at the player within `aggro_range`), `flyer` (drifts at the player, bobbing)
-  or `boss_ophanim` (hovers beside the player, lunges). `damage` is contact damage per `attack_interval` (0 = none).
+  or `boss_ophanim` (hovers beside the player, lunges), or `seal` (hangs where it is put and only breaks: the
+  Ophanim's seals). `damage` is contact damage per `attack_interval` (0 = none).
+- `seal_phase` (a boss): `{"at_hp": 0.5, "seal": "ophanim_seal", "points": {"<room>": [[x, y], ...]}, "exposed": 6,
+  "exposed_bonus": 0.5, "sealed_cooldown": 1.6}`. At `at_hp` of its health — a floor no blow can skip — the boss
+  closes its eyes: nothing hurts it, a `seal` enemy appears at each of the room's points (room pixels; hang them
+  ~22 px over a floor the hero stands on, `seal_phase_test.gd` checks), and it hovers out of reach using only
+  attacks marked `"sealed": true` (`"sealed_only": true` keeps one for this phase alone), `sealed_cooldown` times
+  slower. The last seal broken opens it: for `exposed` seconds it sinks low, does not attack and takes
+  `exposed_bonus` more from every blow. Once per fight.
 - `attacks` (optional list; a single `attack` object works too) — telegraphed attacks. Every type has a `windup`
   the enemy spends glowing and standing still; that is the window to roll through. Hitting an enemy during its
   wind-up may stagger it (`stagger_chance`). When several attacks are in range one is picked by `weight`.

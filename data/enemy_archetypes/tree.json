@@ -845,6 +845,24 @@
         "animation": "special",
         "color": "#ffffff",
         "sfx": "ophanim_special"
+      },
+      {
+        "name": "Eyes Behind the Seals",
+        "type": "ranged",
+        "range": 560,
+        "windup": 0.9,
+        "damage": 12,
+        "cooldown": 2.4,
+        "projectile_speed": 190,
+        "projectile_style": "ophanim",
+        "projectiles": 3,
+        "spread": 36,
+        "recover": 0.6,
+        "weight": 1,
+        "animation": "special",
+        "color": "#fff3c4",
+        "sealed": true,
+        "sealed_only": true
       }
     ],
     "sprite": {
