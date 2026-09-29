@@ -380,6 +380,11 @@ where the stat is one of the item mechanics (`heal_burst`, `parry_stun`, `chest_
 `clean_clear_charge`, `wrath_after_hit`, `desperate_crit_heal`; the validator refuses anything else). The item goes
 onto the body of whoever opened the chest, each item once a night; a rare chest falls back to a common item.
 
+Skins: `data/skins/*.json`, `{"id", "name", "description", "cloak": {"hue": 0..1, "saturation": ×, "value": ×},
+"armor": "#rrggbb", "unlock": {"nights": n, "total_kills": n, "kills": {"<enemy>": n}}, "sku": ""}` — the hero's
+cloak and a tint on the rest of him (docs/MONETIZATION.md: cosmetics are data). `unlock` is read from the Profile;
+an entry with a `sku` is a store's and stays locked until there is one.
+
 Rest points: `data/rest_points/*.json`, `{"id": "<room scene name>", "at": [x, y]}` — a spot on the room's floor, at
 something the painting already shows (an altar, a statue with candles). See `scripts/rooms/rest_point.gd`.
 

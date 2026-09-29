@@ -1,0 +1,67 @@
+[
+  {
+    "id": "pilgrim",
+    "name": "SKIN_PILGRIM_NAME",
+    "description": "SKIN_PILGRIM_DESC",
+    "unlock": {}
+  },
+  {
+    "id": "grave_moss",
+    "name": "SKIN_GRAVE_MOSS_NAME",
+    "description": "SKIN_GRAVE_MOSS_DESC",
+    "cloak": {
+      "hue": 0.3,
+      "saturation": 0.55,
+      "value": 0.8
+    },
+    "unlock": {
+      "nights": 3
+    }
+  },
+  {
+    "id": "night_watch",
+    "name": "SKIN_NIGHT_WATCH_NAME",
+    "description": "SKIN_NIGHT_WATCH_DESC",
+    "cloak": {
+      "hue": 0.62,
+      "saturation": 0.6,
+      "value": 0.85
+    },
+    "armor": "#dfe6f2",
+    "unlock": {
+      "kills": {
+        "knight_of_ash": 1
+      }
+    }
+  },
+  {
+    "id": "bone_white",
+    "name": "SKIN_BONE_WHITE_NAME",
+    "description": "SKIN_BONE_WHITE_DESC",
+    "cloak": {
+      "hue": 0.11,
+      "saturation": 0.12,
+      "value": 1.35
+    },
+    "armor": "#f2ead8",
+    "unlock": {
+      "kills": {
+        "ophanim": 1
+      }
+    }
+  },
+  {
+    "id": "ember",
+    "name": "SKIN_EMBER_NAME",
+    "description": "SKIN_EMBER_DESC",
+    "cloak": {
+      "hue": 0.07,
+      "saturation": 1.1,
+      "value": 1.1
+    },
+    "armor": "#f0c8a8",
+    "unlock": {
+      "total_kills": 300
+    }
+  }
+]

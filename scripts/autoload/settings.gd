@@ -25,6 +25,8 @@ var screen_shake := true
 ## 2D lights and the night tint of the rooms. Off = the flat look, for weak GPUs.
 var lighting := true
 var difficulty := "standard"
+## The hero's cloak (data/skins); only an unlocked one is ever kept (Skins.unlocked).
+var skin := "pilgrim"
 ## Chapter cards and the ash between rooms (scripts/autoload/curtain.gd).
 var transitions := "full"
 var touch_mode := "auto"
@@ -51,6 +53,7 @@ func _ready() -> void:
 	screen_shake = cfg.get_value("video", "screen_shake", true)
 	lighting = cfg.get_value("video", "lighting", true)
 	difficulty = cfg.get_value("game", "difficulty", "standard")
+	skin = str(cfg.get_value("game", "skin", "pilgrim"))
 	if not DIFFICULTIES.has(difficulty):
 		difficulty = "standard"
 	transitions = cfg.get_value("game", "transitions", "full")
@@ -88,6 +91,7 @@ func save() -> void:
 	cfg.set_value("video", "screen_shake", screen_shake)
 	cfg.set_value("video", "lighting", lighting)
 	cfg.set_value("game", "difficulty", difficulty)
+	cfg.set_value("game", "skin", skin)
 	cfg.set_value("game", "transitions", transitions)
 	cfg.set_value("touch", "mode", touch_mode)
 	cfg.set_value("touch", "scale", touch_scale)
@@ -186,6 +190,12 @@ func set_fullscreen(enabled: bool) -> void:
 	fullscreen = enabled
 	_apply_fullscreen()
 	save()
+
+
+func set_skin(id: String) -> void:
+	skin = id
+	save()
+	changed.emit()
 
 
 func set_difficulty(mode: String) -> void:

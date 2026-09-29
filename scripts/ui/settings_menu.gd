@@ -43,6 +43,7 @@ func _ready() -> void:
 	Settings.changed.connect(_refresh)
 	_build_bindings()
 	_build_speech()
+	_build_skin()
 	_build_touch()
 	_refresh()
 
@@ -68,6 +69,7 @@ func _refresh() -> void:
 	fullscreen.set_pressed_no_signal(Settings.fullscreen)
 	shake.set_pressed_no_signal(Settings.screen_shake)
 	lighting.set_pressed_no_signal(Settings.lighting)
+	_fill_skins()
 	if _touch_mode:
 		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
@@ -92,6 +94,7 @@ var _vibration: CheckButton
 ## Story lines read aloud. Built here beside the volume sliders rather than in
 ## the scene, so it sits with the rest of the sound instead of at the bottom.
 var _speech: CheckButton
+var _skin: OptionButton
 
 
 func _build_speech() -> void:
@@ -102,6 +105,36 @@ func _build_speech() -> void:
 	box.add_child(row)
 	box.move_child(row, sfx_row.get_index() + 1)
 	_speech.toggled.connect(Settings.set_speech)
+
+
+## The cloak: every skin listed, the locked ones greyed with how to earn them.
+func _build_skin() -> void:
+	var anchor: Node = difficulty.get_parent()
+	_skin = OptionButton.new()
+	_skin.custom_minimum_size = Vector2(130, 0)
+	var row := _row("SETTINGS_SKIN", _skin)
+	anchor.get_parent().add_child(row)
+	anchor.get_parent().move_child(row, anchor.get_index() + 1)
+	_skin.item_selected.connect(func(index: int) -> void:
+		var id: String = Skins.ids()[index]
+		if Skins.unlocked(id):
+			Settings.set_skin(id)
+		else:
+			_refresh())
+
+
+func _fill_skins() -> void:
+	if _skin == null:
+		return
+	_skin.clear()
+	var ids := Skins.ids()
+	for i in ids.size():
+		var entry := Skins.spec(ids[i])
+		var open := Skins.unlocked(ids[i])
+		_skin.add_item(tr(str(entry.get("name", ids[i]))) if open else tr("SKIN_LOCKED") % tr(str(entry.get("name", ids[i]))), i)
+		_skin.set_item_tooltip(i, tr(str(entry.get("description", ""))))
+		_skin.set_item_disabled(i, not open)
+	_skin.select(ids.find(Skins.worn(Settings.skin)))
 
 
 func _build_touch() -> void:

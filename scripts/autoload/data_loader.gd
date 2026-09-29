@@ -26,6 +26,8 @@ var notes: Dictionary = {}
 var items: Dictionary = {}
 ## Rest points, one per room at most, by room scene name (data/rest_points).
 var rest_points: Dictionary = {}
+## The hero's cloaks (data/skins): free ones unlock by play, a "sku" one only by a store.
+var skins: Dictionary = {}
 
 
 func _ready() -> void:
@@ -46,6 +48,7 @@ func reload() -> void:
 	notes = _load_collection("notes", roots)
 	items = _load_collection("items", roots)
 	rest_points = _load_collection("rest_points", roots)
+	skins = _load_collection("skins", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

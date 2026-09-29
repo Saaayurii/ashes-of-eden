@@ -15,6 +15,37 @@ uniform vec4 tint : source_color = vec4(1.0, 0.88, 0.5, 1.0);
 // The frame is one cell of a sheet, so UV does not run 0..1 across the body.
 // Sampling neighbours needs the real texel size, which Godot hands us.
 uniform float rim_width = 1.4;
+// The skin (data/skins): the red of his cloak and hood carried to another
+// colour, and the rest of him tinted. No mask: the cloak is the only strongly
+// saturated red on the sheet, so a hue window finds it in every frame.
+uniform bool skin_on = false;
+uniform float cloak_hue = 0.0;
+uniform float cloak_saturation = 1.0;
+uniform float cloak_value = 1.0;
+uniform vec4 armor_tint : source_color = vec4(1.0);
+
+vec3 rgb2hsv(vec3 c) {
+	vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+	vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+	vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+	float d = q.x - min(q.w, q.y);
+	float e = 1.0e-10;
+	return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv2rgb(vec3 c) {
+	vec3 p = abs(fract(c.xxx + vec3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+	return c.z * mix(vec3(1.0), clamp(p - 1.0, 0.0, 1.0), c.y);
+}
+
+vec3 skin(vec3 rgb) {
+	vec3 hsv = rgb2hsv(rgb);
+	float red = max(smoothstep(0.07, 0.03, hsv.x), smoothstep(0.90, 0.95, hsv.x));
+	float cloak = red * smoothstep(0.28, 0.45, hsv.y);
+	vec3 dyed = hsv2rgb(vec3(cloak_hue, clamp(hsv.y * cloak_saturation, 0.0, 1.0),
+		clamp(hsv.z * cloak_value, 0.0, 1.0)));
+	return mix(rgb * armor_tint.rgb, dyed, cloak);
+}
 
 // Cheap value noise. No texture to load, and the body is small enough on
 // screen that nobody will read the lattice.
@@ -35,6 +66,9 @@ float noise(vec2 p) {
 
 void fragment() {
 	vec4 base = texture(TEXTURE, UV);
+	if (skin_on && base.a >= 0.01) {
+		base.rgb = skin(base.rgb);
+	}
 	if (base.a < 0.01 || strength <= 0.0) {
 		COLOR = base;
 	} else {

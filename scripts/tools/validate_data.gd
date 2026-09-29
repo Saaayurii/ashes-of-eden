@@ -49,6 +49,7 @@ const REQUIRED := {
 	"notes": ["id", "name", "dialogue"],
 	"items": ["id", "name", "description", "rarity", "icon", "effects"],
 	"rest_points": ["id", "at"],
+	"skins": ["id", "name", "description", "unlock"],
 }
 
 var errors: PackedStringArray = []
@@ -268,6 +269,20 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				# an item changes how something behaves: a mechanic stat, never a raw number
 				if effect.get("type") != "stat" or not ITEM_STATS.has(effect.get("stat")):
 					_error("%s: an item's effect is one of the item mechanics %s" % [where, ITEM_STATS])
+		"skins":
+			_use_key(entry.get("name", ""), where)
+			_use_key(entry.get("description", ""), where)
+			for key in entry.get("unlock", {}):
+				if not ["nights", "total_kills", "kills"].has(key):
+					_error("%s: unlock.%s is not nights, total_kills or kills" % [where, key])
+			for enemy in entry.get("unlock", {}).get("kills", {}):
+				if not _enemy_ids.has(enemy):
+					_error("%s: unlock.kills names no enemy: %s" % [where, enemy])
+			var cloak: Dictionary = entry.get("cloak", {})
+			if float(cloak.get("hue", 0.0)) < 0.0 or float(cloak.get("hue", 0.0)) > 1.0:
+				_error("%s: cloak.hue is 0..1" % where)
+			if entry.has("armor") and not Color.html_is_valid(str(entry.armor)):
+				_error("%s: armor must be #rrggbb" % where)
 		"rest_points":
 			# the id is the room it stands in
 			if not FileAccess.file_exists("res://scenes/rooms/%s.tscn" % entry.get("id", "")):

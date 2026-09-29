@@ -156,9 +156,19 @@ const WAVE_SPEED := 260.0
 ## Slot 1 wears a colder cloth so the two of you never lose each other.
 const SLOT_TINTS := [Color.WHITE, Color(0.72, 0.84, 1.05)]
 ## What the other peer needs to draw this body. The rest is local theatre.
-const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot"]
+const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin"]
 
 signal died(player: Player)
+
+## The cloak he wears (data/skins). Our own body takes it from Settings; the
+## other player's arrives with its synchronizer and dyes their body here.
+var skin := "":
+	set(value):
+		if value == skin:
+			return
+		skin = value
+		if is_node_ready():
+			_dress()
 
 var stats: Dictionary = BASE_STATS.duplicate()
 var hp: float
@@ -291,6 +301,10 @@ func _ready() -> void:
 		_hurt_grace_left = 0.0
 		_wounded_this_room = false)
 	body.modulate = SLOT_TINTS[slot % SLOT_TINTS.size()]
+	if _is_mine():
+		skin = Skins.worn(Settings.skin)
+		Settings.changed.connect(func() -> void: skin = Skins.worn(Settings.skin))
+	_dress()
 	_light = Fx.light(self, Vector2(0, -12), LIGHT_COLOR, 110.0, 0.55, 0.0, 0.06)
 	EventBus.alignment_changed.connect(func(_alignment: Dictionary) -> void: _update_aura())
 	EventBus.run_restored.connect(_update_aura)
@@ -1580,14 +1594,36 @@ func _mark_body(path: String, strength: float) -> void:
 		if body.material is ShaderMaterial:
 			(body.material as ShaderMaterial).set_shader_parameter("strength", 0.0)
 		return
+	var shader_material := _marks_material()
+	shader_material.set_shader_parameter("mode", MARK_MODE.get(path, 2))
+	shader_material.set_shader_parameter("strength", strength)
+	shader_material.set_shader_parameter("tint", (AURA[path] as Array)[0])
+
+
+func _marks_material() -> ShaderMaterial:
 	if not (body.material is ShaderMaterial):
 		var material := ShaderMaterial.new()
 		material.shader = MARKS_SHADER
 		body.material = material
-	var shader_material := body.material as ShaderMaterial
-	shader_material.set_shader_parameter("mode", MARK_MODE.get(path, 2))
-	shader_material.set_shader_parameter("strength", strength)
-	shader_material.set_shader_parameter("tint", (AURA[path] as Array)[0])
+	return body.material as ShaderMaterial
+
+
+## Dyes the body in [member skin]. The same shader carries the marks, so the
+## cloak and the lean are one material and neither undoes the other.
+func _dress() -> void:
+	if body == null:
+		return
+	var spec: Dictionary = Skins.spec(skin)
+	var cloak: Dictionary = spec.get("cloak", {})
+	var dyed := not cloak.is_empty() or spec.has("armor")
+	if not dyed and not (body.material is ShaderMaterial):
+		return
+	var material := _marks_material()
+	material.set_shader_parameter("skin_on", dyed)
+	material.set_shader_parameter("cloak_hue", float(cloak.get("hue", 0.0)))
+	material.set_shader_parameter("cloak_saturation", float(cloak.get("saturation", 1.0)))
+	material.set_shader_parameter("cloak_value", float(cloak.get("value", 1.0)))
+	material.set_shader_parameter("armor_tint", Color(str(spec.get("armor", "#ffffff"))))
 
 
 func skill_ready_ratio() -> float:
