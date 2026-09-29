@@ -60,31 +60,40 @@ GENERATORS = [
 ##
 ## Reported either way, so a drift that turns out to matter is still visible.
 def same_picture(path):
-    """None when the picture really changed, else why it only looks changed."""
+    """None when the picture really changed, else why it only looks changed.
+
+    Says *why* it could not tell, too. A check that can only answer "differs"
+    sends whoever reads the log to reproduce it by hand; one that answers
+    "no pixel is more than 1 apart" or "PIL is not installed" or "37 apart
+    over 4,000 pixels" has already done that work.
+    """
     if not path.lower().endswith(".png"):
         return None
     try:
         from PIL import Image
         import numpy as np
     except ImportError:
-        return None
+        return "!no PIL to compare pixels with"
     committed = subprocess.run(["git", "show", "HEAD:" + path], cwd=ROOT,
                                capture_output=True)
     if committed.returncode != 0:
-        return None
+        return "!not in HEAD to compare against"
     try:
         before = Image.open(io.BytesIO(committed.stdout)).convert("RGBA")
         after = Image.open(os.path.join(ROOT, path)).convert("RGBA")
-    except Exception:
-        return None
+    except Exception as err:
+        return "!will not decode: %s" % err
     if before.size != after.size:
-        return None
+        return "!%dx%d, was %dx%d" % (after.size + before.size)
     a = np.asarray(before).astype(np.int16)
     b = np.asarray(after).astype(np.int16)
-    worst = int(np.abs(a - b).max())
+    delta = np.abs(a - b)
+    worst = int(delta.max())
     if worst == 0:
         return "zlib"
-    return "rounding" if worst <= 1 else None
+    if worst <= 1:
+        return "rounding"
+    return "!%d pixel(s) differ, worst by %d" % (int((delta.sum(2) > 0).sum()), worst)
 
 
 def dirty(paths):
@@ -143,10 +152,12 @@ def main():
             failures.append("%s: exited %d" % (name, result.returncode))
             continue
         moved, extra = dirty(paths)
+        # A reason starting with "!" is not an excuse, it is a diagnosis.
         excused = {m: same_picture(m) for m in moved}
         recompressed = [m for m, why in excused.items() if why == "zlib"]
         rounded = [m for m, why in excused.items() if why == "rounding"]
-        real = [m for m, why in excused.items() if why is None]
+        real = ["%s%s" % (m, "  (%s)" % why[1:] if why else "")
+                for m, why in excused.items() if why is None or why.startswith("!")]
         if real:
             failures.append("%s: %d file(s) differ from what is committed:\n      %s"
                             % (name, len(real), "\n      ".join(real[:10])))

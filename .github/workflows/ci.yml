@@ -50,3 +50,10 @@ jobs:
         run: |
           python3 -m pip install --quiet numpy pillow
           python3 tools/check_generators.py
+
+      # The loading page is the one file nothing else tests: it is not
+      # GDScript, so the validator never sees it, and it is not loaded by any
+      # headless run. The first sign of a mistake in it is a blank page in
+      # somebody's browser. Node is already on the runner.
+      - name: The web loading page still works
+        run: python3 tools/web/check_shell.py
