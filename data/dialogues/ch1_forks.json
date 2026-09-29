@@ -1,0 +1,30 @@
+[
+  {
+    "id": "fork_swamp",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_FORK_SWAMP",
+        "choices": [
+          {"id": "red", "text": "DLG_FORK_SWAMP_RED"},
+          {"id": "crypt", "text": "DLG_FORK_SWAMP_CRYPT"}
+        ]
+      }
+    }
+  },
+  {
+    "id": "fork_catacombs",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_FORK_CATACOMBS",
+        "choices": [
+          {"id": "upper", "text": "DLG_FORK_CATACOMBS_UPPER"},
+          {"id": "lower", "text": "DLG_FORK_CATACOMBS_LOWER"}
+        ]
+      }
+    }
+  }
+]

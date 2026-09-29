@@ -439,7 +439,7 @@ func _build_room(index: int) -> void:
 	room_index = index
 	_placed_for_room = -1
 	_dead_peers.clear()
-	Game.wave = index + 1
+	Game.wave = Route.step(ROOMS, index) + 1 if index >= 0 else 0
 	room = load(_room_path(index)).instantiate()
 	room.name = "Room"  # the same node path on every peer
 	room.authoritative = _is_server()
@@ -585,7 +585,9 @@ func _door_grants_gift() -> bool:
 	if room_index + 1 >= ROOMS.size():
 		return true
 	var here: Dictionary = Data.chapter_for(ROOMS[room_index])
-	var next: Dictionary = Data.chapter_for(ROOMS[room_index + 1])
+	# the room this door actually leads to, forks included (either way of a
+	# fork is in the same place, so the default one answers for both)
+	var next: Dictionary = Data.chapter_for(ROOMS[Route.next_index(ROOMS, room_index)])
 	return here.is_empty() or next.is_empty() or here.get("id") != next.get("id")
 
 
@@ -620,12 +622,33 @@ func _advance() -> void:
 	if room_index + 1 >= ROOMS.size():
 		_end_run(true)
 	else:
-		await _go_to_room(room_index + 1)
+		var next := await _next_room()
+		if _finished or not is_inside_tree():
+			_advancing = false
+			return
+		await _go_to_room(next)
 	# The previous room's door is only freed at the end of the frame. Keep the
 	# transition guard up until then so its queued body_entered cannot skip the
 	# new (possibly quiet) room before the player sees it.
 	await get_tree().physics_frame
 	_advancing = false
+
+
+## Where the door leads. At a fork (data/forks) the way splits and the
+## player picks (online, as any story choice: one voice for the group);
+## skipped or unanswered, the first way. Out of either way, the fork's "then".
+func _next_room() -> int:
+	var fork := Route.fork_after(ROOMS[room_index])
+	if fork.is_empty():
+		return Route.next_index(ROOMS, room_index)
+	var picked := [""]
+	var on_choice := func(dialogue_id: String, choice_id: String) -> void:
+		if dialogue_id == str(fork.dialogue):
+			picked[0] = choice_id
+	EventBus.choice_made.connect(on_choice)
+	await _story(str(fork.dialogue))
+	EventBus.choice_made.disconnect(on_choice)
+	return Route.next_index(ROOMS, room_index, picked[0])
 
 
 # ------------------------------------------------------------------ gifts ---
@@ -901,6 +924,10 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 	_finished = true
 	kills = total_kills
 	Game.ash_earned = ash
+	# the area reached counts rooms walked, not the index in ROOMS: a fork
+	# skipped one of its ways
+	var place_index := clampi(reached - 1, 0, ROOMS.size() - 1)
+	reached = Route.step(ROOMS, place_index) + 1
 	if not Net.dedicated:  # a referee plays no night of its own
 		Profile.record_run(reached, total_kills, seconds, ash)
 	$UI/PauseMenu.visible = false
@@ -916,7 +943,7 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 	if not is_inside_tree():
 		return
 	Net.set_paused(true)
-	var last := Data.chapter_for(ROOMS[clampi(reached - 1, 0, ROOMS.size() - 1)])
+	var last := Data.chapter_for(ROOMS[place_index])
 	run_end.show_result(won, reached, total_kills, seconds, str(last.get("title", "")))
 	await transition.reveal()
 

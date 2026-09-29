@@ -206,7 +206,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 		"game": GAME_ID,
 		"format": FORMAT,
 		"room": room_path,
-		"room_number": room_index(room_path) + 1,
+		"room_number": Route.step(Route.rooms(), room_index(room_path)) + 1,
 		"game_state": {
 			"alignment": Game.alignment.duplicate(),
 			"flags": Game.flags.duplicate(),
