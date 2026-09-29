@@ -496,7 +496,7 @@ const SPEECH_DB := -2.0
 ##
 ## One line at a time: asking for a new one cuts the last one short.
 func speak(key: String) -> float:
-	if key == "":
+	if key == "" or not Settings.speech:
 		return 0.0
 	var clip := _spoken_clip(key)
 	stop_speech()

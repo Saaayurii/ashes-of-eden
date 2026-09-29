@@ -54,6 +54,13 @@ var _chapter_ids := {}
 ## Room scene -> the chapter that claims it; two chapters may not claim one room.
 var _room_chapter := {}
 var used_keys := {}  # localization key -> where it is used
+## Story flags, both ways: who writes one and who ever looks at it. A flag
+## written and never read is a choice the world forgot to react to; a flag
+## read and never written is a branch no player will ever see. Both are
+## silent — the game runs, the line simply never comes up — so they are
+## checked rather than noticed.
+var flags_set := {}
+var flags_read := {}
 
 
 func _init() -> void:
@@ -89,6 +96,7 @@ func _init() -> void:
 				_error("empty %s translation for %s" % [LOCALES[i], key])
 	_check_untranslated(strings)
 	_check_cjk_font(strings)
+	_check_story_flags()
 
 	for w in warnings:
 		print("WARNING: " + w)
@@ -259,6 +267,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				var node_where := "%s#%s" % [where, node_id]
 				if node.has("branches"):  # a router node: flags -> next, no text
 					for branch in node.branches:
+						if branch.has("flag"):
+							flags_read[str(branch.flag)] = node_where
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
@@ -452,8 +462,13 @@ func _check_cutscene(entry: Dictionary, where: String) -> void:
 		if step.has("path") and not PATHS.has(str(step.path)):
 			_error("%s: step %s: path must be one of %s" % [where, kind, PATHS])
 		for key in ["if", "unless"]:
-			if step.has(key) and not (step[key] is String or step[key] is Array):
+			if not step.has(key):
+				continue
+			if not (step[key] is String or step[key] is Array):
 				_error("%s: step %s: %s must be a flag or a list of flags" % [where, kind, key])
+				continue
+			for flag in (([step[key]] if step[key] is String else step[key]) as Array):
+				flags_read[str(flag)] = where
 		if kind == "hold":
 			holds += 1
 		elif kind == "release":
@@ -496,7 +511,41 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 					_error("%s: sprite.%s must be a positive integer" % [where, field])
 
 
+## Flags the engine itself reads. They are named in GDScript rather than in
+## data, so the validator cannot find them by reading data/ alone.
+const FLAGS_READ_IN_CODE := ["voice_yes", "matthew_confessed", "matthew_judged",
+	"matthew_released", "matthew_book_revealed", "read_letters"]
+## Flags a tool sets on purpose to drive a test, never by play.
+const FLAGS_FOR_TESTS := ["save_test"]
+
+
+func _check_story_flags() -> void:
+	for flag in FLAGS_READ_IN_CODE:
+		flags_read[flag] = "scripts/"
+	for flag in FLAGS_FOR_TESTS:
+		flags_set[flag] = "a test"
+		flags_read[flag] = "a test"
+	var orphans: Array = []
+	for flag in flags_set:
+		if not flags_read.has(flag):
+			orphans.append("%s (set in %s)" % [flag, flags_set[flag]])
+	var ghosts: Array = []
+	for flag in flags_read:
+		if not flags_set.has(flag):
+			ghosts.append("%s (read in %s)" % [flag, flags_read[flag]])
+	orphans.sort()
+	ghosts.sort()
+	if not orphans.is_empty():
+		_warn("flag(s) set but never read — the world does not react: %s"
+			% ", ".join(orphans))
+	if not ghosts.is_empty():
+		_error("flag(s) read but never set — that branch cannot be reached: %s"
+			% ", ".join(ghosts))
+
+
 func _check_effect(effect: Dictionary, where: String) -> void:
+	for flag in effect.get("set_flags", []):
+		flags_set[str(flag)] = where
 	for key in effect:
 		if not PATHS.has(key) and key != "set_flags":
 			_error("%s: unknown effect key \"%s\"" % [where, key])

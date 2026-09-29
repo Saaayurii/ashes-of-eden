@@ -155,26 +155,73 @@ def synthesise(text, model, length, noise, wav_path):
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def shape(wav_path, out_path, pitch, echo, gain_db):
-    """The character on top of the voice: a semitone shift to part two people
+## Moving a voice with asetrate moves its formants with it — the resonances
+## that say "this is a human throat of about this size". Two semitones down is
+## a deeper voice; six is a tape running slow, and that is what the first pass
+## of this sounded like. WORLD separates the pitch from the formants and lets
+## us move one and leave the other, so a character can be lower than the model
+## without stopping being a person.
+##
+## The exception is on purpose: the voice in the dark and the Ophanim are not
+## people, and dragging their formants down with them is exactly the effect
+## those two want. `formants` in the cast says which.
+def shift_pitch(wav_path, semitones, keep_formants=True):
+    """Rewrite the wav in place at a new pitch. Falls back to ffmpeg's
+    resample trick if WORLD is not installed, which sounds worse and is
+    better than failing."""
+    if not semitones:
+        return
+    ratio = 2.0 ** (semitones / 12.0)
+    if not keep_formants:
+        _ffmpeg(wav_path, ["asetrate=22050*%.6f" % ratio, "aresample=22050",
+                           "atempo=%.6f" % (1.0 / ratio)])
+        return
+    try:
+        import numpy as np
+        import pyworld
+        import soundfile
+    except ImportError:
+        _ffmpeg(wav_path, ["asetrate=22050*%.6f" % ratio, "aresample=22050",
+                           "atempo=%.6f" % (1.0 / ratio)])
+        return
+    audio, rate = soundfile.read(wav_path, dtype="float64")
+    if audio.ndim > 1:
+        audio = audio.mean(axis=1)
+    # f0 is the pitch track, sp the spectral envelope (the formants), ap the
+    # noisiness. Scaling f0 alone is the whole trick.
+    f0, timeaxis = pyworld.harvest(audio, rate)
+    sp = pyworld.cheaptrick(audio, f0, timeaxis, rate)
+    ap = pyworld.d4c(audio, f0, timeaxis, rate)
+    out = pyworld.synthesize(f0 * ratio, sp, ap, rate)
+    peak = float(np.max(np.abs(out))) or 1.0
+    soundfile.write(wav_path, (out / peak * 0.92).astype("float32"), rate)
+
+
+def _ffmpeg(path, chain, out=None, extra=None):
+    target = out or (path + ".tmp.wav")
+    command = ["ffmpeg", "-y", "-i", path]
+    if chain:
+        command += ["-af", ",".join(chain)]
+    command += (extra or ["-ar", "22050", "-ac", "1", target])
+    subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if out is None:
+        os.replace(target, path)
+
+
+def shape(wav_path, out_path, pitch, echo, gain_db, keep_formants=True):
+    """The character on top of the voice: a pitch shift to part two people
     sharing a model, a tail for whatever is speaking without a body, and a trim
     so nobody is louder than the person they are answering."""
+    shift_pitch(wav_path, pitch, keep_formants)
     chain = []
-    if pitch:
-        # Resample up or down, then pull the speed back: pitch moves, pace does not.
-        ratio = 2.0 ** (pitch / 12.0)
-        chain.append("asetrate=22050*%.6f,aresample=22050,atempo=%.6f" % (ratio, 1.0 / ratio))
     if echo:
         chain.append("aecho=" + echo)
     if gain_db:
         chain.append("volume=%.2fdB" % gain_db)
     # mp3, like the music: this ffmpeg has no libvorbis, and Godot reads both.
     # -q:a 5 at 22 kHz mono is clean for speech and lands a line near 10 KB.
-    command = ["ffmpeg", "-y", "-i", wav_path]
-    if chain:
-        command += ["-af", ",".join(chain)]
-    command += ["-c:a", "libmp3lame", "-q:a", "5", "-ar", "22050", "-ac", "1", out_path]
-    subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    _ffmpeg(wav_path, chain, out=out_path,
+            extra=["-c:a", "libmp3lame", "-q:a", "5", "-ar", "22050", "-ac", "1", out_path])
 
 
 def main():
@@ -254,7 +301,8 @@ def main():
             shape(raw, path,
                   voice.get("pitch", role.get("pitch", 0.0)),
                   voice.get("echo", role.get("echo", "")),
-                  voice.get("gain_db", role.get("gain_db", 0.0)))
+                  voice.get("gain_db", role.get("gain_db", 0.0)),
+                  bool(voice.get("formants", role.get("formants", True))))
             made += 1
             print("  %-5s %-28s %s" % (locale, key, speaker))
     print(made, "lines written to", os.path.relpath(OUT, ROOT))

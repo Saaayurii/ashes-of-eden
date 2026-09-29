@@ -95,7 +95,7 @@ the other three.
 ## Running it
 
 ```bash
-pip install 'piper-tts[zh]'    # once; ffmpeg must also be on PATH
+pip install 'piper-tts[zh]' pyworld soundfile   # once; ffmpeg must also be on PATH
 python3 tools/audio/generate_speech.py               # only the lines that are missing
 python3 tools/audio/generate_speech.py --force       # re-render everything
 python3 tools/audio/generate_speech.py --locale ru   # one language
@@ -115,6 +115,52 @@ Two things worth knowing before the first run:
   is a well-formed file that only fails when onnxruntime first reads it. The script now checks each
   freshly downloaded model, deletes it if it will not load, and tells you to run again; a model
   whose `.onnx.json` went missing is refetched rather than trusted.
+
+## Who speaks, and who does not
+
+Sixteen parts are cast. Everyone who carries a scene is voiced in all four
+languages: Elian, the angel, the stranger, the voice in the dark, the blind
+preacher, the Ophanim, Father Matthew, Severin, the Knight of the Watch, the
+narrator, and the three records Elian reads out of the caches.
+
+**Sister Agnes, Mara and the crone are English and Ukrainian only.** That is
+the licence rule again rather than a choice. Piper's clean-licensed voices are
+very nearly all male: `ru_RU-irina` and `zh_CN-huayan` state no licence at
+all, and `zh_CN-xiao_ya` is non-commercial, so Russian and Mandarin have no
+female voice this repository may ship. In those two languages the three women
+stay captions, which is what an unvoiced line has always been — and the honest
+option, because pitching a man up to stand in for them is worse than silence.
+
+Which is to say: a CC0 or CC BY recording of a Russian or Chinese woman's
+voice would do more for this game than anything else on this page.
+
+## Turning it off
+
+Settings → **Spoken lines**. Off stops whatever is mid-sentence and leaves the
+captions exactly as they were; it is remembered in `user://settings.cfg` and
+costs nothing when off, because `Audio.speak` returns before it looks for a
+file. What ships is synthesised, and a reader faster than the voice should not
+have to mute the whole SFX bus to be rid of it.
+
+## Pitch, and why it is small
+
+A resampler moves a voice's formants along with its pitch — the resonances
+that say "a human throat about this size". Four semitones down stops being a
+deeper man and starts being a tape running slow, which is what the first pass
+of this sounded like.
+
+Shifting now goes through the WORLD vocoder (`pyworld`), which separates the
+pitch track from the spectral envelope and moves only the first. The shifts
+themselves are kept inside a couple of semitones anyway: two men are better
+told apart by pace and by Piper's noise knobs than by pitch, and those do not
+cost anything in naturalness.
+
+Two parts opt out with `"formants": false` — the voice in the dark and the
+Ophanim. Neither is a person, and for them the sliding formants are the
+effect rather than the artefact.
+
+Without `pyworld` installed the tool falls back to the resampler, which sounds
+worse and is better than refusing to run.
 
 ## What is honestly wrong with it
 

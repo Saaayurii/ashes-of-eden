@@ -37,7 +37,10 @@ func _ready() -> void:
 	Audio.music(&"arena")
 	spawner.spawn_function = _make_player
 	players_root.child_entered_tree.connect(_on_player_entered)
-	touch_controls.visible = OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+	# Settings decides, not this file: a player who turned the pad off in
+	# Settings had it come back every time a run started (TouchPad._process
+	# asked Settings, this line did not, and the two disagreed).
+	touch_controls.visible = Settings.touch_enabled()
 	hud.rematch.connect(_on_rematch)
 	hud.to_menu.connect(_to_menu)
 	if not Net.active:

@@ -42,6 +42,7 @@ func _ready() -> void:
 	back_button.pressed.connect(close)
 	Settings.changed.connect(_refresh)
 	_build_bindings()
+	_build_speech()
 	_build_touch()
 	_refresh()
 
@@ -73,6 +74,8 @@ func _refresh() -> void:
 		_touch_opacity.set_value_no_signal(Settings.touch_opacity)
 		_touch_left.set_pressed_no_signal(Settings.touch_left_handed)
 		_vibration.set_pressed_no_signal(Settings.vibration)
+	if _speech:
+		_speech.set_pressed_no_signal(Settings.speech)
 	for action in Settings.BINDABLE_ACTIONS:
 		var button: Button = bindings.get_node_or_null(action)
 		if button:
@@ -86,6 +89,19 @@ var _touch_scale: HSlider
 var _touch_opacity: HSlider
 var _touch_left: CheckButton
 var _vibration: CheckButton
+## Story lines read aloud. Built here beside the volume sliders rather than in
+## the scene, so it sits with the rest of the sound instead of at the bottom.
+var _speech: CheckButton
+
+
+func _build_speech() -> void:
+	var sfx_row: Node = sliders["SFX"].get_parent()
+	var box: Node = sfx_row.get_parent()
+	_speech = CheckButton.new()
+	var row := _row("SETTINGS_SPEECH", _speech)
+	box.add_child(row)
+	box.move_child(row, sfx_row.get_index() + 1)
+	_speech.toggled.connect(Settings.set_speech)
 
 
 func _build_touch() -> void:

@@ -32,6 +32,11 @@ var touch_scale := 1.0     # 0.7–1.5, how big the on-screen buttons are
 var touch_opacity := 0.75  # 0.3–1.0
 var touch_left_handed := false  # buttons on the left, stick on the right
 var vibration := true  # phones and tablets: a buzz on a blow taken, a parry, a boss down
+## Story lines read aloud. On by default, and worth turning off: what ships is
+## synthesised (docs/VOICE.md), and a reader who is faster than the voice —
+## or who simply dislikes it — should not have to mute the SFX bus to be rid
+## of it. Off leaves the captions exactly as they were.
+var speech := true
 ## action -> physical keycode of the primary keyboard key. Gamepad bindings stay as in project.godot.
 var keys: Dictionary = {}
 
@@ -58,6 +63,7 @@ func _ready() -> void:
 	touch_opacity = clampf(float(cfg.get_value("touch", "opacity", 0.75)), 0.3, 1.0)
 	touch_left_handed = bool(cfg.get_value("touch", "left_handed", false))
 	vibration = bool(cfg.get_value("touch", "vibration", true))
+	speech = bool(cfg.get_value("audio", "speech", true))
 	for action in BINDABLE_ACTIONS:
 		if cfg.has_section_key("keys", action):
 			keys[action] = int(cfg.get_value("keys", action))
@@ -88,6 +94,7 @@ func save() -> void:
 	cfg.set_value("touch", "opacity", touch_opacity)
 	cfg.set_value("touch", "left_handed", touch_left_handed)
 	cfg.set_value("touch", "vibration", vibration)
+	cfg.set_value("audio", "speech", speech)
 	for action in keys:
 		cfg.set_value("keys", action, keys[action])
 	cfg.save(PATH)
@@ -107,14 +114,43 @@ func set_volume(bus: String, linear: float) -> void:
 
 
 ## Whether the on-screen controls are shown on this device.
+##
+## In a browser this used to get it wrong. A Web export has no "pc" feature —
+## that one is only set on desktop builds — so `not OS.has_feature("pc")` is
+## true on every browser, and `is_touchscreen_available()` says yes on any
+## machine whose browser merely supports touch events, which is most laptops.
+## The result was a phone's thumbstick sitting over a desktop game.
+##
+## The browser can answer this properly: the `pointer: coarse` media query is
+## true for a finger and false for a mouse, which is the actual question. It
+## is asked once and remembered — the answer does not change mid-session, and
+## a JavaScript call per frame would be absurd.
 func touch_enabled() -> bool:
 	match touch_mode:
 		"on":
 			return true
 		"off":
 			return false
-	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") \
-		or DisplayServer.is_touchscreen_available() and not OS.has_feature("pc")
+	if OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios"):
+		return true
+	if OS.has_feature("web"):
+		return _browser_is_touch()
+	# Native desktop and anything else: emulate_touch_from_mouse is on for
+	# testing, so a real touchscreen is the only thing worth believing.
+	return DisplayServer.is_touchscreen_available() and not OS.has_feature("pc")
+
+
+var _browser_touch := -1  # -1 not asked yet, 0 mouse, 1 finger
+
+
+func _browser_is_touch() -> bool:
+	if _browser_touch < 0:
+		_browser_touch = 0
+		if ClassDB.class_exists("JavaScriptBridge"):
+			var answer: Variant = JavaScriptBridge.eval(
+				"window.matchMedia && window.matchMedia('(pointer: coarse)').matches", true)
+			_browser_touch = 1 if bool(answer) else 0
+	return _browser_touch == 1
 
 
 ## Text is read at arm's length on a desk and at a hand's length on a phone,
@@ -125,6 +161,14 @@ func text_scale() -> float:
 
 func set_vibration(enabled: bool) -> void:
 	vibration = enabled
+	save()
+	changed.emit()
+
+
+func set_speech(enabled: bool) -> void:
+	speech = enabled
+	if not enabled:
+		Audio.stop_speech()  # whatever is mid-sentence stops there
 	save()
 	changed.emit()
 
