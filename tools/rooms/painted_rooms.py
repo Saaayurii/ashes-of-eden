@@ -117,10 +117,13 @@ def check_reach(name, room):
             print(f"  !! {name}: prop {prop_id} at ({x}, {y}) floats above its surface")
             valid = False
     # people, and every stop of their round: a person has no gravity
-    for npc_id, x, y in room.get("npcs", []):
+    for npc_index, (npc_id, x, y) in enumerate(room.get("npcs", [])):
         try:
-            with open(os.path.join(ROOT, "data", "npcs", npc_id + ".json")) as f:
-                stops = [(0, 0)] + [tuple(p) for p in json.load(f).get("path", [])]
+            if "npc_paths" in room:
+                stops = [(0, 0)] + room["npc_paths"][npc_index]
+            else:
+                with open(os.path.join(ROOT, "data", "npcs", npc_id + ".json")) as f:
+                    stops = [(0, 0)] + [tuple(p) for p in json.load(f).get("path", [])]
         except OSError:
             stops = [(0, 0)]
         for dx, dy in stops:
@@ -377,7 +380,7 @@ PAINTED = {
         spawns=[("possessed_villager", 500, 263), ("fallen_guard", 700, 445), ("zealot", 950, 411),
                 ("cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
                 ("preacher_acolyte", 950, 631), ("wraith", 500, 400), ("shade", 800, 250), ("shade", 1100, 300)],
-        props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 890, 423), ("sack", 750, 457), ("barrel_apples", 1000, 423),
+        props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 890, 423), ("sack", 750, 457), ("funeral_offering", 1000, 423),
                ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1245, 603), ("sack", 1180, 603)],
         decor=[], npcs=[], ambient="#b8bccc", lights="auto",
         player=(60, 234), door=(1080, 583)),

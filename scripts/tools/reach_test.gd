@@ -71,6 +71,7 @@ func _main() -> void:
 			"swamp_crypt": Vector2(1100, 635), "catacombs_1": Vector2(1370, 623),
 			"hell_gate": Vector2(1435, 618),
 			"crypt_lava": Vector2(660, 655),
+			"crypt_skulls": Vector2(300, 646),
 		}
 		if args.has("reverse") and return_starts.has(path.get_file().get_basename()):
 			var crypt_start: Vector2 = return_starts[path.get_file().get_basename()]

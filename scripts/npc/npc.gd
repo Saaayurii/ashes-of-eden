@@ -28,6 +28,9 @@ class_name Npc
 ## lets a swing land (the animation plays everywhere).
 
 @export var npc_id: String = "knight"
+## Generated widened rooms remap patrol stops across their expansion seams.
+## Empty means the original data/npcs path is used unchanged.
+@export var path_override: Array[Vector2] = []
 
 ## How close the player has to be for the "…" marker and the turn of the head.
 const NEAR := 110.0
@@ -107,8 +110,12 @@ func _ready() -> void:
 	_goal = _home
 	_wander = float(spec.get("wander", 0.0))
 	_wait = randf_range(1.0, 3.0)
-	for point in spec.get("path", []):
-		_path.append(_home + Vector2(float(point[0]), float(point[1])))
+	if path_override.is_empty():
+		for point in spec.get("path", []):
+			_path.append(_home + Vector2(float(point[0]), float(point[1])))
+	else:
+		for point in path_override:
+			_path.append(_home + point)
 	if spec.has("light"):
 		var light: Dictionary = spec.light
 		Fx.light(self, Vector2(0, -16), Color(light.get("color", "#ffb060")), float(light.get("radius", 40)),

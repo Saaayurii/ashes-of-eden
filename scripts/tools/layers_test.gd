@@ -1,4 +1,5 @@
 extends SceneTree
+const ROOM_LAYERS := preload("res://scripts/rooms/room_layers.gd")
 ## Every painted room keeps its three planes apart (scripts/rooms/room_layers.gd):
 ## nothing but the far plane slides against the painting when the camera
 ## moves, the far plane only inside its openings, and no stock cutout is
@@ -30,7 +31,7 @@ func _run() -> void:
 			room.queue_free()
 			await process_frame
 			continue
-		_check(RoomLayers.FAR_WINDOWS.has(name), "%s: no reviewed list of openings that look out" % name)
+		_check(ROOM_LAYERS.FAR_WINDOWS.has(name), "%s: no reviewed list of openings that look out" % name)
 		for cutout in ["HorizonCutouts", "MiddleCutouts"]:
 			_check(room.get_node_or_null(cutout) == null, "%s: stock %s over the painting" % [name, cutout])
 		# every Parallax2D left in the room is either anchored to the world or
@@ -51,7 +52,7 @@ func _run() -> void:
 		camera.position = Vector2(room.width - 640.0, 0.0)
 		await process_frame
 		room._process(0.0)
-		var far: Array = RoomLayers.FAR_WINDOWS.get(name, [])
+		var far: Array = ROOM_LAYERS.FAR_WINDOWS.get(name, [])
 		var windows = room.get_node_or_null("DepthWindows")
 		var seen := {}
 		for polygon in windows.get_children() if windows != null else []:

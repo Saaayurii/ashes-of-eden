@@ -1,4 +1,5 @@
 extends SceneTree
+const ROOM_LAYERS := preload("res://scripts/rooms/room_layers.gd")
 ## Physical soles, authored crypt floors, props and stationary parallax masks.
 
 var failures := 0
@@ -98,6 +99,15 @@ func _run() -> void:
 				_check((hero.position.x >= 1320 and hero.position.y < 380) if direction > 0 else (hero.position.x <= 1130 and hero.position.y > 500),
 					"graveyard staircase landing blocks direction %d at %s" % [direction, hero.position])
 				hero.controls_enabled = false
+		if key == "graveyard_tree":
+			var mara = room.get_node("Props/Npc1")
+			_check(mara.path_override.size() == 4, "graveyard_tree Mara lost her widened patrol route")
+			for stop in mara._path:
+				var footing := PhysicsRayQueryParameters2D.create(stop + Vector2(0, -3),
+					stop + Vector2(0, 9), 17)
+				var floor_hit: Dictionary = room.get_world_2d().direct_space_state.intersect_ray(footing)
+				_check(not floor_hit.is_empty() and absf(floor_hit.position.y - stop.y) <= 2.0,
+					"graveyard_tree Mara patrol stop has no painted floor: %s" % stop)
 		if key == "swamp_crypt":
 			for direction in [1, -1]:
 				hero.place_in_room(Vector2(1295, 545) if direction > 0 else Vector2(1410, 588))
@@ -126,7 +136,7 @@ func _run() -> void:
 		# only an opening that looks out moves (RoomLayers.FAR_WINDOWS); a recess
 		# in the room's own masonry stays put
 		var shift: float = polygon.material.get_shader_parameter("shift_px")
-		var looks_out: bool = RoomLayers.FAR_WINDOWS.get(key, [1]).has(1)
+		var looks_out: bool = ROOM_LAYERS.FAR_WINDOWS.get(key, [1]).has(1)
 		_check((shift > 0 and shift <= 16) if looks_out else shift == 0.0,
 			"%s far plate has no bounded parallax (%s)" % [key, shift])
 		_check(room.get_node_or_null("HorizonCutouts") == null and room.get_node("FogFar").scroll_scale == Vector2.ONE,

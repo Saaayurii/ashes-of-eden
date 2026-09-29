@@ -59,7 +59,7 @@ func _ready() -> void:
 	sprite.texture = texture
 	sprite.hframes = maxi(1, int(spec.get("frames", 4)))
 	if stats.has("niche"):
-		_add_niche(load(str(stats.niche)))
+		_add_niche(_load_niche(str(stats.niche)))
 	sprite.centered = false
 	# The strips reserve one or two transparent rows below the drawing. Place
 	# the lowest painted pixel, not the cell border, on the platform line.
@@ -107,6 +107,18 @@ func _ready() -> void:
 ## the authored baseline for opening, bursting and remains.
 ## Behind everything the prop draws, and behind what it reveals (a sibling
 ## added after it), but in front of the painting.
+static func _load_niche(path: String) -> Texture2D:
+	# Fresh checkouts can run headless before the editor imports optional PNGs.
+	# Loading the image directly also keeps these painted wall details visible
+	# during automated room tests instead of silently dropping them.
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	var picture := Image.load_from_file(path)
+	if picture.is_empty():
+		return null
+	return ImageTexture.create_from_image(picture)
+
+
 func _add_niche(texture: Texture2D) -> void:
 	if texture == null:
 		push_warning("[Prop] missing niche for %s" % prop_id)

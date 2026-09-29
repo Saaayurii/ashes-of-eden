@@ -10,6 +10,7 @@ const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
 const DEPTH_LAYERS := preload("res://scripts/rooms/depth_layers.gd")
 const INTERIOR_ARCHITECTURE := preload("res://scripts/rooms/interior_architecture.gd")
 const HELL_DEPTH := preload("res://scripts/rooms/hell_depth.gd")
+const ROOM_LAYERS := preload("res://scripts/rooms/room_layers.gd")
 
 @export var width := 1280
 ## Rooms can be taller than one screen: the camera scrolls down to here.
@@ -58,7 +59,7 @@ func _ready() -> void:
 	# The living details of the place (ravens, wisps, fog, lightning): data/ambience.json.
 	Ambience.attach(self, scene_file_path.get_file().get_basename(), float(width), float(height))
 	# far, middle and front kept apart: after the clouds exist (Ambience)
-	RoomLayers.arrange(self)
+	ROOM_LAYERS.arrange(self)
 	door.entered.connect(exited.emit)
 	EventBus.enemy_died.connect(_on_enemy_died)
 
@@ -99,7 +100,7 @@ func _configure_depth_windows() -> void:
 		if not _depth_window_materials.has(group):
 			_depth_window_materials[group] = source.duplicate() as ShaderMaterial
 			var index := maxi(1, int(group.trim_prefix("Window")))
-			_depth_window_factors[group] = RoomLayers.window_factor(self, index,
+			_depth_window_factors[group] = ROOM_LAYERS.window_factor(self, index,
 				clampf(0.68 + 0.16 * (index - 1), 0.68, 1.16))
 		polygon.material = _depth_window_materials[group]
 
