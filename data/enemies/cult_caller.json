@@ -24,18 +24,8 @@
     "flicker": 0.2
   },
   "sprite": {
-    "cell": [
-      32,
-      40
-    ],
-    "fps": 9,
-    "animations": {
-      "idle": "res://assets/sprites/cultist_idle.png",
-      "walk": "res://assets/sprites/cultist_walk.png",
-      "attack": "res://assets/sprites/cultist_attack.png",
-      "special": "res://assets/sprites/cultist_cast.png",
-      "death": "res://assets/sprites/cultist_death.png"
-    }
+    "like": "cultist",
+    "tint": "#c8b4ff"
   },
   "attacks": [
     {

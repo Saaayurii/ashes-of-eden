@@ -53,7 +53,8 @@ def seal(pal, turn, glow, crack=0.0, flash=0.0, spread=0.0, fade=1.0):
     # the ring, broken into eight arcs so a crack can pull them apart
     for k in range(8):
         start = k * 45 + turn * 0.5
-        push = spread * (10 + (k * 37) % 9) * SCALE
+        # the arcs part, but stay inside the cell: the burst of shards is Fx's
+        push = spread * (2 + (k * 37) % 3) * SCALE
         mid = math.radians(start + 22.5)
         dx, dy = math.cos(mid) * push, math.sin(mid) * push
         box = [c - outer + dx, c - outer + dy, c + outer + dx, c + outer + dy]

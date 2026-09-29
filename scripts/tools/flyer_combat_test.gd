@@ -44,7 +44,7 @@ func _run() -> void:
 	enemy.take_damage(0.1, player, {"crit": true, "knockback": 10.0})
 	assert(absf(enemy._knockback.x) <= 190.0, "Flyer can still be launched too far")
 	enemy._knockback = Vector2.ZERO
-	enemy.global_position = player.global_position + Vector2(-42, -46)
+	enemy.global_position = player.global_position + Vector2(-60, -46)
 	enemy._fly_phase_left = 999.0
 	enemy._fly_phase = 0
 	enemy._chase(player.global_position - enemy.global_position, 1.0 / 60.0)
@@ -52,6 +52,12 @@ func _run() -> void:
 	enemy._fly_phase = 1
 	enemy._chase(player.global_position - enemy.global_position, 1.0 / 60.0)
 	assert(enemy.velocity.x < 0.0, "Flyer does not retreat in its far phase")
+	# parked on the body with nothing to strike: it is pushed off, not left there
+	enemy._fly_phase = 0
+	enemy._attack_cd = 1.5
+	enemy.global_position = player.global_position + Vector2(-6, -14)
+	enemy._chase(player.global_position - enemy.global_position, 1.0 / 60.0)
+	assert(enemy.velocity.x < 0.0 and enemy.velocity.y < 0.0, "Flyer stays parked on the body")
 	print("FLYER_COMBAT_OK")
 	player.queue_free()
 	enemy.queue_free()

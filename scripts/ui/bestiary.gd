@@ -292,6 +292,10 @@ func _set_portrait(stats: Dictionary, known: bool) -> void:
 	if not stats.has("sprite"):
 		return
 	var spec: Dictionary = stats.sprite
+	if spec.has("like"):  # another creature's strips (Enemy._setup_sprite)
+		var borrowed: Dictionary = Data.enemies.get(str(spec.like), {}).get("sprite", {}).duplicate(true)
+		borrowed.merge(spec, true)
+		spec = borrowed
 	var frames := SpriteFrames.new()
 	var cell := Vector2i(int(spec.get("frame_w", 24)), int(spec.get("frame_h", 28)))
 	if spec.has("cell"):
@@ -302,6 +306,7 @@ func _set_portrait(stats: Dictionary, known: bool) -> void:
 	sprite.sprite_frames = frames
 	sprite.set_meta("cell", cell)
 	sprite.modulate = Color.WHITE if known else SILHOUETTE
+	sprite.self_modulate = Color(str(spec.get("tint", "#ffffff")))
 	sprite.visible = true
 	sprite.play("idle")
 	_place_sprite()

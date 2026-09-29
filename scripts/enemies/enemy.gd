@@ -64,6 +64,15 @@ const SIGHT_DEFAULTS := {
 	"flyer": [260.0, 150.0, 48.0],
 }
 const PATROL_DEFAULTS := {"radius": 110.0, "speed": 0.45, "pause": [0.8, 2.4]}
+## Spacing (docs/ENEMY_AI.md). How many walkers on one side of a player may
+## step in to strike at once; the rest wait, each further back by CROWD_STEP.
+const ATTACKERS_PER_SIDE := 2
+const CROWD_STEP := 22.0
+## A flyer hovers at least this far from the player it hunts, and is pushed off
+## anyone's body inside PERSONAL_SPACE unless it is mid-attack.
+const FLYER_MIN_GAP := 48.0
+const PERSONAL_SPACE := 36.0
+const FLOCK_SPACE := 30.0
 
 @export var enemy_id: String = "possessed_villager"
 ## Set by the spawner for reinforcements: they arrive already fighting.
@@ -88,6 +97,9 @@ var _attack: Dictionary = {}  # the one being performed
 ## Index in _attacks of the last wind-up begun. Repeats are less likely when
 ## another move is in range, but never impossible. Host-only choice.
 var _last_attack := -1
+## How many times in a row _last_attack has been chosen: a third time is
+## refused while anything else is in range.
+var _repeats := 0
 ## Its own dice for the choice, so a test can seed it.
 var attack_rng := RandomNumberGenerator.new()
 var _telegraph_tween: Tween
@@ -112,6 +124,14 @@ var _retreat_speed := 0.7
 var _fly_phase := 0
 var _fly_phase_left := 0.0
 var _lunge_dir := Vector2.ZERO
+## Between blows a walker keeps a distance it picks now and then inside its
+## band (_pace_goal); _band_depth is how deep this one's band is.
+var _pace_goal := 0.0
+var _pace_left := 0.0
+var _band_depth := 36.0
+## How many of its kind stand between it and its target on its side (walkers)
+## or hunt the same player (flyers). Recounted with the target.
+var _crowd_rank := 0
 var _summoned := false
 var _home := Vector2.ZERO  # where it was spawned; the patrol is around this
 var _patrol_goal := Vector2.ZERO
@@ -171,6 +191,7 @@ func _ready() -> void:
 	_attack_cd = randf_range(0.3, 1.0)  # not everyone swings on frame one
 	_retreat_distance = randf_range(28.0, 48.0)
 	_retreat_speed = randf_range(0.55, 0.8)
+	_band_depth = randf_range(26.0, 52.0)
 	_fly_phase = randi() % 2
 	_fly_phase_left = randf_range(0.9, 1.7)
 	var size := float(stats.get("size", 12))
@@ -221,6 +242,14 @@ func is_unaware() -> bool:
 
 
 func _setup_sprite(spec: Dictionary) -> void:
+	# "like": another creature's strips and cell (a cult caller is a cultist in
+	# another robe); "tint" colours the drawing, not the telegraph flashes.
+	if spec.has("like"):
+		var borrowed: Dictionary = Data.enemies.get(str(spec.like), {}).get("sprite", {}).duplicate(true)
+		for key in spec:
+			if key != "like":
+				borrowed[key] = spec[key]
+		spec = borrowed
 	var frames := SpriteFrames.new()
 	var cell := Vector2i(int(spec.get("frame_w", 24)), int(spec.get("frame_h", 28)))
 	if spec.has("cell"):
@@ -243,6 +272,11 @@ func _setup_sprite(spec: Dictionary) -> void:
 	# strips keep one transparent row under the feet. Anything less than +12 here
 	# and the whole bestiary hovers a few pixels above the ground.
 	sprite.position.y = -cell.y * art_scale / 2.0 + 12.0
+	# a flyer's strip padded above and below for a big spell keeps its body
+	# where it was (tools/art/build_bestiary_assets.py writes the padding)
+	sprite.position.y += float(spec.get("pad_y", 0)) * art_scale
+	if spec.has("tint"):
+		sprite.self_modulate = Color(str(spec.tint))
 	sprite.play("idle")
 	sprite.frame = randi() % maxi(1, frames.get_frame_count("idle"))  # desync the crowd
 	sprite.visible = true
@@ -292,6 +326,7 @@ func _physics_process(delta: float) -> void:
 	if _target == null or not is_instance_valid(_target) or _target.is_dead() or _retarget <= 0.0:
 		_retarget = RETARGET_INTERVAL
 		_acquire_target()
+		_crowd_rank = _count_crowd()
 	if _target == null:
 		return
 
@@ -302,6 +337,7 @@ func _physics_process(delta: float) -> void:
 			if _attack_cd <= 0.0:
 				var choice := _choose_attack(to_target)
 				if choice >= 0:
+					_repeats = _repeats + 1 if choice == _last_attack else 0
 					_last_attack = choice
 					_attack = _attacks[choice]
 					_begin_windup(to_target)
@@ -533,14 +569,30 @@ func _chase(to_target: Vector2, delta: float) -> void:
 			if _fly_phase_left <= 0.0:
 				_fly_phase = 1 - _fly_phase
 				_fly_phase_left = randf_range(1.0, 2.0)
-			# Advance, then drift out and higher; each flyer has its own timing.
+			# It hovers on a ring around the player, out of the way of the sword
+			# and never parked on the body: in, then out and higher, each flyer on
+			# its own timing and a little further out than the one before it.
 			var side := signf(to_target.x) if absf(to_target.x) > 4.0 else float(facing)
-			var distance := float(stats.get("hover_distance", 60.0)) + (30.0 if _fly_phase == 1 else -12.0)
-			var height := 32.0 + 17.0 * _fly_phase
+			var distance := maxf(FLYER_MIN_GAP, float(stats.get("hover_distance", 60.0))) \
+				+ (34.0 if _fly_phase == 1 else 0.0) + 16.0 * _crowd_rank
+			var height := 34.0 + 18.0 * _fly_phase + 10.0 * _crowd_rank
+			var pecking := false
+			if _disengage_left > 0.0:
+				distance += 60.0  # it struck: out and up before anything else
+				height += 26.0
+			elif _attack_cd <= 0.3:
+				var reach := _melee_reach()
+				if reach > 0.0:
+					pecking = true  # an attack run: in to its beak's reach at head height
+					distance = reach * 0.7
+					height = 16.0
 			var goal := to_target - Vector2(side * distance, height)
 			if goal.length() > 6.0:
 				chase = goal.normalized() * minf(speed, goal.length() * 3.0)
 			chase.y += sin(_bob) * 18.0
+			if not pecking:
+				chase += _personal_space(to_target) * speed * 2.0
+			chase += _flock() * speed
 			velocity = chase + _knockback
 		"boss_ophanim":
 			_bob += delta * 2.0
@@ -589,12 +641,16 @@ func _chase(to_target: Vector2, delta: float) -> void:
 				var retreat_dir := -signf(to_target.x)
 				if absf(to_target.x) < stop_at + _retreat_distance and not _ledge_behind(retreat_dir):
 					chase.x = retreat_dir * speed * _retreat_speed
-			else:
-				var stance := stop_at
-				if _attack_cd > 0.3 and melee_range > 0.0:
-					stance = maxf(stance, melee_range + 8.0)
-				if absf(to_target.x) < aggro and absf(to_target.x) > stance:
+			elif melee_range <= 0.0 or stats.get("boss", false):
+				# a shooter holds its range; a boss simply comes on
+				if absf(to_target.x) < aggro and absf(to_target.x) > stop_at:
 					chase.x = signf(to_target.x) * speed
+			elif _attack_cd <= 0.3 and _crowd_rank < ATTACKERS_PER_SIDE:
+				# a blow is ready and it is its turn: in to striking distance
+				if absf(to_target.x) < aggro and absf(to_target.x) > stop_at:
+					chase.x = signf(to_target.x) * speed
+			else:
+				chase.x = _keep_distance(to_target, melee_range, speed, aggro, delta)
 			velocity.x = chase.x + _knockback.x
 			velocity.y += _knockback.y
 	if absf(to_target.x) > 4.0:
@@ -609,9 +665,90 @@ func _hold(delta: float) -> void:
 			# _knockback already represents the full impulse; adding it to last
 			# frame's velocity again made flyers accelerate away without bound.
 			velocity = _knockback
+			if state == State.RECOVER and _target != null and is_instance_valid(_target):
+				# a lunge that ended on the player does not stay there
+				velocity += _personal_space(_target.global_position - global_position) * 90.0
 		_:
 			velocity.x = _knockback.x
 			velocity.y += 1100.0 * delta
+
+
+## Between blows: a walker holds a distance just outside its reach, paced
+## in and out now and then, further back for each of its kind ahead of it on
+## this side (so a crowd forms a queue, not a stack). Returns the x speed.
+func _keep_distance(to_target: Vector2, melee_range: float, speed: float, aggro: float, delta: float) -> float:
+	var gap := absf(to_target.x)
+	var toward := signf(to_target.x)
+	var band_in := melee_range + 12.0 + CROWD_STEP * _crowd_rank
+	_pace_left -= delta
+	if _pace_left <= 0.0 or _pace_goal < band_in or _pace_goal > band_in + _band_depth:
+		_pace_left = randf_range(0.6, 1.4)
+		_pace_goal = band_in + randf_range(0.0, _band_depth)
+	if gap < _pace_goal - 6.0:
+		if not _ledge_behind(-toward):
+			return -toward * speed * 0.55  # a step back, still facing the player
+	elif gap > _pace_goal + 6.0 and gap < aggro:
+		return toward * speed * 0.7
+	return 0.0
+
+
+## How many of its kind are ahead of it: walkers between it and its target
+## on the same side and level, or flyers hunting the same player.
+func _count_crowd() -> int:
+	if _target == null or stats.get("boss", false):
+		return 0
+	var flying := _is_flying()
+	var side := signf(global_position.x - _target.global_position.x)
+	var gap := absf(global_position.x - _target.global_position.x)
+	var rank := 0
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var other := node as Enemy
+		if other == null or other == self or other.is_dead() or other.is_unaware() \
+				or other._target != _target or other._is_flying() != flying or other.stats.get("boss", false):
+			continue
+		if flying:
+			rank += 1 if other.get_instance_id() < get_instance_id() else 0
+			continue
+		if signf(other.global_position.x - _target.global_position.x) != side \
+				or absf(other.global_position.y - global_position.y) > 40.0:
+			continue
+		var other_gap := absf(other.global_position.x - _target.global_position.x)
+		if other_gap < gap or (other_gap == gap and other.get_instance_id() < get_instance_id()):
+			rank += 1
+	return rank
+
+
+## The longest melee reach among its attacks, 0 without one.
+func _melee_reach() -> float:
+	var reach := 0.0
+	for attack in _attacks:
+		if attack.get("type") == "melee":
+			reach = maxf(reach, float(attack.get("range", 30)))
+	return reach
+
+
+## A flyer inside a player's personal space is pushed off the body, harder
+## the deeper it is: flying past is fine, parking on top is not.
+func _personal_space(to_target: Vector2) -> Vector2:
+	var chest := to_target + Vector2(0, -12)
+	var depth := chest.length()
+	if depth >= PERSONAL_SPACE:
+		return Vector2.ZERO
+	var away := -chest.normalized() if depth > 0.5 else Vector2(-float(facing), -1.0).normalized()
+	return away * (1.0 - depth / PERSONAL_SPACE)
+
+
+## Flyers keep off one another, so a flock reads as several birds.
+func _flock() -> Vector2:
+	var push := Vector2.ZERO
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var other := node as Enemy
+		if other == null or other == self or other.is_dead() or not other._is_flying():
+			continue
+		var apart := global_position - other.global_position
+		if apart.length() < FLOCK_SPACE:
+			push += (apart.normalized() if apart.length() > 0.5 else Vector2.UP) * (1.0 - apart.length() / FLOCK_SPACE)
+	return push
 
 
 ## Weighted random among the attacks whose range and phase conditions hold.
@@ -636,6 +773,8 @@ func _choose_attack(to_target: Vector2) -> int:
 			candidates.append(i)
 	if candidates.is_empty():
 		return -1
+	if candidates.size() > 1 and _repeats >= 1:
+		candidates.erase(_last_attack)  # twice is a habit, three times a loop
 	var total := 0.0
 	for i in candidates:
 		var weight := maxf(0.0, float(_attacks[i].get("weight", 1.0)))
@@ -723,7 +862,7 @@ func _strike(to_target: Vector2) -> void:
 	_attack_cd = float(_attack.get("cooldown", 1.5))
 	if _sealed:
 		_attack_cd *= float(stats.get("seal_phase", {}).get("sealed_cooldown", 1.6))
-	if _attack.get("type") == "melee" and not stats.get("boss", false):
+	if _attack.get("type") in ["melee", "lunge"] and not stats.get("boss", false):
 		# Include the strike and recovery in the timer, leaving a visible
 		# backstep once CHASE resumes without delaying the next ready attack.
 		_disengage_left = minf(_attack_cd * 0.8,
@@ -829,7 +968,9 @@ func _net_clear_beam() -> void:
 
 func _nova_fx(radius: float, color: String) -> void:
 	Fx.flash(global_position + Vector2(0, -8), Color(color), radius, 0.45, 1.2)
-	Fx.puff(global_position + Vector2(0, -8), radius / 40.0, Color(color))
+	# the ring runs out to exactly where the blast hurts; the smoke stays small
+	Fx.ring(global_position + Vector2(0, -8), radius, Color(color), 0.35)
+	Fx.puff(global_position + Vector2(0, -8), 0.9, Color(color))
 	Juice.shake(4.0)
 
 
@@ -857,6 +998,13 @@ func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool) -> v
 	projectile.cosmetic = cosmetic
 	get_parent().add_child(projectile)
 	projectile.global_position = origin
+	_cast_flare(origin, projectile.tint)
+
+
+## The spark at the hand as a bolt leaves it, on every peer.
+func _cast_flare(origin: Vector2, tint: Color) -> void:
+	Fx.flash(origin, tint, 26.0, 0.14, 0.9)
+	Fx.impact(origin, Vector2(facing, 0), tint, 5)
 
 
 ## Bolts fly straight at a constant speed, so a client can draw its own copy
@@ -872,6 +1020,7 @@ func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: S
 	projectile.cosmetic = true
 	get_parent().add_child(projectile)
 	projectile.global_position = origin
+	_cast_flare(origin, projectile.tint)
 
 
 func _projectile_style() -> String:
@@ -1076,6 +1225,9 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 			_set_state(State.RECOVER, float(stats.get("flinch", 0.18)))
 			_attack_cd = maxf(_attack_cd, _state_left + HIT_ATTACK_DELAY)
 			_play("idle")
+			# and now and then it gives ground rather than trade blows
+			if randf() < float(stats.get("hit_retreat", 0.35)):
+				_disengage_left = maxf(_disengage_left, randf_range(0.4, 0.7))
 	if hp > 0.0:
 		_play("hurt")
 	if seal_now:
@@ -1398,12 +1550,16 @@ func _die() -> void:
 	contact_area.monitoring = false
 	attack_area.monitoring = false
 	hp_bar.visible = false
-	Fx.puff(global_position + Vector2(0, -8), 1.6 if is_boss else 0.8)
+	# What it leaves is what it was made of (Fx.REMAINS): blood, rags, shards,
+	# wisps, feathers, stars.
+	var material := str(stats.get("material", "cloth"))
+	var own := Color(stats.get("light", {}).get("color", stats.get("color", "#b0a0a0"))) \
+		if material in ["spirit", "gold"] else Color(stats.get("color", "#b0a0a0"))
+	Fx.remains(global_position + Vector2(0, -10), material, own, 2.5 if is_boss else 1.0)
 	# Cosmetic essence has its own readable allegiance; the numeric reward above
 	# is unchanged. Possession and undeath override a human origin.
 	var dark := _soul_affinity() == "dark"
 	var tint := Color(0.57, 0.37, 0.79) if dark else Color(1.0, 0.88, 0.61)
-	Fx.ash(global_position + Vector2(0, -8), tint, 18 if is_boss else 7, 65.0 if dark else 42.0, 14.0 if is_boss else 8.0)
 	Fx.essence_release(global_position + Vector2(0, -10), dark, 19 if is_boss else 9)
 	Fx.flash(global_position + Vector2(0, -8), tint, 140.0 if is_boss else 60.0, 0.9 if is_boss else 0.4)
 	if _shadow != null:

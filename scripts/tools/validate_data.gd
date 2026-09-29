@@ -26,6 +26,8 @@ const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh
 	"wrath_after_hit", "desperate_crit_heal"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
+## The animated bolts (Projectile.FLIGHT_FPS); a ranged enemy attack names one.
+const FLIGHT_STYLES := ["wraith", "zealot", "acolyte", "preacher", "cult", "ash", "ophanim"]
 const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
 const PROP_KINDS := ["destructible", "chest"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
@@ -91,6 +93,7 @@ func _init() -> void:
 	for id in _load_entries("res://data/chapters"):
 		_chapter_ids[id.get("id", "")] = true
 	_check_enemy_archetypes()
+	_check_enemy_strips()
 	for collection in REQUIRED:
 		var entries := _load_entries("res://data".path_join(collection))
 		counts[collection] = entries.size()
@@ -501,6 +504,45 @@ func _check_enemy_archetypes() -> void:
 					_error("%s: sprite file not found: %s" % [where, path])
 
 
+## Every strip a creature plays is cut on its cell, as merged (base file plus
+## archetype): a width that is not a whole number of frames plays a sliver of
+## the next pose, a wrong height slides the feet off the floor. Every bolt it
+## throws is one of the animated flights, not the static fallback.
+func _check_enemy_strips() -> void:
+	# merged the way Data merges them (-s runs before the autoloads exist)
+	var enemies := {}
+	for entry in _load_entries("res://data/enemies"):
+		enemies[entry.get("id", "")] = entry.duplicate(true)
+	for overlay in _load_entries("res://data/enemy_archetypes"):
+		var base: Dictionary = enemies.get(overlay.get("id", ""), {})
+		for key in overlay:
+			if key == "sprite" and base.get("sprite") is Dictionary:
+				base.sprite.merge(overlay.sprite, true)
+			elif key != "id":
+				base[key] = overlay[key]
+		if overlay.has("attacks"):
+			base.erase("attack")
+	for id in enemies:
+		var spec: Dictionary = enemies[id].get("sprite", {})
+		if spec.has("like"):
+			spec = enemies.get(str(spec.like), {}).get("sprite", {})
+		if spec.has("animations") and spec.has("cell"):
+			var cell := Vector2i(int(spec.cell[0]), int(spec.cell[1]))
+			for anim in spec.animations:
+				var texture = load(str(spec.animations[anim]))
+				if texture == null:
+					continue
+				var size: Vector2i = texture.get_size()
+				if size.x % cell.x != 0 or size.y != cell.y:
+					_error("enemies/%s: %s is %dx%d, not whole %dx%d frames" % [id, anim, size.x, size.y, cell.x, cell.y])
+		var attacks: Array = enemies[id].get("attacks", [])
+		if enemies[id].has("attack"):
+			attacks = attacks + [enemies[id].attack]
+		for attack in attacks:
+			if attack.get("type") == "ranged" and not FLIGHT_STYLES.has(str(attack.get("projectile_style", ""))):
+				_error("enemies/%s: a ranged attack needs a projectile_style from %s" % [id, FLIGHT_STYLES])
+
+
 ## Every step is a known kind with its required fields; actors and dialogue
 ## ids must exist; a scene that holds the controls must give them back.
 func _check_cutscene(entry: Dictionary, where: String) -> void:
@@ -555,6 +597,10 @@ func _check_actor(who: Variant, where: String) -> void:
 
 
 func _check_sprite(sprite: Dictionary, where: String) -> void:
+	if sprite.has("like"):
+		if not _enemy_ids.has(str(sprite.like)):
+			_error("%s: sprite.like names unknown enemy \"%s\"" % [where, sprite.like])
+		return
 	if sprite.has("animations"):
 		if not sprite.has("cell") or sprite.cell.size() != 2:
 			_error("%s: sprite.cell must be [w, h]" % where)

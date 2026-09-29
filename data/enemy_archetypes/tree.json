@@ -54,8 +54,8 @@
     ],
     "sprite": {
       "cell": [
-        64,
-        64
+        96,
+        68
       ],
       "fps": 9,
       "animations": {
@@ -126,8 +126,8 @@
     ],
     "sprite": {
       "cell": [
-        72,
-        64
+        108,
+        71
       ],
       "fps": 9,
       "animations": {
@@ -176,7 +176,8 @@
         "projectile_speed": 175,
         "weight": 3,
         "animation": "attack_alt",
-        "color": "#b45a82"
+        "color": "#b45a82",
+        "projectile_style": "cult"
       },
       {
         "name": "Profane Chorus",
@@ -191,13 +192,14 @@
         "weight": 1,
         "animation": "special",
         "color": "#8d4aae",
-        "sfx": "cultist_special"
+        "sfx": "cultist_special",
+        "projectile_style": "cult"
       }
     ],
     "sprite": {
       "cell": [
-        64,
-        64
+        116,
+        70
       ],
       "fps": 9,
       "animations": {
@@ -235,7 +237,8 @@
         "projectile_speed": 175,
         "weight": 4,
         "animation": "attack",
-        "color": "#ffd27a"
+        "color": "#ffd27a",
+        "projectile_style": "zealot"
       },
       {
         "name": "Threefold Gospel",
@@ -249,7 +252,8 @@
         "spread": 22,
         "weight": 2,
         "animation": "attack_alt",
-        "color": "#fff1ad"
+        "color": "#fff1ad",
+        "projectile_style": "zealot"
       },
       {
         "name": "Martyr Sun",
@@ -270,8 +274,8 @@
     ],
     "sprite": {
       "cell": [
-        64,
-        72
+        124,
+        79
       ],
       "fps": 9,
       "animations": {
@@ -341,8 +345,8 @@
     ],
     "sprite": {
       "cell": [
-        72,
-        72
+        132,
+        75
       ],
       "fps": 9,
       "animations": {
@@ -413,8 +417,8 @@
     ],
     "sprite": {
       "cell": [
-        96,
-        80
+        200,
+        92
       ],
       "fps": 9,
       "animations": {
@@ -486,8 +490,8 @@
     ],
     "sprite": {
       "cell": [
-        128,
-        96
+        236,
+        112
       ],
       "fps": 9,
       "animations": {
@@ -557,8 +561,8 @@
     ],
     "sprite": {
       "cell": [
-        80,
-        56
+        92,
+        64
       ],
       "fps": 9,
       "animations": {
@@ -570,7 +574,8 @@
         "hurt": "res://assets/sprites/raven_v2_hurt.png",
         "death": "res://assets/sprites/raven_v2_death.png"
       },
-      "scale": 0.78
+      "scale": 0.78,
+      "pad_y": 4
     }
   },
   {
@@ -607,7 +612,8 @@
         "projectile_speed": 185,
         "weight": 3,
         "animation": "attack_alt",
-        "color": "#a16cde"
+        "color": "#a16cde",
+        "projectile_style": "cult"
       },
       {
         "name": "Nameless Pulse",
@@ -627,8 +633,8 @@
     ],
     "sprite": {
       "cell": [
-        64,
-        64
+        132,
+        88
       ],
       "fps": 9,
       "animations": {
@@ -640,7 +646,8 @@
         "hurt": "res://assets/sprites/shade_v2_hurt.png",
         "death": "res://assets/sprites/shade_v2_death.png"
       },
-      "scale": 0.74
+      "scale": 0.74,
+      "pad_y": 12
     }
   },
   {
@@ -666,7 +673,8 @@
         "projectile_speed": 165,
         "weight": 4,
         "animation": "attack",
-        "color": "#7dffc4"
+        "color": "#7dffc4",
+        "projectile_style": "wraith"
       },
       {
         "name": "Widow's Fan",
@@ -680,7 +688,8 @@
         "spread": 34,
         "weight": 2,
         "animation": "attack_alt",
-        "color": "#59dca8"
+        "color": "#59dca8",
+        "projectile_style": "wraith"
       },
       {
         "name": "Last Breath",
@@ -752,7 +761,8 @@
         "spread": 18,
         "weight": 2,
         "animation": "attack_alt",
-        "color": "#fff1c2"
+        "color": "#fff1c2",
+        "projectile_style": "preacher"
       },
       {
         "name": "Congregation of Light",
@@ -773,8 +783,8 @@
     ],
     "sprite": {
       "cell": [
-        80,
-        88
+        156,
+        92
       ],
       "fps": 9,
       "animations": {
@@ -867,7 +877,7 @@
     ],
     "sprite": {
       "cell": [
-        128,
+        244,
         128
       ],
       "fps": 9,

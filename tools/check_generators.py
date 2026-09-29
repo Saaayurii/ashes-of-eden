@@ -36,6 +36,10 @@ GENERATORS = [
       "assets/audio/music/layer_will.wav"], False),
     ("secret walls", ["tools/art/make_secret_walls.py"],
      ["assets/props"], False),
+    # The bestiary's strips, cut from the generated atlases, and the cell each
+    # one writes into the archetype tree. About 30 seconds.
+    ("bestiary strips", ["tools/art/build_bestiary_assets.py"],
+     ["assets/sprites", "assets/portraits", "data/enemy_archetypes/tree.json"], False),
     ("ophanim seals", ["tools/art/make_ophanim_seals.py"],
      ["assets/sprites/ophanim_seal_idle.png", "assets/sprites/ophanim_seal_hurt.png",
       "assets/sprites/ophanim_seal_death.png"], False),

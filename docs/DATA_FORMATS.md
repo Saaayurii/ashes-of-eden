@@ -86,7 +86,9 @@ without duplicating the base health and movement record.
   the enemy spends glowing and standing still; that is the window to roll through. Hitting an enemy during its
   wind-up may stagger it (`stagger_chance`). When several attacks are in range one is picked by `weight`.
   - `{"type": "melee", "range": 34, "reach": 40, "windup": 0.42, "damage": 16, "cooldown": 1.1, "recover": 0.3}`
-  - `{"type": "ranged", "range": 260, "windup": 0.75, "damage": 10, "cooldown": 2.2, "projectile_speed": 160, "color": "#ffd27a"}`
+  - `{"type": "ranged", "range": 260, "windup": 0.75, "damage": 10, "cooldown": 2.2, "projectile_speed": 160, "projectile_style": "zealot", "color": "#ffd27a"}` —
+    `projectile_style` is one of the animated flights (`wraith` · `zealot` · `acolyte` · `preacher` · `cult` · `ash` · `ophanim`,
+    `scripts/fx/projectile.gd`); the validator refuses a ranged enemy attack without one.
   - `{"type": "lunge", "range": 420, "windup": 0.8, "damage": 20, "cooldown": 2.6, "lunge_speed": 430, "lunge_time": 0.45}`
   - `{"type": "beam", "range": 460, "windup": 1.1, "damage": 24, "cooldown": 3.4, "length": 440, "thickness": 26, "duration": 0.5, "color": "#ffd66a"}` —
     a cross of light through the enemy; only chosen when the player is near one of its axes. Thin lines during
@@ -97,6 +99,8 @@ without duplicating the base health and movement record.
   long it stands at each end. Defaults are per behaviour (flyers see further and higher). `aware: true` skips all that.
   A hit on an enemy that has not noticed anyone is a backstab (docs/BALANCE.md).
 - `behaviour: "caster"` is a walker that backs away from a player closer than `keep_away` (px, default 90), never off a ledge.
+- How walkers and flyers keep their distance, queue up and give ground is docs/ENEMY_AI.md. `hit_retreat`
+  (optional, default 0.35) is the chance a walker backs off after a hit instead of coming straight on.
 - Attack type `summon`: `{"type": "summon", "id": "shade", "count": 2, "max_alive": 3, "range": 320, "windup": 1.1, "damage": 1, "cooldown": 6}` —
   after the wind-up calls `count` of `id` out of the ground beside it, never more than `max_alive` about (the Cult caller).
 - `light` (optional): `{"color": "#5fe0b0", "radius": 56, "energy": 0.8, "flicker": 0.1}` — a `GlowLight`
@@ -128,6 +132,12 @@ during the wind-up, `death` plays instead of the ash squash):
 "sprite": {"cell": [32, 40], "fps": 9, "animations": {
   "idle": "res://assets/sprites/cultist_idle.png", "walk": "...", "attack": "...", "death": "..."}}
 ```
+
+Every strip is a whole number of `cell`s wide and exactly one cell tall (the validator checks it on the merged
+data). The bestiary's strips are cut by `tools/art/build_bestiary_assets.py`, which also writes their `cell` (and,
+for a flyer whose strip it had to pad above and below, `pad_y`, which keeps the body over its hitbox) into
+`data/enemy_archetypes/tree.json`: regenerate, never edit those by hand. `"like": "cultist"` borrows another
+creature's strips and cell; `"tint": "#c8b4ff"` colours the drawing (the Cult caller is a cultist in another robe).
 
 Optional `unlock_nights`: the night this gift starts appearing on. `"unlock_nights": 3` keeps it out
 of the pool entirely until the profile has finished three runs, so a later night can hold a card an
