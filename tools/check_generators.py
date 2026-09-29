@@ -47,6 +47,9 @@ GENERATORS = [
     # not in its table is undone by the next regeneration. About 20 seconds.
     ("rooms", ["tools/rooms/generate_rooms.py"],
      ["scenes/rooms", "assets/levels"], False),
+    ("practice yard", ["tools/art/make_practice_yard.py"],
+     ["assets/backgrounds/practice_yard.png", "assets/decor/practice",
+      "assets/sprites/training_dummy_idle.png", "assets/sprites/training_dummy_hurt.png"], False),
     ("web gate", ["tools/art/make_web_gate.py"],
      ["tools/web/shell.html"], False),
     ("cjk subset", ["tools/art/make_cjk_font.py"],

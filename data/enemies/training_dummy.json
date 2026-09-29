@@ -1,0 +1,27 @@
+{
+  "id": "training_dummy",
+  "name": "ENEMY_TRAINING_DUMMY",
+  "lore": "ENEMY_TRAINING_DUMMY_LORE",
+  "hp": 300,
+  "speed": 0,
+  "damage": 0,
+  "behaviour": "dummy",
+  "size": 14,
+  "color": "#a08458",
+  "material": "cloth",
+  "tags": [],
+  "aware": true,
+  "bestiary": false,
+  "sprite": {
+    "cell": [
+      32,
+      40
+    ],
+    "fps": 12,
+    "animations": {
+      "idle": "res://assets/sprites/training_dummy_idle.png",
+      "hurt": "res://assets/sprites/training_dummy_hurt.png"
+    }
+  },
+  "essence": 0
+}

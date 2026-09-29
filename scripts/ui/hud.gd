@@ -124,6 +124,9 @@ func _update_rally_mark() -> void:
 
 
 func _on_room_started(index: int) -> void:
+	if Game.practice != "":
+		wave_label.text = tr("PRACTICE_HUD") % tr(str(Data.enemies.get(Game.practice, {}).get("name", Game.practice)))
+		return
 	wave_label.text = tr("HUD_AREA") % index
 
 

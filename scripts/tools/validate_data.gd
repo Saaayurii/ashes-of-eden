@@ -24,7 +24,7 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
-const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal"]
+const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
 ## The animated bolts (Projectile.FLIGHT_FPS); a ranged enemy attack names one.
 const FLIGHT_STYLES := ["wraith", "zealot", "acolyte", "preacher", "cult", "ash", "ophanim"]

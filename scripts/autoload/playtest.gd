@@ -146,7 +146,7 @@ func _on_gift(ability: Dictionary) -> void:
 
 
 func _write(kind: String, fields: Dictionary) -> void:
-	if not _active or _file == null:
+	if not _active or _file == null or Game.practice != "":  # practice is not a night
 		return
 	fields["e"] = kind
 	fields["t"] = snappedf(_clock, 0.1)

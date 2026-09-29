@@ -55,7 +55,7 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0) -> void:
 ## every peer of a session (spawns and deaths are replicated), so a guest keeps
 ## their own book. A dedicated referee has no book to keep.
 func record_seen(enemy_id: String) -> void:
-	if Net.dedicated or enemy_id == "":
+	if Net.dedicated or enemy_id == "" or Game.practice != "":
 		return
 	var entry: Dictionary = data.bestiary.get(enemy_id, {})
 	if entry.get("seen", false):
@@ -69,7 +69,8 @@ func record_seen(enemy_id: String) -> void:
 
 
 func record_kill(enemy_id: String) -> void:
-	if Net.dedicated or enemy_id == "":
+	# a practice kill fills no book and unlocks no cloak (skins count kills)
+	if Net.dedicated or enemy_id == "" or Game.practice != "":
 		return
 	var entry: Dictionary = data.bestiary.get(enemy_id, {})
 	entry["seen"] = true

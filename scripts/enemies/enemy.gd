@@ -148,6 +148,8 @@ var _sealed := false
 var _seal_done := false
 ## The damage phase after the seals break: open, low, not attacking.
 var _exposed_left := 0.0
+## A training dummy's quiet time left before it is whole again.
+var _dummy_rest := 0.0
 var _ward: Line2D
 
 @onready var body: ColorRect = $Body
@@ -311,6 +313,19 @@ func _physics_process(delta: float) -> void:
 	if stats.get("behaviour", "walker") == "seal":
 		# it hangs where it was set; a blow only plays its crack
 		velocity = Vector2.ZERO
+		if not sprite.is_playing():
+			_play("idle")
+		return
+	if stats.get("behaviour", "walker") == "dummy":
+		# the practice yard's straw man: it stands, rocks when struck, and
+		# fills up again once left alone (_apply_damage keeps it standing)
+		_hold(delta)
+		_knockback = _knockback.move_toward(Vector2.ZERO, 900.0 * delta)
+		move_and_slide()
+		_dummy_rest -= delta
+		if _dummy_rest <= 0.0 and hp < _max_hp:
+			hp = _max_hp
+			hp_bar.visible = false
 		if not sprite.is_playing():
 			_play("idle")
 		return
@@ -1207,6 +1222,9 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		crit = true
 	amount *= 1.0 - clampf(float(stats.get("armor", 0.0)), 0.0, 0.5)  # FinalDamage = Base × (1 − armor)
 	hp -= amount
+	if stats.get("behaviour", "walker") == "dummy":
+		hp = maxf(hp, 1.0)  # straw does not die; it shows the number and stands again
+		_dummy_rest = 2.0
 	var phase: Dictionary = stats.get("seal_phase", {})
 	var seal_now := not phase.is_empty() and not _seal_done and hp <= _max_hp * float(phase.get("at_hp", 0.5))
 	if seal_now:
@@ -1552,10 +1570,11 @@ func _die() -> void:
 	state = State.DEAD
 	EventBus.enemy_died.emit(StringName(enemy_id), global_position)
 	var is_boss: bool = stats.get("boss", false)
-	if _simulated:
+	if _simulated and Game.practice == "":  # practice pays nothing
 		Game.add_essence(float(stats.get("essence", 10)))
 		if is_boss:
 			Game.ash_earned += int(stats.get("ash", 10))
+	if _simulated:  # but a corpse that bursts still bursts: that is what is practised
 		match stats.get("on_death", {}).get("type", ""):
 			"explode":
 				_explode(stats.on_death)

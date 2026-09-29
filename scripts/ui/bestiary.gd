@@ -14,6 +14,13 @@ class_name Bestiary
 
 signal closed
 
+## The main menu's bestiary may send the player to the practice yard to fight
+## a kind they have met (docs/PRACTICE.md); the pause menu's may not, since
+## that would walk out of the night being played.
+@export var allow_practice := false
+const RUN_SCENE := "res://scenes/run/run.tscn"
+var _practice: Button
+
 const UNKNOWN_NAME := "???"
 const DIM := Color(0.55, 0.53, 0.58)
 const GOLD := Color(0.95, 0.85, 0.5)
@@ -42,6 +49,12 @@ var _selected := ""
 
 func _ready() -> void:
 	back_button.pressed.connect(close)
+	_practice = Button.new()
+	_practice.name = "Practice"
+	_practice.text = tr("BESTIARY_PRACTICE")
+	_practice.visible = false
+	_practice.pressed.connect(_go_practise)
+	hint_label.add_sibling(_practice)
 	portrait.resized.connect(_place_sprite)
 
 
@@ -72,7 +85,8 @@ func _build_list() -> void:
 	for child in list.get_children():
 		list.remove_child(child)
 		child.queue_free()
-	_ids.assign(Data.enemies.keys())
+	# a practice dummy is not a creature of the world
+	_ids.assign(Data.enemies.keys().filter(func(id: String) -> bool: return Data.enemies[id].get("bestiary", true)))
 	_ids.sort_custom(func(a: String, b: String) -> bool:
 		var sa: Dictionary = Data.enemies[a]
 		var sb: Dictionary = Data.enemies[b]
@@ -165,6 +179,7 @@ func _show(id: String) -> void:
 	tags_label.text = ""
 	lore_label.text = ""
 	hint_label.text = ""
+	_practice.visible = allow_practice and seen and can_practise(id)
 	if not seen:
 		hint_label.text = tr("BESTIARY_HINT_NOTE" if id.begins_with("note:") else "BESTIARY_HINT_UNKNOWN")
 		return
@@ -204,6 +219,19 @@ func _show(id: String) -> void:
 	if stats.has("lore"):
 		lore_label.text = tr(stats.lore)
 	_show_abilities(stats)
+
+
+## Any creature met can be sparred with, bar the ones that are part of
+## another's fight (the Ophanim's seals) and the people and records.
+static func can_practise(id: String) -> bool:
+	if id.begins_with("npc:") or id.begins_with("note:") or not Data.enemies.has(id):
+		return false
+	return Data.enemies[id].get("behaviour", "walker") != "seal" and not Net.active
+
+
+func _go_practise() -> void:
+	Game.practice = _selected
+	Curtain.change_scene(RUN_SCENE)
 
 
 ## A record's page is the caption it was read out as, line after line.

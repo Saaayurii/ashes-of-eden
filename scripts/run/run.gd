@@ -33,6 +33,12 @@ const RARITY_WEIGHT := {"common": 55.0, "rare": 30.0, "epic": 12.0, "legendary":
 ## Ash for a room cleared without a wound, and for one where a boss stood.
 ## Chests pay 15, a boss 10–25: this is a tip for clean play, not a wage.
 const UNSCATHED_ASH := 3
+## The practice yard (docs/PRACTICE.md): not one of ROOMS, never saved, entered
+## from the bestiary with Game.practice set. Its room_index is PRACTICE_INDEX.
+const PRACTICE_ROOM := "res://scenes/rooms/practice_yard.tscn"
+const PRACTICE_INDEX := -1
+## A fallen sparring partner stands up again after this long.
+const PRACTICE_RESPAWN := 1.4
 const UNSCATHED_BOSS_ASH := 9
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
@@ -113,7 +119,9 @@ func _ready() -> void:
 		var save := Saves.take_pending()
 		_spawn_player(1, 0)
 		var jump := _requested_room()
-		if jump >= 0:
+		if Game.practice != "":
+			_go_to_room(PRACTICE_INDEX)
+		elif jump >= 0:
 			# Straight into a room to look at it: no prologue, no intro, no
 			# save, hero on his feet — the shape _resume_from already has.
 			# Said out loud: a mistyped name falls back to the first room, and
@@ -369,8 +377,13 @@ func _net_cover(index: int) -> void:
 	_draw_curtain(index)
 
 
+## The scene a room index stands for: one of ROOMS, or the practice yard.
+func _room_path(index: int) -> String:
+	return PRACTICE_ROOM if index == PRACTICE_INDEX else ROOMS[index]
+
+
 func _draw_curtain(index: int) -> void:
-	var chapter := Data.chapter_for(ROOMS[index])
+	var chapter := Data.chapter_for(_room_path(index))
 	# A place we have not been in gets the full page; another room of the same
 	# place gets the curtain and its name, and we walk on.
 	_pending_grand = not chapter.is_empty() and str(chapter.id) != _chapter_id
@@ -389,7 +402,7 @@ func _load_room(index: int) -> void:
 	var token := _load_token
 	transition.snap_closed()
 	_build_room(index)
-	var chapter := Data.chapter_for(ROOMS[index])
+	var chapter := Data.chapter_for(_room_path(index))
 	_chapter_id = str(chapter.get("id", ""))
 	Game.place = _chapter_id
 	_open_curtain(chapter, _pending_grand, token)
@@ -427,7 +440,7 @@ func _build_room(index: int) -> void:
 	_placed_for_room = -1
 	_dead_peers.clear()
 	Game.wave = index + 1
-	room = load(ROOMS[index]).instantiate()
+	room = load(_room_path(index)).instantiate()
 	room.name = "Room"  # the same node path on every peer
 	room.authoritative = _is_server()
 	room.spawn_hook = _spawn_enemy
@@ -436,11 +449,13 @@ func _build_room(index: int) -> void:
 	room.reopened.connect(_on_room_reopened)
 	room.exited.connect(_on_room_exited)
 	_place_local_player()
-	if not Net.active and player != null:
+	if not Net.active and player != null and index != PRACTICE_INDEX:
 		checkpoint = Saves.capture(ROOMS[index], kills, elapsed, player)
 		Saves.write(Saves.AUTO, checkpoint)
 	if _is_server():
 		room.populate()
+	if index == PRACTICE_INDEX:
+		_practice_begin()
 	EventBus.room_started.emit(room_index + 1)
 
 
@@ -461,6 +476,9 @@ func _place_local_player() -> void:
 
 
 func _on_room_cleared() -> void:
+	if room_index == PRACTICE_INDEX:
+		_practice_again()
+		return
 	EventBus.room_cleared.emit(room_index + 1)
 	if Net.active and multiplayer.is_server():
 		_net_room_cleared.rpc()
@@ -496,6 +514,9 @@ func _net_unscathed(amount: int) -> void:
 
 ## Cleared again after a rest: the way opens, and nothing else happens twice.
 func _on_room_reopened() -> void:
+	if room_index == PRACTICE_INDEX:
+		_practice_again()
+		return
 	if Net.active and multiplayer.is_server():
 		_net_door.rpc(true)
 
@@ -545,7 +566,7 @@ func _net_room_cleared() -> void:
 
 
 func _on_room_exited() -> void:
-	if _finished or _advancing:
+	if _finished or _advancing or room_index == PRACTICE_INDEX:
 		return
 	if _is_server():
 		_advance()
@@ -817,6 +838,9 @@ func _story_finished() -> void:
 # ------------------------------------------------------------------- death ---
 
 func _on_local_death(_body: Player) -> void:
+	if room_index == PRACTICE_INDEX:
+		_practice_revive()
+		return
 	if not Net.active:
 		_end_run(false)
 	else:
@@ -916,7 +940,50 @@ func _reload() -> void:
 	Curtain.change_scene("", true, func() -> void: get_tree().paused = false)
 
 
+# --------------------------------------------------------------- practice ---
+
+## The sparring partner stands where the yard wants it, already fighting: a
+## flyer up in the air, a walker on the floor across from the hero. The door
+## is not a way anywhere here; Escape → the pause menu is the way out.
+func _practice_begin() -> void:
+	room.door.visible = false
+	room.door.open = false
+	_practice_spawn()
+
+
+func _practice_spawn() -> void:
+	if room == null or not _is_server():
+		return
+	var spec: Dictionary = Data.enemies.get(Game.practice, {})
+	var flying: bool = spec.get("behaviour", "walker") in ["flyer", "boss_ophanim"]
+	var at: Vector2 = room.player_spawn.global_position + Vector2(room.width * 0.45, -70.0 if flying else -8.0)
+	room.spawn_enemy(Game.practice, at, true)
+
+
+## Down: the body clears away and another stands up. A boss lingering dimmed
+## over its corpse (Enemy._die) is taken off first, or it would stay forever.
+func _practice_again() -> void:
+	await get_tree().create_timer(PRACTICE_RESPAWN).timeout
+	if not is_inside_tree() or room == null or room_index != PRACTICE_INDEX:
+		return
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is Enemy and (node as Enemy).is_dead():
+			node.queue_free()
+	room.door.open = false
+	_practice_spawn()
+
+
+## Practice has no death: the hero is back on his feet at the yard's gate.
+func _practice_revive() -> void:
+	await get_tree().create_timer(1.0).timeout
+	if not is_inside_tree() or player == null or room_index != PRACTICE_INDEX:
+		return
+	player.revive(room.player_spawn.global_position, 1.0)
+	player.camera.reset_smoothing()
+
+
 func _to_menu() -> void:
+	Game.practice = ""
 	Curtain.change_scene(MENU_SCENE, false, func() -> void:
 		get_tree().paused = false
 		Net.leave())
