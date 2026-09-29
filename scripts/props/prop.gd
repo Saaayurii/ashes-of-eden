@@ -12,6 +12,9 @@ class_name Prop
 ##   reveals   a destructible that hides another prop (a bricked-up doorway and
 ##             the cache behind it): that prop appears where this one broke
 ##   still     masonry, not a barrel: no size/tint variation, no sway, no kick
+##   niche     a picture drawn behind the prop, bottom on its floor, that stays
+##             when it breaks: the doorway a secret wall bricks up, so it reads as
+##             a niche in the wall and the cache is found standing in it
 ##   note      a record (data/notes) read aloud as a caption and kept in the
 ##             bestiary; "ash" is paid only the first time it is found
 ## A prop is never an enemy: it does not count towards the room's kill count and
@@ -55,6 +58,8 @@ func _ready() -> void:
 		return
 	sprite.texture = texture
 	sprite.hframes = maxi(1, int(spec.get("frames", 4)))
+	if stats.has("niche"):
+		_add_niche(load(str(stats.niche)))
 	sprite.centered = false
 	# The strips reserve one or two transparent rows below the drawing. Place
 	# the lowest painted pixel, not the cell border, on the platform line.
@@ -100,6 +105,21 @@ func _ready() -> void:
 
 ## Ground the drawing, not a cell's transparent border. Frame zero also sets
 ## the authored baseline for opening, bursting and remains.
+## Behind everything the prop draws, and behind what it reveals (a sibling
+## added after it), but in front of the painting.
+func _add_niche(texture: Texture2D) -> void:
+	if texture == null:
+		push_warning("[Prop] missing niche for %s" % prop_id)
+		return
+	var niche := Sprite2D.new()
+	niche.name = "Niche"
+	niche.texture = texture
+	niche.centered = false
+	niche.offset = Vector2(-texture.get_width() / 2.0, -texture.get_height())
+	add_child(niche)
+	move_child(niche, 0)
+
+
 static func _floor_padding(texture: Texture2D, frames: int) -> int:
 	return _frame_padding(texture, frames, 0)
 

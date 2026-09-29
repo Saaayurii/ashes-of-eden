@@ -367,7 +367,11 @@ frame 2 is the hit/break reaction, and the last frame is the remains. `ambient` 
 `soul`, `bottles` or `dust` (grit trickling from a secret wall); it adds a restrained light or particle accent.
 
 Secrets: a destructible with `"reveals": "<prop id>"` leaves that prop where it broke (a bricked-up
-doorway and the cache behind it); `"still": true` turns off the variation and sway for masonry. A chest
+doorway and the cache behind it); `"still": true` turns off the variation and sway for masonry. A secret
+wall must read as a bricked-up doorway: either the painting already has the arch it stands in (listed in
+`NICHE_PAINTED` in the validator), or `"niche": "<png>"` draws one behind it — a stone ring and the dark
+behind the bricks, made with the wall by `tools/art/make_secret_walls.py` — which stays when the wall
+comes down, so the cache is found standing in a doorway. A chest
 with `"note": "<id>"` files a record from `data/notes/` (`{"id", "name", "dialogue", "place", "avatar"}`)
 in the bestiary and plays its `dialogue` as a caption; its `"ash"` is paid only the first time that
 record is found, so a cache with Ash must carry a note. Every prop also has stable scale/phase

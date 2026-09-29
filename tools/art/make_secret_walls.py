@@ -9,7 +9,15 @@ picture and only the cracks, the dust and a thread of light give it away.
     python3 tools/art/make_secret_walls.py
 
 Writes assets/props/secret_wall_<place>.png. Deterministic (seeded per wall).
+
+A wall that stands against plain masonry also gets its niche,
+assets/props/secret_niche_<place>.png: a ring of voussoirs with a keystone,
+two jambs and the dark depth behind the bricks. The prop draws it behind the
+wall (`niche` in data/props) and it stays when the wall comes down, so the
+cache is found standing in a doorway rather than in front of a wall. A wall
+set into an arch the painting already has (the catacombs ossuary) has none.
 """
+import math
 import os
 import random
 import sys
@@ -20,6 +28,8 @@ ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "assets", "props")
 
 # place: (panel, sample box in panel pixels, frame width, frame height, seed)
+# The niche: how thick its stone ring is, or 0 when the painting has the arch.
+NICHE_RING = {"village": 7, "swamp": 7, "catacombs": 0}
 WALLS = {
     "catacombs": ("catacombs_2", (1058, 575, 1098, 688), 64, 100, 7),
     "village": ("graveyard_moon", (1085, 560, 1135, 640), 48, 72, 11),
@@ -161,6 +171,57 @@ def rubble(w, h, pal, rng):
     return img
 
 
+def draw_niche(w, h, ring, pal, rng):
+    """The doorway the wall bricks up: a stone ring round a w x h arch, and the
+    darkness behind it. Its bottom is the floor, like the wall's."""
+    outer_w, outer_h = w + 2 * ring, h + ring
+    img = Image.new("RGBA", (outer_w, outer_h), (0, 0, 0, 0))
+    px = img.load()
+    outer = arch_mask(outer_w, outer_h)
+    inner = {(x + ring, y + ring) for (x, y) in arch_mask(w, h)}
+    # the depth: near black, a little warmer and lighter towards the floor
+    for (x, y) in inner:
+        t = (y - ring) / float(h)
+        px[x, y] = shade(pal["mortar"], 0.25 + 0.3 * t) + (255,)
+    # a lip of shadow where the ring overhangs the depth
+    for (x, y) in inner:
+        if (x, y - 2) not in inner or (x - 2, y) not in inner or (x + 2, y) not in inner:
+            px[x, y] = shade(pal["mortar"], 0.15) + (255,)
+    cx, cy = outer_w / 2.0, outer_w / 2.0  # centre of the round head
+    radius = outer_w / 2.0
+    # voussoirs on the head: blocks by angle; jambs below it: blocks by height
+    head_blocks = 9
+    for (x, y) in outer:
+        if (x, y) in inner:
+            continue
+        if y + 0.5 < cy:
+            angle = math.atan2(cy - (y + 0.5), (x + 0.5) - cx)  # 0 .. pi
+            index = min(head_blocks - 1, int(angle / math.pi * head_blocks))
+            key = index == head_blocks // 2
+            seam = abs(angle / math.pi * head_blocks - round(angle / math.pi * head_blocks)) < 0.06
+            depth_in = radius - math.hypot((x + 0.5) - cx, cy - (y + 0.5))
+        else:
+            index = 100 + int((y - cy) // 9) * 2 + (0 if x < cx else 1)
+            key = False
+            seam = (y - int(cy)) % 9 == 0
+            depth_in = min(x + 0.5, outer_w - x - 0.5)
+        tone = random.Random(index * 7919 + rng.randint(0, 0)).uniform(0.85, 1.08)
+        if seam:
+            color = shade(pal["mortar"], 0.8)
+        elif depth_in < 1.2:
+            color = pal["shadow"]  # the outer edge
+        elif depth_in < 2.2:
+            color = pal["high"] if key else pal["light"]
+        else:
+            color = pal["light"] if key else pal["base"]
+        px[x, y] = shade(color, tone) + (255,)
+    # the ring's inner edge catches the light from the room
+    for (x, y) in outer:
+        if (x, y) not in inner and any((x + dx, y + dy) in inner for dx, dy in ((1, 0), (-1, 0), (0, 1))):
+            px[x, y] = shade(pal["light"], 1.08) + (255,)
+    return img
+
+
 def build(place, spec):
     panel, box, w, h, seed = spec
     pal = palette(panel, box, stone_only=place == "swamp")
@@ -196,6 +257,12 @@ def build(place, spec):
     # caught this: identical pixels, different bytes, a diff nobody made.
     strip.save(path, "PNG", optimize=False, compress_level=6)
     print("%s  %dx%d x%d  palette %s" % (os.path.relpath(path, ROOT), w, h, len(frames), pal["base"]))
+    ring = NICHE_RING.get(place, 0)
+    if ring:
+        niche = draw_niche(w, h, ring, pal, random.Random(seed + 9))
+        niche_path = os.path.join(OUT, "secret_niche_%s.png" % place)
+        niche.save(niche_path, "PNG", optimize=False, compress_level=6)
+        print("%s  %dx%d" % (os.path.relpath(niche_path, ROOT), niche.width, niche.height))
 
 
 if __name__ == "__main__":

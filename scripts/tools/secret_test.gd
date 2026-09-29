@@ -33,15 +33,21 @@ func _run() -> void:
 		for wall in walls:
 			var hidden: String = wall.stats.reveals
 			var at: Vector2 = wall.global_position
-			if wall.prop_id == "secret_wall_swamp":
-				_assert(wall.sprite.modulate.a < 0.3, "swamp wall blends into painted masonry")
+			# a bricked-up doorway, not a patch of bricks: its niche is drawn
+			# behind it, or the painting has the arch (NICHE_PAINTED)
+			var niche = wall.get_node_or_null("Niche")
+			_assert(niche != null or wall.prop_id == "secret_wall_catacombs",
+				"%s: stands in a doorway" % wall.prop_id)
+			if niche != null:
+				_assert(niche.get_index() == 0 and niche.texture.get_width() > wall.sprite.texture.get_width() / wall.sprite.hframes,
+					"%s: the niche frames the wall from behind" % wall.prop_id)
 			var hits := 0
 			while not wall._spent and hits < 20:
 				wall.take_damage(12.0)
 				hits += 1
-				if wall.prop_id == "secret_wall_swamp" and hits == 1:
-					_assert(wall.sprite.modulate.a > 0.99, "first strike reveals swamp wall cracks")
 			_assert(hits >= 2, "%s: takes more than one blow (%d)" % [wall.prop_id, hits])
+			if niche != null:
+				_assert(is_instance_valid(niche) and niche.visible, "%s: the doorway stays when the wall comes down" % wall.prop_id)
 			await _settle(0.5)
 			var cache = null
 			for prop in get_nodes_in_group("props"):

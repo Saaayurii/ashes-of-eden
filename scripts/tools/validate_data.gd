@@ -4,6 +4,9 @@ extends SceneTree
 ## Exit code 1 when anything is wrong. Runs in CI on every pull request,
 ## so a content contributor gets feedback without launching Godot.
 
+## Secret walls set into an arch the room's painting already has; every other
+## one brings its own niche (tools/art/make_secret_walls.py).
+const NICHE_PAINTED := ["secret_wall_catacombs"]
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const PATHS := ["grace", "temptation", "will"]
 const EFFECT_TYPES := ["stat", "lifesteal", "extra_life", "heal", "skill"]
@@ -220,6 +223,11 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: only a destructible can hide another prop" % where)
 				if not _prop_ids.has(entry.reveals) or entry.reveals == entry.get("id"):
 					_error("%s: reveals unknown prop %s" % [where, entry.reveals])
+			if entry.has("niche") and not FileAccess.file_exists(str(entry.niche)) and not ResourceLoader.exists(str(entry.niche)):
+				_error("%s: niche not found: %s" % [where, entry.niche])
+			if entry.has("reveals") and entry.get("still", false) and not entry.has("niche") \
+					and not NICHE_PAINTED.has(entry.get("id")):
+				_error("%s: a secret wall needs a doorway to brick up: a niche, or an arch the painting has (NICHE_PAINTED)" % where)
 			if entry.has("note") and not _note_ids.has(entry.note):
 				_error("%s: unknown note %s" % [where, entry.note])
 			if int(entry.get("ash", 0)) > 0 and not entry.has("note"):
