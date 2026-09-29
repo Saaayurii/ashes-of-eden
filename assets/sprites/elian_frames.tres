@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=168 format=3]
+[gd_resource type="SpriteFrames" load_steps=193 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_idle.png" id="tex_elian_idle"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_rest.png" id="tex_elian_rest"]
@@ -15,12 +15,16 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_thrust.png" id="tex_elian_thrust"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_rising.png" id="tex_elian_rising"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_dash_strike.png" id="tex_elian_dash_strike"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_lunge.png" id="tex_elian_lunge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_charge.png" id="tex_elian_charge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_cleave.png" id="tex_elian_cleave"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_sweep.png" id="tex_elian_sweep"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_hurt.png" id="tex_elian_hurt"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_knockback.png" id="tex_elian_knockback"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_roll.png" id="tex_elian_roll"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_death.png" id="tex_elian_death"]
-[ext_resource type="Texture2D" path="res://assets/sprites/elian_rise_v2.png" id="tex_elian_wake"]
-[ext_resource type="Texture2D" path="res://assets/sprites/elian_heal_v2.png" id="tex_elian_heal"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_rise_v2.png" id="tex_elian_rise_v2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_heal_v2.png" id="tex_elian_heal_v2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_talk.png" id="tex_elian_talk"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_talk2.png" id="tex_elian_talk2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_attack.png" id="tex_elian_attack"]
@@ -377,6 +381,90 @@ region = Rect2(384, 0, 128, 64)
 atlas = ExtResource("tex_elian_dash_strike")
 region = Rect2(512, 0, 128, 64)
 
+[sub_resource type="AtlasTexture" id="elian_lunge_0"]
+atlas = ExtResource("tex_elian_lunge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_lunge_1"]
+atlas = ExtResource("tex_elian_lunge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_lunge_2"]
+atlas = ExtResource("tex_elian_lunge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_lunge_3"]
+atlas = ExtResource("tex_elian_lunge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_lunge_4"]
+atlas = ExtResource("tex_elian_lunge")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_lunge_5"]
+atlas = ExtResource("tex_elian_lunge")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_charge_0"]
+atlas = ExtResource("tex_elian_charge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_charge_1"]
+atlas = ExtResource("tex_elian_charge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_charge_2"]
+atlas = ExtResource("tex_elian_charge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_charge_3"]
+atlas = ExtResource("tex_elian_charge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_cleave_0"]
+atlas = ExtResource("tex_elian_cleave")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_cleave_1"]
+atlas = ExtResource("tex_elian_cleave")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_cleave_2"]
+atlas = ExtResource("tex_elian_cleave")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_cleave_3"]
+atlas = ExtResource("tex_elian_cleave")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_cleave_4"]
+atlas = ExtResource("tex_elian_cleave")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_sweep_0"]
+atlas = ExtResource("tex_elian_sweep")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_sweep_1"]
+atlas = ExtResource("tex_elian_sweep")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_sweep_2"]
+atlas = ExtResource("tex_elian_sweep")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_sweep_3"]
+atlas = ExtResource("tex_elian_sweep")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_sweep_4"]
+atlas = ExtResource("tex_elian_sweep")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_sweep_5"]
+atlas = ExtResource("tex_elian_sweep")
+region = Rect2(640, 0, 128, 64)
+
 [sub_resource type="AtlasTexture" id="elian_hurt_0"]
 atlas = ExtResource("tex_elian_hurt")
 region = Rect2(0, 0, 128, 64)
@@ -465,68 +553,68 @@ region = Rect2(384, 0, 128, 64)
 atlas = ExtResource("tex_elian_death")
 region = Rect2(512, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_0"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_0"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(0, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_1"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_1"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(128, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_2"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_2"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(256, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_3"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_3"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(384, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_4"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_4"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(512, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_5"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_5"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(640, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_6"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_6"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(768, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_wake_7"]
-atlas = ExtResource("tex_elian_wake")
+[sub_resource type="AtlasTexture" id="elian_rise_v2_7"]
+atlas = ExtResource("tex_elian_rise_v2")
 region = Rect2(896, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_0"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_0"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(0, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_1"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_1"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(128, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_2"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_2"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(256, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_3"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_3"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(384, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_4"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_4"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(512, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_5"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_5"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(640, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_6"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_6"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(768, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_heal_7"]
-atlas = ExtResource("tex_elian_heal")
+[sub_resource type="AtlasTexture" id="elian_heal_v2_7"]
+atlas = ExtResource("tex_elian_heal_v2")
 region = Rect2(896, 0, 128, 64)
 
 [sub_resource type="AtlasTexture" id="elian_talk_0"]
@@ -940,6 +1028,89 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("elian_lunge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_lunge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_lunge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_lunge_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_lunge_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_lunge_5")
+}],
+"loop": false,
+"name": &"lunge",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_charge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_charge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_charge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_charge_3")
+}],
+"loop": true,
+"name": &"charge",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_cleave_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_cleave_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_cleave_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_cleave_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_cleave_4")
+}],
+"loop": false,
+"name": &"cleave",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_sweep_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_sweep_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_sweep_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_sweep_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_sweep_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_sweep_5")
+}],
+"loop": false,
+"name": &"sweep",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("elian_hurt_0")
 }, {
 "duration": 1.0,
@@ -1026,28 +1197,28 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("elian_wake_0")
+"texture": SubResource("elian_rise_v2_0")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_wake_1")
+"texture": SubResource("elian_rise_v2_1")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_wake_2")
+"texture": SubResource("elian_rise_v2_2")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_wake_3")
+"texture": SubResource("elian_rise_v2_3")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_wake_4")
+"texture": SubResource("elian_rise_v2_4")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_wake_5")
+"texture": SubResource("elian_rise_v2_5")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_wake_6")
+"texture": SubResource("elian_rise_v2_6")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_wake_7")
+"texture": SubResource("elian_rise_v2_7")
 }],
 "loop": false,
 "name": &"wake",
@@ -1055,28 +1226,28 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("elian_heal_0")
+"texture": SubResource("elian_heal_v2_0")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_heal_1")
+"texture": SubResource("elian_heal_v2_1")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_heal_2")
+"texture": SubResource("elian_heal_v2_2")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_heal_3")
+"texture": SubResource("elian_heal_v2_3")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_heal_4")
+"texture": SubResource("elian_heal_v2_4")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_heal_5")
+"texture": SubResource("elian_heal_v2_5")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_heal_6")
+"texture": SubResource("elian_heal_v2_6")
 }, {
 "duration": 1.0,
-"texture": SubResource("elian_heal_7")
+"texture": SubResource("elian_heal_v2_7")
 }],
 "loop": false,
 "name": &"heal",

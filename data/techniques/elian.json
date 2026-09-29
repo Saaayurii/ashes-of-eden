@@ -1,0 +1,11 @@
+[
+  {"id": "lunge", "order": 1, "name": "TECH_LUNGE", "input": "TECH_LUNGE_INPUT", "new": true},
+  {"id": "cleave", "order": 2, "name": "TECH_CLEAVE", "input": "TECH_CLEAVE_INPUT", "new": true},
+  {"id": "sweep", "order": 3, "name": "TECH_SWEEP", "input": "TECH_SWEEP_INPUT", "new": true},
+  {"id": "rising", "order": 4, "name": "TECH_RISING", "input": "TECH_RISING_INPUT"},
+  {"id": "dash_strike", "order": 5, "name": "TECH_DASH_STRIKE", "input": "TECH_DASH_STRIKE_INPUT"},
+  {"id": "slam", "order": 6, "name": "TECH_SLAM", "input": "TECH_SLAM_INPUT"},
+  {"id": "wall_jump", "order": 7, "name": "TECH_WALL_JUMP", "input": "TECH_WALL_JUMP_INPUT"},
+  {"id": "riposte", "order": 8, "name": "TECH_RIPOSTE", "input": "TECH_RIPOSTE_INPUT"},
+  {"id": "backstab", "order": 9, "name": "TECH_BACKSTAB", "input": "TECH_BACKSTAB_INPUT"}
+]

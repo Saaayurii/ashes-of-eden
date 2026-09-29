@@ -949,6 +949,10 @@ func _practice_begin() -> void:
 	room.door.visible = false
 	room.door.open = false
 	_practice_spawn()
+	if $UI.get_node_or_null("MoveList") == null:
+		var moves := MoveList.new()
+		moves.name = "MoveList"
+		$UI.add_child(moves)
 
 
 func _practice_spawn() -> void:

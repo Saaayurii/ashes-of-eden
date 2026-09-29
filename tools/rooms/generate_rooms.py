@@ -661,7 +661,6 @@ ROOMS = {
                ("practice/dummy", 262, 320, "mid"), ("clutter/brazier_lit", 330, 320, "mid"),
                ("clutter/brazier_lit", 630, 320, "mid"), ("practice/rack", 760, 320, "mid"),
                ("practice/dummy", 830, 320, "mid"), ("grass_1", 60, 320, "front"), ("rocks", 900, 320, "front")],
-        barriers=[(36, 320), (924, 320)],
         ambient="#b8a4a4",
         lights=[(330, 300, "#ffb060", 90, 1.0, 0.3), (630, 300, "#ffb060", 90, 1.0, 0.3),
                 (480, 190, "#ffc890", 200, 0.5, 0.05)],

@@ -484,32 +484,6 @@ texture = ExtResource("decor_rocks")
 
 [node name="Props" type="Node2D" parent="."]
 
-[node name="Barrier1" type="Sprite2D" parent="."]
-position = Vector2(36, 320)
-texture = ExtResource("11_barrier")
-hframes = 7
-centered = false
-offset = Vector2(-32, -80)
-modulate = Color(0.85, 0.9, 1, 0.85)
-z_index = 2
-script = ExtResource("10_fixture")
-loop = true
-falls = true
-fps = 10.0
-
-[node name="Barrier2" type="Sprite2D" parent="."]
-position = Vector2(924, 320)
-texture = ExtResource("11_barrier")
-hframes = 7
-centered = false
-offset = Vector2(-32, -80)
-modulate = Color(0.85, 0.9, 1, 0.85)
-z_index = 2
-script = ExtResource("10_fixture")
-loop = true
-falls = true
-fps = 10.0
-
 [node name="Spawns" type="Node2D" parent="."]
 
 [node name="PlayerSpawn" type="Marker2D" parent="."]

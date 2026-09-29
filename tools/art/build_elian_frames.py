@@ -35,11 +35,17 @@ ANIMATIONS = [
     ("thrust", "elian_thrust", False, 20.0),     # the backstab
     ("rising", "elian_rising", False, 20.0),     # swinging in the air
     ("dash_strike", "elian_dash_strike", False, 20.0),  # swinging out of the roll
+    # the special moves (docs/TECHNIQUES.md), drawn by make_elian_moves.py from the poses above
+    ("lunge", "elian_lunge", False, 22.0),       # back, forward + attack
+    ("charge", "elian_charge", True, 10.0),      # attack held: the blade drawn back, glowing
+    ("cleave", "elian_cleave", False, 16.0),     # ... and let go
+    ("sweep", "elian_sweep", False, 22.0),       # down + attack on the ground
     ("hurt", "elian_hurt", False, 16.0),
     ("knockback", "elian_knockback", False, 16.0),
     ("roll", "elian_roll", False, 18.0),
     ("death", "elian_death", False, 8.0),
-    ("wake", "elian_wake", False, 7.0),
+    ("wake", "elian_rise_v2", False, 5.5),       # getting up (build_elian_actions.py)
+    ("heal", "elian_heal_v2", False, 8.0),       # drinking a flask (build_elian_actions.py)
     ("talk", "elian_talk", True, 6.0),
     ("talk2", "elian_talk2", True, 6.0),
 ]

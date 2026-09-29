@@ -132,6 +132,10 @@ var _band_depth := 36.0
 ## How many of its kind stand between it and its target on its side (walkers)
 ## or hunt the same player (flyers). Recounted with the target.
 var _crowd_rank := 0
+## How long a flyer has been on its attack run without striking: past
+## PECK_PATIENCE it gives the run up and pulls out (never hang on the body).
+var _peck_time := 0.0
+const PECK_PATIENCE := 0.6
 var _summoned := false
 var _home := Vector2.ZERO  # where it was spawned; the patrol is around this
 var _patrol_goal := Vector2.ZERO
@@ -622,6 +626,18 @@ func _chase(to_target: Vector2, delta: float) -> void:
 					pecking = true  # an attack run: in to its beak's reach at head height
 					distance = reach * 0.7
 					height = 16.0
+			if pecking:
+				_peck_time += delta
+				if _peck_time > PECK_PATIENCE:
+					# the run came to nothing (another move was picked, or none):
+					# out, rather than hanging over his head
+					pecking = false
+					_peck_time = 0.0
+					_disengage_left = randf_range(0.6, 0.9)
+					distance += 60.0
+					height += 26.0
+			else:
+				_peck_time = 0.0
 			var goal := to_target - Vector2(side * distance, height)
 			if goal.length() > 6.0:
 				chase = goal.normalized() * minf(speed, goal.length() * 3.0)
@@ -1210,6 +1226,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	if backstab:
 		amount *= sneak
 		crit = true
+		EventBus.technique_performed.emit("backstab")
 	# The execution: worth nothing on a healthy body, everything on a spent one.
 	# Only this side knows how much is left, so the multiplier is applied here.
 	if execute > 0.0 and hp <= _max_hp * EXECUTE_BELOW:
@@ -1218,6 +1235,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	var riposte := _open_left > 0.0
 	if riposte:
 		_open_left = 0.0  # one riposte per parry
+		EventBus.technique_performed.emit("riposte")
 		amount *= RIPOSTE_MULTIPLIER
 		crit = true
 	amount *= 1.0 - clampf(float(stats.get("armor", 0.0)), 0.0, 0.5)  # FinalDamage = Base × (1 − armor)

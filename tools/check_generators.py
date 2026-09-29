@@ -47,6 +47,12 @@ GENERATORS = [
     # not in its table is undone by the next regeneration. About 20 seconds.
     ("rooms", ["tools/rooms/generate_rooms.py"],
      ["scenes/rooms", "assets/levels"], False),
+    # the special moves' strips, then the hero's SpriteFrames that lists them
+    ("hero moves", ["tools/art/make_elian_moves.py"],
+     ["assets/sprites/elian_lunge.png", "assets/sprites/elian_charge.png",
+      "assets/sprites/elian_cleave.png", "assets/sprites/elian_sweep.png"], False),
+    ("hero frames", ["tools/art/build_elian_frames.py"],
+     ["assets/sprites/elian_frames.tres", "assets/sprites/slash_frames.tres"], False),
     ("practice yard", ["tools/art/make_practice_yard.py"],
      ["assets/backgrounds/practice_yard.png", "assets/decor/practice",
       "assets/sprites/training_dummy_idle.png", "assets/sprites/training_dummy_hurt.png"], False),

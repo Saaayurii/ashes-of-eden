@@ -24,6 +24,8 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
+## The moves Player reports through EventBus.technique_performed.
+const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
 ## The animated bolts (Projectile.FLIGHT_FPS); a ranged enemy attack names one.
@@ -52,6 +54,7 @@ const REQUIRED := {
 	"items": ["id", "name", "description", "rarity", "icon", "effects"],
 	"rest_points": ["id", "at"],
 	"skins": ["id", "name", "description", "unlock"],
+	"techniques": ["id", "name", "input"],
 }
 
 var errors: PackedStringArray = []
@@ -272,6 +275,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				# an item changes how something behaves: a mechanic stat, never a raw number
 				if effect.get("type") != "stat" or not ITEM_STATS.has(effect.get("stat")):
 					_error("%s: an item's effect is one of the item mechanics %s" % [where, ITEM_STATS])
+		"techniques":
+			_use_key(entry.get("name", ""), where)
+			_use_key(entry.get("input", ""), where)
+			# the moves the yard lists are the ones the body can do
+			if not TECHNIQUES.has(entry.get("id", "")):
+				_error("%s: no such move in Player (known: %s)" % [where, TECHNIQUES])
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
