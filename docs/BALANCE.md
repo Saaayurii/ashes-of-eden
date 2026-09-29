@@ -108,4 +108,9 @@ Death keeps: Ash, codex entries, story knowledge, achievements, unlocks. Death l
 
 Parry (180 ms, 220–250 on mobile; stagger 1.2 s, boss 0.5 s) · save points (full heal + charges, commons
 respawn, elites don't) · items (3–5 normal, 1–2 rare, 0–1 legendary; interactions, not "+3 damage") ·
-Silver / shop · Ophanim seal phase (closes its eyes → destroy 3 seals → damage phase).
+Silver / shop.
+
+The Ophanim's seal phase is in (`seal_phase` in `data/enemies/ophanim.json`): at 50 % it closes its eyes and is
+untouchable; three seals of 45 HP hang over the arena's floors; while they stand it keeps out of reach and only
+throws a three-eye volley every 3.8 s; the last seal broken opens it for 6 s, low, silent and taking +50 % —
+the fight's damage window.

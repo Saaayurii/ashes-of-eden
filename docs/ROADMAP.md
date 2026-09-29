@@ -53,7 +53,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 
 ## v0.3 — Chapter 1: "The First Trumpet"
 - [x] First location: 15 rooms (13 painted panels + church + preacher nave), one route, lava, reach-tested by a bot (`reach_test.gd`)
-- [x] Ophanim boss ("DO NOT BE AFRAID"), Knight of Ash, Blind Preacher
+- [x] Ophanim boss ("DO NOT BE AFRAID") with its seal phase (eyes closed → three seals → damage window, `seal_phase_test.gd`), Knight of Ash, Blind Preacher
 - [x] Elian's opening monologue over black, in full the first night and two lines every night after
 - [x] Story scenes spoken in all four languages (Piper, clean-licensed voices only; pitch through the WORLD vocoder so formants stay put, and a switch in Settings to turn it off — `docs/VOICE.md`)
 - [x] NPC dialogues with real consequences; flags read back by later dialogues (Father Matthew reads Mara and the Voice)

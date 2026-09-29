@@ -19,7 +19,7 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"backstab_multiplier", "dash_speed", "dash_time", "dash_cooldown", "armor", "lifesteal",
 	"extra_lives", "heal_charges", "thorns", "execute", "kill_heal", "clear_heal", "dash_damage",
 	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction"]
-const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster"]
+const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
 const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
 const PROP_KINDS := ["destructible", "chest"]
@@ -52,6 +52,7 @@ var warnings: PackedStringArray = []
 var _dialogue_ids := {}
 var _npc_ids := {}
 var _prop_ids := {}
+var _enemy_ids := {}
 var _note_ids := {}
 var _chapter_ids := {}
 ## Room scene -> the chapter that claims it; two chapters may not claim one room.
@@ -75,6 +76,8 @@ func _init() -> void:
 		_npc_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/props"):
 		_prop_ids[id.get("id", "")] = true
+	for id in _load_entries("res://data/enemies"):
+		_enemy_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/notes"):
 		_note_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/chapters"):
@@ -178,6 +181,19 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 						_error("%s: attack.%s must be positive" % [where, field])
 			if entry.has("summons") and not entry.summons.has("id"):
 				_error("%s: summons.id missing" % where)
+			if entry.has("seal_phase"):
+				var phase: Dictionary = entry.seal_phase
+				if not _enemy_ids.has(str(phase.get("seal", ""))):
+					_error("%s: seal_phase.seal is not an enemy: %s" % [where, phase.get("seal", "")])
+				if float(phase.get("at_hp", 0)) <= 0.0 or float(phase.get("at_hp", 0)) >= 1.0:
+					_error("%s: seal_phase.at_hp is a share of health, in (0, 1)" % where)
+				if float(phase.get("exposed", 0)) <= 0.0:
+					_error("%s: seal_phase.exposed must be positive — the damage phase is the point" % where)
+				for room in phase.get("points", {}):
+					if not FileAccess.file_exists("res://scenes/rooms/%s.tscn" % room):
+						_error("%s: seal_phase.points names no room: %s" % [where, room])
+					if (phase.points[room] as Array).size() < 1:
+						_error("%s: seal_phase.points.%s is empty" % [where, room])
 			if entry.has("light"):
 				var light: Dictionary = entry.light
 				if not Color.html_is_valid(str(light.get("color", entry.get("color", "")))):
