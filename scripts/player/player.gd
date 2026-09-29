@@ -1270,9 +1270,11 @@ func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
 	Fx.puff(global_position + Vector2(0, -12), 0.5, Color(0.8, 1.0, 0.75))
 
 
-func _on_room_cleared(_index: int) -> void:
+func _on_room_cleared(index: int) -> void:
 	_dodge_counter_left = 0.0
 	_dodge_counted = false
+	if _is_mine() and not _dead and not _wounded_this_room:
+		EventBus.player_unscathed.emit(index)
 	if _is_mine() and not _dead and stats.clean_clear_charge > 0.0 and not _wounded_this_room \
 			and heal_charges < int(stats.heal_charges):
 		heal_charges += 1

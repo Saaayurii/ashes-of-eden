@@ -34,6 +34,7 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/rest_items_test.gd
         godot --headless -s scripts/tools/skins_test.gd
         godot --headless --fixed-fps 60 -s scripts/tools/enemy_spacing_test.gd
+        godot --headless -s scripts/tools/unscathed_test.gd
         ;;
     net-test)
         shift

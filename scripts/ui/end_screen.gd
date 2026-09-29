@@ -60,6 +60,8 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	stats.text = tr("RUN_STATS_PLACE") % [Profile.data.nights, tr(place), kills, clock] if place != "" \
 		else tr("RUN_STATS") % [Profile.data.nights, area, kills, clock]
 	best.text = "%s   ·   %s" % [tr("RUN_BEST") % Profile.data.best_wave, tr("RUN_ASH") % [Game.ash_earned, Profile.data.ash]]
+	if Game.unscathed > 0:
+		best.text += "   ·   " + tr("RUN_UNSCATHED") % Game.unscathed
 	var names: Array = Game.abilities.map(func(a: Dictionary) -> String: return tr(a.name))
 	gifts.text = "%s: %s" % [tr("RUN_GIFTS"), ", ".join(names)] if not names.is_empty() else ""
 	Audio.music("end")

@@ -26,6 +26,8 @@ var elapsed := 0.0
 var essence := 0.0
 var level := 1
 var ash_earned := 0
+## Rooms this body cleared without a wound, this night (Run._on_unscathed).
+var unscathed := 0
 ## What the greedier gifts add to every kill. Mirrored here from the player's
 ## stats by AbilitySystem, because the essence bar is the run's, not the body's.
 var essence_bonus := 0.0
@@ -48,6 +50,7 @@ func new_run() -> void:
 	essence = 0.0
 	level = 1
 	ash_earned = 0
+	unscathed = 0
 	essence_bonus = 0.0
 
 

@@ -30,6 +30,10 @@ const ROOMS := [
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 ## How often each rarity is offered, relative to the others (docs/BALANCE.md).
 const RARITY_WEIGHT := {"common": 55.0, "rare": 30.0, "epic": 12.0, "legendary": 3.0}
+## Ash for a room cleared without a wound, and for one where a boss stood.
+## Chests pay 15, a boss 10–25: this is a tip for clean play, not a wage.
+const UNSCATHED_ASH := 3
+const UNSCATHED_BOSS_ASH := 9
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const ENEMY_SCENE := preload("res://scenes/enemies/enemy.tscn")
 ## Two bodies should not spawn inside each other.
@@ -99,6 +103,7 @@ func _ready() -> void:
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
 	EventBus.player_rested.connect(_on_player_rested)
+	EventBus.player_unscathed.connect(_on_unscathed)
 	# A record from a secret cache is read out over play, like a caption.
 	EventBus.note_found.connect(func(note_id: String, _first: bool) -> void:
 		dialogue.play(str(Data.notes.get(note_id, {}).get("dialogue", ""))))
@@ -461,6 +466,32 @@ func _on_room_cleared() -> void:
 		_net_room_cleared.rpc()
 	if room.outro_cutscene != "":
 		cutscene.play(room.outro_cutscene)
+
+
+## Our body cleared the room without a wound (docs/DEAD_CELLS_GAP_ANALYSIS.md):
+## a little Ash, never a gift, more where a boss stood. Ash is the host's to
+## count, so a client asks for it; each player earns their own.
+func _on_unscathed(_index: int) -> void:
+	if room == null:
+		return
+	var amount := UNSCATHED_ASH
+	for pair in room._from_markers:
+		if Data.enemies.get((pair[0] as EnemySpawn).enemy_id, {}).get("boss", false):
+			amount = UNSCATHED_BOSS_ASH
+	Game.unscathed += 1
+	if _is_server() or not Net.active:
+		Game.ash_earned += amount
+	elif multiplayer.get_peers().has(1):
+		_net_unscathed.rpc_id(1, amount)
+	if player != null:
+		Fx.popup(player.global_position + Vector2(0, -44), tr("UNSCATHED_POPUP") % amount, Color(0.85, 0.95, 1.0))
+		Fx.sparkle(player.global_position + Vector2(0, -14), Color(0.8, 0.92, 1.0), 12, 10.0)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_unscathed(amount: int) -> void:
+	if _is_server():
+		Game.ash_earned += clampi(amount, 0, UNSCATHED_BOSS_ASH)
 
 
 ## Cleared again after a rest: the way opens, and nothing else happens twice.

@@ -32,6 +32,7 @@ func _ready() -> void:
 		return
 	EventBus.room_started.connect(_on_room_started)
 	EventBus.room_cleared.connect(_on_room_cleared)
+	EventBus.player_unscathed.connect(_on_unscathed)
 	EventBus.player_hurt.connect(_on_hurt)
 	EventBus.player_died.connect(_on_died)
 	EventBus.boss_hp_changed.connect(_on_boss_hp)
@@ -105,6 +106,10 @@ func _on_room_started(index: int) -> void:
 func _on_room_cleared(_index: int) -> void:
 	_write("room_clear", {"room": _room, "seconds": snappedf(_clock - _room_start, 0.1),
 		"damage": snappedf(_room_damage, 0.01), "deaths": _room_deaths})
+
+
+func _on_unscathed(_index: int) -> void:
+	_write("unscathed", {"room": _room})
 
 
 func _on_hurt(fraction: float) -> void:
