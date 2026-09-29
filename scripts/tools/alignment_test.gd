@@ -108,5 +108,48 @@ func _run() -> void:
 	_check(float(player.body.material.get_shader_parameter("strength")) == 0.0,
 		"levelling out turns the mark off")
 
+	# --- the speech switch ---------------------------------------------------
+	# Settings → Spoken lines. Off must stop a line mid-sentence and refuse the
+	# next one; on must let it through again.
+	#
+	# `set_speech` writes settings.cfg, and a tool script shares user:// with
+	# the game, so this test edits the settings of whoever runs it. The first
+	# version restored `speech` in memory and never saved, which left the
+	# switch off on disk: running the tests turned a player's voices off and
+	# nothing turned them back on. Restore through the same door it was
+	# changed through, and do it whichever way the test leaves.
+	var settings = root.get_node("Settings")
+	var was: bool = settings.speech
+	var voiced := ""
+	for key in ["DLG_CH1_PROLOGUE_1", "DLG_CH1_INTRO_1"]:
+		if audio._spoken_clip(key) != null:
+			voiced = key
+			break
+	if voiced == "":
+		_check(true, "no recorded line to test the speech switch with (skipped)")
+	else:
+		settings.speech = true
+		_check(audio.speak(voiced) > 0.0, "with the switch on a recorded line speaks")
+		settings.speech = false
+		_check(audio.speak(voiced) == 0.0, "with it off the same line does not")
+		settings.set_speech(false)
+		await _settle()
+		_check(not audio._speech.playing, "turning it off stops what was mid-sentence")
+		settings.speech = true
+		_check(audio.speak(voiced) > 0.0, "turning it back on restores it")
+		audio.stop_speech()
+	settings.set_speech(was)
+	_check(_saved_speech() == was,
+		"the test leaves the player's speech setting as it found it")
+
 	print("ALIGNMENT TEST " + ("FAILED" if _failed else "PASSED"))
 	quit(1 if _failed else 0)
+
+
+## What settings.cfg says, not what the running Settings believes. The bug
+## this guards against was the two disagreeing.
+func _saved_speech() -> bool:
+	var cfg := ConfigFile.new()
+	if cfg.load("user://settings.cfg") != OK:
+		return true  # no file yet means the default, which is on
+	return bool(cfg.get_value("audio", "speech", true))
