@@ -29,7 +29,10 @@ editor:     ## open the project in the native Godot editor (macOS)
 
 GODOT := /Applications/Godot.app/Contents/MacOS/Godot
 
-room:       ## open straight into one room, e.g. make room ROOM=hell_gate (names: make rooms)
+import:     ## re-import changed assets (Godot serves the old ones until you do)
+	"$(GODOT)" --headless --path "$(CURDIR)" --import
+
+room: import ## open straight into one room, e.g. make room ROOM=hell_gate (names: make rooms)
 	"$(GODOT)" --path "$(CURDIR)" scenes/run/run.tscn -- room=$(ROOM)
 
 rooms:      ## list the names `make room ROOM=...` accepts, in play order
