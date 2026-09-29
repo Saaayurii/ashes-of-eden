@@ -419,8 +419,21 @@ func _build_ramp(points: Array) -> Gradient:
 
 
 ## Builds SpriteFrames from a horizontal strip of equal cells.
+static func _load_strip_texture(path: String) -> Texture2D:
+	# A newly committed PNG has no .godot import entry on a clean checkout.
+	# Runtime previews and headless tests must still animate its actual cells.
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	if not FileAccess.file_exists(path):
+		return null
+	var picture := Image.load_from_file(path)
+	if picture.is_empty():
+		return null
+	return ImageTexture.create_from_image(picture)
+
+
 static func _strip_frames(path: String, cell: Vector2i, fps: float, animation := "default", loop := false) -> SpriteFrames:
-	var texture: Texture2D = load(path)
+	var texture := _load_strip_texture(path)
 	if texture == null:
 		push_warning("[Fx] missing strip %s" % path)
 		return null
@@ -442,7 +455,7 @@ static func add_strip(frames: SpriteFrames, path: String, cell: Vector2i, fps: f
 	if path.strip_edges().is_empty() or path == "res://":
 		push_warning("[Fx] empty path for animation %s" % animation)
 		return false
-	var texture: Texture2D = load(path)
+	var texture := _load_strip_texture(path)
 	if texture == null:
 		push_warning("[Fx] missing strip %s" % path)
 		return false
