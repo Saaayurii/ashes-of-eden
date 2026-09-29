@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--
+  The page the browser build lives in.
+
+  DO NOT EDIT tools/web/shell.html — it is built from this file by
+  tools/art/make_web_gate.py, which inlines the painted backdrop and Elian's
+  sprite sheet as data URIs. Edit this template and run the generator.
+
+  Godot ships a default shell — a grey page with a bare progress bar — and
+  this replaces it for two reasons.
+
+  The first is that the default looks like an engine demo and this is a game
+  about a hanged man. The backdrop here is the chapter-one graveyard and the
+  figure standing in it is the player's own idle animation, so the page the
+  download happens on is already the game.
+
+  The second matters more. A browser will not start an AudioContext until the
+  person has clicked something, so a game that boots straight into play comes
+  up silent and stays silent — no music, no voices, no sword. Godot's default
+  shell autostarts, which is exactly the case browsers refuse. This one shows
+  a button, waits for the click, and starts the engine from inside the
+  handler, so the audio context is created with the gesture still live.
+
+  Placeholders ($GODOT_URL and friends) are filled in by the exporter; the
+  double-underscore ones by the generator. Leave both alone.
+  Set as html/custom_html_shell on the Web preset.
+-->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+	<title>Ashes of Eden</title>
+	<meta name="description" content="An open-source 2D pixel action roguelite about a human soul that neither Heaven nor the Abyss can claim.">
+	<meta name="theme-color" content="#0d0c0b">
+	<meta property="og:title" content="Ashes of Eden">
+	<meta property="og:description" content="They hanged Elian and buried him outside the fence. He got up anyway.">
+	<meta property="og:type" content="website">
+	<link id="-gd-engine-icon" rel="icon" type="image/png" href="$GODOT_PROJECT_NAME.icon.png">
+	<link rel="apple-touch-icon" href="$GODOT_PROJECT_NAME.apple-touch-icon.png">
+	<style>
+		:root {
+			--ash: #0d0c0b;
+			--smoke: #1a1816;
+			--bone: #cfc7b8;
+			--gold: #e8c87a;
+			--dim: #8a8174;
+			--cw: __CELL_W__px;
+			--ch: __CELL_H__px;
+		}
+		* { box-sizing: border-box; }
+		html, body {
+			margin: 0; padding: 0; height: 100%;
+			background: var(--ash);
+			color: var(--bone);
+			font-family: Georgia, "Times New Roman", serif;
+			overscroll-behavior: none;
+		}
+		/* The canvas fills the window; the game letterboxes itself. */
+		#canvas {
+			display: block; width: 100%; height: 100%;
+			border: 0; outline: none;
+			background: var(--ash);
+			/* Crisp at any zoom: this is pixel art. */
+			image-rendering: pixelated;
+			touch-action: none;
+		}
+		#canvas:focus { outline: none; }
+
+		#gate {
+			position: fixed; inset: 0; overflow: hidden;
+			display: flex; flex-direction: column;
+			align-items: center; justify-content: center;
+			gap: 1rem; padding: 2rem 1.5rem;
+			text-align: center;
+			transition: opacity .5s ease;
+		}
+		#gate.gone { opacity: 0; pointer-events: none; }
+
+		/* The painting, on its own layer so the slow drift never moves the
+		   text sitting on top of it. */
+		#art {
+			position: absolute; inset: -3%;
+			background: url("__BACKDROP__") center / cover no-repeat;
+			animation: drift 48s ease-in-out infinite alternate;
+		}
+		@keyframes drift {
+			from { transform: scale(1.06) translate3d(-1.2%, 0.6%, 0); }
+			to   { transform: scale(1.12) translate3d(1.2%, -0.6%, 0); }
+		}
+		/* Painted art does not make a legible background on its own: this
+		   darkens the middle where the words go and sinks the bottom into
+		   shadow so the figure has something to stand in. */
+		#veil {
+			position: absolute; inset: 0;
+			background:
+				radial-gradient(ellipse at 50% 42%, rgba(13,12,11,.82) 0%,
+					rgba(13,12,11,.55) 42%, rgba(13,12,11,.72) 100%),
+				linear-gradient(to bottom, rgba(13,12,11,.75) 0%,
+					rgba(13,12,11,0) 26%, rgba(13,12,11,0) 58%,
+					rgba(13,12,11,.92) 100%);
+		}
+		#gate > *:not(#art):not(#veil) { position: relative; }
+
+		h1 {
+			margin: 0; font-weight: normal;
+			font-size: clamp(2rem, 7vw, 3.4rem);
+			letter-spacing: .14em;
+			color: var(--gold);
+			text-shadow: 0 2px 6px rgba(0,0,0,.9), 0 0 34px rgba(232, 200, 122, .22);
+		}
+		.sub {
+			margin: 0; max-width: 34rem;
+			font-size: clamp(.85rem, 2.4vw, 1rem);
+			line-height: 1.6; color: var(--bone); font-style: italic;
+			text-shadow: 0 1px 4px rgba(0,0,0,.95);
+		}
+
+		/* Elian, from the sheet the game animates him with. He stands while
+		   the page waits for a click and walks while the pack downloads, so
+		   the bar is not the only thing saying something is happening. */
+		#elian {
+			width: var(--cw); height: var(--ch);
+			margin: .2rem 0 -.4rem;
+			background-image: url("__SPRITE__");
+			background-size: __SHEET_W__px auto;
+			background-repeat: no-repeat;
+			background-position: 0 0;
+			image-rendering: pixelated;
+			animation: idle 1.1s steps(__IDLE_FRAMES__) infinite;
+			filter: drop-shadow(0 6px 10px rgba(0,0,0,.75));
+		}
+		#gate.loading #elian {
+			animation: walk .8s steps(__WALK_FRAMES__) infinite;
+		}
+		@keyframes idle {
+			from { background-position: 0 0; }
+			to   { background-position: calc(var(--cw) * -__IDLE_FRAMES__) 0; }
+		}
+		@keyframes walk {
+			from { background-position: 0 calc(var(--ch) * -1); }
+			to   { background-position: calc(var(--cw) * -__WALK_FRAMES__) calc(var(--ch) * -1); }
+		}
+		/* Something for him to stand on, since the panel behind him is a
+		   photograph of a place and he is a cut-out. */
+		.ground {
+			width: calc(var(--cw) * .8); height: 10px;
+			margin: 0 0 1rem;
+			background: radial-gradient(ellipse at center,
+				rgba(0,0,0,.72) 0%, rgba(0,0,0,0) 72%);
+		}
+
+		button {
+			padding: .7rem 2.6rem;
+			font-family: inherit; font-size: 1.05rem; letter-spacing: .1em;
+			color: var(--ash); background: var(--gold);
+			border: 0; border-radius: 2px; cursor: pointer;
+			box-shadow: 0 4px 18px rgba(0,0,0,.6);
+			transition: transform .12s ease, box-shadow .2s ease;
+		}
+		button:hover:not(:disabled) {
+			transform: translateY(-1px);
+			box-shadow: 0 8px 26px rgba(232, 200, 122, .28);
+		}
+		button:disabled { opacity: .4; cursor: default; }
+
+		/* The bar doubles as the download meter and then as the engine's own
+		   progress, so it is there from the first byte to the first frame. */
+		.bar {
+			width: min(22rem, 78vw); height: 2px;
+			background: rgba(207, 199, 184, .18); overflow: hidden;
+		}
+		.bar > i {
+			display: block; height: 100%; width: 0;
+			background: var(--gold); transition: width .25s ease;
+		}
+		.note {
+			margin: 0; font-size: .78rem; color: var(--dim); min-height: 1.2em;
+			text-shadow: 0 1px 3px rgba(0,0,0,.9);
+		}
+		.warn {
+			color: #e0a184; max-width: 30rem; font-size: .82rem; line-height: 1.5;
+			text-shadow: 0 1px 3px rgba(0,0,0,.9);
+		}
+
+		/* A phone in portrait has room for the figure or for the words, not
+		   both at full size. The figure gives way. */
+		@media (max-height: 720px), (max-width: 520px) {
+			#elian { transform: scale(.62); transform-origin: bottom center;
+				height: calc(var(--ch) * .62); }
+			.ground { margin-bottom: .6rem; }
+		}
+		/* A slow pan is the kind of motion people turn off. The sprite is a
+		   16 px figure taking a step; it stays. */
+		@media (prefers-reduced-motion: reduce) {
+			#art { animation: none; transform: scale(1.06); }
+			#gate { transition: none; }
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" tabindex="0">
+		Your browser does not support the canvas element.
+	</canvas>
+
+	<div id="gate">
+		<div id="art"></div>
+		<div id="veil"></div>
+		<h1>Ashes of Eden</h1>
+		<p class="sub">They hanged Elian and buried him outside the fence.
+			He got up anyway.</p>
+		<div id="elian" role="img" aria-label="Elian, standing in the graveyard"></div>
+		<div class="ground"></div>
+		<div class="bar"><i id="fill"></i></div>
+		<p class="note" id="note">Loading…</p>
+		<button id="play" disabled>Play</button>
+		<p class="warn" id="warn" hidden></p>
+	</div>
+
+	<script src="$GODOT_URL"></script>
+	<script>
+		const gate = document.getElementById("gate");
+		const fill = document.getElementById("fill");
+		const note = document.getElementById("note");
+		const play = document.getElementById("play");
+		const warn = document.getElementById("warn");
+
+		const GAME = new Engine($GODOT_CONFIG);
+
+		function mb(bytes) { return (bytes / 1048576).toFixed(0); }
+
+		function fatal(message) {
+			note.textContent = "";
+			play.hidden = true;
+			gate.classList.remove("loading");
+			warn.hidden = false;
+			warn.textContent = message;
+		}
+
+		const missing = Engine.getMissingFeatures({
+			threads: $GODOT_THREADS_ENABLED,
+		});
+		if (missing.length) {
+			fatal("This browser is missing " + missing.join(", ") +
+				". The desktop builds are on the GitHub releases page.");
+		} else {
+			// The button is live immediately and nothing is fetched until it is
+			// pressed. That is the point: a browser will not open an audio
+			// context without a gesture, so the download, the engine start and
+			// the first sound all happen inside this handler, where the gesture
+			// is still live. Godot's own shell starts on load and comes up mute.
+			note.textContent = "About 100 MB on first visit, cached afterwards.";
+			play.disabled = false;
+			play.focus();
+
+			play.addEventListener("click", () => {
+				play.disabled = true;
+				gate.classList.add("loading");
+				note.textContent = "Loading…";
+				GAME.startGame({
+					onProgress: (current, total) => {
+						if (!total) { return; }
+						fill.style.width = Math.round((current / total) * 100) + "%";
+						note.textContent = mb(current) + " of " + mb(total) + " MB";
+					},
+				}).then(() => {
+					fill.style.width = "100%";
+					gate.classList.add("gone");
+					setTimeout(() => gate.remove(), 560);
+					document.getElementById("canvas").focus();
+				}).catch((err) => {
+					fatal("The game could not start: " + err);
+				});
+			});
+		}
+	</script>
+</body>
+</html>

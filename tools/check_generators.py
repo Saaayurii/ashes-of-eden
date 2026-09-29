@@ -36,6 +36,8 @@ GENERATORS = [
       "assets/audio/music/layer_will.wav"], False),
     ("secret walls", ["tools/art/make_secret_walls.py"],
      ["assets/props"], False),
+    ("web gate", ["tools/art/make_web_gate.py"],
+     ["tools/web/shell.html"], False),
     ("cjk subset", ["tools/art/make_cjk_font.py"],
      ["assets/fonts/NotoSerifSC-Subset.ttf"], True),
 ]
