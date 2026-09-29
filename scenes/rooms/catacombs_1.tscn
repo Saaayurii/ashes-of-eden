@@ -549,7 +549,7 @@ position = Vector2(860, 403)
 prop_id = "rubble"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1520, 440)
+position = Vector2(1560, 440)
 prop_id = "bone_reliquary"
 
 [node name="Prop5" parent="Props" instance=ExtResource("7_prop")]
@@ -628,7 +628,7 @@ enemy_id = "wraith"
 position = Vector2(70, 137)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1570, 578)
+position = Vector2(1487, 408)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

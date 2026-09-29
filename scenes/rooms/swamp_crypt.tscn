@@ -597,7 +597,7 @@ position = Vector2(1450, 485)
 prop_id = "chest_wooden"
 
 [node name="Prop7" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1130, 655)
+position = Vector2(720, 451)
 prop_id = "pot"
 
 [node name="Prop8" parent="Props" instance=ExtResource("7_prop")]

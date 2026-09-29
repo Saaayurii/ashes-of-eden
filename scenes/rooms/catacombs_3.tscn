@@ -488,7 +488,7 @@ position = Vector2(860, 538)
 prop_id = "rubble"
 
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1290, 583)
+position = Vector2(1130, 583)
 prop_id = "rubble"
 
 [node name="Spawns" type="Node2D" parent="."]
@@ -552,7 +552,7 @@ enemy_id = "elite_possessed"
 position = Vector2(60, 126)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1570, 627)
+position = Vector2(1285, 551)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

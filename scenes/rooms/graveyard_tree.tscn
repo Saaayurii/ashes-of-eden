@@ -552,7 +552,7 @@ enemy_id = "raven"
 position = Vector2(60, 245)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1500, 209)
+position = Vector2(1515, 209)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

@@ -448,7 +448,7 @@ position = Vector2(440, 347)
 prop_id = "rubble"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(800, 405)
+position = Vector2(740, 434)
 prop_id = "pot"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]

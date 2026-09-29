@@ -171,7 +171,7 @@ PAINTED = {
                 (600, 402, "#ffb060", 36, 0.5, 0.3), (780, 552, "#ffb060", 36, 0.5, 0.3), (850, 640, "#ffb060", 40, 0.5, 0.3),
                 (1235, 465, "#ff9a40", 70, 0.9, 0.3), (1190, 638, "#ff9a40", 50, 0.7, 0.3), (1090, 250, "#ffb060", 40, 0.6, 0.3),
                 (1238, 245, "#ffb060", 50, 0.7, 0.3), (875, 75, "#c8d4ff", 220, 0.5, 0.0)],
-        player=(40, 175), door=(1230, 232)),
+        player=(40, 175), door=(1242, 228)),
     "graveyard_cross": dict(
         # Second panel: the cross ledge over the chapel, a descent to the bone
         # crypt bottom left, painted stairs climbing to the right wall.
@@ -183,7 +183,8 @@ PAINTED = {
         ground=[], void_kill_y=690,
         ledges=[(0, 254, 280, 14), (404, 278, 154, 14), (248, 348, 148, 14), (60, 400, 68, 12),
                 (0, 520, 88, 12), (82, 538, 74, 12), (188, 518, 596, 14), (785, 545, 207, 14),
-                (804, 385, 257, 14), (1091, 388, 189, 14), (1016, 220, 264, 16), (0, 655, 155, 14),
+                (804, 385, 257, 14), (1061, 386, 30, 14),  # the floor under the arch: the way out
+                (1091, 388, 189, 14), (1016, 220, 264, 16), (0, 655, 155, 14),
                 (1005, 306, 90, 12)],
         ramps=[(985, 545, 1140, 388)],
         stone_steps=True,  # wall-mounted stone cornices, not green islands at the exit
@@ -194,7 +195,7 @@ PAINTED = {
         props=[("pot", 200, 254), ("barrel", 300, 348), ("crate", 700, 518), ("sack", 860, 545),
                ("chest_wooden", 70, 655), ("barrel_apples", 940, 385)],
         decor=[], npcs=[("nun", 122, 655), ("stranger", 252, 254)], ambient="#c0bccc", lights="auto",
-        player=(30, 234), door=(1240, 188)),
+        player=(30, 234), door=(1085, 353)),
     "graveyard_arches": dict(
         # Third panel: the old tree takes the right half; the way out is the
         # ruined arch with a candle, reached over the tree's roots.
@@ -236,7 +237,7 @@ PAINTED = {
         props=[("pot", 110, 289), ("barrel", 350, 312), ("crate", 500, 419), ("rubble", 720, 419), ("barrel_apples", 1000, 365),
                ("chest_wooden", 760, 635), ("pot", 250, 563), ("crate", 1250, 445)],
         decor=[], npcs=[("mara", 955, 380)], ambient="#bcb8cc", lights="auto",
-        player=(60, 245), door=(1180, 209)),
+        player=(60, 245), door=(1195, 209)),  # under the ruined arch between the gate pillars
     "swamp_moon": dict(
         # Fifth panel: the graveyard sinks into a swamp; rotten piers over
         # black water, the lantern post on the far pier marks the way on.
@@ -251,10 +252,10 @@ PAINTED = {
         spawns=[("possessed_villager", 520, 326), ("cultist", 750, 403), ("possessed_villager", 400, 462),
                 ("zealot", 1150, 401), ("fallen_guard", 580, 556), ("shade", 800, 300), ("wraith", 300, 600),
                 ("raven", 900, 150), ("shade", 1000, 250)],
-        props=[("barrel", 250, 264), ("pot", 600, 338), ("box_goods", 700, 415), ("sack", 350, 474),
+        props=[("barrel", 250, 264), ("pot", 600, 338), ("box_goods", 780, 415), ("sack", 350, 474),
                ("chest_wooden", 1200, 554), ("barrel_apples", 100, 351), ("pot", 680, 535)],
         decor=[], npcs=[("villager", 470, 474)], ambient="#b4b8cc", lights="auto",
-        player=(40, 181), door=(1240, 381)),
+        player=(40, 181), door=(1195, 381)),
     "swamp_red": dict(
         # Sixth panel: the moon turns red over the swamp. Stepping stones and
         # pier stumps across the water; the fenced bank top right leads on.
@@ -271,7 +272,7 @@ PAINTED = {
         spawns=[("possessed_villager", 200, 335), ("cultist", 600, 422), ("possessed_villager", 300, 487),
                 ("zealot", 1120, 413), ("fallen_guard", 980, 400), ("wraith", 600, 300), ("shade", 850, 250),
                 ("raven", 400, 150), ("elite_possessed", 1180, 243)],
-        props=[("barrel", 120, 347), ("crate", 280, 347), ("pot", 640, 405), ("sack", 250, 499), ("barrel_apples", 1100, 425),
+        props=[("barrel", 120, 347), ("crate", 280, 347), ("pot", 580, 434), ("sack", 250, 499), ("barrel_apples", 1100, 425),
                ("chest_cursed", 80, 505), ("pot", 1160, 255)],
         decor=[], npcs=[], ambient="#c8b0b4", lights="auto",
         player=(60, 327), door=(1240, 223)),  # the bank starts at x 38
@@ -293,7 +294,7 @@ PAINTED = {
                 ("fallen_guard", 1200, 299), ("preacher_acolyte", 960, 302), ("zealot", 450, 528), ("wraith", 700, 400),
                 ("shade", 300, 200), ("raven", 850, 120), ("elite_possessed", 690, 300)],
         props=[("barrel", 150, 319), ("chest_iron", 200, 414), ("box_goods", 560, 256), ("rubble", 680, 451), ("barrel_apples", 1000, 314),
-               ("chest_wooden", 1130, 485), ("pot", 810, 655), ("box_goods", 1200, 311),
+               ("chest_wooden", 1130, 485), ("pot", 560, 451), ("box_goods", 1200, 311),
                ("secret_wall_swamp", 630, 451)],  # letters behind the tower masonry, not the red root mass
         decor=[], npcs=[], ambient="#c8b0b4", lights="auto",
         player=(40, 299), door=(995, 528)),
@@ -313,10 +314,10 @@ PAINTED = {
         spawns=[("cultist", 500, 248), ("possessed_villager", 200, 401), ("possessed_villager", 600, 391),
                 ("fallen_guard", 900, 418), ("zealot", 1150, 428), ("cult_caller", 800, 592), ("preacher_acolyte", 1050, 222),
                 ("possessed_villager", 300, 628), ("shade", 700, 300), ("wraith", 400, 500)],
-        props=[("pot", 150, 157), ("barrel", 420, 260), ("crate", 700, 403), ("sack", 1200, 440), ("chest_gold", 1150, 191),
+        props=[("pot", 150, 157), ("barrel", 420, 260), ("crate", 700, 403), ("sack", 1240, 440), ("chest_gold", 1150, 191),
                ("barrel_apples", 250, 413), ("pot", 600, 556), ("crate", 900, 604), ("sack", 80, 582)],
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
-        player=(70, 137), door=(1250, 578)),
+        player=(70, 137), door=(1167, 408)),
     "catacombs_2": dict(
         # Ninth panel: deeper galleries; the upper floor runs the whole width
         # and ends at the torch-lit arch top right.
@@ -339,7 +340,7 @@ PAINTED = {
                ("chest_wooden", 60, 579), ("pot", 300, 636), ("box_goods", 700, 651), ("sack", 1190, 481),
                ("secret_wall_catacombs", 1020, 695)],  # the bricked-up ossuary niche: names under the lid
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
-        player=(60, 278), door=(1235, 226)),
+        player=(60, 278), door=(1128, 197)),
     "catacombs_3": dict(
         # Tenth panel: the galleries give way to a cave on the right; the
         # tunnel keeps going down at the bottom right.
@@ -356,9 +357,9 @@ PAINTED = {
                 ("preacher_acolyte", 250, 652), ("possessed_villager", 560, 655), ("shade", 900, 450),
                 ("wraith", 1150, 500), ("elite_possessed", 1180, 647)],
         props=[("pot", 100, 232), ("barrel", 200, 205), ("crate", 600, 242), ("rubble", 950, 312), ("barrel_apples", 150, 442),
-               ("chest_gold", 60, 603), ("pot", 300, 664), ("crate", 700, 538), ("rubble", 970, 583)],
+               ("chest_gold", 60, 603), ("pot", 300, 664), ("crate", 700, 538), ("rubble", 810, 583)],
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
-        player=(60, 126), door=(1250, 627)),
+        player=(60, 126), door=(965, 551)),
     "crypt_skulls": dict(
         # Eleventh panel: the blue crypt over the underground river; the gate
         # with candles on the right wall.
@@ -377,9 +378,9 @@ PAINTED = {
                 ("cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
                 ("preacher_acolyte", 950, 631), ("wraith", 500, 400), ("shade", 800, 250), ("shade", 1100, 300)],
         props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 890, 423), ("sack", 750, 457), ("barrel_apples", 1000, 423),
-               ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1050, 615), ("sack", 1180, 603)],
+               ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1245, 603), ("sack", 1180, 603)],
         decor=[], npcs=[], ambient="#b8bccc", lights="auto",
-        player=(60, 234), door=(1225, 518)),
+        player=(60, 234), door=(1080, 583)),
     "crypt_lava": dict(
         # Twelfth panel, the Knight of Ash: the crypt cracks open over lava. He
         # waits on the long gallery in the middle; the way on is the dark arch

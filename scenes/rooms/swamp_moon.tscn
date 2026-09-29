@@ -465,7 +465,7 @@ position = Vector2(760, 338)
 prop_id = "pot"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(860, 415)
+position = Vector2(940, 415)
 prop_id = "swamp_bundle"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
@@ -539,7 +539,7 @@ enemy_id = "shade"
 position = Vector2(40, 181)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1560, 381)
+position = Vector2(1515, 381)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

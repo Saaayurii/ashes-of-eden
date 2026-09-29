@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=3]
+[gd_scene load_steps=54 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_cross_wide.png" id="2_backdrop"]
@@ -77,6 +77,9 @@ fill_to = Vector2(0.5, 0)
 
 [sub_resource type="CanvasItemMaterial" id="add_mat"]
 blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="ArchFloor_shape"]
+size = Vector2(30, 14)
 
 [sub_resource type="RectangleShape2D" id="door_shape"]
 size = Vector2(20, 56)
@@ -353,6 +356,11 @@ polygon = PackedVector2Array(1145, 545, 1152.75, 545, 1152.75, 537.15, 1160.5, 5
 collision_layer = 16
 collision_mask = 0
 
+[node name="ArchFloorShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1236.0, 393.0)
+shape = SubResource("ArchFloor_shape")
+one_way_collision = true
+
 [node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(1308.0, 267.0)
 shape = SubResource("Platform1_shape")
@@ -529,7 +537,7 @@ enemy_id = "wraith"
 position = Vector2(30, 234)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1400, 188)
+position = Vector2(1245, 353)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")
