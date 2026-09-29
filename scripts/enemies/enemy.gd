@@ -215,6 +215,20 @@ func is_dead() -> bool:
 	return state == State.DEAD
 
 
+func _fell_out_of_room() -> bool:
+	var rooms := get_tree().get_nodes_in_group("room")
+	if rooms.is_empty():
+		return false
+	# During a transition the old room may still be queued for deletion. The
+	# newest one owns enemies spawned for the current section.
+	var current_room := rooms.back() as Room
+	if current_room == null:
+		return false
+	var here := current_room.to_local(global_position)
+	var bottom := current_room.void_kill_y if current_room.void_kill_y >= 0.0 else float(current_room.height) + 24.0
+	return here.y > bottom or here.x < -96.0 or here.x > float(current_room.width) + 96.0
+
+
 ## True while it has not noticed anybody: a sword landing now is a backstab.
 func is_unaware() -> bool:
 	return state == State.PATROL or state == State.ALERT
@@ -252,6 +266,13 @@ func _setup_sprite(spec: Dictionary) -> void:
 
 func _physics_process(delta: float) -> void:
 	if state == State.DEAD:
+		return
+	# A walker can be knocked into a shaft and a flyer can drift past a side
+	# boundary. Both must use the normal death path: Room.alive owns the exit.
+	if _fell_out_of_room():
+		if Net.active:
+			_net_die.rpc()
+		_die()
 		return
 	if stats.get("behaviour", "walker") == "seal":
 		# it hangs where it was set; a blow only plays its crack
