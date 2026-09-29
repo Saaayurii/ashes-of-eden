@@ -500,6 +500,7 @@ prop_id = "rubble"
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(1115, 380)
 npc_id = "mara"
+path_override = [Vector2(0, 0), Vector2(65, -15), Vector2(305, 30), Vector2(405, 65)]
 
 [node name="Spawns" type="Node2D" parent="."]
 

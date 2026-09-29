@@ -579,7 +579,7 @@ prop_id = "rubble"
 
 [node name="Prop5" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(1320, 423)
-prop_id = "bone_reliquary"
+prop_id = "funeral_offering"
 
 [node name="Prop6" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(300, 661)

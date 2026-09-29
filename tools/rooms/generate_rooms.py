@@ -436,6 +436,15 @@ def expand_painted_room(name, room):
                     for x0, y0, x1, y1 in room.get("ramps", [])]
     for key in ("spawns", "props", "npcs"):
         out[key] = [(item_id, _map_x(x, inserts), y) for item_id, x, y in room.get(key, [])]
+    out["npc_paths"] = []
+    for npc_id, x, _ in room.get("npcs", []):
+        with open(os.path.join(ROOT, "data", "npcs", npc_id + ".json")) as source:
+            points = json.load(source).get("path", [])
+        # A path is local to the NPC. Remap each world-space stop separately:
+        # otherwise a stop beyond an inserted seam stays on the old x and
+        # the NPC fades or walks into empty air beside the widened masonry.
+        out["npc_paths"].append([(_map_x(x + dx, inserts) - _map_x(x, inserts), dy)
+                                  for dx, dy in points])
     out["decor"] = [(item_id, _map_x(x, inserts), y, layer)
                     for item_id, x, y, layer in room.get("decor", [])]
     for key in ("player", "door", "shrine", "bell"):
@@ -1357,7 +1366,12 @@ def build(name, r):
     for i, (pid, x, y) in enumerate(r.get("props", []), 1):
         text += f'[node name="Prop{i}" parent="Props" instance=ExtResource("7_prop")]\nposition = Vector2({x}, {y})\nprop_id = "{pid}"\n\n'
     for i, (nid, x, y) in enumerate(r.get("npcs", []), 1):
-        text += f'[node name="Npc{i}" parent="Props" instance=ExtResource("11_npc")]\nposition = Vector2({x}, {y})\nnpc_id = "{nid}"\n\n'
+        text += f'[node name="Npc{i}" parent="Props" instance=ExtResource("11_npc")]\nposition = Vector2({x}, {y})\nnpc_id = "{nid}"\n'
+        path = r.get("npc_paths", [])
+        if path and path[i - 1]:
+            points = ", ".join(f"Vector2({dx}, {dy})" for dx, dy in path[i - 1])
+            text += f"path_override = [{points}]\n"
+        text += "\n"
     for i, (bx, by) in enumerate(r.get("barriers", []), 1):
         text += (f'[node name="Barrier{i}" type="Sprite2D" parent="."]\nposition = Vector2({bx}, {by})\n'
                  'texture = ExtResource("11_barrier")\nhframes = 7\ncentered = false\noffset = Vector2(-32, -80)\n'
