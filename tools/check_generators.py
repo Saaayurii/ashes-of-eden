@@ -38,8 +38,6 @@ GENERATORS = [
      ["assets/props"], False),
     ("web gate", ["tools/art/make_web_gate.py"],
      ["tools/web/shell.html"], False),
-    ("store art", ["tools/art/make_store_art.py"],
-     ["docs/store"], False),
     ("cjk subset", ["tools/art/make_cjk_font.py"],
      ["assets/fonts/NotoSerifSC-Subset.ttf"], True),
 ]
@@ -52,13 +50,14 @@ GENERATORS = [
 ##
 ##   zlib      — the pixels are identical, the bytes are not. A different
 ##               zlib build, nothing more.
-##   rounding  — a pixel or two off by one. Pillow 12.1 and 12.3 resample a
-##               1600 px panel one unit apart in one dark pixel out of half a
-##               million; an actual edit to the art does not move a pixel by
-##               one, it moves many by a lot. A whole image off by one is
-##               still rounding; a single pixel off by two is not.
+## Reported, so a drift that turns out to matter is still visible.
 ##
-## Reported either way, so a drift that turns out to matter is still visible.
+## There used to be a second excuse here, for pictures a pixel or two off by
+## one, added so the store covers would pass. It did not help them — their
+## text comes out 3,500 pixels and 226 levels apart on the runner, because
+## FreeType rasterises glyphs differently between builds — and with those
+## covers out of the list (see GENERATORS) nothing else needed it. A check
+## that tolerates a little is a check that will one day tolerate a lot.
 def same_picture(path):
     """None when the picture really changed, else why it only looks changed.
 
@@ -91,9 +90,27 @@ def same_picture(path):
     worst = int(delta.max())
     if worst == 0:
         return "zlib"
-    if worst <= 1:
-        return "rounding"
     return "!%d pixel(s) differ, worst by %d" % (int((delta.sum(2) > 0).sum()), worst)
+
+
+## Which libraries drew the pictures. When a generator does drift, the first
+## question is always "drifted compared to what", and the answer is usually a
+## version somewhere; printing it costs a line and saves a round trip.
+def versions():
+    out = ["python %d.%d" % sys.version_info[:2]]
+    try:
+        from PIL import Image, features
+        out.append("pillow " + Image.__version__)
+        for lib in ("freetype2", "libwebp", "zlib"):
+            try:
+                found = features.version(lib)
+            except Exception:
+                found = None
+            if found:
+                out.append("%s %s" % (lib, found))
+    except ImportError:
+        out.append("no pillow")
+    return "    (" + ", ".join(out) + ")"
 
 
 def dirty(paths):
@@ -133,6 +150,7 @@ def main():
 
     chosen = [g for g in GENERATORS if args.all or not g[3]]
     skipped = len(GENERATORS) - len(chosen)
+    print(versions())
 
     # Refuse to run against a dirty tree: the whole check is "did git notice
     # anything", and it cannot tell our changes from somebody else's.
@@ -155,7 +173,6 @@ def main():
         # A reason starting with "!" is not an excuse, it is a diagnosis.
         excused = {m: same_picture(m) for m in moved}
         recompressed = [m for m, why in excused.items() if why == "zlib"]
-        rounded = [m for m, why in excused.items() if why == "rounding"]
         real = ["%s%s" % (m, "  (%s)" % why[1:] if why else "")
                 for m, why in excused.items() if why is None or why.startswith("!")]
         if real:
@@ -167,10 +184,6 @@ def main():
             print("    (%d PNG(s) identical in pixels, different in bytes — another "
                   "zlib: %s)" % (len(recompressed),
                                  ", ".join(os.path.basename(r) for r in recompressed[:3])))
-        if rounded:
-            print("    (%d PNG(s) off by one somewhere — another Pillow's "
-                  "resampling: %s)" % (len(rounded),
-                                       ", ".join(os.path.basename(r) for r in rounded[:3])))
         if extra:
             print("    (writes %d file(s) the repository does not keep: %s)"
                   % (len(extra), ", ".join(os.path.basename(e) for e in extra[:4])))

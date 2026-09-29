@@ -14,9 +14,18 @@ side with the graveyard running past him, a squarer one wants him centred.
 
     python3 tools/art/make_store_art.py
 
-Deterministic: same art in, byte-identical PNGs out. Pillow's zlib build can
-differ between machines, which tools/check_generators.py reports as a
-recompression rather than a change.
+Run by hand, and deliberately not in `tools/check_generators.py` with the
+rest. Everything here is deterministic except the one thing that matters:
+FreeType rasterises the same glyphs at the same size differently between
+builds, and the title comes out 3,500 pixels and 226 levels apart on a CI
+runner from what two machines here produce — same Pillow, same font, same
+code. That is not a picture that changed, and it is not a difference any
+threshold can honestly excuse either, so the covers are committed art
+refreshed on purpose, like `docs/screenshots/`, rather than output a check
+can promise reproduces.
+
+The rest does reproduce: the crop, the veil, the figure and the shadow come
+out identical across architectures. It is only the text.
 """
 import os
 
