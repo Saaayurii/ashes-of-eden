@@ -1,0 +1,22 @@
+{
+  "anims": [
+    [
+      "idle",
+      "elian_idle",
+      4
+    ],
+    [
+      "walk",
+      "elian_walk",
+      8
+    ]
+  ],
+  "art": {
+    "assets/levels/graveyard_moon_wide.png": "e491142c4dd52d26",
+    "assets/sprites/elian_idle.png": "eb3a31e50b85cf6b",
+    "assets/sprites/elian_walk.png": "fa58c69cdf3a0873"
+  },
+  "backdrop_quality": 72,
+  "backdrop_width": 1100,
+  "sprite_scale": 6
+}
