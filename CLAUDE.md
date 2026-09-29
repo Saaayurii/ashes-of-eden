@@ -60,6 +60,12 @@ Godot 4.7 / GDScript, 2D pixel action roguelite. Open source, community-driven, 
 - Replicated properties are declared in code (`Net.attach_sync`, called from the spawner's spawn function before the node enters the tree), not in a `.tscn`.
 - New enemy theatre (a telegraph, a swing, a beam) → an RPC next to `_net_strike`, guarded by `if Net.active`.
 
+## Run
+
+- **Straight into one room**, for working on it rather than playing to it:
+  `/Applications/Godot.app/Contents/MacOS/Godot --path . scenes/run/run.tscn -- room=hell_gate`
+  The name is the scene's own (`ROOMS` in `run.gd`, in play order): `village_night`, `graveyard_cross`, `graveyard_arches`, `graveyard_tree`, `swamp_moon`, `swamp_red`, `swamp_crypt`, `catacombs_1`, `catacombs_2`, `catacombs_3`, `crypt_skulls`, `preacher_nave`, `church`, `crypt_lava`, `hell_gate`. An index works too (`room=0` … `room=14`, clamped). No prologue, no intro, hero on his feet — the shape `_resume_from` has. It prints which room it opened, because a mistyped name falls back to the first room and would otherwise look like the argument being ignored. Debug builds only; a release build ignores it. He arrives as he starts a night — level one, no gifts — so a late room is harder this way than in play. `room_jump_test.gd` covers the parsing.
+
 ## Verify
 - Tool scripts under `scripts/tools/` are the only place allowed to be untyped w.r.t. game classes.
 - `make validate` / `make test` / `make net-test` (Docker), or natively:
@@ -70,6 +76,7 @@ Godot 4.7 / GDScript, 2D pixel action roguelite. Open source, community-driven, 
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/save_test.gd` (save → load round-trip, export/import, bad files refused)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/skill_test.gd` (the three active skills fire, hurt, heal, cool down)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/secret_test.gd` (secret walls break, caches pay Ash once, records open)
+  `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/room_jump_test.gd` (`room=` on the command line finds the right room, and says so when it does not)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --fixed-fps 60 --path . -s scripts/tools/reach_test.gd [-- room|room]` (a bot with the hero's real physics proves every door, walker and prop — secrets included — reachable, then that it can get back to the entrance from every surface it reached: no one-way stairs, upper platforms or caches; `one_way` after the room filter reports instead of failing; ~25 min for all rooms, one room per process runs them in parallel). Run it after touching any room's colliders, together with `stairs_test.gd` (every stair of every room walked up and back down) and `void_fall_test.gd` (every open column of every room's bottom edge is a fatal fall, extra life or not; lava is not the edge of the map).
   `GODOT=/Applications/Godot.app/Contents/MacOS/Godot tools/net_test.sh coop` (also `pvp`, `coop-dedicated`, `pvp-dedicated`)
 - `-s` tool scripts compile before autoloads exist: keep them untyped w.r.t. game classes.

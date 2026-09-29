@@ -27,6 +27,15 @@ web: build-web ## serve the web build at http://localhost:8080
 editor:     ## open the project in the native Godot editor (macOS)
 	open -a Godot --args --path "$(CURDIR)" -e
 
+GODOT := /Applications/Godot.app/Contents/MacOS/Godot
+
+room:       ## open straight into one room, e.g. make room ROOM=hell_gate (names: make rooms)
+	"$(GODOT)" --path "$(CURDIR)" scenes/run/run.tscn -- room=$(ROOM)
+
+rooms:      ## list the names `make room ROOM=...` accepts, in play order
+	@grep -o 'scenes/rooms/[a-z0-9_]*\.tscn' scripts/run/run.gd \
+		| sed 's|scenes/rooms/||;s|\.tscn||' | nl -w3 -s'  '
+
 android-image: ## Android export image (JDK + SDK + debug keystore; accepts the Android SDK licence)
 	docker build -f tools/docker/Dockerfile.android -t ashes-of-eden/godot-android:4.7.2 .
 

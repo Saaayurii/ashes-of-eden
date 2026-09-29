@@ -107,7 +107,16 @@ func _ready() -> void:
 	if not Net.active:
 		var save := Saves.take_pending()
 		_spawn_player(1, 0)
-		if save.is_empty():
+		var jump := _requested_room()
+		if jump >= 0:
+			# Straight into a room to look at it: no prologue, no intro, no
+			# save, hero on his feet — the shape _resume_from already has.
+			# Said out loud: a mistyped name falls back to the first room, and
+			# without this line that is indistinguishable from being ignored.
+			print("run: opening at %s (%d of %d)" %
+				[room_names()[jump], jump + 1, ROOMS.size()])
+			_go_to_room(jump)
+		elif save.is_empty():
 			_go_to_room(0)
 			_begin()
 		else:
@@ -206,6 +215,53 @@ func _begin() -> void:
 	if player:
 		player.wake_up()
 	_announce_unlocks()
+
+
+## Open straight into one room, for looking at it:
+##
+##     Godot --path . scenes/run/run.tscn -- room=hell_gate
+##     Godot --path . scenes/run/run.tscn -- room=14
+##
+## A name is the scene's own (`ROOMS` holds the paths), an index is a position
+## in `ROOMS`. Debug builds only — this is a way to reach a room while working
+## on it, not a way to skip the game, and a release build ignores it.
+##
+## The hero arrives as he starts a night: level one, no gifts, full health.
+## A late room is meant to be entered by somebody who earned their way there,
+## so it will be harder this way than it is in play. That is the tool working,
+## not the balance being wrong.
+const ROOM_ARG := "room="
+
+
+func _requested_room() -> int:
+	if not OS.is_debug_build():
+		return -1
+	return room_from_args(OS.get_cmdline_user_args())
+
+
+## Which room a command line asks for, or -1 for none. Separate from the
+## engine so a test can hand it arguments.
+static func room_from_args(args: PackedStringArray) -> int:
+	for arg in args:
+		if not arg.begins_with(ROOM_ARG):
+			continue
+		var want := arg.substr(ROOM_ARG.length()).strip_edges()
+		if want.is_valid_int():
+			return clampi(int(want), 0, ROOMS.size() - 1)
+		var names := room_names()
+		var found := names.find(want)
+		if found >= 0:
+			return found
+		push_warning("run: no room called '%s'. Try one of: %s" % [want, ", ".join(names)])
+	return -1
+
+
+## The names `room=` accepts, in the order they are played.
+static func room_names() -> PackedStringArray:
+	var names := PackedStringArray()
+	for path in ROOMS:
+		names.append(String(path).get_file().get_basename())
+	return names
 
 
 ## A saved night picks up at the entrance of the room it was saved in, with
