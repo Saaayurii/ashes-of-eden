@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=3]
+[gd_scene load_steps=60 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/catacombs_2_wide.png" id="2_backdrop"]
@@ -19,8 +19,6 @@
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
 [ext_resource type="Texture2D" path="res://assets/decor/graveyard/bones_1.png" id="decor_graveyard_bones_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/graveyard/coffin_1.png" id="decor_graveyard_coffin_1"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_1.png" id="piece_float_1"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_3.png" id="piece_float_3"]
 
 [sub_resource type="Gradient" id="fade"]
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)

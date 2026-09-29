@@ -26,6 +26,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 JUMP_UP = 76.0
 JUMP_ACROSS = 132.0
 DROP_ACROSS = 105.0
+# The hero's arc (scripts/player/player.gd BASE_STATS, player.tscn body): a
+# jump and an air jump at its apex. A climb is judged on that arc, cut by
+# REACH_MARGIN for a short run-up and a late second press; a flat line
+# across a big rise underrated real hops by a third (swamp_moon's pier).
+RUN_SPEED = 150.0
+JUMP_VELOCITY = 320.0
+GRAVITY = 1100.0
+BODY_WIDTH = 14.0
+REACH_MARGIN = 0.85
 FLYERS = {"shade", "wraith", "raven", "ophanim"}
 
 
@@ -49,13 +58,21 @@ def _surfaces(room):
     return out, links
 
 
+def _climb_reach(rise):
+    """How far across a double jump carries the body onto a surface `rise` px up."""
+    peak = JUMP_VELOCITY ** 2 / GRAVITY  # two apexes stacked
+    airtime = 2.0 * JUMP_VELOCITY / GRAVITY + (2.0 * (peak - rise) / GRAVITY) ** 0.5
+    # the body stands on an edge by half its width at either end
+    return RUN_SPEED * airtime * REACH_MARGIN + BODY_WIDTH
+
+
 def _can_jump(a, b):
     ax, ay, aw = a
     bx, by, bw = b
     gap = max(0.0, bx - (ax + aw), ax - (bx + bw))
     rise = ay - by  # positive: b is higher
     if rise > 0:
-        return rise <= JUMP_UP and gap <= JUMP_ACROSS - rise * 0.9
+        return rise <= JUMP_UP and gap <= max(JUMP_ACROSS - rise * 0.9, _climb_reach(rise))
     return gap <= max(JUMP_ACROSS, DROP_ACROSS + min(120.0, -rise * 0.5))
 
 
@@ -360,7 +377,7 @@ PAINTED = {
                 ("preacher_acolyte", 250, 652), ("possessed_villager", 560, 655), ("shade", 900, 450),
                 ("wraith", 1150, 500), ("elite_possessed", 1180, 647)],
         props=[("pot", 100, 232), ("barrel", 200, 205), ("crate", 600, 242), ("rubble", 950, 312), ("barrel_apples", 150, 442),
-               ("chest_gold", 60, 603), ("pot", 300, 664), ("crate", 700, 538), ("rubble", 810, 583)],
+               ("chest_gold", 60, 603), ("pot", 300, 664), ("crate", 700, 538), ("rubble", 1130, 583, "wide")],  # on the floor the seam added
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
         player=(60, 126), door=(965, 551)),
     "crypt_skulls": dict(

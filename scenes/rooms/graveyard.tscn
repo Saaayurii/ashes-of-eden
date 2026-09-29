@@ -268,112 +268,112 @@ mouse_filter = 2
 scroll_scale = Vector2(0.88, 1)
 
 [node name="tree_2_1" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(90, 625.0)
 texture = ExtResource("decor_tree_2")
 
 [node name="tree_4_2" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(700, 625.0)
 texture = ExtResource("decor_tree_4")
 
 [node name="crypt_1_3" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(1010, 644.0)
 texture = ExtResource("decor_crypt_1")
 
 [node name="crypt_2_4" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(470, 644.0)
 texture = ExtResource("decor_crypt_2")
 
 [node name="monument_1_5" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(640, 652.0)
 texture = ExtResource("decor_monument_1")
 
 [node name="monument_6_6" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(820, 652.0)
 texture = ExtResource("decor_monument_6")
 
 [node name="monument_9_7" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(1230, 652.0)
 texture = ExtResource("decor_monument_9")
 
 [node name="monument_8_8" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(250, 262.0)
 texture = ExtResource("decor_monument_8")
 
 [node name="tree_5_9" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(1000, 235.0)
 texture = ExtResource("decor_tree_5")
 
 [node name="graveyard_crypt_3_28" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(1212, 384.0)
 texture = ExtResource("decor_graveyard_crypt_3")
 
 [node name="graveyard_cross_2_29" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(554, 262.0)
 texture = ExtResource("decor_graveyard_cross_2")
 
 [node name="graveyard_angel_2_32" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(1192, 518.0)
 texture = ExtResource("decor_graveyard_angel_2")
 
 [node name="graveyard_angel_1_36" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(1038, 258.0)
 texture = ExtResource("decor_graveyard_angel_1")
 
 [node name="wilds_sapling_1_37" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(914, 455.0)
 texture = ExtResource("decor_wilds_sapling_1")
 
 [node name="graveyard_crypt_3_38" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(122, 514.0)
 texture = ExtResource("decor_graveyard_crypt_3")
 
 [node name="graveyard_cross_4_41" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(732, 652.0)
 texture = ExtResource("decor_graveyard_cross_4")
 
 [node name="graveyard_deadwood_1_42" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(772, 384.0)
 texture = ExtResource("decor_graveyard_deadwood_1")
 
 [node name="graveyard_cross_1_43" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(772, 522.0)
 texture = ExtResource("decor_graveyard_cross_1")
 
 [node name="graveyard_deadwood_4_52" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(481, 384.0)
 texture = ExtResource("decor_graveyard_deadwood_4")
 
 [node name="wilds_sapling_4_53" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(1221, 260.0)
 texture = ExtResource("decor_wilds_sapling_4")
 
 [node name="wilds_sapling_5_55" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(612, 160.0)
 texture = ExtResource("decor_wilds_sapling_5")
 
 [node name="graveyard_cross_2_59" type="Sprite2D" parent="DecorBack"]
-modulate = Color(0.55, 0.5, 0.55, 1)
+modulate = Color(0.477, 0.489, 0.536, 1)
 position = Vector2(645, 162.0)
 texture = ExtResource("decor_graveyard_cross_2")
 
@@ -1361,142 +1361,142 @@ modulate = Color(0.8, 0.8, 0.85, 1)
 [node name="DecorMid" type="Node2D" parent="."]
 
 [node name="tombstone_1_10" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(150, 660.0)
 texture = ExtResource("decor_tombstone_1")
 
 [node name="tombstone_2_11" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(210, 660.0)
 texture = ExtResource("decor_tombstone_2")
 
 [node name="tombstone_4_12" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(350, 660.0)
 texture = ExtResource("decor_tombstone_4")
 
 [node name="tombstone_5_13" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(620, 660.0)
 texture = ExtResource("decor_tombstone_5")
 
 [node name="tombstone_7_14" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(760, 660.0)
 texture = ExtResource("decor_tombstone_7")
 
 [node name="tombstone_8_15" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(960, 660.0)
 texture = ExtResource("decor_tombstone_8")
 
 [node name="fence_1_16" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(880, 658.0)
 texture = ExtResource("decor_fence_1")
 
 [node name="fence_3_17" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1150, 658.0)
 texture = ExtResource("decor_fence_3")
 
 [node name="monument_3_18" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1090, 652.0)
 texture = ExtResource("decor_monument_3")
 
 [node name="tombstone_3_23" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(120, 400.0)
 texture = ExtResource("decor_tombstone_3")
 
 [node name="tombstone_6_24" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(560, 530.0)
 texture = ExtResource("decor_tombstone_6")
 
 [node name="fence_2_25" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1100, 528.0)
 texture = ExtResource("decor_fence_2")
 
 [node name="graveyard_tomb_2_26" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(509, 530.0)
 texture = ExtResource("decor_graveyard_tomb_2")
 
 [node name="wilds_brush_2_31" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(122, 275.0)
 texture = ExtResource("decor_wilds_brush_2")
 
 [node name="graveyard_tomb_8_33" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(740, 530.0)
 texture = ExtResource("decor_graveyard_tomb_8")
 
 [node name="wilds_brush_3_35" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(425, 340.0)
 texture = ExtResource("decor_wilds_brush_3")
 
 [node name="graveyard_railing_2_39" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1067, 528.0)
 texture = ExtResource("decor_graveyard_railing_2")
 
 [node name="graveyard_railing_2_40" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(919, 658.0)
 texture = ExtResource("decor_graveyard_railing_2")
 
 [node name="wilds_brush_1_44" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(235, 405.0)
 texture = ExtResource("decor_wilds_brush_1")
 
 [node name="wilds_brush_5_46" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(824, 405.0)
 texture = ExtResource("decor_wilds_brush_5")
 
 [node name="wilds_brush_5_47" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(312, 600.0)
 texture = ExtResource("decor_wilds_brush_5")
 
 [node name="graveyard_tomb_7_48" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(189, 530.0)
 texture = ExtResource("decor_graveyard_tomb_7")
 
 [node name="graveyard_coffin_4_49" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(592, 277.0)
 texture = ExtResource("decor_graveyard_coffin_4")
 
 [node name="wilds_brush_6_51" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(576, 701.0)
 texture = ExtResource("decor_wilds_brush_6")
 
 [node name="wilds_stump_1_54" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(272, 403.0)
 texture = ExtResource("decor_wilds_stump_1")
 
 [node name="graveyard_railing_2_56" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(385, 528.0)
 texture = ExtResource("decor_graveyard_railing_2")
 
 [node name="graveyard_railing_2_57" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(962, 268.0)
 texture = ExtResource("decor_graveyard_railing_2")
 
 [node name="wilds_brush_3_58" type="Sprite2D" parent="DecorMid"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1174, 405.0)
 texture = ExtResource("decor_wilds_brush_3")
 
@@ -1504,47 +1504,47 @@ texture = ExtResource("decor_wilds_brush_3")
 z_index = 1
 
 [node name="grass_2_19" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(210, 279.0)
 texture = ExtResource("decor_grass_2")
 
 [node name="rocks_20" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(620, 281.0)
 texture = ExtResource("decor_rocks")
 
 [node name="grass_1_21" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(830, 279.0)
 texture = ExtResource("decor_grass_1")
 
 [node name="bush_22" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1040, 407.0)
 texture = ExtResource("decor_bush")
 
 [node name="graveyard_bones_2_27" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1221, 344.0)
 texture = ExtResource("decor_graveyard_bones_2")
 
 [node name="graveyard_bones_1_30" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1149, 279.0)
 texture = ExtResource("decor_graveyard_bones_1")
 
 [node name="graveyard_bones_1_34" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(852, 539.0)
 texture = ExtResource("decor_graveyard_bones_1")
 
 [node name="graveyard_bones_1_45" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(1234, 539.0)
 texture = ExtResource("decor_graveyard_bones_1")
 
 [node name="graveyard_bones_2_50" type="Sprite2D" parent="DecorFront"]
-modulate = Color(0.85, 0.8, 0.85, 1)
+modulate = Color(0.653, 0.669, 0.734, 1)
 position = Vector2(850, 669.0)
 texture = ExtResource("decor_graveyard_bones_2")
 
@@ -1660,6 +1660,7 @@ position = Vector2(1246, 648)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")
+
 
 [node name="Shape" type="CollisionShape2D" parent="Door"]
 shape = SubResource("door_shape")

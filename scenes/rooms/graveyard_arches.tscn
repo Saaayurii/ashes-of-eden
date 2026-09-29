@@ -1,4 +1,4 @@
-[gd_scene load_steps=59 format=3]
+[gd_scene load_steps=54 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_arches_wide.png" id="2_backdrop"]
@@ -18,10 +18,6 @@
 [ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
 [ext_resource type="Texture2D" path="res://assets/decor/graveyard/bones_1.png" id="decor_graveyard_bones_1"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_1.png" id="piece_ledge_1"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_5.png" id="piece_ledge_5"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_6.png" id="piece_ledge_6"]
 
 [sub_resource type="Gradient" id="fade"]
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
@@ -79,9 +75,6 @@ blend_mode = 1
 
 [sub_resource type="RectangleShape2D" id="door_shape"]
 size = Vector2(20, 56)
-
-[sub_resource type="RectangleShape2D" id="Ground1_shape"]
-size = Vector2(1600, 30)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
 size = Vector2(56, 10)
@@ -159,12 +152,12 @@ size = Vector2(1600, 16)
 script = ExtResource("1_room")
 width = 1600
 height = 720
+void_kill_y = 690
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/graveyard_arches_wide.png"
 depth_parallax = 0.028
-void_kill_y = 690.0
 
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.737, 0.722, 0.8, 1)
@@ -369,7 +362,7 @@ position = Vector2(800.0, -8.0)
 shape = SubResource("Wall3_shape")
 
 [node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(1205, 594, 1210.45, 594, 1210.45, 586.55, 1215.91, 586.55, 1215.91, 579.09, 1221.36, 579.09, 1221.36, 571.64, 1226.82, 571.64, 1226.82, 564.18, 1232.27, 564.18, 1232.27, 556.73, 1237.73, 556.73, 1237.73, 549.27, 1243.18, 549.27, 1243.18, 541.82, 1248.64, 541.82, 1248.64, 534.36, 1254.09, 534.36, 1254.09, 526.91, 1259.55, 526.91, 1259.55, 519.45, 1265, 519.45, 1265, 512, 1265, 528, 1265, 535.45, 1259.55, 535.45, 1259.55, 542.91, 1254.09, 542.91, 1254.09, 550.36, 1248.64, 550.36, 1248.64, 557.82, 1243.18, 557.82, 1243.18, 565.27, 1237.73, 565.27, 1237.73, 572.73, 1232.27, 572.73, 1232.27, 580.18, 1226.82, 580.18, 1226.82, 587.64, 1221.36, 587.64, 1221.36, 595.09, 1215.91, 595.09, 1215.91, 602.55, 1210.45, 602.55, 1210.45, 610, 1205, 610)
+polygon = PackedVector2Array(1205.0, 594.0, 1210.45, 594.0, 1210.45, 586.55, 1215.91, 586.55, 1215.91, 579.09, 1221.36, 579.09, 1221.36, 571.64, 1226.82, 571.64, 1226.82, 564.18, 1232.27, 564.18, 1232.27, 556.73, 1237.73, 556.73, 1237.73, 549.27, 1243.18, 549.27, 1243.18, 541.82, 1248.64, 541.82, 1248.64, 534.36, 1254.09, 534.36, 1254.09, 526.91, 1259.55, 526.91, 1259.55, 519.45, 1265.0, 519.45, 1265.0, 512.0, 1265.0, 528.0, 1265.0, 535.45, 1259.55, 535.45, 1259.55, 542.91, 1254.09, 542.91, 1254.09, 550.36, 1248.64, 550.36, 1248.64, 557.82, 1243.18, 557.82, 1243.18, 565.27, 1237.73, 565.27, 1237.73, 572.73, 1232.27, 572.73, 1232.27, 580.18, 1226.82, 580.18, 1226.82, 587.64, 1221.36, 587.64, 1221.36, 595.09, 1215.91, 595.09, 1215.91, 602.55, 1210.45, 602.55, 1210.45, 610.0, 1205.0, 610.0)
 
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16

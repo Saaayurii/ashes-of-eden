@@ -100,9 +100,6 @@ size = Vector2(200, 40)
 [sub_resource type="RectangleShape2D" id="Ground8_shape"]
 size = Vector2(117, 60)
 
-[sub_resource type="RectangleShape2D" id="Ground13_shape"]
-size = Vector2(143, 60)
-
 [sub_resource type="RectangleShape2D" id="Ground9_shape"]
 size = Vector2(250, 30)
 
@@ -114,6 +111,9 @@ size = Vector2(50, 20)
 
 [sub_resource type="RectangleShape2D" id="Ground12_shape"]
 size = Vector2(220, 65)
+
+[sub_resource type="RectangleShape2D" id="Ground13_shape"]
+size = Vector2(143, 60)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
 size = Vector2(70, 10)
@@ -375,10 +375,6 @@ shape = SubResource("Ground7_shape")
 position = Vector2(1121.5, 550.0)
 shape = SubResource("Ground8_shape")
 
-[node name="Ground13Shape" type="CollisionShape2D" parent="Geometry"]
-position = Vector2(1269.5, 550.0)
-shape = SubResource("Ground13_shape")
-
 [node name="Ground9Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(1225.0, 640.0)
 shape = SubResource("Ground9_shape")
@@ -394,6 +390,10 @@ shape = SubResource("Ground11_shape")
 [node name="Ground12Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(1490.0, 687.5)
 shape = SubResource("Ground12_shape")
+
+[node name="Ground13Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1269.5, 550.0)
+shape = SubResource("Ground13_shape")
 
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)

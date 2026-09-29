@@ -64,9 +64,11 @@ TRAVERSAL_PATCHES = {
     "swamp_crypt": [(310, 375, 60, 10)],  # two-way route to the entrance pier
     "catacombs_3": [(480, 225, 80, 10)],
     "crypt_skulls": [(400, 285, 80, 10)],
-    "crypt_lava": [(730, 610, 100, 12), (700, 315, 85, 12)],  # treasure terrace and gallery return
-    "hell_gate": [(1525, 563, 75, 12), (1550, 493, 50, 12),
-                  (265, 315, 125, 12), (225, 405, 65, 12)],  # upper left lip clears the stair underside
+    # a fifth field names the patch in the scene (<name>Shape, <name>Cornice)
+    # for the tests that look for it
+    "crypt_lava": [(730, 610, 100, 12, "LowerReturn"), (700, 315, 85, 12, "GalleryReturn")],  # treasure terrace and gallery return
+    "hell_gate": [(1525, 563, 75, 12, "Return1"), (1550, 493, 50, 12, "Return2"),
+                  (265, 315, 125, 12, "LeftReturn"), (225, 405, 65, 12, "LeftReturnLower")],  # upper left lip clears the stair underside
 }
 
 # One visual thought per new seam, not another random barrel on the route.
@@ -77,7 +79,7 @@ SEAM_STORIES = {
     "graveyard_cross": ("",),  # painted crosses already frame the bridge; don't stamp another over its stair
     "graveyard_arches": ("", "graveyard/bones_1"),  # no loose coffin at the bridge seam
     "graveyard_tree": ("", ""),  # keep the painted chapel and its roots unobstructed
-    "swamp_moon": ("", "wilds/brush_4"),  # the painted roots are enough at the entrance
+    "swamp_moon": ("", ""),  # the painted roots are enough at the entrance; the pier stays clear
     "swamp_red": ("wilds/fallen_2", ""),  # leave the gate's stone cap clear
     "swamp_crypt": ("wilds/brush_3", ""),  # the crypt sprite hovered above this painted gallery
     "catacombs_1": ("graveyard/bones_2", "clutter/clutter_3"),
@@ -434,8 +436,11 @@ def expand_painted_room(name, room):
                     for x, y, w, h in room.get(key, [])]
     out["ramps"] = [(_map_x(x0, inserts), y0, _map_x(x1, inserts), y1)
                     for x0, y0, x1, y1 in room.get("ramps", [])]
+    # ("rubble", 1130, 583, "wide") is already in the widened room: the only
+    # way to stand something inside an inserted seam, which no panel x maps to.
     for key in ("spawns", "props", "npcs"):
-        out[key] = [(item_id, _map_x(x, inserts), y) for item_id, x, y in room.get(key, [])]
+        out[key] = [(item[0], item[1] if item[3:] == ("wide",) else _map_x(item[1], inserts), item[2])
+                    for item in room.get(key, [])]
     out["npc_paths"] = []
     for npc_id, x, _ in room.get("npcs", []):
         with open(os.path.join(ROOT, "data", "npcs", npc_id + ".json")) as source:
@@ -443,8 +448,9 @@ def expand_painted_room(name, room):
         # A path is local to the NPC. Remap each world-space stop separately:
         # otherwise a stop beyond an inserted seam stays on the old x and
         # the NPC fades or walks into empty air beside the widened masonry.
-        out["npc_paths"].append([(_map_x(x + dx, inserts) - _map_x(x, inserts), dy)
-                                  for dx, dy in points])
+        mapped = [(_map_x(x + dx, inserts) - _map_x(x, inserts), dy) for dx, dy in points]
+        # Only a path the seams actually moved needs overriding in the scene.
+        out["npc_paths"].append(mapped if mapped != [tuple(p) for p in points] else [])
     out["decor"] = [(item_id, _map_x(x, inserts), y, layer)
                     for item_id, x, y, layer in room.get("decor", [])]
     for key in ("player", "door", "shrine", "bell"):
@@ -455,7 +461,10 @@ def expand_painted_room(name, room):
     if isinstance(room.get("lights"), list):
         out["lights"] = [(_map_x(x, inserts), y, tint, radius, energy, flicker)
                          for x, y, tint, radius, energy, flicker in room["lights"]]
-    out["platforms"].extend(TRAVERSAL_PATCHES.get(name, []))
+    for patch in TRAVERSAL_PATCHES.get(name, []):
+        if len(patch) > 4:
+            out.setdefault("platform_names", {})[len(out["platforms"]) + 1] = patch[4]
+        out["platforms"].append(tuple(patch[:4]))
     if name == "village_night":
         # The widening creates two distinct bridge caps. Trace their actual
         # painted ends: a single stretched collider stopped 61 px too early
@@ -479,6 +488,8 @@ def expand_painted_room(name, room):
             1: [(0, 10), (100, 10), (100, 20), (15, 40), (0, 60), (-25, 60), (-25, 52)],
             2: [(-55, 10), (85, 10), (85, 18), (24, 43), (-55, 48)],
         }
+        # the terrace's masonry is sampled two rows lower: its top row showed the lava lip
+        out["cornice_support_shift"] = {1: (0, 2)}
         # Short intermediate treads let the hero walk over the painting's
         # taller risers without globally increasing step-up height.
         out["ramp_treads"] = {2: ((1460,208),(1460,201),(1468,201),(1468,194),(1486,194),(1486,188),(1494,188),(1494,181),(1518,181),(1518,171),(1524,171),(1524,164),(1532,164),(1532,157),(1542,157),(1542,149),(1550,149),(1550,140),(1564,140),(1564,131),(1574,131),(1574,122),(1582,122),(1582,115),(1592,115),(1592,108),(1600,108))}
@@ -645,12 +656,19 @@ ROOMS = {
         spawns=[("ophanim", 480, 110)],
         npcs=[("matthew", 120, 320)],
         props=[("pot", 180, 320), ("barrel", 240, 320), ("barrel_apples", 340, 320), ("crate", 830, 320)],
+        # The nave's dressing was rolled once from DRESSING["nave"] and is
+        # kept as placed: the arena was tuned around it (ophanim_room_art_test).
         decor=[("tree_2", 110, 320, "back"), ("monument_5", 480, 320, "back"), ("monument_2", 800, 320, "back"),
+               ("graveyard/angel_1", 167, 320, "back"), ("graveyard/angel_4", 394, 320, "back"),
+               ("graveyard/cross_2", 653, 200, "back"), ("graveyard/angel_2", 770, 320, "back"),
                ("fence_1", 250, 320, "mid"), ("fence_3", 700, 320, "mid"),
+               ("clutter/brazier_lit", 261, 200, "mid"), ("graveyard/yard_4", 307, 200, "mid"),
+               ("clutter/brazier_lit", 329, 320, "mid"), ("clutter/brazier_lit", 515, 320, "mid"),
+               ("graveyard/yard_1", 738, 320, "mid"), ("clutter/brazier_lit", 890, 320, "mid"),
                ("grass_1", 150, 250, "front"), ("rocks", 470, 160, "front"), ("grass_2", 800, 250, "front")],
         barriers=[(36, 320), (936, 320)],
         ambient="#a08c98", lights=[(926, 261, "#ffb877", 60, 0.6, 0.3), (480, 140, "#ffd27a", 120, 0.55, 0.15)],
-        player=(60, 300), door=(926, 288), shrine=(860, 320), dress=("nave", 10)),
+        player=(60, 300), door=(926, 288), shrine=(860, 320)),
 }
 
 ## Lights painted into the backdrops, in painting pixels (640x360): the lamp on
@@ -903,16 +921,17 @@ BACKDROP_SCALE = 1.1
 OVERLAP = 3
 
 
-def shapes(rects, prefix):
-    return "".join(f'[sub_resource type="RectangleShape2D" id="{prefix}{i + 1}_shape"]\nsize = Vector2({w}, {h})\n\n'
-                   for i, (x, y, w, h) in enumerate(rects))
+def shapes(rects, prefix, names=None):
+    return "".join(f'[sub_resource type="RectangleShape2D" id="{(names or {}).get(i + 1, prefix + str(i + 1))}_shape"]\n'
+                   f'size = Vector2({w}, {h})\n\n' for i, (x, y, w, h) in enumerate(rects))
 
 
-def collider(rects, prefix, parent, one_way=False):
+def collider(rects, prefix, parent, one_way=False, names=None):
     out = []
     for i, (x, y, w, h) in enumerate(rects, 1):
-        out.append(f'[node name="{prefix}{i}Shape" type="CollisionShape2D" parent="{parent}"]\n'
-                   f'position = Vector2({x + w / 2}, {y + h / 2})\nshape = SubResource("{prefix}{i}_shape")\n'
+        name = (names or {}).get(i, f"{prefix}{i}")
+        out.append(f'[node name="{name}Shape" type="CollisionShape2D" parent="{parent}"]\n'
+                   f'position = Vector2({x + w / 2}, {y + h / 2})\nshape = SubResource("{name}_shape")\n'
                    + ("one_way_collision = true\n" if one_way else "") + "\n")
     return "".join(out)
 
@@ -1057,6 +1076,7 @@ def terrain_nodes(r, rng, used, walls=True):
                        f'offset_bottom = {y + h}.0\ncolor = {FILL_COLOR}\nmouse_filter = 2\n\n')
         out.append(piece_nodes(layout, y, f"Ground{i}", used))
     for i, (x, y, w, h) in enumerate(r["platforms"], 1):
+        named = r.get("platform_names", {}).get(i)
         if r.get("painted_cornices"):
             # Reuse this room's painted stone cap, rather than a foreign
             # grid-textured pier. Both cornices meet the existing arch wall.
@@ -1064,21 +1084,22 @@ def terrain_nodes(r, rng, used, walls=True):
             script = (f'script = ExtResource("hell_cornice")\nwalk_width = {float(w)}\n'
                       f'wall_on_right = {str(x + w == width).lower()}\n'
                       if r.get("hell_cornice_art") else "")
-            out.append(f'[node name="Platform{i}_1" type="Sprite2D" parent="Terrain"]\n'
+            out.append(f'[node name="{named + "Cornice" if named else f"Platform{i}_1"}" type="Sprite2D" parent="Terrain"]\n'
                        f'{script}'
                        f'position = Vector2({x}, {y})\ntexture = ExtResource("2_backdrop")\n'
                        f'centered = false\nregion_enabled = true\nregion_rect = Rect2({crop_x}, {crop_y}, {w}, 12)\n\n')
             if r.get("cornice_post"):
                 sx, sy, pw, ph = r["cornice_post"]
-                out.append(f'[node name="Platform{i}Post" type="Sprite2D" parent="Terrain"]\n'
+                out.append(f'[node name="{named or f"Platform{i}"}Post" type="Sprite2D" parent="Terrain"]\n'
                            f'position = Vector2({x + (w - pw) / 2}, {y + 12})\n'
                            f'texture = ExtResource("2_backdrop")\ncentered = false\nregion_enabled = true\n'
                            f'region_rect = Rect2({sx}, {sy}, {pw}, {ph})\n\n')
             support = r.get("cornice_supports", {}).get(i)
             if support:
                 polygon = ", ".join(str(v) for point in support for v in point)
-                uv = ", ".join(str(v) for px, py in support for v in (crop_x + px, crop_y + py))
-                out.append(f'[node name="Platform{i}Support" type="Polygon2D" parent="Terrain"]\n'
+                ux, uy = r.get("cornice_support_shift", {}).get(i, (0, 0))
+                uv = ", ".join(str(v) for px, py in support for v in (crop_x + ux + px, crop_y + uy + py))
+                out.append(f'[node name="{named or f"Platform{i}"}Support" type="Polygon2D" parent="Terrain"]\n'
                            f'position = Vector2({x}, {y})\ntexture = ExtResource("2_backdrop")\n'
                            f'polygon = PackedVector2Array({polygon})\nuv = PackedVector2Array({uv})\n\n')
             continue
@@ -1237,7 +1258,7 @@ def build(name, r):
     walls = [(-16, -16, 16, height + 16), (width, -16, 16, height + 16), (0, -16, width, 16)]
     painted = "painting" in r
     ledges = r.get("ledges", [])
-    shape_text = (shapes(r["ground"], "Ground") + shapes(r["platforms"], "Platform") + shapes(ledges, "Ledge")
+    shape_text = (shapes(r["ground"], "Ground") + shapes(r["platforms"], "Platform", r.get("platform_names")) + shapes(ledges, "Ledge")
                   + shapes(walls, "Wall"))
     decor = r.get("decor", []) + dress(name, r)
     decor_names = sorted({d[0] for d in decor})
@@ -1355,7 +1376,7 @@ def build(name, r):
     text += ramp_nodes(r.get("ramps", []), "Geometry", r.get("ramp_treads", {}))
     # Ledges live on their own layer (5) so a body can choose to fall through them.
     text += '[node name="Ledges" type="StaticBody2D" parent="."]\ncollision_layer = 16\ncollision_mask = 0\n\n'
-    text += collider(r["platforms"], "Platform", "Ledges", one_way=True) + collider(ledges, "Ledge", "Ledges", one_way=True)
+    text += collider(r["platforms"], "Platform", "Ledges", one_way=True, names=r.get("platform_names")) + collider(ledges, "Ledge", "Ledges", one_way=True)
     # Draw order from here: terrain, then what stands on the lanes behind the
     # characters, props, (the run adds enemies and players), low clutter in
     # front of their feet (z 1), weather over it all (z 2), lights.
@@ -1448,13 +1469,16 @@ if __name__ == "__main__":
     unknown = selected - ROOMS.keys()
     if unknown:
         raise SystemExit("unknown rooms: " + ", ".join(sorted(unknown)))
+    failed = []
     for name, room in ROOMS.items():
         if selected and name not in selected:
             continue
         if "painting" in room:
             _validate_depth_windows(name)
             if not check_reach(name, room):
-                raise SystemExit(f"room {name} has an unreachable mandatory route")
+                failed.append(name)
             _expand_panel(room["painting"], room["_x_inserts"], FOCAL_RANGES.get(name, ()), _painted_floors(room))
             _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"], FOCAL_RANGES.get(name, ()))
         build(name, room)
+    if failed:
+        raise SystemExit("unreachable mandatory route in: " + ", ".join(failed))

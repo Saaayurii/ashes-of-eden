@@ -39,6 +39,10 @@ GENERATORS = [
     ("ophanim seals", ["tools/art/make_ophanim_seals.py"],
      ["assets/sprites/ophanim_seal_idle.png", "assets/sprites/ophanim_seal_hurt.png",
       "assets/sprites/ophanim_seal_death.png"], False),
+    # The tables in tools/rooms/ are the rooms: a room fixed in the editor and
+    # not in its table is undone by the next regeneration. About 20 seconds.
+    ("rooms", ["tools/rooms/generate_rooms.py"],
+     ["scenes/rooms", "assets/levels"], False),
     ("web gate", ["tools/art/make_web_gate.py"],
      ["tools/web/shell.html"], False),
     ("cjk subset", ["tools/art/make_cjk_font.py"],

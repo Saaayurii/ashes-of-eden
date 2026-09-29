@@ -1,4 +1,4 @@
-[gd_scene load_steps=67 format=3]
+[gd_scene load_steps=66 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/swamp_crypt_wide.png" id="2_backdrop"]
@@ -77,9 +77,6 @@ blend_mode = 1
 size = Vector2(20, 56)
 
 [sub_resource type="RectangleShape2D" id="Ground1_shape"]
-size = Vector2(1600, 30)
-
-[sub_resource type="RectangleShape2D" id="Ground2_shape"]
 size = Vector2(70, 20)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
@@ -191,11 +188,11 @@ size = Vector2(1600, 16)
 script = ExtResource("1_room")
 width = 1600
 height = 720
+void_kill_y = 690
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/swamp_crypt_wide.png"
-void_kill_y = 690.0
 depth_parallax = 0.02
 
 [node name="Ambient" type="CanvasModulate" parent="."]
@@ -361,9 +358,9 @@ scroll_scale = Vector2(0.88, 1)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Ground2Shape" type="CollisionShape2D" parent="Geometry"]
+[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(1285.0, 570.0)
-shape = SubResource("Ground2_shape")
+shape = SubResource("Ground1_shape")
 
 [node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
 position = Vector2(-8.0, 352.0)
@@ -378,14 +375,14 @@ position = Vector2(800.0, -8.0)
 shape = SubResource("Wall3_shape")
 
 [node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(1320, 560, 1330, 560, 1330, 567.17, 1340, 567.17, 1340, 574.33, 1350, 574.33, 1350, 581.5, 1360, 581.5, 1360, 588.67, 1370, 588.67, 1370, 595.83, 1380, 595.83, 1380, 603, 1380, 619, 1380, 611.83, 1370, 611.83, 1370, 604.67, 1360, 604.67, 1360, 597.5, 1350, 597.5, 1350, 590.33, 1340, 590.33, 1340, 583.17, 1330, 583.17, 1330, 576, 1320, 576)
+polygon = PackedVector2Array(1320.0, 560.0, 1330.0, 560.0, 1330.0, 567.17, 1340.0, 567.17, 1340.0, 574.33, 1350.0, 574.33, 1350.0, 581.5, 1360.0, 581.5, 1360.0, 588.67, 1370.0, 588.67, 1370.0, 595.83, 1380.0, 595.83, 1380.0, 603.0, 1380.0, 619.0, 1380.0, 611.83, 1370.0, 611.83, 1370.0, 604.67, 1360.0, 604.67, 1360.0, 597.5, 1350.0, 597.5, 1350.0, 590.33, 1340.0, 590.33, 1340.0, 583.17, 1330.0, 583.17, 1330.0, 576.0, 1320.0, 576.0)
 
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
 collision_mask = 0
 
 [node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(340, 380)
+position = Vector2(340.0, 380.0)
 shape = SubResource("Platform1_shape")
 one_way_collision = true
 
@@ -554,7 +551,7 @@ region_enabled = true
 region_rect = Rect2(150, 319, 60, 12)
 
 [node name="Platform1Post" type="Sprite2D" parent="Terrain"]
-position = Vector2(331, 387)
+position = Vector2(331.0, 387)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true

@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3]
+[gd_scene load_steps=52 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_tree_wide.png" id="2_backdrop"]
@@ -17,9 +17,6 @@
 [ext_resource type="Script" path="res://scripts/fx/ambient_light.gd" id="13_ambient"]
 [ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
-[ext_resource type="Texture2D" path="res://assets/decor/graveyard/tomb_3.png" id="decor_graveyard_tomb_3"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_7.png" id="piece_ledge_7"]
 
 [sub_resource type="Gradient" id="fade"]
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
@@ -77,9 +74,6 @@ blend_mode = 1
 
 [sub_resource type="RectangleShape2D" id="door_shape"]
 size = Vector2(20, 56)
-
-[sub_resource type="RectangleShape2D" id="Ground1_shape"]
-size = Vector2(1600, 30)
 
 [sub_resource type="RectangleShape2D" id="Platform1_shape"]
 size = Vector2(56, 10)
@@ -154,12 +148,12 @@ size = Vector2(1600, 16)
 script = ExtResource("1_room")
 width = 1600
 height = 720
+void_kill_y = 690
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/graveyard_tree_wide.png"
 depth_parallax = 0.024
-void_kill_y = 690.0
 
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.737, 0.722, 0.8, 1)

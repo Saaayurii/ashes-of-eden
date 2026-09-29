@@ -22,7 +22,11 @@ func _run() -> void:
 		await physics_frame
 		await physics_frame
 		_check(not room.has_node("Shrine"), "%s has a redundant exit statue" % key)
-		_check(not room.has_node("Geometry/Ground1Shape"), "%s has an invisible bottom floor" % key)
+		var spanning := false
+		for shape in room.get_node("Geometry").get_children():
+			if shape is CollisionShape2D and shape.shape is RectangleShape2D:
+				spanning = spanning or (shape.shape.size.x >= room.width * 0.9 and shape.position.y > room.height * 0.5)
+		_check(not spanning, "%s has an invisible bottom floor" % key)
 		if key == "hell_gate":
 			for step in [Rect2(1525, 563, 75, 12), Rect2(1550, 493, 50, 12)]:
 				var has_collision := false

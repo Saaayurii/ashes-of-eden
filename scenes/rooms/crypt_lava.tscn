@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=3]
+[gd_scene load_steps=61 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/crypt_lava_wide.png" id="2_backdrop"]
@@ -77,8 +77,11 @@ blend_mode = 1
 [sub_resource type="RectangleShape2D" id="door_shape"]
 size = Vector2(20, 56)
 
-[sub_resource type="RectangleShape2D" id="Ground1_shape"]
-size = Vector2(1600, 20)
+[sub_resource type="RectangleShape2D" id="LowerReturn_shape"]
+size = Vector2(100, 12)
+
+[sub_resource type="RectangleShape2D" id="GalleryReturn_shape"]
+size = Vector2(85, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(170, 14)
@@ -154,12 +157,6 @@ size = Vector2(291, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge25_shape"]
 size = Vector2(111, 12)
-
-[sub_resource type="RectangleShape2D" id="LowerReturn_shape"]
-size = Vector2(100, 12)
-
-[sub_resource type="RectangleShape2D" id="GalleryReturn_shape"]
-size = Vector2(85, 12)
 
 [sub_resource type="RectangleShape2D" id="Wall1_shape"]
 size = Vector2(16, 736)
@@ -340,12 +337,22 @@ shape = SubResource("Wall3_shape")
 [node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
 polygon = PackedVector2Array(240.0, 618.0, 255.0, 618.0, 255.0, 625.83, 270.0, 625.83, 270.0, 633.67, 285.0, 633.67, 285.0, 641.5, 300.0, 641.5, 300.0, 649.33, 315.0, 649.33, 315.0, 657.17, 330.0, 657.17, 330.0, 665.0, 330.0, 681.0, 330.0, 673.17, 315.0, 673.17, 315.0, 665.33, 300.0, 665.33, 300.0, 657.5, 285.0, 657.5, 285.0, 649.67, 270.0, 649.67, 270.0, 641.83, 255.0, 641.83, 255.0, 634.0, 240.0, 634.0)
 
+[node name="Ramp2" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(1460, 208, 1460, 201, 1468, 201, 1468, 194, 1486, 194, 1486, 188, 1494, 188, 1494, 181, 1518, 181, 1518, 171, 1524, 171, 1524, 164, 1532, 164, 1532, 157, 1542, 157, 1542, 149, 1550, 149, 1550, 140, 1564, 140, 1564, 131, 1574, 131, 1574, 122, 1582, 122, 1582, 115, 1592, 115, 1592, 108, 1600, 108, 1600, 124.0, 1592, 124.0, 1592, 131.0, 1582, 131.0, 1582, 138.0, 1574, 138.0, 1574, 147.0, 1564, 147.0, 1564, 156.0, 1550, 156.0, 1550, 165.0, 1542, 165.0, 1542, 173.0, 1532, 173.0, 1532, 180.0, 1524, 180.0, 1524, 187.0, 1518, 187.0, 1518, 197.0, 1494, 197.0, 1494, 204.0, 1486, 204.0, 1486, 210.0, 1468, 210.0, 1468, 217.0, 1460, 217.0, 1460, 224.0)
+
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
 collision_mask = 0
 
-[node name="Ramp2" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(1460, 208, 1460, 201, 1468, 201, 1468, 194, 1486, 194, 1486, 188, 1494, 188, 1494, 181, 1518, 181, 1518, 171, 1524, 171, 1524, 164, 1532, 164, 1532, 157, 1542, 157, 1542, 149, 1550, 149, 1550, 140, 1564, 140, 1564, 131, 1574, 131, 1574, 122, 1582, 122, 1582, 115, 1592, 115, 1592, 108, 1600, 108, 1600, 124, 1592, 124, 1592, 131, 1582, 131, 1582, 138, 1574, 138, 1574, 147, 1564, 147, 1564, 156, 1550, 156, 1550, 165, 1542, 165, 1542, 173, 1532, 173, 1532, 180, 1524, 180, 1524, 187, 1518, 187, 1518, 197, 1494, 197, 1494, 204, 1486, 204, 1486, 210, 1468, 210, 1468, 217, 1460, 217, 1460, 224)
+[node name="LowerReturnShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(780.0, 616.0)
+shape = SubResource("LowerReturn_shape")
+one_way_collision = true
+
+[node name="GalleryReturnShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(742.5, 321.0)
+shape = SubResource("GalleryReturn_shape")
+one_way_collision = true
 
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(113.0, 180.0)
@@ -474,11 +481,6 @@ one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
 
-[node name="LowerReturnShape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(780, 616)
-shape = SubResource("LowerReturn_shape")
-one_way_collision = true
-
 [node name="LowerReturnCornice" type="Sprite2D" parent="Terrain"]
 position = Vector2(730, 610)
 texture = ExtResource("2_backdrop")
@@ -491,11 +493,6 @@ position = Vector2(730, 610)
 texture = ExtResource("2_backdrop")
 polygon = PackedVector2Array(0, 10, 100, 10, 100, 20, 15, 40, 0, 60, -25, 60, -25, 52)
 uv = PackedVector2Array(860, 470, 960, 470, 960, 480, 875, 500, 860, 520, 835, 520, 835, 512)
-
-[node name="GalleryReturnShape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(742.5, 321)
-shape = SubResource("GalleryReturn_shape")
-one_way_collision = true
 
 [node name="GalleryReturnCornice" type="Sprite2D" parent="Terrain"]
 position = Vector2(700, 315)
