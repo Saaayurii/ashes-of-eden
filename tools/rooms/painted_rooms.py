@@ -474,7 +474,9 @@ PAINTED = {
         interior=True, floor="ledge", width=960, height=420, weather="none", fog=0.0, intro="", music="church",
         intro_cutscene="church_matthew",  # the bell, and the priest at the altar
         ground=[(0, 380, 960, 40)],
-        platforms=[(0, 290, 180, 14), (780, 290, 180, 14), (250, 338, 56, 10), (654, 338, 56, 10)],
+        # The low choir steps overlap the gallery piers instead of hovering in
+        # the nave; the 42/48 px rise still keeps both balconies reachable.
+        platforms=[(0, 290, 180, 14), (780, 290, 180, 14), (170, 338, 56, 10), (730, 338, 56, 10)],
         pillars=[(120, 380), (300, 380), (660, 380), (840, 380)],
         decor=[("arch", 210, 360, "back"), ("arch", 390, 360, "back"), ("arch", 570, 360, "back"), ("arch", 750, 360, "back")],
         spawns=[],
