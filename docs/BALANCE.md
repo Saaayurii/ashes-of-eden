@@ -54,7 +54,7 @@ attack speed +100 % · crit 50 % · move speed +60 % · roll cooldown ≥ 1.2 s 
 | Fallen guard | 80 | 15 | 15 % | slow, readable; ~9–10 hits |
 | Elite (any) | ×1.8 | ×1.35 | — | speed ×1.1 **and one new mechanic**, never just more HP (`extends` + `on_death`) |
 | Blind preacher (mini-boss) | 900 | 18 / 15 / 35 | 10 % | second phase at 50 % changes behaviour, not HP |
-| Ophanim (boss) | 1650 | 20 / 12 / 45 | 15 % | 3 phases at 66 % / 32 % and the seal phase at 50 %; 3–4 min, not more (2200 measured at ~4.6 min; 1800 with the seals at ~4.2) |
+| Ophanim (boss) | 1500 | 20 / 12 / 45 | 15 % | 3 phases at 66 % / 32 % and the seal phase at 50 %; 3–4 min, not more (2200 measured at ~4.6 min; 1800 with the seals at ~4.2, 1650 at ~4.4 once its volleys learnt to turn back; 1500 → ~3.6) |
 
 Boss attacks: normal 18–25, strong 30–40, telegraphed ultimate 45–60 with 1.3–1.5 s wind-up, obvious area,
 fully avoidable. A boss attack never removes 70–100 % HP.
@@ -110,10 +110,11 @@ pinned — common enemies free to move, and each move on the straw man.
   not a trade — and no number in `data/enemies` was raised to undo it. A crowd still presses (two
   may step in from each side), and the playtest log will say whether a night got too easy.
 - **The moves** on the straw man, 10 s of nothing else: the chain ~22 damage/s, the lunge ~15, the
-  sweep ~12, the cleave ~15 at ×2.4. The cleave rose to **×3.0** (~19): the charge should pay for its
+  sweep ~12, the cleave ~15 at ×2.4. The cleave rose to **×3.0** (18.6): the charge should pay for its
   wait. None of the three out-damages the chain; each is chosen for what it does (reach through a line,
   stop a wind-up, break a guard), never spammed.
-- **The Ophanim** took ~4.2 min with its seal phase against a 3–4 min target: HP **1800 → 1650**.
+- **The Ophanim** took ~4.2 min with its seal phase against a 3–4 min target, ~4.4 once its volleys
+  learnt to turn back on the hero: HP **1800 → 1500**, measured at ~3.6 min.
 - **Upgrades** at 13 rooms: 14 (6 levels + 8 place doors) — inside 10–14, left alone.
 - **Run length** estimates ~14 min against 25–30. The estimate multiplies measured TTKs by a guessed
   `FIGHT_OVERHEAD`; with no recorded playtest yet it is the weakest number in the report, and HP was

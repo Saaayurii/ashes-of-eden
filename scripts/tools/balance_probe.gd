@@ -134,7 +134,7 @@ func _duel(run, id: String) -> Dictionary:
 			# in the air under a flying boss drops him out of the room (void fall).
 			hero.global_position.y = ground_y
 			enemy.global_position = hero.global_position + Vector2(24.0, -12.0)
-			hero.facing = 1
+			_face(hero, 1)
 		else:
 			# Pinned too: a knocked-back or retreating body would otherwise leave the
 			# swing's reach and the bot, which never chases, would measure its patience.
@@ -142,7 +142,7 @@ func _duel(run, id: String) -> Dictionary:
 			enemy.global_position = Vector2(hero.global_position.x + 24.0, enemy.global_position.y if enemy.stats.get("behaviour", "") == "flyer" else ground_y)
 			if enemy.stats.get("behaviour", "") == "flyer":
 				enemy.global_position.y = ground_y - 10.0
-			hero.facing = 1
+			_face(hero, 1)
 		# A boss's death slows time to a crawl for its theatre; physics ticks
 		# (and this loop) would crawl with it.
 		Engine.time_scale = 1.0
@@ -203,7 +203,7 @@ func _free_duel(run, id: String) -> float:
 	var pressed := false
 	while t < FREE_TIME and is_instance_valid(enemy):
 		hero.global_position = anchor
-		hero.facing = 1 if enemy.global_position.x >= anchor.x else -1
+		_face(hero, 1 if enemy.global_position.x >= anchor.x else -1)
 		pressed = not pressed
 		if pressed:
 			Input.action_press("attack")
@@ -226,6 +226,14 @@ func _free_duel(run, id: String) -> float:
 	await _wait(0.3)
 	run.room.alive = maxi(0, run.room.alive)
 	return taken / FREE_TIME
+
+
+## Turns the hero the way the game does: facing alone leaves the sprite and the
+## sword's reach looking back where they were, and the swings land behind him.
+func _face(hero, side: int) -> void:
+	hero.facing = side
+	hero.body.flip_h = side < 0
+	hero.hitbox.scale.x = side * hero.stats.attack_scale
 
 
 ## Damage per second of each way of fighting on the straw man, 10 s each: the
@@ -258,7 +266,7 @@ func _move_rates(run) -> Dictionary:
 			dummy.hp = 1000000.0
 			dummy.global_position = Vector2(post.x, dummy.global_position.y)
 			hero.global_position = anchor if way != "lunge" else hero.global_position
-			hero.facing = 1
+			_face(hero, 1)
 			match way:
 				"chain":
 					Input.action_press("attack")
