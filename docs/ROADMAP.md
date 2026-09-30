@@ -72,7 +72,8 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] The browser build opens on its own page rather than Godot's: the chapter-one graveyard panel with Elian's idle sprite standing in it, generated from the game's own art by `tools/art/make_web_gate.py`. It also fixes the two things the default shell got wrong — audio, which a browser will not start without a click, and the touch pad, which appeared on every desktop browser because a Web export has no `pc` feature
 
 ## v0.6 — Desktop stores
-- [ ] Steam page, achievements, cloud saves
+- [x] Achievements in the game first (`docs/ACHIEVEMENTS.md`): twenty deeds as data, read from the profile, a line on screen when one is done and a section of the bestiary listing them all; their ids are the API names a store will use (`achievements_test.gd`)
+- [ ] Steam page, achievements mirrored to Steam, cloud saves
 - [x] itch.io publishing wired (`.github/workflows/itch.yml`): the web build on every push to main, the desktop zips when a release is published, and a cover composed from the game's own art by `tools/art/make_store_art.py` — [ ] the page itself, which needs an account and a `BUTLER_API_KEY` (`docs/ITCH.md`). The only store here with no entry fee.
 - [ ] Supporter Pack + OST on itch/Steam; entitlement check against store receipts
 - [ ] Opt-in server-side telemetry: the four numbers in `CORE_LOOP.md`

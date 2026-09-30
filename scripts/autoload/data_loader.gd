@@ -33,6 +33,8 @@ var skins: Dictionary = {}
 var techniques: Dictionary = {}
 ## Where the chapter's way splits (data/forks, scripts/run/route.gd).
 var forks: Dictionary = {}
+## Deeds the profile remembers (data/achievements, scripts/meta/achievements.gd).
+var achievements: Dictionary = {}
 
 
 func _ready() -> void:
@@ -56,6 +58,7 @@ func reload() -> void:
 	skins = _load_collection("skins", roots)
 	techniques = _load_collection("techniques", roots)
 	forks = _load_collection("forks", roots)
+	achievements = _load_collection("achievements", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

@@ -1,0 +1,22 @@
+[
+  {"id": "first_night", "name": "DEED_FIRST_NIGHT", "description": "DEED_FIRST_NIGHT_DESC", "ash": 5, "unlock": {"nights": 1}},
+  {"id": "ten_nights", "name": "DEED_TEN_NIGHTS", "description": "DEED_TEN_NIGHTS_DESC", "ash": 15, "unlock": {"nights": 10}},
+  {"id": "blind_preacher", "name": "DEED_PREACHER", "description": "DEED_PREACHER_DESC", "ash": 10, "unlock": {"kills": {"blind_preacher": 1}}},
+  {"id": "knight_of_ash", "name": "DEED_KNIGHT", "description": "DEED_KNIGHT_DESC", "ash": 10, "unlock": {"kills": {"knight_of_ash": 1}}},
+  {"id": "ophanim", "name": "DEED_OPHANIM", "description": "DEED_OPHANIM_DESC", "ash": 20, "unlock": {"kills": {"ophanim": 1}}},
+  {"id": "dawn", "name": "DEED_DAWN", "description": "DEED_DAWN_DESC", "ash": 20, "unlock": {"wins": 1}},
+  {"id": "path_grace", "name": "DEED_PATH_GRACE", "description": "DEED_PATH_GRACE_DESC", "ash": 15, "unlock": {"deeds": {"wins_grace": 1}}},
+  {"id": "path_temptation", "name": "DEED_PATH_TEMPTATION", "description": "DEED_PATH_TEMPTATION_DESC", "ash": 15, "unlock": {"deeds": {"wins_temptation": 1}}},
+  {"id": "path_will", "name": "DEED_PATH_WILL", "description": "DEED_PATH_WILL_DESC", "ash": 15, "unlock": {"deeds": {"wins_will": 1}}},
+  {"id": "judgment", "name": "DEED_JUDGMENT", "description": "DEED_JUDGMENT_DESC", "ash": 30, "unlock": {"deeds": {"wins_judgment": 1}}},
+  {"id": "hundred_dead", "name": "DEED_HUNDRED", "description": "DEED_HUNDRED_DESC", "ash": 5, "unlock": {"total_kills": 100}},
+  {"id": "thousand_dead", "name": "DEED_THOUSAND", "description": "DEED_THOUSAND_DESC", "ash": 20, "unlock": {"total_kills": 1000}},
+  {"id": "bestiary", "name": "DEED_BESTIARY", "description": "DEED_BESTIARY_DESC", "ash": 20, "unlock": {"known": "all"}},
+  {"id": "records", "name": "DEED_RECORDS", "description": "DEED_RECORDS_DESC", "ash": 10, "unlock": {"notes": "all"}},
+  {"id": "every_move", "name": "DEED_MOVES", "description": "DEED_MOVES_DESC", "ash": 10, "unlock": {"moves": "all"}},
+  {"id": "parries", "name": "DEED_PARRIES", "description": "DEED_PARRIES_DESC", "ash": 10, "unlock": {"deeds": {"parries": 50}}},
+  {"id": "ripostes", "name": "DEED_RIPOSTES", "description": "DEED_RIPOSTES_DESC", "ash": 10, "unlock": {"deeds": {"ripostes": 25}}},
+  {"id": "backstabs", "name": "DEED_BACKSTABS", "description": "DEED_BACKSTABS_DESC", "ash": 10, "unlock": {"deeds": {"backstabs": 25}}},
+  {"id": "unscathed", "name": "DEED_UNSCATHED", "description": "DEED_UNSCATHED_DESC", "ash": 15, "unlock": {"deeds": {"unscathed": 30}}},
+  {"id": "rested", "name": "DEED_RESTED", "description": "DEED_RESTED_DESC", "ash": 5, "unlock": {"deeds": {"rests": 5}}}
+]

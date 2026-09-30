@@ -56,6 +56,7 @@ const REQUIRED := {
 	"skins": ["id", "name", "description", "unlock"],
 	"techniques": ["id", "name", "input"],
 	"forks": ["id", "after", "dialogue", "options", "then"],
+	"achievements": ["id", "name", "description", "unlock"],
 }
 
 var errors: PackedStringArray = []
@@ -284,6 +285,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			# the moves the yard lists are the ones the body can do
 			if not TECHNIQUES.has(entry.get("id", "")):
 				_error("%s: no such move in Player (known: %s)" % [where, TECHNIQUES])
+		"achievements":
+			_check_achievement(entry, where)
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -562,6 +565,55 @@ func _check_enemy_strips() -> void:
 					_error("enemies/%s: %s needs positive motion_amount" % [id, motion])
 				elif motion == "return" and amount >= 4.0:
 					_error("enemies/%s: return must turn before the projectile expires" % id)
+
+
+## A deed (data/achievements, scripts/meta/achievements.gd): every condition is
+## one Achievements reads, names what exists, and asks for at least one.
+func _check_achievement(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	var counters := _deed_counters()
+	var unlock: Dictionary = entry.get("unlock", {})
+	if unlock.is_empty():
+		_error("%s: a deed with no condition would never be done" % where)
+	if not str(entry.id).is_valid_identifier():
+		_error("%s: the id is also the store's API name: letters, digits, _" % where)
+	if int(entry.get("ash", 0)) < 0 or int(entry.get("ash", 0)) > 50:
+		_error("%s: ash is 0..50 (docs/BALANCE.md: permanent power stays small)" % where)
+	for key in unlock:
+		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "moves", "deeds"].has(key):
+			_error("%s: unlock.%s is not a condition Achievements reads" % [where, key])
+	for key in ["nights", "wins", "total_kills"]:
+		if unlock.has(key) and int(unlock[key]) < 1:
+			_error("%s: unlock.%s must be at least 1" % [where, key])
+	for key in ["known", "notes"]:
+		if unlock.has(key) and str(unlock[key]) != "all" and int(unlock[key]) < 1:
+			_error("%s: unlock.%s is a number or \"all\"" % [where, key])
+	for enemy in unlock.get("kills", {}):
+		if not _enemy_ids.has(enemy):
+			_error("%s: unlock.kills names no enemy: %s" % [where, enemy])
+	var moves = unlock.get("moves", [])
+	if str(moves) != "all":
+		for move in moves:
+			if not TECHNIQUES.has(move):
+				_error("%s: unlock.moves names no move: %s" % [where, move])
+	for counter in unlock.get("deeds", {}):
+		if not counters.has(counter):
+			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])
+
+
+## Achievements.COUNTERS, read from the source: that script names autoloads,
+## which a tool script (-s) cannot load before they exist.
+func _deed_counters() -> Array:
+	var source := FileAccess.get_file_as_string("res://scripts/meta/achievements.gd")
+	var found := RegEx.create_from_string("const COUNTERS := \\[([^\\]]*)\\]").search(source)
+	if found == null:
+		_error("scripts/meta/achievements.gd: no COUNTERS list to check deeds against")
+		return []
+	var counters := []
+	for name in RegEx.create_from_string("\"([a-z_]+)\"").search_all(found.get_string(1)):
+		counters.append(name.get_string(1))
+	return counters
 
 
 ## A fork (data/forks, scripts/run/route.gd) splits the chapter's way and

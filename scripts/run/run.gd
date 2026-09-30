@@ -120,6 +120,9 @@ func _ready() -> void:
 		var hints := MoveHints.new()
 		hints.name = "MoveHints"
 		$UI.add_child(hints)
+	var deeds := DeedToast.new()
+	deeds.name = "DeedToast"
+	$UI.add_child(deeds)
 	if not Net.active:
 		var save := Saves.take_pending()
 		_spawn_player(1, 0)
@@ -934,7 +937,7 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 	var place_index := clampi(reached - 1, 0, ROOMS.size() - 1)
 	reached = Route.step(ROOMS, place_index) + 1
 	if not Net.dedicated:  # a referee plays no night of its own
-		Profile.record_run(reached, total_kills, seconds, ash)
+		Profile.record_run(reached, total_kills, seconds, ash, won)
 	$UI/PauseMenu.visible = false
 	# A fall beyond the map is already off-screen: show the result at once.
 	var end_delay := 0.0 if not won and player != null and player.fell_outside_room else (0.9 if not won else 0.4)

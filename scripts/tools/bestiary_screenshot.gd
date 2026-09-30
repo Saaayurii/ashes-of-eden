@@ -1,6 +1,7 @@
 extends SceneTree
 ## Visual regression helper for the expanded bestiary.
-##   godot -s scripts/tools/bestiary_screenshot.gd -- /tmp/bestiary.png
+##   godot -s scripts/tools/bestiary_screenshot.gd -- /tmp/bestiary.png [page]
+## A page id (an enemy, "npc:…", "note:…", "deed:…") opens that page instead.
 
 func _init() -> void:
 	call_deferred("_run")
@@ -19,6 +20,15 @@ func _run() -> void:
 	await process_frame
 	var book = current_scene.get_node("Bestiary")
 	book.open()
+	if OS.get_cmdline_user_args().size() > 1:
+		var page: String = OS.get_cmdline_user_args()[1]
+		if page.begins_with("deed:"):
+			profile.data.achievements["first_night"] = 1790000000
+			profile.data.achievements["dawn"] = 1790000000
+			book.open()
+		var button = book.list.get_node_or_null(page.replace(":", "_"))
+		if button:
+			button.grab_focus()
 	await create_timer(0.5).timeout
 	root.get_viewport().get_texture().get_image().save_png(output)
 	print("BESTIARY SCREENSHOT: " + output)

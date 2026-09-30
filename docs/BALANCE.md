@@ -131,6 +131,7 @@ Death keeps: Ash, codex entries, story knowledge, achievements, unlocks. Death l
 Where Ash comes from in a night: a boss 10–25, a record cache 15, and 3 for every room cleared without a wound
 (9 where a boss stood, `Run.UNSCATHED_ASH`). Fifteen clean rooms are worth about one boss: a tip for clean play,
 never a reason to crawl.
+Deeds (docs/ACHIEVEMENTS.md) pay 5–30 Ash once each, about 270 across all twenty: a lifetime's worth, not a night's.
 
 ## Not yet implemented (roadmap)
 
