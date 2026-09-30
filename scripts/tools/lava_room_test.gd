@@ -54,6 +54,15 @@ func _run() -> void:
 				walker.queue_free()
 				await physics_frame
 		if key == "hell_gate":
+			for prefix in ["LeftReturn", "LeftReturnLower"]:
+				var cornice: Sprite2D = room.get_node("Terrain/%sCornice" % prefix)
+				var support: Polygon2D = room.get_node("Terrain/%sSupport" % prefix)
+				var footing: CollisionShape2D = room.get_node("Ledges/%sShape" % prefix)
+				var collision_top: float = footing.position.y - (footing.shape as RectangleShape2D).size.y * 0.5
+				_check(support.polygon.size() >= 5 and support.position == cornice.position,
+					"%s stone corbel does not meet its cornice" % prefix)
+				_check(footing.one_way_collision and absf(collision_top - cornice.position.y) < 0.1,
+					"%s visible footing disagrees with collision" % prefix)
 			for step in [Rect2(1525, 563, 75, 12), Rect2(1550, 493, 50, 12)]:
 				var has_collision := false
 				for collider in room.get_node("Ledges").get_children():

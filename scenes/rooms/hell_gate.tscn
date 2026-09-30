@@ -479,6 +479,12 @@ centered = false
 region_enabled = true
 region_rect = Rect2(1000, 482, 125, 12)
 
+[node name="LeftReturnSupport" type="Polygon2D" parent="Terrain"]
+position = Vector2(265, 315)
+texture = ExtResource("2_backdrop")
+polygon = PackedVector2Array(0, 8, 125, 8, 125, 16, 102, 30, 70, 43, 18, 33, 0, 23)
+uv = PackedVector2Array(1000, 490, 1125, 490, 1125, 498, 1102, 512, 1070, 525, 1018, 515, 1000, 505)
+
 [node name="LeftReturnLowerCornice" type="Sprite2D" parent="Terrain"]
 script = ExtResource("hell_cornice")
 walk_width = 65.0
@@ -488,6 +494,12 @@ texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
 region_rect = Rect2(1000, 482, 65, 12)
+
+[node name="LeftReturnLowerSupport" type="Polygon2D" parent="Terrain"]
+position = Vector2(225, 405)
+texture = ExtResource("2_backdrop")
+polygon = PackedVector2Array(0, 8, 65, 8, 65, 18, 43, 32, 0, 29)
+uv = PackedVector2Array(1000, 490, 1065, 490, 1065, 500, 1043, 514, 1000, 511)
 
 [node name="DecorMid" type="Node2D" parent="."]
 

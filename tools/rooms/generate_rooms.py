@@ -481,6 +481,13 @@ def expand_painted_room(name, room):
         out["painted_cornices"] = True
         out["hell_cornice_art"] = True
         out["cornice_crop"] = (1000, 482)  # this room's stone bridge cap, not the lava shelf; clear of the seams
+        # The two left return treads used to read as isolated horizontal lines.
+        # Extend their underside with stone sampled from this room's bridge,
+        # tapering into the existing cliff instead of adding foreign columns.
+        out["cornice_supports"] = {
+            3: [(0, 8), (125, 8), (125, 16), (102, 30), (70, 43), (18, 33), (0, 23)],
+            4: [(0, 8), (65, 8), (65, 18), (43, 32), (0, 29)],
+        }
         out["ramp_treads"] = {2: [(270, 176), (282, 176), (282, 188),
                                   (295, 188), (295, 200), (308, 200),
                                   (308, 212), (328, 212), (328, 223),
