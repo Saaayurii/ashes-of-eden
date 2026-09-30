@@ -273,7 +273,7 @@ PAINTED = {
                 (594, 599, 75, 10), (376, 603, 45, 10), (1077, 413, 194, 14)],
         ramps=[],
         platforms=[(1120, 478, 56, 10)],  # timber return step under the exit pier
-        crumbling_platforms=[(325, 303, 72)],
+        crumbling_platforms=[(325, 303, 72, "timber")],
         spawns=[("possessed_villager", 520, 326), ("cultist", 750, 403), ("possessed_villager", 400, 462),
                 ("zealot", 1150, 401), ("fallen_guard", 580, 556), ("shade", 800, 300), ("wraith", 300, 600),
                 ("raven", 900, 150), ("shade", 1000, 250)],
@@ -294,7 +294,7 @@ PAINTED = {
         # on this painting; only the far-right climb needs separate pieces.
         platforms=[(860, 452, 60, 10), (1220, 370, 56, 10), (1220, 310, 56, 10)],
         painted_platforms=[(860, 452, 60, 10)],
-        crumbling_platforms=[(778, 366, 70)],
+        crumbling_platforms=[(778, 366, 70, "timber")],
         spawns=[("possessed_villager", 200, 335), ("cultist", 600, 422), ("possessed_villager", 300, 487),
                 ("zealot", 1120, 413), ("fallen_guard", 980, 400), ("wraith", 600, 300), ("shade", 850, 250),
                 ("raven", 400, 150), ("elite_possessed", 1180, 243)],

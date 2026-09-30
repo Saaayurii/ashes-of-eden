@@ -39,5 +39,13 @@ func _run() -> void:
 			returned = true
 			break
 	var ok := stood and warned and vanished and returned
+	for name in ["village_night", "graveyard_cross", "swamp_moon", "swamp_red"]:
+		var room = load("res://scenes/rooms/%s.tscn" % name).instantiate()
+		root.add_child(room)
+		var foothold = room.get_node("CrumblingPlatform1")
+		var expected := "timber" if name.begins_with("swamp_") else "stone"
+		ok = ok and foothold.surface_kind == expected
+		room.queue_free()
+		await process_frame
 	print("CRUMBLING PLATFORM TEST %s" % ("PASSED" if ok else "FAILED"))
 	quit(0 if ok else 1)

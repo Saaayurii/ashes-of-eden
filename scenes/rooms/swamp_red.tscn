@@ -409,6 +409,7 @@ one_way_collision = true
 position = Vector2(938, 366)
 script = ExtResource("crumbling_platform")
 walk_width = 70.0
+surface_kind = "timber"
 
 [node name="Terrain" type="Node2D" parent="."]
 
