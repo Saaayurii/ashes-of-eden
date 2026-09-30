@@ -1,0 +1,12 @@
+[
+  {"id": "vial_1", "tier": 1, "name": "VIAL_1", "description": "VIAL_1_DESC", "ash": 1.25,
+   "rules": {"promote_chance": 0.25, "promote": {"possessed_villager": "elite_possessed", "fallen_guard": "fallen_champion"}}},
+  {"id": "vial_2", "tier": 2, "name": "VIAL_2", "description": "VIAL_2_DESC", "ash": 1.5,
+   "rules": {"flasks": -1}},
+  {"id": "vial_3", "tier": 3, "name": "VIAL_3", "description": "VIAL_3_DESC", "ash": 1.75,
+   "rules": {"enemy_damage": 1.2}},
+  {"id": "vial_4", "tier": 4, "name": "VIAL_4", "description": "VIAL_4_DESC", "ash": 2.0,
+   "rules": {"rest_heal": 0.5}},
+  {"id": "vial_5", "tier": 5, "name": "VIAL_5", "description": "VIAL_5_DESC", "ash": 2.5,
+   "rules": {"enemy_hp": 1.25, "promote_chance": 0.5}}
+]

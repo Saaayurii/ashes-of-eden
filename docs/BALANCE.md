@@ -120,6 +120,13 @@ pinned — common enemies free to move, and each move on the straw man.
   `FIGHT_OVERHEAD`; with no recorded playtest yet it is the weakest number in the report, and HP was
   not inflated to move it. The playtest section of the probe will replace it.
 
+## The vials of wrath
+
+After a dawn, five rungs above the difficulty mode (docs/VIALS.md). Each is a rule, not a multiplier on everything:
+elites in place of commons, a flask fewer, harder blows, half an altar, tougher bodies — and the Ash of the night
+×1.25 … ×2.5, so a night under the fifth vial is worth about two and a half plain ones. They are where a player who
+has seen the dawn goes for a harder night; the run-length target above is still measured without them.
+
 ## Meta progression
 
 **Ash** (permanent, from bosses / achievements / clears) vs **Essence** (this run only). Permanent power is

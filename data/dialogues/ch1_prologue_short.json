@@ -3,7 +3,11 @@
   "blocking": false,
   "start": "p1",
   "nodes": {
-    "p1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_1", "next": "p7"},
-    "p7": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_7"}
+    "p1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_1", "next": "habit"},
+    "p7": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_PROLOGUE_7"},
+    "habit": {"branches": [{"habit": "grace", "next": "h_grace"}, {"habit": "temptation", "next": "h_temptation"}, {"habit": "will", "next": "h_will"}], "next": "p7"},
+    "h_grace": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_HABIT_ELIAN_GRACE", "next": "p7"},
+    "h_temptation": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_HABIT_ELIAN_TEMPTATION", "next": "p7"},
+    "h_will": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_HABIT_ELIAN_WILL", "next": "p7"}
   }
 }

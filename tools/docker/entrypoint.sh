@@ -40,6 +40,10 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/fork_test.gd
         godot --headless -s scripts/tools/move_hints_test.gd
         godot --headless -s scripts/tools/achievements_test.gd
+        godot --headless -s scripts/tools/habit_test.gd
+        godot --headless -s scripts/tools/resonance_test.gd
+        godot --headless -s scripts/tools/map_test.gd
+        godot --headless -s scripts/tools/vials_test.gd
         ;;
     net-test)
         shift

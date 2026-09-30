@@ -3,9 +3,13 @@
   "blocking": false,
   "start": "angel_1",
   "nodes": {
-    "angel_1": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_INTRO_1", "next": "angel_2"},
+    "angel_1": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_INTRO_1", "next": "habit"},
     "angel_2": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_INTRO_2", "next": "elian_1"},
     "elian_1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_INTRO_3", "next": "angel_3"},
-    "angel_3": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_INTRO_4"}
+    "angel_3": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_INTRO_4"},
+    "habit": {"branches": [{"habit": "grace", "next": "h_grace"}, {"habit": "temptation", "next": "h_temptation"}, {"habit": "will", "next": "h_will"}], "next": "angel_2"},
+    "h_grace": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_HABIT_ANGEL_GRACE", "next": "angel_2"},
+    "h_temptation": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_HABIT_ANGEL_TEMPTATION", "next": "angel_2"},
+    "h_will": {"speaker": "SPEAKER_ANGEL", "text": "DLG_CH1_HABIT_ANGEL_WILL", "next": "angel_2"}
   }
 }

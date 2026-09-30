@@ -96,6 +96,7 @@ var player: Player
 
 func _ready() -> void:
 	Game.new_run()
+	Game.vial = Vials.for_new_night()
 	player_spawner.spawn_function = _make_player
 	enemy_spawner.spawn_function = _make_enemy
 	players_root.child_entered_tree.connect(_on_player_entered)
@@ -338,6 +339,10 @@ func _on_spawn_requested(enemy_id: String, at: Vector2) -> void:
 
 
 func _spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
+	# under a vial of wrath a common one may rise as its elite (data/vials)
+	var promote: Dictionary = Vials.rule("promote") if Game.vial > 0 else {}
+	if promote.has(enemy_id) and randf() < float(Vials.rule("promote_chance")):
+		enemy_id = str(promote[enemy_id])
 	_enemy_counter += 1
 	var data := {"n": _enemy_counter, "id": enemy_id, "pos": at, "aware": aware}
 	if Net.active:
@@ -448,6 +453,9 @@ func _build_room(index: int) -> void:
 	_placed_for_room = -1
 	_dead_peers.clear()
 	Game.wave = Route.step(ROOMS, index) + 1 if index >= 0 else 0
+	# the way walked tonight, for the map (ChapterMap): which side of a fork
+	if index >= 0 and not Game.walked.has(ROOMS[index]):
+		Game.walked.append(ROOMS[index])
 	room = load(_room_path(index)).instantiate()
 	room.name = "Room"  # the same node path on every peer
 	room.authoritative = _is_server()
@@ -931,6 +939,8 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 		return
 	_finished = true
 	kills = total_kills
+	# a vial of wrath pays for itself (data/vials: "ash")
+	ash = int(round(ash * Vials.ash_multiplier()))
 	Game.ash_earned = ash
 	# the area reached counts rooms walked, not the index in ROOMS: a fork
 	# skipped one of its ways

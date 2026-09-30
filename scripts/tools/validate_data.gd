@@ -57,6 +57,8 @@ const REQUIRED := {
 	"techniques": ["id", "name", "input"],
 	"forks": ["id", "after", "dialogue", "options", "then"],
 	"achievements": ["id", "name", "description", "unlock"],
+	"resonances": ["id", "name", "description", "needs", "effects"],
+	"vials": ["id", "tier", "name", "description", "rules"],
 }
 
 var errors: PackedStringArray = []
@@ -70,6 +72,7 @@ var _prop_ids := {}
 var _enemy_ids := {}
 var _note_ids := {}
 var _chapter_ids := {}
+var _ability_paths := {}  # gift id -> its path
 ## Room scene -> the chapter that claims it; two chapters may not claim one room.
 var _room_chapter := {}
 var used_keys := {}  # localization key -> where it is used
@@ -97,6 +100,8 @@ func _init() -> void:
 		_note_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/chapters"):
 		_chapter_ids[id.get("id", "")] = true
+	for gift in _load_entries("res://data/abilities"):
+		_ability_paths[gift.get("id", "")] = str(gift.get("path", ""))
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	for collection in REQUIRED:
@@ -287,6 +292,10 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: no such move in Player (known: %s)" % [where, TECHNIQUES])
 		"achievements":
 			_check_achievement(entry, where)
+		"resonances":
+			_check_resonance(entry, where)
+		"vials":
+			_check_vial(entry, where)
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -353,6 +362,11 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					for branch in node.branches:
 						if branch.has("flag"):
 							flags_read[str(branch.flag)] = node_where
+						for key in ["path", "habit"]:
+							if branch.has(key) and not PATHS.has(str(branch[key])):
+								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit")):
+							_error("%s: a branch needs a flag, a path or a habit to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
@@ -602,6 +616,67 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])
 
 
+## A resonance (data/resonances, scripts/combat/resonances.gd): a count of one
+## path's gifts a path can reach, or two gifts or more that exist, of more than
+## one path (a pair within a path is what the count is for). Its effects are
+## mechanics the caps hold, like a gift's.
+func _check_resonance(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	var needs: Dictionary = entry.get("needs", {})
+	if needs.has("path"):
+		var count := int(needs.get("count", 0))
+		var offered := _ability_paths.values().count(str(needs.path))
+		if not PATHS.has(str(needs.path)):
+			_error("%s: needs.path must be one of %s" % [where, PATHS])
+		elif count < 2 or count > offered:
+			_error("%s: needs.count is 2..%d (the gifts %s has)" % [where, offered, needs.path])
+	elif needs.has("gifts"):
+		var paths := {}
+		for gift in needs.gifts:
+			if not _ability_paths.has(gift):
+				_error("%s: needs.gifts names no gift: %s" % [where, gift])
+			else:
+				paths[_ability_paths[gift]] = true
+		if needs.gifts.size() < 2 or paths.size() < 2:
+			_error("%s: a pair of gifts crosses paths (within one path the count does it)" % where)
+	else:
+		_error("%s: needs is {path, count} or {gifts}" % where)
+	for effect in entry.get("effects", []):
+		if effect.get("type") != "stat" or not STATS.has(effect.get("stat")):
+			_error("%s: a resonance's effect is a stat from Player.BASE_STATS" % where)
+		elif not ["add", "mul"].has(effect.get("op", "add")):
+			_error("%s: op is add or mul" % where)
+	if entry.get("effects", []).is_empty():
+		_error("%s: a resonance that does nothing" % where)
+
+
+## A vial of wrath (data/vials, scripts/run/vials.gd): a tier 1..5 once each,
+## rules Vials knows how to stack, a promotion only to an elite of that kind.
+var _vial_tiers := {}
+
+
+func _check_vial(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	var tier := int(entry.get("tier", 0))
+	if tier < 1 or tier > 5 or _vial_tiers.has(tier):
+		_error("%s: tier is 1..5 and each once" % where)
+	_vial_tiers[tier] = true
+	if float(entry.get("ash", 1.0)) < 1.0:
+		_error("%s: a vial never pays less than a plain night" % where)
+	var rules: Dictionary = entry.get("rules", {})
+	for key in rules:
+		if not ["flasks", "enemy_damage", "enemy_hp", "promote_chance", "rest_heal", "promote"].has(key):
+			_error("%s: rules.%s is not a rule Vials stacks" % [where, key])
+	for from in rules.get("promote", {}):
+		var to := str(rules.promote[from])
+		if not _enemy_ids.has(from) or not _enemy_ids.has(to):
+			_error("%s: promote %s -> %s names no enemy" % [where, from, to])
+	if float(rules.get("promote_chance", 0.0)) > 1.0 or float(rules.get("rest_heal", 1.0)) <= 0.0:
+		_error("%s: promote_chance is 0..1 and rest_heal above 0" % where)
+
+
 ## Achievements.COUNTERS, read from the source: that script names autoloads,
 ## which a tool script (-s) cannot load before they exist.
 func _deed_counters() -> Array:
@@ -611,7 +686,7 @@ func _deed_counters() -> Array:
 		_error("scripts/meta/achievements.gd: no COUNTERS list to check deeds against")
 		return []
 	var counters := []
-	for name in RegEx.create_from_string("\"([a-z_]+)\"").search_all(found.get_string(1)):
+	for name in RegEx.create_from_string("\"([a-z0-9_]+)\"").search_all(found.get_string(1)):
 		counters.append(name.get_string(1))
 	return counters
 

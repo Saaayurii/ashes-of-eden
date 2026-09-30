@@ -213,6 +213,8 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"abilities": Game.abilities.map(func(a: Dictionary) -> String: return a.id),
 			"items": Game.items.duplicate(),
 			"rested": Game.rested.keys(),
+			"walked": Game.walked.duplicate(),
+			"vial": Game.vial,
 			"essence": Game.essence,
 			"level": Game.level,
 			"ash": Game.ash_earned,
@@ -240,6 +242,8 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.flags = state.get("flags", {}).duplicate()
 	for id in state.get("abilities", []):
 		Game.abilities.append(Data.abilities[id])
+	# their resonances are already in the body's stats below: only the list
+	Game.resonances = Resonances.active(Game.abilities)
 	# the items' effects are in the body's stats below; this is the list of them
 	for id in state.get("items", []):
 		if id is String and Data.items.has(id):
@@ -247,10 +251,15 @@ func restore(data: Dictionary, body: Player) -> void:
 	for path in state.get("rested", []):
 		if path is String:
 			Game.rested[path] = true
+	# an old save has no way walked: the map then shows only where we stand
+	for path in state.get("walked", []):
+		if path is String and ResourceLoader.exists(path):
+			Game.walked.append(path)
 	Game.level = maxi(1, int(state.get("level", 1)))
 	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
 	Game.ash_earned = int(state.get("ash", 0))
 	Game.unscathed = maxi(0, int(state.get("unscathed", 0)))
+	Game.vial = clampi(int(state.get("vial", 0)), 0, Vials.TIERS)
 	Game.elapsed = float(state.get("elapsed", 0.0))
 	# The stats are the body's whole story (gifts applied, extra lives spent):
 	# restored as they were rather than replayed gift by gift.
