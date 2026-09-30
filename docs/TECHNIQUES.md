@@ -8,7 +8,7 @@ button: the stick presses the same `move_*` actions the keys do.
 | Move | Input | What it does |
 |---|---|---|
 | **Lunge** | back, forward + Attack (each within 0.3 s) | a rush of `LUNGE_TIME` at `LUNGE_SPEED` that runs the blade through everything in its path, ×1.6 |
-| **Cleave** | hold Attack after a swing; let go once it glows | the blade drawn back (slow feet), then the hardest blow there is: ×2.4, a wide reach, knocks back hard and staggers |
+| **Cleave** | hold Attack after a swing; let go once it glows | the blade drawn back (slow feet), then the hardest blow there is: ×3.0, a wide reach, knocks back hard and staggers |
 | **Sweep** | down + Attack on the ground | a low cut at the feet, ×0.8, that takes a walker off its feet (stagger) |
 | Rising cut | up + Attack, or Attack in the air | the anti-air swing |
 | Strike from the roll | roll, then Attack | the roll's swing |
@@ -43,6 +43,29 @@ practice yard can teach them.
   edge, the cleave the slam with its arc turned to hot gold, the sweep the
   roll's low cut between a crouch and a rise — and listed in
   `tools/art/build_elian_frames.py`. Both are in `check_generators.py`.
+
+## Taught in the night
+
+The yard teaches every move; the night teaches the ones it needs, once
+(`scripts/ui/move_hints.gd`). A few times a second it looks at our own body's
+fight and, the first time a moment calls for a move the player has never
+done, says so in one line at the bottom of the screen:
+
+| Moment | Move |
+|---|---|
+| a flyer overhead, close | rising cut |
+| a walker winding up at arm's reach | sweep |
+| an armoured one in reach | cleave |
+| two of them in a row ahead | lunge |
+
+Once per move per profile (`Profile.data.hints_shown`), never for a move
+already done (`Profile.data.moves_done`, filled by every
+`technique_performed`, in the yard too — knowing a move is not a reward), at
+most one every 25 s, never in a scene. A night lost with the lunge, cleave or
+sweep still unknown ends with a line pointing at the practice yard. The
+Playtest log records every move done (`"e": "move"`), and the balance probe
+counts them per run, so a move nobody finds shows up in the report.
+`move_hints_test.gd`.
 
 ## The list
 

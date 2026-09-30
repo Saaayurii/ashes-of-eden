@@ -13,6 +13,11 @@ tools/audio/.cache/
 !assets/levels/depth/*_wide.png.import
 !assets/portraits/*.png.import
 !assets/sprites/enemy_atlases/*.png.import
+# …and the other painted plates the size of a screen: the cutscene stills, the
+# three interiors and the hell gate's atmosphere (tools/export/music_filters.py)
+!assets/cutscenes/*.png.import
+!assets/levels/*_v1.png.import
+!assets/levels/depth/hell_gate_atmosphere_v2.png.import
 localization/*.translation
 export_presets.cfg.bak
 .editor/

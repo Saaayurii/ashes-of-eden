@@ -33,6 +33,8 @@ func _ready() -> void:
 	EventBus.room_started.connect(_on_room_started)
 	EventBus.room_cleared.connect(_on_room_cleared)
 	EventBus.player_unscathed.connect(_on_unscathed)
+	# which special moves real hands use (docs/TECHNIQUES.md), for the probe
+	EventBus.technique_performed.connect(func(id: String) -> void: _write("move", {"room": _room, "id": id}))
 	EventBus.player_hurt.connect(_on_hurt)
 	EventBus.player_died.connect(_on_died)
 	EventBus.boss_hp_changed.connect(_on_boss_hp)

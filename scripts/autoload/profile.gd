@@ -23,12 +23,19 @@ static func _defaults() -> Dictionary:
 		# he says the first line and the last one and gets up (run.gd _begin).
 		# An older profile without the key reads false and hears it once more.
 		"prologue_seen": false,
+		# The special moves (docs/TECHNIQUES.md) this player has pulled off at
+		# least once, and the in-night hints already given (MoveHints): a hint
+		# comes once, and never for a move already known. Learning in the
+		# practice yard counts here — knowing a move is not a reward.
+		"moves_done": {},
+		"hints_shown": {},
 	}
 
 
 func _ready() -> void:
 	load_profile()
 	EventBus.enemy_died.connect(func(enemy_id: StringName, _pos: Vector2) -> void: record_kill(String(enemy_id)))
+	EventBus.technique_performed.connect(record_move)
 
 
 func load_profile() -> void:
@@ -66,6 +73,20 @@ func record_seen(enemy_id: String) -> void:
 		entry["place"] = Game.place  # where this one was first laid eyes on
 	data.bestiary[enemy_id] = entry
 	save()  # an unlock should survive a crash later in the night
+
+
+func record_move(technique_id: String) -> void:
+	if Net.dedicated or technique_id == "" or data.moves_done.has(technique_id):
+		return
+	data.moves_done[technique_id] = true
+	save()
+
+
+func mark_hint(technique_id: String) -> void:
+	if Net.dedicated or data.hints_shown.has(technique_id):
+		return
+	data.hints_shown[technique_id] = true
+	save()
 
 
 func record_kill(enemy_id: String) -> void:

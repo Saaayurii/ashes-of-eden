@@ -83,7 +83,10 @@ const LUNGE_MULTIPLIER := 1.6
 const CHARGE_AFTER := 0.3
 const CHARGE_FULL := 0.6
 const CHARGE_SPEED := 0.35
-const CLEAVE_MULTIPLIER := 2.4
+## ×3 on one blow after ~0.9 s of charge: ~19 damage a second against the
+## chain's ~22 (docs/BALANCE_PROBE.md, "The moves") — worth the wait, never
+## worth doing instead of fighting.
+const CLEAVE_MULTIPLIER := 3.0
 const CLEAVE_STAGGER := 0.6
 const SWEEP_MULTIPLIER := 0.8
 const SWEEP_STAGGER := 0.9

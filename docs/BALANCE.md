@@ -54,7 +54,7 @@ attack speed +100 % · crit 50 % · move speed +60 % · roll cooldown ≥ 1.2 s 
 | Fallen guard | 80 | 15 | 15 % | slow, readable; ~9–10 hits |
 | Elite (any) | ×1.8 | ×1.35 | — | speed ×1.1 **and one new mechanic**, never just more HP (`extends` + `on_death`) |
 | Blind preacher (mini-boss) | 900 | 18 / 15 / 35 | 10 % | second phase at 50 % changes behaviour, not HP |
-| Ophanim (boss) | 1800 | 20 / 12 / 45 | 15 % | 3 phases at 66 % / 32 %; 3–4 min, not more (2200 measured at ~4.6 min) |
+| Ophanim (boss) | 1650 | 20 / 12 / 45 | 15 % | 3 phases at 66 % / 32 % and the seal phase at 50 %; 3–4 min, not more (2200 measured at ~4.6 min; 1800 with the seals at ~4.2) |
 
 Boss attacks: normal 18–25, strong 30–40, telegraphed ultimate 45–60 with 1.3–1.5 s wind-up, obvious area,
 fully avoidable. A boss attack never removes 70–100 % HP.
@@ -95,6 +95,29 @@ Group size: 2–3 → 4–5 (5 min) → 5–7 (10 min) → 6–9 (20 min); never
   fires a beam of light"), it is not a bigger number.
 - Paths: **Grace** = defence, control, healing, area · **Temptation** = damage, lifesteal, crit, DoT, with risks ·
   **Will** = attack speed, movement, roll, mastery, parry — the stable path.
+
+## Pass of 2026-09-30: spacing, moves, forks
+
+Measured with `balance_probe.gd` after enemies learnt to keep their distance (docs/ENEMY_AI.md), the
+hero learnt three moves (docs/TECHNIQUES.md) and a night became 13 rooms of 15 (the forks). The probe
+itself learnt four things to get there: it breaks the Ophanim's seals as a player would (it used to
+wait out the ward and time out), it leaves the straw man and the seals out of the duels, it counts a
+fork's two ways as one slot of the night, and it measures in the practice yard what it cannot measure
+pinned — common enemies free to move, and each move on the straw man.
+
+- **Common enemies free to move** deal a standing, swinging hero 0.8–2.4 HP/s, about half of what
+  they deal pinned in front of the sword. That is the spacing doing its job — a fight is footwork now,
+  not a trade — and no number in `data/enemies` was raised to undo it. A crowd still presses (two
+  may step in from each side), and the playtest log will say whether a night got too easy.
+- **The moves** on the straw man, 10 s of nothing else: the chain ~22 damage/s, the lunge ~15, the
+  sweep ~12, the cleave ~15 at ×2.4. The cleave rose to **×3.0** (~19): the charge should pay for its
+  wait. None of the three out-damages the chain; each is chosen for what it does (reach through a line,
+  stop a wind-up, break a guard), never spammed.
+- **The Ophanim** took ~4.2 min with its seal phase against a 3–4 min target: HP **1800 → 1650**.
+- **Upgrades** at 13 rooms: 14 (6 levels + 8 place doors) — inside 10–14, left alone.
+- **Run length** estimates ~14 min against 25–30. The estimate multiplies measured TTKs by a guessed
+  `FIGHT_OVERHEAD`; with no recorded playtest yet it is the weakest number in the report, and HP was
+  not inflated to move it. The playtest section of the probe will replace it.
 
 ## Meta progression
 

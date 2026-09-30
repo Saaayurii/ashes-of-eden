@@ -135,7 +135,7 @@ var _crowd_rank := 0
 ## How long a flyer has been on its attack run without striking: past
 ## PECK_PATIENCE it gives the run up and pulls out (never hang on the body).
 var _peck_time := 0.0
-const PECK_PATIENCE := 0.6
+const PECK_PATIENCE := 0.35
 var _summoned := false
 var _home := Vector2.ZERO  # where it was spawned; the patrol is around this
 var _patrol_goal := Vector2.ZERO
@@ -620,10 +620,10 @@ func _chase(to_target: Vector2, delta: float) -> void:
 			if _disengage_left > 0.0:
 				distance += 60.0  # it struck: out and up before anything else
 				height += 26.0
-			elif _attack_cd <= 0.3:
+			elif _attack_cd <= 0.05:
 				var reach := _melee_reach()
 				if reach > 0.0:
-					pecking = true  # an attack run: in to its beak's reach at head height
+					pecking = true  # an attack run, only with the blow ready: in to its beak's reach at head height
 					distance = reach * 0.7
 					height = 16.0
 			if pecking:
@@ -719,7 +719,7 @@ func _hold(delta: float) -> void:
 			velocity = _knockback
 			if state == State.RECOVER and _target != null and is_instance_valid(_target):
 				# a lunge that ended on the player does not stay there
-				velocity += _personal_space(_target.global_position - global_position) * 90.0
+				velocity += _personal_space(_target.global_position - global_position) * 220.0
 		_:
 			velocity.x = _knockback.x
 			velocity.y += 1100.0 * delta

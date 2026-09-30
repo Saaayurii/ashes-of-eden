@@ -24,16 +24,21 @@ PRESETS = os.path.join(ROOT, "export_presets.cfg")
 LITE_PER_MOOD = 1
 LIGHT_PRESETS = ("Android", "Web")
 ALWAYS_EXCLUDE = ["tools/*", "build/*", "docs/*", "*_source.png",
-                  "assets/sprites/source/*", "assets/sprites/projectiles/source/*"]
+                  "assets/sprites/source/*", "assets/sprites/projectiles/source/*",
+                  # what the art tools cut the game's strips and props from, never loaded
+                  "assets/sprites/enemy_atlases/*", "assets/props/source/*",
+                  "assets/portraits/enemies_atlas.png", "assets/portraits/people_atlas.png"]
 
 
 def unused_art():
-    """Narrow panels that have a _wide twin (the rooms load the wide one)."""
-    levels = os.path.join(ROOT, "assets", "levels")
+    """Narrow panels, and the narrow plates behind them, that have a _wide
+    twin: the rooms load the wide one, the narrow one is the generator's input."""
     out = []
-    for f in sorted(os.listdir(levels)):
-        if f.endswith(".png") and not f.endswith("_wide.png") and os.path.exists(os.path.join(levels, f[:-4] + "_wide.png")):
-            out.append(f"assets/levels/{f}")
+    for folder in ("assets/levels", "assets/levels/depth"):
+        path = os.path.join(ROOT, folder)
+        for f in sorted(os.listdir(path)):
+            if f.endswith(".png") and not f.endswith("_wide.png") and os.path.exists(os.path.join(path, f[:-4] + "_wide.png")):
+                out.append(f"{folder}/{f}")
     return out
 
 
