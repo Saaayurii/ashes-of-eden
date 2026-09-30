@@ -34,6 +34,16 @@ func _run() -> void:
 			var decor: Parallax2D = room.get_node("DecorBack")
 			_check(decor.scroll_scale == Vector2.ONE,
 				"%s interior masonry drifts away from its footing" % key)
+		if key == "church":
+			for index in [3, 4]:
+				var footing: CollisionShape2D = room.get_node("Ledges/Platform%dShape" % index)
+				var stone: Polygon2D = room.get_node("Interior/BalconySupports/Platform%dShapeStone" % index)
+				var top: float = footing.position.y - (footing.shape as RectangleShape2D).size.y * .5
+				_check(stone.position.y == top and stone.polygon[1].x == (footing.shape as RectangleShape2D).size.x,
+					"church choir step %d art misses collision" % index)
+				for piece in room.get_node("Terrain").get_children():
+					if str(piece.name).begins_with("Platform%d_" % index):
+						_check(not piece.visible, "church outdoor moss still covers step %d" % index)
 		if key == "preacher_nave":
 			for pair in [["arch_1", "Platform1Shape"], ["arch_3", "Platform2Shape"]]:
 				var arch: Sprite2D = room.get_node("DecorBack/%s" % pair[0])
