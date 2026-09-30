@@ -3034,7 +3034,7 @@ centered = false
 modulate = Color(1.2, 1.15, 1.25, 1)
 
 [node name="DecorBack" type="Parallax2D" parent="."]
-scroll_scale = Vector2(0.88, 1)
+scroll_scale = Vector2(1, 1)
 
 [node name="arch_1" type="Sprite2D" parent="DecorBack"]
 modulate = Color(0.644, 0.62, 0.632, 1)

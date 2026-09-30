@@ -9,6 +9,7 @@ const PROBES := {
 	"crypt_lava": [[320, 261], [1170, 200], [740, 315], [780, 610]],
 	"hell_gate": [[255, 405], [330, 315], [350, 492], [1020, 482], [1320, 372], [1560, 563]],
 	"church": [[120, 290], [195, 338], [600, 380], [995, 338], [1080, 290]],
+	"preacher_nave": [[210, 300], [600, 380], [990, 300]],
 }
 
 var failures := 0
@@ -29,6 +30,20 @@ func _run() -> void:
 		var room = load("res://scenes/rooms/%s.tscn" % key).instantiate()
 		root.add_child(room)
 		current_scene = room
+		if key in ["church", "preacher_nave"]:
+			var decor: Parallax2D = room.get_node("DecorBack")
+			_check(decor.scroll_scale == Vector2.ONE,
+				"%s interior masonry drifts away from its footing" % key)
+		if key == "preacher_nave":
+			for pair in [["arch_1", "Platform1Shape"], ["arch_3", "Platform2Shape"]]:
+				var arch: Sprite2D = room.get_node("DecorBack/%s" % pair[0])
+				var platform: CollisionShape2D = room.get_node("Ledges/%s" % pair[1])
+				_check(absf(arch.position.x - platform.position.x) < 0.1,
+					"preacher nave %s support misses %s" % pair)
+				var corbel: Polygon2D = room.get_node("Interior/BalconySupports/%sCorbel" % pair[1])
+				_check(corbel != null and corbel.position.x + (platform.shape as RectangleShape2D).size.x * .5 == platform.position.x
+					and corbel.texture == room.get_node("Interior/AuthoredMasonry/PreacherPainting").texture,
+					"preacher nave painted corbel misses %s" % pair[1])
 		var hero = load("res://scenes/player/player.tscn").instantiate()
 		room.add_child(hero)
 		hero.controls_enabled = false

@@ -37,6 +37,7 @@ static func attach(room: Node2D) -> void:
 	var floor_y := 380.0
 	var warm := key == "church"
 	var has_painting := false
+	var painting_texture: Texture2D
 	if PAINTINGS.has(key):
 		var path: String = PAINTINGS[key]
 		var texture: Texture2D = load(path) if ResourceLoader.exists(path) else null
@@ -45,6 +46,7 @@ static func attach(room: Node2D) -> void:
 			if image != null and not image.is_empty():
 				texture = ImageTexture.create_from_image(image)
 		if texture != null:
+			painting_texture = texture
 			var painting := Sprite2D.new()
 			painting.name = "ChurchPainting" if warm else "PreacherPainting"
 			painting.texture = texture
@@ -107,6 +109,29 @@ static func attach(room: Node2D) -> void:
 		if size.x < 100:
 			continue
 		var top: float = collider.position.y - size.y * .5
+		if key == "preacher_nave" and painting_texture != null:
+			# Use actual nave masonry for a tapered wall corbel. The old
+			# stretched freestanding posts made these wall-mounted balconies
+			# look like floating exterior platforms over an indoor painting.
+			var left: float = collider.position.x - size.x * .5
+			var corbel := Polygon2D.new()
+			corbel.name = "%sCorbel" % collider.name
+			corbel.position = Vector2(left, top)
+			corbel.texture = painting_texture
+			corbel.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			corbel.polygon = PackedVector2Array([
+				Vector2(0, 10), Vector2(size.x, 10), Vector2(size.x, 17),
+				Vector2(size.x - 24, 25), Vector2(size.x - 42, 35),
+				Vector2(42, 35), Vector2(24, 25), Vector2(0, 17),
+			])
+			var source_x := 300.0 if collider.position.x < room.width * .5 else 1590.0
+			var uv := PackedVector2Array()
+			for point in corbel.polygon:
+				uv.append(Vector2(source_x + point.x / size.x * 250.0,
+					520.0 + (point.y - 10.0) / 25.0 * 65.0))
+			corbel.uv = uv
+			supports.add_child(corbel)
+			continue
 		for x in [collider.position.x - size.x * .5 + 22, collider.position.x + size.x * .5 - 22]:
 			var post := Sprite2D.new()
 			post.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

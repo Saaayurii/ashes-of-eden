@@ -457,7 +457,7 @@ PAINTED = {
         # combat role; keep the two reachable side balconies around the arena.
         platforms=[(140, 300, 140, 14), (680, 300, 140, 14)],
         pillars=[(90, 380), (330, 380), (630, 380), (870, 380)],
-        decor=[("arch", 240, 360, "back"), ("arch", 480, 360, "back"), ("arch", 720, 360, "back")],
+        decor=[("arch", 210, 360, "back"), ("arch", 480, 360, "back"), ("arch", 750, 360, "back")],
         spawns=[("blind_preacher", 640, 380)],
         props=[("pot", 120, 380), ("pot", 840, 380)],
         npcs=[],

@@ -1405,9 +1405,14 @@ def build(name, r):
                           'texture = ExtResource("seam_silhouette")\n\n')
             text = text.replace('[node name="FogFar" type="Parallax2D" parent="."]',
                                 silhouette + '[node name="FogFar" type="Parallax2D" parent="."]', 1)
-    # decor behind the geometry: slightly parallaxed for depth
+    # Outdoor silhouettes can drift for depth. Interior arches are part of the
+    # same masonry as their platforms; parallax made the apparent supports
+    # slide away from the collision geometry when the camera followed a jump.
+    decor_back = ('[node name="DecorBack" type="Parallax2D" parent="."]\nscroll_scale = Vector2(1, 1)\n\n'
+                  if r.get("interior") else
+                  '[node name="DecorBack" type="Parallax2D" parent="."]\nscroll_scale = Vector2(0.88, 1)\n\n')
     text = text.replace('[node name="Geometry" type="StaticBody2D" parent="."]',
-                        '[node name="DecorBack" type="Parallax2D" parent="."]\nscroll_scale = Vector2(0.88, 1)\n\n'
+                        decor_back
                         + decor_nodes(decor, "back", "DecorBack", r["ambient"])
                         + '[node name="Geometry" type="StaticBody2D" parent="."]')
     text += collider(r["ground"], "Ground", "Geometry") + collider(walls, "Wall", "Geometry")
