@@ -67,6 +67,8 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 			and Profile.data.moves_done.has("sweep")):
 		best.text += "\n" + tr("RUN_PRACTICE_TIP")
 	var names: Array = Game.abilities.map(func(a: Dictionary) -> String: return tr(a.name))
+	for id in Game.resonances:
+		names.append("✦ " + tr(str(Resonances.spec(id).get("name", id))))
 	gifts.text = "%s: %s" % [tr("RUN_GIFTS"), ", ".join(names)] if not names.is_empty() else ""
 	Audio.music("end")
 	Audio.play(&"victory" if won else &"defeat", -2.0, 0.0)

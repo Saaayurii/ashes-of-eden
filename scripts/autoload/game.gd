@@ -13,6 +13,9 @@ var flags: Dictionary = {}
 ## A cutscene is playing: enemies hold where they stand, the player's hands are off the controls.
 var cutscene := false
 var abilities: Array[Dictionary] = []
+## Resonances awake this night (scripts/combat/resonances.gd): derived from
+## the gifts, kept so each is applied to the body once.
+var resonances: Array[String] = []
 ## Items found this run, by id (ItemSystem): each at most once.
 var items: Array[String] = []
 ## Rest points used this night, by room scene path: each once.
@@ -48,6 +51,7 @@ func new_run() -> void:
 	alignment = {PATH_GRACE: 0, PATH_TEMPTATION: 0, PATH_WILL: 0}
 	flags = {}
 	abilities = []
+	resonances = []
 	items = []
 	rested = {}
 	wave = 0

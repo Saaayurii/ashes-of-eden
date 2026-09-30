@@ -57,6 +57,15 @@ static func apply(player: Player, ability: Dictionary) -> void:
 				player.heal(player.stats.max_hp if value is String else float(value))
 			_:
 				push_warning("Unknown effect type \"%s\" in ability %s" % [effect.get("type"), ability.id])
+	# What this gift completes with the ones before it wakes now, once.
+	var woken: Array[String] = []
+	for id in Resonances.completes(ability, Game.abilities):
+		if Game.resonances.has(id):
+			continue
+		for effect in Resonances.spec(id).get("effects", []):
+			_apply_stat(player, effect)
+		Game.resonances.append(id)
+		woken.append(id)
 	_clamp(player)
 	# The essence bar belongs to the run, not to the body carrying the gift.
 	Game.essence_bonus = player.stats.essence_bonus
@@ -64,6 +73,8 @@ static func apply(player: Player, ability: Dictionary) -> void:
 	Game.apply_effect(ability.get("alignment", {}))
 	Game.abilities.append(ability)
 	EventBus.ability_acquired.emit(ability)
+	for id in woken:
+		EventBus.resonance_awakened.emit(id)
 
 
 static func _apply_stat(player: Player, effect: Dictionary) -> void:

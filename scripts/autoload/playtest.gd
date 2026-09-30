@@ -36,6 +36,7 @@ func _ready() -> void:
 	# which special moves real hands use (docs/TECHNIQUES.md), for the probe
 	EventBus.technique_performed.connect(func(id: String) -> void: _write("move", {"room": _room, "id": id}))
 	EventBus.achievement_unlocked.connect(func(id: String) -> void: _write("deed", {"room": _room, "id": id}))
+	EventBus.resonance_awakened.connect(func(id: String) -> void: _write("resonance", {"room": _room, "id": id}))
 	EventBus.player_hurt.connect(_on_hurt)
 	EventBus.player_died.connect(_on_died)
 	EventBus.boss_hp_changed.connect(_on_boss_hp)

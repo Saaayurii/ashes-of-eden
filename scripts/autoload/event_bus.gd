@@ -23,6 +23,8 @@ signal player_unscathed(index: int)
 ## for riposte and backstab, landed on an enemy): the practice yard ticks it.
 signal technique_performed(technique_id: String)
 signal ability_acquired(ability: Dictionary)
+## Gifts taken together woke something none does alone (data/resonances).
+signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)
 ## Our own body rested at a rest point (scripts/rooms/rest_point.gd), in this room.
 signal player_rested(room_path: String)

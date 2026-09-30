@@ -240,6 +240,8 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.flags = state.get("flags", {}).duplicate()
 	for id in state.get("abilities", []):
 		Game.abilities.append(Data.abilities[id])
+	# their resonances are already in the body's stats below: only the list
+	Game.resonances = Resonances.active(Game.abilities)
 	# the items' effects are in the body's stats below; this is the list of them
 	for id in state.get("items", []):
 		if id is String and Data.items.has(id):

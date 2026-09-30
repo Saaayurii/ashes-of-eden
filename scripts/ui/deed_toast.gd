@@ -2,7 +2,8 @@ extends Label
 class_name DeedToast
 ## Says a deed was done (data/achievements), one line at the top of the screen
 ## with the Ash it paid, and a bell. Several at once wait their turn. The book
-## that lists them all is the bestiary's "Deeds" section.
+## that lists them all is the bestiary's "Deeds" section. A resonance woken by
+## a gift (data/resonances) is said the same way, with what it does.
 
 const SHOW_FOR := 3.2
 
@@ -22,12 +23,17 @@ func _ready() -> void:
 	offset_left = -200
 	offset_right = 200
 	offset_top = 34
-	offset_bottom = 50
+	offset_bottom = 64
 	modulate.a = 0.0
 	EventBus.achievement_unlocked.connect(announce)
+	EventBus.resonance_awakened.connect(func(id: String) -> void: _say("res:" + id))
 
 
 func announce(id: String) -> void:
+	_say(id)
+
+
+func _say(id: String) -> void:
 	_queue.append(id)
 	if not _busy:
 		_next()
@@ -38,11 +44,16 @@ func _next() -> void:
 		_busy = false
 		return
 	_busy = true
-	var spec := Achievements.spec(_queue.pop_front())
-	text = tr("DEED_DONE") % tr(str(spec.get("name", "")))
-	var ash := int(spec.get("ash", 0))
-	if ash > 0:
-		text += "   " + tr("DEED_ASH") % ash
+	var id: String = _queue.pop_front()
+	if id.begins_with("res:"):
+		var resonance := Resonances.spec(id.trim_prefix("res:"))
+		text = "%s\n%s" % [tr("RES_WOKEN") % tr(str(resonance.get("name", ""))), tr(str(resonance.get("description", "")))]
+	else:
+		var spec := Achievements.spec(id)
+		text = tr("DEED_DONE") % tr(str(spec.get("name", "")))
+		var ash := int(spec.get("ash", 0))
+		if ash > 0:
+			text += "   " + tr("DEED_ASH") % ash
 	Audio.play(&"bell", -6.0)
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 1.0, 0.3)

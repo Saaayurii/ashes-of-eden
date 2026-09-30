@@ -57,6 +57,7 @@ const REQUIRED := {
 	"techniques": ["id", "name", "input"],
 	"forks": ["id", "after", "dialogue", "options", "then"],
 	"achievements": ["id", "name", "description", "unlock"],
+	"resonances": ["id", "name", "description", "needs", "effects"],
 }
 
 var errors: PackedStringArray = []
@@ -70,6 +71,7 @@ var _prop_ids := {}
 var _enemy_ids := {}
 var _note_ids := {}
 var _chapter_ids := {}
+var _ability_paths := {}  # gift id -> its path
 ## Room scene -> the chapter that claims it; two chapters may not claim one room.
 var _room_chapter := {}
 var used_keys := {}  # localization key -> where it is used
@@ -97,6 +99,8 @@ func _init() -> void:
 		_note_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/chapters"):
 		_chapter_ids[id.get("id", "")] = true
+	for gift in _load_entries("res://data/abilities"):
+		_ability_paths[gift.get("id", "")] = str(gift.get("path", ""))
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	for collection in REQUIRED:
@@ -287,6 +291,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: no such move in Player (known: %s)" % [where, TECHNIQUES])
 		"achievements":
 			_check_achievement(entry, where)
+		"resonances":
+			_check_resonance(entry, where)
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -605,6 +611,41 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 	for counter in unlock.get("deeds", {}):
 		if not counters.has(counter):
 			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])
+
+
+## A resonance (data/resonances, scripts/combat/resonances.gd): a count of one
+## path's gifts a path can reach, or two gifts or more that exist, of more than
+## one path (a pair within a path is what the count is for). Its effects are
+## mechanics the caps hold, like a gift's.
+func _check_resonance(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	var needs: Dictionary = entry.get("needs", {})
+	if needs.has("path"):
+		var count := int(needs.get("count", 0))
+		var offered := _ability_paths.values().count(str(needs.path))
+		if not PATHS.has(str(needs.path)):
+			_error("%s: needs.path must be one of %s" % [where, PATHS])
+		elif count < 2 or count > offered:
+			_error("%s: needs.count is 2..%d (the gifts %s has)" % [where, offered, needs.path])
+	elif needs.has("gifts"):
+		var paths := {}
+		for gift in needs.gifts:
+			if not _ability_paths.has(gift):
+				_error("%s: needs.gifts names no gift: %s" % [where, gift])
+			else:
+				paths[_ability_paths[gift]] = true
+		if needs.gifts.size() < 2 or paths.size() < 2:
+			_error("%s: a pair of gifts crosses paths (within one path the count does it)" % where)
+	else:
+		_error("%s: needs is {path, count} or {gifts}" % where)
+	for effect in entry.get("effects", []):
+		if effect.get("type") != "stat" or not STATS.has(effect.get("stat")):
+			_error("%s: a resonance's effect is a stat from Player.BASE_STATS" % where)
+		elif not ["add", "mul"].has(effect.get("op", "add")):
+			_error("%s: op is add or mul" % where)
+	if entry.get("effects", []).is_empty():
+		_error("%s: a resonance that does nothing" % where)
 
 
 ## Achievements.COUNTERS, read from the source: that script names autoloads,
