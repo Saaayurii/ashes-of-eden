@@ -5,7 +5,8 @@ var damage := 10.0
 var speed := 170.0
 var direction := Vector2.RIGHT
 ## Flight geometry is chosen by the attack data, independently of the sprite.
-## wave: lateral sway; accelerate: gathers speed; arc: bends toward the floor.
+## wave: lateral sway; accelerate: gathers speed; arc: bends toward the floor;
+## surge: hangs briefly before rushing; return: turns back if the first pass misses.
 var motion := "straight"
 var motion_amount := 0.0
 var tint := Color(1, 0.85, 0.5)
@@ -37,6 +38,7 @@ var _life := 4.0
 var _reflected := false
 var _flight_clock := 0.0
 var _lateral_offset := 0.0
+var _turned_back := false
 
 
 func _ready() -> void:
@@ -69,12 +71,21 @@ func _advance_motion(delta: float) -> void:
 	match motion:
 		"accelerate":
 			travel *= 1.0 + minf(_flight_clock, 2.0) * motion_amount
+		"surge":
+			# The preacher's psalm appears to hang in the air before it rushes.
+			travel *= 0.2 + 1.5 * clampf((_flight_clock - motion_amount) / 0.45, 0.0, 1.0)
 		"arc":
 			position.y += motion_amount * _flight_clock * delta
 		"wave":
 			var lateral := sin(_flight_clock * 9.0) * motion_amount
 			position += direction.orthogonal() * (lateral - _lateral_offset)
 			_lateral_offset = lateral
+		"return":
+			if not _turned_back and _flight_clock >= motion_amount:
+				_turned_back = true
+				direction = -direction
+				speed *= 1.2
+				travel = speed * delta
 	position += direction * travel
 
 
@@ -100,6 +111,7 @@ func reflect(_by: Node2D) -> void:
 	direction = -direction
 	motion = "straight"
 	_lateral_offset = 0.0
+	_turned_back = false
 	speed *= 1.35
 	damage *= 1.5
 	_life = 4.0

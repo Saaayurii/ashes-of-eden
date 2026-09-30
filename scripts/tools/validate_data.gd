@@ -556,10 +556,12 @@ func _check_enemy_strips() -> void:
 			if attack.get("type") == "ranged":
 				var motion := str(attack.get("projectile_motion", "straight"))
 				var amount := float(attack.get("motion_amount", 0.0))
-				if not motion in ["straight", "wave", "accelerate", "arc"]:
+				if not motion in ["straight", "wave", "accelerate", "arc", "surge", "return"]:
 					_error("enemies/%s: unknown projectile_motion %s" % [id, motion])
 				elif motion != "straight" and amount <= 0.0:
 					_error("enemies/%s: %s needs positive motion_amount" % [id, motion])
+				elif motion == "return" and amount >= 4.0:
+					_error("enemies/%s: return must turn before the projectile expires" % id)
 
 
 ## A fork (data/forks, scripts/run/route.gd) splits the chapter's way and

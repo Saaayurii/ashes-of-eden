@@ -117,6 +117,8 @@
       "damage": 12,
       "cooldown": 2.2,
       "projectile_speed": 210,
+      "projectile_motion": "return",
+      "motion_amount": 2.25,
       "projectiles": 3,
       "spread": 36,
       "projectile_style": "ophanim",

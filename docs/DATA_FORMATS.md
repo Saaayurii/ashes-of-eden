@@ -88,7 +88,11 @@ without duplicating the base health and movement record.
   - `{"type": "melee", "range": 34, "reach": 40, "windup": 0.42, "damage": 16, "cooldown": 1.1, "recover": 0.3}`
   - `{"type": "ranged", "range": 260, "windup": 0.75, "damage": 10, "cooldown": 2.2, "projectile_speed": 160, "projectile_style": "zealot", "color": "#ffd27a"}` —
     `projectile_style` is one of the animated flights (`wraith` · `zealot` · `acolyte` · `preacher` · `cult` · `ash` · `ophanim`,
-    `scripts/fx/projectile.gd`); the validator refuses a ranged enemy attack without one.
+    `scripts/fx/projectile.gd`); the validator refuses a ranged enemy attack without one. `projectile_motion` separately
+    chooses its path: `straight` (default), `wave` (sideways sway), `accelerate`, `arc` (falls), `surge` (pauses then rushes),
+    or `return` (reverses after a miss). Non-straight paths require a positive `motion_amount`: pixels of sway,
+    acceleration factor, downward bend, delay in seconds, or turnaround time in seconds respectively. A returned
+    projectile must turn before its four-second lifetime ends.
   - `{"type": "lunge", "range": 420, "windup": 0.8, "damage": 20, "cooldown": 2.6, "lunge_speed": 430, "lunge_time": 0.45}`
   - `{"type": "beam", "range": 460, "windup": 1.1, "damage": 24, "cooldown": 3.4, "length": 440, "thickness": 26, "duration": 0.5, "color": "#ffd66a"}` —
     a cross of light through the enemy; only chosen when the player is near one of its axes. Thin lines during
