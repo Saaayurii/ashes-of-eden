@@ -3091,12 +3091,12 @@ shape = SubResource("Platform2_shape")
 one_way_collision = true
 
 [node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(278.0, 343.0)
+position = Vector2(198.0, 343.0)
 shape = SubResource("Platform3_shape")
 one_way_collision = true
 
 [node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(922.0, 343.0)
+position = Vector2(998.0, 343.0)
 shape = SubResource("Platform4_shape")
 one_way_collision = true
 
@@ -3329,24 +3329,24 @@ centered = false
 flip_h = true
 
 [node name="Platform3_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(250, 337)
+position = Vector2(170, 337)
 texture = ExtResource("piece_float_1")
 centered = false
 
 [node name="Platform3_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(279, 336)
+position = Vector2(199, 336)
 texture = ExtResource("piece_float_3")
 centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 27, 28)
 
 [node name="Platform4_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(894, 337)
+position = Vector2(970, 337)
 texture = ExtResource("piece_float_2")
 centered = false
 
 [node name="Platform4_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(923, 337)
+position = Vector2(999, 337)
 texture = ExtResource("piece_float_1")
 centered = false
 region_enabled = true
