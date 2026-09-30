@@ -33,6 +33,8 @@ static func _defaults() -> Dictionary:
 		"hints_shown": {},
 		# Nights that ended at dawn rather than in a death.
 		"wins": 0,
+		# The highest vial of wrath a dawn has opened (scripts/run/vials.gd).
+		"vials_opened": 0,
 		# Counters the deeds read (Achievements.COUNTERS): parries, backstabs…
 		"deeds": {},
 		# Deeds done (data/achievements): id -> the unix time it happened.
@@ -77,6 +79,10 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 		_bump("wins_" + Game.dominant_path())
 		if Settings.difficulty == "judgment":
 			_bump("wins_judgment")
+		# a dawn opens the next vial of wrath (scripts/run/vials.gd)
+		data.vials_opened = mini(maxi(int(data.get("vials_opened", 0)), Game.vial + 1), Vials.TIERS)
+		if Game.vial > 0:
+			_bump("wins_vial_%d" % Game.vial)
 	save()
 	check_achievements()
 

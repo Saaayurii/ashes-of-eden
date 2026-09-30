@@ -62,6 +62,11 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	best.text = "%s   ·   %s" % [tr("RUN_BEST") % Profile.data.best_wave, tr("RUN_ASH") % [Game.ash_earned, Profile.data.ash]]
 	if Game.unscathed > 0:
 		best.text += "   ·   " + tr("RUN_UNSCATHED") % Game.unscathed
+	# the vial this night was played under, and the one a dawn opens (data/vials)
+	if Game.vial > 0:
+		stats.text += "   ·   " + tr(str(Vials.spec(Game.vial).get("name", "")))
+	if won and Game.vial < Vials.TIERS and Vials.opened() == Game.vial + 1:
+		best.text += "\n" + tr("VIAL_OPENED") % tr(str(Vials.spec(Game.vial + 1).get("name", "")))
 	# a night lost with moves still unknown: the yard is where they are learnt
 	if not won and not (Profile.data.moves_done.has("lunge") and Profile.data.moves_done.has("cleave")
 			and Profile.data.moves_done.has("sweep")):

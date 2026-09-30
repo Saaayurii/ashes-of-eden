@@ -37,6 +37,8 @@ var forks: Dictionary = {}
 var achievements: Dictionary = {}
 ## What gifts do together (data/resonances, scripts/combat/resonances.gd).
 var resonances: Dictionary = {}
+## The vials of wrath, the ladder above a dawn (data/vials, scripts/run/vials.gd).
+var vials: Dictionary = {}
 
 
 func _ready() -> void:
@@ -62,6 +64,7 @@ func reload() -> void:
 	forks = _load_collection("forks", roots)
 	achievements = _load_collection("achievements", roots)
 	resonances = _load_collection("resonances", roots)
+	vials = _load_collection("vials", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

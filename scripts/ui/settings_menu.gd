@@ -44,6 +44,7 @@ func _ready() -> void:
 	_build_bindings()
 	_build_speech()
 	_build_skin()
+	_build_vial()
 	_build_touch()
 	_refresh()
 
@@ -70,6 +71,7 @@ func _refresh() -> void:
 	shake.set_pressed_no_signal(Settings.screen_shake)
 	lighting.set_pressed_no_signal(Settings.lighting)
 	_fill_skins()
+	_fill_vials()
 	if _touch_mode:
 		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
@@ -105,6 +107,33 @@ func _build_speech() -> void:
 	box.add_child(row)
 	box.move_child(row, sfx_row.get_index() + 1)
 	_speech.toggled.connect(Settings.set_speech)
+
+
+## The vial of wrath for the next night (scripts/run/vials.gd), under the
+## difficulty; only once a dawn has opened the first, and only the ones opened.
+var _vial: OptionButton
+
+
+func _build_vial() -> void:
+	var anchor: Node = difficulty.get_parent()
+	_vial = OptionButton.new()
+	var row := _row("SETTINGS_VIAL", _vial)
+	row.name = "VialRow"
+	anchor.get_parent().add_child(row)
+	anchor.get_parent().move_child(row, anchor.get_index() + 1)
+	_vial.item_selected.connect(func(index: int) -> void: Settings.set_vial(index))
+
+
+func _fill_vials() -> void:
+	if _vial == null:
+		return
+	_vial.clear()
+	_vial.add_item("VIAL_NONE")
+	for tier in range(1, Vials.opened() + 1):
+		_vial.add_item(tr(str(Vials.spec(tier).get("name", ""))))
+		_vial.set_item_tooltip(tier, tr(str(Vials.spec(tier).get("description", ""))))
+	_vial.get_parent().visible = Vials.opened() > 0
+	_vial.select(clampi(Settings.vial, 0, Vials.opened()))
 
 
 ## The cloak: every skin listed, the locked ones greyed with how to earn them.

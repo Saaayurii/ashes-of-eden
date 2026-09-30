@@ -58,6 +58,7 @@ const REQUIRED := {
 	"forks": ["id", "after", "dialogue", "options", "then"],
 	"achievements": ["id", "name", "description", "unlock"],
 	"resonances": ["id", "name", "description", "needs", "effects"],
+	"vials": ["id", "tier", "name", "description", "rules"],
 }
 
 var errors: PackedStringArray = []
@@ -293,6 +294,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_achievement(entry, where)
 		"resonances":
 			_check_resonance(entry, where)
+		"vials":
+			_check_vial(entry, where)
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -648,6 +651,32 @@ func _check_resonance(entry: Dictionary, where: String) -> void:
 		_error("%s: a resonance that does nothing" % where)
 
 
+## A vial of wrath (data/vials, scripts/run/vials.gd): a tier 1..5 once each,
+## rules Vials knows how to stack, a promotion only to an elite of that kind.
+var _vial_tiers := {}
+
+
+func _check_vial(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	var tier := int(entry.get("tier", 0))
+	if tier < 1 or tier > 5 or _vial_tiers.has(tier):
+		_error("%s: tier is 1..5 and each once" % where)
+	_vial_tiers[tier] = true
+	if float(entry.get("ash", 1.0)) < 1.0:
+		_error("%s: a vial never pays less than a plain night" % where)
+	var rules: Dictionary = entry.get("rules", {})
+	for key in rules:
+		if not ["flasks", "enemy_damage", "enemy_hp", "promote_chance", "rest_heal", "promote"].has(key):
+			_error("%s: rules.%s is not a rule Vials stacks" % [where, key])
+	for from in rules.get("promote", {}):
+		var to := str(rules.promote[from])
+		if not _enemy_ids.has(from) or not _enemy_ids.has(to):
+			_error("%s: promote %s -> %s names no enemy" % [where, from, to])
+	if float(rules.get("promote_chance", 0.0)) > 1.0 or float(rules.get("rest_heal", 1.0)) <= 0.0:
+		_error("%s: promote_chance is 0..1 and rest_heal above 0" % where)
+
+
 ## Achievements.COUNTERS, read from the source: that script names autoloads,
 ## which a tool script (-s) cannot load before they exist.
 func _deed_counters() -> Array:
@@ -657,7 +686,7 @@ func _deed_counters() -> Array:
 		_error("scripts/meta/achievements.gd: no COUNTERS list to check deeds against")
 		return []
 	var counters := []
-	for name in RegEx.create_from_string("\"([a-z_]+)\"").search_all(found.get_string(1)):
+	for name in RegEx.create_from_string("\"([a-z0-9_]+)\"").search_all(found.get_string(1)):
 		counters.append(name.get_string(1))
 	return counters
 

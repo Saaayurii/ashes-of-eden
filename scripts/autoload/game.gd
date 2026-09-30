@@ -40,6 +40,8 @@ var ash_earned := 0
 var practice := ""
 ## Rooms this body cleared without a wound, this night (Run._on_unscathed).
 var unscathed := 0
+## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
+var vial := 0
 ## What the greedier gifts add to every kill. Mirrored here from the player's
 ## stats by AbilitySystem, because the essence bar is the run's, not the body's.
 var essence_bonus := 0.0
@@ -65,6 +67,7 @@ func new_run() -> void:
 	level = 1
 	ash_earned = 0
 	unscathed = 0
+	vial = 0
 	essence_bonus = 0.0
 
 
@@ -128,8 +131,10 @@ func set_essence(value: float, new_level: int) -> void:
 ## Enemy stat multipliers for this moment of the run: difficulty mode × time scaling.
 ## In practice the clock does not harden anybody: the foe stays the one met.
 func enemy_hp_multiplier() -> float:
-	return Settings.difficulty_hp() * (1.0 + (0.0 if practice != "" else 0.06 * floorf(elapsed / 180.0)))
+	return Settings.difficulty_hp() * float(Vials.rule("enemy_hp")) \
+		* (1.0 + (0.0 if practice != "" else 0.06 * floorf(elapsed / 180.0)))
 
 
 func enemy_damage_multiplier() -> float:
-	return Settings.difficulty_damage() * (1.0 + (0.0 if practice != "" else 0.04 * floorf(elapsed / 180.0)))
+	return Settings.difficulty_damage() * float(Vials.rule("enemy_damage")) \
+		* (1.0 + (0.0 if practice != "" else 0.04 * floorf(elapsed / 180.0)))

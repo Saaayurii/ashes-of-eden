@@ -318,6 +318,8 @@ func attach_net_sync() -> void:
 
 func _ready() -> void:
 	hp = stats.max_hp
+	# a vial of wrath may take a flask away before the night starts (data/vials)
+	stats.heal_charges = maxf(1.0, float(stats.heal_charges) + float(Vials.rule("flasks")))
 	heal_charges = int(stats.heal_charges)
 	_emit_hp()
 	hitbox_collision.shape = hitbox_collision.shape.duplicate()  # per-player reach, not shared scene data
@@ -792,7 +794,8 @@ func _arm(with_draw: bool) -> void:
 
 ## A rest point: whole again, every flask full, nothing left to recover.
 func rest() -> void:
-	hp = stats.max_hp
+	# under the fourth vial an altar gives back only part of the bar (data/vials)
+	hp = minf(stats.max_hp, maxf(hp, hp + stats.max_hp * float(Vials.rule("rest_heal"))))
 	heal_charges = int(stats.heal_charges)
 	_rally_pool = 0.0
 	_rally_left = 0.0
