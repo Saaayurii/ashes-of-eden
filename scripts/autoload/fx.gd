@@ -372,7 +372,7 @@ func flash(position: Vector2, tint := Color(1, 0.9, 0.7), radius := 60.0, durati
 	var light := GlowLight.new()
 	light.radius = radius
 	light.color = tint
-	light.energy = energy
+	light.energy = energy * Settings.flash_scale()
 	light.global_position = position
 	parent.add_child(light)
 	var tween := light.create_tween()

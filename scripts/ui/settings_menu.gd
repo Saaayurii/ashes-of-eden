@@ -45,6 +45,7 @@ func _ready() -> void:
 	_build_speech()
 	_build_skin()
 	_build_vial()
+	_build_access()
 	_build_touch()
 	_refresh()
 
@@ -72,6 +73,9 @@ func _refresh() -> void:
 	lighting.set_pressed_no_signal(Settings.lighting)
 	_fill_skins()
 	_fill_vials()
+	if _text_size:
+		_text_size.select(Settings.TEXT_SIZES.keys().find(Settings.text_size))
+		_flashes.select(Settings.FLASHES.find(Settings.flashes))
 	if _touch_mode:
 		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
@@ -107,6 +111,32 @@ func _build_speech() -> void:
 	box.add_child(row)
 	box.move_child(row, sfx_row.get_index() + 1)
 	_speech.toggled.connect(Settings.set_speech)
+
+
+## Accessibility, under the lighting switch it sits beside: how big story
+## text is, and whether flashes are dimmed (Settings.text_size / flashes).
+var _text_size: OptionButton
+var _flashes: OptionButton
+
+
+func _build_access() -> void:
+	var anchor: Node = lighting.get_parent()
+	var box: Node = anchor.get_parent()
+	_text_size = OptionButton.new()
+	for size in Settings.TEXT_SIZES:
+		_text_size.add_item("TEXT_SIZE_" + size.to_upper())
+	_text_size.item_selected.connect(func(index: int) -> void: Settings.set_text_size(Settings.TEXT_SIZES.keys()[index]))
+	_flashes = OptionButton.new()
+	for mode in Settings.FLASHES:
+		_flashes.add_item("FLASHES_" + mode.to_upper())
+	_flashes.item_selected.connect(func(index: int) -> void: Settings.set_flashes(Settings.FLASHES[index]))
+	var at := anchor.get_index() + 1
+	for pair in [["SETTINGS_TEXT_SIZE", _text_size, "TextSizeRow"], ["SETTINGS_FLASHES", _flashes, "FlashesRow"]]:
+		var row := _row(pair[0], pair[1])
+		row.name = pair[2]
+		box.add_child(row)
+		box.move_child(row, at)
+		at += 1
 
 
 ## The vial of wrath for the next night (scripts/run/vials.gd), under the

@@ -82,7 +82,7 @@ func _process(delta: float) -> void:
 	_hit = maxf(0.0, _hit - delta * (1.6 if _hit > 0.5 else 1.0))
 	_pulse += delta * 3.0
 	var low := _low * (0.7 + 0.3 * sin(_pulse))
-	_material.set_shader_parameter("strength", clampf(maxf(_hit, low), 0.0, 1.0))
+	_material.set_shader_parameter("strength", clampf(maxf(_hit, low), 0.0, 1.0) * Settings.flash_scale())
 
 
 ## [param fraction] is the blow as a share of the bar: a scratch is a flicker
