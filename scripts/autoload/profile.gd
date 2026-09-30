@@ -5,6 +5,8 @@ extends Node
 
 const PATH := "user://profile.json"
 const VERSION := 2
+## Nights in a row on one path before the world starts to notice (habit()).
+const HABIT_NIGHTS := 3
 
 var data: Dictionary = _defaults()
 
@@ -35,6 +37,9 @@ static func _defaults() -> Dictionary:
 		"deeds": {},
 		# Deeds done (data/achievements): id -> the unix time it happened.
 		"achievements": {},
+		# The world notices (docs/CORE_LOOP.md): the path the last nights leaned
+		# to, and how many in a row. HABIT_NIGHTS of them and it is a habit.
+		"habit": {"path": "", "nights": 0},
 	}
 
 
@@ -66,6 +71,7 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 	data.total_kills += kills
 	data.total_seconds += seconds
 	data.ash += ash
+	_note_lean()
 	if won:
 		data.wins = int(data.get("wins", 0)) + 1
 		_bump("wins_" + Game.dominant_path())
@@ -73,6 +79,25 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 			_bump("wins_judgment")
 	save()
 	check_achievements()
+
+
+## A night that leaned clearly one way (the lead the aura shows at) extends
+## the run of nights on that path; a level night or another path starts over.
+func _note_lean() -> void:
+	var path := Game.dominant_path() if Game.lead() >= 2 else ""
+	var habit: Dictionary = data.get("habit", {}) if data.get("habit") is Dictionary else {}
+	if path != "" and str(habit.get("path", "")) == path:
+		habit.nights = int(habit.get("nights", 0)) + 1
+	else:
+		habit = {"path": path, "nights": 1 if path != "" else 0}
+	data.habit = habit
+
+
+## The path this player has leaned to for the last HABIT_NIGHTS nights and
+## more, or "" — what Elian, the angel and the body remember of it.
+func habit() -> String:
+	var habit: Dictionary = data.get("habit", {}) if data.get("habit") is Dictionary else {}
+	return str(habit.get("path", "")) if int(habit.get("nights", 0)) >= HABIT_NIGHTS else ""
 
 
 ## One more of something a deed counts (Achievements.COUNTERS). Nothing counts

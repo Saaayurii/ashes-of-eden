@@ -353,6 +353,11 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					for branch in node.branches:
 						if branch.has("flag"):
 							flags_read[str(branch.flag)] = node_where
+						for key in ["path", "habit"]:
+							if branch.has(key) and not PATHS.has(str(branch[key])):
+								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit")):
+							_error("%s: a branch needs a flag, a path or a habit to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):

@@ -144,11 +144,7 @@ func play(dialogue_id: String) -> void:
 			# (Game.flags). First matching branch wins; "next" is the fallback.
 			node_id = node.get("next", "")
 			for branch in node.branches:
-				# "flag": a story flag set earlier; "path": the way the player leans
-				# (Game.dominant_path(): grace / temptation / will).
-				var by_flag: bool = branch.has("flag") and Game.flags.has(branch.flag)
-				var by_path: bool = branch.has("path") and Game.dominant_path() == branch.path
-				if by_flag or by_path:
+				if branch_holds(branch):
 					node_id = branch.get("next", "")
 					break
 			continue
@@ -194,6 +190,20 @@ func play(dialogue_id: String) -> void:
 	_dialogue_id = ""
 	_released.emit()
 	EventBus.dialogue_finished.emit(dialogue_id)
+
+
+## Whether a router's branch is the way on:
+##   "flag"   a story flag set earlier (Game.flags);
+##   "path"   the way this night leans (Game.dominant_path(): grace / temptation / will);
+##   "habit"  the way the last nights have leaned (Profile.habit(), docs/CORE_LOOP.md
+##            "the world notices"). A player's own history, so never online, where
+##            both peers must walk the same lines.
+static func branch_holds(branch: Dictionary) -> bool:
+	if branch.has("flag") and Game.flags.has(branch.flag):
+		return true
+	if branch.has("path") and Game.dominant_path() == branch.path:
+		return true
+	return branch.has("habit") and not Net.active and Profile.habit() == str(branch.habit)
 
 
 # ---------------------------------------------------------------- bubbles ---

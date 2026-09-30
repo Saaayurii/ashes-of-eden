@@ -80,6 +80,17 @@ func dominant_path() -> String:
 	return best
 
 
+## How far the leading path is ahead of the next one: the aura shows from 2
+## (Player._update_aura), and a night counts towards a habit from 2 too.
+func lead() -> int:
+	var path := dominant_path()
+	var ahead := 1 << 30
+	for other in PATHS:
+		if other != path:
+			ahead = mini(ahead, int(alignment[path]) - int(alignment.get(other, 0)))
+	return ahead
+
+
 ## Essence needed to finish the current level: 140 × 1.3^(level−1) (docs/BALANCE.md).
 func essence_needed() -> float:
 	return 140.0 * pow(1.3, level - 1)

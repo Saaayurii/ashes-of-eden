@@ -340,7 +340,7 @@ func _ready() -> void:
 	_light = Fx.light(self, Vector2(0, -12), LIGHT_COLOR, 110.0, 0.55, 0.0, 0.06)
 	EventBus.alignment_changed.connect(func(_alignment: Dictionary) -> void: _update_aura())
 	EventBus.run_restored.connect(_update_aura)
-	_update_aura.call_deferred()
+	_update_aura.call_deferred()  # a habit (Profile.habit) shows from the first frame of the night
 	_shadow = Fx.shadow(self, Vector2(0, 14), 22.0, 0.8)
 	# The painted rooms are deliberately larger than a screen. A slightly closer
 	# camera stops a 1280x720 level reading as one small diorama on wide displays.
@@ -1737,21 +1737,25 @@ func _flash(color: Color) -> void:
 ## frame instead of us firing a signal per tick.
 ## A lean needs a lead: a tie or a step ahead shows nothing, two steps a faint
 ## trail, six a thick one. Only our own body — the alignment is ours.
+## How strongly a habit of nights marks the body while this night is level.
+const HABIT_MARK := 0.18
+
+
 func _update_aura() -> void:
 	if not _is_mine() or not is_inside_tree():
 		return
 	var path := Game.dominant_path()
-	var lead := int(Game.alignment.get(path, 0))
-	for other in Game.PATHS:
-		if other != path:
-			lead = mini(lead, int(Game.alignment[path]) - int(Game.alignment.get(other, 0)))
+	var lead := Game.lead()
 	if lead < 2:
 		if _aura != null:
 			_aura.emitting = false
 		if _light != null:
 			_light.color = LIGHT_COLOR
 		Audio.alignment_layer("", 0.0)
-		_mark_body("", 0.0)
+		# A habit of several nights stays on the body faintly before this
+		# night has leaned anywhere: the world has noticed (docs/CORE_LOOP.md).
+		var habit := Profile.habit() if not Net.active else ""
+		_mark_body(habit, HABIT_MARK if habit != "" else 0.0)
 		return
 	var strength := clampf((lead - 1) / 5.0, 0.2, 1.0)
 	# The same lean, for the ears: a layer under the room's music that thickens
