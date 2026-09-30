@@ -17,6 +17,11 @@ const DIFFICULTIES := {"pilgrim": [0.8, 0.75], "standard": [1.0, 1.0], "judgment
 const TRANSITIONS := ["full", "short", "off"]
 ## On-screen controls: "auto" = phones, tablets and mobile browsers only.
 const TOUCH_MODES := ["auto", "on", "off"]
+## Story text, hints and toasts, on top of what a touch screen already adds.
+const TEXT_SIZES := {"normal": 1.0, "large": 1.25, "largest": 1.5}
+## "reduced" dims every flash of light, the white of a blow and the red at the
+## screen's edge when hurt: for eyes that flashing tires or worse.
+const FLASHES := ["full", "reduced"]
 
 var locale: String = "en"
 var volumes := {"Master": 1.0, "Music": 0.8, "SFX": 1.0}
@@ -24,6 +29,8 @@ var fullscreen := false
 var screen_shake := true
 ## 2D lights and the night tint of the rooms. Off = the flat look, for weak GPUs.
 var lighting := true
+var text_size := "normal"
+var flashes := "full"
 var difficulty := "standard"
 var vial := 0
 ## The hero's cloak (data/skins); only an unlocked one is ever kept (Skins.unlocked).
@@ -53,6 +60,12 @@ func _ready() -> void:
 	fullscreen = cfg.get_value("video", "fullscreen", false)
 	screen_shake = cfg.get_value("video", "screen_shake", true)
 	lighting = cfg.get_value("video", "lighting", true)
+	text_size = str(cfg.get_value("access", "text_size", "normal"))
+	if not TEXT_SIZES.has(text_size):
+		text_size = "normal"
+	flashes = str(cfg.get_value("access", "flashes", "full"))
+	if not FLASHES.has(flashes):
+		flashes = "full"
 	difficulty = cfg.get_value("game", "difficulty", "standard")
 	vial = clampi(int(cfg.get_value("game", "vial", 0)), 0, 5)
 	skin = str(cfg.get_value("game", "skin", "pilgrim"))
@@ -92,6 +105,8 @@ func save() -> void:
 	cfg.set_value("video", "fullscreen", fullscreen)
 	cfg.set_value("video", "screen_shake", screen_shake)
 	cfg.set_value("video", "lighting", lighting)
+	cfg.set_value("access", "text_size", text_size)
+	cfg.set_value("access", "flashes", flashes)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "vial", vial)
 	cfg.set_value("game", "skin", skin)
@@ -163,7 +178,25 @@ func _browser_is_touch() -> bool:
 ## Text is read at arm's length on a desk and at a hand's length on a phone,
 ## but a phone's pixels are tiny: story text grows when the touch pad is on.
 func text_scale() -> float:
-	return 1.3 if touch_enabled() else 1.0
+	return (1.3 if touch_enabled() else 1.0) * float(TEXT_SIZES.get(text_size, 1.0))
+
+
+func set_text_size(size: String) -> void:
+	text_size = size if TEXT_SIZES.has(size) else "normal"
+	save()
+	changed.emit()
+
+
+## How much of a flash to show: 1 in full, a third when reduced (Fx.flash,
+## the white of a hit, the hurt vignette).
+func flash_scale() -> float:
+	return 0.35 if flashes == "reduced" else 1.0
+
+
+func set_flashes(mode: String) -> void:
+	flashes = mode if FLASHES.has(mode) else "full"
+	save()
+	changed.emit()
 
 
 func set_vibration(enabled: bool) -> void:

@@ -29,7 +29,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_theme_font_size_override("font_size", 9)
+	add_theme_font_size_override("font_size", int(round(9 * Settings.text_scale())))
 	add_theme_color_override("font_color", Color(0.98, 0.88, 0.62))
 	add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.06))
 	add_theme_constant_override("outline_size", 3)

@@ -15,7 +15,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	process_mode = Node.PROCESS_MODE_ALWAYS  # a deed done on the killing blow of a night still shows over the verdict
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_theme_font_size_override("font_size", 10)
+	add_theme_font_size_override("font_size", int(round(10 * Settings.text_scale())))
 	add_theme_color_override("font_color", Color(0.98, 0.86, 0.5))
 	add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.06))
 	add_theme_constant_override("outline_size", 3)
