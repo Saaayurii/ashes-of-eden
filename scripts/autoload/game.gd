@@ -20,6 +20,9 @@ var resonances: Array[String] = []
 var items: Array[String] = []
 ## Rest points used this night, by room scene path: each once.
 var rested: Dictionary = {}
+## Rooms entered this night, by scene path, in order: the way the map draws
+## (scripts/ui/chapter_map.gd), which side of each fork included.
+var walked: Array[String] = []
 var wave := 0
 ## Which place of the chapter we are in (data/chapters/*.json, an id). The
 ## curtain announces it; the bestiary remembers where a creature was first met.
@@ -54,6 +57,7 @@ func new_run() -> void:
 	resonances = []
 	items = []
 	rested = {}
+	walked = []
 	wave = 0
 	place = ""
 	elapsed = 0.0

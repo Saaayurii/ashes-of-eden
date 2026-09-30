@@ -135,7 +135,7 @@ func _build_list() -> void:
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var branch := ""
 		if id.begins_with("deed:"):
-			branch = "  ✦ " if Achievements.done(id.trim_prefix("deed:")) else "  ✧ "
+			branch = "  ◆ " if Achievements.done(id.trim_prefix("deed:")) else "  ◇ "
 		elif not id.begins_with("npc:") and not id.begins_with("note:"):
 			branch = "  └ " if int(_spec(id).get("tier", 1)) > 1 else "  ◆ "
 		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) or id.begins_with("deed:") else UNKNOWN_NAME)

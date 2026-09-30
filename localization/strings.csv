@@ -711,3 +711,7 @@ RES_SHADOW_STEP,"Shadow Step","Шаг из тени","Крок із тіні","�
 RES_SHADOW_STEP_DESC,"Knife in the Dark and Cutting Roll: a backstab gives the roll back at once.","Нож во тьме и Режущий перекат: удар в спину сразу возвращает кувырок.","Ніж у темряві й Різальний перекат: удар у спину одразу повертає перекид.","暗处之刃与斩击翻滚：背刺立即返还翻滚。"
 RES_BULWARK,"Bulwark","Твердыня","Твердиня","壁垒"
 RES_BULWARK_DESC,"Iron Vigil and Ward of the Nameless: one more blow absorbed in every room.","Железное бдение и Оберег Безымянного: в каждой комнате поглощается ещё один удар.","Залізне чування і Оберіг Безіменного: у кожній кімнаті поглинається ще один удар.","铁之守夜与无名者护符：每个房间多抵挡一次攻击。"
+PAUSE_MAP,"Map","Карта","Мапа","地图"
+MAP_TITLE,"The way through the night","Путь через ночь","Шлях крізь ніч","穿越长夜之路"
+MAP_HERE,"here","здесь","тут","此处"
+MAP_LEGEND,"● walked   ○ ahead   × the way not taken   ✚ rest","● пройдено   ○ впереди   × путь, которым не пошёл   ✚ отдых","● пройдено   ○ попереду   × шлях, яким не пішов   ✚ відпочинок","● 已走过   ○ 前方   × 未走之路   ✚ 歇息处"

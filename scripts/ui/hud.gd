@@ -138,7 +138,7 @@ func _on_room_cleared(index: int) -> void:
 func _on_ability_acquired(_ability: Dictionary) -> void:
 	var lines: Array = Game.abilities.map(func(a: Dictionary) -> String: return tr(a.name))
 	for id in Game.resonances:
-		lines.append("✦ " + tr(str(Resonances.spec(id).get("name", id))))
+		lines.append("◆ " + tr(str(Resonances.spec(id).get("name", id))))
 	for id in Game.items:
 		lines.append("· " + tr(str(Data.items.get(id, {}).get("name", id))))
 	gifts_label.text = "\n".join(lines)

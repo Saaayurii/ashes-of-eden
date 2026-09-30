@@ -213,6 +213,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"abilities": Game.abilities.map(func(a: Dictionary) -> String: return a.id),
 			"items": Game.items.duplicate(),
 			"rested": Game.rested.keys(),
+			"walked": Game.walked.duplicate(),
 			"essence": Game.essence,
 			"level": Game.level,
 			"ash": Game.ash_earned,
@@ -249,6 +250,10 @@ func restore(data: Dictionary, body: Player) -> void:
 	for path in state.get("rested", []):
 		if path is String:
 			Game.rested[path] = true
+	# an old save has no way walked: the map then shows only where we stand
+	for path in state.get("walked", []):
+		if path is String and ResourceLoader.exists(path):
+			Game.walked.append(path)
 	Game.level = maxi(1, int(state.get("level", 1)))
 	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
 	Game.ash_earned = int(state.get("ash", 0))

@@ -58,6 +58,10 @@ def wanted():
                     chars.add(ch)
     # A few that the UI composes itself rather than reading out of the CSV.
     chars.update("0123456789%·—…()（）：:")
+    # ...and the marks the UI draws in every language, which neither Latin
+    # face has: the bestiary's tree and deeds, resonances, the map's legend.
+    # A Web build has no system font to find them in.
+    chars.update("●○◆◇└×✚")
     return chars
 
 

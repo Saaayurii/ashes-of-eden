@@ -57,7 +57,7 @@ func _make_card(ability: Dictionary) -> Button:
 	# What this gift would wake with the ones already taken (data/resonances):
 	# the reason to take a lesser card, said on the card.
 	for id in Resonances.completes(ability, Game.abilities):
-		button.text += "\n✦ " + tr(str(Resonances.spec(id).get("name", id)))
+		button.text += "\n◆ " + tr(str(Resonances.spec(id).get("name", id)))
 	button.custom_minimum_size = Vector2(170, 120)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.add_theme_color_override("font_color", PATH_COLORS.get(path, Color.WHITE))

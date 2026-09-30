@@ -28,7 +28,7 @@ offers, read in pairs and in sets.
 
 - A resonance is a mechanic from `Player.BASE_STATS`, under `AbilitySystem.CAPS` like any gift — never "+20 % damage".
 - It wakes once, on the gift that completes it (`AbilitySystem.apply`), and stays for the night.
-- The card that would complete one says so (`✦ Chorus`): the reason to take a lesser gift is on the card.
+- The card that would complete one says so (`◆ Chorus`): the reason to take a lesser gift is on the card.
 - The HUD and the end screen list the ones awake; the toast names one as it wakes; the playtest log records it.
 - A save keeps the body's stats, which already hold the resonances; `Saves.restore` reads the list off the gifts.
 - A pair within one path is refused by the validator: the count already covers it.

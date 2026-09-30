@@ -448,6 +448,9 @@ func _build_room(index: int) -> void:
 	_placed_for_room = -1
 	_dead_peers.clear()
 	Game.wave = Route.step(ROOMS, index) + 1 if index >= 0 else 0
+	# the way walked tonight, for the map (ChapterMap): which side of a fork
+	if index >= 0 and not Game.walked.has(ROOMS[index]):
+		Game.walked.append(ROOMS[index])
 	room = load(_room_path(index)).instantiate()
 	room.name = "Room"  # the same node path on every peer
 	room.authoritative = _is_server()
