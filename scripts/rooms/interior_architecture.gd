@@ -106,9 +106,39 @@ static func attach(room: Node2D) -> void:
 		if not collider is CollisionShape2D or not collider.shape is RectangleShape2D:
 			continue
 		var size: Vector2 = collider.shape.size
+		var top: float = collider.position.y - size.y * .5
+		if key == "church" and painting_texture != null and size.x < 100:
+			# These two footholds are still needed for the climb to the choir,
+			# but the outdoor moss sprites were alien to the chapel masonry.
+			var prefix := str(collider.name).trim_suffix("Shape") + "_"
+			for piece in room.get_node("Terrain").get_children():
+				if str(piece.name).begins_with(prefix):
+					piece.visible = false
+			var step := Polygon2D.new()
+			step.name = "%sStone" % collider.name
+			step.position = Vector2(collider.position.x - size.x * .5, top)
+			step.texture = painting_texture
+			step.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			step.polygon = PackedVector2Array([
+				Vector2(0, 0), Vector2(size.x, 0), Vector2(size.x, 10),
+				Vector2(size.x - 17, 19), Vector2(17, 19), Vector2(0, 10),
+			])
+			var source_x := 420.0 if collider.position.x < room.width * .5 else 1650.0
+			var uv := PackedVector2Array()
+			for point in step.polygon:
+				uv.append(Vector2(source_x + point.x / size.x * 112.0,
+					555.0 + point.y / 19.0 * 50.0))
+			step.uv = uv
+			supports.add_child(step)
+			var lip := Line2D.new()
+			lip.name = "StoneLip"
+			lip.points = PackedVector2Array([Vector2(0, 0), Vector2(size.x, 0)])
+			lip.width = 2.0
+			lip.default_color = Color(.56, .52, .46, .9)
+			step.add_child(lip)
+			continue
 		if size.x < 100:
 			continue
-		var top: float = collider.position.y - size.y * .5
 		if key == "preacher_nave" and painting_texture != null:
 			# Use actual nave masonry for a tapered wall corbel. The old
 			# stretched freestanding posts made these wall-mounted balconies
