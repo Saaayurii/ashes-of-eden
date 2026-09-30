@@ -488,6 +488,9 @@ def expand_painted_room(name, room):
     if name == "crypt_lava":
         out["painted_cornices"] = True
         out["cornice_crop"] = (860, 458)
+        # The return route is necessary, but bare stone shelves over lava
+        # looked pasted on. Tie each to the room's overhead masonry.
+        out["hanging_supports"] = {1: (295, 160), 2: (315, 315)}
         out["cornice_supports"] = {
             1: [(0, 10), (100, 10), (100, 20), (15, 40), (0, 60), (-25, 60), (-25, 52)],
             2: [(-55, 10), (85, 10), (85, 18), (24, 43), (-55, 48)],
@@ -1099,6 +1102,12 @@ def terrain_nodes(r, rng, used, walls=True):
         out.append(piece_nodes(layout, y, f"Ground{i}", used))
     for i, (x, y, w, h) in enumerate(r["platforms"], 1):
         named = r.get("platform_names", {}).get(i)
+        hanging = r.get("hanging_supports", {}).get(i)
+        if hanging:
+            out.append(f'[node name="{named or f"Platform{i}"}Hangers" type="Node2D" parent="Terrain"]\n'
+                       f'position = Vector2({x}, {y})\nscript = ExtResource("hanging_support")\n'
+                       f'walk_width = {float(w)}\nleft_length = {float(hanging[0])}\n'
+                       f'right_length = {float(hanging[1])}\n\n')
         if r.get("painted_cornices"):
             # Reuse this room's painted stone cap, rather than a foreign
             # grid-textured pier. Both cornices meet the existing arch wall.
@@ -1483,6 +1492,10 @@ texture = SubResource("glow_tex")
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
                             '[ext_resource type="Script" path="res://scripts/rooms/hell_cornice.gd" id="hell_cornice"]')
+    if r.get("hanging_supports"):
+        text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
+                            '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
+                            '[ext_resource type="Script" path="res://scripts/rooms/hanging_support.gd" id="hanging_support"]')
     if r.get("crumbling_platforms"):
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'

@@ -1,6 +1,7 @@
-[gd_scene load_steps=61 format=3]
+[gd_scene load_steps=62 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scripts/rooms/hanging_support.gd" id="hanging_support"]
 [ext_resource type="Texture2D" path="res://assets/levels/crypt_lava_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
 [ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
@@ -481,6 +482,13 @@ one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
 
+[node name="LowerReturnHangers" type="Node2D" parent="Terrain"]
+position = Vector2(730, 610)
+script = ExtResource("hanging_support")
+walk_width = 100.0
+left_length = 295.0
+right_length = 160.0
+
 [node name="LowerReturnCornice" type="Sprite2D" parent="Terrain"]
 position = Vector2(730, 610)
 texture = ExtResource("2_backdrop")
@@ -493,6 +501,13 @@ position = Vector2(730, 610)
 texture = ExtResource("2_backdrop")
 polygon = PackedVector2Array(0, 10, 100, 10, 100, 20, 15, 40, 0, 60, -25, 60, -25, 52)
 uv = PackedVector2Array(860, 470, 960, 470, 960, 480, 875, 500, 860, 520, 835, 520, 835, 512)
+
+[node name="GalleryReturnHangers" type="Node2D" parent="Terrain"]
+position = Vector2(700, 315)
+script = ExtResource("hanging_support")
+walk_width = 85.0
+left_length = 315.0
+right_length = 315.0
 
 [node name="GalleryReturnCornice" type="Sprite2D" parent="Terrain"]
 position = Vector2(700, 315)

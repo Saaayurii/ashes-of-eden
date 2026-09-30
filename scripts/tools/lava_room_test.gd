@@ -27,6 +27,32 @@ func _run() -> void:
 			if shape is CollisionShape2D and shape.shape is RectangleShape2D:
 				spanning = spanning or (shape.shape.size.x >= room.width * 0.9 and shape.position.y > room.height * 0.5)
 		_check(not spanning, "%s has an invisible bottom floor" % key)
+		if key == "crypt_lava":
+			for foothold in [["GalleryReturn", 742.5, 315.0], ["LowerReturn", 780.0, 610.0]]:
+				var prefix: String = foothold[0]
+				var center_x: float = foothold[1]
+				var top_y: float = foothold[2]
+				var shape: CollisionShape2D = room.get_node("Ledges/%sShape" % prefix)
+				var rect := shape.shape as RectangleShape2D
+				var cornice: Sprite2D = room.get_node("Terrain/%sCornice" % prefix)
+				var hangers: Node2D = room.get_node("Terrain/%sHangers" % prefix)
+				_check(rect != null and shape.one_way_collision and absf(shape.position.y - rect.size.y * 0.5 - top_y) < 0.1,
+					"%s has no one-way footing at its visible top" % prefix)
+				_check(cornice.position == hangers.position and absf(cornice.position.y - top_y) < 0.1,
+					"%s hangers detach from the painted cornice" % prefix)
+				var walker = load("res://scenes/player/player.tscn").instantiate()
+				room.add_child(walker)
+				walker.controls_enabled = false
+				walker.camera.enabled = false
+				walker.place_in_room(Vector2(center_x, top_y - 70.0))
+				for frame in 75:
+					await physics_frame
+					if walker.is_on_floor():
+						break
+				_check(walker.is_on_floor() and absf(walker.position.y + 15.0 - top_y) <= 2.0,
+					"%s hero feet miss visible platform: %s" % [prefix, walker.position])
+				walker.queue_free()
+				await physics_frame
 		if key == "hell_gate":
 			for step in [Rect2(1525, 563, 75, 12), Rect2(1550, 493, 50, 12)]:
 				var has_collision := false
