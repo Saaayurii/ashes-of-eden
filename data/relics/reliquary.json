@@ -1,0 +1,14 @@
+[
+  {"id": "pilgrims_flask", "name": "RELIC_FLASK", "description": "RELIC_FLASK_DESC", "cost": 120,
+   "effects": [{"type": "stat", "stat": "heal_charges", "value": 1}]},
+  {"id": "tempered_skin", "name": "RELIC_SKIN", "description": "RELIC_SKIN_DESC", "cost": 80,
+   "effects": [{"type": "stat", "stat": "max_hp", "value": 10}]},
+  {"id": "scarred_skin", "name": "RELIC_SCARS", "description": "RELIC_SCARS_DESC", "cost": 160, "needs": "tempered_skin",
+   "effects": [{"type": "stat", "stat": "max_hp", "value": 10}]},
+  {"id": "whetstone", "name": "RELIC_WHETSTONE", "description": "RELIC_WHETSTONE_DESC", "cost": 150,
+   "effects": [{"type": "stat", "stat": "attack_damage", "value": 1}]},
+  {"id": "light_boots", "name": "RELIC_BOOTS", "description": "RELIC_BOOTS_DESC", "cost": 100,
+   "effects": [{"type": "stat", "stat": "dash_cooldown", "op": "mul", "value": 0.92}]},
+  {"id": "rosary", "name": "RELIC_ROSARY", "description": "RELIC_ROSARY_DESC", "cost": 140,
+   "effects": [{"type": "reroll", "value": 1}]}
+]

@@ -76,6 +76,28 @@ func _ready() -> void:
 		Game.practice = "training_dummy"
 		Curtain.change_scene(RUN_SCENE))
 	%Bestiary.closed.connect(%OpenBestiary.grab_focus)
+	# where the Ash goes (Relics): beside the bestiary in one row, like
+	# Continue | Load, so the menu keeps its height and its title
+	var reliquary := Reliquary.new()
+	reliquary.name = "Reliquary"
+	add_child(reliquary)
+	var open_reliquary := Button.new()
+	open_reliquary.name = "OpenReliquary"
+	open_reliquary.text = "MENU_RELIQUARY"
+	var book: Button = %OpenBestiary
+	var row := HBoxContainer.new()
+	row.name = "BookRow"
+	var saves_row := book.get_parent().get_node_or_null("SaveRow") as HBoxContainer
+	if saves_row != null:
+		row.add_theme_constant_override("separation", saves_row.get_theme_constant("separation"))
+	book.add_sibling(row)
+	book.reparent(row)
+	book.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	book.custom_minimum_size = Vector2.ZERO  # halves of one row, as Continue | Load
+	open_reliquary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(open_reliquary)
+	open_reliquary.pressed.connect(reliquary.open)
+	reliquary.closed.connect(open_reliquary.grab_focus)
 	quit_button.visible = not (OS.has_feature("web") or OS.has_feature("mobile"))
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
 	(%Continue if %Continue.visible else play_button).grab_focus()

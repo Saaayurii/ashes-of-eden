@@ -215,6 +215,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"rested": Game.rested.keys(),
 			"walked": Game.walked.duplicate(),
 			"vial": Game.vial,
+			"rerolls": Game.rerolls,
 			"essence": Game.essence,
 			"level": Game.level,
 			"ash": Game.ash_earned,
@@ -260,6 +261,7 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.ash_earned = int(state.get("ash", 0))
 	Game.unscathed = maxi(0, int(state.get("unscathed", 0)))
 	Game.vial = clampi(int(state.get("vial", 0)), 0, Vials.TIERS)
+	Game.rerolls = clampi(int(state.get("rerolls", 0)), 0, 9)
 	Game.elapsed = float(state.get("elapsed", 0.0))
 	# The stats are the body's whole story (gifts applied, extra lives spent):
 	# restored as they were rather than replayed gift by gift.

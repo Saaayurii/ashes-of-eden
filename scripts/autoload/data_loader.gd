@@ -39,6 +39,8 @@ var achievements: Dictionary = {}
 var resonances: Dictionary = {}
 ## The vials of wrath, the ladder above a dawn (data/vials, scripts/run/vials.gd).
 var vials: Dictionary = {}
+## What the Ash buys (data/relics, scripts/meta/relics.gd).
+var relics: Dictionary = {}
 
 
 func _ready() -> void:
@@ -65,6 +67,7 @@ func reload() -> void:
 	achievements = _load_collection("achievements", roots)
 	resonances = _load_collection("resonances", roots)
 	vials = _load_collection("vials", roots)
+	relics = _load_collection("relics", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

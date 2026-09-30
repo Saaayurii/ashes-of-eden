@@ -33,19 +33,60 @@ func _ready() -> void:
 	visible = false
 
 
-func pick(options: Array[Dictionary]) -> Dictionary:
-	for child in cards.get_children():
-		child.queue_free()
-	for ability in options:
-		cards.add_child(_make_card(ability))
+## [param reroll], when given, deals a new hand: the rosary (Relics) lets the
+## player ask for one, Game.rerolls times a night.
+func pick(options: Array[Dictionary], reroll := Callable()) -> Dictionary:
+	_deal(options)
+	_reroll = reroll
+	_show_reroll()
 	visible = true
 	Net.set_paused(true)
 	if cards.get_child_count() > 0:
 		cards.get_child(0).grab_focus()
 	var result: Dictionary = await chosen
+	if _reroll_button != null:
+		_reroll_button.visible = false
 	visible = false
 	Net.set_paused(false)
 	return result
+
+
+var _reroll := Callable()
+var _reroll_button: Button
+
+
+func _deal(options: Array[Dictionary]) -> void:
+	for child in cards.get_children():
+		cards.remove_child(child)
+		child.queue_free()
+	for ability in options:
+		cards.add_child(_make_card(ability))
+
+
+func _show_reroll() -> void:
+	if _reroll_button == null:
+		_reroll_button = Button.new()
+		_reroll_button.name = "Reroll"
+		cards.add_sibling(_reroll_button)
+		_reroll_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		_reroll_button.pressed.connect(_on_reroll)
+	_reroll_button.visible = _reroll.is_valid() and Game.rerolls > 0
+	_reroll_button.text = tr("PICKER_REROLL") % Game.rerolls
+
+
+func _on_reroll() -> void:
+	if not _reroll.is_valid() or Game.rerolls <= 0:
+		return
+	var options: Array[Dictionary] = []
+	options.assign(_reroll.call())
+	if options.is_empty():
+		return
+	Game.rerolls -= 1
+	Audio.play(&"ui_click", -4.0)
+	_deal(options)
+	_show_reroll()
+	if cards.get_child_count() > 0:
+		cards.get_child(0).grab_focus()
 
 
 func _make_card(ability: Dictionary) -> Button:
