@@ -2,7 +2,7 @@
   "id": "ophanim",
   "name": "ENEMY_OPHANIM",
   "lore": "ENEMY_OPHANIM_LORE",
-  "hp": 1800,
+  "hp": 1500,
   "speed": 120,
   "damage": 8,
   "attack_interval": 0.7,

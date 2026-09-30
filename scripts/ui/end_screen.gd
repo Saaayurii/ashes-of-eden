@@ -62,6 +62,10 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	best.text = "%s   ·   %s" % [tr("RUN_BEST") % Profile.data.best_wave, tr("RUN_ASH") % [Game.ash_earned, Profile.data.ash]]
 	if Game.unscathed > 0:
 		best.text += "   ·   " + tr("RUN_UNSCATHED") % Game.unscathed
+	# a night lost with moves still unknown: the yard is where they are learnt
+	if not won and not (Profile.data.moves_done.has("lunge") and Profile.data.moves_done.has("cleave")
+			and Profile.data.moves_done.has("sweep")):
+		best.text += "\n" + tr("RUN_PRACTICE_TIP")
 	var names: Array = Game.abilities.map(func(a: Dictionary) -> String: return tr(a.name))
 	gifts.text = "%s: %s" % [tr("RUN_GIFTS"), ", ".join(names)] if not names.is_empty() else ""
 	Audio.music("end")

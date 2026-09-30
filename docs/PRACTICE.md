@@ -25,7 +25,8 @@ the profile (so it cannot unlock a cloak either), the yard is never
 autosaved, the playtest log ignores it, and the run clock hardens nobody. The
 foe stands up again `PRACTICE_RESPAWN` seconds after it falls; the hero cannot
 lose and gets up at the gate. Anything new that rewards or records play has to
-check `Game.practice` too — `practice_test.gd` checks the ones there are.
+check `Game.practice` too — `practice_test.gd` checks the ones there are. The one thing the yard does write is what it is for: a move done there is
+known (`Profile.data.moves_done`), so the night stops hinting at it.
 
 ## The room
 

@@ -54,7 +54,7 @@ describes one), not LFS.
 | add a gift (ability) | `data/abilities/*.json` + 2 strings |
 | add an enemy | `data/enemies/*.json` + 1 string |
 | write a dialogue | `data/dialogues/*.json` + strings, then wire it in a level script |
-| replace placeholder art | `assets/`, list it in `assets/CREDITS.md`, respect `LICENSE-ASSETS.md` |
+| replace placeholder art | read `docs/ART_DIRECTION.md` first; `assets/`, list it in `assets/CREDITS.md`, respect `LICENSE-ASSETS.md` |
 
 By contributing text, translations or assets to this repo you license them CC BY 4.0 (code: MIT).
 Official art and paid content live in a separate private repo and are overlaid at build time — the

@@ -115,6 +115,11 @@ func _ready() -> void:
 		dialogue.play(str(Data.notes.get(note_id, {}).get("dialogue", ""))))
 	dialogue.answered_locally.connect(_on_local_answer)
 	cutscene.story_hook = _cutscene_story
+	# the moves taught where they are needed (MoveHints); the yard has its list
+	if Game.practice == "":
+		var hints := MoveHints.new()
+		hints.name = "MoveHints"
+		$UI.add_child(hints)
 	if not Net.active:
 		var save := Saves.take_pending()
 		_spawn_player(1, 0)

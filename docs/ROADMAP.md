@@ -64,7 +64,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 ## v0.4 — Community
 - [x] Mod loading from `user://mods` (extra data folders)
 - [x] Dialogue validator reports unreachable nodes (error) and translations identical to the English (warning), per locale
-- [ ] Contributor art pass, art direction doc
+- [x] Art direction doc for contributors (`docs/ART_DIRECTION.md`): the look, the screen, how panels, atlases, the hero and effects are made and by which tool — [ ] the contributor art pass itself, which needs contributors
 
 ## v0.5 — Chinese market
 - [x] A CJK font that ships with the build and matches the Latin one: Noto **Serif** SC at weight 400, subsetted (`tools/art/make_cjk_font.py`). The line used to ask for a *pixel* face, from when the art was placeholder rectangles; the game is now set in EB Garamond and Forum, so Song is the face that belongs beside them — [ ] full zh_CN review by a native speaker
