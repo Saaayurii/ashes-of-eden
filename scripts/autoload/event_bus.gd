@@ -43,6 +43,8 @@ signal cutscene_finished(cutscene_id: String)
 signal dialogue_started(dialogue_id: String)
 signal dialogue_finished(dialogue_id: String)
 signal choice_made(dialogue_id: String, choice_id: String)
+## A deed was done for the first time on this profile (data/achievements).
+signal achievement_unlocked(achievement_id: String)
 ## The "Lighting" setting flipped; every GlowLight and ambient tint re-reads Settings.lighting.
 signal lighting_changed
 ## A saved game was put back into Game and the body (Saves.restore): redraw what reads them.

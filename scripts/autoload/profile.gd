@@ -29,6 +29,12 @@ static func _defaults() -> Dictionary:
 		# practice yard counts here — knowing a move is not a reward.
 		"moves_done": {},
 		"hints_shown": {},
+		# Nights that ended at dawn rather than in a death.
+		"wins": 0,
+		# Counters the deeds read (Achievements.COUNTERS): parries, backstabs…
+		"deeds": {},
+		# Deeds done (data/achievements): id -> the unix time it happened.
+		"achievements": {},
 	}
 
 
@@ -36,6 +42,12 @@ func _ready() -> void:
 	load_profile()
 	EventBus.enemy_died.connect(func(enemy_id: StringName, _pos: Vector2) -> void: record_kill(String(enemy_id)))
 	EventBus.technique_performed.connect(record_move)
+	EventBus.technique_performed.connect(func(id: String) -> void:
+		if id in ["backstab", "riposte"]:
+			count(id + "s"))
+	EventBus.player_parried.connect(count.bind("parries"))
+	EventBus.player_unscathed.connect(func(_index: int) -> void: count("unscathed"))
+	EventBus.player_rested.connect(func(_room: String) -> void: count("rests"))
 
 
 func load_profile() -> void:
@@ -48,13 +60,56 @@ func load_profile() -> void:
 		_migrate()
 
 
-func record_run(wave: int, kills: int, seconds: float, ash := 0) -> void:
+func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -> void:
 	data.nights += 1
 	data.best_wave = maxi(data.best_wave, wave)
 	data.total_kills += kills
 	data.total_seconds += seconds
 	data.ash += ash
+	if won:
+		data.wins = int(data.get("wins", 0)) + 1
+		_bump("wins_" + Game.dominant_path())
+		if Settings.difficulty == "judgment":
+			_bump("wins_judgment")
 	save()
+	check_achievements()
+
+
+## One more of something a deed counts (Achievements.COUNTERS). Nothing counts
+## in the practice yard, and a referee has no profile to count into.
+func count(counter: String, amount := 1) -> void:
+	if Net.dedicated or Game.practice != "":
+		return
+	_bump(counter, amount)
+	save()
+	check_achievements()
+
+
+func _bump(counter: String, amount := 1) -> void:
+	if not (data.get("deeds") is Dictionary):
+		data.deeds = {}
+	data.deeds[counter] = int(data.deeds.get(counter, 0)) + amount
+
+
+## Marks every deed whose conditions now hold, pays its Ash once, and tells the
+## run (the toast, the playtest log). Returns the ids newly done.
+func check_achievements() -> Array:
+	var fresh := []
+	if Net.dedicated or Game.practice != "":
+		return fresh
+	if not (data.get("achievements") is Dictionary):
+		data.achievements = {}
+	for id in Achievements.ids():
+		if data.achievements.has(id) or not Achievements.met(id):
+			continue
+		data.achievements[id] = int(Time.get_unix_time_from_system())
+		data.ash += int(Achievements.spec(id).get("ash", 0))
+		fresh.append(id)
+	if not fresh.is_empty():
+		save()
+		for id in fresh:
+			EventBus.achievement_unlocked.emit(id)
+	return fresh
 
 
 ## The bestiary fills in as the player meets things: a kind is "seen" the moment
@@ -80,6 +135,7 @@ func record_move(technique_id: String) -> void:
 		return
 	data.moves_done[technique_id] = true
 	save()
+	check_achievements()
 
 
 func mark_hint(technique_id: String) -> void:
@@ -100,6 +156,7 @@ func record_kill(enemy_id: String) -> void:
 	if entry.kills == 1:
 		save()
 		EventBus.bestiary_unlocked.emit(enemy_id)
+	check_achievements()
 
 
 ## Talked to a person: their bestiary page opens. Ids are "npc:<id>".
@@ -128,6 +185,7 @@ func record_note(note_id: String) -> bool:
 	data.bestiary[key] = {"seen": true, "met": true, "kills": 0}
 	save()
 	EventBus.bestiary_unlocked.emit(key)
+	check_achievements()
 	return true
 
 
@@ -139,8 +197,10 @@ func bestiary_entry(enemy_id: String) -> Dictionary:
 func bestiary_known() -> int:
 	var known := 0
 	for id in data.bestiary:
-		# only kinds that still exist: renamed or removed enemies must not inflate the count
-		if Data.enemies.has(id) and int(data.bestiary[id].get("kills", 0)) > 0:
+		# only kinds that still exist: renamed or removed enemies must not inflate the count,
+		# …and not the straw man, which the book does not list (bestiary: false)
+		if Data.enemies.has(id) and Data.enemies[id].get("bestiary", true) \
+				and int(data.bestiary[id].get("kills", 0)) > 0:
 			known += 1
 	return known
 

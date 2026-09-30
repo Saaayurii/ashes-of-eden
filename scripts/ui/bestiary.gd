@@ -10,7 +10,9 @@ class_name Bestiary
 ##   known    killed at least once — portrait, stats, lore, kill count
 ## People (data/npcs, ids "npc:<id>") get the same book after the enemies:
 ## a silhouette once you have shared a room, the page once you have talked.
-## Records from secret caches (data/notes, ids "note:<id>") close the book.
+## Records from secret caches (data/notes, ids "note:<id>") follow, and the
+## deeds (data/achievements, ids "deed:<id>") close the book: each one's name
+## from the start, its page saying what it asks and how far along it is.
 
 signal closed
 
@@ -105,15 +107,20 @@ func _build_list() -> void:
 	people.sort()
 	var notes: Array[String] = []
 	notes.assign(Data.notes.keys().map(func(id: String) -> String: return "note:" + id))
+	var deeds: Array[String] = []
+	deeds.assign(Achievements.ids().map(func(id: String) -> String: return "deed:" + id))
 	var last_family := ""
-	for id in _ids + people + notes:
-		if (not people.is_empty() and id == people[0]) or (not notes.is_empty() and id == notes[0]):
+	for id in _ids + people + notes + deeds:
+		if (not people.is_empty() and id == people[0]) or (not notes.is_empty() and id == notes[0]) \
+				or (not deeds.is_empty() and id == deeds[0]):
 			var heading := Label.new()
-			heading.text = tr("BESTIARY_PEOPLE" if id.begins_with("npc:") else "BESTIARY_NOTES")
+			heading.text = tr("BESTIARY_PEOPLE" if id.begins_with("npc:") else ("BESTIARY_NOTES" if id.begins_with("note:") else "BESTIARY_DEEDS"))
+			if id.begins_with("deed:"):
+				heading.text += "  %d / %d" % [deeds.filter(func(d: String) -> bool: return Achievements.done(d.trim_prefix("deed:"))).size(), deeds.size()]
 			heading.add_theme_color_override("font_color", GOLD)
 			heading.add_theme_font_size_override("font_size", 11)
 			list.add_child(heading)
-		elif not id.begins_with("npc:") and not id.begins_with("note:"):
+		elif not id.begins_with("npc:") and not id.begins_with("note:") and not id.begins_with("deed:"):
 			var family := str(Data.enemies[id].get("family", "restless"))
 			if family != last_family:
 				last_family = family
@@ -127,9 +134,11 @@ func _build_list() -> void:
 		button.name = id.replace(":", "_")
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var branch := ""
-		if not id.begins_with("npc:") and not id.begins_with("note:"):
+		if id.begins_with("deed:"):
+			branch = "  ✦ " if Achievements.done(id.trim_prefix("deed:")) else "  ✧ "
+		elif not id.begins_with("npc:") and not id.begins_with("note:"):
 			branch = "  └ " if int(_spec(id).get("tier", 1)) > 1 else "  ◆ "
-		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) else UNKNOWN_NAME)
+		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) or id.begins_with("deed:") else UNKNOWN_NAME)
 		if not _known(id, entry):
 			button.add_theme_color_override("font_color", DIM)
 		button.focus_entered.connect(_show.bind(id))
@@ -137,6 +146,7 @@ func _build_list() -> void:
 		list.add_child(button)
 	_ids.append_array(people)
 	_ids.append_array(notes)
+	_ids.append_array(deeds)
 	progress.text = tr("BESTIARY_PROGRESS") % [Profile.bestiary_known(), enemies]
 	if _ids.is_empty() or not _ids.has(_selected):
 		_selected = _ids[0] if not _ids.is_empty() else ""
@@ -150,11 +160,15 @@ func _spec(id: String) -> Dictionary:
 		return Data.npcs.get(id.trim_prefix("npc:"), {})
 	if id.begins_with("note:"):
 		return Data.notes.get(id.trim_prefix("note:"), {})
+	if id.begins_with("deed:"):
+		return Achievements.spec(id.trim_prefix("deed:"))
 	return Data.enemies.get(id, {})
 
 
 ## A page is open once the enemy has been slain, or the person spoken to.
 func _known(id: String, entry: Dictionary) -> bool:
+	if id.begins_with("deed:"):
+		return Achievements.done(id.trim_prefix("deed:"))
 	if id.begins_with("npc:") or id.begins_with("note:"):
 		return entry.get("met", false)
 	return int(entry.get("kills", 0)) > 0
@@ -180,6 +194,9 @@ func _show(id: String) -> void:
 	lore_label.text = ""
 	hint_label.text = ""
 	_practice.visible = allow_practice and seen and can_practise(id)
+	if id.begins_with("deed:"):
+		_show_deed(id.trim_prefix("deed:"), stats)
+		return
 	if not seen:
 		hint_label.text = tr("BESTIARY_HINT_NOTE" if id.begins_with("note:") else "BESTIARY_HINT_UNKNOWN")
 		return
@@ -221,10 +238,25 @@ func _show(id: String) -> void:
 	_show_abilities(stats)
 
 
+## A deed's page: what it asks, how far along, and when it was done. Its
+## name shows from the start — a deed is a goal, not a secret.
+func _show_deed(deed_id: String, stats: Dictionary) -> void:
+	name_label.text = tr(str(stats.get("name", deed_id)))
+	lore_label.text = tr(str(stats.get("description", "")))
+	var progress := Achievements.progress(deed_id)
+	if Achievements.done(deed_id):
+		var when := int(Profile.data.achievements[deed_id])
+		_stat("DEED_ON", Time.get_date_string_from_unix_time(when))
+	elif progress[1] > 1:
+		_stat("DEED_PROGRESS", "%d / %d" % progress)
+	if int(stats.get("ash", 0)) > 0:
+		_stat("DEED_REWARD", str(int(stats.ash)))
+
+
 ## Any creature met can be sparred with, bar the ones that are part of
 ## another's fight (the Ophanim's seals) and the people and records.
 static func can_practise(id: String) -> bool:
-	if id.begins_with("npc:") or id.begins_with("note:") or not Data.enemies.has(id):
+	if id.begins_with("npc:") or id.begins_with("note:") or id.begins_with("deed:") or not Data.enemies.has(id):
 		return false
 	return Data.enemies[id].get("behaviour", "walker") != "seal" and not Net.active
 
