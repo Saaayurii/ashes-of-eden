@@ -196,9 +196,14 @@ func _ready() -> void:
 
 ## A real clip beats a generated one of the same name, so a placeholder is
 ## replaced by dropping an .ogg beside it — nothing here has to change.
+## ResourceLoader.list_directory, not DirAccess: an exported build carries only
+## `<clip>.wav.import` and the imported data, so a plain listing finds no .wav
+## at all and every blow fell silent on the Web while the music (listed by
+## path in playlists.json) played on.
 func _load_clips() -> void:
+	var files := ResourceLoader.list_directory(SFX_DIR)
 	for extension in ["wav", "ogg"]:
-		for file in DirAccess.get_files_at(SFX_DIR):
+		for file in files:
 			if file.get_extension() != extension:
 				continue
 			var clip: AudioStream = load(SFX_DIR + file)
