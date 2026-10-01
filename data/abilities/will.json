@@ -264,5 +264,24 @@
         }
       }
     ]
+  },
+  {
+    "id": "quick_study",
+    "name": "ABILITY_QUICK_STUDY_NAME",
+    "description": "ABILITY_QUICK_STUDY_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/gear_3.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "charge_speed",
+        "op": "add",
+        "value": 0.4
+      }
+    ]
   }
 ]

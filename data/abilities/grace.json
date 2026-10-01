@@ -259,5 +259,43 @@
         }
       }
     ]
+  },
+  {
+    "id": "benediction",
+    "name": "ABILITY_BENEDICTION_NAME",
+    "description": "ABILITY_BENEDICTION_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/status_8.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "technique_heal",
+        "op": "add",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "watchmans_patience",
+    "name": "ABILITY_WATCHMANS_PATIENCE_NAME",
+    "description": "ABILITY_WATCHMANS_PATIENCE_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/gear_7.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "parry_window",
+        "op": "add",
+        "value": 0.06
+      }
+    ]
   }
 ]

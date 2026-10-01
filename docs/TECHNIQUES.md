@@ -74,3 +74,15 @@ counts them per run, so a move nobody finds shows up in the report.
 until done once, then gold and ticked, and each move's name over the hero's
 head as it comes off. A night never shows the list. `techniques_test.gd`
 presses the keys as a player would and measures what comes out.
+
+## Gifts of the moves
+
+Four gifts make the moves and the guard into a build of their own, each a mechanic key in `Player.BASE_STATS`
+(capped in `AbilitySystem.CAPS`, measured in `gift_test.gd`):
+
+| Gift | Path | Does |
+|---|---|---|
+| Benediction | grace, rare | a special move that lands heals 4 (`technique_heal`, read in `_land_hits` when a technique calls it) |
+| Watchman's Patience | grace, common | the parry's moment +0.06 s (`parry_window`, `Player.parry_window()`) |
+| Cruel Opening | temptation, rare | a blow on an enemy in its wind-up ×1.5 (`windup_bonus`) — the sweep's moment, rewarded |
+| Quick Study | will, common | the cleave glows 40 % sooner (`charge_speed`, `Player.charge_needed()`) |

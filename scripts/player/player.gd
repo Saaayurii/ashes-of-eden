@@ -52,6 +52,10 @@ const BASE_STATS := {
 	"clean_clear_charge": 0.0,  # 1 = a room cleared without a wound refills one flask
 	"wrath_after_hit": 0.0,     # after a wound, the next swing inside WRATH_TIME is worth this much more
 	"desperate_crit_heal": 0.0, # under a third of the bar, each critical blow heals this much
+	"technique_heal": 0.0,      # a special move that lands heals this much (Benediction)
+	"windup_bonus": 0.0,        # a blow on an enemy winding up is worth this much more (Cruel Opening)
+	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
+	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
 }
 ## Where the item mechanics above reach.
 const HEAL_BURST_RADIUS := 72.0
@@ -1381,11 +1385,21 @@ func _on_room_cleared(index: int) -> void:
 	Fx.puff(global_position + Vector2(0, -10), 0.9, Color(0.9, 1.0, 0.8))
 
 
+## How long the cleave's charge takes to glow (Quick Study shortens it).
+func charge_needed() -> float:
+	return CHARGE_FULL / (1.0 + stats.charge_speed)
+
+
+## How long a fresh block parries (Watchman's Patience lengthens it).
+func parry_window() -> float:
+	return PARRY_WINDOW + stats.parry_window
+
+
 ## [param fresh]: the button went down this frame. A block raised because the
 ## button was still held after a swing or a roll is a block, never a parry.
 func _raise_block(fresh: bool) -> void:
 	_blocking = true
-	_parry_left = PARRY_WINDOW if fresh and _block_cd <= 0.0 else 0.0
+	_parry_left = parry_window() if fresh and _block_cd <= 0.0 else 0.0
 	_scripted_left = 0.0
 	_armed = true
 
@@ -1536,7 +1550,8 @@ func _attack() -> void:
 ## heavy] one lands like the chain's finisher, and [param stagger] seconds
 ## stop what it was doing (the cleave, the sweep). The chain and the special
 ## moves share it, so every gift and item that reads a hit reads theirs too.
-func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0) -> void:
+## [param technique]: a special move (_technique), which Benediction heals on.
+func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0, technique := false) -> void:
 	hitbox.monitoring = true
 	# Area2D needs a physics tick to register overlaps after monitoring is enabled.
 	await get_tree().physics_frame
@@ -1565,6 +1580,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		if live_enemy and _wrath_left > 0.0:
 			damage *= 1.0 + stats.wrath_after_hit
 			_wrath_left = 0.0  # one swing answers one wound
+		# Cruel Opening: the wind-up the player can read is also a door
+		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
+			damage *= 1.0 + stats.windup_bonus
 		if live_enemy and stats.backstab_refresh > 0.0 and (target as Enemy).is_unaware():
 			_dash_cd = 0.0
 		if live_enemy and crit and stats.desperate_crit_heal > 0.0 and hp < stats.max_hp * DESPERATE_SHARE:
@@ -1591,6 +1609,8 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 			heal(damage * stats.lifesteal)
 	if heavy and stats.wave_damage > 0.0:
 		_throw_wave()
+	if technique and hit_something and stats.technique_heal > 0.0 and _is_mine():
+		heal(stats.technique_heal)  # Benediction
 	if hit_something:
 		Juice.hit_stop(0.06 if heavy else 0.04)
 		Juice.shake(2.5 if heavy else 1.5)
@@ -1639,7 +1659,7 @@ func _read_technique_input(delta: float, on_floor: bool) -> void:
 			_cancel_charge()
 			return
 		_charge_time += delta
-		if not _charge_ready and _charge_time >= CHARGE_FULL:
+		if not _charge_ready and _charge_time >= charge_needed():
 			_charge_ready = true  # the ping: let go now and it lands
 			Fx.flash(global_position + Vector2(0, -16), Color(1.0, 0.84, 0.47), 50.0, 0.25, 1.4)
 			Fx.sparkle(global_position + Vector2(-facing * 6.0, -24.0), Color(1.0, 0.86, 0.5), 8, 6.0)
@@ -1725,7 +1745,7 @@ func _technique(id: String) -> void:
 		0.9 if heavy else 0.6, &"attack")
 	if _is_mine():
 		EventBus.technique_performed.emit(id)
-	await _land_hits(multiplier, knockback, heavy, stagger)
+	await _land_hits(multiplier, knockback, heavy, stagger, true)
 
 
 ## An enemy in front of the sword that has not noticed us: the first blow of

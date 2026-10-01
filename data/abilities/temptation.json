@@ -267,5 +267,24 @@
         }
       }
     ]
+  },
+  {
+    "id": "cruel_opening",
+    "name": "ABILITY_CRUEL_OPENING_NAME",
+    "description": "ABILITY_CRUEL_OPENING_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/status_10.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "windup_bonus",
+        "op": "add",
+        "value": 0.5
+      }
+    ]
   }
 ]
