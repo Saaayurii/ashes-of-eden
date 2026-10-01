@@ -844,3 +844,5 @@ ABILITY_ACCURSED_STRENGTH_DESC,"While a cursed chest's price is owed, your blows
 DEED_OMEN_DAWN,"Under a Bad Sky","Под дурным небом","Під лихим небом","恶天之下"
 DEED_OMEN_DAWN_DESC,"See the dawn on a night drawn under an omen.","Дожить до рассвета в ночь под знамением.","Дожити до світанку в ніч під знаменням.","在有征兆的夜里活到黎明。"
 SETTINGS_OMENS,"Omens","Знамения","Знамення","征兆"
+BESTIARY_OMENS,"Omens","Знамения","Знамення","征兆"
+BESTIARY_HINT_OMEN,"No night has been drawn under this omen yet.","Ещё ни одна ночь не прошла под этим знамением.","Ще жодна ніч не минула під цим знаменням.","尚无一夜在此征兆下度过。"

@@ -83,6 +83,12 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 	data.ash += ash
 	_note_lean()
 	_chronicle(wave, kills, seconds, won)
+	# an omen drawn is a page in the book (bestiary "omen:<id>"): its nights, its dawns
+	if Game.omen != "":
+		var drawn: Dictionary = data.bestiary.get("omen:" + Game.omen, {"seen": true, "met": true, "kills": 0})
+		drawn["nights"] = int(drawn.get("nights", 0)) + 1
+		drawn["dawns"] = int(drawn.get("dawns", 0)) + (1 if won else 0)
+		data.bestiary["omen:" + Game.omen] = drawn
 	# the bestiary remembers who laid this player low, and how often
 	if not won and Data.enemies.has(Game.slain_by):
 		var entry: Dictionary = data.bestiary.get(Game.slain_by, {})

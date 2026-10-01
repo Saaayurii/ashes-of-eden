@@ -172,6 +172,23 @@ func _run() -> void:
 	profile.record_run(15, 40, 900.0, 0, true)
 	_check(int(profile.data.deeds.get("wins_omen", 0)) == 1 and profile.data.achievements.has("omen_dawn"),
 		"a dawn under an omen is (Under a Bad Sky)")
+	var page: Dictionary = profile.data.bestiary.get("omen:blood_moon", {})
+	_check(int(page.get("nights", 0)) == 1 and int(page.get("dawns", 0)) == 1, "the omen's page counts its nights and dawns")
+	var book = load("res://scenes/ui/bestiary.tscn").instantiate()
+	root.add_child(book)
+	book.open()
+	await process_frame
+	var named = book.list.get_node_or_null("omen_blood_moon")
+	var undrawn = book.list.get_node_or_null("omen_dry_altars")
+	_check(named != null and named.text.contains(TranslationServer.translate("OMEN_BLOOD_MOON")),
+		"the bestiary names an omen once a night was drawn under it")
+	profile.data.bestiary.erase("omen:dry_altars")
+	_check(undrawn != null, "  and lists the others too")
+	book._show("omen:blood_moon")
+	_check(book.lore_label.text == TranslationServer.translate("OMEN_BLOOD_MOON_DESC"), "  its page says what it trades")
+	book._show("omen:dry_altars")
+	_check(book.hint_label.text != "" and book.lore_label.text == "", "  an undrawn one stays a question")
+	book.queue_free()
 
 	game.omen = ""
 	game.vial = 0

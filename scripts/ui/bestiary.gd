@@ -109,25 +109,31 @@ func _build_list() -> void:
 	notes.assign(Data.notes.keys().map(func(id: String) -> String: return "note:" + id))
 	var deeds: Array[String] = []
 	deeds.assign(Achievements.ids().map(func(id: String) -> String: return "deed:" + id))
+	# the omens a night may be drawn under (data/omens): named once one has been
+	var omens: Array[String] = []
+	omens.assign(Data.omens.keys().map(func(id: String) -> String: return "omen:" + id))
+	omens.sort()
 	# the chronicle closes the book: the totals, then the last nights, newest first
 	var chronicle: Array[String] = ["chron:total"]
 	var history: Array = _history()
 	for i in range(history.size() - 1, -1, -1):
 		chronicle.append("chron:%d" % i)
 	var last_family := ""
-	for id in _ids + people + notes + deeds + chronicle:
+	for id in _ids + people + notes + deeds + omens + chronicle:
 		if (not people.is_empty() and id == people[0]) or (not notes.is_empty() and id == notes[0]) \
-				or (not deeds.is_empty() and id == deeds[0]) or id == chronicle[0]:
+				or (not deeds.is_empty() and id == deeds[0]) or (not omens.is_empty() and id == omens[0]) \
+				or id == chronicle[0]:
 			var heading := Label.new()
 			heading.text = tr("BESTIARY_PEOPLE" if id.begins_with("npc:") else ("BESTIARY_NOTES" if id.begins_with("note:")
-				else ("BESTIARY_DEEDS" if id.begins_with("deed:") else "BESTIARY_CHRONICLE")))
+				else ("BESTIARY_DEEDS" if id.begins_with("deed:") else ("BESTIARY_OMENS" if id.begins_with("omen:")
+				else "BESTIARY_CHRONICLE"))))
 			if id.begins_with("deed:"):
 				heading.text += "  %d / %d" % [deeds.filter(func(d: String) -> bool: return Achievements.done(d.trim_prefix("deed:"))).size(), deeds.size()]
 			heading.add_theme_color_override("font_color", GOLD)
 			heading.add_theme_font_size_override("font_size", 11)
 			list.add_child(heading)
 		elif not id.begins_with("npc:") and not id.begins_with("note:") and not id.begins_with("deed:") \
-				and not id.begins_with("chron:"):
+				and not id.begins_with("chron:") and not id.begins_with("omen:"):
 			var family := str(Data.enemies[id].get("family", "restless"))
 			if family != last_family:
 				last_family = family
@@ -145,7 +151,7 @@ func _build_list() -> void:
 			branch = "  ◆ " if Achievements.done(id.trim_prefix("deed:")) else "  ◇ "
 		elif id.begins_with("chron:"):
 			branch = "  "
-		elif not id.begins_with("npc:") and not id.begins_with("note:"):
+		elif not id.begins_with("npc:") and not id.begins_with("note:") and not id.begins_with("omen:"):
 			branch = "  └ " if int(_spec(id).get("tier", 1)) > 1 else "  ◆ "
 		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) or id.begins_with("deed:")
 			or id.begins_with("chron:") else UNKNOWN_NAME)
@@ -157,6 +163,7 @@ func _build_list() -> void:
 	_ids.append_array(people)
 	_ids.append_array(notes)
 	_ids.append_array(deeds)
+	_ids.append_array(omens)
 	_ids.append_array(chronicle)
 	progress.text = tr("BESTIARY_PROGRESS") % [Profile.bestiary_known(), enemies]
 	if _ids.is_empty() or not _ids.has(_selected):
@@ -173,6 +180,8 @@ func _spec(id: String) -> Dictionary:
 		return Data.notes.get(id.trim_prefix("note:"), {})
 	if id.begins_with("deed:"):
 		return Achievements.spec(id.trim_prefix("deed:"))
+	if id.begins_with("omen:"):
+		return Omens.spec(id.trim_prefix("omen:"))
 	if id == "chron:total":
 		return {"name": tr("CHRONICLE_TOTAL")}
 	if id.begins_with("chron:"):
@@ -188,7 +197,7 @@ func _known(id: String, entry: Dictionary) -> bool:
 		return Achievements.done(id.trim_prefix("deed:"))
 	if id.begins_with("chron:"):
 		return true
-	if id.begins_with("npc:") or id.begins_with("note:"):
+	if id.begins_with("npc:") or id.begins_with("note:") or id.begins_with("omen:"):
 		return entry.get("met", false)
 	return int(entry.get("kills", 0)) > 0
 
@@ -224,7 +233,13 @@ func _show(id: String) -> void:
 			_show_night(_history()[int(id.trim_prefix("chron:"))])
 		return
 	if not seen:
-		hint_label.text = tr("BESTIARY_HINT_NOTE" if id.begins_with("note:") else "BESTIARY_HINT_UNKNOWN")
+		hint_label.text = tr("BESTIARY_HINT_NOTE" if id.begins_with("note:")
+			else ("BESTIARY_HINT_OMEN" if id.begins_with("omen:") else "BESTIARY_HINT_UNKNOWN"))
+		return
+	if id.begins_with("omen:"):
+		lore_label.text = tr(str(stats.get("description", "")))
+		_stat("CHRONICLE_NIGHTS", str(int(entry.get("nights", 0))))
+		_stat("CHRONICLE_DAWNS", str(int(entry.get("dawns", 0))))
 		return
 	if id.begins_with("note:"):
 		var chapter: Dictionary = Data.chapters.get(str(stats.get("place", "")), {})
