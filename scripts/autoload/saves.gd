@@ -215,6 +215,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"rested": Game.rested.keys(),
 			"walked": Game.walked.duplicate(),
 			"vial": Game.vial,
+			"omen": Game.omen,
 			"rerolls": Game.rerolls,
 			"essence": Game.essence,
 			"level": Game.level,
@@ -262,6 +263,8 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.ash_earned = int(state.get("ash", 0))
 	Game.unscathed = maxi(0, int(state.get("unscathed", 0)))
 	Game.vial = clampi(int(state.get("vial", 0)), 0, Vials.TIERS)
+	# an omen since removed is a plain night, not a refused save
+	Game.omen = str(state.get("omen", "")) if Data.omens.has(str(state.get("omen", ""))) else ""
 	Game.rerolls = clampi(int(state.get("rerolls", 0)), 0, 9)
 	Game.elapsed = float(state.get("elapsed", 0.0))
 	# The stats are the body's whole story (gifts applied, extra lives spent):

@@ -101,6 +101,7 @@ func _ready() -> void:
 		# the night of the day: its own vial and its own deal, the same for all
 		Game.vial = Daily.vial_of(Game.daily)
 		_gift_rng.seed = Daily.seed_of(Game.daily)
+	Game.omen = Omens.for_new_night()
 	player_spawner.spawn_function = _make_player
 	enemy_spawner.spawn_function = _make_enemy
 	players_root.child_entered_tree.connect(_on_player_entered)
@@ -244,7 +245,8 @@ func _begin() -> void:
 	# The captions run over it (docs/CORE_LOOP.md).
 	if player:
 		player.wake_up()
-	_announce_unlocks()
+	await _announce_unlocks()
+	_announce_omen()
 
 
 ## Open straight into one room, for looking at it:
@@ -352,7 +354,7 @@ func _on_spawn_requested(enemy_id: String, at: Vector2) -> void:
 
 func _spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
 	# under a vial of wrath a common one may rise as its elite (data/vials)
-	var promote: Dictionary = Vials.rule("promote") if Game.vial > 0 else {}
+	var promote: Dictionary = Vials.rule("promote") if not Net.active else {}
 	if promote.has(enemy_id) and randf() < float(Vials.rule("promote_chance")):
 		enemy_id = str(promote[enemy_id])
 	_enemy_counter += 1
@@ -775,6 +777,18 @@ func _announce_unlocks() -> void:
 	if not is_inside_tree() or _finished:
 		return
 	await dialogue.announce(tr("UNLOCKED_TONIGHT") % ", ".join(names))
+
+
+## The night's omen, said once over the opening (after any gift it unlocked).
+func _announce_omen() -> void:
+	var spec := Omens.spec(Game.omen)
+	if spec.is_empty():
+		return
+	while dialogue.is_open() and not _finished and is_inside_tree():
+		await get_tree().process_frame
+	if not is_inside_tree() or _finished:
+		return
+	await dialogue.announce(tr("OMEN_START") % [tr(str(spec.get("name", ""))), tr(str(spec.get("description", "")))])
 
 
 ## A gift may name the night it starts appearing on (`"unlock_nights": 3` in

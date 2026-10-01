@@ -82,6 +82,7 @@ func _run() -> void:
 		body.queue_free()
 	_check(risen > 8 and risen < 32, "about half the possessed rise as elites (%d of 40)" % risen)
 	game.vial = 0
+	game.omen = ""  # a night drawn under the Procession would raise them too (data/omens)
 	risen = 0
 	for i in 20:
 		var body = run._spawn_enemy("possessed_villager", hero.global_position + Vector2(400, -40), false)

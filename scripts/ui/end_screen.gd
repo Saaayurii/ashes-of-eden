@@ -84,6 +84,9 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	# the vial this night was played under, and the one a dawn opens (data/vials)
 	if Game.vial > 0:
 		stats.text += "   ·   " + tr(str(Vials.spec(Game.vial).get("name", "")))
+	# and the omen it was drawn under (data/omens)
+	if Game.omen != "":
+		stats.text += "   ·   " + tr(str(Omens.spec(Game.omen).get("name", "")))
 	# what laid him low, above the numbers (Player.slain_by)
 	var killer := slain_name(Game.slain_by) if not won else ""
 	if killer != "":

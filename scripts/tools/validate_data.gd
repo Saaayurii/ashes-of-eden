@@ -60,6 +60,7 @@ const REQUIRED := {
 	"resonances": ["id", "name", "description", "needs", "effects"],
 	"vials": ["id", "tier", "name", "description", "rules"],
 	"relics": ["id", "name", "description", "cost", "effects"],
+	"omens": ["id", "name", "description", "rules"],
 }
 
 var errors: PackedStringArray = []
@@ -308,6 +309,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_vial(entry, where)
 		"relics":
 			_check_relic(entry, where)
+		"omens":
+			_check_omen(entry, where)
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -712,6 +715,47 @@ func _check_vial(entry: Dictionary, where: String) -> void:
 			_error("%s: promote %s -> %s names no enemy" % [where, from, to])
 	if float(rules.get("promote_chance", 0.0)) > 1.0 or float(rules.get("rest_heal", 1.0)) <= 0.0:
 		_error("%s: promote_chance is 0..1 and rest_heal above 0" % where)
+
+
+## An omen (data/omens, scripts/run/omens.gd): a trade — at least one rule
+## that helps and one that hurts — in rules Vials stacks, plus "essence" and
+## "ash", never a pay below a plain night.
+func _check_omen(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	var rules: Dictionary = entry.get("rules", {})
+	var helps := false
+	var hurts := false
+	for key in rules:
+		var value = rules[key]
+		match key:
+			"essence", "ash":
+				helps = helps or float(value) > 1.0
+				hurts = hurts or float(value) < 1.0
+			"flasks":
+				helps = helps or int(value) > 0
+				hurts = hurts or int(value) < 0
+			"enemy_damage", "enemy_hp":
+				hurts = hurts or float(value) > 1.0
+				helps = helps or float(value) < 1.0
+			"promote_chance":
+				hurts = hurts or float(value) > 0.0
+				if float(value) > 1.0:
+					_error("%s: promote_chance is 0..1" % where)
+			"rest_heal":
+				hurts = hurts or float(value) < 1.0
+				if float(value) <= 0.0:
+					_error("%s: rest_heal above 0" % where)
+			"promote":
+				for from in value:
+					if not _enemy_ids.has(from) or not _enemy_ids.has(str(value[from])):
+						_error("%s: promote %s -> %s names no enemy" % [where, from, value[from]])
+			_:
+				_error("%s: rules.%s is not a rule an omen can carry" % [where, key])
+	if not (helps and hurts):
+		_error("%s: an omen is a trade: something that helps and something that hurts" % where)
+	if rules.has("promote_chance") != rules.has("promote"):
+		_error("%s: promote_chance and promote come together" % where)
 
 
 ## Achievements.COUNTERS, read from the source: that script names autoloads,

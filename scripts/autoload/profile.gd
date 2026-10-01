@@ -121,6 +121,7 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 		"seconds": int(seconds),
 		"kills": kills,
 		"vial": Game.vial,
+		"omen": Game.omen,
 		"daily": Game.daily != "",
 		"gifts": Game.abilities.map(func(a: Dictionary) -> String: return str(a.get("id", ""))),
 		"resonances": Game.resonances.duplicate(),

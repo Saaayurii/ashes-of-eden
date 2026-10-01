@@ -49,6 +49,8 @@ var unscathed := 0
 ## "lava", "fall", or "" while it stands. The end screen, the chronicle and
 ## the bestiary read it.
 var slain_by := ""
+## The omen this night is drawn under (data/omens, Omens), "" for a plain night.
+var omen := ""
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
 var vial := 0
 ## Times the gift cards may still be dealt again tonight (the rosary, Relics).
@@ -79,6 +81,7 @@ func new_run() -> void:
 	ash_earned = 0
 	unscathed = 0
 	slain_by = ""
+	omen = ""
 	vial = 0
 	rerolls = 0
 	essence_bonus = 0.0
@@ -121,7 +124,8 @@ func essence_needed() -> float:
 
 
 func add_essence(amount: float) -> void:
-	essence += amount * (1.0 + essence_bonus)
+	# an omen may make the dead give more (data/omens: "essence")
+	essence += amount * (1.0 + essence_bonus) * float(Vials.rule("essence"))
 	var leveled := false
 	while essence >= essence_needed():
 		essence -= essence_needed()

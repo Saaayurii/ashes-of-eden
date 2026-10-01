@@ -13,10 +13,11 @@ class_name Vials
 const TIERS := 5
 ## How a rule stacks as the vials pile up.
 const ADD := ["flasks"]
-const MUL := ["enemy_damage", "enemy_hp"]
+const MUL := ["enemy_damage", "enemy_hp", "essence"]
 const MAX := ["promote_chance"]
 const MIN := ["rest_heal"]
-const DEFAULTS := {"flasks": 0, "enemy_damage": 1.0, "enemy_hp": 1.0, "promote_chance": 0.0, "rest_heal": 1.0}
+const DEFAULTS := {"flasks": 0, "enemy_damage": 1.0, "enemy_hp": 1.0, "promote_chance": 0.0, "rest_heal": 1.0,
+	"essence": 1.0}
 
 
 ## The vial of [param tier], {} for none.
@@ -27,37 +28,47 @@ static func spec(tier: int) -> Dictionary:
 	return {}
 
 
-## Every rule in force under [param tier] (Game.vial by default).
+## Every rule in force under [param tier] (Game.vial by default — and then
+## the night's omen on top, which stacks the same way: data/omens).
 static func rules(tier := -1) -> Dictionary:
-	if tier < 0:
+	var tonight := tier < 0
+	if tonight:
 		tier = Game.vial
 	var out := DEFAULTS.duplicate()
 	out["promote"] = {}
 	for t in range(1, tier + 1):
-		var own: Dictionary = spec(t).get("rules", {})
-		for key in own:
-			if key in ADD:
-				out[key] += own[key]
-			elif key in MUL:
-				out[key] *= float(own[key])
-			elif key in MAX:
-				out[key] = maxf(out[key], float(own[key]))
-			elif key in MIN:
-				out[key] = minf(out[key], float(own[key]))
-			elif own[key] is Dictionary:
-				out[key].merge(own[key], true)
+		_stack(out, spec(t).get("rules", {}))
+	if tonight:
+		_stack(out, Omens.rules())
 	return out
+
+
+static func _stack(out: Dictionary, own: Dictionary) -> void:
+	for key in own:
+		if key in ADD:
+			out[key] += own[key]
+		elif key in MUL:
+			out[key] *= float(own[key])
+		elif key in MAX:
+			out[key] = maxf(out[key], float(own[key]))
+		elif key in MIN:
+			out[key] = minf(out[key], float(own[key]))
+		elif own[key] is Dictionary and out.get(key) is Dictionary:
+			out[key].merge(own[key], true)
 
 
 static func rule(key: String) -> Variant:
 	return rules().get(key, DEFAULTS.get(key, 0))
 
 
-## The Ash a night under [param tier] is worth, per Ash earned.
+## The Ash a night under [param tier] is worth, per Ash earned (tonight's
+## omen's "ash" too, when the tier is tonight's).
 static func ash_multiplier(tier := -1) -> float:
+	var omen := 1.0
 	if tier < 0:
 		tier = Game.vial
-	return float(spec(tier).get("ash", 1.0)) if tier > 0 else 1.0
+		omen = float(Omens.rules().get("ash", 1.0))
+	return (float(spec(tier).get("ash", 1.0)) if tier > 0 else 1.0) * omen
 
 
 ## The vials this profile may choose: 0 (none) up to the one its last dawn opened.

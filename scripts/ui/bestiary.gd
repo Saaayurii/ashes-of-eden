@@ -316,6 +316,8 @@ func _show_night(night: Dictionary) -> void:
 		_stat("SETTINGS_VIAL", tr(str(Vials.spec(int(night.vial)).get("name", ""))))
 	if night.get("daily", false):
 		_stat("MENU_DAILY", "◆")
+	if Data.omens.has(str(night.get("omen", ""))):
+		_stat("OMEN_LABEL", tr(str(Omens.spec(str(night.omen)).get("name", ""))))
 	_stat("CHRONICLE_TIME", _clock(float(night.get("seconds", 0))))
 	_stat("CHRONICLE_KILLS", str(int(night.get("kills", 0))))
 	var killer := EndScreen.slain_name(str(night.get("slain_by", "")))

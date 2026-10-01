@@ -56,7 +56,27 @@ func _open() -> void:
 	Audio.play(&"ui_pause", -6.0, 0.0)
 	visible = true
 	panel.visible = true
+	_show_omen()
 	%Resume.grab_focus()
+
+
+## The night's omen, over the buttons: what it trades, in its own words.
+func _show_omen() -> void:
+	var line := %Resume.get_parent().get_node_or_null("Omen") as Label
+	if line == null:
+		line = Label.new()
+		line.name = "Omen"
+		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		line.custom_minimum_size = Vector2(220, 0)
+		line.add_theme_font_size_override("font_size", 9)
+		line.modulate = Color(0.95, 0.75, 0.7)
+		%Resume.add_sibling(line)
+		%Resume.get_parent().move_child(line, %Resume.get_index())
+	var spec := Omens.spec(Game.omen)
+	line.visible = not spec.is_empty()
+	if line.visible:
+		line.text = "%s: %s\n%s" % [tr("OMEN_LABEL"), tr(str(spec.get("name", ""))), tr(str(spec.get("description", "")))]
 
 
 ## A phone call, the home button, the notification shade, a browser tab
