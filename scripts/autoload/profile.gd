@@ -37,6 +37,8 @@ static func _defaults() -> Dictionary:
 		"vials_opened": 0,
 		# Relics bought with Ash (data/relics, scripts/meta/relics.gd): id -> true.
 		"relics": {},
+		# The night of the day's best (scripts/run/daily.gd): {date, area, seconds, won, tries}.
+		"daily": {},
 		# Counters the deeds read (Achievements.COUNTERS): parries, backstabs…
 		"deeds": {},
 		# Deeds done (data/achievements): id -> the unix time it happened.
@@ -82,9 +84,12 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 		if Settings.difficulty == "judgment":
 			_bump("wins_judgment")
 		# a dawn opens the next vial of wrath (scripts/run/vials.gd)
-		data.vials_opened = mini(maxi(int(data.get("vials_opened", 0)), Game.vial + 1), Vials.TIERS)
-		if Game.vial > 0:
-			_bump("wins_vial_%d" % Game.vial)
+		# the night of the day pours a vial the profile may not have opened: it
+		# opens nothing and counts for no vial deed
+		if Game.daily == "":
+			data.vials_opened = mini(maxi(int(data.get("vials_opened", 0)), Game.vial + 1), Vials.TIERS)
+			if Game.vial > 0:
+				_bump("wins_vial_%d" % Game.vial)
 	save()
 	check_achievements()
 
