@@ -96,6 +96,11 @@ func _run() -> void:
 		book._pay_out()
 		_assert(game.ash_earned == ash_before, "altar_book: no ash the second time")
 		found[str(book.stats.note)] = true
+		var box = load("res://scripts/ui/dialogue_box.gd")
+		var matthew: Dictionary = data_loader.dialogues["npc_matthew"]
+		var first_branch: Dictionary = matthew.nodes[matthew.start].branches[0]
+		_assert(box.branch_holds(first_branch) and first_branch.next == "t_book",
+			"altar_book: read, and Matthew speaks of it first")
 	game.flags.erase("matthew_book_revealed")
 	game.flags.erase("book_read")
 	church.queue_free()

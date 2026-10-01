@@ -1,7 +1,10 @@
 {
   "id": "npc_matthew",
-  "start": "route",
+  "start": "book",
   "nodes": {
+    "book": {"branches": [{"flag": "book_read", "next": "t_book"}], "next": "route"},
+    "t_book": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BOOK", "next": "t_book2"},
+    "t_book2": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BOOK_2", "next": "route"},
     "route": {
       "branches": [
         {
