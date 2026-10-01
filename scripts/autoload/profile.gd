@@ -7,6 +7,8 @@ const PATH := "user://profile.json"
 const VERSION := 2
 ## Nights in a row on one path before the world starts to notice (habit()).
 const HABIT_NIGHTS := 3
+## Nights the chronicle keeps (Profile.data.history).
+const HISTORY := 10
 
 var data: Dictionary = _defaults()
 
@@ -39,6 +41,8 @@ static func _defaults() -> Dictionary:
 		"relics": {},
 		# The night of the day's best (scripts/run/daily.gd): {date, area, seconds, won, tries}.
 		"daily": {},
+		# The chronicle (bestiary): the last HISTORY nights, newest last.
+		"history": [],
 		# Counters the deeds read (Achievements.COUNTERS): parries, backstabs…
 		"deeds": {},
 		# Deeds done (data/achievements): id -> the unix time it happened.
@@ -78,6 +82,7 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 	data.total_seconds += seconds
 	data.ash += ash
 	_note_lean()
+	_chronicle(wave, kills, seconds, won)
 	if won:
 		data.wins = int(data.get("wins", 0)) + 1
 		_bump("wins_" + Game.dominant_path())
@@ -92,6 +97,29 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 				_bump("wins_vial_%d" % Game.vial)
 	save()
 	check_achievements()
+
+
+## One line of the chronicle per night: where it ended, how it leaned, what it
+## carried. Gift and resonance ids, so a renamed gift reads in the new name and
+## a removed one is simply left out (Chronicle in the bestiary).
+func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
+	if not (data.get("history") is Array):
+		data.history = []
+	data.history.append({
+		"night": int(data.nights),
+		"date": Time.get_date_string_from_system(),
+		"area": area,
+		"won": won,
+		"path": Game.dominant_path() if Game.lead() >= 2 else "",
+		"seconds": int(seconds),
+		"kills": kills,
+		"vial": Game.vial,
+		"daily": Game.daily != "",
+		"gifts": Game.abilities.map(func(a: Dictionary) -> String: return str(a.get("id", ""))),
+		"resonances": Game.resonances.duplicate(),
+	})
+	while data.history.size() > HISTORY:
+		data.history.pop_front()
 
 
 ## A night that leaned clearly one way (the lead the aura shows at) extends
