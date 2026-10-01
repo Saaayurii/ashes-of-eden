@@ -523,6 +523,11 @@ def expand_painted_room(name, room):
         out["cornice_crop"] = {"catacombs_2": (580, 228),
                                "catacombs_3": (620, 242),
                                "crypt_skulls": (100, 254)}[name]
+    if name == "crypt_skulls":
+        # Both short return treads hang directly beneath the old gallery.
+        # The chains end at its uneven 256/268 px underside, like the cages
+        # already present in this chamber, instead of leaving bare bars in air.
+        out["hanging_supports"] = {1: (42, 38), 2: (31, 18)}
     if name == "swamp_crypt":
         out["painted_cornices"] = True
         out["cornice_crop"] = (150, 319)

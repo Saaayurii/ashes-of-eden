@@ -5,7 +5,7 @@ extends SceneTree
 const PROBES := {
 	"catacombs_2": [[220, 353], [710, 228], [1110, 521], [1490, 481]],
 	"catacombs_3": [[250, 205], [710, 242], [1010, 312], [1520, 659]],
-	"crypt_skulls": [[120, 254], [610, 581], [1220, 423], [1520, 603]],
+	"crypt_skulls": [[120, 254], [328, 300], [440, 285], [610, 581], [1220, 423], [1520, 603]],
 	"crypt_lava": [[320, 261], [1170, 200], [740, 315], [780, 610]],
 	"hell_gate": [[255, 405], [330, 315], [350, 492], [1020, 482], [1320, 372], [1560, 563]],
 	"church": [[120, 290], [195, 338], [600, 380], [995, 338], [1080, 290]],
@@ -30,6 +30,13 @@ func _run() -> void:
 		var room = load("res://scenes/rooms/%s.tscn" % key).instantiate()
 		root.add_child(room)
 		current_scene = room
+		if key == "crypt_skulls":
+			for index in [1, 2]:
+				var hanger: Node2D = room.get_node("Terrain/Platform%dHangers" % index)
+				var cornice: Sprite2D = room.get_node("Terrain/Platform%d_1" % index)
+				var footing: CollisionShape2D = room.get_node("Ledges/Platform%dShape" % index)
+				_check(hanger.position == cornice.position and hanger.position.y == footing.position.y - 5.0,
+					"crypt skulls return ledge %d hangs apart from collision" % index)
 		if key in ["church", "preacher_nave"]:
 			var decor: Parallax2D = room.get_node("DecorBack")
 			_check(decor.scroll_scale == Vector2.ONE,
