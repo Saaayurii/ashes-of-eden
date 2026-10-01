@@ -112,9 +112,35 @@ func _run() -> void:
 		_check(tip != "" and end_screen.best.text.contains(tip), "  and says how to meet it next time")
 		_check(end_screen.slain_tip("lava") == "TIP_LAVA" and end_screen.slain_tip("fall") == "TIP_FALL"
 				and end_screen.slain_tip("") == "", "the lava and the drop have advice of their own")
+		_check(end_screen.spar_button.visible and end_screen.spar_button.text.contains(named),
+			"the yard is one button away, with it in it")
+		game.slain_by = "lava"
+		end_screen.show_result(false, 3, 4, 120.0)
+		_check(not end_screen.spar_button.visible, "  but not for the lava")
+		game.slain_by = "ophanim_seal"
+		end_screen.show_result(false, 3, 4, 120.0)
+		_check(not end_screen.spar_button.visible, "  nor for a seal, which is part of another's fight")
 		game.slain_by = ""
 		end_screen.show_result(true, 3, 4, 120.0)
 		_check(not end_screen.stats.text.contains(named), "a dawn blames nobody")
+		_check(not end_screen.spar_button.visible, "  and offers no sparring")
+
+		# the button: the same run scene, opened on the yard with the killer in it
+		game.slain_by = foe.enemy_id
+		end_screen.show_result(false, 3, 4, 120.0)
+		var killer: String = foe.enemy_id
+		end_screen.spar_button.pressed.emit()
+		await _settle(1.2)
+		var yard = current_scene
+		_check(game.practice == killer and yard != run and yard.room_index == yard.PRACTICE_INDEX,
+			"Spar with it opens the practice yard")
+		await _settle(0.6)
+		var standing := false
+		for node in get_nodes_in_group("enemies"):
+			if node.enemy_id == killer:
+				standing = true
+		_check(standing, "  and %s stands in it" % killer)
+		game.practice = ""
 
 	game.new_run()
 	_check(game.slain_by == "", "a new night starts with nothing to blame")

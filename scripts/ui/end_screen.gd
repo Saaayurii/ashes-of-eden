@@ -5,6 +5,8 @@ class_name EndScreen
 
 signal retry
 signal to_menu
+## Into the practice yard against what laid him low (an enemy id).
+signal spar(enemy_id: String)
 
 ## The page has a painting behind it, not a flat wash: the graveyard for a
 ## death, the dawn you did not live to see for a win.
@@ -31,12 +33,29 @@ const LINES := {
 @onready var content: Control = %Content
 @onready var backdrop: TextureRect = %Backdrop
 @onready var glow: TextureRect = %Glow
+## "Spar with it", between Again and the menu: shown after a death to
+## something the yard can stand up (Bestiary.can_practise), solo only.
+var spar_button: Button
 
 
 func _ready() -> void:
 	visible = false
 	%Retry.pressed.connect(retry.emit)
 	%Menu.pressed.connect(to_menu.emit)
+	# the yard and the menu share a row: a long night's gifts already fill the page
+	var menu: Button = %Menu
+	var exits := HBoxContainer.new()
+	exits.name = "Exits"
+	exits.alignment = BoxContainer.ALIGNMENT_CENTER
+	exits.add_theme_constant_override("separation", 32)
+	menu.add_sibling(exits)
+	spar_button = Button.new()
+	spar_button.name = "Spar"
+	spar_button.flat = true
+	spar_button.visible = false
+	spar_button.pressed.connect(func() -> void: spar.emit(Game.slain_by))
+	exits.add_child(spar_button)
+	menu.reparent(exits, false)
 
 
 ## Online it is the host who starts another night; a guest only gets the door out.
@@ -75,6 +94,10 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 		best.text += "\n" + (tr("DAILY_NEW_BEST") if Game.daily_best else tr("DAILY_BEST") % int(day.get("area", 0)))
 	if won and Game.daily == "" and Game.vial < Vials.TIERS and Vials.opened() == Game.vial + 1:
 		best.text += "\n" + tr("VIAL_OPENED") % tr(str(Vials.spec(Game.vial + 1).get("name", "")))
+	# and the yard is one step away, with that very enemy in it
+	spar_button.visible = not won and Game.practice == "" and Bestiary.can_practise(Game.slain_by)
+	if spar_button.visible:
+		spar_button.text = tr("RUN_SPAR") % slain_name(Game.slain_by)
 	# a night lost to something with advice: how to meet it next time
 	var tip := slain_tip(Game.slain_by) if not won else ""
 	if tip != "":

@@ -823,3 +823,4 @@ TIP_OPHANIM,"When its eyes close, break the three seals before it opens them. Th
 TIP_LAVA,"Burning ground hurts through a roll. Watch where you land.","Горящая земля жжёт и сквозь перекат. Смотри, куда приземляешься.","Палаюча земля пече і крізь перекат. Дивися, куди приземляєшся.","焚地连翻滚也挡不住。看清落脚之处。"
 TIP_FALL,"Nothing below the edge holds you. A wall can: hold into it to slow the fall.","Под краем ничто не удержит. Стена — удержит: прижмись к ней, чтобы замедлить падение.","Під краєм ніщо не втримає. Стіна — втримає: притиснися до неї, щоб сповільнити падіння.","边缘之下无物承托。墙可以：贴住它，减缓坠落。"
 TIP_LABEL,"Advice","Совет","Порада","提示"
+RUN_SPAR,"Spar with it: %s","На тренировку: %s","На тренування: %s","去练武场：%s"

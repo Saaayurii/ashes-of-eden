@@ -110,6 +110,7 @@ func _ready() -> void:
 	touch_controls.visible = Settings.touch_enabled()
 	run_end.retry.connect(_restart)
 	run_end.to_menu.connect(_to_menu)
+	run_end.spar.connect(_spar)
 	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void: kills += 1)
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
@@ -1047,6 +1048,16 @@ func _practice_revive() -> void:
 		return
 	player.revive(room.player_spawn.global_position, 1.0)
 	player.camera.reset_smoothing()
+
+
+## From the night's end straight into the yard against what killed him: the
+## same run scene, the night over, the practice set (docs/PRACTICE.md).
+func _spar(enemy_id: String) -> void:
+	if Net.active or not Bestiary.can_practise(enemy_id):
+		return
+	Game.practice = enemy_id
+	Game.daily = ""
+	_reload()
 
 
 func _to_menu() -> void:
