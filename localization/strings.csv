@@ -887,3 +887,7 @@ RES_MARKED_PREY,"Marked Prey","Помеченная добыча","Познач�
 RES_MARKED_PREY_DESC,"Hex of Ashes and Duelist's Poise: an enemy near its end takes a quarter more from every blow.","Пепельная порча и Стойка дуэлянта: враг при смерти получает на четверть больше от любого удара.","Попеляста порча і Постава дуелянта: ворог при смерті отримує на чверть більше від будь-якого удару.","灰烬咒与决斗者架势：濒死的敌人受到的每一击伤害提高四分之一。"
 RES_HEADLONG,"Headlong","Очертя голову","Стрімголов","不顾一切"
 RES_HEADLONG_DESC,"Unbroken Stride and Wrath: a wound makes your next swing land harder.","Неудержимый шаг и Гнев: рана делает следующий удар сильнее.","Нестримний крок і Гнів: рана робить наступний удар сильнішим.","不屈之步与暴怒：受伤后下一击更重。"
+SKIN_FEN_SHROUD_NAME,"Fen Shroud","Болотный саван","Болотяний саван","沼泽裹尸布"
+SKIN_FEN_SHROUD_DESC,"Cold as the breath of the elder dead. Lay five elder spirits to rest.","Холодный, как дыхание старших мёртвых. Упокой пять старших духов.","Холодний, як подих старших мертвих. Упокой п'ятьох старших духів.","冷如长者亡魂的气息。安息五个长魂。"
+SKIN_ZEALOT_WINE_NAME,"Zealot's Wine","Вино фанатика","Вино фанатика","狂信者之酒"
+SKIN_ZEALOT_WINE_DESC,"The colour of the brothers' robes, washed in what they spilled. Lay five Zealot Brothers to rest.","Цвет ряс братьев, отстиранных в том, что они пролили. Упокой пять братьев-фанатиков.","Колір ряс братів, випраних у тому, що вони пролили. Упокой п'ятьох братів-фанатиків.","兄弟们长袍的颜色，浸透了他们泼洒之物。安息五个狂信兄弟。"
