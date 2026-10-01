@@ -95,6 +95,12 @@ func _run() -> void:
 	# every affix beaten, on any elite: Every Face of the Chosen
 	profile.data.achievements = {}
 	var ids: Array = data.affixes.keys()
+	for id in profile.data.bestiary:  # only what this test lays down counts
+		if profile.data.bestiary[id] is Dictionary:
+			profile.data.bestiary[id].erase("affixes")
+	profile.data.bestiary["elite_cultist"]["affixes"] = ids.slice(0, 2)
+	profile.check_achievements()
+	_check(not profile.data.achievements.has("every_face"), "half the affixes beaten: not yet Every Face")
 	profile.data.bestiary["elite_possessed"] = {"seen": true, "kills": 1, "affixes": ids.slice(2)}
 	profile.check_achievements()
 	_check(profile.data.achievements.has("every_face"), "every affix beaten, on any elite: Every Face of the Chosen")
