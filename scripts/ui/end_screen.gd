@@ -97,6 +97,9 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	if blows != "":
 		stats.text += "\n" + blows
 	stats.text += "\n" + numbers_line()
+	var deeds := deeds_line(Game.deeds_tonight)
+	if deeds != "":
+		best.text += "\n" + deeds
 	# the night of the day: where it stands against the day's best (Daily)
 	if Game.daily != "":
 		var day := Daily.best(Game.daily)
@@ -134,6 +137,16 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 		%Retry.grab_focus()
 	else:
 		%Menu.grab_focus()
+
+
+## The deeds done tonight, by name: "Deeds tonight: First Night · Paid in Blood". "" for none.
+static func deeds_line(ids: Array) -> String:
+	var names: Array[String] = []
+	for id in ids:
+		var spec := Achievements.spec(str(id))
+		if not spec.is_empty():
+			names.append(TranslationServer.translate(str(spec.get("name", id))))
+	return TranslationServer.translate("RUN_DEEDS_TONIGHT") % " · ".join(names) if not names.is_empty() else ""
 
 
 ## The night's numbers: dealt, the heaviest blow, taken, parries (Game).

@@ -92,6 +92,16 @@ func _run() -> void:
 	var shown: Array = book.stats_box.get_children().map(func(n: Node) -> String: return n.text if n is Label else "")
 	_check(shown.any(func(t: String) -> bool: return t.contains("(2/%d)" % data.affixes.size())), "  and its page names them (%s)" % [shown])
 	book.queue_free()
+	# every affix beaten, on any elite: Every Face of the Chosen
+	profile.data.achievements = {}
+	var ids: Array = data.affixes.keys()
+	profile.data.bestiary["elite_possessed"] = {"seen": true, "kills": 1, "affixes": ids.slice(2)}
+	profile.check_achievements()
+	_check(profile.data.achievements.has("every_face"), "every affix beaten, on any elite: Every Face of the Chosen")
+	var end_screen = load("res://scripts/ui/end_screen.gd")
+	var line: String = end_screen.deeds_line(["every_face", "no_such_deed"])
+	_check(line.contains(TranslationServer.translate("DEED_EVERY_FACE")) and not line.contains("no_such"), "the night's end lists tonight's deeds: %s" % line)
+	_check(game.deeds_tonight.has("every_face"), "  counted as tonight's")
 	profile.data = saved
 	profile.save()
 

@@ -64,6 +64,8 @@ var dealt := 0.0
 var heaviest := 0.0
 var taken := 0.0
 var parries := 0
+## Deeds done this night (EventBus.achievement_unlocked), for the end screen.
+var deeds_tonight: Array = []
 ## The omen this night is drawn under (data/omens, Omens), "" for a plain night.
 var omen := ""
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
@@ -77,6 +79,7 @@ var essence_bonus := 0.0
 
 func _ready() -> void:
 	new_run()
+	EventBus.achievement_unlocked.connect(func(id: String) -> void: deeds_tonight.append(id))
 	EventBus.player_parried.connect(func() -> void:
 		if practice == "":
 			parries += 1)
@@ -105,6 +108,7 @@ func new_run() -> void:
 	heaviest = 0.0
 	taken = 0.0
 	parries = 0
+	deeds_tonight = []
 	omen = ""
 	vial = 0
 	rerolls = 0

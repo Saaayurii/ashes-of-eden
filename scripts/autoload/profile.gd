@@ -291,6 +291,7 @@ func record_affix(enemy_id: String, affix: String) -> void:
 	entry["affixes"] = met
 	data.bestiary[enemy_id] = entry
 	save()
+	check_achievements()
 
 
 ## A boss laid low in [param seconds] (Enemy.fight_time): its page keeps the
