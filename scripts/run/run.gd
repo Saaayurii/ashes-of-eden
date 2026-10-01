@@ -475,6 +475,8 @@ func _build_room(index: int) -> void:
 	room.authoritative = _is_server()
 	room.spawn_hook = _spawn_enemy
 	room_holder.add_child(room)
+	if index >= 0 and index != PRACTICE_INDEX:
+		LastFall.attach(room, ROOMS[index])  # last night's body, where it fell
 	room.cleared.connect(_on_room_cleared)
 	room.reopened.connect(_on_room_reopened)
 	room.exited.connect(_on_room_exited)
@@ -978,6 +980,11 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 	var place_index := clampi(reached - 1, 0, ROOMS.size() - 1)
 	reached = Route.step(ROOMS, place_index) + 1
 	if not Net.dedicated:  # a referee plays no night of its own
+		# the body stays where it fell, for tomorrow night (LastFall); a dawn clears it
+		if won:
+			Profile.data.last_fall = {}
+		elif player != null and room != null and room_index >= 0 and room_index < ROOMS.size():
+			LastFall.remember(ROOMS[room_index], player.global_position - room.global_position, Game.slain_by)
 		Profile.record_run(reached, total_kills, seconds, ash, won)
 		if Game.daily != "":
 			Game.daily_best = Daily.record(Game.daily, reached, seconds, won)

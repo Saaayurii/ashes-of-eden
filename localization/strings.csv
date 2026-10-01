@@ -846,3 +846,5 @@ DEED_OMEN_DAWN_DESC,"See the dawn on a night drawn under an omen.","Дожить
 SETTINGS_OMENS,"Omens","Знамения","Знамення","征兆"
 BESTIARY_OMENS,"Omens","Знамения","Знамення","征兆"
 BESTIARY_HINT_OMEN,"No night has been drawn under this omen yet.","Ещё ни одна ночь не прошла под этим знамением.","Ще жодна ніч не минула під цим знаменням.","尚无一夜在此征兆下度过。"
+LAST_FALL,"You fell here last night.","Здесь ты пал прошлой ночью.","Тут ти впав минулої ночі.","昨夜你倒在此处。"
+LAST_FALL_BY,"You fell here last night: %s.","Здесь ты пал прошлой ночью: %s.","Тут ти впав минулої ночі: %s.","昨夜你倒在此处：%s。"

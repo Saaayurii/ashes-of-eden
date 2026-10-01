@@ -50,6 +50,8 @@ static func _defaults() -> Dictionary:
 		# The world notices (docs/CORE_LOOP.md): the path the last nights leaned
 		# to, and how many in a row. HABIT_NIGHTS of them and it is a habit.
 		"habit": {"path": "", "nights": 0},
+		# Where the last night ended in a death (LastFall): {room, x, y, by}.
+		"last_fall": {},
 	}
 
 

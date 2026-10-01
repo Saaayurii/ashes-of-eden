@@ -53,6 +53,7 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/slain_test.gd
         godot --headless -s scripts/tools/omen_test.gd
         godot --headless -s scripts/tools/pad_prompt_test.gd
+        godot --headless -s scripts/tools/last_fall_test.gd
         ;;
     net-test)
         shift
