@@ -1,6 +1,7 @@
-[gd_scene load_steps=65 format=3]
+[gd_scene load_steps=66 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scripts/rooms/hanging_support.gd" id="hanging_support"]
 [ext_resource type="Texture2D" path="res://assets/levels/crypt_skulls_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
 [ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
@@ -526,12 +527,26 @@ one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
 
+[node name="Platform1Hangers" type="Node2D" parent="Terrain"]
+position = Vector2(300, 300)
+script = ExtResource("hanging_support")
+walk_width = 56.0
+left_length = 42.0
+right_length = 38.0
+
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(300, 300)
 texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
 region_rect = Rect2(100, 254, 56, 12)
+
+[node name="Platform2Hangers" type="Node2D" parent="Terrain"]
+position = Vector2(400, 285)
+script = ExtResource("hanging_support")
+walk_width = 80.0
+left_length = 31.0
+right_length = 18.0
 
 [node name="Platform2_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(400, 285)
