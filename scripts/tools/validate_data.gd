@@ -20,7 +20,8 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"extra_lives", "heal_charges", "thorns", "execute", "kill_heal", "clear_heal", "dash_damage",
 	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction",
 	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
-	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window"]
+	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
+	"cursed_damage"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]

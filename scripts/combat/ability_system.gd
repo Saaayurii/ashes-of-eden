@@ -39,6 +39,7 @@ const CAPS := {
 	# gift mechanics of the moves (data/abilities: Benediction, Cruel Opening, Quick Study, Watchman's Patience)
 	"technique_heal": [0.0, 10.0],
 	"windup_bonus": [0.0, 1.0],
+	"cursed_damage": [0.0, 1.0],
 	"charge_speed": [0.0, 1.0],
 	"parry_window": [0.0, 0.15],
 }

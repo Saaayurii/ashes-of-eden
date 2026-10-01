@@ -154,6 +154,15 @@ func _run() -> void:
 	_assert(idle_loss > 0.0 and absf(windup_loss / idle_loss - 1.5) < 0.05,
 		"cruel opening: a wind-up takes half again (%.1f vs %.1f)" % [windup_loss, idle_loss])
 	player.stats.windup_bonus = 0.0
+	# Accursed Strength: a blow is worth more only while a curse is owed
+	player.stats.cursed_damage = 0.4
+	var plain_loss: float = await swing_loss.call(false)
+	player.curse = 5
+	var cursed_loss: float = await swing_loss.call(false)
+	player.curse = 0
+	player.stats.cursed_damage = 0.0
+	_assert(plain_loss > 0.0 and absf(cursed_loss / plain_loss - 1.4) < 0.05,
+		"accursed strength: under a curse a blow takes 40%% more (%.1f vs %.1f)" % [cursed_loss, plain_loss])
 	enemy.state = enemy.State.CHASE
 	await _frames(30)
 	# Benediction: a special move that lands heals; a plain swing does not
