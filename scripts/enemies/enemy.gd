@@ -219,6 +219,7 @@ func _ready() -> void:
 		var spec: Dictionary = stats.light
 		_light = Fx.light(self, Vector2(0, -10), Color(spec.get("color", stats.get("color", "#ffffff"))),
 			float(spec.get("radius", 50)), float(spec.get("energy", 0.7)), float(spec.get("flicker", 0.0)), 0.15)
+	_mark_elite()
 	if not _is_flying():
 		_shadow = Fx.shadow(self, Vector2(0, 11), size * 1.6, 0.7)
 	if _is_flying():
@@ -232,6 +233,28 @@ func _ready() -> void:
 		set_physics_process(_simulated)
 	if _simulated and stats.get("boss", false):
 		EventBus.boss_hp_changed.emit(stats.get("name", ""), hp, _max_hp)
+
+
+## An elite reads as one before it swings: a low ember glow under it and a
+## mote rising off it now and then (tags "elite", never a boss — a boss has
+## its own bar). Same on every peer: it is drawn from the data.
+const ELITE_EMBER := Color(0.95, 0.38, 0.28)
+
+
+func _mark_elite() -> void:
+	if not stats.get("tags", []).has("elite") or stats.get("boss", false):
+		return
+	var glow := Fx.light(self, Vector2(0, 4), ELITE_EMBER, 38.0, 0.75, 0.3, 0.2)
+	if glow != null:
+		glow.name = "EliteMark"
+	var motes := Timer.new()
+	motes.name = "EliteMotes"
+	motes.wait_time = 0.5
+	motes.autostart = true
+	motes.timeout.connect(func() -> void:
+		if state != State.DEAD and visible and is_inside_tree():
+			Fx.ash(global_position + Vector2(randf_range(-6.0, 6.0), -4.0), ELITE_EMBER * Color(1, 1, 1, 0.8), 3, 18.0, 6.0))
+	add_child(motes)
 
 
 func _is_flying() -> bool:
