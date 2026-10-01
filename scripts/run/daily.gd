@@ -45,5 +45,43 @@ static func record(date: String, area: int, seconds: float, won: bool) -> bool:
 		kept = {"date": date, "area": area, "seconds": seconds, "won": won}
 	kept["tries"] = tries
 	Profile.data.daily = kept
+	_extend_streak(date)
 	Profile.save()
+	Profile.check_achievements()
 	return better
+
+
+## Days in a row a night of the day was played: {"last", "days", "best"}
+## (Profile.data.daily_streak). A second try on the same day changes nothing;
+## the day after the last one adds a day; any gap starts again at one. The
+## best is also the counter a deed reads (deeds.daily_streak).
+static func streak() -> Dictionary:
+	var kept = Profile.data.get("daily_streak", {})
+	return kept if kept is Dictionary else {}
+
+
+## The streak as it stands today: the days, or 0 once a day has been missed.
+static func streak_days(today_date := "") -> int:
+	if today_date == "":
+		today_date = today()
+	var kept := streak()
+	var last := str(kept.get("last", ""))
+	return int(kept.get("days", 0)) if last == today_date or last == day_before(today_date) else 0
+
+
+static func day_before(date: String) -> String:
+	var unix := Time.get_unix_time_from_datetime_string(date + "T00:00:00")
+	return Time.get_date_string_from_unix_time(unix - 86400)
+
+
+static func _extend_streak(date: String) -> void:
+	var kept := streak()
+	var last := str(kept.get("last", ""))
+	if last == date:
+		return
+	var days := int(kept.get("days", 0)) + 1 if last == day_before(date) else 1
+	var best_days := maxi(int(kept.get("best", 0)), days)
+	Profile.data.daily_streak = {"last": date, "days": days, "best": best_days}
+	if not (Profile.data.get("deeds") is Dictionary):
+		Profile.data.deeds = {}
+	Profile.data.deeds["daily_streak"] = maxi(int(Profile.data.deeds.get("daily_streak", 0)), best_days)

@@ -366,6 +366,8 @@ func _show_totals() -> void:
 	var today := Daily.best()
 	if not today.is_empty():
 		_stat("MENU_DAILY", tr("CHRONICLE_AREA") % int(today.get("area", 0)))
+	if int(Daily.streak().get("best", 0)) > 0:
+		_stat("CHRONICLE_DAILY_STREAK", "%d / %d" % [Daily.streak_days(), int(Daily.streak().best)])
 
 
 func _show_night(night: Dictionary) -> void:

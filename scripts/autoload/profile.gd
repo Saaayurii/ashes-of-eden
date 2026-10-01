@@ -41,6 +41,8 @@ static func _defaults() -> Dictionary:
 		"relics": {},
 		# The night of the day's best (scripts/run/daily.gd): {date, area, seconds, won, tries}.
 		"daily": {},
+		# Days in a row the night of the day was played (Daily.streak).
+		"daily_streak": {},
 		# The chronicle (bestiary): the last HISTORY nights, newest last.
 		"history": [],
 		# Counters the deeds read (Achievements.COUNTERS): parries, backstabs…

@@ -17,3 +17,10 @@ There is no shared leaderboard — that needs a server (docs/ROADMAP.md: telemet
 thing a leaderboard would need: two players of the same day played the same night.
 
 `scripts/run/daily.gd`, `daily_test.gd`.
+
+## The streak
+
+Days in a row a night of the day was finished, won or lost (`Daily.streak`, `Profile.data.daily_streak`): a second
+try on the same day changes nothing, the day after the last one adds a day, any gap starts again at one. It holds
+through the day after the last one played (`Daily.streak_days`) — today's night can still keep it. The Daily button's
+tooltip says it, the chronicle's totals show it with the best, and seven in a row are a deed (A Week of Nights).

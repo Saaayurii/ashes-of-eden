@@ -46,6 +46,22 @@ func _run() -> void:
 	_check(daily.record(day, 9, 900.0, false), "further is better")
 	_check(int(daily.best(day).tries) == 5 and daily.best("2026-09-30").is_empty(), "every try counted, the day's alone")
 
+	# the streak: days in a row, a second try changes nothing, a gap starts again
+	profile.data.daily_streak = {}
+	profile.data.deeds = {}
+	profile.data.achievements = {}
+	_check(daily.day_before("2026-03-01") == "2026-02-28" and daily.day_before("2026-01-01") == "2025-12-31",
+		"the day before crosses months and years")
+	for d in ["2026-04-01", "2026-04-01", "2026-04-02", "2026-04-03"]:
+		daily.record(d, 3, 300.0, false)
+	_check(int(daily.streak().days) == 3, "three days in a row, two tries on one (%s)" % daily.streak())
+	_check(daily.streak_days("2026-04-04") == 3 and daily.streak_days("2026-04-05") == 0, "  it holds through the next day, a missed one ends it")
+	daily.record("2026-04-06", 3, 300.0, false)
+	_check(int(daily.streak().days) == 1 and int(daily.streak().best) == 3, "a gap starts again at one, the best kept")
+	for i in 7:
+		daily.record("2026-05-%02d" % (i + 1), 3, 300.0, false)
+	_check(profile.data.achievements.has("daily_week"), "seven days in a row are A Week of Nights")
+
 	profile.data.relics = {"whetstone": true}
 	profile.data.nights = 0
 	profile.data.vials_opened = 0
