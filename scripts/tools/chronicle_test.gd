@@ -70,6 +70,20 @@ func _run() -> void:
 	_check(book.lore_label.text.contains(tr(data.abilities["mending_light"].name))
 			and book.lore_label.text.contains(tr(data.resonances["chorus"].name)), "a night's page names its gifts and resonances")
 	_check(not book.lore_label.text.contains("a_gift_that_was_removed"), "a gift that is gone is left out")
+	# the codex: gifts carried and resonances woken are named, the rest a question
+	_check(int(profile.data.bestiary.get("gift:mending_light", {}).get("nights", 0)) >= 1
+			and profile.data.bestiary.has("res:chorus"), "a night's gifts and resonances fill the codex")
+	book.open()
+	await process_frame
+	var carried = book.list.get_node_or_null("gift_mending_light")
+	_check(carried != null and carried.text.contains(tr(data.abilities["mending_light"].name)), "  a carried gift is named")
+	profile.data.bestiary.erase("gift:unbroken_stride")
+	book._show("gift:unbroken_stride")
+	_check(book.lore_label.text == "" and book.hint_label.text != "", "  one never carried stays a question")
+	book._show("gift:mending_light")
+	_check(book.lore_label.text == tr(data.abilities["mending_light"].description), "  its page says what it does")
+	book._show("res:chorus")
+	_check(book.lore_label.text == tr(data.resonances["chorus"].description), "  and a resonance's page what it wakes")
 	book.queue_free()
 
 	game.new_run()

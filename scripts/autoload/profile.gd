@@ -85,6 +85,12 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 	data.ash += ash
 	_note_lean()
 	_chronicle(wave, kills, seconds, won)
+	# every gift carried and resonance woken is a page in the codex (bestiary
+	# "gift:<id>", "res:<id>"): named from then on, its nights counted
+	for ability in Game.abilities:
+		_codex("gift:" + str(ability.get("id", "")))
+	for id in Game.resonances:
+		_codex("res:" + str(id))
 	# an omen drawn is a page in the book (bestiary "omen:<id>"): its nights, its dawns
 	if Game.omen != "":
 		var drawn: Dictionary = data.bestiary.get("omen:" + Game.omen, {"seen": true, "met": true, "kills": 0})
@@ -140,6 +146,14 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 	})
 	while data.history.size() > HISTORY:
 		data.history.pop_front()
+
+
+func _codex(key: String) -> void:
+	if key.ends_with(":"):
+		return
+	var page: Dictionary = data.bestiary.get(key, {"seen": true, "met": true, "kills": 0})
+	page["nights"] = int(page.get("nights", 0)) + 1
+	data.bestiary[key] = page
 
 
 ## A night that leaned clearly one way (the lead the aura shows at) extends
