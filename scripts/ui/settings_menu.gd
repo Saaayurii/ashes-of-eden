@@ -88,7 +88,7 @@ func _refresh() -> void:
 	for action in Settings.BINDABLE_ACTIONS:
 		var button: Button = bindings.get_node_or_null(action)
 		if button:
-			button.text = tr("SETTINGS_PRESS_KEY") if _rebinding == action else Settings.key_name(action)
+			button.text = tr("SETTINGS_PRESS_KEY") if _rebinding == action else Settings.key_name(action, false)
 
 
 ## On-screen controls (scripts/ui/touch_pad.gd): built here rather than in the

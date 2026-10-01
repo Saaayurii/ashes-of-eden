@@ -85,6 +85,7 @@ func _ready() -> void:
 	EventBus.run_restored.connect(_show_omen)
 	_refresh_keys()
 	Settings.changed.connect(_refresh_keys)
+	Settings.device_changed.connect(_refresh_keys)
 	# The player may be ready before us, so pull its initial state too.
 	var body := _local_player()
 	if body != null:

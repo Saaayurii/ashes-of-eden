@@ -3,6 +3,9 @@ extends Node
 ## key bindings. Applied on startup and whenever changed from the settings menu.
 
 signal changed
+## The player picked up the other device (a pad after the keyboard, or back):
+## prompts that name a button read key_name() again.
+signal device_changed
 
 const PATH := "user://settings.cfg"
 ## Order matters: this is the order shown in the language selector.
@@ -58,6 +61,7 @@ var keys: Dictionary = {}
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS  # the pad is noticed in the pause menu too (_input)
 	var cfg := ConfigFile.new()
 	cfg.load(PATH)
 	locale = cfg.get_value("general", "locale", _detect_locale())
@@ -311,7 +315,34 @@ func reset_keys() -> void:
 
 
 ## Human-readable name of the primary keyboard key of an action.
-func key_name(action: String) -> String:
+## Xbox names for the pad's buttons (JoyButton order): what a prompt shows
+## while the player is on a pad — any pad, the layout Godot maps them to.
+const PAD_BUTTONS := ["A", "B", "X", "Y", "View", "Guide", "Menu", "LS", "RS", "LB", "RB",
+	"D-Up", "D-Down", "D-Left", "D-Right"]
+## The device the player last pressed something on (Settings.device_changed).
+var using_pad := false
+
+
+func _input(event: InputEvent) -> void:
+	var pad := event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.5)
+	var other := event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch
+	if (pad and not using_pad) or (other and using_pad):
+		using_pad = pad
+		device_changed.emit()
+
+
+## The name of the button that does [param action] on the device in hand: a
+## pad's button while the player is on a pad and the action has one, else the
+## key. [param on_pad] false asks for the key whatever is in hand (rebinding).
+func key_name(action: String, on_pad := true) -> String:
+	if on_pad and using_pad:
+		for event in InputMap.action_get_events(action):
+			if event is InputEventJoypadButton:
+				var index := int((event as InputEventJoypadButton).button_index)
+				return PAD_BUTTONS[index] if index < PAD_BUTTONS.size() else "#%d" % index
+			if event is InputEventJoypadMotion:
+				var axis := int((event as InputEventJoypadMotion).axis)
+				return "LT" if axis == JOY_AXIS_TRIGGER_LEFT else ("RT" if axis == JOY_AXIS_TRIGGER_RIGHT else ("LS" if axis < 2 else "RS"))
 	for event in InputMap.action_get_events(action):
 		if event is InputEventKey:
 			# headless and the browser cannot map a physical key to the layout's
