@@ -43,6 +43,8 @@ var auto_attack := false
 ## Numbers over the struck (Fx.damage_number). Off for a quieter screen: the
 ## blow still flashes, staggers and sounds, only the figure is not drawn.
 var damage_numbers := true
+## Block by toggling, not holding (Player): an assist for hands that tire.
+var block_toggle := false
 ## One of GAME_SPEEDS. Never online (both bodies must run one clock) and never
 ## in the night of the day (every player is measured on the same one): time_scale().
 var game_speed := 1.0
@@ -90,6 +92,7 @@ func _ready() -> void:
 	difficulty = cfg.get_value("game", "difficulty", "standard")
 	vial = clampi(int(cfg.get_value("game", "vial", 0)), 0, 5)
 	omens = bool(cfg.get_value("game", "omens", true))
+	block_toggle = bool(cfg.get_value("access", "block_toggle", false))
 	game_speed = float(cfg.get_value("access", "game_speed", 1.0))
 	if not GAME_SPEEDS.has(game_speed):
 		game_speed = 1.0
@@ -135,6 +138,7 @@ func save() -> void:
 	cfg.set_value("access", "auto_attack", auto_attack)
 	cfg.set_value("access", "damage_numbers", damage_numbers)
 	cfg.set_value("access", "game_speed", game_speed)
+	cfg.set_value("access", "block_toggle", block_toggle)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "vial", vial)
 	cfg.set_value("game", "omens", omens)
@@ -232,6 +236,12 @@ func time_scale(in_tools := false) -> float:
 	if not in_tools and (args.has("-s") or args.has("--script")):
 		return 1.0
 	return game_speed
+
+
+func set_block_toggle(enabled: bool) -> void:
+	block_toggle = enabled
+	save()
+	changed.emit()
 
 
 func set_game_speed(speed: float) -> void:

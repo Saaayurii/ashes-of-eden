@@ -161,6 +161,15 @@ func _run() -> void:
 	settings.set_game_speed(was_speed)
 	_check(is_equal_approx(settings.game_speed, was_speed), "  put back as it was")
 
+	# block by toggling: a press raises the guard, it stays up, the next lowers it
+	var was_toggle: bool = settings.block_toggle
+	_check(menu.find_child("BlockToggleRow", true, false) != null, "the settings offer block by toggling")
+	settings.set_block_toggle(true)
+	cfg.load("user://settings.cfg")
+	_check(bool(cfg.get_value("access", "block_toggle", false)), "  and keeps it")
+	settings.set_block_toggle(was_toggle)
+	_check(settings.block_toggle == was_toggle, "  put back as it was")
+
 	settings.set_text_size(was_size)
 	settings.set_flashes(was_flashes)
 	current_scene = null

@@ -289,6 +289,8 @@ var _healing_left := 0.0
 var _rally_left := 0.0
 var _rally_pool := 0.0
 var _blocking := false
+## The guard held by toggling (Settings.block_toggle) rather than by the button.
+var _block_toggled := false
 ## The button on the previous tick. Freshness is tracked here rather than with
 ## is_action_just_pressed, which belongs to render frames and can be missed by
 ## (or seen twice by) the physics tick that decides the parry.
@@ -605,7 +607,12 @@ func _physics_process(delta: float) -> void:
 	# --- block ---
 	# A body committed to a slam, or still picking itself up from one, is not
 	# raising a guard.
-	var block_down := controls_enabled and Input.is_action_pressed("block")
+	# Settings.block_toggle: one press raises the guard, the next lowers it —
+	# for a hand that cannot hold a button. The raising press is still fresh,
+	# so a parry is the same timing either way.
+	if Settings.block_toggle and controls_enabled and Input.is_action_just_pressed("block"):
+		_block_toggled = not _block_toggled
+	var block_down := controls_enabled and (_block_toggled if Settings.block_toggle else Input.is_action_pressed("block"))
 	var wants_block := block_down and _healing_left <= 0.0 and _dash_left <= 0.0 and _attack_anim_left <= 0.0 \
 			and not _slamming and _slam_recovery <= 0.0
 	if wants_block and not _blocking:
@@ -1172,6 +1179,7 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	_dodge_counter_left = 0.0
 	_dodge_counted = false
 	_blocking = false
+	_block_toggled = false
 	_parry_left = 0.0
 	hp = stats.max_hp * clampf(fraction, 0.05, 1.0)
 	heal_charges = int(stats.heal_charges)

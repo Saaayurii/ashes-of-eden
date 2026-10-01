@@ -135,5 +135,26 @@ func _run() -> void:
 	_check(parried, "its swing was parried on the telegraph")
 	_check(is_equal_approx(player.hp, hp0), "and nothing landed (%.1f -> %.1f)" % [hp0, player.hp])
 
+	# block by toggling (Settings.block_toggle): a press raises the guard with a
+	# parry in it, it stays up once let go, the next press lowers it
+	var settings = root.get_node("Settings")
+	var was_toggle: bool = settings.block_toggle
+	guard.set_physics_process(false)
+	settings.set_block_toggle(true)
+	await _frames(40)  # past the last block's recovery
+	Input.action_press("block")
+	await _frames(2)
+	Input.action_release("block")
+	var parry_ready: bool = player._parry_left > 0.0
+	await _frames(10)
+	_check(player.is_blocking() and parry_ready, "toggled: a press raises the guard with a parry in it, and it stays up")
+	Input.action_press("block")
+	await _frames(2)
+	Input.action_release("block")
+	await _frames(1)
+	_check(not player.is_blocking(), "  the next press lowers it")
+	settings.set_block_toggle(was_toggle)
+	_check(settings.block_toggle == was_toggle, "  the setting put back as it was")
+
 	print("PARRY TEST %s" % ("FAILED" if _failed else "PASSED"))
 	quit(1 if _failed else 0)
