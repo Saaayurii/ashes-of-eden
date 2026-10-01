@@ -32,6 +32,8 @@ var _toast_tween: Tween
 var _rally_mark: ColorRect
 ## A cursed chest's price, beside the flasks while it is owed (Player.curse).
 var _curse_label: Label
+## The night's omen (data/omens), small under the area number.
+var _omen_label: Label
 
 
 func _ready() -> void:
@@ -67,6 +69,20 @@ func _ready() -> void:
 	_curse_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_curse_label.visible = false
 	add_child(_curse_label)
+	_omen_label = Label.new()
+	_omen_label.name = "Omen"
+	_omen_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_omen_label.offset_left = -200.0
+	_omen_label.offset_right = -8.0
+	_omen_label.offset_top = 124.0
+	_omen_label.offset_bottom = 136.0
+	_omen_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_omen_label.add_theme_font_size_override("font_size", 9)
+	_omen_label.add_theme_color_override("font_color", Color(0.95, 0.7, 0.65, 0.85))
+	_omen_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_omen_label)
+	_show_omen()
+	EventBus.run_restored.connect(_show_omen)
 	_refresh_keys()
 	Settings.changed.connect(_refresh_keys)
 	# The player may be ready before us, so pull its initial state too.
@@ -137,7 +153,13 @@ func _update_rally_mark() -> void:
 	_rally_mark.size = Vector2(trough_width * available / full, 6.0)
 
 
+func _show_omen() -> void:
+	var spec := Omens.spec(Game.omen)
+	_omen_label.text = "◇ " + tr(str(spec.get("name", ""))) if not spec.is_empty() else ""
+
+
 func _on_room_started(index: int) -> void:
+	_show_omen()
 	if Game.practice != "":
 		wave_label.text = ""  # the move list says where we are (MoveList)
 		return
