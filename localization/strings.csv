@@ -714,6 +714,8 @@ RES_BULWARK_DESC,"Iron Vigil and Ward of the Nameless: one more blow absorbed in
 PAUSE_MAP,"Map","Карта","Мапа","地图"
 PAUSE_CARRIED,"Gifts","Дары","Дари","恩赐"
 CARRIED_TITLE,"What you carry tonight","Что вы несёте этой ночью","Що ви несете цієї ночі","今夜所携"
+CARRIED_NEAR,"One gift away","В одном даре от созвучия","За один дар від співзвуччя","仅差一份恩赐"
+CARRIED_NEAR_NEEDS,"Wakes with one more: %s","Пробудится ещё с одним: %s","Пробудиться ще з одним: %s","再得一份即醒：%s"
 CARRIED_NONE,"Nothing yet. The night has given you nothing, or you have taken nothing.","Пока ничего. Ночь ещё ничего не дала — или вы ничего не взяли.","Поки нічого. Ніч ще нічого не дала — або ви нічого не взяли.","尚无一物。夜未曾给予，或你未曾接受。"
 MAP_TITLE,"The way through the night","Путь через ночь","Шлях крізь ніч","穿越长夜之路"
 MAP_HERE,"here","здесь","тут","此处"

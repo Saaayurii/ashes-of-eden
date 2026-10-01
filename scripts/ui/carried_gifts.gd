@@ -89,6 +89,20 @@ func open() -> void:
 		list.add_child(none)
 	for entry in all:
 		list.add_child(_row(entry))
+	# what one more gift would wake (Resonances.near): a reason for the next pick
+	var close := Resonances.near(Game.abilities)
+	if not close.is_empty():
+		var heading := Label.new()
+		heading.text = "CARRIED_NEAR"
+		heading.add_theme_font_size_override("font_size", 11)
+		heading.add_theme_color_override("font_color", GOLD)
+		list.add_child(heading)
+	for item in close:
+		var missing := tr("PATH_" + str(item.path).to_upper()) if item.has("path") \
+			else tr(str(Data.abilities[item.gift].get("name", item.gift)))
+		list.add_child(_row({"kind": "near", "name": "", "icon": "", "color": DIM,
+			"title": "◇ %s" % tr(str(Resonances.spec(item.id).get("name", item.id))),
+			"description": tr("CARRIED_NEAR_NEEDS") % missing}))
 	visible = true
 	_back.grab_focus()
 
@@ -116,7 +130,7 @@ func _row(entry: Dictionary) -> Control:
 	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	words.add_theme_constant_override("separation", 0)
 	var name_label := Label.new()
-	name_label.text = ("◆ " if entry.kind == "resonance" else "") + tr(entry.name)
+	name_label.text = str(entry.get("title", ("◆ " if entry.kind == "resonance" else "") + tr(entry.name)))
 	name_label.add_theme_font_size_override("font_size", 11)
 	name_label.add_theme_color_override("font_color", entry.color)
 	words.add_child(name_label)

@@ -79,6 +79,23 @@ func _run() -> void:
 	var missing := want.filter(func(t: String) -> bool: return not shown.has(t))
 	_check(carried.list.get_child_count() == 4 and missing.is_empty(), "every one is a row with its name and words (%s)" % [missing])
 	_check(shown.any(func(t: String) -> bool: return t.begins_with("◆ ")), "  a resonance marked as one")
+	# one gift away: Thorned Oath waits for its second gift while only the first is carried
+	carried.close()
+	var resonances = load("res://scripts/combat/resonances.gd")
+	game.abilities.clear()
+	game.resonances.clear()
+	ability_system.apply(player, data.abilities["briar_mantle"])
+	var near: Array = resonances.near(game.abilities)
+	var oath: Array = near.filter(func(n: Dictionary) -> bool: return n.get("gift", "") == "blood_pact")
+	_check(oath.size() == 1, "one gift short of a resonance is noticed (%s)" % [near])
+	button.pressed.emit()
+	await process_frame
+	shown = _texts(carried.list)
+	_check(shown.has("CARRIED_NEAR") and shown.any(func(t: String) -> bool:
+		return t.contains(TranslationServer.translate(data.abilities["blood_pact"].name))), "  and the Gifts page names the gift that would wake it")
+	ability_system.apply(player, data.abilities["blood_pact"])
+	_check(not resonances.near(game.abilities).any(func(n: Dictionary) -> bool: return n.id == oath[0].id if not oath.is_empty() else false),
+		"  woken, it is no longer one away")
 	var escape := InputEventAction.new()
 	escape.action = "ui_cancel"
 	escape.pressed = true
