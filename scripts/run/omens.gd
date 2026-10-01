@@ -47,7 +47,7 @@ static func for_new_night(in_tools := false) -> String:
 	if Game.daily != "":
 		rng.seed = Daily.seed_of(Game.daily) + 1
 		return roll(rng)
-	if int(Profile.data.get("nights", 0)) < FROM_NIGHT:
+	if int(Profile.data.get("nights", 0)) < FROM_NIGHT or not Settings.omens:
 		return ""
 	rng.randomize()
 	return roll(rng)

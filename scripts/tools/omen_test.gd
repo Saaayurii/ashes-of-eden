@@ -68,6 +68,18 @@ func _run() -> void:
 	for i in 50:
 		some = some or omens.for_new_night(true) != ""
 	_check(some, "  and after them omens come")
+	var settings = root.get_node("Settings")
+	var was_omens: bool = settings.omens
+	settings.set_omens(false)
+	var off := true
+	for i in 50:
+		off = off and omens.for_new_night(true) == ""
+	_check(off, "the switch in Settings keeps nights plain")
+	game.daily = "2026-10-01"
+	var daily_off: String = omens.for_new_night(true)
+	game.daily = ""
+	settings.set_omens(was_omens)
+	_check(settings.omens == was_omens, "  and is put back as it was")
 	game.practice = "cultist"
 	var none := true
 	for i in 50:
@@ -81,6 +93,7 @@ func _run() -> void:
 		same = same and omens.for_new_night(true) == first
 	profile.data.nights = 0
 	_check(same and omens.for_new_night(true) == first, "the night of the day draws the day's own, whatever the profile")
+	_check(daily_off == first, "  and whatever the switch in Settings says")
 	game.daily = ""
 
 	# --- the rules ---------------------------------------------------------------

@@ -147,6 +147,8 @@ func _build_access() -> void:
 ## The vial of wrath for the next night (scripts/run/vials.gd), under the
 ## difficulty; only once a dawn has opened the first, and only the ones opened.
 var _vial: OptionButton
+## Omens on or off (Settings.omens), under the vial; shown once they have begun.
+var _omens: CheckButton
 
 
 func _build_vial() -> void:
@@ -157,6 +159,12 @@ func _build_vial() -> void:
 	anchor.get_parent().add_child(row)
 	anchor.get_parent().move_child(row, anchor.get_index() + 1)
 	_vial.item_selected.connect(func(index: int) -> void: Settings.set_vial(index))
+	_omens = CheckButton.new()
+	_omens.toggled.connect(Settings.set_omens)
+	var omen_row := _row("SETTINGS_OMENS", _omens)
+	omen_row.name = "OmensRow"
+	anchor.get_parent().add_child(omen_row)
+	anchor.get_parent().move_child(omen_row, row.get_index() + 1)
 
 
 func _fill_vials() -> void:
@@ -169,6 +177,8 @@ func _fill_vials() -> void:
 		_vial.set_item_tooltip(tier, tr(str(Vials.spec(tier).get("description", ""))))
 	_vial.get_parent().visible = Vials.opened() > 0
 	_vial.select(clampi(Settings.vial, 0, Vials.opened()))
+	_omens.set_pressed_no_signal(Settings.omens)
+	_omens.get_parent().visible = int(Profile.data.get("nights", 0)) >= Omens.FROM_NIGHT
 
 
 ## The cloak: every skin listed, the locked ones greyed with how to earn them.

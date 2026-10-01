@@ -36,6 +36,9 @@ var flashes := "full"
 var auto_attack := false
 var difficulty := "standard"
 var vial := 0
+## Whether a new night may draw an omen (data/omens); the night of the day
+## draws the day's own whatever this says, so every player meets the same.
+var omens := true
 ## The hero's cloak (data/skins); only an unlocked one is ever kept (Skins.unlocked).
 var skin := "pilgrim"
 ## Chapter cards and the ash between rooms (scripts/autoload/curtain.gd).
@@ -72,6 +75,7 @@ func _ready() -> void:
 		flashes = "full"
 	difficulty = cfg.get_value("game", "difficulty", "standard")
 	vial = clampi(int(cfg.get_value("game", "vial", 0)), 0, 5)
+	omens = bool(cfg.get_value("game", "omens", true))
 	skin = str(cfg.get_value("game", "skin", "pilgrim"))
 	if not DIFFICULTIES.has(difficulty):
 		difficulty = "standard"
@@ -114,6 +118,7 @@ func save() -> void:
 	cfg.set_value("access", "auto_attack", auto_attack)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "vial", vial)
+	cfg.set_value("game", "omens", omens)
 	cfg.set_value("game", "skin", skin)
 	cfg.set_value("game", "transitions", transitions)
 	cfg.set_value("touch", "mode", touch_mode)
@@ -241,6 +246,12 @@ func set_fullscreen(enabled: bool) -> void:
 
 func set_skin(id: String) -> void:
 	skin = id
+	save()
+	changed.emit()
+
+
+func set_omens(enabled: bool) -> void:
+	omens = enabled
 	save()
 	changed.emit()
 
