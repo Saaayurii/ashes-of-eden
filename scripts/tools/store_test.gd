@@ -5,7 +5,8 @@ extends SceneTree
 ##   - a store that will not start (Steam not running) is not used;
 ##   - on start every deed already done is mirrored, once, with one storeStats;
 ##   - a deed done afterwards reaches the store the moment it is done;
-##   - one the store already has is not set again.
+##   - one the store already has is not set again;
+##   - a supporter skin ("sku": "steam:<dlc>") is unlocked only while Steam says it is owned.
 ## Puts the profile back as it found it.
 ##   godot --headless --path . -s scripts/tools/store_test.gd
 
@@ -36,6 +37,11 @@ class FakeSteam extends Object:
 
 	func run_callbacks() -> void:
 		polls += 1
+
+	var dlc := {}
+
+	func isDLCInstalled(app: int) -> bool:
+		return dlc.get(app, false)
 
 
 func _init() -> void:
@@ -79,6 +85,20 @@ func _run() -> void:
 		"a deed done now reaches the store the moment it is done (%s)" % [fake.set_calls])
 	bridge.poll()
 	_check(fake.polls == 1, "the store's callbacks are pumped")
+
+	# a supporter skin: owned only while the store says so
+	var data = root.get_node("Data")
+	var skins = load("res://scripts/player/skins.gd")
+	data.skins["store_test"] = {"id": "store_test", "sku": "steam:4242", "unlock": {}}
+	_check(not skins.unlocked("store_test"), "a supporter skin not bought stays locked")
+	fake.dlc[4242] = true
+	_check(skins.unlocked("store_test") and bridge.owns("steam:4242"), "  bought, it is unlocked")
+	_check(not bridge.owns("itch:4242") and not bridge.owns("steam:nope"), "  a sku no store here knows is not owned")
+	Engine.unregister_singleton("Steam")
+	bridge.start()
+	_check(not skins.unlocked("store_test"), "  and a build without the store does not trust anything else")
+	data.skins.erase("store_test")
+	Engine.register_singleton("Steam", fake)
 
 	Engine.unregister_singleton("Steam")
 	bridge.start()  # back to no store

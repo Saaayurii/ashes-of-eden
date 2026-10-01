@@ -37,6 +37,20 @@ static func start() -> bool:
 	return true
 
 
+## Whether the store says this player owns [param sku] (a skin's "sku",
+## docs/MONETIZATION.md). Read from the store each time, never from user://:
+## "steam:<dlc app id>" asks Steam (isDLCInstalled — Steam answers offline
+## too, from its own licence cache). A store this build does not carry, or a
+## sku no store here knows, is not owned.
+static func owns(sku: String) -> bool:
+	if sku.begins_with("steam:"):
+		var app := sku.trim_prefix("steam:")
+		if _steam == null or not app.is_valid_int() or not _steam.has_method("isDLCInstalled"):
+			return false
+		return bool(_steam.call("isDLCInstalled", int(app)))
+	return false
+
+
 ## Pumps Steam's callbacks; the Profile calls it every frame while a store is in hand.
 static func poll() -> void:
 	if _steam != null and _steam.has_method("run_callbacks"):

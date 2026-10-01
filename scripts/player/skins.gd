@@ -3,7 +3,8 @@ class_name Skins
 ## A free skin unlocks by playing — nights survived, a boss put down, the dead
 ## put to rest — read from the Profile each time, so nothing extra is stored
 ## and an older profile that already did it has it at once. A skin with a
-## "sku" belongs to a store; until there is one, it stays locked.
+## "sku" belongs to a store: unlocked only while the store says it is owned
+## (StoreBridge.owns), whatever the profile holds.
 
 const DEFAULT := "pilgrim"
 
@@ -14,8 +15,10 @@ static func spec(id: String) -> Dictionary:
 
 static func unlocked(id: String) -> bool:
 	var entry := spec(id)
-	if entry.is_empty() or str(entry.get("sku", "")) != "":
+	if entry.is_empty():
 		return false
+	if str(entry.get("sku", "")) != "":
+		return StoreBridge.owns(str(entry.sku))
 	var rule: Dictionary = entry.get("unlock", {})
 	if int(Profile.data.get("nights", 0)) < int(rule.get("nights", 0)):
 		return false

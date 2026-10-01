@@ -327,6 +327,9 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			for enemy in entry.get("unlock", {}).get("kills", {}):
 				if not _enemy_ids.has(enemy):
 					_error("%s: unlock.kills names no enemy: %s" % [where, enemy])
+			var sku := str(entry.get("sku", ""))
+			if sku != "" and not (sku.begins_with("steam:") and sku.trim_prefix("steam:").is_valid_int()):
+				_error("%s: sku is \"steam:<dlc app id>\" (StoreBridge.owns knows no other store yet): %s" % [where, sku])
 			var cloak: Dictionary = entry.get("cloak", {})
 			if float(cloak.get("hue", 0.0)) < 0.0 or float(cloak.get("hue", 0.0)) > 1.0:
 				_error("%s: cloak.hue is 0..1" % where)

@@ -30,6 +30,15 @@ name and description come from `DEED_<ID>` / `DEED_<ID>_DESC` in
 `store_test.gd` runs the bridge against a stand-in singleton (no store, a store that
 will not start, the catch-up on start, a deed done live, one already on the store).
 
+## Supporter skins
+
+A skin with `"sku": "steam:<dlc app id>"` in `data/skins` is unlocked only while
+`StoreBridge.owns` says Steam reports that DLC installed (`isDLCInstalled`), asked
+each time the cloak list is read — never a flag in `user://`, which a player can
+edit. Steam answers from its own licence cache when offline. A build without
+Steam (Web, Android, itch) does not own any sku; the validator refuses a sku in
+any other form until another store is wired here. `store_test.gd`.
+
 ## Putting GodotSteam in a build
 
 1. Download the GodotSteam **GDExtension** build matching the Godot version and drop
