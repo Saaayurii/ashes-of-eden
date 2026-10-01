@@ -520,6 +520,16 @@ def expand_painted_room(name, room):
         out["cornice_crop"] = (1000, 420) if name == "swamp_moon" else (1480, 255)
     if name == "swamp_moon":
         out["painted_platforms"].append((1250, 413, 90, 14))
+        # A narrow crossbeam is already painted between the old arch's piers.
+        # Its collision completes the return climb from the swamp to the entry
+        # terrace without drawing another unsupported platform over the water.
+        arch_rail = (490, 304, 62, 8)
+        out.setdefault("platform_names", {})[len(out["platforms"]) + 1] = "ArchRail"
+        out["platforms"].append(arch_rail)
+        out["painted_platforms"].append(arch_rail)
+        # The added return tread sits directly below the exit dock. Timber
+        # braces tie it to that dock instead of leaving a plank in mid-air.
+        out["hanging_supports"] = {1: (65, 65, "timber")}
     if name == "catacombs_1":
         out["painted_cornices"] = True
         out["cornice_crop"] = (1160, 234)
@@ -1124,7 +1134,9 @@ def terrain_nodes(r, rng, used, walls=True):
             out.append(f'[node name="{named or f"Platform{i}"}Hangers" type="Node2D" parent="Terrain"]\n'
                        f'position = Vector2({x}, {y})\nscript = ExtResource("hanging_support")\n'
                        f'walk_width = {float(w)}\nleft_length = {float(hanging[0])}\n'
-                       f'right_length = {float(hanging[1])}\n\n')
+                       f'right_length = {float(hanging[1])}\n'
+                       + ('timber = true\n' if len(hanging) > 2 and hanging[2] == "timber" else '')
+                       + '\n')
         if r.get("painted_cornices"):
             # Reuse this room's painted stone cap, rather than a foreign
             # grid-textured pier. Both cornices meet the existing arch wall.
