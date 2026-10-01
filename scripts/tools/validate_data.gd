@@ -62,6 +62,7 @@ const REQUIRED := {
 	"vials": ["id", "tier", "name", "description", "rules"],
 	"relics": ["id", "name", "description", "cost", "effects"],
 	"omens": ["id", "name", "description", "rules"],
+	"affixes": ["id", "name", "color", "mods"],
 }
 
 var errors: PackedStringArray = []
@@ -321,6 +322,19 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_relic(entry, where)
 		"omens":
 			_check_omen(entry, where)
+		"affixes":
+			_use_key(entry.get("name", ""), where)
+			for key in entry.get("mods", {}):
+				var value := float(entry.mods[key])
+				match key:
+					"hp", "damage", "speed", "cooldown":
+						if value < 0.5 or value > 2.0:
+							_error("%s: mods.%s is a multiplier, 0.5..2" % [where, key])
+					"armor":
+						if value < 0.0 or value > 0.3:
+							_error("%s: mods.armor adds 0..0.3 (an elite stays killable)" % where)
+					_:
+						_error("%s: mods.%s is not hp, damage, speed, cooldown or armor" % [where, key])
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)

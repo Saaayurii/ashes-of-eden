@@ -363,12 +363,23 @@ func _spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
 	if promote.has(enemy_id) and randf() < float(Vials.rule("promote_chance")):
 		enemy_id = str(promote[enemy_id])
 	_enemy_counter += 1
-	var data := {"n": _enemy_counter, "id": enemy_id, "pos": at, "aware": aware}
+	var data := {"n": _enemy_counter, "id": enemy_id, "pos": at, "aware": aware, "affix": roll_affix(enemy_id)}
 	if Net.active:
 		return enemy_spawner.spawn(data) as Enemy
 	var enemy := _make_enemy(data)
 	entities.add_child(enemy)
 	return enemy as Enemy
+
+
+## An elite rises with one affix (data/affixes), each the same odds; a common
+## enemy, a boss, and anything in the practice yard rise with none.
+static func roll_affix(enemy_id: String) -> String:
+	var spec: Dictionary = Data.enemies.get(enemy_id, {})
+	if Game.practice != "" or spec.get("boss", false) or not spec.get("tags", []).has("elite") or Data.affixes.is_empty():
+		return ""
+	var ids: Array = Data.affixes.keys()
+	ids.sort()
+	return str(ids[randi() % ids.size()])
 
 
 func _make_enemy(data: Dictionary) -> Node:
@@ -377,6 +388,7 @@ func _make_enemy(data: Dictionary) -> Node:
 	enemy.enemy_id = str(data.id)
 	enemy.position = data.pos
 	enemy.start_aware = bool(data.get("aware", false))
+	enemy.affix = str(data.get("affix", ""))
 	enemy.attach_net_sync()
 	return enemy
 

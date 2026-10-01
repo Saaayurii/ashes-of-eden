@@ -1,0 +1,6 @@
+[
+  {"id": "ironclad", "name": "AFFIX_IRONCLAD", "color": "#b8c4d0", "mods": {"armor": 0.2, "speed": 0.85}},
+  {"id": "swift", "name": "AFFIX_SWIFT", "color": "#9fe0ff", "mods": {"speed": 1.35, "cooldown": 0.85, "hp": 0.85}},
+  {"id": "brutal", "name": "AFFIX_BRUTAL", "color": "#ff7a5a", "mods": {"damage": 1.35, "cooldown": 1.15}},
+  {"id": "enduring", "name": "AFFIX_ENDURING", "color": "#b6e08a", "mods": {"hp": 1.6, "damage": 0.9}}
+]

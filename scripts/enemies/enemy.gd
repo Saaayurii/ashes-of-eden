@@ -75,6 +75,10 @@ const PERSONAL_SPACE := 36.0
 const FLOCK_SPACE := 30.0
 
 @export var enemy_id: String = "possessed_villager"
+## What this elite rose with (data/affixes), "" for none: chosen by the host
+## at spawn (Run._spawn_enemy) and carried in the spawn data, so every peer
+## builds the same body.
+var affix := ""
 ## Set by the spawner for reinforcements: they arrive already fighting.
 @export var start_aware := false
 
@@ -192,6 +196,7 @@ func _ready() -> void:
 	stats.damage = float(stats.get("damage", 0)) * damage_scale
 	for attack in stats.get("attacks", []) + ([stats.attack] if stats.has("attack") else []):
 		attack.damage = float(attack.get("damage", 0)) * damage_scale
+	_apply_affix()
 	_max_hp = stats.hp
 	hp = _max_hp
 	_attacks = stats.get("attacks", [])
@@ -224,6 +229,7 @@ func _ready() -> void:
 		_light = Fx.light(self, Vector2(0, -10), Color(spec.get("color", stats.get("color", "#ffffff"))),
 			float(spec.get("radius", 50)), float(spec.get("energy", 0.7)), float(spec.get("flicker", 0.0)), 0.15)
 	_mark_elite()
+	_show_affix()
 	if not _is_flying():
 		_shadow = Fx.shadow(self, Vector2(0, 11), size * 1.6, 0.7)
 	if _is_flying():
@@ -259,6 +265,50 @@ func _mark_elite() -> void:
 		if state != State.DEAD and visible and is_inside_tree():
 			Fx.ash(global_position + Vector2(randf_range(-6.0, 6.0), -4.0), ELITE_EMBER * Color(1, 1, 1, 0.8), 3, 18.0, 6.0))
 	add_child(motes)
+
+
+## An affix changes the numbers, never the wind-ups: hp, damage, speed and
+## the rest between blows are multiplied, armour added (capped like any armour).
+func _apply_affix() -> void:
+	var spec: Dictionary = Data.affixes.get(affix, {})
+	if spec.is_empty():
+		affix = ""
+		return
+	var mods: Dictionary = spec.get("mods", {})
+	stats.hp = float(stats.hp) * float(mods.get("hp", 1.0))
+	stats.speed = float(stats.get("speed", 50)) * float(mods.get("speed", 1.0))
+	stats.armor = minf(0.5, float(stats.get("armor", 0.0)) + float(mods.get("armor", 0.0)))
+	var damage := float(mods.get("damage", 1.0))
+	var cooldown := float(mods.get("cooldown", 1.0))
+	stats.damage = float(stats.damage) * damage
+	for attack in stats.get("attacks", []) + ([stats.attack] if stats.has("attack") else []):
+		attack.damage = float(attack.get("damage", 0)) * damage
+		attack.cooldown = float(attack.get("cooldown", 1.5)) * cooldown
+
+
+## The affix's name over the elite's head, in its colour.
+func _show_affix() -> void:
+	if affix == "":
+		return
+	var label := Label.new()
+	label.name = "Affix"
+	label.text = tr(str(Data.affixes[affix].get("name", affix)))
+	label.add_theme_font_size_override("font_size", 7)
+	label.add_theme_color_override("font_color", Color(str(Data.affixes[affix].get("color", "#ffffff"))))
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	label.add_theme_constant_override("outline_size", 3)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.size = Vector2(80, 10)
+	label.position = Vector2(-40, -float(stats.get("size", 12)) - 30.0)
+	label.z_index = 6
+	# the room's night (Ambient, a CanvasModulate) darkens everything in the
+	# world; the name is a word to read, so it is lifted back to its own colour
+	var night := get_tree().get_first_node_in_group("ambient") as CanvasModulate
+	if night != null and night.visible:
+		var c := night.color
+		label.self_modulate = Color(minf(4.0, 1.0 / maxf(c.r, 0.25)), minf(4.0, 1.0 / maxf(c.g, 0.25)),
+			minf(4.0, 1.0 / maxf(c.b, 0.25)))
+	add_child(label)
 
 
 func _is_flying() -> bool:

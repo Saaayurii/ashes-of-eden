@@ -147,6 +147,10 @@ Two more trades for a gift or an item, both off the main road of power:
   common item and 30 essence. Items are once each per night, so a vial that
   promotes half the dead runs out of items long before it runs out of elites;
   after that a cache is only essence.
+- **Elite affixes** (`affix_test.gd`): each elite rises Ironclad (+0.2 armour, slower),
+  Swift (faster and quicker between blows, frailer), Brutal (blows ×1.35, slower
+  between them) or Enduring (×1.6 life, blows ×0.9) — named over its head, so the
+  fight is read before it starts. Never the wind-up: every blow stays readable.
 - **Blood altars** (`blood_altar_test.gd`, two in the chapter): a whole extra gift
   for 15 % of the bar, for the rest of the night. Worth it early, when the gift has
   the most rooms to pay back in; a bad deal before a boss on a thin bar. The cards
