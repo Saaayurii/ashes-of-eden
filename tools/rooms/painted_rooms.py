@@ -401,7 +401,7 @@ PAINTED = {
         ramps=[(190, 490, 320, 522)],
         platforms=[(300, 300, 56, 10)],
         spawns=[("possessed_villager", 500, 263), ("fallen_guard", 700, 445), ("zealot", 950, 411),
-                ("cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
+                ("elite_cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
                 ("preacher_acolyte", 950, 631), ("wraith", 500, 400), ("shade", 800, 250), ("shade", 1100, 300)],
         props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 890, 423), ("sack", 750, 457), ("funeral_offering", 1000, 423),
                ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1245, 603), ("sack", 1180, 603)],

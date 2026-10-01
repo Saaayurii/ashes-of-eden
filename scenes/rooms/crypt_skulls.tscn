@@ -628,7 +628,7 @@ enemy_id = "zealot"
 [node name="Spawn4" type="Marker2D" parent="Spawns"]
 position = Vector2(1400, 392)
 script = ExtResource("5_spawn")
-enemy_id = "cultist"
+enemy_id = "elite_cultist"
 
 [node name="Spawn5" type="Marker2D" parent="Spawns"]
 position = Vector2(150, 463)

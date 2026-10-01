@@ -1,6 +1,6 @@
 [
   {"id": "vial_1", "tier": 1, "name": "VIAL_1", "description": "VIAL_1_DESC", "ash": 1.25,
-   "rules": {"promote_chance": 0.25, "promote": {"possessed_villager": "elite_possessed", "fallen_guard": "fallen_champion"}}},
+   "rules": {"promote_chance": 0.25, "promote": {"possessed_villager": "elite_possessed", "fallen_guard": "fallen_champion", "cultist": "elite_cultist"}}},
   {"id": "vial_2", "tier": 2, "name": "VIAL_2", "description": "VIAL_2_DESC", "ash": 1.5,
    "rules": {"flasks": -1}},
   {"id": "vial_3", "tier": 3, "name": "VIAL_3", "description": "VIAL_3_DESC", "ash": 1.75,

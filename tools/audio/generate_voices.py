@@ -250,6 +250,7 @@ RECIPES = {
     "shade": lambda w: whisper(500 * w, 2400 * w),
     "wraith": lambda w: whistle(620 * w),
     "cultist": lambda w: grunt(140 * w),
+    "elite_cultist": lambda w: grunt(105 * w),  # the same robe, an older, lower throat
     "cult_caller": lambda w: caller(190 * w),
     "zealot": lambda w: chime(880 * w),
     "fallen_guard": lambda w: metal(95 * w),

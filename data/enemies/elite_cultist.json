@@ -1,0 +1,54 @@
+{
+  "id": "elite_cultist",
+  "name": "ENEMY_ELITE_CULTIST",
+  "lore": "ENEMY_ELITE_CULTIST_LORE",
+  "hp": 94,
+  "speed": 88,
+  "damage": 0,
+  "attack_interval": 0.8,
+  "behaviour": "walker",
+  "aggro_range": 440,
+  "size": 12,
+  "color": "#5a1a22",
+  "material": "cloth",
+  "family": "cult",
+  "tier": 2,
+  "tags": [
+    "human",
+    "cult",
+    "elite"
+  ],
+  "stagger_chance": 0.15,
+  "sprite": {
+    "like": "cultist",
+    "tint": "#e09090"
+  },
+  "attacks": [
+    {
+      "name": "Consecrated Knife",
+      "type": "melee",
+      "range": 36,
+      "reach": 44,
+      "windup": 0.44,
+      "damage": 16,
+      "cooldown": 1.5,
+      "recover": 0.3,
+      "weight": 4,
+      "animation": "attack"
+    },
+    {
+      "name": "Zealot's Rush",
+      "type": "lunge",
+      "range": 220,
+      "windup": 0.7,
+      "damage": 15,
+      "cooldown": 3.0,
+      "lunge_speed": 320,
+      "lunge_time": 0.38,
+      "recover": 0.6,
+      "weight": 2,
+      "animation": "attack_alt"
+    }
+  ],
+  "essence": 50
+}
