@@ -97,6 +97,10 @@ var player: Player
 func _ready() -> void:
 	Game.new_run()
 	Game.vial = Vials.for_new_night()
+	if Game.daily != "":
+		# the night of the day: its own vial and its own deal, the same for all
+		Game.vial = Daily.vial_of(Game.daily)
+		_gift_rng.seed = Daily.seed_of(Game.daily)
 	player_spawner.spawn_function = _make_player
 	enemy_spawner.spawn_function = _make_enemy
 	players_root.child_entered_tree.connect(_on_player_entered)
@@ -124,6 +128,9 @@ func _ready() -> void:
 	var deeds := DeedToast.new()
 	deeds.name = "DeedToast"
 	$UI.add_child(deeds)
+	Game.daily_best = false
+	if Game.daily != "":
+		deeds.say_text(tr("DAILY_START") % tr(str(Vials.spec(Game.vial).get("name", ""))))
 	if not Net.active:
 		var save := Saves.take_pending()
 		_spawn_player(1, 0)
@@ -327,8 +334,10 @@ func _on_player_ready(body: Player) -> void:
 	if Net.active and body.get_multiplayer_authority() != multiplayer.get_unique_id():
 		return
 	player = body
-	# what the Ash bought (data/relics); a loaded save puts its own stats back over it
-	Relics.apply(body)
+	# what the Ash bought (data/relics); a loaded save puts its own stats back over it.
+	# Not in the night of the day: every player starts it the same.
+	if Game.daily == "":
+		Relics.apply(body)
 	body.died.connect(_on_local_death)
 	_place_local_player()
 
@@ -467,7 +476,7 @@ func _build_room(index: int) -> void:
 	room.reopened.connect(_on_room_reopened)
 	room.exited.connect(_on_room_exited)
 	_place_local_player()
-	if not Net.active and player != null and index != PRACTICE_INDEX:
+	if not Net.active and player != null and index != PRACTICE_INDEX and Game.daily == "":
 		checkpoint = Saves.capture(ROOMS[index], kills, elapsed, player)
 		Saves.write(Saves.AUTO, checkpoint)
 	if _is_server():
@@ -777,7 +786,7 @@ func _announce_unlocks() -> void:
 ## players must be offered the same cards whatever they have played before.
 static func gift_locked(ability: Dictionary) -> bool:
 	var needs := int(ability.get("unlock_nights", 0))
-	if needs <= 0 or Net.mode == Net.Mode.PVP or Relics.early(str(ability.get("id", ""))):
+	if needs <= 0 or Net.mode == Net.Mode.PVP or Game.daily != "" or Relics.early(str(ability.get("id", ""))):
 		return false
 	return int(Profile.data.get("nights", 0)) < needs
 
@@ -798,13 +807,18 @@ static func gifts_unlocked_tonight() -> Array:
 ## once it turns up (docs/BALANCE.md). The weights are relative, so a path
 ## whose commons have all been taken still offers its rare cards rather than
 ## going empty.
+## The night of the day deals from the day's seed (Daily), so every player is
+## offered the same cards in the same order for the same choices.
+var _gift_rng := RandomNumberGenerator.new()
+
+
 func _weighted_pick(pool: Array) -> Dictionary:
 	var total := 0.0
 	for ability in pool:
 		total += float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
 	if total <= 0.0:
 		return {}
-	var roll := randf() * total
+	var roll := (_gift_rng.randf() if Game.daily != "" else randf()) * total
 	for ability in pool:
 		roll -= float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
 		if roll <= 0.0:
@@ -950,6 +964,8 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 	reached = Route.step(ROOMS, place_index) + 1
 	if not Net.dedicated:  # a referee plays no night of its own
 		Profile.record_run(reached, total_kills, seconds, ash, won)
+		if Game.daily != "":
+			Game.daily_best = Daily.record(Game.daily, reached, seconds, won)
 	$UI/PauseMenu.visible = false
 	# A fall beyond the map is already off-screen: show the result at once.
 	var end_delay := 0.0 if not won and player != null and player.fell_outside_room else (0.9 if not won else 0.4)

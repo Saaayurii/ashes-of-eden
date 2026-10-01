@@ -46,6 +46,8 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/vials_test.gd
         godot --headless -s scripts/tools/accessibility_test.gd
         godot --headless -s scripts/tools/relics_test.gd
+        godot --headless -s scripts/tools/auto_attack_test.gd
+        godot --headless -s scripts/tools/daily_test.gd
         ;;
     net-test)
         shift

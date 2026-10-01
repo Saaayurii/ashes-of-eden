@@ -72,6 +72,17 @@ func _ready() -> void:
 	%OpenBestiary.pressed.connect(%Bestiary.open)
 	# the practice yard with its straw man: the moves, without a night at stake
 	Game.practice = ""
+	# the night of the day (Daily): beside Play, the same night for everyone today
+	Game.daily = ""
+	var daily := Button.new()
+	daily.name = "PlayDaily"
+	daily.text = "MENU_DAILY"
+	daily.tooltip_text = tr("DAILY_TOOLTIP") % tr(str(Vials.spec(Daily.vial_of(Daily.today())).get("name", "")))
+	_pair(play_button, daily, "PlayRow")
+	daily.pressed.connect(func() -> void:
+		Game.daily = Daily.today()
+		Saves.pending = {}
+		Curtain.change_scene(RUN_SCENE, true))
 	%OpenPractice.pressed.connect(func() -> void:
 		Game.practice = "training_dummy"
 		Curtain.change_scene(RUN_SCENE))

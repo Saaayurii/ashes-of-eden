@@ -72,6 +72,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] The browser build opens on its own page rather than Godot's: the chapter-one graveyard panel with Elian's idle sprite standing in it, generated from the game's own art by `tools/art/make_web_gate.py`. It also fixes the two things the default shell got wrong — audio, which a browser will not start without a click, and the touch pad, which appeared on every desktop browser because a Web export has no `pc` feature
 
 ## v0.6 — Desktop stores
+- [x] The night of the day (`docs/DAILY.md`): one seeded night a day, the same for every player, best of the day kept — [ ] a shared leaderboard, which needs a server
 - [x] The vials of wrath (`docs/VIALS.md`): five rungs opened by dawns, each adding a rule, the Ash multiplied (`vials_test.gd`)
 - [x] Achievements in the game first (`docs/ACHIEVEMENTS.md`): twenty deeds as data, read from the profile, a line on screen when one is done and a section of the bestiary listing them all; their ids are the API names a store will use (`achievements_test.gd`)
 - [ ] Steam page, achievements mirrored to Steam, cloud saves

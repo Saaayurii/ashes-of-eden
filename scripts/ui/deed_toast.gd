@@ -33,6 +33,11 @@ func announce(id: String) -> void:
 	_say(id)
 
 
+## A line of its own, already translated (the night of the day's opening).
+func say_text(line: String) -> void:
+	_say("txt:" + line)
+
+
 func _say(id: String) -> void:
 	_queue.append(id)
 	if not _busy:
@@ -45,7 +50,9 @@ func _next() -> void:
 		return
 	_busy = true
 	var id: String = _queue.pop_front()
-	if id.begins_with("res:"):
+	if id.begins_with("txt:"):
+		text = id.trim_prefix("txt:")
+	elif id.begins_with("res:"):
 		var resonance := Resonances.spec(id.trim_prefix("res:"))
 		text = "%s\n%s" % [tr("RES_WOKEN") % tr(str(resonance.get("name", ""))), tr(str(resonance.get("description", "")))]
 	else:

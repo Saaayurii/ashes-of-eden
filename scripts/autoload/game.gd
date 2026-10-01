@@ -38,6 +38,11 @@ var ash_earned := 0
 ## new_run itself. While set nothing counts: no essence, no Ash, no
 ## bestiary, no profile, no save.
 var practice := ""
+## The date of the night of the day being played (scripts/run/daily.gd), "" for
+## an ordinary night. Set by the main menu like practice, kept across new_run.
+var daily := ""
+## Whether the night of the day just finished beat the day's best (end screen).
+var daily_best := false
 ## Rooms this body cleared without a wound, this night (Run._on_unscathed).
 var unscathed := 0
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.

@@ -33,7 +33,7 @@ func _ready() -> void:
 	open_map.pressed.connect(func() -> void: panel.visible = false; chapter_map.open())
 	chapter_map.closed.connect(func() -> void: panel.visible = true; open_map.grab_focus())
 	# Saving is solo: a session's rooms are the host's (see Saves).
-	%SaveRow.visible = not Net.active
+	%SaveRow.visible = not Net.active and Game.daily == ""  # the night of the day is played once through
 	%OpenSave.pressed.connect(_open_saves.bind("save"))
 	%OpenLoad.pressed.connect(_open_saves.bind("load"))
 	save_menu.closed.connect(func() -> void: panel.visible = true; %OpenSave.grab_focus())

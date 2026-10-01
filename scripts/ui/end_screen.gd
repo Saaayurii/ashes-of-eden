@@ -65,7 +65,11 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	# the vial this night was played under, and the one a dawn opens (data/vials)
 	if Game.vial > 0:
 		stats.text += "   ·   " + tr(str(Vials.spec(Game.vial).get("name", "")))
-	if won and Game.vial < Vials.TIERS and Vials.opened() == Game.vial + 1:
+	# the night of the day: where it stands against the day's best (Daily)
+	if Game.daily != "":
+		var day := Daily.best(Game.daily)
+		best.text += "\n" + (tr("DAILY_NEW_BEST") if Game.daily_best else tr("DAILY_BEST") % int(day.get("area", 0)))
+	if won and Game.daily == "" and Game.vial < Vials.TIERS and Vials.opened() == Game.vial + 1:
 		best.text += "\n" + tr("VIAL_OPENED") % tr(str(Vials.spec(Game.vial + 1).get("name", "")))
 	# a night lost with moves still unknown: the yard is where they are learnt
 	if not won and not (Profile.data.moves_done.has("lunge") and Profile.data.moves_done.has("cleave")
