@@ -7,9 +7,9 @@ extends Node
 ##
 ## Events (one per line, "t" = seconds since the run started):
 ##   run_start, room_start {room, index}, room_clear {room, seconds, damage, deaths},
-##   hurt {room, fraction}, death {room, x, y}, boss {room, id, seconds},
+##   hurt {room, fraction}, death {room, x, y, by}, boss {room, id, seconds},
 ##   gift {id, rarity, path}, level {level}, choice {dialogue, choice}, secret {room, note, first},
-##   run_end {won, seconds}
+##   run_end {won, seconds, level, gifts, alignment, omen, vial}
 ##
 ## Off in tool scripts (-s) and in online sessions' non-host peers; turn it off
 ## entirely with Settings "playtest_log" = false.
@@ -92,7 +92,7 @@ func _end(won: bool) -> void:
 	if not _active:
 		return
 	_write("run_end", {"won": won, "seconds": snappedf(_clock, 0.1), "level": Game.level,
-		"gifts": Game.abilities.size(), "alignment": Game.alignment})
+		"gifts": Game.abilities.size(), "alignment": Game.alignment, "omen": Game.omen, "vial": Game.vial})
 	_active = false
 	_file = null
 
@@ -127,7 +127,8 @@ func _on_died() -> void:
 	for node in get_tree().get_nodes_in_group("player"):
 		if node.is_multiplayer_authority():
 			at = node.global_position
-	_write("death", {"room": _room, "x": int(at.x), "y": int(at.y)})
+	# by: what laid him low (Game.slain_by: an enemy id, "lava", "fall")
+	_write("death", {"room": _room, "x": int(at.x), "y": int(at.y), "by": Game.slain_by})
 	_end(false)
 
 

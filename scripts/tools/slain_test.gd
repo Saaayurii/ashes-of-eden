@@ -142,6 +142,26 @@ func _run() -> void:
 		_check(standing, "  and %s stands in it" % killer)
 		game.practice = ""
 
+	# --- the balance probe reads who kills real hands, and how omens end ----------
+	var probe = load("res://scripts/tools/balance_probe.gd")
+	DirAccess.make_dir_recursive_absolute("user://playtest_tools")
+	var log_a := "user://playtest_tools/a.jsonl"
+	var log_b := "user://playtest_tools/b.jsonl"
+	var one := FileAccess.open(log_a, FileAccess.WRITE)
+	one.store_string('{"e":"death","room":"r","by":"zealot"}\n{"e":"run_end","won":false,"omen":"blood_moon"}\n')
+	one = null
+	var two := FileAccess.open(log_b, FileAccess.WRITE)
+	two.store_string('{"e":"death","room":"r","by":"zealot"}\n{"e":"death","room":"r","by":"lava"}\n{"e":"run_end","won":true,"omen":""}\n')
+	two = null
+	var rows: Array = probe.killer_and_omen_rows([log_a, log_b])
+	var text := "\n".join(rows)
+	_check(text.contains("| zealot | 2 | 67 % |") and text.contains("| lava | 1 | 33 % |")
+			and text.find("zealot") < text.find("lava"), "the probe ranks what laid real hands low")
+	_check(text.contains("| blood_moon | 1 | 0 |") and text.contains("| (none) | 1 | 1 |"), "  and how each omen's nights ended")
+	DirAccess.remove_absolute(log_a)
+	DirAccess.remove_absolute(log_b)
+	DirAccess.remove_absolute("user://playtest_tools")
+
 	game.new_run()
 	_check(game.slain_by == "", "a new night starts with nothing to blame")
 	profile.data = saved

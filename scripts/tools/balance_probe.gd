@@ -455,6 +455,7 @@ func _append_playtests(estimate: float) -> void:
 	var bosses := {}
 	var finished: Array = []
 	var moves := {}  # special move -> times used (docs/TECHNIQUES.md)
+	_cause_rows = killer_and_omen_rows(files)
 	for path in files:
 		for line in FileAccess.get_file_as_string(path).split("\n", false):
 			var e = JSON.parse_string(line)
@@ -494,6 +495,56 @@ func _append_playtests(estimate: float) -> void:
 			int(deaths.get(r, 0)),
 			"%.1f min" % (_median(boss) / 60.0) if not boss.is_empty() else "—"])
 	_append_moves(moves, files.size())
+	_lines.append_array(PackedStringArray(_cause_rows))
+
+
+var _cause_rows: Array = []
+
+
+## What laid real hands low, most often first, and how each omen's nights
+## ended — the two tables to tune data/enemies and data/omens against.
+## Static, for a test to feed it files of its own.
+static func killer_and_omen_rows(files: Array) -> Array:
+	var killers := {}
+	var deaths := 0
+	var omens := {}  # omen -> [nights, dawns]
+	for path in files:
+		for line in FileAccess.get_file_as_string(path).split("\n", false):
+			var e = JSON.parse_string(line)
+			if not e is Dictionary:
+				continue
+			match str(e.get("e", "")):
+				"death":
+					var by := str(e.get("by", ""))
+					by = by if by != "" else "?"
+					killers[by] = int(killers.get(by, 0)) + 1
+					deaths += 1
+				"run_end":
+					var omen := str(e.get("omen", ""))
+					omen = omen if omen != "" else "(none)"
+					var row: Array = omens.get_or_add(omen, [0, 0])
+					row[0] += 1
+					if bool(e.get("won", false)):
+						row[1] += 1
+	var out: Array = []
+	if deaths > 0:
+		out.append("")
+		out.append("| Laid low by | Deaths | Share |")
+		out.append("|---|---|---|")
+		var ids: Array = killers.keys()
+		ids.sort_custom(func(a: String, b: String) -> bool:
+			return killers[a] > killers[b] or (killers[a] == killers[b] and a < b))
+		for id in ids:
+			out.append("| %s | %d | %.0f %% |" % [id, killers[id], 100.0 * killers[id] / deaths])
+	if not omens.is_empty():
+		out.append("")
+		out.append("| Omen | Nights | Dawns |")
+		out.append("|---|---|---|")
+		var names: Array = omens.keys()
+		names.sort()
+		for omen in names:
+			out.append("| %s | %d | %d |" % [omen, omens[omen][0], omens[omen][1]])
+	return out
 
 
 ## After the rooms: which moves real hands used, so a move nobody finds shows.
