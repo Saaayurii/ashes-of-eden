@@ -1,5 +1,5 @@
 extends SceneTree
-## The world notices (docs/CORE_LOOP.md): nights that lean one way in a row
+## The world notices (docs/CORE_LOOP.md), and the vial of wrath is greeted: nights that lean one way in a row
 ## become a habit the profile remembers (Profile.habit), and from the third
 ## Elian wakes saying so, the angel answers it, and the body carries a faint
 ## mark of it before the night has leaned anywhere.
@@ -86,6 +86,17 @@ func _run() -> void:
 			"a habit of %s: Elian remembers it between the rope and the waking" % path)
 		_check(_lines("ch1_intro").has("DLG_CH1_HABIT_ANGEL_" + path.to_upper()),
 			"  and the angel answers it")
+
+	# --- the vial of wrath is greeted too, ahead of the habit --------------------
+	profile.data.habit = {"path": "will", "nights": 4}
+	for tier_line in [[1, "DLG_CH1_VIAL_1"], [2, "DLG_CH1_VIAL_1"], [3, "DLG_CH1_VIAL_3"], [5, "DLG_CH1_VIAL_5"]]:
+		game.vial = tier_line[0]
+		var heard := _lines("ch1_intro")
+		_check(heard.has(tier_line[1]) and not heard.has("DLG_CH1_HABIT_ANGEL_WILL"),
+			"under vial %d the angel says %s instead" % [tier_line[0], tier_line[1]])
+	game.vial = 0
+	_check(_lines("ch1_intro").has("DLG_CH1_HABIT_ANGEL_WILL"), "no vial: the habit's line again")
+	profile.data.habit = {"path": "", "nights": 0}
 
 	# --- the body -------------------------------------------------------------
 	var room = load("res://scenes/rooms/graveyard.tscn").instantiate()

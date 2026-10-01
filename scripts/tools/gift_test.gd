@@ -128,8 +128,12 @@ func _run() -> void:
 	player.stats.wave_damage = 0.0
 
 	# --- the moves' gifts --------------------------------------------------------
-	# Cruel Opening: the same swing on the same body, idle and winding up
-	enemy.set_physics_process(false)
+	# Cruel Opening: the same swing on the same body, idle and winding up.
+	# Every body in the room holds still: a stray blow from another one would
+	# be read as a heal that did not happen.
+	var frozen: Array = run.entities.get_children().filter(func(n): return n.has_method("take_damage"))
+	for body in frozen:
+		body.set_physics_process(false)
 	enemy.aware = true
 	player.stats.crit_chance = 0.0
 	player.global_position = enemy.global_position - Vector2(22, 0)
@@ -178,7 +182,9 @@ func _run() -> void:
 	_assert(is_equal_approx(player._parry_left, player.PARRY_WINDOW + 0.06), "watchman's patience: the parry lasts 0.06 s longer")
 	player._lower_block()
 	player.stats.parry_window = 0.0
-	enemy.set_physics_process(true)
+	for body in frozen:
+		if is_instance_valid(body):
+			body.set_physics_process(true)
 
 	# --- rarity: legendaries are rare, commons are not -------------------------
 	var counts := {"common": 0, "rare": 0, "epic": 0, "legendary": 0}

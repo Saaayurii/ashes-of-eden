@@ -23,6 +23,8 @@ offers, read in pairs and in sets.
 | `last_rites` | Executioner + Severing Arc | +0.3 `execute` |
 | `shadow_step` | Knife in the Dark + Cutting Roll | a backstab gives the roll back (`backstab_refresh`) |
 | `bulwark` | Iron Vigil + Ward of the Nameless | one more blow absorbed per room (`guard`) |
+| `mercys_edge` | Benediction + Cruel Opening | +2 `technique_heal`, +0.2 `windup_bonus` |
+| `steady_watch` | Quick Study + Watchman's Patience | a parry stops those near for 0.4 s (`parry_stun`), +0.2 `charge_speed` |
 
 ## Rules
 

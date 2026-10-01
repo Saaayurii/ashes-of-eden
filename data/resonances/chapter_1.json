@@ -28,5 +28,11 @@
    "effects": [{"type": "stat", "stat": "backstab_refresh", "value": 1}]},
   {"id": "bulwark", "name": "RES_BULWARK", "description": "RES_BULWARK_DESC",
    "needs": {"gifts": ["iron_vigil", "ward_of_the_nameless"]},
-   "effects": [{"type": "stat", "stat": "guard", "value": 1}]}
+   "effects": [{"type": "stat", "stat": "guard", "value": 1}]},
+  {"id": "mercys_edge", "name": "RES_MERCYS_EDGE", "description": "RES_MERCYS_EDGE_DESC",
+   "needs": {"gifts": ["benediction", "cruel_opening"]},
+   "effects": [{"type": "stat", "stat": "technique_heal", "value": 2}, {"type": "stat", "stat": "windup_bonus", "value": 0.2}]},
+  {"id": "steady_watch", "name": "RES_STEADY_HAND", "description": "RES_STEADY_HAND_DESC",
+   "needs": {"gifts": ["quick_study", "watchmans_patience"]},
+   "effects": [{"type": "stat", "stat": "parry_stun", "value": 0.4}, {"type": "stat", "stat": "charge_speed", "value": 0.2}]}
 ]

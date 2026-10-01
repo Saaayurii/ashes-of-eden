@@ -368,8 +368,10 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 						for key in ["path", "habit"]:
 							if branch.has(key) and not PATHS.has(str(branch[key])):
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
-						if not (branch.has("flag") or branch.has("path") or branch.has("habit")):
-							_error("%s: a branch needs a flag, a path or a habit to test" % node_where)
+						if branch.has("vial") and (int(branch.vial) < 1 or int(branch.vial) > 5):
+							_error("%s: branch vial is 1..5" % node_where)
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial")):
+							_error("%s: a branch needs a flag, a path, a habit or a vial to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
