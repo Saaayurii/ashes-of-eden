@@ -750,6 +750,7 @@ func _check_room_bounds() -> void:
 	slain_by = "fall"
 	if _is_mine():
 		Game.slain_by = slain_by
+		Game.slain_affix = ""
 	_emit_hp()
 	_go_down()
 	if Net.active:
@@ -1088,6 +1089,7 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 			slain_by = _blame(source, info)
 			if _is_mine():
 				Game.slain_by = slain_by
+				Game.slain_affix = (source as Enemy).affix if source is Enemy else ""
 			_emit_hp()
 			_go_down()
 			if Net.active:

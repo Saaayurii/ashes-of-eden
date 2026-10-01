@@ -89,6 +89,8 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 		stats.text += "   ·   " + tr(str(Omens.spec(Game.omen).get("name", "")))
 	# what laid him low, above the numbers (Player.slain_by)
 	var killer := slain_name(Game.slain_by) if not won else ""
+	if killer != "" and Data.affixes.has(Game.slain_affix):  # "Zealot Brother (Brutal)"
+		killer = tr("SLAIN_AFFIXED") % [killer, tr(str(Data.affixes[Game.slain_affix].get("name", "")))]
 	if killer != "":
 		stats.text = tr("RUN_SLAIN_BY") % killer + "\n" + stats.text
 	var blows := last_blows_line(Game.last_blows) if not won else ""

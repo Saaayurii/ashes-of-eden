@@ -110,6 +110,12 @@ func _run() -> void:
 	_check(end_screen != null, "the run has an end screen")
 	if end_screen != null:
 		end_screen.show_result(false, 3, 4, 120.0)
+		game.slain_affix = "brutal"
+		end_screen.show_result(false, 3, 4, 120.0)
+		_check(end_screen.stats.text.contains(TranslationServer.translate("AFFIX_BRUTAL")),
+			"an elite's affix is named with it: %s" % end_screen.stats.text.get_slice("\n", 0))
+		game.slain_affix = ""
+		end_screen.show_result(false, 3, 4, 120.0)
 		var blows_line: String = end_screen.last_blows_line(game.last_blows)
 		_check(game.taken >= 100.0 and end_screen.stats.text.contains(end_screen.numbers_line()),
 			"the night's numbers are on its end: %s" % end_screen.numbers_line())

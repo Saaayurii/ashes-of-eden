@@ -825,6 +825,7 @@ DEED_ELITE_HUNTER,"Hunter of the Chosen","Охотник на избранных
 DEED_ELITE_HUNTER_DESC,"Lay twenty-five elites low.","Сразить двадцать пять элитных врагов.","Здолати двадцять п'ять елітних ворогів.","击倒二十五名精英。"
 DEED_CURSED_DESC,"Open a cursed chest and live until its curse lifts.","Открыть проклятый сундук и дожить, пока проклятие не спадёт.","Відкрити прокляту скриню й дожити, доки прокляття не спаде.","开启一只受诅的箱子，并活到诅咒散去。"
 RUN_SLAIN_BY,"Laid low by: %s","Сражён: %s","Повалений: %s","倒于：%s"
+SLAIN_AFFIXED,"%s (%s)","%s — %s","%s — %s","%s（%s）"
 RUN_LAST_BLOWS,"Last blows: %s","Последние удары: %s","Останні удари: %s","最后几击：%s"
 RUN_NUMBERS,"Dealt %d · heaviest blow %d · taken %d · parries %d","Нанесено %d · сильнейший удар %d · получено %d · парирований %d","Завдано %d · найсильніший удар %d · отримано %d · парирувань %d","造成 %d · 最重一击 %d · 承受 %d · 招架 %d"
 CHRONICLE_DEALT,"Damage dealt","Нанесено урона","Завдано шкоди","造成伤害"

@@ -49,6 +49,8 @@ var unscathed := 0
 ## "lava", "fall", or "" while it stands. The end screen, the chronicle and
 ## the bestiary read it.
 var slain_by := ""
+## The affix the one that laid him low rose with (Enemy.affix), "" for none.
+var slain_affix := ""
 ## The last blows our own body took this night, oldest first, at most
 ## LAST_BLOWS of them: {by: what Player._blame names, amount}. The end screen
 ## shows them under the killer, so a death reads as the fight it was.
@@ -97,6 +99,7 @@ func new_run() -> void:
 	ash_earned = 0
 	unscathed = 0
 	slain_by = ""
+	slain_affix = ""
 	last_blows = []
 	dealt = 0.0
 	heaviest = 0.0
