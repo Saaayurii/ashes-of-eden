@@ -413,6 +413,7 @@ func _pay_out(taker: Player = null) -> void:
 	if heal > 0.0 and taker != null:
 		taker.heal(heal)
 	if taker != null and stats.get("kind", "") == "chest" and taker.is_multiplayer_authority():
+		EventBus.chest_opened.emit(prop_id)
 		if taker.stats.chest_heal > 0.0:
 			taker.heal(taker.stats.chest_heal)
 		taker.take_curse(int(stats.get("curse", 0)))

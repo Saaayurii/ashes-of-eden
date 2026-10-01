@@ -103,6 +103,42 @@ func _run() -> void:
 		"the hand turned down: nothing taken, nothing paid")
 	_check(int(profile.data.deeds.get("blood_paid", 0)) == 1, "  and nothing counted")
 	_check(fresh._spent, "  the altar is spent either way: one look at its cards")
+
+	# the playtest log hears both, and the balance probe sums the trades
+	var heard := []
+	var bus = root.get_node("EventBus")
+	var listen := func(paid: bool) -> void: heard.append(paid)
+	bus.blood_settled.connect(listen)
+	var third = load("res://scenes/props/prop.tscn").instantiate()
+	third.prop_id = "blood_altar"
+	run.room.add_child(third)
+	await process_frame
+	third.open(player)
+	for i in 20:
+		if run.picker.visible:
+			break
+		await process_frame
+	run.picker.cards.get_child(0).pressed.emit()
+	await process_frame
+	bus.blood_settled.disconnect(listen)
+	_check(heard == [true], "the altar's end is told to the playtest log (%s)" % [heard])
+	var probe = load("res://scripts/tools/balance_probe.gd")
+	DirAccess.make_dir_recursive_absolute("user://playtest_tools")
+	var log_a := "user://playtest_tools/trade_a.jsonl"
+	var log_b := "user://playtest_tools/trade_b.jsonl"
+	var one := FileAccess.open(log_a, FileAccess.WRITE)
+	one.store_string('{"e":"altar","paid":true}\n{"e":"chest","id":"elite_cache"}\n{"e":"chest","id":"elite_cache"}\n{"e":"run_end","won":true}\n')
+	one = null
+	var two := FileAccess.open(log_b, FileAccess.WRITE)
+	two.store_string('{"e":"altar","paid":false}\n{"e":"refuse"}\n{"e":"chest","id":"chest_iron"}\n{"e":"run_end","won":false}\n')
+	two = null
+	var text := "\n".join(probe.trade_rows([log_a, log_b]))
+	_check(text.contains("| altar paid | 1 | 1 | 1 |") and text.contains("| altar withdrawn | 1 | 1 | 0 |")
+		and text.contains("| elite_cache | 2 | 1 | 1 |") and text.contains("| refuse | 1 | 1 | 0 |")
+		and not text.contains("chest_iron"), "the probe sums the trades and how their nights ended:\n%s" % text)
+	DirAccess.remove_absolute(log_a)
+	DirAccess.remove_absolute(log_b)
+	DirAccess.remove_absolute("user://playtest_tools")
 	_finish(saved)
 
 

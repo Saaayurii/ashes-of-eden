@@ -28,6 +28,10 @@ signal gift_refused
 ## Our own body cut its hand over a blood altar (Prop "blood_price"): the run
 ## deals a hand of gifts, and the price is paid only if one is taken.
 signal blood_offered(body: Node, price: float)
+## The altar's hand settled: [param paid] when a gift was taken under its price.
+signal blood_settled(paid: bool)
+## A chest opened by our own body (Prop): its prop id, for the playtest log.
+signal chest_opened(prop_id: String)
 ## Gifts taken together woke something none does alone (data/resonances).
 signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)

@@ -776,6 +776,7 @@ func _on_blood_offered(body: Node, price: float) -> void:
 	if not options.is_empty():
 		var gift: Dictionary = await picker.pick(options, _roll_gifts,
 			tr("BLOOD_PRICE") % roundi(price * 100.0))
+		EventBus.blood_settled.emit(not gift.is_empty())
 		if gift.is_empty():
 			Fx.popup(hero.global_position + Vector2(0, -40), tr("BLOOD_WITHDRAWN"), Color(0.85, 0.8, 0.8), 8)
 		else:

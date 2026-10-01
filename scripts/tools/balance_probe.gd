@@ -455,7 +455,7 @@ func _append_playtests(estimate: float) -> void:
 	var bosses := {}
 	var finished: Array = []
 	var moves := {}  # special move -> times used (docs/TECHNIQUES.md)
-	_cause_rows = killer_and_omen_rows(files)
+	_cause_rows = killer_and_omen_rows(files) + trade_rows(files)
 	for path in files:
 		for line in FileAccess.get_file_as_string(path).split("\n", false):
 			var e = JSON.parse_string(line)
@@ -544,6 +544,50 @@ static func killer_and_omen_rows(files: Array) -> Array:
 		names.sort()
 		for omen in names:
 			out.append("| %s | %d | %d |" % [omen, omens[omen][0], omens[omen][1]])
+	return out
+
+
+## The trades a night offers (docs/BALANCE.md) and how the nights that took
+## them ended: hands refused, blood altars paid or turned down, elite caches
+## and cursed chests opened. One file is one night. Static, for a test.
+static func trade_rows(files: Array) -> Array:
+	var kinds := ["refuse", "altar paid", "altar withdrawn", "elite_cache", "chest_cursed"]
+	var uses := {}    # kind -> times
+	var nights := {}  # kind -> [nights it happened in, dawns among them]
+	for path in files:
+		var seen := {}
+		var won := false
+		for line in FileAccess.get_file_as_string(path).split("\n", false):
+			var e = JSON.parse_string(line)
+			if not e is Dictionary:
+				continue
+			var kind := ""
+			match str(e.get("e", "")):
+				"refuse":
+					kind = "refuse"
+				"altar":
+					kind = "altar paid" if bool(e.get("paid", false)) else "altar withdrawn"
+				"chest":
+					kind = str(e.get("id", "")) if ["elite_cache", "chest_cursed"].has(str(e.get("id", ""))) else ""
+				"run_end":
+					won = bool(e.get("won", false))
+			if kind != "":
+				uses[kind] = int(uses.get(kind, 0)) + 1
+				seen[kind] = true
+		for kind in seen:
+			var row: Array = nights.get_or_add(kind, [0, 0])
+			row[0] += 1
+			if won:
+				row[1] += 1
+	var out: Array = []
+	if uses.is_empty():
+		return out
+	out.append("")
+	out.append("| Trade | Times | Nights | Dawns among them |")
+	out.append("|---|---|---|---|")
+	for kind in kinds:
+		if uses.has(kind):
+			out.append("| %s | %d | %d | %d |" % [kind, uses[kind], nights[kind][0], nights[kind][1]])
 	return out
 
 

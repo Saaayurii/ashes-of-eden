@@ -8,7 +8,7 @@ extends Node
 ## Events (one per line, "t" = seconds since the run started):
 ##   run_start, room_start {room, index}, room_clear {room, seconds, damage, deaths},
 ##   hurt {room, fraction}, death {room, x, y, by}, boss {room, id, seconds},
-##   gift {id, rarity, path}, refuse {}, level {level}, choice {dialogue, choice}, secret {room, note, first},
+##   gift {id, rarity, path}, refuse {}, altar {room, paid}, chest {room, id}, level {level}, choice {dialogue, choice}, secret {room, note, first},
 ##   run_end {won, seconds, level, gifts, alignment, omen, vial}
 ##
 ## Off in tool scripts (-s) and in online sessions' non-host peers; turn it off
@@ -43,6 +43,8 @@ func _ready() -> void:
 	EventBus.boss_died.connect(_on_boss_died)
 	EventBus.ability_acquired.connect(_on_gift)
 	EventBus.gift_refused.connect(func() -> void: _write("refuse", {}))
+	EventBus.blood_settled.connect(func(paid: bool) -> void: _write("altar", {"room": _room, "paid": paid}))
+	EventBus.chest_opened.connect(func(id: String) -> void: _write("chest", {"room": _room, "id": id}))
 	EventBus.level_up.connect(func(level: int) -> void: _write("level", {"level": level}))
 	EventBus.choice_made.connect(func(d: String, c: String) -> void: _write("choice", {"dialogue": d, "choice": c}))
 	EventBus.note_found.connect(func(n: String, first: bool) -> void: _write("secret", {"room": _room, "note": n, "first": first}))
