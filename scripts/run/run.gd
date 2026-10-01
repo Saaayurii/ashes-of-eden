@@ -61,7 +61,11 @@ var _scene_ready_peers := {}
 var _gift_pending := {}
 var _dead_peers := {}
 var _story_done := false
-var _placed_for_room := -1
+## The room our body was last placed in. NOT_PLACED, never -1: -1 is the
+## practice yard's own index (PRACTICE_INDEX), and a yard that looked "already
+## placed" left the hero at the world's origin, off the screen.
+const NOT_PLACED := -1000
+var _placed_for_room := NOT_PLACED
 ## The place (data/chapters) the last loaded room belonged to: the card is only
 ## shown when we walk into a new one.
 var _chapter_id := ""
@@ -481,7 +485,7 @@ func _build_room(index: int) -> void:
 		for leftover in entities.get_children():
 			leftover.queue_free()
 	room_index = index
-	_placed_for_room = -1
+	_placed_for_room = NOT_PLACED
 	_dead_peers.clear()
 	Game.wave = Route.step(ROOMS, index) + 1 if index >= 0 else 0
 	# the way walked tonight, for the map (ChapterMap): which side of a fork

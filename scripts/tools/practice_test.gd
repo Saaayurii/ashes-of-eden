@@ -60,6 +60,8 @@ func _run() -> void:
 	_check(_foes().size() == 1, "it stands up again")
 
 	var hero = run.player
+	_check(hero.global_position.distance_to(run.room.player_spawn.global_position) < 40.0,
+		"the hero starts the yard at its gate, on screen (%s, gate %s)" % [hero.global_position, run.room.player_spawn.global_position])
 	hero.global_position.x += 200.0
 	hero._hurt_grace_left = 0.0
 	hero.take_damage(99999.0)
