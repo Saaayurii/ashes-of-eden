@@ -416,6 +416,9 @@ func _pay_out(taker: Player = null) -> void:
 		if taker.stats.chest_heal > 0.0:
 			taker.heal(taker.stats.chest_heal)
 		taker.take_curse(int(stats.get("curse", 0)))
+		# a blood altar: a hand of gifts for a share of the bar (Run._on_blood_offered)
+		if float(stats.get("blood_price", 0.0)) > 0.0:
+			EventBus.blood_offered.emit(taker, float(stats.blood_price))
 		# the item is the opener's: it goes onto their body, on their machine
 		var rarity := str(stats.get("item", ""))
 		if rarity != "":

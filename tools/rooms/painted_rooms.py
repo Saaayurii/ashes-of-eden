@@ -258,7 +258,7 @@ PAINTED = {
         spawns=[("possessed_villager", 400, 407), ("possessed_villager", 650, 407), ("cultist", 880, 368),
                 ("fallen_guard", 1200, 433), ("possessed_villager", 600, 603), ("zealot", 300, 300),
                 ("shade", 700, 250), ("wraith", 950, 600), ("raven", 500, 150)],
-        props=[("pot", 110, 289), ("barrel", 350, 312), ("crate", 500, 419), ("rubble", 720, 419), ("barrel_apples", 1000, 365),
+        props=[("pot", 110, 289), ("barrel", 350, 312), ("crate", 500, 419), ("rubble", 720, 419), ("blood_altar", 1000, 365),
                ("chest_wooden", 760, 635), ("pot", 250, 563), ("crate", 1250, 445)],
         decor=[], npcs=[("mara", 955, 380)], ambient="#bcb8cc", lights="auto",
         player=(60, 245), door=(1195, 209)),  # under the ruined arch between the gate pillars
@@ -403,7 +403,7 @@ PAINTED = {
         spawns=[("possessed_villager", 500, 263), ("fallen_guard", 700, 445), ("zealot", 950, 411),
                 ("elite_cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
                 ("preacher_acolyte", 950, 631), ("wraith", 500, 400), ("shade", 800, 250), ("shade", 1100, 300)],
-        props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 890, 423), ("sack", 750, 457), ("funeral_offering", 1000, 423),
+        props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("blood_altar", 890, 423), ("sack", 750, 457), ("funeral_offering", 1000, 423),
                ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1245, 603), ("sack", 1180, 603)],
         decor=[], npcs=[], ambient="#b8bccc", lights="auto",
         player=(60, 234), door=(1080, 583)),

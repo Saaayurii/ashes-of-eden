@@ -265,6 +265,9 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
 					or int(entry.curse) < 1 or int(entry.curse) > 30):
 				_error("%s: curse is a number of kills (1–30), on a chest" % where)
+			if entry.has("blood_price") and (not entry.get("interact", false)
+					or float(entry.blood_price) < 0.05 or float(entry.blood_price) > 0.3):
+				_error("%s: blood_price is a share of the bar (0.05–0.3), on a chest opened by hand (interact)" % where)
 			if entry.get("kind") == "destructible" and float(entry.get("hp", 0)) <= 0.0:
 				_error("%s: a destructible needs positive hp" % where)
 			_check_sprite(entry.get("sprite", {}), where)

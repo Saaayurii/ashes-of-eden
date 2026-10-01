@@ -1,0 +1,23 @@
+{
+  "id": "blood_altar",
+  "kind": "chest",
+  "essence": 0,
+  "glow": "#ff4a4a",
+  "interact": true,
+  "prompt": "PROP_BLOOD_ALTAR",
+  "blood_price": 0.15,
+  "still": true,
+  "hitbox": [
+    26,
+    22
+  ],
+  "sprite": {
+    "path": "res://assets/props/blood_altar.png",
+    "frame_w": 40,
+    "frame_h": 40,
+    "frames": 4
+  },
+  "effect": {
+    "temptation": 1
+  }
+}

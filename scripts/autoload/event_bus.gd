@@ -25,6 +25,9 @@ signal technique_performed(technique_id: String)
 signal ability_acquired(ability: Dictionary)
 ## A gift hand turned down (AbilityPicker's Refuse): our own body only.
 signal gift_refused
+## Our own body cut its hand over a blood altar (Prop "blood_price"): the run
+## deals a hand of gifts, and the price is paid only if one is taken.
+signal blood_offered(body: Node, price: float)
 ## Gifts taken together woke something none does alone (data/resonances).
 signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)

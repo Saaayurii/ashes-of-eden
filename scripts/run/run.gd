@@ -121,6 +121,7 @@ func _ready() -> void:
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
 	EventBus.player_rested.connect(_on_player_rested)
 	EventBus.player_unscathed.connect(_on_unscathed)
+	EventBus.blood_offered.connect(_on_blood_offered)
 	# A record from a secret cache is read out over play, like a caption.
 	EventBus.note_found.connect(func(note_id: String, _first: bool) -> void:
 		dialogue.play(str(Data.notes.get(note_id, {}).get("dialogue", ""))))
@@ -757,6 +758,34 @@ func _offer_gifts() -> void:
 		else:
 			AbilitySystem.apply(player, gift)
 	_picking = false
+
+
+## A blood altar was opened by our own body: a hand of gifts, and the price
+## (Player.pay_blood) only if one is taken — turned down, the hand withdraws
+## and nothing is paid. It waits its turn behind any hand already on the table.
+func _on_blood_offered(body: Node, price: float) -> void:
+	var hero := body as Player
+	if hero == null or hero != player or _finished:
+		return
+	while _picking and is_inside_tree():
+		await get_tree().process_frame
+	if not is_inside_tree() or _finished:
+		return
+	_picking = true
+	var options := _roll_gifts()
+	if not options.is_empty():
+		var gift: Dictionary = await picker.pick(options, _roll_gifts,
+			tr("BLOOD_PRICE") % roundi(price * 100.0))
+		if gift.is_empty():
+			Fx.popup(hero.global_position + Vector2(0, -40), tr("BLOOD_WITHDRAWN"), Color(0.85, 0.8, 0.8), 8)
+		else:
+			hero.pay_blood(price)
+			AbilitySystem.apply(hero, gift)
+			if Game.practice == "":
+				Profile.count("blood_paid")
+	_picking = false
+	if _pending_gifts > 0:
+		_offer_gifts()  # a level-up while the altar's hand was open waited its turn
 
 
 ## The hand turned down: the body takes a breath instead of a gift

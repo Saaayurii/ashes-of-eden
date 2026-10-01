@@ -37,7 +37,12 @@ func _ready() -> void:
 ## player ask for one, Game.rerolls times a night. The hand can always be
 ## turned down (Refuse): the result is then an empty Dictionary, and the run
 ## gives the body back some breath instead (Player.refuse_gift).
-func pick(options: Array[Dictionary], reroll := Callable()) -> Dictionary:
+## [param title], when given, replaces the heading for this hand (a blood
+## altar names its price there).
+func pick(options: Array[Dictionary], reroll := Callable(), title := "") -> Dictionary:
+	var heading := get_node_or_null("Center/VBox/Title") as Label
+	if heading != null:
+		heading.text = title if title != "" else "PICKER_TITLE"
 	_deal(options)
 	_reroll = reroll
 	_show_reroll()

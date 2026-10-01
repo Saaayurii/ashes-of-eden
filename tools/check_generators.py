@@ -38,6 +38,8 @@ GENERATORS = [
      ["assets/props"], False),
     ("altar book", ["tools/art/make_altar_book.py"],
      ["assets/props/altar_book.png"], False),
+    ("blood altar", ["tools/art/make_blood_altar.py"],
+     ["assets/props/blood_altar.png"], False),
     # The bestiary's strips, cut from the generated atlases, and the cell each
     # one writes into the archetype tree. About 30 seconds.
     ("bestiary strips", ["tools/art/build_bestiary_assets.py"],

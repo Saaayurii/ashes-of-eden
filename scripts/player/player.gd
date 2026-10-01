@@ -882,6 +882,15 @@ func refuse_gift() -> void:
 	Fx.sparkle(global_position + Vector2(0, -14), Color(0.8, 0.85, 0.95), 12, 12.0)
 
 
+## A blood altar's price, paid once a gift is taken from it: [param share] of
+## the bar gone for the rest of the night (saved with the body's stats).
+func pay_blood(share: float) -> void:
+	stats.max_hp = maxf(1.0, stats.max_hp * (1.0 - clampf(share, 0.0, 0.9)))
+	hp = minf(hp, stats.max_hp)
+	_emit_hp()
+	Fx.flash(global_position + Vector2(0, -10), Color(0.9, 0.15, 0.2), 60.0, 0.4, 0.9)
+
+
 ## The censer (item "heal_burst"): the flask's warmth goes out as a scorch.
 func _heal_burst() -> void:
 	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.7, 0.35), HEAL_BURST_RADIUS, 0.5, 1.2)

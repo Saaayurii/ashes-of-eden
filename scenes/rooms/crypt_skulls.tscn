@@ -582,7 +582,7 @@ prop_id = "bone_reliquary"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(1210, 423)
-prop_id = "bone_reliquary"
+prop_id = "blood_altar"
 
 [node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(910, 457)
