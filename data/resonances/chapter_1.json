@@ -34,5 +34,8 @@
    "effects": [{"type": "stat", "stat": "technique_heal", "value": 2}, {"type": "stat", "stat": "windup_bonus", "value": 0.2}]},
   {"id": "steady_watch", "name": "RES_STEADY_HAND", "description": "RES_STEADY_HAND_DESC",
    "needs": {"gifts": ["quick_study", "watchmans_patience"]},
-   "effects": [{"type": "stat", "stat": "parry_stun", "value": 0.4}, {"type": "stat", "stat": "charge_speed", "value": 0.2}]}
+   "effects": [{"type": "stat", "stat": "parry_stun", "value": 0.4}, {"type": "stat", "stat": "charge_speed", "value": 0.2}]},
+  {"id": "penance", "name": "RES_PENANCE", "description": "RES_PENANCE_DESC",
+   "needs": {"gifts": ["accursed_strength", "mending_light"]},
+   "effects": [{"type": "stat", "stat": "kill_heal", "value": 2}, {"type": "stat", "stat": "cursed_damage", "value": 0.1}]}
 ]
