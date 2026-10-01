@@ -31,6 +31,7 @@ static func attach(room: Node2D) -> void:
 
 
 func _ready() -> void:
+	add_to_group("interactable")  # the touch pad shows its talk button here
 	collision_layer = 0
 	collision_mask = 2
 	var shape := CollisionShape2D.new()

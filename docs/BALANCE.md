@@ -152,8 +152,9 @@ Silver / shop · legendary items.
 `interact` rests: full health, every flask full, the autosave remembers it; the room's common dead stand up where
 they first stood and the door shuts until they are down again. Elites and bosses stay dead. Once a night each.
 
-**Items** (`data/items`, `scripts/combat/item_system.gd`): what a chest holds besides essence. Iron and cursed
-chests hold a common item, a gold chest a rare one (a common one once the rares are gone); each item once a night,
+**Items** (`data/items`, `scripts/combat/item_system.gd`): what a chest holds besides essence. Iron
+chests hold a common item; a gold chest a rare one, and so does a cursed chest — at a price: it opens only on
+`interact`, and wounds land ×2 until ten enemies have fallen (`curse`) (a common one once the rares are gone); each item once a night,
 so a run finds about 3–5 commons and 1–2 rares. Every one changes how something behaves — the flask scorches
 (18), a parry stops everyone near (0.8 s), a chest heals (14), a backstab returns the roll, a clean room refills a
 flask, a wound makes the next swing ×1.8, a crit under a third of the bar heals (6) — never "+3 damage".

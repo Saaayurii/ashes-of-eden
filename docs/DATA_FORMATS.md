@@ -392,8 +392,8 @@ add the path to `ROOMS` in `scripts/run/run.gd`.
 {"id": "barrel", "kind": "destructible", "hp": 1, "essence": 4, "hitbox": [20, 26],
  "sprite": {"path": "res://assets/props/barrel.png", "frame_w": 48, "frame_h": 40, "frames": 4}}
 
-{"id": "chest_cursed", "kind": "chest", "essence": 90, "glow": "#ff6a6a", "icon": "res://assets/icons/crystal_blue.png",
- "effect": {"temptation": 1}, "hitbox": [24, 20], "sprite": {"...": "40x32, four frames"}}
+{"id": "chest_cursed", "kind": "chest", "essence": 120, "glow": "#ff6a6a", "icon": "res://assets/icons/crystal_blue.png",
+ "effect": {"temptation": 1}, "item": "rare", "curse": 10, "hitbox": [24, 20], "sprite": {"...": "40x32, four frames"}}
 ```
 
 Scenery you can interact with, placed through the generator's `props=[("barrel", x, y)]`. The strip runs
@@ -402,7 +402,9 @@ whole → cracked → bursting → leftovers for a `destructible`, closed → op
 the player's swing looks at areas as well as bodies); a `chest` opens when the player walks into it and
 pays out `essence`, an optional `heal`, an optional alignment `effect` and a floating `icon` — one path,
 or a list of paths the chest picks from each time it opens (`chest_iron` draws from twenty-odd quest
-items in `assets/icons/quest/`). Props are
+items in `assets/icons/quest/`). A chest with `curse` (1–30) does not open on touch: standing at it shows
+its price, `interact` opens it, and the opener's wounds land twice as hard until that many enemies have
+fallen (`Player.take_curse`, saved with the body, paid off by a death; `curse_test.gd`). Props are
 never enemies: nothing blocks movement and the room's door does not wait for them.
 
 For a living four-frame prop use `"idle_frames": 2, "hit_frame": 2`: frames 0–1 loop while intact,

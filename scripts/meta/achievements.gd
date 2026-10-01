@@ -14,7 +14,7 @@ class_name Achievements
 
 ## What Profile.count may keep. A new one → here, the code that counts it,
 ## and the validator reads this list (validate_data.gd).
-const COUNTERS := ["parries", "backstabs", "ripostes", "unscathed", "rests",
+const COUNTERS := ["parries", "backstabs", "ripostes", "unscathed", "rests", "curses_lifted",
 	"wins_grace", "wins_temptation", "wins_will", "wins_judgment",
 	"wins_vial_1", "wins_vial_2", "wins_vial_3", "wins_vial_4", "wins_vial_5"]
 

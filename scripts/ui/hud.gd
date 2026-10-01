@@ -30,6 +30,8 @@ const POTION_ICON := preload("res://assets/ui/icons/potion.png")
 var _body: Player
 var _toast_tween: Tween
 var _rally_mark: ColorRect
+## A cursed chest's price, beside the flasks while it is owed (Player.curse).
+var _curse_label: Label
 
 
 func _ready() -> void:
@@ -56,6 +58,15 @@ func _ready() -> void:
 	_rally_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_rally_mark.visible = false
 	hp_bar.add_child(_rally_mark)
+	_curse_label = Label.new()
+	_curse_label.name = "Curse"
+	_curse_label.position = Vector2(70, 45)
+	_curse_label.size = Vector2(160, 12)
+	_curse_label.add_theme_font_size_override("font_size", 9)
+	_curse_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.45))
+	_curse_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_curse_label.visible = false
+	add_child(_curse_label)
 	_refresh_keys()
 	Settings.changed.connect(_refresh_keys)
 	# The player may be ready before us, so pull its initial state too.
@@ -74,6 +85,9 @@ func _process(_delta: float) -> void:
 	_set_meter(attack_bar, attack_key, _body.attack_ready_ratio())
 	_set_meter(block_bar, block_key, _body.block_ready_ratio())
 	_update_rally_mark()
+	_curse_label.visible = _body.curse > 0
+	if _curse_label.visible:
+		_curse_label.text = tr("HUD_CURSE") % _body.curse
 	skill_row.visible = not _body.skill.is_empty()
 	if skill_row.visible:
 		_set_meter(skill_bar, skill_key, _body.skill_ready_ratio())

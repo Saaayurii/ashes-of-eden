@@ -248,6 +248,9 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: kind must be one of %s" % [where, PROP_KINDS])
 			if entry.has("item") and (entry.get("kind") != "chest" or not ["common", "rare"].has(entry.item)):
 				_error("%s: item is \"common\" or \"rare\", on a chest" % where)
+			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
+					or int(entry.curse) < 1 or int(entry.curse) > 30):
+				_error("%s: curse is a number of kills (1–30), on a chest" % where)
 			if entry.get("kind") == "destructible" and float(entry.get("hp", 0)) <= 0.0:
 				_error("%s: a destructible needs positive hp" % where)
 			_check_sprite(entry.get("sprite", {}), where)

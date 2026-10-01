@@ -229,6 +229,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"heal_charges": body.heal_charges,
 			"stats": body.stats.duplicate(),
 			"skill": body.skill.duplicate(),
+			"curse": body.curse,
 		},
 	}
 
@@ -272,6 +273,7 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.essence_bonus = float(body.stats.get("essence_bonus", 0.0))
 	var saved_skill = data.player.get("skill", {})
 	body.skill = saved_skill.duplicate() if saved_skill is Dictionary else {}
+	body.curse = maxi(0, int(data.player.get("curse", 0)))
 	body.heal_charges = clampi(int(data.player.get("heal_charges", body.heal_charges)), 0, int(body.stats.heal_charges))
 	body.hp = clampf(float(data.player.get("hp", body.stats.max_hp)), 1.0, float(body.stats.max_hp))
 	body.refresh_stats()

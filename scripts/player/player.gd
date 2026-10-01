@@ -122,6 +122,8 @@ const RALLY_MAX_HP_SHARE := 0.15
 ## A landed blow must not become several wounds just because two attack
 ## hitboxes overlap on the same frame. Hazards and scripted damage bypass it.
 const HURT_GRACE_TIME := 0.24
+## How much harder a blow lands while a curse is on the body (take_curse).
+const CURSE_DAMAGE := 2.0
 ## The riposte the roll earns. A real enemy blow that the i-frames swallowed
 ## leaves the blade hot: the next sword hit that actually lands on something
 ## alive is worth a little more. One charge per roll, one swing to spend it,
@@ -295,6 +297,10 @@ var _dead := false
 ## docs/DATA_FORMATS.md. Empty = none yet. One at a time; a new one replaces it.
 var skill: Dictionary = {}
 var _skill_cd := 0.0
+## A cursed chest's price (Prop, "curse"): every wound lands CURSE_DAMAGE times
+## as hard until this many more enemies have fallen. Saved with the body; a
+## death pays it off.
+var curse := 0
 ## Where the body last stood on firm ground for a moment: lava puts it back here.
 var _safe_position := Vector2.ZERO
 var _safe_time := 0.0
@@ -979,6 +985,8 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		Audio.play(&"hit_crit", -6.0)
 		return
 	amount *= 1.0 - clampf(stats.armor, 0.0, 0.5)
+	if curse > 0:
+		amount *= CURSE_DAMAGE
 	if blocked:
 		amount *= 1.0 - BLOCK_REDUCTION
 		velocity.x = signf(global_position.x - from_x) * BLOCK_PUSH
@@ -1116,6 +1124,7 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	_rally_pool = 0.0
 	_rally_left = 0.0
 	fell_outside_room = false
+	curse = 0
 	_healing_left = 0.0
 	_slamming = false
 	_slam_recovery = 0.0
@@ -1363,10 +1372,31 @@ func _throw_wave() -> void:
 ## Health a kill is worth. Only our own body collects, and only while it is
 ## still standing.
 func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
+	if _is_mine() and not _dead and curse > 0:
+		curse -= 1
+		if curse == 0:
+			_lift_curse()
 	if not _is_mine() or _dead or stats.kill_heal <= 0.0 or hp >= stats.max_hp:
 		return
 	heal(stats.kill_heal)
 	Fx.puff(global_position + Vector2(0, -12), 0.5, Color(0.8, 1.0, 0.75))
+
+
+## A cursed chest opened: the next [param kills] enemies to fall carry it off.
+## A second chest adds to what is owed.
+func take_curse(kills: int) -> void:
+	if kills <= 0 or _dead:
+		return
+	curse += kills
+	Fx.ash(global_position + Vector2(0, -14), Color(0.75, 0.15, 0.2, 0.8), 16, 40.0, 10.0)
+	Fx.popup(global_position + Vector2(0, -52), tr("CURSE_TAKEN") % curse, Color(1.0, 0.45, 0.45), 8)
+	Audio.play(&"hit_crit", -8.0)
+
+
+func _lift_curse() -> void:
+	Fx.sparkle(global_position + Vector2(0, -14), Color(1.0, 0.85, 0.75), 14, 14.0)
+	Fx.popup(global_position + Vector2(0, -52), tr("CURSE_LIFTED"), Color(1.0, 0.9, 0.8), 8)
+	Profile.count("curses_lifted")
 
 
 func _on_room_cleared(index: int) -> void:

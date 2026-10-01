@@ -306,7 +306,9 @@ func _own_player() -> Node:
 func _npc_near(player: Node) -> bool:
 	if player == null:
 		return false
-	for npc in get_tree().get_nodes_in_group("npc"):
+	# a person to talk to, or a thing that asks before it is used (a rest
+	# point, a cursed chest)
+	for npc in get_tree().get_nodes_in_group("npc") + get_tree().get_nodes_in_group("interactable"):
 		if npc is Node2D and (npc as Node2D).global_position.distance_to(player.global_position) < 70.0:
 			return true
 	return false

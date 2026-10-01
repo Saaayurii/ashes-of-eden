@@ -1,7 +1,7 @@
 {
   "id": "chest_cursed",
   "kind": "chest",
-  "essence": 90,
+  "essence": 120,
   "glow": "#ff6a6a",
   "effect": {
     "temptation": 1
@@ -34,5 +34,6 @@
     "res://assets/icons/quest/ritual_7.png",
     "res://assets/icons/quest/essence_7.png"
   ],
-  "item": "common"
+  "item": "rare",
+  "curse": 10
 }
