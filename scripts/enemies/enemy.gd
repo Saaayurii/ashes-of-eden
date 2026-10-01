@@ -1480,6 +1480,7 @@ func _net_riposte_fx() -> void:
 ## springs back, sparks thrown the way the blade was going, and the number.
 ## [param away] is -1 or 1: the direction the hit came from, pointing outwards.
 func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := false) -> void:
+	Game.note_dealt(amount)  # the night's numbers (every peer sees every blow)
 	Fx.damage_number(global_position, amount, Color(1.0, 0.8, 0.3) if crit else Color(1, 0.95, 0.8))
 	if backstab:
 		# The one hit that is meant to feel like a decision: name it and let it land.

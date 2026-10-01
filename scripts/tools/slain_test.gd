@@ -111,6 +111,8 @@ func _run() -> void:
 	if end_screen != null:
 		end_screen.show_result(false, 3, 4, 120.0)
 		var blows_line: String = end_screen.last_blows_line(game.last_blows)
+		_check(game.taken >= 100.0 and end_screen.stats.text.contains(end_screen.numbers_line()),
+			"the night's numbers are on its end: %s" % end_screen.numbers_line())
 		_check(blows_line != "" and end_screen.stats.text.contains(blows_line), "the night's end lists the last blows: %s" % blows_line)
 		var named: String = TranslationServer.translate(str(root.get_node("Data").enemies[foe.enemy_id].name))
 		_check(end_screen.stats.text.contains(named), "the night's end names it: %s" % end_screen.stats.text.get_slice("\n", 0))

@@ -380,6 +380,10 @@ func _show_night(night: Dictionary) -> void:
 		_stat("OMEN_LABEL", tr(str(Omens.spec(str(night.omen)).get("name", ""))))
 	_stat("CHRONICLE_TIME", _clock(float(night.get("seconds", 0))))
 	_stat("CHRONICLE_KILLS", str(int(night.get("kills", 0))))
+	if night.has("dealt"):  # nights before the numbers were kept have none
+		_stat("CHRONICLE_DEALT", str(int(night.dealt)))
+		_stat("CHRONICLE_TAKEN", str(int(night.get("taken", 0))))
+		_stat("CHRONICLE_PARRIES", str(int(night.get("parries", 0))))
 	var killer := EndScreen.slain_name(str(night.get("slain_by", "")))
 	if killer != "":
 		_stat("CHRONICLE_SLAIN_BY", killer)

@@ -149,6 +149,9 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 		"gifts": Game.abilities.map(func(a: Dictionary) -> String: return str(a.get("id", ""))),
 		"resonances": Game.resonances.duplicate(),
 		"slain_by": "" if won else Game.slain_by,
+		"dealt": roundi(Game.dealt),
+		"taken": roundi(Game.taken),
+		"parries": Game.parries,
 	})
 	while data.history.size() > HISTORY:
 		data.history.pop_front()

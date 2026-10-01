@@ -94,6 +94,7 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	var blows := last_blows_line(Game.last_blows) if not won else ""
 	if blows != "":
 		stats.text += "\n" + blows
+	stats.text += "\n" + numbers_line()
 	# the night of the day: where it stands against the day's best (Daily)
 	if Game.daily != "":
 		var day := Daily.best(Game.daily)
@@ -131,6 +132,12 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 		%Retry.grab_focus()
 	else:
 		%Menu.grab_focus()
+
+
+## The night's numbers: dealt, the heaviest blow, taken, parries (Game).
+static func numbers_line() -> String:
+	return TranslationServer.translate("RUN_NUMBERS") % [roundi(Game.dealt), roundi(Game.heaviest),
+		roundi(Game.taken), Game.parries]
 
 
 ## The last blows taken, oldest first: "Last blows: Zealot 12 · Lava 20". "" for none.

@@ -221,6 +221,10 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"level": Game.level,
 			"ash": Game.ash_earned,
 			"unscathed": Game.unscathed,
+			"dealt": Game.dealt,
+			"heaviest": Game.heaviest,
+			"taken": Game.taken,
+			"parries": Game.parries,
 			"elapsed": elapsed,
 			"kills": kills,
 			"difficulty": Settings.difficulty,
@@ -262,6 +266,10 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
 	Game.ash_earned = int(state.get("ash", 0))
 	Game.unscathed = maxi(0, int(state.get("unscathed", 0)))
+	Game.dealt = maxf(0.0, float(state.get("dealt", 0.0)))
+	Game.heaviest = maxf(0.0, float(state.get("heaviest", 0.0)))
+	Game.taken = maxf(0.0, float(state.get("taken", 0.0)))
+	Game.parries = maxi(0, int(state.get("parries", 0)))
 	Game.vial = clampi(int(state.get("vial", 0)), 0, Vials.TIERS)
 	# an omen since removed is a plain night, not a refused save
 	Game.omen = str(state.get("omen", "")) if Data.omens.has(str(state.get("omen", ""))) else ""

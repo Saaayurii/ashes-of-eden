@@ -54,6 +54,14 @@ var slain_by := ""
 ## shows them under the killer, so a death reads as the fight it was.
 var last_blows: Array = []
 const LAST_BLOWS := 3
+## The night's numbers, for its end screen and its chronicle line: damage the
+## blows on the dead dealt (Enemy._hit_fx, after armour and backstab — online
+## that is both players' blows, it is the night's), the heaviest of them,
+## damage our own body took, and the parries it made.
+var dealt := 0.0
+var heaviest := 0.0
+var taken := 0.0
+var parries := 0
 ## The omen this night is drawn under (data/omens, Omens), "" for a plain night.
 var omen := ""
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
@@ -67,6 +75,9 @@ var essence_bonus := 0.0
 
 func _ready() -> void:
 	new_run()
+	EventBus.player_parried.connect(func() -> void:
+		if practice == "":
+			parries += 1)
 
 
 func new_run() -> void:
@@ -87,6 +98,10 @@ func new_run() -> void:
 	unscathed = 0
 	slain_by = ""
 	last_blows = []
+	dealt = 0.0
+	heaviest = 0.0
+	taken = 0.0
+	parries = 0
 	omen = ""
 	vial = 0
 	rerolls = 0
@@ -95,9 +110,18 @@ func new_run() -> void:
 
 ## One more blow taken by our own body (Player._apply_damage).
 func note_blow(by: String, amount: float) -> void:
+	taken += amount
 	last_blows.append({"by": by, "amount": roundi(amount)})
 	while last_blows.size() > LAST_BLOWS:
 		last_blows.pop_front()
+
+
+## A blow landed on one of the dead (Enemy._hit_fx). Nothing counts in the yard.
+func note_dealt(amount: float) -> void:
+	if practice != "" or amount <= 0.0:
+		return
+	dealt += amount
+	heaviest = maxf(heaviest, amount)
 
 
 ## Applies an "effect" block from data, e.g. {"grace": 1, "set_flags": ["stranger_spared"]}.
