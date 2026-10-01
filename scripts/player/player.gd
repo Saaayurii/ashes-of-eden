@@ -55,6 +55,7 @@ const BASE_STATS := {
 	"technique_heal": 0.0,      # a special move that lands heals this much (Benediction)
 	"windup_bonus": 0.0,        # a blow on an enemy winding up is worth this much more (Cruel Opening)
 	"cursed_damage": 0.0,       # while a cursed chest's price is owed, every blow is worth this much more (Accursed Strength)
+	"chosen_damage": 0.0,       # blows on an elite or a boss are worth this much more (Trophy Hunter)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
 }
@@ -1668,6 +1669,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Accursed Strength: the curse that doubles his wounds sharpens his blade
 		if live_enemy and curse > 0 and stats.cursed_damage > 0.0:
 			damage *= 1.0 + stats.cursed_damage
+		# Trophy Hunter: the chosen of the dead (an elite, a boss) are the prey
+		if live_enemy and stats.chosen_damage > 0.0 and (target as Enemy).is_chosen():
+			damage *= 1.0 + stats.chosen_damage
 		# Cruel Opening: the wind-up the player can read is also a door
 		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
 			damage *= 1.0 + stats.windup_bonus

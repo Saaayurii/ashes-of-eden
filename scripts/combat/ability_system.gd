@@ -40,6 +40,7 @@ const CAPS := {
 	"technique_heal": [0.0, 10.0],
 	"windup_bonus": [0.0, 1.0],
 	"cursed_damage": [0.0, 1.0],
+	"chosen_damage": [0.0, 0.6],
 	"charge_speed": [0.0, 1.0],
 	"parry_window": [0.0, 0.15],
 }

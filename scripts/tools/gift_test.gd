@@ -163,6 +163,16 @@ func _run() -> void:
 	player.stats.cursed_damage = 0.0
 	_assert(plain_loss > 0.0 and absf(cursed_loss / plain_loss - 1.4) < 0.05,
 		"accursed strength: under a curse a blow takes 40%% more (%.1f vs %.1f)" % [cursed_loss, plain_loss])
+	# Trophy Hunter: an elite (or a boss) takes more; a common one does not
+	player.stats.chosen_damage = 0.25
+	var common_loss: float = await swing_loss.call(false)
+	var tags: Array = enemy.stats.get("tags", []).duplicate()
+	enemy.stats["tags"] = tags + ["elite"]
+	var chosen_loss: float = await swing_loss.call(false)
+	enemy.stats["tags"] = tags
+	player.stats.chosen_damage = 0.0
+	_assert(common_loss > 0.0 and absf(chosen_loss / common_loss - 1.25) < 0.05,
+		"trophy hunter: an elite takes a quarter more (%.1f vs %.1f)" % [chosen_loss, common_loss])
 	enemy.state = enemy.State.CHASE
 	await _frames(30)
 	# Benediction: a special move that lands heals; a plain swing does not

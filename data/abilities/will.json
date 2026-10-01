@@ -306,5 +306,24 @@
         }
       }
     ]
+  },
+  {
+    "id": "trophy_hunter",
+    "name": "ABILITY_TROPHY_HUNTER_NAME",
+    "description": "ABILITY_TROPHY_HUNTER_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/quest/trophy_4.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "chosen_damage",
+        "op": "add",
+        "value": 0.25
+      }
+    ]
   }
 ]

@@ -1685,6 +1685,11 @@ func _leave_cache() -> void:
 	Fx.sparkle(cache.global_position + Vector2(0, -12), Color("#ffa060"), 14, 16.0)
 
 
+## One of the chosen of the dead: an elite or a boss (the gift Trophy Hunter).
+func is_chosen() -> bool:
+	return stats.get("boss", false) or stats.get("tags", []).has("elite")
+
+
 ## A boss's fight, timed for its bestiary page (Profile.record_boss_time): from
 ## the first blow that lands on it to its fall, a cutscene not counted.
 var fight_time := -1.0
