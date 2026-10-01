@@ -78,6 +78,9 @@ func _ready() -> void:
 	daily.name = "PlayDaily"
 	daily.text = "MENU_DAILY"
 	daily.tooltip_text = tr("DAILY_TOOLTIP") % tr(str(Vials.spec(Daily.vial_of(Daily.today())).get("name", "")))
+	var omen := Omens.of_day(Daily.today())
+	if omen != "":
+		daily.tooltip_text += "\n" + tr("OMEN_LABEL") + ": " + tr(str(Omens.spec(omen).get("name", "")))
 	if Daily.streak_days() > 0:
 		daily.tooltip_text += "\n" + tr("DAILY_STREAK") % Daily.streak_days()
 	_pair(play_button, daily, "PlayRow")

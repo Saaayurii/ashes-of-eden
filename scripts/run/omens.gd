@@ -34,6 +34,14 @@ static func roll(rng: RandomNumberGenerator) -> String:
 	return str(ids[rng.randi_range(0, ids.size() - 1)])
 
 
+## The omen the night of the day [param date] is drawn under ("" for none):
+## from the day's seed, so the main menu can name it before the night begins.
+static func of_day(date: String) -> String:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = Daily.seed_of(date) + 1
+	return roll(rng)
+
+
 ## The omen a new night is played under. A tool script (`godot -s`) draws
 ## none unless it asks ([param in_tools]): a test that starts a run measures
 ## blows and flasks, and a random omen would move them under it.
@@ -45,8 +53,7 @@ static func for_new_night(in_tools := false) -> String:
 		return ""
 	var rng := RandomNumberGenerator.new()
 	if Game.daily != "":
-		rng.seed = Daily.seed_of(Game.daily) + 1
-		return roll(rng)
+		return of_day(Game.daily)
 	if int(Profile.data.get("nights", 0)) < FROM_NIGHT or not Settings.omens:
 		return ""
 	rng.randomize()

@@ -94,6 +94,7 @@ func _run() -> void:
 	profile.data.nights = 0
 	_check(same and omens.for_new_night(true) == first, "the night of the day draws the day's own, whatever the profile")
 	_check(daily_off == first, "  and whatever the switch in Settings says")
+	_check(omens.of_day("2026-10-01") == first, "  and the menu can name it before the night begins")
 	game.daily = ""
 
 	# --- the rules ---------------------------------------------------------------
