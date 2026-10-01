@@ -149,6 +149,17 @@ func _run() -> void:
 	saves.restore(checkpoint, player)
 	_check(game.omen == "", "  a removed omen loads as a plain night")
 
+	# a dawn under an omen is a deed; a plain dawn is not
+	profile.data.deeds = {}
+	profile.data.achievements = {}
+	game.omen = ""
+	profile.record_run(15, 40, 900.0, 0, true)
+	_check(not profile.data.achievements.has("omen_dawn"), "a plain dawn is no deed of omens")
+	game.omen = "blood_moon"
+	profile.record_run(15, 40, 900.0, 0, true)
+	_check(int(profile.data.deeds.get("wins_omen", 0)) == 1 and profile.data.achievements.has("omen_dawn"),
+		"a dawn under an omen is (Under a Bad Sky)")
+
 	game.omen = ""
 	game.vial = 0
 	profile.data = saved

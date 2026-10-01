@@ -841,3 +841,5 @@ ENEMY_ELDER_WRAITH_LORE,"The first of the village to be told to wait. The others
 TIP_ELDER_WRAITH,"Its long cry throws three lights in a fan: slip between them or roll through. Then climb to it before the next.","Долгий крик бросает три огня веером: проскользни между ними или перекатись. Потом поднимись к нему до следующего.","Довгий крик кидає три вогні віялом: прослизни між ними або перекотися. Потім піднімися до нього до наступного.","它的长啸会呈扇形抛出三团光：从缝隙间穿过或翻滚躲开。趁下一次之前攀上去找它。"
 ABILITY_ACCURSED_STRENGTH_NAME,"Accursed Strength","Сила проклятого","Сила проклятого","受诅之力"
 ABILITY_ACCURSED_STRENGTH_DESC,"While a cursed chest's price is owed, your blows land 40% harder.","Пока цена проклятого сундука не уплачена, твои удары сильнее на 40%.","Поки ціну проклятої скрині не сплачено, твої удари сильніші на 40%.","受诅箱子的代价未偿清之时，你的攻击伤害提高40%。"
+DEED_OMEN_DAWN,"Under a Bad Sky","Под дурным небом","Під лихим небом","恶天之下"
+DEED_OMEN_DAWN_DESC,"See the dawn on a night drawn under an omen.","Дожить до рассвета в ночь под знамением.","Дожити до світанку в ніч під знаменням.","在有征兆的夜里活到黎明。"

@@ -95,6 +95,9 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 		_bump("wins_" + Game.dominant_path())
 		if Settings.difficulty == "judgment":
 			_bump("wins_judgment")
+		# a dawn under an omen (data/omens); the night of the day's counts too
+		if Game.omen != "":
+			_bump("wins_omen")
 		# a dawn opens the next vial of wrath (scripts/run/vials.gd)
 		# the night of the day pours a vial the profile may not have opened: it
 		# opens nothing and counts for no vial deed

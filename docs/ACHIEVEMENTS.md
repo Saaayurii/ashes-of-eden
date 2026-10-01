@@ -28,7 +28,7 @@ hold:
 | `deeds` | a counter `Profile.count` keeps | `{"deeds": {"parries": 50}}` |
 
 The counters (`Achievements.COUNTERS`): `parries`, `backstabs`, `ripostes`, `unscathed` (rooms cleared without a
-wound), `rests`, `curses_lifted` (a cursed chest's price paid off), and at dawn `wins_<path>` for the path the night leaned to (`Game.dominant_path`) and
+wound), `rests`, `curses_lifted` (a cursed chest's price paid off), `wins_omen` (a dawn under an omen), and at dawn `wins_<path>` for the path the night leaned to (`Game.dominant_path`) and
 `wins_judgment` on the hardest difficulty. A new counter goes into that list, into the code that calls
 `Profile.count`, and the validator reads the list from the source.
 
