@@ -59,7 +59,9 @@ FOCAL_RANGES = {
 
 TRAVERSAL_PATCHES = {
     "graveyard_cross": [(1220, 338, 80, 10)],
-    "graveyard_arches": [(1450, 430, 72, 10)],
+    # The lower graveyard route needs a way back onto its old upper gallery.
+    # This short shelf hangs from the gallery instead of floating in the gap.
+    "graveyard_arches": [(1450, 430, 72, 10), (750, 420, 80, 12, "BridgeReturn")],
     "swamp_moon": [(1250, 413, 90, 14)],  # trace the painted middle pier, no floating art
     "swamp_crypt": [(310, 375, 60, 10)],  # two-way route to the entrance pier
     "catacombs_3": [(480, 225, 80, 10)],
@@ -510,6 +512,9 @@ def expand_painted_room(name, room):
     if name in ("graveyard_arches", "graveyard_tree"):
         out["painted_cornices"] = True
         out["cornice_crop"] = (1220, 316) if name == "graveyard_arches" else (1418, 241)
+        if name == "graveyard_arches":
+            # Both chain heads disappear into the gallery's stone underside.
+            out["hanging_supports"] = {4: (68, 68)}
     if name in ("swamp_moon", "swamp_red"):
         out["painted_cornices"] = True
         out["cornice_crop"] = (1000, 420) if name == "swamp_moon" else (1480, 255)

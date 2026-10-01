@@ -1,6 +1,7 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scripts/rooms/hanging_support.gd" id="hanging_support"]
 [ext_resource type="Texture2D" path="res://assets/levels/graveyard_arches_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
 [ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
@@ -84,6 +85,9 @@ size = Vector2(56, 10)
 
 [sub_resource type="RectangleShape2D" id="Platform3_shape"]
 size = Vector2(72, 10)
+
+[sub_resource type="RectangleShape2D" id="BridgeReturn_shape"]
+size = Vector2(80, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(265, 14)
@@ -383,6 +387,11 @@ position = Vector2(1486.0, 435.0)
 shape = SubResource("Platform3_shape")
 one_way_collision = true
 
+[node name="BridgeReturnShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(790.0, 426.0)
+shape = SubResource("BridgeReturn_shape")
+one_way_collision = true
+
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(132.5, 227.0)
 shape = SubResource("Ledge1_shape")
@@ -495,6 +504,20 @@ texture = ExtResource("2_backdrop")
 centered = false
 region_enabled = true
 region_rect = Rect2(1220, 316, 72, 12)
+
+[node name="BridgeReturnHangers" type="Node2D" parent="Terrain"]
+position = Vector2(750, 420)
+script = ExtResource("hanging_support")
+walk_width = 80.0
+left_length = 68.0
+right_length = 68.0
+
+[node name="BridgeReturnCornice" type="Sprite2D" parent="Terrain"]
+position = Vector2(750, 420)
+texture = ExtResource("2_backdrop")
+centered = false
+region_enabled = true
+region_rect = Rect2(1220, 316, 80, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
