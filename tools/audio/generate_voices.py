@@ -249,6 +249,7 @@ RECIPES = {
     "elite_possessed": lambda w: growl(62 * w, 20, 800, 1.3),
     "shade": lambda w: whisper(500 * w, 2400 * w),
     "wraith": lambda w: whistle(620 * w),
+    "elder_wraith": lambda w: whistle(470 * w),  # the same cry, older and lower
     "cultist": lambda w: grunt(140 * w),
     "elite_cultist": lambda w: grunt(105 * w),  # the same robe, an older, lower throat
     "cult_caller": lambda w: caller(190 * w),

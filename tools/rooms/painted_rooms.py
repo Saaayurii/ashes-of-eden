@@ -35,7 +35,7 @@ JUMP_VELOCITY = 320.0
 GRAVITY = 1100.0
 BODY_WIDTH = 14.0
 REACH_MARGIN = 0.85
-FLYERS = {"shade", "wraith", "raven", "ophanim"}
+FLYERS = {"shade", "wraith", "elder_wraith", "raven", "ophanim"}
 
 
 def _surfaces(room):
@@ -339,7 +339,7 @@ PAINTED = {
         platforms=[(1035, 385, 48, 10), (1035, 325, 48, 10), (1035, 268, 48, 10)],
         spawns=[("cultist", 500, 248), ("possessed_villager", 200, 401), ("possessed_villager", 600, 391),
                 ("fallen_guard", 900, 418), ("zealot", 1150, 428), ("cult_caller", 800, 592), ("preacher_acolyte", 1050, 222),
-                ("possessed_villager", 300, 628), ("shade", 700, 300), ("wraith", 400, 500)],
+                ("possessed_villager", 300, 628), ("shade", 700, 300), ("elder_wraith", 400, 500)],
         props=[("pot", 150, 157), ("barrel", 420, 260), ("crate", 700, 403), ("sack", 1240, 440), ("chest_gold", 1150, 191),
                ("barrel_apples", 250, 413), ("pot", 600, 556), ("crate", 900, 604), ("sack", 80, 582)],
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",

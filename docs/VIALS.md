@@ -8,7 +8,7 @@ Each vial keeps every rule of the ones below it and adds one:
 
 | Vial | Adds | Ash |
 |---|---|---|
-| I | a quarter of the possessed and the fallen guards rise as their elites | ×1.25 |
+| I | a quarter of the possessed, the fallen guards, the cultists and the spirits rise as their elites | ×1.25 |
 | II | one flask fewer | ×1.5 |
 | III | every blow against the hero ×1.2 | ×1.75 |
 | IV | an altar gives back half the bar, not all of it | ×2 |
