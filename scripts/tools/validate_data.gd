@@ -98,7 +98,7 @@ func _init() -> void:
 	for id in _load_entries("res://data/props"):
 		_prop_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/enemies"):
-		_enemy_ids[id.get("id", "")] = true
+		_enemy_ids[id.get("id", "")] = bool(id.get("boss", false))
 	for id in _load_entries("res://data/notes"):
 		_note_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/chapters"):
@@ -621,7 +621,7 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 	if int(entry.get("ash", 0)) < 0 or int(entry.get("ash", 0)) > 50:
 		_error("%s: ash is 0..50 (docs/BALANCE.md: permanent power stays small)" % where)
 	for key in unlock:
-		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "moves", "deeds"].has(key):
+		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "moves", "deeds", "fast"].has(key):
 			_error("%s: unlock.%s is not a condition Achievements reads" % [where, key])
 	for key in ["nights", "wins", "total_kills"]:
 		if unlock.has(key) and int(unlock[key]) < 1:
@@ -637,6 +637,11 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 		for move in moves:
 			if not TECHNIQUES.has(move):
 				_error("%s: unlock.moves names no move: %s" % [where, move])
+	for boss in unlock.get("fast", {}):
+		if not bool(_enemy_ids.get(boss, false)):
+			_error("%s: unlock.fast names no boss: %s" % [where, boss])
+		elif float(unlock.fast[boss]) <= 0.0:
+			_error("%s: unlock.fast.%s is a time in seconds" % [where, boss])
 	for counter in unlock.get("deeds", {}):
 		if not counters.has(counter):
 			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])

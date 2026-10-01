@@ -4,7 +4,8 @@ extends SceneTree
 ##   - a cutscene does not count;
 ##   - its fall keeps the time on its bestiary page, only if it is the best;
 ##   - nothing counts in the practice yard;
-##   - the page shows it as m:ss.t.
+##   - the page shows it as m:ss.t;
+##   - Swift Judgment reads the best fights.
 ## Puts the profile back as it found it.
 ##   godot --headless --path . -s scripts/tools/boss_time_test.gd
 
@@ -88,6 +89,21 @@ func _run() -> void:
 		shown = shown or (label is Label and label.text == "0:31.3")
 	_check(shown, "the page shows the best fight")
 	book.queue_free()
+
+	# Swift Judgment: every boss within its time, read from the best fights
+	var deeds = load("res://scripts/meta/achievements.gd")
+	profile.data.achievements = {}
+	for id in ["blind_preacher", "knight_of_ash", "ophanim"]:
+		profile.data.bestiary.erase(id)
+	profile.record_boss_time("blind_preacher", 30.0)
+	profile.record_boss_time("knight_of_ash", 44.0)
+	profile.record_boss_time("ophanim", 120.0)
+	profile.check_achievements()
+	_check(not profile.data.achievements.has("swift_judgment") and deeds.progress("swift_judgment") == [0, 1],
+		"Swift Judgment waits for every boss within its time")
+	profile.record_boss_time("ophanim", 88.0)
+	profile.check_achievements()
+	_check(profile.data.achievements.has("swift_judgment"), "  and is done once the last one is")
 
 	game.new_run()
 	profile.data = saved

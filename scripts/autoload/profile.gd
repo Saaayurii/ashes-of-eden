@@ -278,6 +278,7 @@ func record_boss_time(enemy_id: String, seconds: float) -> bool:
 	entry["best_time"] = snappedf(seconds, 0.1)
 	data.bestiary[enemy_id] = entry
 	save()
+	check_achievements()  # Swift Judgment reads the best fights
 	return true
 
 
