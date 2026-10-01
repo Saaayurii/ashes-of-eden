@@ -81,9 +81,13 @@ func _run() -> void:
 			risen += 1
 		body.queue_free()
 	_check(risen > 8 and risen < 32, "about half the possessed rise as elites (%d of 40)" % risen)
+	var vial_was: int = game.vial
+	game.vial = 0  # no promotion while we look: the common one must stay common
 	var marked = run._spawn_enemy("elite_possessed", hero.global_position + Vector2(400, -40), false)
 	var common = run._spawn_enemy("possessed_villager", hero.global_position + Vector2(400, -40), false)
-	_check(marked.has_node("EliteMark") and marked.has_node("EliteMotes") and not common.has_node("EliteMark"),
+	game.vial = vial_was
+	# the motes always; the glow only where lighting is on (Fx.light obeys Settings.lighting)
+	_check(marked.has_node("EliteMotes") and not common.has_node("EliteMotes") and not common.has_node("EliteMark"),
 		"an elite carries its ember mark, a common one does not")
 	marked.queue_free()
 	common.queue_free()
