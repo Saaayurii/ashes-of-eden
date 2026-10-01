@@ -78,6 +78,7 @@ func _refresh() -> void:
 		_flashes.select(Settings.FLASHES.find(Settings.flashes))
 		_auto_attack.set_pressed_no_signal(Settings.auto_attack)
 		_damage_numbers.set_pressed_no_signal(Settings.damage_numbers)
+		_game_speed.select(Settings.GAME_SPEEDS.find(Settings.game_speed))
 	if _touch_mode:
 		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
@@ -121,6 +122,7 @@ var _text_size: OptionButton
 var _flashes: OptionButton
 var _auto_attack: CheckButton
 var _damage_numbers: CheckButton
+var _game_speed: OptionButton
 
 
 func _build_access() -> void:
@@ -139,9 +141,15 @@ func _build_access() -> void:
 	_auto_attack.toggled.connect(Settings.set_auto_attack)
 	_damage_numbers = CheckButton.new()
 	_damage_numbers.toggled.connect(Settings.set_damage_numbers)
+	_game_speed = OptionButton.new()
+	for speed in Settings.GAME_SPEEDS:
+		_game_speed.add_item("%d%%" % roundi(speed * 100.0))
+	_game_speed.item_selected.connect(func(index: int) -> void: Settings.set_game_speed(Settings.GAME_SPEEDS[index]))
+	_game_speed.tooltip_text = "SETTINGS_GAME_SPEED_HINT"
 	for pair in [["SETTINGS_TEXT_SIZE", _text_size, "TextSizeRow"], ["SETTINGS_FLASHES", _flashes, "FlashesRow"],
 			["SETTINGS_AUTO_ATTACK", _auto_attack, "AutoAttackRow"],
-			["SETTINGS_DAMAGE_NUMBERS", _damage_numbers, "DamageNumbersRow"]]:
+			["SETTINGS_DAMAGE_NUMBERS", _damage_numbers, "DamageNumbersRow"],
+			["SETTINGS_GAME_SPEED", _game_speed, "GameSpeedRow"]]:
 		var row := _row(pair[0], pair[1])
 		row.name = pair[2]
 		box.add_child(row)

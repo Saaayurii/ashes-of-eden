@@ -14,13 +14,32 @@ func _ready() -> void:
 	EventBus.player_died.connect(func() -> void: buzz(260, 1.0))
 
 
+## The speed time runs at when nothing is freezing it: 1, or the slowed night
+## (Settings.time_scale) while a run is up — the run sets it and puts it back.
+var base_scale := 1.0
+var _stopping := false
+
+
+## Sets the resting speed of time (a run calls it with Settings.time_scale()).
+## Unchanged, it leaves the clock alone (a tool script may have sped it up).
+func set_base_scale(scale: float) -> void:
+	scale = clampf(scale, 0.1, 1.0)
+	if is_equal_approx(scale, base_scale):
+		return
+	base_scale = scale
+	if not _stopping:
+		Engine.time_scale = base_scale
+
+
 ## Freezes time for a moment. Ignored if a hit-stop is already running.
 func hit_stop(duration := 0.05, scale := 0.05) -> void:
-	if Engine.time_scale < 1.0:
+	if _stopping:
 		return
-	Engine.time_scale = scale
+	_stopping = true
+	Engine.time_scale = scale * base_scale
 	await get_tree().create_timer(duration, true, false, true).timeout
-	Engine.time_scale = 1.0
+	_stopping = false
+	Engine.time_scale = base_scale
 
 
 func shake(strength := 3.0) -> void:

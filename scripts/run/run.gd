@@ -109,6 +109,10 @@ func _ready() -> void:
 	# Settings had it come back every time a run started (TouchPad._process
 	# asked Settings, this line did not, and the two disagreed).
 	touch_controls.visible = Settings.touch_enabled()
+	# the slowed night (Settings.game_speed), for this run only: menus run at full speed
+	Juice.set_base_scale(Settings.time_scale())
+	Settings.changed.connect(_on_settings_changed)
+	tree_exiting.connect(Juice.set_base_scale.bind(1.0))
 	run_end.retry.connect(_restart)
 	run_end.to_menu.connect(_to_menu)
 	run_end.spar.connect(_spar)
@@ -730,6 +734,11 @@ func _net_gift_at_door() -> void:
 func _gift_taken() -> void:
 	if multiplayer.is_server():
 		_gift_pending.erase(_sender())
+
+
+## The speed can change from the pause menu's settings, mid-night.
+func _on_settings_changed() -> void:
+	Juice.set_base_scale(Settings.time_scale())
 
 
 ## Gifts are offered one at a time; a level-up during a door gift just queues.
