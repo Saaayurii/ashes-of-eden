@@ -74,6 +74,10 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 ## v0.6 — Desktop stores
 - [x] The night of the day (`docs/DAILY.md`): one seeded night a day, the same for every player, best of the day kept — [ ] a shared leaderboard, which needs a server
 - [x] The vials of wrath (`docs/VIALS.md`): five rungs opened by dawns, each adding a rule, the Ash multiplied (`vials_test.gd`)
+- [x] Omens (`docs/OMENS.md`): from the fourth night most nights are drawn under a trade — seven of them, each one rule that helps and one that hurts, stacked on the vial; the crone reads each, the bestiary keeps a page per omen, a switch in Settings turns them off (`omen_test.gd`)
+- [x] What laid him low: the night's end names the killer and gives a tip for meeting it, offers the practice yard with it in it, and the next night the body lies where it fell (`slain_test.gd`, `last_fall_test.gd`); the playtest log and the balance probe rank what kills real hands
+- [x] Risk for reward: cursed chests (a rare item, wounds ×2 until ten fall — `curse_test.gd`), elites for the cult and the restless with an ember that marks every elite, two skills per path (Tolling Bell, Hex of Ashes, Unbroken Stride beside the first three — `skill_test.gd`)
+- [x] Gamepads in full: rumble on the blows, prompts that name the pad's buttons (`pad_prompt_test.gd`); a switch for damage numbers
 - [x] Achievements in the game first (`docs/ACHIEVEMENTS.md`): twenty deeds as data, read from the profile, a line on screen when one is done and a section of the bestiary listing them all; their ids are the API names a store will use (`achievements_test.gd`)
 - [ ] Steam page, achievements mirrored to Steam, cloud saves
 - [x] itch.io publishing wired (`.github/workflows/itch.yml`): the web build on every push to main, the desktop zips when a release is published, and a cover composed from the game's own art by `tools/art/make_store_art.py` — [ ] the page itself, which needs an account and a `BUTLER_API_KEY` (`docs/ITCH.md`). The only store here with no entry fee.
