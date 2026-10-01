@@ -10,7 +10,7 @@ const NICHE_PAINTED := ["secret_wall_catacombs"]
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const PATHS := ["grace", "temptation", "will"]
 const EFFECT_TYPES := ["stat", "lifesteal", "extra_life", "heal", "skill"]
-const SKILL_KINDS := ["nova", "bolt", "drain"]
+const SKILL_KINDS := ["nova", "bolt", "drain", "toll", "hex", "blink"]
 const RARITIES := ["common", "rare", "epic", "legendary"]
 ## Keys of Player.BASE_STATS a "stat" effect may touch. Duplicated on purpose:
 ## this script runs before the game's classes exist. Keep it in step.

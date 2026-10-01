@@ -297,5 +297,29 @@
         "value": 0.06
       }
     ]
+  },
+  {
+    "id": "tolling_bell",
+    "name": "ABILITY_TOLLING_BELL_NAME",
+    "description": "ABILITY_TOLLING_BELL_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/rune_2.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "skill",
+        "skill": {
+          "kind": "toll",
+          "cooldown": 9,
+          "damage": 8,
+          "radius": 90,
+          "stun": 1.6,
+          "color": "#f0e0a0"
+        }
+      }
+    ]
   }
 ]

@@ -152,6 +152,10 @@ var _sealed := false
 var _seal_done := false
 ## The damage phase after the seals break: open, low, not attacking.
 var _exposed_left := 0.0
+## A hex (the Hex of Ashes skill): every blow it takes is worth _hex_bonus
+## more while _hex_left runs. Decided by the host, like damage.
+var _hex_left := 0.0
+var _hex_bonus := 0.0
 ## A training dummy's quiet time left before it is whole again.
 var _dummy_rest := 0.0
 var _ward: Line2D
@@ -357,6 +361,7 @@ func _physics_process(delta: float) -> void:
 			_play("idle")
 		return
 	_exposed_left = maxf(0.0, _exposed_left - delta)
+	_hex_left = maxf(0.0, _hex_left - delta)
 	if Game.cutscene:
 		# A scene is playing: everybody holds where they stand (walkers keep
 		# their gravity, a flyer hangs still so the scene can place it).
@@ -1253,6 +1258,8 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		return
 	if _exposed_left > 0.0:
 		amount *= 1.0 + float(stats.get("seal_phase", {}).get("exposed_bonus", 0.5))
+	if _hex_left > 0.0:
+		amount *= 1.0 + _hex_bonus
 	var backstab := is_unaware() and sneak > 1.0
 	if backstab:
 		amount *= sneak
@@ -1327,6 +1334,50 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		if Net.active:
 			_net_die.rpc()
 		_die()
+
+
+## Hexed for [param seconds]: every blow it takes lands [param bonus] harder.
+## Decided by the host, like damage; the mark is drawn on every peer.
+func hex(seconds: float, bonus: float) -> void:
+	if Net.active and not multiplayer.is_server():
+		if multiplayer.get_peers().has(1):
+			_net_hex.rpc_id(1, seconds, bonus)
+		return
+	_apply_hex(seconds, bonus)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_hex(seconds: float, bonus: float) -> void:
+	_apply_hex(seconds, bonus)
+
+
+func _apply_hex(seconds: float, bonus: float) -> void:
+	if state == State.DEAD:
+		return
+	_hex_left = maxf(_hex_left, seconds)
+	_hex_bonus = maxf(_hex_bonus if _hex_left > 0.0 else 0.0, bonus)
+	_hex_mark(seconds)
+	if Net.active:
+		_net_hex_mark.rpc(seconds)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_hex_mark(seconds: float) -> void:
+	_hex_mark(seconds)
+
+
+## Ash rising off the hexed body for as long as it lasts.
+func _hex_mark(seconds: float) -> void:
+	var ticks := int(ceil(seconds / 0.4))
+	for i in ticks:
+		if not is_inside_tree() or state == State.DEAD:
+			return
+		Fx.ash(global_position + Vector2(randf_range(-6, 6), -14), Color(0.7, 0.35, 0.85, 0.8), 3, 20.0, 6.0)
+		await get_tree().create_timer(0.4).timeout
+
+
+func is_hexed() -> bool:
+	return _hex_left > 0.0
 
 
 ## Stopped where it stands for [param duration] (the cracked bell's parry, an

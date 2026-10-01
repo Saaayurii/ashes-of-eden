@@ -1983,9 +1983,50 @@ func _cast_skill() -> void:
 			if target != null:
 				target.take_damage(damage, self, {"knockback": 0.6})
 				heal(damage * float(skill.get("drain", 0.5)))
+		"toll":
+			# a bell struck in the chest: everyone near stops where they stand
+			var reach := float(skill.get("radius", 90.0))
+			for node in get_tree().get_nodes_in_group("enemies"):
+				var near := node as Enemy
+				if near != null and not near.is_dead() and near.global_position.distance_to(global_position) <= reach:
+					near.take_damage(damage, self, {"knockback": 0.4})
+					near.stagger(float(skill.get("stun", 1.5)))
+		"hex":
+			var marked := _skill_target(float(skill.get("range", 140.0)))
+			if marked != null:
+				marked.take_damage(damage, self, {"knockback": 0.3})
+				if marked is Enemy:
+					(marked as Enemy).hex(float(skill.get("hex", 5.0)), float(skill.get("bonus", 0.5)))
+		"blink":
+			_blink(float(skill.get("range", 110.0)), damage)
 	_skill_fx(str(skill.get("kind", "")), str(skill.get("color", "#ffffff")), float(skill.get("radius", 70.0)))
 	if Net.active:
 		_net_skill_fx.rpc(str(skill.get("kind", "")), str(skill.get("color", "#ffffff")), float(skill.get("radius", 70.0)))
+
+
+## Unbroken Stride: forward [param reach] at once — stopped short by a wall —
+## cutting every enemy along the way, and untouchable for a breath after.
+func _blink(reach: float, damage: float) -> void:
+	var start := global_position
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsRayQueryParameters2D.create(start + Vector2(0, -10), start + Vector2(facing * reach, -10), 1)
+	query.exclude = [get_rid()]
+	var hit := space.intersect_ray(query)
+	var travel := reach
+	if not hit.is_empty():
+		travel = maxf(0.0, absf((hit.position as Vector2).x - start.x) - 10.0)
+	var end := start + Vector2(facing * travel, 0)
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var crossed := node as Enemy
+		if crossed == null or crossed.is_dead():
+			continue
+		var along := (crossed.global_position.x - start.x) * facing
+		if along >= -6.0 and along <= travel + 14.0 and absf(crossed.global_position.y - start.y) <= 32.0:
+			crossed.take_damage(damage, self, {"knockback": 0.8})
+	Fx.dust(start, Vector2(-facing, 0), 6, Color(0.8, 0.78, 0.72, 0.7))
+	global_position = end
+	velocity = Vector2.ZERO
+	_hurt_grace_left = maxf(_hurt_grace_left, 0.3)
 
 
 ## The nearest living enemy in front, within reach.
@@ -2022,6 +2063,19 @@ func _skill_fx(kind: String, color_hex: String, radius: float) -> void:
 			Fx.ash(global_position + Vector2(facing * 50.0, -12.0), tint, 20, 50.0, 18.0)
 			Juice.shake(2.5)
 			Audio.play(&"hit_crit", -6.0, 0.8)
+		"toll":
+			Fx.ring(global_position + Vector2(0, -10), radius, tint)
+			Fx.flash(global_position + Vector2(0, -10), tint, radius * 1.8, 0.4, 1.2)
+			Juice.shake(3.0)
+			Audio.play(&"bell", -6.0)
+		"hex":
+			Fx.flash(global_position + Vector2(facing * 50.0, -12.0), tint, 70.0, 0.35, 1.1)
+			Fx.ash(global_position + Vector2(facing * 60.0, -12.0), tint, 16, 40.0, 14.0)
+			Audio.play(&"hit_crit", -8.0, 0.6)
+		"blink":
+			Fx.flash(global_position + Vector2(0, -12.0), tint, 60.0, 0.3)
+			Juice.shake(2.0)
+			Audio.play(&"swing", -2.0, 1.2)
 	_play("attack")
 
 
