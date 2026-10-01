@@ -42,6 +42,8 @@ var practice := ""
 var unscathed := 0
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
 var vial := 0
+## Times the gift cards may still be dealt again tonight (the rosary, Relics).
+var rerolls := 0
 ## What the greedier gifts add to every kill. Mirrored here from the player's
 ## stats by AbilitySystem, because the essence bar is the run's, not the body's.
 var essence_bonus := 0.0
@@ -68,6 +70,7 @@ func new_run() -> void:
 	ash_earned = 0
 	unscathed = 0
 	vial = 0
+	rerolls = 0
 	essence_bonus = 0.0
 
 

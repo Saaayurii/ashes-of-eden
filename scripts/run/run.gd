@@ -327,6 +327,8 @@ func _on_player_ready(body: Player) -> void:
 	if Net.active and body.get_multiplayer_authority() != multiplayer.get_unique_id():
 		return
 	player = body
+	# what the Ash bought (data/relics); a loaded save puts its own stats back over it
+	Relics.apply(body)
 	body.died.connect(_on_local_death)
 	_place_local_player()
 
@@ -726,7 +728,7 @@ func _offer_gifts() -> void:
 		var options := _roll_gifts()
 		if options.is_empty():
 			break
-		AbilitySystem.apply(player, await picker.pick(options))
+		AbilitySystem.apply(player, await picker.pick(options, _roll_gifts))
 	_picking = false
 
 
@@ -775,7 +777,7 @@ func _announce_unlocks() -> void:
 ## players must be offered the same cards whatever they have played before.
 static func gift_locked(ability: Dictionary) -> bool:
 	var needs := int(ability.get("unlock_nights", 0))
-	if needs <= 0 or Net.mode == Net.Mode.PVP:
+	if needs <= 0 or Net.mode == Net.Mode.PVP or Relics.early(str(ability.get("id", ""))):
 		return false
 	return int(Profile.data.get("nights", 0)) < needs
 

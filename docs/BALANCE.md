@@ -133,6 +133,9 @@ has seen the dawn goes for a harder night; the run-length target above is still 
 capped at ~25–30 %; everything else unlocked is new mechanics, gifts, weapons, characters. Two currencies only:
 Ash (unlocks) and Silver (shop, consumables, cosmetics). No paid stats, ever (see `MONETIZATION.md`).
 
+Ash is spent in the reliquary (docs/RELIQUARY.md): about a quarter of a fresh body in strength, then choices and
+knowledge — a rosary to redeal the gifts, a late gift early — never more strength.
+
 Death keeps: Ash, codex entries, story knowledge, achievements, unlocks. Death loses: build, Essence, items.
 
 Where Ash comes from in a night: a boss 10–25, a record cache 15, and 3 for every room cleared without a wound

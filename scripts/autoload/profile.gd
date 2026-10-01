@@ -35,6 +35,8 @@ static func _defaults() -> Dictionary:
 		"wins": 0,
 		# The highest vial of wrath a dawn has opened (scripts/run/vials.gd).
 		"vials_opened": 0,
+		# Relics bought with Ash (data/relics, scripts/meta/relics.gd): id -> true.
+		"relics": {},
 		# Counters the deeds read (Achievements.COUNTERS): parries, backstabs…
 		"deeds": {},
 		# Deeds done (data/achievements): id -> the unix time it happened.

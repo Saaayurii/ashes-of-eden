@@ -59,6 +59,7 @@ const REQUIRED := {
 	"achievements": ["id", "name", "description", "unlock"],
 	"resonances": ["id", "name", "description", "needs", "effects"],
 	"vials": ["id", "tier", "name", "description", "rules"],
+	"relics": ["id", "name", "description", "cost", "effects"],
 }
 
 var errors: PackedStringArray = []
@@ -296,6 +297,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_resonance(entry, where)
 		"vials":
 			_check_vial(entry, where)
+		"relics":
+			_check_relic(entry, where)
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -649,6 +652,29 @@ func _check_resonance(entry: Dictionary, where: String) -> void:
 			_error("%s: op is add or mul" % where)
 	if entry.get("effects", []).is_empty():
 		_error("%s: a resonance that does nothing" % where)
+
+
+## A relic (data/relics, scripts/meta/relics.gd): bought with Ash, once. A stat
+## is one Player.BASE_STATS has; a reroll is one more deal of the gift cards.
+## The "early_" relics are made from the late gifts in code and need no entry.
+func _check_relic(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	if int(entry.get("cost", 0)) <= 0:
+		_error("%s: a relic costs Ash" % where)
+	if str(entry.id).begins_with("early_"):
+		_error("%s: early_ relics are made from the late gifts, not written" % where)
+	for effect in entry.get("effects", []):
+		match str(effect.get("type", "")):
+			"stat":
+				if not STATS.has(effect.get("stat")):
+					_error("%s: no such stat %s" % [where, effect.get("stat")])
+			"reroll":
+				pass
+			_:
+				_error("%s: a relic's effect is a stat or a reroll" % where)
+	if entry.has("needs") and not FileAccess.get_file_as_string("res://data/relics/reliquary.json").contains('"%s"' % entry.needs):
+		_error("%s: needs names no relic" % where)
 
 
 ## A vial of wrath (data/vials, scripts/run/vials.gd): a tier 1..5 once each,

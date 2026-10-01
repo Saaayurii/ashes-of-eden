@@ -76,9 +76,41 @@ func _ready() -> void:
 		Game.practice = "training_dummy"
 		Curtain.change_scene(RUN_SCENE))
 	%Bestiary.closed.connect(%OpenBestiary.grab_focus)
+	# where the Ash goes (Relics): beside the bestiary in one row, like
+	# Continue | Load, so the menu keeps its height and its title
+	var reliquary := Reliquary.new()
+	reliquary.name = "Reliquary"
+	add_child(reliquary)
+	var open_reliquary := Button.new()
+	open_reliquary.name = "OpenReliquary"
+	open_reliquary.text = "MENU_RELIQUARY"
+	_pair(%OpenBestiary, open_reliquary, "BookRow")
+	open_reliquary.pressed.connect(reliquary.open)
+	reliquary.closed.connect(open_reliquary.grab_focus)
 	quit_button.visible = not (OS.has_feature("web") or OS.has_feature("mobile"))
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
+	# Settings | Quit share a row too: with every button on its own line the
+	# column stood taller than the 360-pixel screen and pushed the title off it
+	_pair(%OpenSettings, quit_button, "SystemRow")
 	(%Continue if %Continue.visible else play_button).grab_focus()
+
+
+## Puts [param first] and [param second] side by side in one row of the menu,
+## where [param first] stood, as halves — the way Continue | Load are drawn.
+func _pair(first: Control, second: Control, row_name: String) -> void:
+	var row := HBoxContainer.new()
+	row.name = row_name
+	var saves_row := first.get_parent().get_node_or_null("SaveRow") as HBoxContainer
+	if saves_row != null:
+		row.add_theme_constant_override("separation", saves_row.get_theme_constant("separation"))
+	first.add_sibling(row)
+	for half in [first, second]:
+		if half.get_parent() == null:
+			row.add_child(half)
+		else:
+			half.reparent(row)
+		half.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		half.custom_minimum_size = Vector2.ZERO
 
 
 ## "Continue" is there only when there is something to continue: the newest save.
