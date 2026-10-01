@@ -75,8 +75,12 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 		best.text += "\n" + (tr("DAILY_NEW_BEST") if Game.daily_best else tr("DAILY_BEST") % int(day.get("area", 0)))
 	if won and Game.daily == "" and Game.vial < Vials.TIERS and Vials.opened() == Game.vial + 1:
 		best.text += "\n" + tr("VIAL_OPENED") % tr(str(Vials.spec(Game.vial + 1).get("name", "")))
+	# a night lost to something with advice: how to meet it next time
+	var tip := slain_tip(Game.slain_by) if not won else ""
+	if tip != "":
+		best.text += "\n" + tr(tip)
 	# a night lost with moves still unknown: the yard is where they are learnt
-	if not won and not (Profile.data.moves_done.has("lunge") and Profile.data.moves_done.has("cleave")
+	elif not won and not (Profile.data.moves_done.has("lunge") and Profile.data.moves_done.has("cleave")
 			and Profile.data.moves_done.has("sweep")):
 		best.text += "\n" + tr("RUN_PRACTICE_TIP")
 	var names: Array = Game.abilities.map(func(a: Dictionary) -> String: return tr(a.name))
@@ -112,3 +116,13 @@ static func slain_name(id: String) -> String:
 	if Data.enemies.has(id):
 		return TranslationServer.translate(str(Data.enemies[id].get("name", id)))
 	return ""
+
+
+## The advice for what laid him low (an enemy's "tip", the lava's, the drop's), as a key.
+static func slain_tip(id: String) -> String:
+	match id:
+		"lava":
+			return "TIP_LAVA"
+		"fall":
+			return "TIP_FALL"
+	return str(Data.enemies[id].get("tip", "")) if Data.enemies.has(id) else ""

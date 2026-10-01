@@ -2,6 +2,7 @@
   "id": "preacher_acolyte",
   "extends": "blind_preacher",
   "name": "ENEMY_PREACHER_ACOLYTE",
+  "tip": "TIP_PREACHER_ACOLYTE",
   "boss": false,
   "hp": 110,
   "armor": 0.0,

@@ -119,6 +119,8 @@ without duplicating the base health and movement record.
 - `tags` are free-form and reserved for story/ability interactions. The bestiary shows them, so every tag
   needs a `TAG_<NAME>` localization key (`"spirit"` → `TAG_SPIRIT`).
 - `lore` (optional): localization key of a sentence or two for the bestiary page (`ENEMY_SHADE_LORE`).
+- `tip`: localization key of one line of advice (`TIP_SHADE`), given on the night's end when this enemy
+  laid the player low and on its bestiary page. Required for anything that can kill (not a `seal` or a `dummy`).
   The bestiary (`scenes/ui/bestiary.tscn`) lists every enemy id in the data; a kind is "seen" once it
   spawns in the player's room and "known" once one has died — only then are stats and lore shown.
   Progress lives in `Profile.data.bestiary`, across runs.

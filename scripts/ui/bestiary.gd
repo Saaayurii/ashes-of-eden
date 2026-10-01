@@ -246,6 +246,9 @@ func _show(id: String) -> void:
 		return
 	if kills <= 0:
 		hint_label.text = tr("BESTIARY_HINT_SEEN")
+		# not yet slain, but it has slain you: the book tells you how
+		if int(entry.get("felled", 0)) > 0 and stats.has("tip"):
+			hint_label.text += "\n\n%s: %s" % [tr("TIP_LABEL"), tr(stats.tip)]
 		return
 	var tags: Array = stats.get("tags", []).map(func(tag: String) -> String: return tr("TAG_" + tag.to_upper()))
 	tags_label.text = " · ".join(tags)
@@ -263,6 +266,8 @@ func _show(id: String) -> void:
 		_stat("BESTIARY_FELLED", str(int(entry.felled)))
 	if stats.has("lore"):
 		lore_label.text = tr(stats.lore)
+	if stats.has("tip"):
+		lore_label.text += ("\n\n" if lore_label.text != "" else "") + "%s: %s" % [tr("TIP_LABEL"), tr(stats.tip)]
 	_show_abilities(stats)
 
 

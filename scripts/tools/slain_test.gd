@@ -2,7 +2,7 @@ extends SceneTree
 ## What laid him low (Player.slain_by, Game.slain_by):
 ##   - a blow names the enemy that struck it, a bolt the enemy that loosed it,
 ##     the lava and the drop name themselves, a forwarded hit carries its name;
-##   - the night's end says so, the chronicle keeps it, the bestiary counts it
+##   - the night's end says so and gives the advice for it, the chronicle keeps it, the bestiary counts it
 ##     on that enemy's page;
 ##   - a revive forgets it, and a new night starts with nothing to blame.
 ## Puts the profile back as it found it (CLAUDE.md: tools share user://).
@@ -88,6 +88,16 @@ func _run() -> void:
 	_check(str(profile.data.history.back().get("slain_by", "")) == foe.enemy_id, "the chronicle keeps it")
 	_check(int(profile.data.bestiary[foe.enemy_id].get("felled", 0)) == felled_before + 1,
 		"  and the bestiary counts it on its page")
+	var book = load("res://scenes/ui/bestiary.tscn").instantiate()
+	root.add_child(book)
+	book.open()
+	await process_frame
+	var advice: String = TranslationServer.translate(str(root.get_node("Data").enemies[foe.enemy_id].get("tip", "")))
+	book._show(foe.enemy_id)
+	var page: String = book.lore_label.text if int(profile.data.bestiary[foe.enemy_id].get("kills", 0)) > 0 \
+		else book.hint_label.text
+	_check(advice != "" and page.contains(advice), "the bestiary page gives the same advice")
+	book.queue_free()
 	var end_screen = null
 	for node in run.find_children("*", "", true, false):
 		if node.get_script() != null and str(node.get_script().resource_path).ends_with("end_screen.gd"):
@@ -98,6 +108,10 @@ func _run() -> void:
 		end_screen.show_result(false, 3, 4, 120.0)
 		var named: String = TranslationServer.translate(str(root.get_node("Data").enemies[foe.enemy_id].name))
 		_check(end_screen.stats.text.contains(named), "the night's end names it: %s" % end_screen.stats.text.get_slice("\n", 0))
+		var tip: String = TranslationServer.translate(str(root.get_node("Data").enemies[foe.enemy_id].get("tip", "")))
+		_check(tip != "" and end_screen.best.text.contains(tip), "  and says how to meet it next time")
+		_check(end_screen.slain_tip("lava") == "TIP_LAVA" and end_screen.slain_tip("fall") == "TIP_FALL"
+				and end_screen.slain_tip("") == "", "the lava and the drop have advice of their own")
 		game.slain_by = ""
 		end_screen.show_result(true, 3, 4, 120.0)
 		_check(not end_screen.stats.text.contains(named), "a dawn blames nobody")

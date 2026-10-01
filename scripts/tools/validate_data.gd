@@ -178,6 +178,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_use_key(entry.get("name", ""), where)
 			if entry.has("lore"):
 				_use_key(entry.lore, where)
+			# the advice the night's end gives when this one laid him low
+			if entry.has("tip"):
+				_use_key(entry.tip, where)
+			elif entry.get("bestiary", true) and not ["seal", "dummy"].has(entry.get("behaviour", "walker")) \
+					and not entry.has("extends"):
+				_error("%s: an enemy that can kill needs a \"tip\" (how to meet it)" % where)
 			for tag in entry.get("tags", []):
 				_use_key("TAG_" + str(tag).to_upper(), where)  # the bestiary shows them
 			if not entry.has("extends"):

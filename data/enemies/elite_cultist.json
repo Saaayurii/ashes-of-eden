@@ -2,6 +2,7 @@
   "id": "elite_cultist",
   "name": "ENEMY_ELITE_CULTIST",
   "lore": "ENEMY_ELITE_CULTIST_LORE",
+  "tip": "TIP_ELITE_CULTIST",
   "hp": 94,
   "speed": 88,
   "damage": 0,

@@ -2,6 +2,7 @@
   "id": "zealot",
   "name": "ENEMY_ZEALOT",
   "lore": "ENEMY_ZEALOT_LORE",
+  "tip": "TIP_ZEALOT",
   "hp": 44,
   "speed": 55,
   "damage": 0,
