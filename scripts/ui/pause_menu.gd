@@ -9,6 +9,7 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 @onready var bestiary: Bestiary = %Bestiary
 @onready var save_menu: SaveMenu = %SaveMenu
 var chapter_map: ChapterMap
+var carried: CarriedGifts
 
 
 func _ready() -> void:
@@ -32,6 +33,18 @@ func _ready() -> void:
 	open_map.owner = self  # so %OpenMap resolves like the buttons in the scene
 	open_map.pressed.connect(func() -> void: panel.visible = false; chapter_map.open())
 	chapter_map.closed.connect(func() -> void: panel.visible = true; open_map.grab_focus())
+	# What the body carries tonight (CarriedGifts), under the map.
+	carried = CarriedGifts.new()
+	carried.name = "CarriedGifts"
+	add_child(carried)
+	var open_carried := Button.new()
+	open_carried.name = "OpenCarried"
+	open_carried.unique_name_in_owner = true
+	open_carried.text = tr("PAUSE_CARRIED")
+	open_map.add_sibling(open_carried)
+	open_carried.owner = self
+	open_carried.pressed.connect(func() -> void: panel.visible = false; carried.open())
+	carried.closed.connect(func() -> void: panel.visible = true; open_carried.grab_focus())
 	# Saving is solo: a session's rooms are the host's (see Saves).
 	%SaveRow.visible = not Net.active and Game.daily == ""  # the night of the day is played once through
 	%OpenSave.pressed.connect(_open_saves.bind("save"))
@@ -43,7 +56,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("pause"):
 		return
 	if visible:
-		if settings.visible or bestiary.visible or save_menu.visible or chapter_map.visible:
+		if settings.visible or bestiary.visible or save_menu.visible or chapter_map.visible or carried.visible:
 			return  # the overlay handles its own Escape
 		_resume()
 	elif not get_tree().paused:  # someone else (dialogue, picker, end screen) owns the pause
