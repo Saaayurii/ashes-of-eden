@@ -917,3 +917,5 @@ DEED_CHOSEN_DESC,"Lay to rest one of every elite: the elite possessed, the falle
 BESTIARY_GIFTS,"Gifts","Дары","Дари","恩赐"
 BESTIARY_RESONANCES,"Resonances","Созвучия","Співзвуччя","共鸣"
 BESTIARY_HINT_GIFT,"Not yet carried through a night.","Ещё ни разу не пронесён через ночь.","Ще жодного разу не пронесений крізь ніч.","尚未伴你度过一夜。"
+BESTIARY_ITEMS,"Relics found","Находки","Знахідки","所得之物"
+BESTIARY_HINT_ITEM,"Not yet found in a chest or an elite's cache.","Ещё не найдено ни в сундуке, ни в ларце элиты.","Ще не знайдено ні в скрині, ні в скарбничці еліти.","尚未在箱中或精英的遗匣里寻得。"

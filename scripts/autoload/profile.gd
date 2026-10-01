@@ -99,6 +99,8 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 		_codex("gift:" + str(ability.get("id", "")))
 	for id in Game.resonances:
 		_codex("res:" + str(id))
+	for id in Game.items:
+		_codex("item:" + str(id))
 	# an omen drawn is a page in the book (bestiary "omen:<id>"): its nights, its dawns
 	if Game.omen != "":
 		var drawn: Dictionary = data.bestiary.get("omen:" + Game.omen, {"seen": true, "met": true, "kills": 0})
