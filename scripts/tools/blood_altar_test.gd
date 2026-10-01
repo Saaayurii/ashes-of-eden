@@ -79,8 +79,18 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	_check(game.abilities.size() == gifts_before + 1, "a gift taken is the body's")
-	_check(is_equal_approx(player.stats.max_hp, max_before * 0.85), "  and costs a share of the bar (%.1f of %.1f)" % [player.stats.max_hp, max_before])
+	# the price comes first, then the gift: a gift that touches the bar itself is counted in
+	var expected: float = max_before * 0.85
+	for effect in game.abilities.back().get("effects", []):
+		if effect.get("stat", "") == "max_hp":
+			expected = expected + float(effect.value) if effect.get("op", "add") == "add" else expected * float(effect.value)
+	_check(is_equal_approx(player.stats.max_hp, expected), "  and costs a share of the bar (%.1f, expected %.1f)" % [player.stats.max_hp, expected])
 	_check(int(profile.data.deeds.get("blood_paid", 0)) == 1, "  counted")
+	_check(game.flags.has("blood_paid"), "  and the night remembers it (blood_paid)")
+	var matthew: Dictionary = root.get_node("Data").dialogues["npc_matthew"].nodes
+	var box = load("res://scripts/ui/dialogue_box.gd")
+	_check(box.branch_holds(matthew["blood"].branches[0]) and matthew["blood"].branches[0].next == "t_blood",
+		"  so Father Matthew sees it on him")
 	_check(title.text == "PICKER_TITLE" or not run.picker.visible, "the next hand has its own heading again")
 
 	# turned down: nothing taken, nothing paid
@@ -102,6 +112,7 @@ func _run() -> void:
 	_check(game.abilities.size() == gifts_before and is_equal_approx(player.stats.max_hp, max_before),
 		"the hand turned down: nothing taken, nothing paid")
 	_check(int(profile.data.deeds.get("blood_paid", 0)) == 1, "  and nothing counted")
+	game.flags.erase("blood_paid")
 	_check(fresh._spent, "  the altar is spent either way: one look at its cards")
 
 	# the playtest log hears both, and the balance probe sums the trades

@@ -958,6 +958,9 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 ## data, so the validator cannot find them by reading data/ alone.
 const FLAGS_READ_IN_CODE := ["voice_yes", "matthew_confessed", "matthew_judged",
 	"matthew_released", "matthew_book_revealed", "read_letters"]
+## Flags the engine itself sets: written in GDScript, not by a choice in data.
+## blood_paid: a blood altar's price paid (Run._on_blood_offered).
+const FLAGS_SET_IN_CODE := ["blood_paid"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
 
@@ -965,6 +968,8 @@ const FLAGS_FOR_TESTS := ["save_test"]
 func _check_story_flags() -> void:
 	for flag in FLAGS_READ_IN_CODE:
 		flags_read[flag] = "scripts/"
+	for flag in FLAGS_SET_IN_CODE:
+		flags_set[flag] = "scripts/"
 	for flag in FLAGS_FOR_TESTS:
 		flags_set[flag] = "a test"
 		flags_read[flag] = "a test"

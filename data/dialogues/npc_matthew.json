@@ -2,9 +2,12 @@
   "id": "npc_matthew",
   "start": "book",
   "nodes": {
-    "book": {"branches": [{"flag": "book_read", "next": "t_book"}], "next": "route"},
+    "book": {"branches": [{"flag": "book_read", "next": "t_book"}], "next": "blood"},
+    "blood": {"branches": [{"flag": "blood_paid", "next": "t_blood"}], "next": "route"},
+    "t_blood": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BLOOD", "next": "t_blood2"},
+    "t_blood2": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BLOOD_2", "next": "route"},
     "t_book": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BOOK", "next": "t_book2"},
-    "t_book2": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BOOK_2", "next": "route"},
+    "t_book2": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BOOK_2", "next": "blood"},
     "route": {
       "branches": [
         {

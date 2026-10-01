@@ -793,6 +793,7 @@ func _on_blood_offered(body: Node, price: float) -> void:
 			Fx.popup(hero.global_position + Vector2(0, -40), tr("BLOOD_WITHDRAWN"), Color(0.85, 0.8, 0.8), 8)
 		else:
 			hero.pay_blood(price)
+			Game.flags["blood_paid"] = true  # Matthew sees it on him (npc_matthew "blood")
 			AbilitySystem.apply(hero, gift)
 			if Game.practice == "":
 				Profile.count("blood_paid")
