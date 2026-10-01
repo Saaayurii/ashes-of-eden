@@ -65,6 +65,12 @@ func _ready() -> void:
 	EventBus.player_parried.connect(count.bind("parries"))
 	EventBus.player_unscathed.connect(func(_index: int) -> void: count("unscathed"))
 	EventBus.player_rested.connect(func(_room: String) -> void: count("rests"))
+	# a store, if this build carries one and it is running (docs/STEAM.md)
+	set_process(StoreBridge.start())
+
+
+func _process(_delta: float) -> void:
+	StoreBridge.poll()
 
 
 func load_profile() -> void:
@@ -209,6 +215,7 @@ func check_achievements() -> Array:
 		save()
 		for id in fresh:
 			EventBus.achievement_unlocked.emit(id)
+		StoreBridge.mirror(fresh)
 	return fresh
 
 
