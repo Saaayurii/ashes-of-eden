@@ -1023,9 +1023,12 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		velocity.x = signf(global_position.x - from_x) * BLOCK_PUSH
 	if stats.thorns > 0.0 and source != null and source != self and source.has_method("take_damage"):
 		source.take_damage(amount * stats.thorns, self)
+	var hp_before := hp
 	hp -= amount
 	if amount > 0.0 and not blocked:
 		_wounded_this_room = true
+		if _is_mine():  # what it took, not what it would have: a killing blow stops at the last hp
+			Game.note_blow(_blame(source, info), minf(amount, maxf(hp_before, 0.0)))
 		if _charging:
 			_cancel_charge()  # a wound breaks the charge; the blade was not ready
 		if stats.wrath_after_hit > 0.0:

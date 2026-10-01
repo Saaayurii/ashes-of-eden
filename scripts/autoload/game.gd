@@ -49,6 +49,11 @@ var unscathed := 0
 ## "lava", "fall", or "" while it stands. The end screen, the chronicle and
 ## the bestiary read it.
 var slain_by := ""
+## The last blows our own body took this night, oldest first, at most
+## LAST_BLOWS of them: {by: what Player._blame names, amount}. The end screen
+## shows them under the killer, so a death reads as the fight it was.
+var last_blows: Array = []
+const LAST_BLOWS := 3
 ## The omen this night is drawn under (data/omens, Omens), "" for a plain night.
 var omen := ""
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
@@ -81,10 +86,18 @@ func new_run() -> void:
 	ash_earned = 0
 	unscathed = 0
 	slain_by = ""
+	last_blows = []
 	omen = ""
 	vial = 0
 	rerolls = 0
 	essence_bonus = 0.0
+
+
+## One more blow taken by our own body (Player._apply_damage).
+func note_blow(by: String, amount: float) -> void:
+	last_blows.append({"by": by, "amount": roundi(amount)})
+	while last_blows.size() > LAST_BLOWS:
+		last_blows.pop_front()
 
 
 ## Applies an "effect" block from data, e.g. {"grace": 1, "set_flags": ["stranger_spared"]}.

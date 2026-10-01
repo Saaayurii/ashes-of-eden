@@ -88,6 +88,10 @@ func _run() -> void:
 	_check(str(profile.data.history.back().get("slain_by", "")) == foe.enemy_id, "the chronicle keeps it")
 	_check(int(profile.data.bestiary[foe.enemy_id].get("felled", 0)) == felled_before + 1,
 		"  and the bestiary counts it on its page")
+	_check(game.last_blows.size() == game.LAST_BLOWS and str(game.last_blows.back().by) == foe.enemy_id
+		and int(game.last_blows.back().amount) > 0 and int(game.last_blows.back().amount) <= int(player.stats.max_hp),
+		"the last blows are kept, at most %d, the killing one last (%s)"
+		% [game.LAST_BLOWS, game.last_blows])
 	var book = load("res://scenes/ui/bestiary.tscn").instantiate()
 	root.add_child(book)
 	book.open()
@@ -106,6 +110,8 @@ func _run() -> void:
 	_check(end_screen != null, "the run has an end screen")
 	if end_screen != null:
 		end_screen.show_result(false, 3, 4, 120.0)
+		var blows_line: String = end_screen.last_blows_line(game.last_blows)
+		_check(blows_line != "" and end_screen.stats.text.contains(blows_line), "the night's end lists the last blows: %s" % blows_line)
 		var named: String = TranslationServer.translate(str(root.get_node("Data").enemies[foe.enemy_id].name))
 		_check(end_screen.stats.text.contains(named), "the night's end names it: %s" % end_screen.stats.text.get_slice("\n", 0))
 		var tip: String = TranslationServer.translate(str(root.get_node("Data").enemies[foe.enemy_id].get("tip", "")))
@@ -122,7 +128,8 @@ func _run() -> void:
 		_check(not end_screen.spar_button.visible, "  nor for a seal, which is part of another's fight")
 		game.slain_by = ""
 		end_screen.show_result(true, 3, 4, 120.0)
-		_check(not end_screen.stats.text.contains(named), "a dawn blames nobody")
+		_check(not end_screen.stats.text.contains(named) and not end_screen.stats.text.contains(blows_line),
+			"a dawn blames nobody")
 		_check(not end_screen.spar_button.visible, "  and offers no sparring")
 
 		# the button: the same run scene, opened on the yard with the killer in it

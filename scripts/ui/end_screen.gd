@@ -91,6 +91,9 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	var killer := slain_name(Game.slain_by) if not won else ""
 	if killer != "":
 		stats.text = tr("RUN_SLAIN_BY") % killer + "\n" + stats.text
+	var blows := last_blows_line(Game.last_blows) if not won else ""
+	if blows != "":
+		stats.text += "\n" + blows
 	# the night of the day: where it stands against the day's best (Daily)
 	if Game.daily != "":
 		var day := Daily.best(Game.daily)
@@ -128,6 +131,16 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 		%Retry.grab_focus()
 	else:
 		%Menu.grab_focus()
+
+
+## The last blows taken, oldest first: "Last blows: Zealot 12 · Lava 20". "" for none.
+static func last_blows_line(blows: Array) -> String:
+	var parts: Array[String] = []
+	for blow in blows:
+		var who := slain_name(str(blow.get("by", "")))
+		if who != "":  # a blow from nowhere names nobody
+			parts.append("%s %d" % [who, int(blow.get("amount", 0))])
+	return TranslationServer.translate("RUN_LAST_BLOWS") % " · ".join(parts) if not parts.is_empty() else ""
 
 
 ## What laid him low, by name: an enemy's, the lava, the drop. "" for nothing known.
