@@ -60,6 +60,11 @@ static func _defaults() -> Dictionary:
 func _ready() -> void:
 	load_profile()
 	EventBus.enemy_died.connect(func(enemy_id: StringName, _pos: Vector2) -> void: record_kill(String(enemy_id)))
+	# the chosen of the dead laid low: an elite, never a boss (Hunter of the Chosen)
+	EventBus.enemy_died.connect(func(enemy_id: StringName, _pos: Vector2) -> void:
+		var spec: Dictionary = Data.enemies.get(String(enemy_id), {})
+		if spec.get("tags", []).has("elite") and not spec.get("boss", false):
+			count("elites"))
 	EventBus.technique_performed.connect(record_move)
 	EventBus.technique_performed.connect(func(id: String) -> void:
 		if id in ["backstab", "riposte"]:

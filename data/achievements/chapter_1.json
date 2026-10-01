@@ -26,6 +26,7 @@
   {"id": "daily_week", "name": "DEED_DAILY_WEEK", "description": "DEED_DAILY_WEEK_DESC", "ash": 15, "unlock": {"deeds": {"daily_streak": 7}}},
   {"id": "curator", "name": "DEED_CURATOR", "description": "DEED_CURATOR_DESC", "ash": 15, "unlock": {"items": "all"}},
   {"id": "blood_tithe", "name": "DEED_BLOOD_TITHE", "description": "DEED_BLOOD_TITHE_DESC", "ash": 10, "unlock": {"deeds": {"blood_paid": 5}}},
+  {"id": "elite_hunter", "name": "DEED_ELITE_HUNTER", "description": "DEED_ELITE_HUNTER_DESC", "ash": 15, "unlock": {"deeds": {"elites": 25}}},
   {"id": "rested", "name": "DEED_RESTED", "description": "DEED_RESTED_DESC", "ash": 5, "unlock": {"deeds": {"rests": 5}}},
   {"id": "vial_first", "name": "DEED_VIAL_FIRST", "description": "DEED_VIAL_FIRST_DESC", "ash": 15, "unlock": {"deeds": {"wins_vial_1": 1}}},
   {"id": "vial_last", "name": "DEED_VIAL_LAST", "description": "DEED_VIAL_LAST_DESC", "ash": 40, "unlock": {"deeds": {"wins_vial_5": 1}}}

@@ -30,7 +30,7 @@ hold:
 | `fast` | a boss laid low within that many seconds (its best fight, `Profile.record_boss_time`) | `{"fast": {"ophanim": 90}}` |
 
 The counters (`Achievements.COUNTERS`): `parries`, `backstabs`, `ripostes`, `unscathed` (rooms cleared without a
-wound), `rests`, `curses_lifted` (a cursed chest's price paid off), `wins_omen` (a dawn under an omen), `refusals` (a hand of gifts turned down), and at dawn `wins_<path>` for the path the night leaned to (`Game.dominant_path`) and
+wound), `rests`, `curses_lifted` (a cursed chest's price paid off), `wins_omen` (a dawn under an omen), `refusals` (a hand of gifts turned down), `elites` (an elite laid low), `blood_paid` (a blood altar's price paid), `daily_streak` (the longest run of nights of the day), and at dawn `wins_<path>` for the path the night leaned to (`Game.dominant_path`) and
 `wins_judgment` on the hardest difficulty. A new counter goes into that list, into the code that calls
 `Profile.count`, and the validator reads the list from the source.
 

@@ -821,6 +821,8 @@ DEED_CURATOR,"Keeper of Relics","Хранитель реликвий","Охор�
 DEED_CURATOR_DESC,"Find every item at least once.","Найти каждый предмет хотя бы раз.","Знайти кожен предмет хоча б раз.","每件物品至少寻得一次。"
 DEED_BLOOD_TITHE,"The Blood Tithe","Кровавая десятина","Кривава десятина","血之什一"
 DEED_BLOOD_TITHE_DESC,"Pay a blood altar's price five times.","Пять раз заплатить цену кровавого алтаря.","П'ять разів заплатити ціну кривавого вівтаря.","五次付出血之祭坛的代价。"
+DEED_ELITE_HUNTER,"Hunter of the Chosen","Охотник на избранных","Мисливець на обраних","猎杀天选者"
+DEED_ELITE_HUNTER_DESC,"Lay twenty-five elites low.","Сразить двадцать пять элитных врагов.","Здолати двадцять п'ять елітних ворогів.","击倒二十五名精英。"
 DEED_CURSED_DESC,"Open a cursed chest and live until its curse lifts.","Открыть проклятый сундук и дожить, пока проклятие не спадёт.","Відкрити прокляту скриню й дожити, доки прокляття не спаде.","开启一只受诅的箱子，并活到诅咒散去。"
 RUN_SLAIN_BY,"Laid low by: %s","Сражён: %s","Повалений: %s","倒于：%s"
 RUN_LAST_BLOWS,"Last blows: %s","Последние удары: %s","Останні удари: %s","最后几击：%s"

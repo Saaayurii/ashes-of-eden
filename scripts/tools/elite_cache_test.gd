@@ -2,7 +2,9 @@ extends SceneTree
 ## An elite's fall leaves a cache (Enemy._leave_cache, data/props/elite_cache):
 ##   - on the floor under the body, once;
 ##   - walking into it pays a common item and essence;
-##   - a common enemy leaves none, nor a boss, nor anything in the yard.
+##   - a common enemy leaves none, nor a boss, nor anything in the yard;
+##   - an elite laid low counts for Hunter of the Chosen.
+## Puts the profile back as it found it.
 ##   godot --headless --path . -s scripts/tools/elite_cache_test.gd
 
 var failures := 0
@@ -33,8 +35,13 @@ func _caches(room) -> Array:
 	return room.find_children("EliteCache*", "", true, false)
 
 
+var _saved := {}
+
+
 func _run() -> void:
 	var game = root.get_node("Game")
+	_saved = root.get_node("Profile").data.duplicate(true)
+	root.get_node("Profile").data.deeds = {}
 	game.vial = 0
 	game.omen = ""
 	change_scene_to_file("res://scenes/run/run.tscn")
@@ -98,6 +105,8 @@ func _run() -> void:
 	if game.items.size() > items_before:
 		_check(str(root.get_node("Data").items[game.items.back()].get("rarity", "")) == "common", "  a common one")
 
+	_check(int(root.get_node("Profile").data.deeds.get("elites", 0)) == 1, "an elite laid low is counted for a deed")
+
 	# nor in the yard
 	game.practice = "elite_cultist"
 	var yard = run._spawn_enemy("elite_cultist", player.global_position + Vector2(-120, -30), false)
@@ -113,6 +122,9 @@ func _run() -> void:
 
 func _finish() -> void:
 	root.get_node("Game").new_run()
+	var profile = root.get_node("Profile")
+	profile.data = _saved
+	profile.save()
 	await process_frame
 	print("ELITE CACHE TEST %s" % ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	quit(0 if failures == 0 else 1)
