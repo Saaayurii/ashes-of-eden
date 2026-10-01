@@ -11,6 +11,7 @@ func _ready() -> void:
 	EventBus.player_hurt.connect(func(fraction: float) -> void: buzz(int(clampf(40.0 + fraction * 400.0, 40.0, 160.0)), clampf(0.4 + fraction * 2.0, 0.4, 1.0)))
 	EventBus.player_parried.connect(func() -> void: buzz(25, 0.6))
 	EventBus.boss_died.connect(func() -> void: buzz(350, 1.0))
+	EventBus.player_died.connect(func() -> void: buzz(260, 1.0))
 
 
 ## Freezes time for a moment. Ignored if a hit-stop is already running.
@@ -39,9 +40,20 @@ func _process(delta: float) -> void:
 		camera.offset = Vector2.ZERO
 
 
-## A short vibration on phones and tablets (Settings.vibration). Silent on
-## desktop and in browsers, where the call does nothing.
+## A short vibration (Settings.vibration): the phone or tablet itself, and
+## every connected gamepad's motors — the light one carries a small blow, the
+## heavy one comes in as it grows. Nothing on a desktop without a pad.
+## [member last_buzz] keeps the last one asked for, for tests (headless
+## has no motors to ask).
+var last_buzz := {}
+
+
 func buzz(milliseconds: int, strength := 1.0) -> void:
-	if not Settings.vibration or not (OS.has_feature("mobile") or OS.has_feature("web_android")):
+	if not Settings.vibration:
 		return
-	Input.vibrate_handheld(milliseconds, clampf(strength, 0.1, 1.0))
+	strength = clampf(strength, 0.1, 1.0)
+	last_buzz = {"ms": milliseconds, "strength": strength}
+	if OS.has_feature("mobile") or OS.has_feature("web_android"):
+		Input.vibrate_handheld(milliseconds, strength)
+	for device in Input.get_connected_joypads():
+		Input.start_joy_vibration(device, strength, clampf(strength * 1.6 - 0.6, 0.0, 1.0), milliseconds / 1000.0)

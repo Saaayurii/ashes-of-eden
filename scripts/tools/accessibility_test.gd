@@ -3,7 +3,8 @@ extends SceneTree
 ##   - a larger text size grows the story text, the hints and the toasts;
 ##   - reduced flashes dim a flash of light, the white of a blow and the red
 ##     at the screen's edge, and full puts them back;
-##   - the settings menu offers both, and they are saved.
+##   - the settings menu offers both, and they are saved;
+##   - vibration (phones and gamepads) follows a blow's weight and its switch.
 ## Puts the settings back as it found them, through their setters.
 ##   godot --headless --path . -s scripts/tools/accessibility_test.gd
 
@@ -102,6 +103,23 @@ func _run() -> void:
 	settings.set_flashes("reduced")
 	cfg.load("user://settings.cfg")
 	_check(cfg.get_value("access", "flashes", "") == "reduced", "and keep them")
+
+	# vibration: a blow taken buzzes the phone and the pads, the switch stops it
+	var juice = root.get_node("Juice")
+	var was_vibration: bool = settings.vibration
+	settings.set_vibration(true)
+	juice.last_buzz = {}
+	root.get_node("EventBus").player_hurt.emit(0.25)
+	_check(int(juice.last_buzz.get("ms", 0)) > 0, "a blow taken buzzes (%s)" % juice.last_buzz)
+	var small: float = float(juice.last_buzz.get("strength", 0.0))
+	juice.last_buzz = {}
+	root.get_node("EventBus").player_hurt.emit(0.05)
+	_check(float(juice.last_buzz.get("strength", 1.0)) < small, "  a smaller one, softer")
+	settings.set_vibration(false)
+	juice.last_buzz = {}
+	root.get_node("EventBus").player_hurt.emit(0.25)
+	_check(juice.last_buzz.is_empty(), "  and the switch in Settings stops it")
+	settings.set_vibration(was_vibration)
 
 	settings.set_text_size(was_size)
 	settings.set_flashes(was_flashes)
