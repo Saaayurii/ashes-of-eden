@@ -136,6 +136,11 @@ Ash (unlocks) and Silver (shop, consumables, cosmetics). No paid stats, ever (se
 Ash is spent in the reliquary (docs/RELIQUARY.md): about a quarter of a fresh body in strength, then choices and
 knowledge — a rosary to redeal the gifts, a late gift early — never more strength.
 
+Any hand of gifts can be refused (`Player.refuse_gift`): `REFUSE_HEAL` (40 %) of
+the bar and one flask, never past full. It is a trade for the next room against
+a gift for the whole night, worth it on a deep wound before a boss and little
+else; ten of them are a deed (The Ascetic). `refuse_test.gd`.
+
 Death keeps: Ash, codex entries, story knowledge, achievements, unlocks. Death loses: build, Essence, items.
 
 Where Ash comes from in a night: a boss 10–25, a record cache 15, and 3 for every room cleared without a wound

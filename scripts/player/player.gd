@@ -125,6 +125,8 @@ const RALLY_MAX_HP_SHARE := 0.15
 const HURT_GRACE_TIME := 0.24
 ## How much harder a blow lands while a curse is on the body (take_curse).
 const CURSE_DAMAGE := 2.0
+## A gift hand turned down gives back this share of the bar (refuse_gift).
+const REFUSE_HEAL := 0.4
 ## The riposte the roll earns. A real enemy blow that the i-frames swallowed
 ## leaves the blade hot: the next sword hit that actually lands on something
 ## alive is worth a little more. One charge per roll, one swing to spend it,
@@ -861,6 +863,16 @@ func rest() -> void:
 	_rally_pool = 0.0
 	_rally_left = 0.0
 	_emit_hp()
+
+
+## A gift hand turned down (AbilityPicker's Refuse): a breath instead of a
+## gift — REFUSE_HEAL of the bar back and one flask, never past full. A gift is
+## for the night; this is for the next room, which is the trade.
+func refuse_gift() -> void:
+	heal(stats.max_hp * REFUSE_HEAL)
+	heal_charges = mini(heal_charges + 1, int(stats.heal_charges))
+	_emit_hp()
+	Fx.sparkle(global_position + Vector2(0, -14), Color(0.8, 0.85, 0.95), 12, 12.0)
 
 
 ## The censer (item "heal_burst"): the flask's warmth goes out as a scorch.

@@ -742,8 +742,23 @@ func _offer_gifts() -> void:
 		var options := _roll_gifts()
 		if options.is_empty():
 			break
-		AbilitySystem.apply(player, await picker.pick(options, _roll_gifts))
+		var gift: Dictionary = await picker.pick(options, _roll_gifts)
+		if gift.is_empty():
+			_refuse_gift()
+		else:
+			AbilitySystem.apply(player, gift)
 	_picking = false
+
+
+## The hand turned down: the body takes a breath instead of a gift
+## (Player.refuse_gift), and the profile counts it for the Ascetic's deed.
+func _refuse_gift() -> void:
+	if player == null:
+		return
+	player.refuse_gift()
+	EventBus.gift_refused.emit()
+	if Game.practice == "":
+		Profile.count("refusals")
 
 
 ## One gift per path, skipping gifts already taken this run and gifts this

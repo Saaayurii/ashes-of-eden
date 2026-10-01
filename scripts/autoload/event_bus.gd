@@ -23,6 +23,8 @@ signal player_unscathed(index: int)
 ## for riposte and backstab, landed on an enemy): the practice yard ticks it.
 signal technique_performed(technique_id: String)
 signal ability_acquired(ability: Dictionary)
+## A gift hand turned down (AbilityPicker's Refuse): our own body only.
+signal gift_refused
 ## Gifts taken together woke something none does alone (data/resonances).
 signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)

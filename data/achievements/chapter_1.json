@@ -19,6 +19,7 @@
   {"id": "backstabs", "name": "DEED_BACKSTABS", "description": "DEED_BACKSTABS_DESC", "ash": 10, "unlock": {"deeds": {"backstabs": 25}}},
   {"id": "unscathed", "name": "DEED_UNSCATHED", "description": "DEED_UNSCATHED_DESC", "ash": 15, "unlock": {"deeds": {"unscathed": 30}}},
   {"id": "cursed", "name": "DEED_CURSED", "description": "DEED_CURSED_DESC", "ash": 10, "unlock": {"deeds": {"curses_lifted": 1}}},
+  {"id": "ascetic", "name": "DEED_ASCETIC", "description": "DEED_ASCETIC_DESC", "ash": 10, "unlock": {"deeds": {"refusals": 10}}},
   {"id": "omen_dawn", "name": "DEED_OMEN_DAWN", "description": "DEED_OMEN_DAWN_DESC", "ash": 10, "unlock": {"deeds": {"wins_omen": 1}}},
   {"id": "chosen", "name": "DEED_CHOSEN", "description": "DEED_CHOSEN_DESC", "ash": 20, "unlock": {"kills": {"elite_possessed": 1, "fallen_champion": 1, "elite_cultist": 1, "elder_wraith": 1}}},
   {"id": "rested", "name": "DEED_RESTED", "description": "DEED_RESTED_DESC", "ash": 5, "unlock": {"deeds": {"rests": 5}}},
