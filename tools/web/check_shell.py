@@ -74,6 +74,17 @@ def main():
             complain("startGame is not behind a listener — the build would come up mute")
         check_syntax(body)
 
+    # Full screen on a phone is the difference between a game and a postage
+    # stamp: the Play click asks for it and the corner button stays.
+    if 'id="full"' not in html or "requestFullscreen" not in html:
+        complain("no full-screen button or request — a phone plays in a corner of the page")
+    for name in ("manifest.webmanifest", "robots.txt", "sitemap.xml", "og.jpg",
+                 "icon-192.png", "apple-touch-icon.png"):
+        if not os.path.exists(os.path.join(ROOT, "tools", "web", "site", name)):
+            complain("tools/web/site/%s is missing — run tools/web/make_site.py" % name)
+    if 'rel="canonical"' not in html or "application/ld+json" not in html:
+        complain("the page lost its canonical link or its JSON-LD (docs/SEO.md)")
+
     pictures = re.findall(r'url\("data:(image/\w+);base64,([^"]+)"\)', html)
     if len(pictures) != 2:
         complain("expected the backdrop and the sprite sheet inlined, found %d picture(s)"
