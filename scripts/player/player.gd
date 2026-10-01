@@ -56,6 +56,7 @@ const BASE_STATS := {
 	"windup_bonus": 0.0,        # a blow on an enemy winding up is worth this much more (Cruel Opening)
 	"cursed_damage": 0.0,       # while a cursed chest's price is owed, every blow is worth this much more (Accursed Strength)
 	"chosen_damage": 0.0,       # blows on an elite or a boss are worth this much more (Trophy Hunter)
+	"curse_relief": 0.0,        # each death takes this many more off a curse owed (Absolution)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
 }
@@ -1431,7 +1432,7 @@ func _throw_wave() -> void:
 ## still standing.
 func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
 	if _is_mine() and not _dead and curse > 0:
-		curse -= 1
+		curse = maxi(0, curse - 1 - int(stats.curse_relief))
 		if curse == 0:
 			_lift_curse()
 	if not _is_mine() or _dead or stats.kill_heal <= 0.0 or hp >= stats.max_hp:

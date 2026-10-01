@@ -118,6 +118,12 @@ func _run() -> void:
 
 	saves.restore(checkpoint, player)
 	_check(player.curse == owed, "loading the room puts the curse back on")
+	# Absolution: each death takes two off instead of one
+	player.stats.curse_relief = 1.0
+	root.get_node("EventBus").enemy_died.emit(&"cultist", Vector2.ZERO)
+	_check(player.curse == owed - 2, "Absolution: each death takes two off (%d of %d)" % [player.curse, owed])
+	player.stats.curse_relief = 0.0
+	saves.restore(checkpoint, player)
 	player.revive(player.global_position)
 	_check(player.curse == 0, "a death pays it")
 	chest.queue_free()

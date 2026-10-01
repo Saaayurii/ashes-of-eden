@@ -321,5 +321,24 @@
         }
       }
     ]
+  },
+  {
+    "id": "absolution",
+    "name": "ABILITY_ABSOLUTION_NAME",
+    "description": "ABILITY_ABSOLUTION_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/quest/ritual_3.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "curse_relief",
+        "op": "add",
+        "value": 1
+      }
+    ]
   }
 ]

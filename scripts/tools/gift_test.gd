@@ -163,6 +163,14 @@ func _run() -> void:
 	player.stats.cursed_damage = 0.0
 	_assert(plain_loss > 0.0 and absf(cursed_loss / plain_loss - 1.4) < 0.05,
 		"accursed strength: under a curse a blow takes 40%% more (%.1f vs %.1f)" % [cursed_loss, plain_loss])
+	# Absolution: a death takes two off a curse owed instead of one
+	player.stats.curse_relief = 1.0
+	player.curse = 5
+	root.get_node("EventBus").enemy_died.emit(&"cultist", Vector2.ZERO)
+	var relieved: int = player.curse
+	player.curse = 0
+	player.stats.curse_relief = 0.0
+	_assert(relieved == 3, "absolution: a death takes two off the curse (%d of 5)" % relieved)
 	# Trophy Hunter: an elite (or a boss) takes more; a common one does not
 	player.stats.chosen_damage = 0.25
 	var common_loss: float = await swing_loss.call(false)

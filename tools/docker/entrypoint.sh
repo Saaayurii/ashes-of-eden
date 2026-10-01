@@ -63,6 +63,9 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/elite_cache_test.gd
         godot --headless -s scripts/tools/blood_altar_test.gd
         godot --headless -s scripts/tools/affix_test.gd
+        godot --headless -s scripts/tools/save_test.gd
+        godot --headless -s scripts/tools/secret_test.gd
+        godot --headless -s scripts/tools/room_jump_test.gd
         ;;
     net-test)
         shift
