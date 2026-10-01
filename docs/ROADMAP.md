@@ -82,7 +82,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] Achievements in the game first (`docs/ACHIEVEMENTS.md`): twenty deeds as data, read from the profile, a line on screen when one is done and a section of the bestiary listing them all; their ids are the API names a store will use (`achievements_test.gd`)
 - [x] Achievements mirrored to Steam (`StoreBridge`, through GodotSteam by name, so builds without it are unchanged — `store_test.gd`) and the Auto-Cloud paths for cloud saves written down (`docs/STEAM.md`) — [ ] the Steam page itself, which needs a Steamworks account
 - [x] itch.io publishing wired (`.github/workflows/itch.yml`): the web build on every push to main, the desktop zips when a release is published, and a cover composed from the game's own art by `tools/art/make_store_art.py` — [ ] the page itself, which needs an account and a `BUTLER_API_KEY` (`docs/ITCH.md`). The only store here with no entry fee.
-- [ ] Supporter Pack + OST on itch/Steam; entitlement check against store receipts
+- [x] Entitlement check for supporter skins against Steam (`StoreBridge.owns`, `"sku": "steam:<dlc>"`, never a flag in `user://` — `store_test.gd`) — [ ] the Supporter Pack and OST themselves, and itch, whose purchases the game cannot see
 - [ ] Opt-in server-side telemetry: the four numbers in `CORE_LOOP.md`
 - [x] macOS notarization and Windows signing written and wired into `release.yml`, Android upload-key signing into `mobile.yml` — [ ] the certificates themselves, which have to be bought: `docs/RELEASE.md` says what each costs, what it fixes and in what order it is worth paying
 
