@@ -425,6 +425,9 @@ func _pay_out(taker: Player = null) -> void:
 		if rarity != "":
 			var rng := RandomNumberGenerator.new()
 			rng.randomize()
+			# Covetous Eye: a common chest may hold a rare thing for those who look for one
+			if rarity == "common" and rng.randf() < taker.stats.covetous:
+				rarity = "rare"
 			var id := ItemSystem.roll(rarity, rng)
 			if id != "":
 				ItemSystem.give(taker, id)

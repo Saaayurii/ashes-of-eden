@@ -330,5 +330,24 @@
         }
       }
     ]
+  },
+  {
+    "id": "covetous_eye",
+    "name": "ABILITY_COVETOUS_EYE_NAME",
+    "description": "ABILITY_COVETOUS_EYE_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/quest/trophy_2.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "covetous",
+        "op": "add",
+        "value": 0.5
+      }
+    ]
   }
 ]

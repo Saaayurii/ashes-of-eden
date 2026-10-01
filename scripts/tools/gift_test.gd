@@ -163,6 +163,21 @@ func _run() -> void:
 	player.stats.cursed_damage = 0.0
 	_assert(plain_loss > 0.0 and absf(cursed_loss / plain_loss - 1.4) < 0.05,
 		"accursed strength: under a curse a blow takes 40%% more (%.1f vs %.1f)" % [cursed_loss, plain_loss])
+	# Covetous Eye: a common chest hands over a rare item
+	player.stats.covetous = 1.0
+	var items_before: Array = root.get_node("Game").items.duplicate()
+	root.get_node("Game").items.clear()
+	var chest = load("res://scenes/props/prop.tscn").instantiate()
+	chest.prop_id = "chest_iron"
+	player.get_parent().add_child(chest)
+	await process_frame
+	chest._pay_out(player)
+	var found: Array = root.get_node("Game").items.duplicate()
+	chest.queue_free()
+	root.get_node("Game").items.assign(items_before)
+	player.stats.covetous = 0.0
+	_assert(found.size() == 1 and str(root.get_node("Data").items[found[0]].get("rarity", "")) == "rare",
+		"covetous eye: a common chest gives a rare item (%s)" % [found])
 	# Absolution: a death takes two off a curse owed instead of one
 	player.stats.curse_relief = 1.0
 	player.curse = 5

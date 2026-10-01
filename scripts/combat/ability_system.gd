@@ -42,6 +42,7 @@ const CAPS := {
 	"cursed_damage": [0.0, 1.0],
 	"chosen_damage": [0.0, 0.6],
 	"curse_relief": [0.0, 2.0],
+	"covetous": [0.0, 1.0],
 	"charge_speed": [0.0, 1.0],
 	"parry_window": [0.0, 0.15],
 }

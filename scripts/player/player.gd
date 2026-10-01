@@ -57,6 +57,7 @@ const BASE_STATS := {
 	"cursed_damage": 0.0,       # while a cursed chest's price is owed, every blow is worth this much more (Accursed Strength)
 	"chosen_damage": 0.0,       # blows on an elite or a boss are worth this much more (Trophy Hunter)
 	"curse_relief": 0.0,        # each death takes this many more off a curse owed (Absolution)
+	"covetous": 0.0,            # the chance a chest's common item is a rare one instead (Covetous Eye)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
 }
