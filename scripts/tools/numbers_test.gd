@@ -45,6 +45,10 @@ func _run() -> void:
 		run.dialogue.call("_on_skip")
 	paused = false
 	var player = run.player
+	for node in get_nodes_in_group("enemies"):  # only our blows are measured
+		node.set_physics_process(false)
+		node.set_process(false)
+	await process_frame
 	game.new_run()
 
 	var foe = run._spawn_enemy("cultist", player.global_position + Vector2(400, -20), false)
@@ -52,10 +56,13 @@ func _run() -> void:
 	foe.set_physics_process(false)
 	var armor := float(foe.stats.get("armor", 0.0))
 	foe.aware = true  # no backstab: the plain blow is what is measured
+	game.dealt = 0.0
+	game.heaviest = 0.0
 	foe.take_damage(10.0, player)
 	foe.take_damage(4.0, player)
 	_check(is_equal_approx(game.dealt, 14.0 * (1.0 - armor)), "blows on the dead count as dealt, after armour (%.1f)" % game.dealt)
 	_check(is_equal_approx(game.heaviest, 10.0 * (1.0 - armor)), "  the heaviest is kept (%.1f)" % game.heaviest)
+	game.taken = 0.0
 	player.take_damage(7.0, foe)
 	_check(game.taken > 0.0 and game.taken <= 7.0, "a blow on our body counts as taken (%.1f)" % game.taken)
 	bus.player_parried.emit()
