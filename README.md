@@ -14,7 +14,7 @@ that neither Heaven nor the Abyss can claim.*
 ![Languages](https://img.shields.io/badge/languages-EN%20·%20RU%20·%20UK%20·%20ZH-lightgrey.svg)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20·%20Linux%20·%20macOS%20·%20Web%20·%20Android-lightgrey.svg)
 
-**[▶ Play in the browser](https://saaayurii.github.io/ashes-of-eden/)** · [Android APK](https://github.com/Saaayurii/ashes-of-eden/actions/workflows/mobile.yml) (debug-signed, from Actions)
+**[▶ Play in the browser](https://saaayurii.github.io/ashes-of-eden/)** · [Download the alpha](https://github.com/Saaayurii/ashes-of-eden/releases) (Windows · Linux · macOS · Android APK)
 
 [Русская версия README](README.ru.md) · [Design doc](docs/GDD.md) · [Roadmap](docs/ROADMAP.md) · [Contributing](CONTRIBUTING.md)
 
@@ -30,9 +30,10 @@ Side-view, fast and forgiving in the spirit of Dead Cells on the surface; a seri
 ambiguous story underneath for anyone who wants it. You can finish the game without reading a word,
 and it will still have been about something.
 
-> **Status — prototype, `v0.1.0-dev`.** Playable start to finish: 15 rooms across 8 areas, 14 kinds of
-> enemy including a mid-boss and a boss with two patterns, 36 gifts, 13 dialogue trees with branching
-> the world remembers, four languages, online co-op and a 1v1 duel with crossplay.
+> **Status — alpha, `v0.1.0-alpha.1`.** Chapter I is playable start to finish: 15 rooms across 8 areas
+> with two forks, 17 kinds of enemy with elites and affixes, a mid-boss and a boss, 47 gifts and 16
+> resonances, 37 dialogue trees the world remembers, four languages, online co-op and a 1v1 duel
+> with crossplay. Expect rough edges; [report them](https://github.com/Saaayurii/ashes-of-eden/issues).
 > See [docs/ROADMAP.md](docs/ROADMAP.md) for what is not here yet.
 
 **Free. Open source. No pay-to-win. No loot boxes.** — [how the game funds itself](docs/MONETIZATION.md)

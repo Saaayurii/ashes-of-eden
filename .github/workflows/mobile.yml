@@ -218,7 +218,13 @@ jobs:
         run: |
           set -eux
           find dist -type f \( -name "*.apk" -o -name "*.ipa" \) -print
+          # release.yml makes the release; it may still be exporting.
+          for i in $(seq 1 60); do
+            gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1 && break
+            sleep 30
+          done
           gh release upload "${GITHUB_REF_NAME}" \
-            $(find dist -type f \( -name "*.apk" -o -name "*.ipa" \)) --clobber
+            $(find dist -type f \( -name "*.apk" -o -name "*.ipa" \)) --clobber \
+            --repo "${GITHUB_REPOSITORY}"
         env:
           GH_TOKEN: ${{ github.token }}
