@@ -326,6 +326,10 @@ func _show(id: String) -> void:
 	_stat("BESTIARY_SLAIN", str(kills))
 	if int(entry.get("felled", 0)) > 0:
 		_stat("BESTIARY_FELLED", str(int(entry.felled)))
+	if stats.get("tags", []).has("elite") and not stats.get("boss", false) and not Data.affixes.is_empty():
+		var met: Array = entry.get("affixes", []).filter(func(a) -> bool: return Data.affixes.has(str(a)))
+		var names: Array = met.map(func(a) -> String: return tr(str(Data.affixes[a].get("name", a))))
+		_stat("BESTIARY_AFFIXES", "%s (%d/%d)" % [", ".join(names) if not names.is_empty() else "—", met.size(), Data.affixes.size()])
 	if float(entry.get("best_time", 0.0)) > 0.0:
 		_stat("BESTIARY_BEST_TIME", fight_clock(float(entry.best_time)))
 	if stats.has("lore"):

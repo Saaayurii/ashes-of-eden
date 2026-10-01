@@ -74,6 +74,27 @@ func _run() -> void:
 	_check(label != null and label.text == TranslationServer.translate("AFFIX_BRUTAL"), "its name stands over its head")
 	_check(gone.affix == "" and gone.get_node_or_null("Affix") == null and is_equal_approx(gone._max_hp, base_hp), "an affix that no longer exists is no affix")
 
+	# laid low, the affix goes onto its bestiary page
+	var profile = root.get_node("Profile")
+	var saved: Dictionary = profile.data.duplicate(true)
+	profile.data.bestiary.erase("elite_cultist")
+	brutal._die()
+	swift._die()
+	brutal._die()
+	var page: Dictionary = profile.data.bestiary.get("elite_cultist", {})
+	_check(page.get("affixes", []) == ["brutal", "swift"], "the bestiary keeps the affixes it was beaten in, once each (%s)" % [page.get("affixes", [])])
+	page["kills"] = 2
+	var book = load("res://scenes/ui/bestiary.tscn").instantiate()
+	root.add_child(book)
+	book.open()
+	await process_frame
+	book._show("elite_cultist")
+	var shown: Array = book.stats_box.get_children().map(func(n: Node) -> String: return n.text if n is Label else "")
+	_check(shown.any(func(t: String) -> bool: return t.contains("(2/%d)" % data.affixes.size())), "  and its page names them (%s)" % [shown])
+	book.queue_free()
+	profile.data = saved
+	profile.save()
+
 	# the spawn data carries it, so a guest builds the same body
 	var spawned = run._spawn_enemy("elite_cultist", at, false)
 	await process_frame

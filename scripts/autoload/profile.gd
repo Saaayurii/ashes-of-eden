@@ -278,6 +278,21 @@ func record_kill(enemy_id: String) -> void:
 	check_achievements()
 
 
+## An elite laid low with [param affix] (Enemy.affix): its bestiary page keeps
+## the affixes it has been beaten in. Never in the yard.
+func record_affix(enemy_id: String, affix: String) -> void:
+	if Net.dedicated or enemy_id == "" or affix == "" or Game.practice != "":
+		return
+	var entry: Dictionary = data.bestiary.get(enemy_id, {})
+	var met: Array = entry.get("affixes", [])
+	if met.has(affix):
+		return
+	met.append(affix)
+	entry["affixes"] = met
+	data.bestiary[enemy_id] = entry
+	save()
+
+
 ## A boss laid low in [param seconds] (Enemy.fight_time): its page keeps the
 ## best. Never in the yard; returns whether it was a new best.
 func record_boss_time(enemy_id: String, seconds: float) -> bool:

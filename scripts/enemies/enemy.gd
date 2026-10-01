@@ -1766,6 +1766,8 @@ func _die() -> void:
 		return
 	state = State.DEAD
 	EventBus.enemy_died.emit(StringName(enemy_id), global_position)
+	if affix != "":
+		Profile.record_affix(enemy_id, affix)  # the bestiary page lists the affixes laid low
 	var is_boss: bool = stats.get("boss", false)
 	if _simulated and Game.practice == "":  # practice pays nothing
 		Game.add_essence(float(stats.get("essence", 10)))
