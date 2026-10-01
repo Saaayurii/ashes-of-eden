@@ -266,6 +266,21 @@ func record_kill(enemy_id: String) -> void:
 	check_achievements()
 
 
+## A boss laid low in [param seconds] (Enemy.fight_time): its page keeps the
+## best. Never in the yard; returns whether it was a new best.
+func record_boss_time(enemy_id: String, seconds: float) -> bool:
+	if Net.dedicated or enemy_id == "" or Game.practice != "" or seconds <= 0.0:
+		return false
+	var entry: Dictionary = data.bestiary.get(enemy_id, {})
+	var best := float(entry.get("best_time", 0.0))
+	if best > 0.0 and best <= seconds:
+		return false
+	entry["best_time"] = snappedf(seconds, 0.1)
+	data.bestiary[enemy_id] = entry
+	save()
+	return true
+
+
 ## Talked to a person: their bestiary page opens. Ids are "npc:<id>".
 func record_met(npc_id: String) -> void:
 	if Net.dedicated or npc_id == "":

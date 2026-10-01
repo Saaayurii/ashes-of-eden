@@ -810,6 +810,7 @@ RUN_SLAIN_BY,"Laid low by: %s","Сражён: %s","Повалений: %s","倒�
 SLAIN_LAVA,"the burning ground","горящая земля","палаюча земля","焚地"
 SLAIN_FALL,"the drop into the dark","падение во тьму","падіння в темряву","坠入黑暗"
 BESTIARY_FELLED,"Laid you low","Сразил вас","Повалив вас","击倒你"
+BESTIARY_BEST_TIME,"Best fight","Лучший бой","Найкращий бій","最快一战"
 CHRONICLE_SLAIN_BY,"Laid low by","Сражён","Повалений","倒于"
 TIP_POSSESSED_VILLAGER,"It swings late and short. Wait for the lean, then step in behind the blow.","Бьёт поздно и коротко. Дождись замаха — и шагни внутрь, за удар.","Б'є пізно й коротко. Дочекайся замаху — і ступи всередину, за удар.","它出手迟、够得短。等它扬手，再贴进它的挥击之后。"
 TIP_ELITE_POSSESSED,"It bursts a breath after it falls. Land the last blow, then roll away.","Взрывается через миг после смерти. Добей — и откатись.","Вибухає за мить після смерті. Добий — і відкотися.","它倒下片刻便会炸开。补上最后一击，随即翻滚躲开。"

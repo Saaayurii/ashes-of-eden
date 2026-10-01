@@ -316,6 +316,8 @@ func _show(id: String) -> void:
 	_stat("BESTIARY_SLAIN", str(kills))
 	if int(entry.get("felled", 0)) > 0:
 		_stat("BESTIARY_FELLED", str(int(entry.felled)))
+	if float(entry.get("best_time", 0.0)) > 0.0:
+		_stat("BESTIARY_BEST_TIME", fight_clock(float(entry.best_time)))
 	if stats.has("lore"):
 		lore_label.text = tr(stats.lore)
 	if stats.has("tip"):
@@ -466,6 +468,12 @@ func _show_abilities(stats: Dictionary) -> void:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.tooltip_text = tr(ability.get("description", ""))
 		abilities_box.add_child(label)
+
+
+## A fight's length as m:ss.t (the bestiary's best time against a boss).
+static func fight_clock(seconds: float) -> String:
+	var tenths := roundi(seconds * 10.0)
+	return "%d:%02d.%d" % [floori(tenths / 600.0), floori(tenths / 10.0) % 60, tenths % 10]
 
 
 func _stat(key: String, value: String) -> void:

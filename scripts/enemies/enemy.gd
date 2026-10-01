@@ -334,6 +334,7 @@ func _setup_sprite(spec: Dictionary) -> void:
 func _physics_process(delta: float) -> void:
 	if state == State.DEAD:
 		return
+	_time_fight(delta)
 	# A walker can be knocked into a shaft and a flyer can drift past a side
 	# boundary. Both must use the normal death path: Room.alive owns the exit.
 	if _fell_out_of_room():
@@ -1660,6 +1661,20 @@ func _net_warded_fx() -> void:
 	_warded_fx()
 
 
+## A boss's fight, timed for its bestiary page (Profile.record_boss_time): from
+## the first blow that lands on it to its fall, a cutscene not counted.
+var fight_time := -1.0
+
+
+func _time_fight(delta: float) -> void:
+	if not stats.get("boss", false) or Game.cutscene:
+		return
+	if fight_time >= 0.0:
+		fight_time += delta
+	elif hp < _max_hp:
+		fight_time = 0.0
+
+
 ## Counts as dead immediately; the body plays its death strip or an "ash" squash.
 ## On a client this is the mirror of the host's death: same theatre, no bookkeeping.
 @rpc("authority", "call_remote", "reliable")
@@ -1677,6 +1692,8 @@ func _die() -> void:
 		Game.add_essence(float(stats.get("essence", 10)))
 		if is_boss:
 			Game.ash_earned += int(stats.get("ash", 10))
+			if fight_time >= 0.0:
+				Profile.record_boss_time(enemy_id, fight_time)
 	if _simulated:  # but a corpse that bursts still bursts: that is what is practised
 		match stats.get("on_death", {}).get("type", ""):
 			"explode":
