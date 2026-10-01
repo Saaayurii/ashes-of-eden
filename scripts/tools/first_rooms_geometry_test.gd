@@ -32,7 +32,7 @@ func _run() -> void:
 		"graveyard_cross": [[70, 655], [1340, 388], [1300, 220]],
 		"graveyard_arches": [[150, 220], [660, 350], [610, 552], [790, 420], [870, 484], [1120, 594], [1540, 387]],
 		"graveyard_tree": [[110, 289], [510, 312], [660, 419], [920, 635], [1500, 241]],
-		"swamp_moon": [[410, 264], [760, 338], [860, 415], [1295, 413], [1468, 478], [1520, 554], [1550, 413]],
+		"swamp_moon": [[410, 264], [520, 304], [760, 338], [860, 415], [1295, 413], [1468, 478], [1520, 554], [1550, 413]],
 		"swamp_red": [[120, 347], [410, 499], [800, 405], [1260, 425], [1568, 370], [1568, 310], [1480, 255]],
 		"swamp_crypt": [[150, 319], [340, 375], [720, 256], [790, 451], [1315, 560], [1407, 603], [1450, 485], [1130, 655]],
 		"catacombs_1": [[150, 157], [580, 260], [860, 403], [1470, 191], [760, 556], [1570, 610]],
@@ -114,6 +114,10 @@ func _run() -> void:
 				var floor_hit: Dictionary = room.get_world_2d().direct_space_state.intersect_ray(footing)
 				_check(not floor_hit.is_empty() and absf(floor_hit.position.y - stop.y) <= 2.0,
 					"graveyard_tree Mara patrol stop has no painted floor: %s" % stop)
+		if key == "swamp_moon":
+			var dock_brace: Node = room.get_node_or_null("Terrain/Platform1Hangers")
+			_check(dock_brace != null and dock_brace.get("timber") == true,
+				"swamp return plank is no longer braced to the exit dock")
 		if key == "swamp_crypt":
 			for direction in [1, -1]:
 				hero.place_in_room(Vector2(1295, 545) if direction > 0 else Vector2(1410, 588))

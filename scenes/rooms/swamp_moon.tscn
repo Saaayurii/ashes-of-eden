@@ -1,7 +1,8 @@
-[gd_scene load_steps=53 format=3]
+[gd_scene load_steps=55 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]
+[ext_resource type="Script" path="res://scripts/rooms/hanging_support.gd" id="hanging_support"]
 [ext_resource type="Texture2D" path="res://assets/levels/swamp_moon_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
 [ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
@@ -81,6 +82,9 @@ size = Vector2(56, 10)
 
 [sub_resource type="RectangleShape2D" id="Platform2_shape"]
 size = Vector2(90, 14)
+
+[sub_resource type="RectangleShape2D" id="ArchRail_shape"]
+size = Vector2(62, 8)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(80, 12)
@@ -345,6 +349,11 @@ position = Vector2(1295.0, 420.0)
 shape = SubResource("Platform2_shape")
 one_way_collision = true
 
+[node name="ArchRailShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(521.0, 308.0)
+shape = SubResource("ArchRail_shape")
+one_way_collision = true
+
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(50.0, 207.0)
 shape = SubResource("Ledge1_shape")
@@ -442,6 +451,14 @@ walk_width = 72.0
 surface_kind = "timber"
 
 [node name="Terrain" type="Node2D" parent="."]
+
+[node name="Platform1Hangers" type="Node2D" parent="Terrain"]
+position = Vector2(1440, 478)
+script = ExtResource("hanging_support")
+walk_width = 56.0
+left_length = 65.0
+right_length = 65.0
+timber = true
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(1440, 478)
