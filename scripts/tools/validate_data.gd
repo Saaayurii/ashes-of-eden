@@ -256,6 +256,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: kind must be one of %s" % [where, PROP_KINDS])
 			if entry.has("item") and (entry.get("kind") != "chest" or not ["common", "rare"].has(entry.item)):
 				_error("%s: item is \"common\" or \"rare\", on a chest" % where)
+			if entry.has("prompt"):
+				_use_key(entry.prompt, where)
+			if entry.has("interact") and not (entry.interact is bool and entry.get("kind") == "chest"):
+				_error("%s: interact is true or false, on a chest" % where)
+			if entry.has("requires_flag"):
+				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
 			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
 					or int(entry.curse) < 1 or int(entry.curse) > 30):
 				_error("%s: curse is a number of kills (1–30), on a chest" % where)

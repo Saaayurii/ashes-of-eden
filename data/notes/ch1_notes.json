@@ -19,5 +19,12 @@
     "dialogue": "note_crypt_names",
     "place": "catacombs",
     "avatar": "res://assets/icons/quest/letter_5.png"
+  },
+  {
+    "id": "note_condemned_book",
+    "name": "NOTE_CONDEMNED_BOOK",
+    "dialogue": "note_condemned_book",
+    "place": "church",
+    "avatar": "res://assets/icons/quest/letter_3.png"
   }
 ]

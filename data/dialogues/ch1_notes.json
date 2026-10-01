@@ -61,5 +61,31 @@
         "text": "DLG_NOTE_CRYPT_3"
       }
     }
+  },
+  {
+    "id": "note_condemned_book",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_CONDEMNED_BOOK",
+        "text": "DLG_NOTE_BOOK_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_CONDEMNED_BOOK",
+        "text": "DLG_NOTE_BOOK_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_CONDEMNED_BOOK",
+        "text": "DLG_NOTE_BOOK_3",
+        "next": "n4"
+      },
+      "n4": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_NOTE_BOOK_4"
+      }
+    }
   }
 ]

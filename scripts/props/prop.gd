@@ -18,6 +18,10 @@ class_name Prop
 ##   curse     a chest that opens only on `interact`, never by walking into it,
 ##             and lays its price on the opener: wounds land twice as hard
 ##             until that many enemies have fallen (Player.take_curse)
+##   interact  a chest that opens only on `interact` (a curse implies it), with
+##             "prompt" (a key) over it while our body stands there
+##   requires_flag  not there at all until the story sets this flag (the book
+##             under the church altar appears once Matthew has spoken of it)
 ##   note      a record (data/notes) read aloud as a caption and kept in the
 ##             bestiary; "ash" is paid only the first time it is found
 ## A prop is never an enemy: it does not count towards the room's kill count and
@@ -44,6 +48,8 @@ static var _floor_padding_cache := {}
 var _light: GlowLight
 ## A cursed chest's offer, over it while our own body stands at it.
 var _prompt: Label
+## Hidden until Game.flags has stats.requires_flag.
+var _waiting := false
 
 @onready var sprite: Sprite2D = $Sprite
 @onready var shape: CollisionShape2D = $Collision
@@ -100,7 +106,7 @@ func _ready() -> void:
 	# passing in front of it instead of through it.
 	Fx.shadow(self, Vector2(0, 1), size.x * 1.5, 0.9)
 	if stats.get("kind", "destructible") == "chest":
-		if int(stats.get("curse", 0)) > 0:
+		if int(stats.get("curse", 0)) > 0 or stats.get("interact", false):
 			_add_prompt()
 		else:
 			body_entered.connect(_on_body_entered)
@@ -108,6 +114,9 @@ func _ready() -> void:
 		_light = Fx.light(self, Vector2(0, -size.y / 2.0), glow, 44.0, 0.7, 0.0, 0.25)
 	EventBus.world_impulse.connect(_on_world_impulse)
 	_setup_ambient()
+	if stats.has("requires_flag") and not Game.flags.has(str(stats.requires_flag)):
+		_waiting = true
+		visible = false
 	set_process(true)
 
 
@@ -164,6 +173,13 @@ static func _frame_padding(texture: Texture2D, frames: int, frame: int) -> int:
 
 
 func _process(delta: float) -> void:
+	if _waiting:
+		if not Game.flags.has(str(stats.requires_flag)):
+			return
+		# the story has spoken of it: it is there now
+		_waiting = false
+		visible = true
+		Fx.sparkle(global_position + Vector2(0, -10), Color(stats.get("glow", "#ffd9a0")), 12, 12.0)
 	if _prompt != null:
 		_offer()
 	if _spent or stats.get("still", false):
@@ -292,7 +308,8 @@ func _offer() -> void:
 	_prompt.visible = taker != null and not _spent and not Game.cutscene
 	if not _prompt.visible:
 		return
-	_prompt.text = "%s  %s" % [Settings.key_name("interact"), tr("CHEST_CURSED_PROMPT") % int(stats.curse)]
+	var offer := tr(str(stats.prompt)) if stats.has("prompt") else tr("CHEST_CURSED_PROMPT") % int(stats.get("curse", 0))
+	_prompt.text = "%s  %s" % [Settings.key_name("interact"), offer]
 	if Input.is_action_just_pressed("interact"):
 		open(taker)
 
@@ -331,7 +348,7 @@ func _net_open() -> void:
 
 
 func _on_body_entered(body: Node) -> void:
-	if _spent or not (body is Player):
+	if _spent or _waiting or not (body is Player):
 		return
 	_spent = true
 	remove_from_group("interactable")

@@ -74,6 +74,11 @@
       "if": "matthew_book_revealed"
     },
     {
+      "do": "dialogue",
+      "id": "ch1_finale_book",
+      "if": "book_read"
+    },
+    {
       "do": "camera",
       "to": "door",
       "zoom": 1.15,

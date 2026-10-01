@@ -480,7 +480,9 @@ PAINTED = {
         pillars=[(120, 380), (300, 380), (660, 380), (840, 380)],
         decor=[("arch", 210, 360, "back"), ("arch", 390, 360, "back"), ("arch", 570, 360, "back"), ("arch", 750, 360, "back")],
         spawns=[],
-        props=[],
+        # the book of the condemned, beside the altar: it is there only once
+        # Matthew has spoken of it (requires_flag in data/props/altar_book.json)
+        props=[("altar_book", 420, 380)],
         npcs=[("matthew", 540, 380)],
         ambient="#d8d0d4",
         # indoors the lights multiply into dark stone, so they burn brighter than outside
