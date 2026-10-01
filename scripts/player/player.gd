@@ -1954,7 +1954,8 @@ func skill_ready_ratio() -> float:
 ## guest's skill is judged by the host like a swing; the show is played here
 ## and sent to the others.
 func _cast_skill() -> void:
-	_skill_cd = float(skill.get("cooldown", 8.0))
+	# an omen may hurry or slow the gift's return (data/omens: "skill_cooldown")
+	_skill_cd = float(skill.get("cooldown", 8.0)) * float(Vials.rule("skill_cooldown"))
 	_arm(false)
 	# grows with the sword: gifts that sharpen the blade sharpen the skill too
 	var damage: float = float(skill.get("damage", 20.0)) * float(stats.attack_damage) / float(BASE_STATS.attack_damage)

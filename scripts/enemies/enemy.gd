@@ -553,7 +553,8 @@ func _spot_player() -> Player:
 func _can_see(who: Player) -> bool:
 	var spec: Dictionary = stats.get("sight", {})
 	var defaults: Array = SIGHT_DEFAULTS["flyer" if _is_flying() else "walker"]
-	var sight_range := float(spec.get("range", defaults[0]))
+	# an omen may thicken the dark (data/omens: "enemy_sight")
+	var sight_range := float(spec.get("range", defaults[0])) * float(Vials.rule("enemy_sight"))
 	var height := float(spec.get("height", defaults[1]))
 	var behind := float(spec.get("behind", defaults[2]))
 	var d := who.global_position - global_position

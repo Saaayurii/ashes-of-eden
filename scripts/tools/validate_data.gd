@@ -760,9 +760,12 @@ func _check_omen(entry: Dictionary, where: String) -> void:
 			"flasks":
 				helps = helps or int(value) > 0
 				hurts = hurts or int(value) < 0
-			"enemy_damage", "enemy_hp":
+			"enemy_damage", "enemy_hp", "skill_cooldown":
 				hurts = hurts or float(value) > 1.0
 				helps = helps or float(value) < 1.0
+			"enemy_sight":
+				helps = helps or float(value) < 1.0
+				hurts = hurts or float(value) > 1.0
 			"promote_chance":
 				hurts = hurts or float(value) > 0.0
 				if float(value) > 1.0:

@@ -8,5 +8,9 @@
   {"id": "thin_veil", "name": "OMEN_THIN_VEIL", "description": "OMEN_THIN_VEIL_DESC",
    "rules": {"flasks": 1, "enemy_damage": 1.2}},
   {"id": "dry_altars", "name": "OMEN_DRY_ALTARS", "description": "OMEN_DRY_ALTARS_DESC",
-   "rules": {"rest_heal": 0.5, "ash": 1.35}}
+   "rules": {"rest_heal": 0.5, "ash": 1.35}},
+  {"id": "fen_mist", "name": "OMEN_FEN_MIST", "description": "OMEN_FEN_MIST_DESC",
+   "rules": {"enemy_sight": 0.6, "enemy_damage": 1.1}},
+  {"id": "restless_saints", "name": "OMEN_RESTLESS_SAINTS", "description": "OMEN_RESTLESS_SAINTS_DESC",
+   "rules": {"skill_cooldown": 0.65, "enemy_hp": 1.15}}
 ]

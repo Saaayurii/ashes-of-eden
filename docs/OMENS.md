@@ -1,7 +1,7 @@
 # Omens
 
 From the fourth night on, most nights (`Omens.CHANCE`, 60 %) are drawn under an omen: one rule that helps and
-one that hurts, said once over the opening, shown in the pause menu, on the night's end and in the chronicle.
+one that hurts (seven of them in `data/omens`), said once over the opening, shown in the pause menu, on the night's end and in the chronicle.
 The vials of wrath are a ladder the player climbs on purpose; an omen is the weather — it makes two nights
 of the same chapter play differently without asking anything of the player.
 
@@ -21,6 +21,8 @@ of the same chapter play differently without asking anything of the player.
 |---|---|---|
 | `essence` | `Game.add_essence` | essence from every source, multiplied |
 | `ash` | `Vials.ash_multiplier` | the night's Ash, multiplied with the vial's |
+| `enemy_sight` | `Enemy._can_see` | how far the dead see ahead (below 1 helps: more backstabs) |
+| `skill_cooldown` | `Player._cast_skill` | the active skill's cooldown (below 1 helps) |
 
 The validator refuses an omen that is not a trade (something that helps and something that hurts),
 an unknown rule, and `promote_chance` without its `promote` map.

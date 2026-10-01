@@ -172,6 +172,28 @@ func _run() -> void:
 			spawned.queue_free()
 	_check(risen > 0 and risen < 30, "  and some cultists rise as Zealot Brothers (%d of 60)" % risen)
 
+	# Fen Mist: the dead see less far; Restless Saints: the skill comes back sooner
+	var watcher = run._spawn_enemy("cultist", player.global_position + Vector2(200, 0), false)
+	await process_frame
+	watcher.set_physics_process(false)
+	watcher.facing = -1 if player.global_position.x < watcher.global_position.x else 1
+	var reach: float = float(watcher.SIGHT_DEFAULTS["walker"][0])
+	player.global_position = watcher.global_position + Vector2(watcher.facing * reach * 0.8, 0)
+	game.omen = ""
+	var seen_plain: bool = watcher._can_see(player)
+	game.omen = "fen_mist"
+	var seen_mist: bool = watcher._can_see(player)
+	_check(seen_plain and not seen_mist, "Fen Mist: a body seen at four fifths of its sight is lost in the mist")
+	watcher.queue_free()
+	var ability_system = load("res://scripts/combat/ability_system.gd")
+	ability_system.apply(player, data.abilities["ash_spear"])
+	game.omen = "restless_saints"
+	player._skill_cd = 0.0
+	player._cast_skill()
+	_check(absf(player._skill_cd - float(player.skill.cooldown) * 0.65) < 0.01,
+		"Restless Saints: the skill comes back sooner (%.2f s)" % player._skill_cd)
+	game.omen = "procession"
+
 	var checkpoint: Dictionary = saves.capture(run.ROOMS[run.room_index], 0, 0.0, player)
 	_check(str(checkpoint.game_state.get("omen", "")) == "procession", "a save keeps the omen")
 	game.omen = ""
