@@ -345,6 +345,12 @@ func _show_totals() -> void:
 	_stat("CHRONICLE_KILLS", str(int(data.get("total_kills", 0))))
 	var done := Achievements.ids().filter(func(d: String) -> bool: return Achievements.done(d)).size()
 	_stat("BESTIARY_DEEDS", "%d / %d" % [done, Achievements.ids().size()])
+	# each boss's best fight (Profile.record_boss_time), the ones laid low so far
+	var bosses: Array = Data.enemies.keys().filter(func(e: String) -> bool:
+		return Data.enemies[e].get("boss", false) and float(data.bestiary.get(e, {}).get("best_time", 0.0)) > 0.0)
+	bosses.sort()
+	for boss in bosses:
+		_stat(str(Data.enemies[boss].get("name", boss)), fight_clock(float(data.bestiary[boss].best_time)))
 	# the path the remembered nights leaned to most — a feeling, never a number
 	var leaned := {}
 	for night in _history():

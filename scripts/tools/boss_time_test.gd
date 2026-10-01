@@ -88,6 +88,11 @@ func _run() -> void:
 	for label in book.stats_box.get_children():
 		shown = shown or (label is Label and label.text == "0:31.3")
 	_check(shown, "the page shows the best fight")
+	book._show("chron:total")
+	shown = false
+	for label in book.stats_box.get_children():
+		shown = shown or (label is Label and label.text == "0:31.3")
+	_check(shown, "  and so does the chronicle's totals")
 	book.queue_free()
 
 	# Swift Judgment: every boss within its time, read from the best fights
