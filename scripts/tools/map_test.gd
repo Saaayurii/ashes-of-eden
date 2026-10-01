@@ -60,6 +60,9 @@ func _run() -> void:
 	nodes = map_script.layout(rooms, walked, at.call("swamp_crypt"), 3)
 	_check(_node(nodes, "catacombs_1").state == "ahead", "the room after this one is always shown")
 	_check(_node(nodes, "hell_gate").state == "unknown", "past the furthest night, the way is unknown")
+	nodes = map_script.layout(rooms, walked, at.call("swamp_crypt"), 15, at.call("catacombs_2"))
+	_check(_node(nodes, "catacombs_2").fell and not _node(nodes, "catacombs_1").fell,
+		"the room where last night's body lies is marked")
 
 	# --- kept in a save, and opened from the pause menu -----------------------
 	change_scene_to_file("res://scenes/run/run.tscn")

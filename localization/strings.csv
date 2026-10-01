@@ -714,7 +714,7 @@ RES_BULWARK_DESC,"Iron Vigil and Ward of the Nameless: one more blow absorbed in
 PAUSE_MAP,"Map","Карта","Мапа","地图"
 MAP_TITLE,"The way through the night","Путь через ночь","Шлях крізь ніч","穿越长夜之路"
 MAP_HERE,"here","здесь","тут","此处"
-MAP_LEGEND,"● walked   ○ ahead   × the way not taken   ✚ rest","● пройдено   ○ впереди   × путь, которым не пошёл   ✚ отдых","● пройдено   ○ попереду   × шлях, яким не пішов   ✚ відпочинок","● 已走过   ○ 前方   × 未走之路   ✚ 歇息处"
+MAP_LEGEND,"● walked   ○ ahead   × the way not taken   ✚ rest   † where you fell","● пройдено   ○ впереди   × путь, которым не пошёл   ✚ отдых   † где ты пал","● пройдено   ○ попереду   × шлях, яким не пішов   ✚ відпочинок   † де ти впав","● 已走过   ○ 前方   × 未走之路   ✚ 歇息处   † 你倒下之处"
 SETTINGS_VIAL,"Vial of wrath","Чаша гнева","Чаша гніву","怒碗"
 VIAL_NONE,"None","Нет","Немає","无"
 VIAL_OPENED,"A dawn opens the next: %s (Settings)","Рассвет открыл следующую: %s (в настройках)","Світанок відкрив наступну: %s (у налаштуваннях)","黎明开启了下一只：%s（见设置）"

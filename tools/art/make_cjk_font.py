@@ -61,7 +61,7 @@ def wanted():
     # ...and the marks the UI draws in every language, which neither Latin
     # face has: the bestiary's tree and deeds, resonances, the map's legend.
     # A Web build has no system font to find them in.
-    chars.update("●○◆◇└×✚")
+    chars.update("●○◆◇└×✚†")
     return chars
 
 
