@@ -1,0 +1,22 @@
+{
+  "id": "elite_cache",
+  "kind": "chest",
+  "essence": 30,
+  "glow": "#ffa060",
+  "item": "common",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_iron.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 6
+  },
+  "icon": [
+    "res://assets/icons/quest/trophy_1.png",
+    "res://assets/icons/quest/trophy_2.png",
+    "res://assets/icons/quest/trophy_3.png"
+  ]
+}

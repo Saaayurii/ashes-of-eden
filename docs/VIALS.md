@@ -16,6 +16,9 @@ Each vial keeps every rule of the ones below it and adds one:
 
 On top of the difficulty mode, not instead of it: a vial is a new rule, the mode is a dial.
 
+An elite promoted by a vial is an elite like any other: its fall leaves a cache with a common item (once each, so
+the night's items run out long before the elites do) and some essence. That is the vials' other half of the trade.
+
 ## Rules
 
 - `data/vials`: `tier` 1..5, `ash`, `rules`. `Vials.rules(tier)` stacks them: `flasks` add, `enemy_damage` /

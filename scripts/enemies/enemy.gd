@@ -1662,6 +1662,29 @@ func _net_warded_fx() -> void:
 	_warded_fx()
 
 
+## The prop an elite leaves where it fell (data/props): a chest with a common
+## item and some essence, the reward for the harder fight. Laid on every peer
+## as each one sees the death (the way a secret wall leaves its cache), on the
+## floor under the body — a flyer killed over a pit leaves nothing.
+const ELITE_CACHE := "elite_cache"
+
+
+func _leave_cache() -> void:
+	var room := get_tree().get_first_node_in_group("room") as Node2D
+	if room == null or not Data.props.has(ELITE_CACHE) or not is_inside_tree():
+		return
+	var query := PhysicsRayQueryParameters2D.create(global_position + Vector2(0, -8), global_position + Vector2(0, 400), 1 | 16)
+	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var cache: Prop = load("res://scenes/props/prop.tscn").instantiate()
+	cache.name = "EliteCache"
+	cache.prop_id = ELITE_CACHE
+	room.add_child(cache)
+	cache.global_position = hit.position as Vector2
+	Fx.sparkle(cache.global_position + Vector2(0, -12), Color("#ffa060"), 14, 16.0)
+
+
 ## A boss's fight, timed for its bestiary page (Profile.record_boss_time): from
 ## the first blow that lands on it to its fall, a cutscene not counted.
 var fight_time := -1.0
@@ -1695,6 +1718,8 @@ func _die() -> void:
 			Game.ash_earned += int(stats.get("ash", 10))
 			if fight_time >= 0.0:
 				Profile.record_boss_time(enemy_id, fight_time)
+	if not is_boss and stats.get("tags", []).has("elite") and Game.practice == "":
+		_leave_cache.call_deferred()
 	if _simulated:  # but a corpse that bursts still bursts: that is what is practised
 		match stats.get("on_death", {}).get("type", ""):
 			"explode":
