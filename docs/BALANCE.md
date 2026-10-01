@@ -141,6 +141,17 @@ the bar and one flask, never past full. It is a trade for the next room against
 a gift for the whole night, worth it on a deep wound before a boss and little
 else; ten of them are a deed (The Ascetic). `refuse_test.gd`.
 
+Two more trades for a gift or an item, both off the main road of power:
+
+- **Elite caches** (`elite_cache_test.gd`): an elite's fall leaves a chest with a
+  common item and 30 essence. Items are once each per night, so a vial that
+  promotes half the dead runs out of items long before it runs out of elites;
+  after that a cache is only essence.
+- **Blood altars** (`blood_altar_test.gd`, two in the chapter): a whole extra gift
+  for 15 % of the bar, for the rest of the night. Worth it early, when the gift has
+  the most rooms to pay back in; a bad deal before a boss on a thin bar. The cards
+  can still be turned down at no cost, so the altar never punishes a look.
+
 Death keeps: Ash, codex entries, story knowledge, achievements, unlocks. Death loses: build, Essence, items.
 
 Where Ash comes from in a night: a boss 10–25, a record cache 15, and 3 for every room cleared without a wound
