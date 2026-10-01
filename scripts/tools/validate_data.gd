@@ -383,8 +383,10 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
 						if branch.has("vial") and (int(branch.vial) < 1 or int(branch.vial) > 5):
 							_error("%s: branch vial is 1..5" % node_where)
-						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial")):
-							_error("%s: a branch needs a flag, a path, a habit or a vial to test" % node_where)
+						if branch.has("omen") and not _omen_ids().has(str(branch.omen)):
+							_error("%s: branch omen \"%s\" names no omen in data/omens" % [node_where, branch.omen])
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen")):
+							_error("%s: a branch needs a flag, a path, a habit, a vial or an omen to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
@@ -695,6 +697,22 @@ func _check_relic(entry: Dictionary, where: String) -> void:
 ## A vial of wrath (data/vials, scripts/run/vials.gd): a tier 1..5 once each,
 ## rules Vials knows how to stack, a promotion only to an elite of that kind.
 var _vial_tiers := {}
+var _omens_read := {}
+
+
+## Every omen id in data/omens, read straight from the files (a dialogue may
+## be checked before the omens are).
+func _omen_ids() -> Dictionary:
+	if _omens_read.is_empty():
+		var dir := DirAccess.open("res://data/omens")
+		if dir != null:
+			for file in dir.get_files():
+				if file.ends_with(".json"):
+					var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/omens/" + file))
+					for entry in (parsed if parsed is Array else [parsed]):
+						if entry is Dictionary:
+							_omens_read[str(entry.get("id", ""))] = true
+	return _omens_read
 
 
 func _check_vial(entry: Dictionary, where: String) -> void:

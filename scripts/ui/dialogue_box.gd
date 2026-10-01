@@ -207,6 +207,8 @@ static func branch_holds(branch: Dictionary) -> bool:
 		return true
 	if branch.has("vial") and Game.vial >= int(branch.vial):
 		return true
+	if branch.has("omen") and not Net.active and Game.omen == str(branch.omen):
+		return true
 	return branch.has("habit") and not Net.active and Profile.habit() == str(branch.habit)
 
 

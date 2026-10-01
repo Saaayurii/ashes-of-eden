@@ -122,6 +122,25 @@ func _run() -> void:
 	_check(is_equal_approx(vials.ash_multiplier(), 1.0) and float(vials.rule("promote_chance")) == 0.0,
 		"a plain night is a plain night")
 
+	# --- the world says it: the crone's router has a line per omen ------------------
+	var box = load("res://scripts/ui/dialogue_box.gd")
+	var crone: Dictionary = data.dialogues["npc_villager"].nodes
+	var said := {}
+	for id in data.omens:
+		game.omen = id
+		var next := ""
+		for branch in crone["omen"].branches:
+			if box.branch_holds(branch):
+				next = branch.next
+				break
+		said[id] = crone.get(next, {}).get("text", "")
+	game.omen = ""
+	var unheard := 0
+	for id in said:
+		unheard += 1 if said[id] == "" else 0
+	_check(unheard == 0, "the crone has a word for every omen (%s)" % said)
+	_check(not box.branch_holds({"omen": "blood_moon"}), "  and none on a plain night")
+
 	# --- on the body and in the room ------------------------------------------------
 	game.omen = "thin_veil"
 	change_scene_to_file("res://scenes/run/run.tscn")

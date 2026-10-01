@@ -33,6 +33,8 @@ an unknown rule, and `promote_chance` without its `promote` map.
   everyone, whatever the profile or the switch.
 - The bestiary has a page per omen (`omen:<id>`, between the deeds and the chronicle), named once a night has
   been drawn under it: what it trades, its nights and its dawns (`Profile.record_run` keeps them).
+- The world says it: a dialogue router branch `{"omen": id}` (`DialogueBox.branch_holds`, never online) — the crone
+  in the swamp (`npc_villager`) has a line for each. A new omen wants its line there too (`omen_test` checks).
 - `Game.omen` goes into `Saves.capture` / `restore`; an omen since removed loads as a plain night.
 - A tool script (`godot -s`) draws none on its own — a test that starts a run measures blows and flasks —
   unless it asks (`Omens.for_new_night(true)`).
