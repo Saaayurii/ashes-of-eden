@@ -15,6 +15,13 @@ class_name Prop
 ##   niche     a picture drawn behind the prop, bottom on its floor, that stays
 ##             when it breaks: the doorway a secret wall bricks up, so it reads as
 ##             a niche in the wall and the cache is found standing in it
+##   curse     a chest that opens only on `interact`, never by walking into it,
+##             and lays its price on the opener: wounds land twice as hard
+##             until that many enemies have fallen (Player.take_curse)
+##   interact  a chest that opens only on `interact` (a curse implies it), with
+##             "prompt" (a key) over it while our body stands there
+##   requires_flag  not there at all until the story sets this flag (the book
+##             under the church altar appears once Matthew has spoken of it)
 ##   note      a record (data/notes) read aloud as a caption and kept in the
 ##             bestiary; "ash" is paid only the first time it is found
 ## A prop is never an enemy: it does not count towards the room's kill count and
@@ -39,6 +46,10 @@ var _authored_sprite_offset := Vector2.ZERO
 static var _floor_padding_cache := {}
 ## A chest glows in its own colour until it is opened (Fx.light).
 var _light: GlowLight
+## A cursed chest's offer, over it while our own body stands at it.
+var _prompt: Label
+## Hidden until Game.flags has stats.requires_flag.
+var _waiting := false
 
 @onready var sprite: Sprite2D = $Sprite
 @onready var shape: CollisionShape2D = $Collision
@@ -95,11 +106,17 @@ func _ready() -> void:
 	# passing in front of it instead of through it.
 	Fx.shadow(self, Vector2(0, 1), size.x * 1.5, 0.9)
 	if stats.get("kind", "destructible") == "chest":
-		body_entered.connect(_on_body_entered)
+		if int(stats.get("curse", 0)) > 0 or stats.get("interact", false):
+			_add_prompt()
+		else:
+			body_entered.connect(_on_body_entered)
 		var glow := Color(stats.get("glow", "#ffd9a0"))
 		_light = Fx.light(self, Vector2(0, -size.y / 2.0), glow, 44.0, 0.7, 0.0, 0.25)
 	EventBus.world_impulse.connect(_on_world_impulse)
 	_setup_ambient()
+	if stats.has("requires_flag") and not Game.flags.has(str(stats.requires_flag)):
+		_waiting = true
+		visible = false
 	set_process(true)
 
 
@@ -156,6 +173,15 @@ static func _frame_padding(texture: Texture2D, frames: int, frame: int) -> int:
 
 
 func _process(delta: float) -> void:
+	if _waiting:
+		if not Game.flags.has(str(stats.requires_flag)):
+			return
+		# the story has spoken of it: it is there now
+		_waiting = false
+		visible = true
+		Fx.sparkle(global_position + Vector2(0, -10), Color(stats.get("glow", "#ffd9a0")), 12, 12.0)
+	if _prompt != null:
+		_offer()
 	if _spent or stats.get("still", false):
 		return
 	_idle_clock += delta
@@ -262,10 +288,72 @@ func _break() -> void:
 		sprite.frame = sprite.hframes - 1  # the leftovers stay on the floor
 
 
+func _add_prompt() -> void:
+	add_to_group("interactable")
+	_prompt = Label.new()
+	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_prompt.position = Vector2(-60, -50)
+	_prompt.size = Vector2(120, 14)
+	_prompt.add_theme_font_size_override("font_size", 8)
+	_prompt.modulate = Color(1.0, 0.6, 0.55)
+	_prompt.z_index = 3
+	_prompt.visible = false
+	add_child(_prompt)
+
+
+## A cursed chest asks before it opens: standing at it shows the price, and
+## `interact` pays it.
+func _offer() -> void:
+	var taker := _local_taker()
+	_prompt.visible = taker != null and not _spent and not Game.cutscene
+	if not _prompt.visible:
+		return
+	var offer := tr(str(stats.prompt)) if stats.has("prompt") else tr("CHEST_CURSED_PROMPT") % int(stats.get("curse", 0))
+	_prompt.text = "%s  %s" % [Settings.key_name("interact"), offer]
+	if Input.is_action_just_pressed("interact"):
+		open(taker)
+
+
+## Our own body, alive and standing at this chest.
+func _local_taker() -> Player:
+	var box: Array = stats.get("hitbox", [20, 20])
+	var reach := float(box[0]) * 0.5 + 12.0
+	for node in get_tree().get_nodes_in_group("player"):
+		var body := node as Player
+		if body != null and body.is_multiplayer_authority() and not body.is_dead() \
+				and absf(body.global_position.x - global_position.x) <= reach \
+				and absf(body.global_position.y - global_position.y) <= 24.0:
+			return body
+	return null
+
+
+## Opens a cursed chest for [param taker], here and, online, on the other peer
+## (where the opener is a puppet that never walked into anything).
+func open(taker: Player) -> void:
+	if _spent or taker == null:
+		return
+	if Net.active:
+		_net_open.rpc()
+	_on_body_entered(taker)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_open() -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	for node in get_tree().get_nodes_in_group("player"):
+		var body := node as Player
+		if body != null and body.get_multiplayer_authority() == sender:
+			_on_body_entered(body)
+			return
+
+
 func _on_body_entered(body: Node) -> void:
-	if _spent or not (body is Player):
+	if _spent or _waiting or not (body is Player):
 		return
 	_spent = true
+	remove_from_group("interactable")
+	if _prompt != null:
+		_prompt.visible = false
 	_rest_on_floor()
 	# We are inside the area's own body_entered: physics is mid-flush and will
 	# not let us switch monitoring off until it is done.
@@ -327,6 +415,7 @@ func _pay_out(taker: Player = null) -> void:
 	if taker != null and stats.get("kind", "") == "chest" and taker.is_multiplayer_authority():
 		if taker.stats.chest_heal > 0.0:
 			taker.heal(taker.stats.chest_heal)
+		taker.take_curse(int(stats.get("curse", 0)))
 		# the item is the opener's: it goes onto their body, on their machine
 		var rarity := str(stats.get("item", ""))
 		if rarity != "":

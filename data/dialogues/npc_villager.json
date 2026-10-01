@@ -18,18 +18,37 @@
     "v_killed": {
       "speaker": "NPC_VILLAGER",
       "text": "DLG_CRONE_KILLED",
-      "next": "v_mara_first"
+      "next": "omen"
     },
     "v_mara": {
       "speaker": "NPC_VILLAGER",
       "text": "DLG_CRONE_MARA",
-      "next": "v_mara_first"
+      "next": "omen"
     },
     "v_default": {
       "speaker": "NPC_VILLAGER",
       "text": "DLG_NPC_VILLAGER_1",
+      "next": "omen"
+    },
+    "omen": {
+      "branches": [
+        {"omen": "blood_moon", "next": "o_blood_moon"},
+        {"omen": "heavy_earth", "next": "o_heavy_earth"},
+        {"omen": "procession", "next": "o_procession"},
+        {"omen": "thin_veil", "next": "o_thin_veil"},
+        {"omen": "dry_altars", "next": "o_dry_altars"},
+        {"omen": "fen_mist", "next": "o_fen_mist"},
+        {"omen": "restless_saints", "next": "o_restless_saints"}
+      ],
       "next": "v_mara_first"
     },
+    "o_blood_moon": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_OMEN_BLOOD_MOON", "next": "v_mara_first"},
+    "o_heavy_earth": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_OMEN_HEAVY_EARTH", "next": "v_mara_first"},
+    "o_procession": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_OMEN_PROCESSION", "next": "v_mara_first"},
+    "o_thin_veil": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_OMEN_THIN_VEIL", "next": "v_mara_first"},
+    "o_dry_altars": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_OMEN_DRY_ALTARS", "next": "v_mara_first"},
+    "o_fen_mist": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_OMEN_FEN_MIST", "next": "v_mara_first"},
+    "o_restless_saints": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_OMEN_RESTLESS_SAINTS", "next": "v_mara_first"},
     "v_mara_first": {
       "branches": [{"flag": "mara_asked", "next": "v_mara_asked"}],
       "next": "v_mara_second"

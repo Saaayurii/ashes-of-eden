@@ -267,5 +267,68 @@
         }
       }
     ]
+  },
+  {
+    "id": "cruel_opening",
+    "name": "ABILITY_CRUEL_OPENING_NAME",
+    "description": "ABILITY_CRUEL_OPENING_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/status_10.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "windup_bonus",
+        "op": "add",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "id": "accursed_strength",
+    "name": "ABILITY_ACCURSED_STRENGTH_NAME",
+    "description": "ABILITY_ACCURSED_STRENGTH_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/status_6.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "cursed_damage",
+        "op": "add",
+        "value": 0.4
+      }
+    ]
+  },
+  {
+    "id": "hex_of_ashes",
+    "name": "ABILITY_HEX_OF_ASHES_NAME",
+    "description": "ABILITY_HEX_OF_ASHES_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/rune_3.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "skill",
+        "skill": {
+          "kind": "hex",
+          "cooldown": 7,
+          "damage": 10,
+          "range": 140,
+          "hex": 5.0,
+          "bonus": 0.5,
+          "color": "#b060d0"
+        }
+      }
+    ]
   }
 ]

@@ -63,5 +63,37 @@
     "unlock": {
       "total_kills": 300
     }
+  },
+  {
+    "id": "fen_shroud",
+    "name": "SKIN_FEN_SHROUD_NAME",
+    "description": "SKIN_FEN_SHROUD_DESC",
+    "cloak": {
+      "hue": 0.5,
+      "saturation": 0.5,
+      "value": 0.9
+    },
+    "armor": "#cfe2ea",
+    "unlock": {
+      "kills": {
+        "elder_wraith": 5
+      }
+    }
+  },
+  {
+    "id": "zealot_wine",
+    "name": "SKIN_ZEALOT_WINE_NAME",
+    "description": "SKIN_ZEALOT_WINE_DESC",
+    "cloak": {
+      "hue": 0.95,
+      "saturation": 0.75,
+      "value": 0.55
+    },
+    "armor": "#d8c0c0",
+    "unlock": {
+      "kills": {
+        "elite_cultist": 5
+      }
+    }
   }
 ]

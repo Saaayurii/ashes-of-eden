@@ -12,6 +12,8 @@ var motion_amount := 0.0
 var tint := Color(1, 0.85, 0.5)
 ## blade, sacred, umbral or wraith; set by the firing actor.
 var visual_style := ""
+## The enemy id of whoever loosed it, so a death by it is blamed on them.
+var shooter_id := ""
 const ART := {
 	"blade": preload("res://assets/sprites/projectiles/blade_wave_v2.png"),
 	"sacred": preload("res://assets/sprites/projectiles/sacred_bolt_v2.png"),

@@ -195,6 +195,8 @@ func play(dialogue_id: String) -> void:
 ## Whether a router's branch is the way on:
 ##   "flag"   a story flag set earlier (Game.flags);
 ##   "path"   the way this night leans (Game.dominant_path(): grace / temptation / will);
+##   "vial"   the vial of wrath the night is played under is at least this
+##            (Game.vial, scripts/run/vials.gd);
 ##   "habit"  the way the last nights have leaned (Profile.habit(), docs/CORE_LOOP.md
 ##            "the world notices"). A player's own history, so never online, where
 ##            both peers must walk the same lines.
@@ -202,6 +204,10 @@ static func branch_holds(branch: Dictionary) -> bool:
 	if branch.has("flag") and Game.flags.has(branch.flag):
 		return true
 	if branch.has("path") and Game.dominant_path() == branch.path:
+		return true
+	if branch.has("vial") and Game.vial >= int(branch.vial):
+		return true
+	if branch.has("omen") and not Net.active and Game.omen == str(branch.omen):
 		return true
 	return branch.has("habit") and not Net.active and Profile.habit() == str(branch.habit)
 

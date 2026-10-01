@@ -3,6 +3,7 @@
   "extends": "possessed_villager",
   "name": "ENEMY_ELITE_POSSESSED",
   "lore": "ENEMY_ELITE_POSSESSED_LORE",
+  "tip": "TIP_ELITE_POSSESSED",
   "hp": 54,
   "speed": 66,
   "essence": 50,

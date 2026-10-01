@@ -10,7 +10,7 @@ const NICHE_PAINTED := ["secret_wall_catacombs"]
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const PATHS := ["grace", "temptation", "will"]
 const EFFECT_TYPES := ["stat", "lifesteal", "extra_life", "heal", "skill"]
-const SKILL_KINDS := ["nova", "bolt", "drain"]
+const SKILL_KINDS := ["nova", "bolt", "drain", "toll", "hex", "blink"]
 const RARITIES := ["common", "rare", "epic", "legendary"]
 ## Keys of Player.BASE_STATS a "stat" effect may touch. Duplicated on purpose:
 ## this script runs before the game's classes exist. Keep it in step.
@@ -20,7 +20,8 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"extra_lives", "heal_charges", "thorns", "execute", "kill_heal", "clear_heal", "dash_damage",
 	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction",
 	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
-	"desperate_crit_heal"]
+	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
+	"cursed_damage"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
@@ -60,6 +61,7 @@ const REQUIRED := {
 	"resonances": ["id", "name", "description", "needs", "effects"],
 	"vials": ["id", "tier", "name", "description", "rules"],
 	"relics": ["id", "name", "description", "cost", "effects"],
+	"omens": ["id", "name", "description", "rules"],
 }
 
 var errors: PackedStringArray = []
@@ -96,7 +98,7 @@ func _init() -> void:
 	for id in _load_entries("res://data/props"):
 		_prop_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/enemies"):
-		_enemy_ids[id.get("id", "")] = true
+		_enemy_ids[id.get("id", "")] = bool(id.get("boss", false))
 	for id in _load_entries("res://data/notes"):
 		_note_ids[id.get("id", "")] = true
 	for id in _load_entries("res://data/chapters"):
@@ -178,6 +180,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_use_key(entry.get("name", ""), where)
 			if entry.has("lore"):
 				_use_key(entry.lore, where)
+			# the advice the night's end gives when this one laid him low
+			if entry.has("tip"):
+				_use_key(entry.tip, where)
+			elif entry.get("bestiary", true) and not ["seal", "dummy"].has(entry.get("behaviour", "walker")) \
+					and not entry.has("extends"):
+				_error("%s: an enemy that can kill needs a \"tip\" (how to meet it)" % where)
 			for tag in entry.get("tags", []):
 				_use_key("TAG_" + str(tag).to_upper(), where)  # the bestiary shows them
 			if not entry.has("extends"):
@@ -248,6 +256,15 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: kind must be one of %s" % [where, PROP_KINDS])
 			if entry.has("item") and (entry.get("kind") != "chest" or not ["common", "rare"].has(entry.item)):
 				_error("%s: item is \"common\" or \"rare\", on a chest" % where)
+			if entry.has("prompt"):
+				_use_key(entry.prompt, where)
+			if entry.has("interact") and not (entry.interact is bool and entry.get("kind") == "chest"):
+				_error("%s: interact is true or false, on a chest" % where)
+			if entry.has("requires_flag"):
+				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
+			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
+					or int(entry.curse) < 1 or int(entry.curse) > 30):
+				_error("%s: curse is a number of kills (1–30), on a chest" % where)
 			if entry.get("kind") == "destructible" and float(entry.get("hp", 0)) <= 0.0:
 				_error("%s: a destructible needs positive hp" % where)
 			_check_sprite(entry.get("sprite", {}), where)
@@ -299,6 +316,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_vial(entry, where)
 		"relics":
 			_check_relic(entry, where)
+		"omens":
+			_check_omen(entry, where)
 		"skins":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("description", ""), where)
@@ -368,8 +387,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 						for key in ["path", "habit"]:
 							if branch.has(key) and not PATHS.has(str(branch[key])):
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
-						if not (branch.has("flag") or branch.has("path") or branch.has("habit")):
-							_error("%s: a branch needs a flag, a path or a habit to test" % node_where)
+						if branch.has("vial") and (int(branch.vial) < 1 or int(branch.vial) > 5):
+							_error("%s: branch vial is 1..5" % node_where)
+						if branch.has("omen") and not _omen_ids().has(str(branch.omen)):
+							_error("%s: branch omen \"%s\" names no omen in data/omens" % [node_where, branch.omen])
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen")):
+							_error("%s: a branch needs a flag, a path, a habit, a vial or an omen to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
@@ -598,7 +621,7 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 	if int(entry.get("ash", 0)) < 0 or int(entry.get("ash", 0)) > 50:
 		_error("%s: ash is 0..50 (docs/BALANCE.md: permanent power stays small)" % where)
 	for key in unlock:
-		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "moves", "deeds"].has(key):
+		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "moves", "deeds", "fast"].has(key):
 			_error("%s: unlock.%s is not a condition Achievements reads" % [where, key])
 	for key in ["nights", "wins", "total_kills"]:
 		if unlock.has(key) and int(unlock[key]) < 1:
@@ -614,6 +637,11 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 		for move in moves:
 			if not TECHNIQUES.has(move):
 				_error("%s: unlock.moves names no move: %s" % [where, move])
+	for boss in unlock.get("fast", {}):
+		if not bool(_enemy_ids.get(boss, false)):
+			_error("%s: unlock.fast names no boss: %s" % [where, boss])
+		elif float(unlock.fast[boss]) <= 0.0:
+			_error("%s: unlock.fast.%s is a time in seconds" % [where, boss])
 	for counter in unlock.get("deeds", {}):
 		if not counters.has(counter):
 			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])
@@ -680,6 +708,22 @@ func _check_relic(entry: Dictionary, where: String) -> void:
 ## A vial of wrath (data/vials, scripts/run/vials.gd): a tier 1..5 once each,
 ## rules Vials knows how to stack, a promotion only to an elite of that kind.
 var _vial_tiers := {}
+var _omens_read := {}
+
+
+## Every omen id in data/omens, read straight from the files (a dialogue may
+## be checked before the omens are).
+func _omen_ids() -> Dictionary:
+	if _omens_read.is_empty():
+		var dir := DirAccess.open("res://data/omens")
+		if dir != null:
+			for file in dir.get_files():
+				if file.ends_with(".json"):
+					var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/omens/" + file))
+					for entry in (parsed if parsed is Array else [parsed]):
+						if entry is Dictionary:
+							_omens_read[str(entry.get("id", ""))] = true
+	return _omens_read
 
 
 func _check_vial(entry: Dictionary, where: String) -> void:
@@ -701,6 +745,50 @@ func _check_vial(entry: Dictionary, where: String) -> void:
 			_error("%s: promote %s -> %s names no enemy" % [where, from, to])
 	if float(rules.get("promote_chance", 0.0)) > 1.0 or float(rules.get("rest_heal", 1.0)) <= 0.0:
 		_error("%s: promote_chance is 0..1 and rest_heal above 0" % where)
+
+
+## An omen (data/omens, scripts/run/omens.gd): a trade — at least one rule
+## that helps and one that hurts — in rules Vials stacks, plus "essence" and
+## "ash", never a pay below a plain night.
+func _check_omen(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	var rules: Dictionary = entry.get("rules", {})
+	var helps := false
+	var hurts := false
+	for key in rules:
+		var value = rules[key]
+		match key:
+			"essence", "ash":
+				helps = helps or float(value) > 1.0
+				hurts = hurts or float(value) < 1.0
+			"flasks":
+				helps = helps or int(value) > 0
+				hurts = hurts or int(value) < 0
+			"enemy_damage", "enemy_hp", "skill_cooldown":
+				hurts = hurts or float(value) > 1.0
+				helps = helps or float(value) < 1.0
+			"enemy_sight":
+				helps = helps or float(value) < 1.0
+				hurts = hurts or float(value) > 1.0
+			"promote_chance":
+				hurts = hurts or float(value) > 0.0
+				if float(value) > 1.0:
+					_error("%s: promote_chance is 0..1" % where)
+			"rest_heal":
+				hurts = hurts or float(value) < 1.0
+				if float(value) <= 0.0:
+					_error("%s: rest_heal above 0" % where)
+			"promote":
+				for from in value:
+					if not _enemy_ids.has(from) or not _enemy_ids.has(str(value[from])):
+						_error("%s: promote %s -> %s names no enemy" % [where, from, value[from]])
+			_:
+				_error("%s: rules.%s is not a rule an omen can carry" % [where, key])
+	if not (helps and hurts):
+		_error("%s: an omen is a trade: something that helps and something that hurts" % where)
+	if rules.has("promote_chance") != rules.has("promote"):
+		_error("%s: promote_chance and promote come together" % where)
 
 
 ## Achievements.COUNTERS, read from the source: that script names autoloads,

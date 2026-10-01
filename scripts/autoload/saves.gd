@@ -215,11 +215,16 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"rested": Game.rested.keys(),
 			"walked": Game.walked.duplicate(),
 			"vial": Game.vial,
+			"omen": Game.omen,
 			"rerolls": Game.rerolls,
 			"essence": Game.essence,
 			"level": Game.level,
 			"ash": Game.ash_earned,
 			"unscathed": Game.unscathed,
+			"dealt": Game.dealt,
+			"heaviest": Game.heaviest,
+			"taken": Game.taken,
+			"parries": Game.parries,
 			"elapsed": elapsed,
 			"kills": kills,
 			"difficulty": Settings.difficulty,
@@ -229,6 +234,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"heal_charges": body.heal_charges,
 			"stats": body.stats.duplicate(),
 			"skill": body.skill.duplicate(),
+			"curse": body.curse,
 		},
 	}
 
@@ -260,7 +266,13 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
 	Game.ash_earned = int(state.get("ash", 0))
 	Game.unscathed = maxi(0, int(state.get("unscathed", 0)))
+	Game.dealt = maxf(0.0, float(state.get("dealt", 0.0)))
+	Game.heaviest = maxf(0.0, float(state.get("heaviest", 0.0)))
+	Game.taken = maxf(0.0, float(state.get("taken", 0.0)))
+	Game.parries = maxi(0, int(state.get("parries", 0)))
 	Game.vial = clampi(int(state.get("vial", 0)), 0, Vials.TIERS)
+	# an omen since removed is a plain night, not a refused save
+	Game.omen = str(state.get("omen", "")) if Data.omens.has(str(state.get("omen", ""))) else ""
 	Game.rerolls = clampi(int(state.get("rerolls", 0)), 0, 9)
 	Game.elapsed = float(state.get("elapsed", 0.0))
 	# The stats are the body's whole story (gifts applied, extra lives spent):
@@ -272,6 +284,7 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.essence_bonus = float(body.stats.get("essence_bonus", 0.0))
 	var saved_skill = data.player.get("skill", {})
 	body.skill = saved_skill.duplicate() if saved_skill is Dictionary else {}
+	body.curse = maxi(0, int(data.player.get("curse", 0)))
 	body.heal_charges = clampi(int(data.player.get("heal_charges", body.heal_charges)), 0, int(body.stats.heal_charges))
 	body.hp = clampf(float(data.player.get("hp", body.stats.max_hp)), 1.0, float(body.stats.max_hp))
 	body.refresh_stats()

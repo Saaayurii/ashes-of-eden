@@ -152,6 +152,10 @@ var _sealed := false
 var _seal_done := false
 ## The damage phase after the seals break: open, low, not attacking.
 var _exposed_left := 0.0
+## A hex (the Hex of Ashes skill): every blow it takes is worth _hex_bonus
+## more while _hex_left runs. Decided by the host, like damage.
+var _hex_left := 0.0
+var _hex_bonus := 0.0
 ## A training dummy's quiet time left before it is whole again.
 var _dummy_rest := 0.0
 var _ward: Line2D
@@ -219,6 +223,7 @@ func _ready() -> void:
 		var spec: Dictionary = stats.light
 		_light = Fx.light(self, Vector2(0, -10), Color(spec.get("color", stats.get("color", "#ffffff"))),
 			float(spec.get("radius", 50)), float(spec.get("energy", 0.7)), float(spec.get("flicker", 0.0)), 0.15)
+	_mark_elite()
 	if not _is_flying():
 		_shadow = Fx.shadow(self, Vector2(0, 11), size * 1.6, 0.7)
 	if _is_flying():
@@ -232,6 +237,28 @@ func _ready() -> void:
 		set_physics_process(_simulated)
 	if _simulated and stats.get("boss", false):
 		EventBus.boss_hp_changed.emit(stats.get("name", ""), hp, _max_hp)
+
+
+## An elite reads as one before it swings: a low ember glow under it and a
+## mote rising off it now and then (tags "elite", never a boss — a boss has
+## its own bar). Same on every peer: it is drawn from the data.
+const ELITE_EMBER := Color(0.95, 0.38, 0.28)
+
+
+func _mark_elite() -> void:
+	if not stats.get("tags", []).has("elite") or stats.get("boss", false):
+		return
+	var glow := Fx.light(self, Vector2(0, 4), ELITE_EMBER, 38.0, 0.75, 0.3, 0.2)
+	if glow != null:
+		glow.name = "EliteMark"
+	var motes := Timer.new()
+	motes.name = "EliteMotes"
+	motes.wait_time = 0.5
+	motes.autostart = true
+	motes.timeout.connect(func() -> void:
+		if state != State.DEAD and visible and is_inside_tree():
+			Fx.ash(global_position + Vector2(randf_range(-6.0, 6.0), -4.0), ELITE_EMBER * Color(1, 1, 1, 0.8), 3, 18.0, 6.0))
+	add_child(motes)
 
 
 func _is_flying() -> bool:
@@ -307,6 +334,7 @@ func _setup_sprite(spec: Dictionary) -> void:
 func _physics_process(delta: float) -> void:
 	if state == State.DEAD:
 		return
+	_time_fight(delta)
 	# A walker can be knocked into a shaft and a flyer can drift past a side
 	# boundary. Both must use the normal death path: Room.alive owns the exit.
 	if _fell_out_of_room():
@@ -334,6 +362,7 @@ func _physics_process(delta: float) -> void:
 			_play("idle")
 		return
 	_exposed_left = maxf(0.0, _exposed_left - delta)
+	_hex_left = maxf(0.0, _hex_left - delta)
 	if Game.cutscene:
 		# A scene is playing: everybody holds where they stand (walkers keep
 		# their gravity, a flyer hangs still so the scene can place it).
@@ -525,7 +554,8 @@ func _spot_player() -> Player:
 func _can_see(who: Player) -> bool:
 	var spec: Dictionary = stats.get("sight", {})
 	var defaults: Array = SIGHT_DEFAULTS["flyer" if _is_flying() else "walker"]
-	var sight_range := float(spec.get("range", defaults[0]))
+	# an omen may thicken the dark (data/omens: "enemy_sight")
+	var sight_range := float(spec.get("range", defaults[0])) * float(Vials.rule("enemy_sight"))
 	var height := float(spec.get("height", defaults[1]))
 	var behind := float(spec.get("behind", defaults[2]))
 	var d := who.global_position - global_position
@@ -1052,6 +1082,7 @@ func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool) -> v
 	projectile.motion = str(_attack.get("projectile_motion", "straight"))
 	projectile.motion_amount = float(_attack.get("motion_amount", 0.0))
 	projectile.cosmetic = cosmetic
+	projectile.shooter_id = enemy_id
 	get_parent().add_child(projectile)
 	projectile.global_position = origin
 	_cast_flare(origin, projectile.tint)
@@ -1229,6 +1260,8 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		return
 	if _exposed_left > 0.0:
 		amount *= 1.0 + float(stats.get("seal_phase", {}).get("exposed_bonus", 0.5))
+	if _hex_left > 0.0:
+		amount *= 1.0 + _hex_bonus
 	var backstab := is_unaware() and sneak > 1.0
 	if backstab:
 		amount *= sneak
@@ -1303,6 +1336,50 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		if Net.active:
 			_net_die.rpc()
 		_die()
+
+
+## Hexed for [param seconds]: every blow it takes lands [param bonus] harder.
+## Decided by the host, like damage; the mark is drawn on every peer.
+func hex(seconds: float, bonus: float) -> void:
+	if Net.active and not multiplayer.is_server():
+		if multiplayer.get_peers().has(1):
+			_net_hex.rpc_id(1, seconds, bonus)
+		return
+	_apply_hex(seconds, bonus)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _net_hex(seconds: float, bonus: float) -> void:
+	_apply_hex(seconds, bonus)
+
+
+func _apply_hex(seconds: float, bonus: float) -> void:
+	if state == State.DEAD:
+		return
+	_hex_left = maxf(_hex_left, seconds)
+	_hex_bonus = maxf(_hex_bonus if _hex_left > 0.0 else 0.0, bonus)
+	_hex_mark(seconds)
+	if Net.active:
+		_net_hex_mark.rpc(seconds)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_hex_mark(seconds: float) -> void:
+	_hex_mark(seconds)
+
+
+## Ash rising off the hexed body for as long as it lasts.
+func _hex_mark(seconds: float) -> void:
+	var ticks := int(ceil(seconds / 0.4))
+	for i in ticks:
+		if not is_inside_tree() or state == State.DEAD:
+			return
+		Fx.ash(global_position + Vector2(randf_range(-6, 6), -14), Color(0.7, 0.35, 0.85, 0.8), 3, 20.0, 6.0)
+		await get_tree().create_timer(0.4).timeout
+
+
+func is_hexed() -> bool:
+	return _hex_left > 0.0
 
 
 ## Stopped where it stands for [param duration] (the cracked bell's parry, an
@@ -1403,6 +1480,7 @@ func _net_riposte_fx() -> void:
 ## springs back, sparks thrown the way the blade was going, and the number.
 ## [param away] is -1 or 1: the direction the hit came from, pointing outwards.
 func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := false) -> void:
+	Game.note_dealt(amount)  # the night's numbers (every peer sees every blow)
 	Fx.damage_number(global_position, amount, Color(1.0, 0.8, 0.3) if crit else Color(1, 0.95, 0.8))
 	if backstab:
 		# The one hit that is meant to feel like a decision: name it and let it land.
@@ -1584,6 +1662,20 @@ func _net_warded_fx() -> void:
 	_warded_fx()
 
 
+## A boss's fight, timed for its bestiary page (Profile.record_boss_time): from
+## the first blow that lands on it to its fall, a cutscene not counted.
+var fight_time := -1.0
+
+
+func _time_fight(delta: float) -> void:
+	if not stats.get("boss", false) or Game.cutscene:
+		return
+	if fight_time >= 0.0:
+		fight_time += delta
+	elif hp < _max_hp:
+		fight_time = 0.0
+
+
 ## Counts as dead immediately; the body plays its death strip or an "ash" squash.
 ## On a client this is the mirror of the host's death: same theatre, no bookkeeping.
 @rpc("authority", "call_remote", "reliable")
@@ -1601,6 +1693,8 @@ func _die() -> void:
 		Game.add_essence(float(stats.get("essence", 10)))
 		if is_boss:
 			Game.ash_earned += int(stats.get("ash", 10))
+			if fight_time >= 0.0:
+				Profile.record_boss_time(enemy_id, fight_time)
 	if _simulated:  # but a corpse that bursts still bursts: that is what is practised
 		match stats.get("on_death", {}).get("type", ""):
 			"explode":

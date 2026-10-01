@@ -9,6 +9,7 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 @onready var bestiary: Bestiary = %Bestiary
 @onready var save_menu: SaveMenu = %SaveMenu
 var chapter_map: ChapterMap
+var carried: CarriedGifts
 
 
 func _ready() -> void:
@@ -32,6 +33,18 @@ func _ready() -> void:
 	open_map.owner = self  # so %OpenMap resolves like the buttons in the scene
 	open_map.pressed.connect(func() -> void: panel.visible = false; chapter_map.open())
 	chapter_map.closed.connect(func() -> void: panel.visible = true; open_map.grab_focus())
+	# What the body carries tonight (CarriedGifts), under the map.
+	carried = CarriedGifts.new()
+	carried.name = "CarriedGifts"
+	add_child(carried)
+	var open_carried := Button.new()
+	open_carried.name = "OpenCarried"
+	open_carried.unique_name_in_owner = true
+	open_carried.text = tr("PAUSE_CARRIED")
+	open_map.add_sibling(open_carried)
+	open_carried.owner = self
+	open_carried.pressed.connect(func() -> void: panel.visible = false; carried.open())
+	carried.closed.connect(func() -> void: panel.visible = true; open_carried.grab_focus())
 	# Saving is solo: a session's rooms are the host's (see Saves).
 	%SaveRow.visible = not Net.active and Game.daily == ""  # the night of the day is played once through
 	%OpenSave.pressed.connect(_open_saves.bind("save"))
@@ -43,7 +56,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("pause"):
 		return
 	if visible:
-		if settings.visible or bestiary.visible or save_menu.visible or chapter_map.visible:
+		if settings.visible or bestiary.visible or save_menu.visible or chapter_map.visible or carried.visible:
 			return  # the overlay handles its own Escape
 		_resume()
 	elif not get_tree().paused:  # someone else (dialogue, picker, end screen) owns the pause
@@ -56,7 +69,27 @@ func _open() -> void:
 	Audio.play(&"ui_pause", -6.0, 0.0)
 	visible = true
 	panel.visible = true
+	_show_omen()
 	%Resume.grab_focus()
+
+
+## The night's omen, over the buttons: what it trades, in its own words.
+func _show_omen() -> void:
+	var line := %Resume.get_parent().get_node_or_null("Omen") as Label
+	if line == null:
+		line = Label.new()
+		line.name = "Omen"
+		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		line.custom_minimum_size = Vector2(220, 0)
+		line.add_theme_font_size_override("font_size", 9)
+		line.modulate = Color(0.95, 0.75, 0.7)
+		%Resume.add_sibling(line)
+		%Resume.get_parent().move_child(line, %Resume.get_index())
+	var spec := Omens.spec(Game.omen)
+	line.visible = not spec.is_empty()
+	if line.visible:
+		line.text = "%s: %s\n%s" % [tr("OMEN_LABEL"), tr(str(spec.get("name", ""))), tr(str(spec.get("description", "")))]
 
 
 ## A phone call, the home button, the notification shade, a browser tab

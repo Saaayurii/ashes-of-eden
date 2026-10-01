@@ -109,18 +109,50 @@ func _build_list() -> void:
 	notes.assign(Data.notes.keys().map(func(id: String) -> String: return "note:" + id))
 	var deeds: Array[String] = []
 	deeds.assign(Achievements.ids().map(func(id: String) -> String: return "deed:" + id))
+	# the omens a night may be drawn under (data/omens): named once one has been
+	var omens: Array[String] = []
+	omens.assign(Data.omens.keys().map(func(id: String) -> String: return "omen:" + id))
+	omens.sort()
+	# the codex: every gift by path, then every resonance — named once taken
+	var gifts: Array[String] = []
+	var order := ["grace", "temptation", "will"]
+	var gift_ids: Array = Data.abilities.keys()
+	gift_ids.sort_custom(func(a: String, b: String) -> bool:
+		var pa := order.find(str(Data.abilities[a].get("path", "")))
+		var pb := order.find(str(Data.abilities[b].get("path", "")))
+		return pa < pb or (pa == pb and a < b))
+	gifts.assign(gift_ids.map(func(id: String) -> String: return "gift:" + id))
+	var resonances: Array[String] = []
+	resonances.assign(Data.resonances.keys().map(func(id: String) -> String: return "res:" + id))
+	resonances.sort()
+	# the chronicle closes the book: the totals, then the last nights, newest first
+	var chronicle: Array[String] = ["chron:total"]
+	var history: Array = _history()
+	for i in range(history.size() - 1, -1, -1):
+		chronicle.append("chron:%d" % i)
 	var last_family := ""
-	for id in _ids + people + notes + deeds:
+	for id in _ids + people + notes + deeds + omens + gifts + resonances + chronicle:
 		if (not people.is_empty() and id == people[0]) or (not notes.is_empty() and id == notes[0]) \
-				or (not deeds.is_empty() and id == deeds[0]):
+				or (not deeds.is_empty() and id == deeds[0]) or (not omens.is_empty() and id == omens[0]) \
+				or (not gifts.is_empty() and id == gifts[0]) or (not resonances.is_empty() and id == resonances[0]) \
+				or id == chronicle[0]:
 			var heading := Label.new()
-			heading.text = tr("BESTIARY_PEOPLE" if id.begins_with("npc:") else ("BESTIARY_NOTES" if id.begins_with("note:") else "BESTIARY_DEEDS"))
+			heading.text = tr("BESTIARY_PEOPLE" if id.begins_with("npc:") else ("BESTIARY_NOTES" if id.begins_with("note:")
+				else ("BESTIARY_DEEDS" if id.begins_with("deed:") else ("BESTIARY_OMENS" if id.begins_with("omen:")
+				else ("BESTIARY_GIFTS" if id.begins_with("gift:") else ("BESTIARY_RESONANCES" if id.begins_with("res:")
+				else "BESTIARY_CHRONICLE"))))))
+			if id.begins_with("gift:") or id.begins_with("res:"):
+				var pool: Array[String] = gifts if id.begins_with("gift:") else resonances
+				heading.text += "  %d / %d" % [pool.filter(func(g: String) -> bool:
+					return Profile.bestiary_entry(g).get("met", false)).size(), pool.size()]
 			if id.begins_with("deed:"):
 				heading.text += "  %d / %d" % [deeds.filter(func(d: String) -> bool: return Achievements.done(d.trim_prefix("deed:"))).size(), deeds.size()]
 			heading.add_theme_color_override("font_color", GOLD)
 			heading.add_theme_font_size_override("font_size", 11)
 			list.add_child(heading)
-		elif not id.begins_with("npc:") and not id.begins_with("note:") and not id.begins_with("deed:"):
+		elif not id.begins_with("npc:") and not id.begins_with("note:") and not id.begins_with("deed:") \
+				and not id.begins_with("chron:") and not id.begins_with("omen:") and not id.begins_with("gift:") \
+				and not id.begins_with("res:"):
 			var family := str(Data.enemies[id].get("family", "restless"))
 			if family != last_family:
 				last_family = family
@@ -136,9 +168,15 @@ func _build_list() -> void:
 		var branch := ""
 		if id.begins_with("deed:"):
 			branch = "  ◆ " if Achievements.done(id.trim_prefix("deed:")) else "  ◇ "
-		elif not id.begins_with("npc:") and not id.begins_with("note:"):
+		elif id.begins_with("chron:"):
+			branch = "  "
+		elif id.begins_with("gift:"):
+			branch = {"grace": "  ◇ ", "temptation": "  ◆ ", "will": "  ○ "}.get(str(_spec(id).get("path", "")), "  ")
+		elif not id.begins_with("npc:") and not id.begins_with("note:") and not id.begins_with("omen:") \
+				and not id.begins_with("res:"):
 			branch = "  └ " if int(_spec(id).get("tier", 1)) > 1 else "  ◆ "
-		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) or id.begins_with("deed:") else UNKNOWN_NAME)
+		button.text = branch + (tr(_spec(id).get("name", id)) if entry.get("seen", false) or id.begins_with("deed:")
+			or id.begins_with("chron:") else UNKNOWN_NAME)
 		if not _known(id, entry):
 			button.add_theme_color_override("font_color", DIM)
 		button.focus_entered.connect(_show.bind(id))
@@ -147,6 +185,10 @@ func _build_list() -> void:
 	_ids.append_array(people)
 	_ids.append_array(notes)
 	_ids.append_array(deeds)
+	_ids.append_array(omens)
+	_ids.append_array(gifts)
+	_ids.append_array(resonances)
+	_ids.append_array(chronicle)
 	progress.text = tr("BESTIARY_PROGRESS") % [Profile.bestiary_known(), enemies]
 	if _ids.is_empty() or not _ids.has(_selected):
 		_selected = _ids[0] if not _ids.is_empty() else ""
@@ -162,6 +204,18 @@ func _spec(id: String) -> Dictionary:
 		return Data.notes.get(id.trim_prefix("note:"), {})
 	if id.begins_with("deed:"):
 		return Achievements.spec(id.trim_prefix("deed:"))
+	if id.begins_with("omen:"):
+		return Omens.spec(id.trim_prefix("omen:"))
+	if id.begins_with("gift:"):
+		return Data.abilities.get(id.trim_prefix("gift:"), {})
+	if id.begins_with("res:"):
+		return Data.resonances.get(id.trim_prefix("res:"), {})
+	if id == "chron:total":
+		return {"name": tr("CHRONICLE_TOTAL")}
+	if id.begins_with("chron:"):
+		var night: Dictionary = _history()[int(id.trim_prefix("chron:"))]
+		return {"name": tr("CHRONICLE_NIGHT") % [int(night.get("night", 0)),
+			tr("CHRONICLE_DAWN") if night.get("won", false) else tr("CHRONICLE_AREA") % int(night.get("area", 0))]}
 	return Data.enemies.get(id, {})
 
 
@@ -169,7 +223,10 @@ func _spec(id: String) -> Dictionary:
 func _known(id: String, entry: Dictionary) -> bool:
 	if id.begins_with("deed:"):
 		return Achievements.done(id.trim_prefix("deed:"))
-	if id.begins_with("npc:") or id.begins_with("note:"):
+	if id.begins_with("chron:"):
+		return true
+	if id.begins_with("npc:") or id.begins_with("note:") or id.begins_with("omen:") or id.begins_with("gift:") \
+			or id.begins_with("res:"):
 		return entry.get("met", false)
 	return int(entry.get("kills", 0)) > 0
 
@@ -197,8 +254,29 @@ func _show(id: String) -> void:
 	if id.begins_with("deed:"):
 		_show_deed(id.trim_prefix("deed:"), stats)
 		return
+	if id.begins_with("chron:"):
+		name_label.text = str(stats.get("name", ""))
+		if id == "chron:total":
+			_show_totals()
+		else:
+			_show_night(_history()[int(id.trim_prefix("chron:"))])
+		return
 	if not seen:
-		hint_label.text = tr("BESTIARY_HINT_NOTE" if id.begins_with("note:") else "BESTIARY_HINT_UNKNOWN")
+		hint_label.text = tr("BESTIARY_HINT_NOTE" if id.begins_with("note:")
+			else ("BESTIARY_HINT_OMEN" if id.begins_with("omen:")
+			else ("BESTIARY_HINT_GIFT" if id.begins_with("gift:") or id.begins_with("res:") else "BESTIARY_HINT_UNKNOWN")))
+		return
+	if id.begins_with("gift:") or id.begins_with("res:"):
+		if id.begins_with("gift:"):
+			tags_label.text = "%s · %s" % [tr("PATH_" + str(stats.get("path", "")).to_upper()),
+				tr("RARITY_" + str(stats.get("rarity", "common")).to_upper())]
+		lore_label.text = tr(str(stats.get("description", "")))
+		_stat("CHRONICLE_NIGHTS", str(int(entry.get("nights", 0))))
+		return
+	if id.begins_with("omen:"):
+		lore_label.text = tr(str(stats.get("description", "")))
+		_stat("CHRONICLE_NIGHTS", str(int(entry.get("nights", 0))))
+		_stat("CHRONICLE_DAWNS", str(int(entry.get("dawns", 0))))
 		return
 	if id.begins_with("note:"):
 		var chapter: Dictionary = Data.chapters.get(str(stats.get("place", "")), {})
@@ -220,6 +298,9 @@ func _show(id: String) -> void:
 		return
 	if kills <= 0:
 		hint_label.text = tr("BESTIARY_HINT_SEEN")
+		# not yet slain, but it has slain you: the book tells you how
+		if int(entry.get("felled", 0)) > 0 and stats.has("tip"):
+			hint_label.text += "\n\n%s: %s" % [tr("TIP_LABEL"), tr(stats.tip)]
 		return
 	var tags: Array = stats.get("tags", []).map(func(tag: String) -> String: return tr("TAG_" + tag.to_upper()))
 	tags_label.text = " · ".join(tags)
@@ -233,9 +314,87 @@ func _show(id: String) -> void:
 	_stat("BESTIARY_ESSENCE", str(int(stats.get("essence", 0))))
 	_place_row(stats, entry)
 	_stat("BESTIARY_SLAIN", str(kills))
+	if int(entry.get("felled", 0)) > 0:
+		_stat("BESTIARY_FELLED", str(int(entry.felled)))
+	if float(entry.get("best_time", 0.0)) > 0.0:
+		_stat("BESTIARY_BEST_TIME", fight_clock(float(entry.best_time)))
 	if stats.has("lore"):
 		lore_label.text = tr(stats.lore)
+	if stats.has("tip"):
+		lore_label.text += ("\n\n" if lore_label.text != "" else "") + "%s: %s" % [tr("TIP_LABEL"), tr(stats.tip)]
 	_show_abilities(stats)
+
+
+## The chronicle (Profile.data.history): the nights the profile remembers.
+func _history() -> Array:
+	return Profile.data.get("history", []) if Profile.data.get("history") is Array else []
+
+
+func _clock(seconds: float) -> String:
+	var minutes := int(seconds) / 60
+	return "%d:%02d:%02d" % [minutes / 60, minutes % 60, int(seconds) % 60] if minutes >= 60 \
+		else "%d:%02d" % [minutes, int(seconds) % 60]
+
+
+func _show_totals() -> void:
+	var data: Dictionary = Profile.data
+	_stat("CHRONICLE_NIGHTS", str(int(data.get("nights", 0))))
+	_stat("CHRONICLE_DAWNS", str(int(data.get("wins", 0))))
+	_stat("CHRONICLE_FURTHEST", str(int(data.get("best_wave", 0))))
+	_stat("CHRONICLE_TIME", _clock(float(data.get("total_seconds", 0.0))))
+	_stat("CHRONICLE_KILLS", str(int(data.get("total_kills", 0))))
+	var done := Achievements.ids().filter(func(d: String) -> bool: return Achievements.done(d)).size()
+	_stat("BESTIARY_DEEDS", "%d / %d" % [done, Achievements.ids().size()])
+	# each boss's best fight (Profile.record_boss_time), the ones laid low so far
+	var bosses: Array = Data.enemies.keys().filter(func(e: String) -> bool:
+		return Data.enemies[e].get("boss", false) and float(data.bestiary.get(e, {}).get("best_time", 0.0)) > 0.0)
+	bosses.sort()
+	for boss in bosses:
+		_stat(str(Data.enemies[boss].get("name", boss)), fight_clock(float(data.bestiary[boss].best_time)))
+	# the path the remembered nights leaned to most — a feeling, never a number
+	var leaned := {}
+	for night in _history():
+		var path := str(night.get("path", ""))
+		if path != "":
+			leaned[path] = int(leaned.get(path, 0)) + 1
+	if not leaned.is_empty():
+		var most: String = leaned.keys()[0]
+		for path in leaned:
+			if leaned[path] > leaned[most]:
+				most = path
+		_stat("CHRONICLE_LEANING", tr("PATH_" + most.to_upper()))
+	var today := Daily.best()
+	if not today.is_empty():
+		_stat("MENU_DAILY", tr("CHRONICLE_AREA") % int(today.get("area", 0)))
+
+
+func _show_night(night: Dictionary) -> void:
+	tags_label.text = str(night.get("date", ""))
+	var path := str(night.get("path", ""))
+	_stat("CHRONICLE_LEANED", tr("PATH_" + path.to_upper()) if path != "" else "—")
+	if int(night.get("vial", 0)) > 0:
+		_stat("SETTINGS_VIAL", tr(str(Vials.spec(int(night.vial)).get("name", ""))))
+	if night.get("daily", false):
+		_stat("MENU_DAILY", "◆")
+	if Data.omens.has(str(night.get("omen", ""))):
+		_stat("OMEN_LABEL", tr(str(Omens.spec(str(night.omen)).get("name", ""))))
+	_stat("CHRONICLE_TIME", _clock(float(night.get("seconds", 0))))
+	_stat("CHRONICLE_KILLS", str(int(night.get("kills", 0))))
+	if night.has("dealt"):  # nights before the numbers were kept have none
+		_stat("CHRONICLE_DEALT", str(int(night.dealt)))
+		_stat("CHRONICLE_TAKEN", str(int(night.get("taken", 0))))
+		_stat("CHRONICLE_PARRIES", str(int(night.get("parries", 0))))
+	var killer := EndScreen.slain_name(str(night.get("slain_by", "")))
+	if killer != "":
+		_stat("CHRONICLE_SLAIN_BY", killer)
+	var names: Array = []
+	for gift in night.get("gifts", []):
+		if Data.abilities.has(gift):
+			names.append(tr(str(Data.abilities[gift].name)))
+	for resonance in night.get("resonances", []):
+		if Data.resonances.has(resonance):
+			names.append("◆ " + tr(str(Data.resonances[resonance].name)))
+	lore_label.text = "%s: %s" % [tr("RUN_GIFTS"), ", ".join(names)] if not names.is_empty() else ""
 
 
 ## A deed's page: what it asks, how far along, and when it was done. Its
@@ -321,6 +480,12 @@ func _show_abilities(stats: Dictionary) -> void:
 		abilities_box.add_child(label)
 
 
+## A fight's length as m:ss.t (the bestiary's best time against a boss).
+static func fight_clock(seconds: float) -> String:
+	var tenths := roundi(seconds * 10.0)
+	return "%d:%02d.%d" % [floori(tenths / 600.0), floori(tenths / 10.0) % 60, tenths % 10]
+
+
 func _stat(key: String, value: String) -> void:
 	var label := Label.new()
 	label.text = key
@@ -344,8 +509,10 @@ func _set_portrait(stats: Dictionary, known: bool) -> void:
 	sprite.sprite_frames = null
 	if stats.is_empty():
 		return
-	if stats.has("avatar") and ResourceLoader.exists(str(stats.avatar)):
-		avatar.texture = load(str(stats.avatar))
+	# a record's avatar, or a gift's own icon (the codex)
+	var picture := str(stats.get("avatar", stats.get("icon", "") if stats.has("rarity") else ""))
+	if picture != "" and ResourceLoader.exists(picture):
+		avatar.texture = load(picture)
 		avatar.modulate = Color.WHITE if known else SILHOUETTE
 		avatar.visible = true
 		return

@@ -45,6 +45,25 @@ var daily := ""
 var daily_best := false
 ## Rooms this body cleared without a wound, this night (Run._on_unscathed).
 var unscathed := 0
+## What laid our own body low this night (Player.slain_by): an enemy id,
+## "lava", "fall", or "" while it stands. The end screen, the chronicle and
+## the bestiary read it.
+var slain_by := ""
+## The last blows our own body took this night, oldest first, at most
+## LAST_BLOWS of them: {by: what Player._blame names, amount}. The end screen
+## shows them under the killer, so a death reads as the fight it was.
+var last_blows: Array = []
+const LAST_BLOWS := 3
+## The night's numbers, for its end screen and its chronicle line: damage the
+## blows on the dead dealt (Enemy._hit_fx, after armour and backstab — online
+## that is both players' blows, it is the night's), the heaviest of them,
+## damage our own body took, and the parries it made.
+var dealt := 0.0
+var heaviest := 0.0
+var taken := 0.0
+var parries := 0
+## The omen this night is drawn under (data/omens, Omens), "" for a plain night.
+var omen := ""
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
 var vial := 0
 ## Times the gift cards may still be dealt again tonight (the rosary, Relics).
@@ -56,6 +75,9 @@ var essence_bonus := 0.0
 
 func _ready() -> void:
 	new_run()
+	EventBus.player_parried.connect(func() -> void:
+		if practice == "":
+			parries += 1)
 
 
 func new_run() -> void:
@@ -74,9 +96,32 @@ func new_run() -> void:
 	level = 1
 	ash_earned = 0
 	unscathed = 0
+	slain_by = ""
+	last_blows = []
+	dealt = 0.0
+	heaviest = 0.0
+	taken = 0.0
+	parries = 0
+	omen = ""
 	vial = 0
 	rerolls = 0
 	essence_bonus = 0.0
+
+
+## One more blow taken by our own body (Player._apply_damage).
+func note_blow(by: String, amount: float) -> void:
+	taken += amount
+	last_blows.append({"by": by, "amount": roundi(amount)})
+	while last_blows.size() > LAST_BLOWS:
+		last_blows.pop_front()
+
+
+## A blow landed on one of the dead (Enemy._hit_fx). Nothing counts in the yard.
+func note_dealt(amount: float) -> void:
+	if practice != "" or amount <= 0.0:
+		return
+	dealt += amount
+	heaviest = maxf(heaviest, amount)
 
 
 ## Applies an "effect" block from data, e.g. {"grace": 1, "set_flags": ["stranger_spared"]}.
@@ -116,7 +161,8 @@ func essence_needed() -> float:
 
 
 func add_essence(amount: float) -> void:
-	essence += amount * (1.0 + essence_bonus)
+	# an omen may make the dead give more (data/omens: "essence")
+	essence += amount * (1.0 + essence_bonus) * float(Vials.rule("essence"))
 	var leveled := false
 	while essence >= essence_needed():
 		essence -= essence_needed()

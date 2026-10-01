@@ -14,6 +14,7 @@ const GOLD := Color(0.95, 0.83, 0.5)
 const PALE := Color(0.85, 0.8, 0.7)
 const DIM := Color(0.45, 0.43, 0.48)
 const REST := Color(0.72, 0.95, 0.8)
+const FELL := Color(0.85, 0.45, 0.42)
 const INK := Color(0.04, 0.03, 0.05, 0.92)
 const LEFT := 44.0
 const RIGHT := 44.0
@@ -33,7 +34,8 @@ func _ready() -> void:
 
 
 func open() -> void:
-	_nodes = layout(Route.rooms(), Game.walked, _here(), int(Profile.data.get("best_wave", 0)))
+	var fell: Dictionary = Profile.data.get("last_fall", {}) if Profile.data.get("last_fall") is Dictionary else {}
+	_nodes = layout(Route.rooms(), Game.walked, _here(), int(Profile.data.get("best_wave", 0)), str(fell.get("room", "")))
 	visible = true
 	queue_redraw()
 
@@ -70,7 +72,8 @@ func _here() -> String:
 ## player: "here", "walked", "ahead", "passed" (a fork's way not taken) or
 ## "unknown" (past the furthest any night has reached). Static on its inputs
 ## so a test can read the map without drawing it.
-static func layout(rooms: Array, walked: Array, here: String, best_wave: int) -> Array:
+## [param fell]: the room where last night's body lies (LastFall), marked †.
+static func layout(rooms: Array, walked: Array, here: String, best_wave: int, fell := "") -> Array:
 	var out := []
 	var here_step := Route.step(rooms, rooms.find(here)) if here != "" else -1
 	for index in rooms.size():
@@ -98,6 +101,7 @@ static func layout(rooms: Array, walked: Array, here: String, best_wave: int) ->
 			"path": path, "step": step, "row": row, "state": state,
 			"place": str(Data.chapter_for(path).get("id", "")),
 			"rest": Data.rest_points.has(path.get_file().get_basename()),
+			"fell": path == fell,
 		})
 	return out
 
@@ -163,6 +167,12 @@ func _draw() -> void:
 			var mark := at + Vector2(0, -RADIUS - 7.0)
 			draw_line(mark + Vector2(0, -3), mark + Vector2(0, 3), REST, 1.5)
 			draw_line(mark + Vector2(-3, 0), mark + Vector2(3, 0), REST, 1.5)
+
+		# last night's body (LastFall): a small grave-cross under the room
+		if node.get("fell", false):
+			var grave := at + Vector2(0, RADIUS + 9.0)
+			draw_line(grave + Vector2(0, -4), grave + Vector2(0, 4), FELL, 1.5)
+			draw_line(grave + Vector2(-2.5, -1.5), grave + Vector2(2.5, -1.5), FELL, 1.5)
 
 	_centered(font, tr("MAP_LEGEND"), Vector2(size.x / 2.0, size.y - 34.0), 8, DIM)
 

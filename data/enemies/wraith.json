@@ -2,6 +2,7 @@
   "id": "wraith",
   "name": "ENEMY_WRAITH",
   "lore": "ENEMY_WRAITH_LORE",
+  "tip": "TIP_WRAITH",
   "hp": 36,
   "speed": 70,
   "damage": 6,

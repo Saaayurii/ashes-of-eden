@@ -620,7 +620,7 @@ enemy_id = "shade"
 [node name="Spawn10" type="Marker2D" parent="Spawns"]
 position = Vector2(560, 500)
 script = ExtResource("5_spawn")
-enemy_id = "wraith"
+enemy_id = "elder_wraith"
 
 [node name="PlayerSpawn" type="Marker2D" parent="."]
 position = Vector2(70, 137)

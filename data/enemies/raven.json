@@ -2,6 +2,7 @@
   "id": "raven",
   "name": "ENEMY_RAVEN",
   "lore": "ENEMY_RAVEN_LORE",
+  "tip": "TIP_RAVEN",
   "hp": 12,
   "speed": 105,
   "damage": 0,

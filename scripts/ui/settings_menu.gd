@@ -77,6 +77,8 @@ func _refresh() -> void:
 		_text_size.select(Settings.TEXT_SIZES.keys().find(Settings.text_size))
 		_flashes.select(Settings.FLASHES.find(Settings.flashes))
 		_auto_attack.set_pressed_no_signal(Settings.auto_attack)
+		_damage_numbers.set_pressed_no_signal(Settings.damage_numbers)
+		_game_speed.select(Settings.GAME_SPEEDS.find(Settings.game_speed))
 	if _touch_mode:
 		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
@@ -88,7 +90,7 @@ func _refresh() -> void:
 	for action in Settings.BINDABLE_ACTIONS:
 		var button: Button = bindings.get_node_or_null(action)
 		if button:
-			button.text = tr("SETTINGS_PRESS_KEY") if _rebinding == action else Settings.key_name(action)
+			button.text = tr("SETTINGS_PRESS_KEY") if _rebinding == action else Settings.key_name(action, false)
 
 
 ## On-screen controls (scripts/ui/touch_pad.gd): built here rather than in the
@@ -119,6 +121,8 @@ func _build_speech() -> void:
 var _text_size: OptionButton
 var _flashes: OptionButton
 var _auto_attack: CheckButton
+var _damage_numbers: CheckButton
+var _game_speed: OptionButton
 
 
 func _build_access() -> void:
@@ -135,8 +139,17 @@ func _build_access() -> void:
 	var at := anchor.get_index() + 1
 	_auto_attack = CheckButton.new()
 	_auto_attack.toggled.connect(Settings.set_auto_attack)
+	_damage_numbers = CheckButton.new()
+	_damage_numbers.toggled.connect(Settings.set_damage_numbers)
+	_game_speed = OptionButton.new()
+	for speed in Settings.GAME_SPEEDS:
+		_game_speed.add_item("%d%%" % roundi(speed * 100.0))
+	_game_speed.item_selected.connect(func(index: int) -> void: Settings.set_game_speed(Settings.GAME_SPEEDS[index]))
+	_game_speed.tooltip_text = "SETTINGS_GAME_SPEED_HINT"
 	for pair in [["SETTINGS_TEXT_SIZE", _text_size, "TextSizeRow"], ["SETTINGS_FLASHES", _flashes, "FlashesRow"],
-			["SETTINGS_AUTO_ATTACK", _auto_attack, "AutoAttackRow"]]:
+			["SETTINGS_AUTO_ATTACK", _auto_attack, "AutoAttackRow"],
+			["SETTINGS_DAMAGE_NUMBERS", _damage_numbers, "DamageNumbersRow"],
+			["SETTINGS_GAME_SPEED", _game_speed, "GameSpeedRow"]]:
 		var row := _row(pair[0], pair[1])
 		row.name = pair[2]
 		box.add_child(row)
@@ -147,6 +160,8 @@ func _build_access() -> void:
 ## The vial of wrath for the next night (scripts/run/vials.gd), under the
 ## difficulty; only once a dawn has opened the first, and only the ones opened.
 var _vial: OptionButton
+## Omens on or off (Settings.omens), under the vial; shown once they have begun.
+var _omens: CheckButton
 
 
 func _build_vial() -> void:
@@ -157,6 +172,12 @@ func _build_vial() -> void:
 	anchor.get_parent().add_child(row)
 	anchor.get_parent().move_child(row, anchor.get_index() + 1)
 	_vial.item_selected.connect(func(index: int) -> void: Settings.set_vial(index))
+	_omens = CheckButton.new()
+	_omens.toggled.connect(Settings.set_omens)
+	var omen_row := _row("SETTINGS_OMENS", _omens)
+	omen_row.name = "OmensRow"
+	anchor.get_parent().add_child(omen_row)
+	anchor.get_parent().move_child(omen_row, row.get_index() + 1)
 
 
 func _fill_vials() -> void:
@@ -169,6 +190,8 @@ func _fill_vials() -> void:
 		_vial.set_item_tooltip(tier, tr(str(Vials.spec(tier).get("description", ""))))
 	_vial.get_parent().visible = Vials.opened() > 0
 	_vial.select(clampi(Settings.vial, 0, Vials.opened()))
+	_omens.set_pressed_no_signal(Settings.omens)
+	_omens.get_parent().visible = int(Profile.data.get("nights", 0)) >= Omens.FROM_NIGHT
 
 
 ## The cloak: every skin listed, the locked ones greyed with how to earn them.

@@ -1,0 +1,27 @@
+{
+  "id": "altar_book",
+  "kind": "chest",
+  "essence": 0,
+  "ash": 20,
+  "note": "note_condemned_book",
+  "glow": "#ffd9a0",
+  "interact": true,
+  "prompt": "PROP_READ_BOOK",
+  "requires_flag": "matthew_book_revealed",
+  "still": true,
+  "hitbox": [
+    24,
+    14
+  ],
+  "sprite": {
+    "path": "res://assets/props/altar_book.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "effect": {
+    "set_flags": [
+      "book_read"
+    ]
+  }
+}

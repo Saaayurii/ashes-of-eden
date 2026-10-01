@@ -2,6 +2,7 @@
   "id": "possessed_villager",
   "name": "ENEMY_POSSESSED_VILLAGER",
   "lore": "ENEMY_POSSESSED_VILLAGER_LORE",
+  "tip": "TIP_POSSESSED_VILLAGER",
   "hp": 48,
   "speed": 60,
   "damage": 0,

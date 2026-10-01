@@ -101,6 +101,7 @@ func _ready() -> void:
 		# the night of the day: its own vial and its own deal, the same for all
 		Game.vial = Daily.vial_of(Game.daily)
 		_gift_rng.seed = Daily.seed_of(Game.daily)
+	Game.omen = Omens.for_new_night()
 	player_spawner.spawn_function = _make_player
 	enemy_spawner.spawn_function = _make_enemy
 	players_root.child_entered_tree.connect(_on_player_entered)
@@ -108,8 +109,13 @@ func _ready() -> void:
 	# Settings had it come back every time a run started (TouchPad._process
 	# asked Settings, this line did not, and the two disagreed).
 	touch_controls.visible = Settings.touch_enabled()
+	# the slowed night (Settings.game_speed), for this run only: menus run at full speed
+	Juice.set_base_scale(Settings.time_scale())
+	Settings.changed.connect(_on_settings_changed)
+	tree_exiting.connect(Juice.set_base_scale.bind(1.0))
 	run_end.retry.connect(_restart)
 	run_end.to_menu.connect(_to_menu)
+	run_end.spar.connect(_spar)
 	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void: kills += 1)
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
@@ -243,7 +249,8 @@ func _begin() -> void:
 	# The captions run over it (docs/CORE_LOOP.md).
 	if player:
 		player.wake_up()
-	_announce_unlocks()
+	await _announce_unlocks()
+	_announce_omen()
 
 
 ## Open straight into one room, for looking at it:
@@ -351,7 +358,7 @@ func _on_spawn_requested(enemy_id: String, at: Vector2) -> void:
 
 func _spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
 	# under a vial of wrath a common one may rise as its elite (data/vials)
-	var promote: Dictionary = Vials.rule("promote") if Game.vial > 0 else {}
+	var promote: Dictionary = Vials.rule("promote") if not Net.active else {}
 	if promote.has(enemy_id) and randf() < float(Vials.rule("promote_chance")):
 		enemy_id = str(promote[enemy_id])
 	_enemy_counter += 1
@@ -472,6 +479,8 @@ func _build_room(index: int) -> void:
 	room.authoritative = _is_server()
 	room.spawn_hook = _spawn_enemy
 	room_holder.add_child(room)
+	if index >= 0 and index != PRACTICE_INDEX:
+		LastFall.attach(room, ROOMS[index])  # last night's body, where it fell
 	room.cleared.connect(_on_room_cleared)
 	room.reopened.connect(_on_room_reopened)
 	room.exited.connect(_on_room_exited)
@@ -727,6 +736,11 @@ func _gift_taken() -> void:
 		_gift_pending.erase(_sender())
 
 
+## The speed can change from the pause menu's settings, mid-night.
+func _on_settings_changed() -> void:
+	Juice.set_base_scale(Settings.time_scale())
+
+
 ## Gifts are offered one at a time; a level-up during a door gift just queues.
 func _offer_gifts() -> void:
 	if _picking:
@@ -737,8 +751,23 @@ func _offer_gifts() -> void:
 		var options := _roll_gifts()
 		if options.is_empty():
 			break
-		AbilitySystem.apply(player, await picker.pick(options, _roll_gifts))
+		var gift: Dictionary = await picker.pick(options, _roll_gifts)
+		if gift.is_empty():
+			_refuse_gift()
+		else:
+			AbilitySystem.apply(player, gift)
 	_picking = false
+
+
+## The hand turned down: the body takes a breath instead of a gift
+## (Player.refuse_gift), and the profile counts it for the Ascetic's deed.
+func _refuse_gift() -> void:
+	if player == null:
+		return
+	player.refuse_gift()
+	EventBus.gift_refused.emit()
+	if Game.practice == "":
+		Profile.count("refusals")
 
 
 ## One gift per path, skipping gifts already taken this run and gifts this
@@ -774,6 +803,18 @@ func _announce_unlocks() -> void:
 	if not is_inside_tree() or _finished:
 		return
 	await dialogue.announce(tr("UNLOCKED_TONIGHT") % ", ".join(names))
+
+
+## The night's omen, said once over the opening (after any gift it unlocked).
+func _announce_omen() -> void:
+	var spec := Omens.spec(Game.omen)
+	if spec.is_empty():
+		return
+	while dialogue.is_open() and not _finished and is_inside_tree():
+		await get_tree().process_frame
+	if not is_inside_tree() or _finished:
+		return
+	await dialogue.announce(tr("OMEN_START") % [tr(str(spec.get("name", ""))), tr(str(spec.get("description", "")))])
 
 
 ## A gift may name the night it starts appearing on (`"unlock_nights": 3` in
@@ -963,6 +1004,11 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 	var place_index := clampi(reached - 1, 0, ROOMS.size() - 1)
 	reached = Route.step(ROOMS, place_index) + 1
 	if not Net.dedicated:  # a referee plays no night of its own
+		# the body stays where it fell, for tomorrow night (LastFall); a dawn clears it
+		if won:
+			Profile.data.last_fall = {}
+		elif player != null and room != null and room_index >= 0 and room_index < ROOMS.size():
+			LastFall.remember(ROOMS[room_index], player.global_position - room.global_position, Game.slain_by)
 		Profile.record_run(reached, total_kills, seconds, ash, won)
 		if Game.daily != "":
 			Game.daily_best = Daily.record(Game.daily, reached, seconds, won)
@@ -1047,6 +1093,16 @@ func _practice_revive() -> void:
 		return
 	player.revive(room.player_spawn.global_position, 1.0)
 	player.camera.reset_smoothing()
+
+
+## From the night's end straight into the yard against what killed him: the
+## same run scene, the night over, the practice set (docs/PRACTICE.md).
+func _spar(enemy_id: String) -> void:
+	if Net.active or not Bestiary.can_practise(enemy_id):
+		return
+	Game.practice = enemy_id
+	Game.daily = ""
+	_reload()
 
 
 func _to_menu() -> void:

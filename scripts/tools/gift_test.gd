@@ -127,6 +127,74 @@ func _run() -> void:
 	_assert(enemy.hp < before_wave, "the arc hits the enemy ahead (%.1f -> %.1f)" % [before_wave, enemy.hp])
 	player.stats.wave_damage = 0.0
 
+	# --- the moves' gifts --------------------------------------------------------
+	# Cruel Opening: the same swing on the same body, idle and winding up.
+	# Every body in the room holds still: a stray blow from another one would
+	# be read as a heal that did not happen.
+	var frozen: Array = run.entities.get_children().filter(func(n): return n.has_method("take_damage"))
+	for body in frozen:
+		body.set_physics_process(false)
+	enemy.aware = true
+	player.stats.crit_chance = 0.0
+	player.global_position = enemy.global_position - Vector2(22, 0)
+	player.facing = 1
+	player.body.flip_h = false
+	player.hitbox.scale.x = player.stats.attack_scale
+	var swing_loss = func(winding: bool) -> float:
+		enemy.hp = enemy._max_hp
+		enemy.state = enemy.State.WINDUP if winding else enemy.State.CHASE
+		player._combo = 0
+		player._attack_cd = 0.0
+		player._attack()
+		await _frames(4)
+		return enemy._max_hp - enemy.hp
+	player.stats.windup_bonus = 0.5
+	var idle_loss: float = await swing_loss.call(false)
+	var windup_loss: float = await swing_loss.call(true)
+	_assert(idle_loss > 0.0 and absf(windup_loss / idle_loss - 1.5) < 0.05,
+		"cruel opening: a wind-up takes half again (%.1f vs %.1f)" % [windup_loss, idle_loss])
+	player.stats.windup_bonus = 0.0
+	# Accursed Strength: a blow is worth more only while a curse is owed
+	player.stats.cursed_damage = 0.4
+	var plain_loss: float = await swing_loss.call(false)
+	player.curse = 5
+	var cursed_loss: float = await swing_loss.call(false)
+	player.curse = 0
+	player.stats.cursed_damage = 0.0
+	_assert(plain_loss > 0.0 and absf(cursed_loss / plain_loss - 1.4) < 0.05,
+		"accursed strength: under a curse a blow takes 40%% more (%.1f vs %.1f)" % [cursed_loss, plain_loss])
+	enemy.state = enemy.State.CHASE
+	await _frames(30)
+	# Benediction: a special move that lands heals; a plain swing does not
+	player.stats.technique_heal = 4.0
+	player.hp = 50.0
+	player._attack_cd = 0.0
+	player._attack()
+	await _frames(4)
+	_assert(is_equal_approx(player.hp, 50.0), "benediction: a plain swing heals nothing")
+	await _frames(40)
+	enemy.hp = enemy._max_hp
+	player._attack_cd = 0.0
+	player._technique("sweep")
+	await _frames(4)
+	_assert(is_equal_approx(player.hp, 54.0), "benediction: a sweep that lands heals 4 (%.1f)" % player.hp)
+	player.stats.technique_heal = 0.0
+	player.hp = base_hp
+	# Quick Study and Watchman's Patience: the charge and the parry's moment
+	var plain_charge: float = player.charge_needed()
+	player.stats.charge_speed = 0.4
+	_assert(absf(plain_charge / player.charge_needed() - 1.4) < 0.001, "quick study: the cleave glows 40% sooner")
+	player.stats.charge_speed = 0.0
+	player.stats.parry_window = 0.06
+	player._block_cd = 0.0
+	player._raise_block(true)
+	_assert(is_equal_approx(player._parry_left, player.PARRY_WINDOW + 0.06), "watchman's patience: the parry lasts 0.06 s longer")
+	player._lower_block()
+	player.stats.parry_window = 0.0
+	for body in frozen:
+		if is_instance_valid(body):
+			body.set_physics_process(true)
+
 	# --- rarity: legendaries are rare, commons are not -------------------------
 	var counts := {"common": 0, "rare": 0, "epic": 0, "legendary": 0}
 	var pool: Array = data.abilities.values().filter(func(a): return a.path == "grace")

@@ -35,7 +35,7 @@ JUMP_VELOCITY = 320.0
 GRAVITY = 1100.0
 BODY_WIDTH = 14.0
 REACH_MARGIN = 0.85
-FLYERS = {"shade", "wraith", "raven", "ophanim"}
+FLYERS = {"shade", "wraith", "elder_wraith", "raven", "ophanim"}
 
 
 def _surfaces(room):
@@ -339,7 +339,7 @@ PAINTED = {
         platforms=[(1035, 385, 48, 10), (1035, 325, 48, 10), (1035, 268, 48, 10)],
         spawns=[("cultist", 500, 248), ("possessed_villager", 200, 401), ("possessed_villager", 600, 391),
                 ("fallen_guard", 900, 418), ("zealot", 1150, 428), ("cult_caller", 800, 592), ("preacher_acolyte", 1050, 222),
-                ("possessed_villager", 300, 628), ("shade", 700, 300), ("wraith", 400, 500)],
+                ("possessed_villager", 300, 628), ("shade", 700, 300), ("elder_wraith", 400, 500)],
         props=[("pot", 150, 157), ("barrel", 420, 260), ("crate", 700, 403), ("sack", 1240, 440), ("chest_gold", 1150, 191),
                ("barrel_apples", 250, 413), ("pot", 600, 556), ("crate", 900, 604), ("sack", 80, 582)],
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
@@ -401,7 +401,7 @@ PAINTED = {
         ramps=[(190, 490, 320, 522)],
         platforms=[(300, 300, 56, 10)],
         spawns=[("possessed_villager", 500, 263), ("fallen_guard", 700, 445), ("zealot", 950, 411),
-                ("cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
+                ("elite_cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
                 ("preacher_acolyte", 950, 631), ("wraith", 500, 400), ("shade", 800, 250), ("shade", 1100, 300)],
         props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("box_goods", 890, 423), ("sack", 750, 457), ("funeral_offering", 1000, 423),
                ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1245, 603), ("sack", 1180, 603)],
@@ -480,7 +480,9 @@ PAINTED = {
         pillars=[(120, 380), (300, 380), (660, 380), (840, 380)],
         decor=[("arch", 210, 360, "back"), ("arch", 390, 360, "back"), ("arch", 570, 360, "back"), ("arch", 750, 360, "back")],
         spawns=[],
-        props=[],
+        # the book of the condemned, beside the altar: it is there only once
+        # Matthew has spoken of it (requires_flag in data/props/altar_book.json)
+        props=[("altar_book", 420, 380)],
         npcs=[("matthew", 540, 380)],
         ambient="#d8d0d4",
         # indoors the lights multiply into dark stone, so they burn brighter than outside

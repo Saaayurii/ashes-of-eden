@@ -259,5 +259,67 @@
         }
       }
     ]
+  },
+  {
+    "id": "benediction",
+    "name": "ABILITY_BENEDICTION_NAME",
+    "description": "ABILITY_BENEDICTION_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/status_8.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "technique_heal",
+        "op": "add",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "watchmans_patience",
+    "name": "ABILITY_WATCHMANS_PATIENCE_NAME",
+    "description": "ABILITY_WATCHMANS_PATIENCE_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/gear_7.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "parry_window",
+        "op": "add",
+        "value": 0.06
+      }
+    ]
+  },
+  {
+    "id": "tolling_bell",
+    "name": "ABILITY_TOLLING_BELL_NAME",
+    "description": "ABILITY_TOLLING_BELL_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/rune_2.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "skill",
+        "skill": {
+          "kind": "toll",
+          "cooldown": 9,
+          "damage": 8,
+          "radius": 90,
+          "stun": 1.6,
+          "color": "#f0e0a0"
+        }
+      }
+    ]
   }
 ]

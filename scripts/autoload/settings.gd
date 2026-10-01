@@ -3,6 +3,9 @@ extends Node
 ## key bindings. Applied on startup and whenever changed from the settings menu.
 
 signal changed
+## The player picked up the other device (a pad after the keyboard, or back):
+## prompts that name a button read key_name() again.
+signal device_changed
 
 const PATH := "user://settings.cfg"
 ## Order matters: this is the order shown in the language selector.
@@ -22,6 +25,9 @@ const TEXT_SIZES := {"normal": 1.0, "large": 1.25, "largest": 1.5}
 ## "reduced" dims every flash of light, the white of a blow and the red at the
 ## screen's edge when hurt: for eyes that flashing tires or worse.
 const FLASHES := ["full", "reduced"]
+## The whole night slowed (Settings.game_speed, Juice.base_scale): an assist,
+## like the auto swing — enemies, wind-ups, the hero, all of it at once.
+const GAME_SPEEDS := [1.0, 0.9, 0.8, 0.7, 0.6]
 
 var locale: String = "en"
 var volumes := {"Master": 1.0, "Music": 0.8, "SFX": 1.0}
@@ -34,8 +40,17 @@ var flashes := "full"
 ## The assist swing: the sword comes out by itself at an awake enemy in reach
 ## (Player._auto_swing). Off by default; the casual way to play on a phone.
 var auto_attack := false
+## Numbers over the struck (Fx.damage_number). Off for a quieter screen: the
+## blow still flashes, staggers and sounds, only the figure is not drawn.
+var damage_numbers := true
+## One of GAME_SPEEDS. Never online (both bodies must run one clock) and never
+## in the night of the day (every player is measured on the same one): time_scale().
+var game_speed := 1.0
 var difficulty := "standard"
 var vial := 0
+## Whether a new night may draw an omen (data/omens); the night of the day
+## draws the day's own whatever this says, so every player meets the same.
+var omens := true
 ## The hero's cloak (data/skins); only an unlocked one is ever kept (Skins.unlocked).
 var skin := "pilgrim"
 ## Chapter cards and the ash between rooms (scripts/autoload/curtain.gd).
@@ -55,6 +70,7 @@ var keys: Dictionary = {}
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS  # the pad is noticed in the pause menu too (_input)
 	var cfg := ConfigFile.new()
 	cfg.load(PATH)
 	locale = cfg.get_value("general", "locale", _detect_locale())
@@ -67,11 +83,16 @@ func _ready() -> void:
 	if not TEXT_SIZES.has(text_size):
 		text_size = "normal"
 	auto_attack = bool(cfg.get_value("access", "auto_attack", false))
+	damage_numbers = bool(cfg.get_value("access", "damage_numbers", true))
 	flashes = str(cfg.get_value("access", "flashes", "full"))
 	if not FLASHES.has(flashes):
 		flashes = "full"
 	difficulty = cfg.get_value("game", "difficulty", "standard")
 	vial = clampi(int(cfg.get_value("game", "vial", 0)), 0, 5)
+	omens = bool(cfg.get_value("game", "omens", true))
+	game_speed = float(cfg.get_value("access", "game_speed", 1.0))
+	if not GAME_SPEEDS.has(game_speed):
+		game_speed = 1.0
 	skin = str(cfg.get_value("game", "skin", "pilgrim"))
 	if not DIFFICULTIES.has(difficulty):
 		difficulty = "standard"
@@ -112,8 +133,11 @@ func save() -> void:
 	cfg.set_value("access", "text_size", text_size)
 	cfg.set_value("access", "flashes", flashes)
 	cfg.set_value("access", "auto_attack", auto_attack)
+	cfg.set_value("access", "damage_numbers", damage_numbers)
+	cfg.set_value("access", "game_speed", game_speed)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "vial", vial)
+	cfg.set_value("game", "omens", omens)
 	cfg.set_value("game", "skin", skin)
 	cfg.set_value("game", "transitions", transitions)
 	cfg.set_value("touch", "mode", touch_mode)
@@ -198,6 +222,30 @@ func flash_scale() -> float:
 	return 0.35 if flashes == "reduced" else 1.0
 
 
+## How fast a night runs: game_speed, except online and in the night of the day.
+## A tool script (`godot -s`) runs at full speed unless it asks ([param in_tools]):
+## its timings are measured, and the setting on disk is whoever ran it last.
+func time_scale(in_tools := false) -> float:
+	if Net.active or Game.daily != "":
+		return 1.0
+	var args := OS.get_cmdline_args()
+	if not in_tools and (args.has("-s") or args.has("--script")):
+		return 1.0
+	return game_speed
+
+
+func set_game_speed(speed: float) -> void:
+	game_speed = speed if GAME_SPEEDS.has(speed) else 1.0
+	save()
+	changed.emit()
+
+
+func set_damage_numbers(enabled: bool) -> void:
+	damage_numbers = enabled
+	save()
+	changed.emit()
+
+
 func set_auto_attack(enabled: bool) -> void:
 	auto_attack = enabled
 	save()
@@ -241,6 +289,12 @@ func set_fullscreen(enabled: bool) -> void:
 
 func set_skin(id: String) -> void:
 	skin = id
+	save()
+	changed.emit()
+
+
+func set_omens(enabled: bool) -> void:
+	omens = enabled
 	save()
 	changed.emit()
 
@@ -300,7 +354,34 @@ func reset_keys() -> void:
 
 
 ## Human-readable name of the primary keyboard key of an action.
-func key_name(action: String) -> String:
+## Xbox names for the pad's buttons (JoyButton order): what a prompt shows
+## while the player is on a pad — any pad, the layout Godot maps them to.
+const PAD_BUTTONS := ["A", "B", "X", "Y", "View", "Guide", "Menu", "LS", "RS", "LB", "RB",
+	"D-Up", "D-Down", "D-Left", "D-Right"]
+## The device the player last pressed something on (Settings.device_changed).
+var using_pad := false
+
+
+func _input(event: InputEvent) -> void:
+	var pad := event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.5)
+	var other := event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch
+	if (pad and not using_pad) or (other and using_pad):
+		using_pad = pad
+		device_changed.emit()
+
+
+## The name of the button that does [param action] on the device in hand: a
+## pad's button while the player is on a pad and the action has one, else the
+## key. [param on_pad] false asks for the key whatever is in hand (rebinding).
+func key_name(action: String, on_pad := true) -> String:
+	if on_pad and using_pad:
+		for event in InputMap.action_get_events(action):
+			if event is InputEventJoypadButton:
+				var index := int((event as InputEventJoypadButton).button_index)
+				return PAD_BUTTONS[index] if index < PAD_BUTTONS.size() else "#%d" % index
+			if event is InputEventJoypadMotion:
+				var axis := int((event as InputEventJoypadMotion).axis)
+				return "LT" if axis == JOY_AXIS_TRIGGER_LEFT else ("RT" if axis == JOY_AXIS_TRIGGER_RIGHT else ("LS" if axis < 2 else "RS"))
 	for event in InputMap.action_get_events(action):
 		if event is InputEventKey:
 			# headless and the browser cannot map a physical key to the layout's

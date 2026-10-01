@@ -143,6 +143,9 @@ func _run() -> void:
 		# halo: the swing inside the window lands harder than one outside it
 		var dummy = run.room.spawn_enemy("fallen_guard", player.global_position + Vector2(18, -4), true)
 		await _frames(4)
+		# held still: an aware walker keeps its distance (docs/ENEMY_AI.md) and
+		# would step out of the first swing, which then read as 0 damage
+		dummy.set_physics_process(false)
 		player.stats.crit_chance = 0.0
 		var hits: Array = []
 		for wrath in [0.0, 0.8]:

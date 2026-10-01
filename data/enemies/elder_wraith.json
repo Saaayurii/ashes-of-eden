@@ -1,0 +1,63 @@
+{
+  "id": "elder_wraith",
+  "name": "ENEMY_ELDER_WRAITH",
+  "lore": "ENEMY_ELDER_WRAITH_LORE",
+  "tip": "TIP_ELDER_WRAITH",
+  "hp": 72,
+  "speed": 74,
+  "damage": 6,
+  "attack_interval": 0.8,
+  "behaviour": "flyer",
+  "hover_distance": 96,
+  "aggro_range": 540,
+  "size": 13,
+  "color": "#2f5f8f",
+  "material": "spirit",
+  "family": "restless",
+  "tier": 3,
+  "tags": [
+    "spirit",
+    "elite"
+  ],
+  "sprite": {
+    "like": "wraith",
+    "tint": "#9ab4ff"
+  },
+  "attacks": [
+    {
+      "name": "Grave Breath",
+      "type": "ranged",
+      "range": 240,
+      "windup": 0.7,
+      "damage": 12,
+      "cooldown": 2.2,
+      "projectile_speed": 160,
+      "projectile_motion": "wave",
+      "motion_amount": 14,
+      "projectile_style": "wraith",
+      "color": "#8fd0ff",
+      "weight": 3
+    },
+    {
+      "name": "Lament",
+      "type": "ranged",
+      "range": 260,
+      "windup": 1.0,
+      "damage": 9,
+      "cooldown": 3.2,
+      "projectile_speed": 140,
+      "projectiles": 3,
+      "spread": 22,
+      "projectile_style": "wraith",
+      "color": "#c8e8ff",
+      "weight": 2
+    }
+  ],
+  "essence": 45,
+  "light": {
+    "color": "#8ab8ff",
+    "radius": 64,
+    "energy": 0.95,
+    "flicker": 0.12
+  }
+}

@@ -41,6 +41,8 @@ var resonances: Dictionary = {}
 var vials: Dictionary = {}
 ## What the Ash buys (data/relics, scripts/meta/relics.gd).
 var relics: Dictionary = {}
+## The omens a night may be drawn under (data/omens, scripts/run/omens.gd).
+var omens: Dictionary = {}
 
 
 func _ready() -> void:
@@ -68,6 +70,7 @@ func reload() -> void:
 	resonances = _load_collection("resonances", roots)
 	vials = _load_collection("vials", roots)
 	relics = _load_collection("relics", roots)
+	omens = _load_collection("omens", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
 

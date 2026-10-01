@@ -1,0 +1,11 @@
+{
+  "id": "ch1_last_fall",
+  "blocking": false,
+  "start": "lean",
+  "nodes": {
+    "lean": {"branches": [{"path": "grace", "next": "grace"}, {"path": "temptation", "next": "temptation"}], "next": "will"},
+    "grace": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_LAST_FALL_GRACE"},
+    "temptation": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_LAST_FALL_TEMPTATION"},
+    "will": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_LAST_FALL_WILL"}
+  }
+}

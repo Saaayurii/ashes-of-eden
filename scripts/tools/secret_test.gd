@@ -70,6 +70,41 @@ func _run() -> void:
 			found[note] = true
 		room.queue_free()
 		await _settle(0.1)
+	# the book under the church altar: no wall, but the story keeps it hidden
+	# until Matthew has spoken of it (requires_flag), and it opens on interact
+	game.flags.erase("matthew_book_revealed")
+	game.flags.erase("book_read")
+	var church = load("res://scenes/rooms/church.tscn").instantiate()
+	root.add_child(church)
+	current_scene = church
+	await _settle(0.2)
+	var book = null
+	for prop in get_nodes_in_group("props"):
+		if church.is_ancestor_of(prop) and prop.prop_id == "altar_book":
+			book = prop
+	_assert(book != null and not book.visible, "altar_book: not there before Matthew speaks of it")
+	if book != null:
+		game.flags["matthew_book_revealed"] = true
+		await _settle(0.1)
+		_assert(book.visible and book._prompt != null, "altar_book: there once he has, and it asks to be read")
+		profile.data.bestiary.erase("note:" + str(book.stats.note))
+		var ash_before: int = game.ash_earned
+		book._pay_out()
+		_assert(game.ash_earned - ash_before == int(book.stats.ash) and game.flags.has("book_read"),
+			"altar_book: reading it pays its ash and the finale will know (book_read)")
+		ash_before = game.ash_earned
+		book._pay_out()
+		_assert(game.ash_earned == ash_before, "altar_book: no ash the second time")
+		found[str(book.stats.note)] = true
+		var box = load("res://scripts/ui/dialogue_box.gd")
+		var matthew: Dictionary = data_loader.dialogues["npc_matthew"]
+		var first_branch: Dictionary = matthew.nodes[matthew.start].branches[0]
+		_assert(box.branch_holds(first_branch) and first_branch.next == "t_book",
+			"altar_book: read, and Matthew speaks of it first")
+	game.flags.erase("matthew_book_revealed")
+	game.flags.erase("book_read")
+	church.queue_free()
+	await _settle(0.1)
 	_assert(found.size() == data_loader.notes.size(), "every record is placed somewhere (%d/%d)" % [found.size(), data_loader.notes.size()])
 	_assert(heard.size() == found.size() * 2 and heard[0][1] and not heard[1][1], "note_found: first, then again")
 	_assert(game.flags.has("read_letters"), "the preacher's letters set read_letters")

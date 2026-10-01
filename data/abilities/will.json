@@ -264,5 +264,47 @@
         }
       }
     ]
+  },
+  {
+    "id": "quick_study",
+    "name": "ABILITY_QUICK_STUDY_NAME",
+    "description": "ABILITY_QUICK_STUDY_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/gear_3.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "charge_speed",
+        "op": "add",
+        "value": 0.4
+      }
+    ]
+  },
+  {
+    "id": "unbroken_stride",
+    "name": "ABILITY_UNBROKEN_STRIDE_NAME",
+    "description": "ABILITY_UNBROKEN_STRIDE_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/rune_4.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "skill",
+        "skill": {
+          "kind": "blink",
+          "cooldown": 6,
+          "damage": 20,
+          "range": 110,
+          "color": "#d8d0c8"
+        }
+      }
+    ]
   }
 ]

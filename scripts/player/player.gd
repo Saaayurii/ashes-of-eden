@@ -52,6 +52,11 @@ const BASE_STATS := {
 	"clean_clear_charge": 0.0,  # 1 = a room cleared without a wound refills one flask
 	"wrath_after_hit": 0.0,     # after a wound, the next swing inside WRATH_TIME is worth this much more
 	"desperate_crit_heal": 0.0, # under a third of the bar, each critical blow heals this much
+	"technique_heal": 0.0,      # a special move that lands heals this much (Benediction)
+	"windup_bonus": 0.0,        # a blow on an enemy winding up is worth this much more (Cruel Opening)
+	"cursed_damage": 0.0,       # while a cursed chest's price is owed, every blow is worth this much more (Accursed Strength)
+	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
+	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
 }
 ## Where the item mechanics above reach.
 const HEAL_BURST_RADIUS := 72.0
@@ -118,6 +123,10 @@ const RALLY_MAX_HP_SHARE := 0.15
 ## A landed blow must not become several wounds just because two attack
 ## hitboxes overlap on the same frame. Hazards and scripted damage bypass it.
 const HURT_GRACE_TIME := 0.24
+## How much harder a blow lands while a curse is on the body (take_curse).
+const CURSE_DAMAGE := 2.0
+## A gift hand turned down gives back this share of the bar (refuse_gift).
+const REFUSE_HEAL := 0.4
 ## The riposte the roll earns. A real enemy blow that the i-frames swallowed
 ## leaves the blade hot: the next sword hit that actually lands on something
 ## alive is worth a little more. One charge per roll, one swing to spend it,
@@ -291,6 +300,13 @@ var _dead := false
 ## docs/DATA_FORMATS.md. Empty = none yet. One at a time; a new one replaces it.
 var skill: Dictionary = {}
 var _skill_cd := 0.0
+## A cursed chest's price (Prop, "curse"): every wound lands CURSE_DAMAGE times
+## as hard until this many more enemies have fallen. Saved with the body; a
+## death pays it off.
+var curse := 0
+## What dealt the last blow that took the body down (_blame): an enemy id,
+## "lava" or "fall". Our own body hands it to Game.slain_by.
+var slain_by := ""
 ## Where the body last stood on firm ground for a moment: lava puts it back here.
 var _safe_position := Vector2.ZERO
 var _safe_time := 0.0
@@ -723,6 +739,9 @@ func _check_room_bounds() -> void:
 		return
 	fell_outside_room = true
 	hp = 0.0
+	slain_by = "fall"
+	if _is_mine():
+		Game.slain_by = slain_by
 	_emit_hp()
 	_go_down()
 	if Net.active:
@@ -846,6 +865,16 @@ func rest() -> void:
 	_emit_hp()
 
 
+## A gift hand turned down (AbilityPicker's Refuse): a breath instead of a
+## gift — REFUSE_HEAL of the bar back and one flask, never past full. A gift is
+## for the night; this is for the next room, which is the trade.
+func refuse_gift() -> void:
+	heal(stats.max_hp * REFUSE_HEAL)
+	heal_charges = mini(heal_charges + 1, int(stats.heal_charges))
+	_emit_hp()
+	Fx.sparkle(global_position + Vector2(0, -14), Color(0.8, 0.85, 0.95), 12, 12.0)
+
+
 ## The censer (item "heal_burst"): the flask's warmth goes out as a scorch.
 func _heal_burst() -> void:
 	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.7, 0.35), HEAL_BURST_RADIUS, 0.5, 1.2)
@@ -898,7 +927,7 @@ func burn(amount: float, danger := Rect2()) -> void:
 	_burn_left = 1.0
 	_dash_left = 0.0
 	_blocking = false
-	_apply_damage(amount, null, {"from_x": global_position.x - facing * 40.0})
+	_apply_damage(amount, null, {"from_x": global_position.x - facing * 40.0, "killer": "lava"})
 	Fx.ash(global_position + Vector2(0, -6), Color(1.0, 0.5, 0.2), 18, 60.0, 8.0)
 	Fx.flash(global_position, Color(1.0, 0.5, 0.2), 90.0, 0.4)
 	if _dead:
@@ -924,7 +953,7 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 		var owner_id := get_multiplayer_authority()
 		if multiplayer.get_peers().has(owner_id):
 			var path: NodePath = source.get_path() if source != null and source.is_inside_tree() else NodePath()
-			_net_damage.rpc_id(owner_id, amount, _attacker_x(source, info), path)
+			_net_damage.rpc_id(owner_id, amount, _attacker_x(source, info), path, _blame(source, info))
 		return  # a body whose owner has left takes nothing; the run frees it
 	_apply_damage(amount, source, info)
 
@@ -933,11 +962,23 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 ## on every peer, so a block here still knows which way the blow came from and
 ## a parry here can still answer the body that swung over there.
 @rpc("any_peer", "call_remote", "reliable")
-func _net_damage(amount: float, from_x: float, source_path: NodePath) -> void:
+func _net_damage(amount: float, from_x: float, source_path: NodePath, killer := "") -> void:
 	var source: Node = null if source_path.is_empty() else get_node_or_null(source_path)
 	# A projectile can already have burst before this RPC arrives. Its nonempty
 	# path still identifies combat damage, even if there is no node to resolve.
-	_apply_damage(amount, source, {"from_x": from_x, "combat_hit": not source_path.is_empty()})
+	_apply_damage(amount, source, {"from_x": from_x, "combat_hit": not source_path.is_empty(), "killer": killer})
+
+
+## Who to blame for a blow: the enemy that struck or loosed it, the lava, or
+## what the sender already named (a forwarded hit).
+func _blame(source: Node, info: Dictionary) -> String:
+	if source is Enemy:
+		return (source as Enemy).enemy_id
+	if source is Hazard:
+		return "lava"
+	if source != null and "shooter_id" in source and str(source.shooter_id) != "":
+		return str(source.shooter_id)
+	return str(info.get("killer", ""))
 
 
 func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) -> void:
@@ -975,14 +1016,19 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		Audio.play(&"hit_crit", -6.0)
 		return
 	amount *= 1.0 - clampf(stats.armor, 0.0, 0.5)
+	if curse > 0:
+		amount *= CURSE_DAMAGE
 	if blocked:
 		amount *= 1.0 - BLOCK_REDUCTION
 		velocity.x = signf(global_position.x - from_x) * BLOCK_PUSH
 	if stats.thorns > 0.0 and source != null and source != self and source.has_method("take_damage"):
 		source.take_damage(amount * stats.thorns, self)
+	var hp_before := hp
 	hp -= amount
 	if amount > 0.0 and not blocked:
 		_wounded_this_room = true
+		if _is_mine():  # what it took, not what it would have: a killing blow stops at the last hp
+			Game.note_blow(_blame(source, info), minf(amount, maxf(hp_before, 0.0)))
 		if _charging:
 			_cancel_charge()  # a wound breaks the charge; the blade was not ready
 		if stats.wrath_after_hit > 0.0:
@@ -1022,6 +1068,9 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 			_dead = true
 			_rally_pool = 0.0
 			_rally_left = 0.0
+			slain_by = _blame(source, info)
+			if _is_mine():
+				Game.slain_by = slain_by
 			_emit_hp()
 			_go_down()
 			if Net.active:
@@ -1112,6 +1161,8 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	_rally_pool = 0.0
 	_rally_left = 0.0
 	fell_outside_room = false
+	slain_by = ""
+	curse = 0
 	_healing_left = 0.0
 	_slamming = false
 	_slam_recovery = 0.0
@@ -1359,10 +1410,31 @@ func _throw_wave() -> void:
 ## Health a kill is worth. Only our own body collects, and only while it is
 ## still standing.
 func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
+	if _is_mine() and not _dead and curse > 0:
+		curse -= 1
+		if curse == 0:
+			_lift_curse()
 	if not _is_mine() or _dead or stats.kill_heal <= 0.0 or hp >= stats.max_hp:
 		return
 	heal(stats.kill_heal)
 	Fx.puff(global_position + Vector2(0, -12), 0.5, Color(0.8, 1.0, 0.75))
+
+
+## A cursed chest opened: the next [param kills] enemies to fall carry it off.
+## A second chest adds to what is owed.
+func take_curse(kills: int) -> void:
+	if kills <= 0 or _dead:
+		return
+	curse += kills
+	Fx.ash(global_position + Vector2(0, -14), Color(0.75, 0.15, 0.2, 0.8), 16, 40.0, 10.0)
+	Fx.popup(global_position + Vector2(0, -52), tr("CURSE_TAKEN") % curse, Color(1.0, 0.45, 0.45), 8)
+	Audio.play(&"hit_crit", -8.0)
+
+
+func _lift_curse() -> void:
+	Fx.sparkle(global_position + Vector2(0, -14), Color(1.0, 0.85, 0.75), 14, 14.0)
+	Fx.popup(global_position + Vector2(0, -52), tr("CURSE_LIFTED"), Color(1.0, 0.9, 0.8), 8)
+	Profile.count("curses_lifted")
 
 
 func _on_room_cleared(index: int) -> void:
@@ -1381,11 +1453,21 @@ func _on_room_cleared(index: int) -> void:
 	Fx.puff(global_position + Vector2(0, -10), 0.9, Color(0.9, 1.0, 0.8))
 
 
+## How long the cleave's charge takes to glow (Quick Study shortens it).
+func charge_needed() -> float:
+	return CHARGE_FULL / (1.0 + stats.charge_speed)
+
+
+## How long a fresh block parries (Watchman's Patience lengthens it).
+func parry_window() -> float:
+	return PARRY_WINDOW + stats.parry_window
+
+
 ## [param fresh]: the button went down this frame. A block raised because the
 ## button was still held after a swing or a roll is a block, never a parry.
 func _raise_block(fresh: bool) -> void:
 	_blocking = true
-	_parry_left = PARRY_WINDOW if fresh and _block_cd <= 0.0 else 0.0
+	_parry_left = parry_window() if fresh and _block_cd <= 0.0 else 0.0
 	_scripted_left = 0.0
 	_armed = true
 
@@ -1536,7 +1618,8 @@ func _attack() -> void:
 ## heavy] one lands like the chain's finisher, and [param stagger] seconds
 ## stop what it was doing (the cleave, the sweep). The chain and the special
 ## moves share it, so every gift and item that reads a hit reads theirs too.
-func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0) -> void:
+## [param technique]: a special move (_technique), which Benediction heals on.
+func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0, technique := false) -> void:
 	hitbox.monitoring = true
 	# Area2D needs a physics tick to register overlaps after monitoring is enabled.
 	await get_tree().physics_frame
@@ -1565,6 +1648,12 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		if live_enemy and _wrath_left > 0.0:
 			damage *= 1.0 + stats.wrath_after_hit
 			_wrath_left = 0.0  # one swing answers one wound
+		# Accursed Strength: the curse that doubles his wounds sharpens his blade
+		if live_enemy and curse > 0 and stats.cursed_damage > 0.0:
+			damage *= 1.0 + stats.cursed_damage
+		# Cruel Opening: the wind-up the player can read is also a door
+		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
+			damage *= 1.0 + stats.windup_bonus
 		if live_enemy and stats.backstab_refresh > 0.0 and (target as Enemy).is_unaware():
 			_dash_cd = 0.0
 		if live_enemy and crit and stats.desperate_crit_heal > 0.0 and hp < stats.max_hp * DESPERATE_SHARE:
@@ -1591,6 +1680,8 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 			heal(damage * stats.lifesteal)
 	if heavy and stats.wave_damage > 0.0:
 		_throw_wave()
+	if technique and hit_something and stats.technique_heal > 0.0 and _is_mine():
+		heal(stats.technique_heal)  # Benediction
 	if hit_something:
 		Juice.hit_stop(0.06 if heavy else 0.04)
 		Juice.shake(2.5 if heavy else 1.5)
@@ -1639,7 +1730,7 @@ func _read_technique_input(delta: float, on_floor: bool) -> void:
 			_cancel_charge()
 			return
 		_charge_time += delta
-		if not _charge_ready and _charge_time >= CHARGE_FULL:
+		if not _charge_ready and _charge_time >= charge_needed():
 			_charge_ready = true  # the ping: let go now and it lands
 			Fx.flash(global_position + Vector2(0, -16), Color(1.0, 0.84, 0.47), 50.0, 0.25, 1.4)
 			Fx.sparkle(global_position + Vector2(-facing * 6.0, -24.0), Color(1.0, 0.86, 0.5), 8, 6.0)
@@ -1725,7 +1816,7 @@ func _technique(id: String) -> void:
 		0.9 if heavy else 0.6, &"attack")
 	if _is_mine():
 		EventBus.technique_performed.emit(id)
-	await _land_hits(multiplier, knockback, heavy, stagger)
+	await _land_hits(multiplier, knockback, heavy, stagger, true)
 
 
 ## An enemy in front of the sword that has not noticed us: the first blow of
@@ -1878,7 +1969,8 @@ func skill_ready_ratio() -> float:
 ## guest's skill is judged by the host like a swing; the show is played here
 ## and sent to the others.
 func _cast_skill() -> void:
-	_skill_cd = float(skill.get("cooldown", 8.0))
+	# an omen may hurry or slow the gift's return (data/omens: "skill_cooldown")
+	_skill_cd = float(skill.get("cooldown", 8.0)) * float(Vials.rule("skill_cooldown"))
 	_arm(false)
 	# grows with the sword: gifts that sharpen the blade sharpen the skill too
 	var damage: float = float(skill.get("damage", 20.0)) * float(stats.attack_damage) / float(BASE_STATS.attack_damage)
@@ -1907,9 +1999,50 @@ func _cast_skill() -> void:
 			if target != null:
 				target.take_damage(damage, self, {"knockback": 0.6})
 				heal(damage * float(skill.get("drain", 0.5)))
+		"toll":
+			# a bell struck in the chest: everyone near stops where they stand
+			var reach := float(skill.get("radius", 90.0))
+			for node in get_tree().get_nodes_in_group("enemies"):
+				var near := node as Enemy
+				if near != null and not near.is_dead() and near.global_position.distance_to(global_position) <= reach:
+					near.take_damage(damage, self, {"knockback": 0.4})
+					near.stagger(float(skill.get("stun", 1.5)))
+		"hex":
+			var marked := _skill_target(float(skill.get("range", 140.0)))
+			if marked != null:
+				marked.take_damage(damage, self, {"knockback": 0.3})
+				if marked is Enemy:
+					(marked as Enemy).hex(float(skill.get("hex", 5.0)), float(skill.get("bonus", 0.5)))
+		"blink":
+			_blink(float(skill.get("range", 110.0)), damage)
 	_skill_fx(str(skill.get("kind", "")), str(skill.get("color", "#ffffff")), float(skill.get("radius", 70.0)))
 	if Net.active:
 		_net_skill_fx.rpc(str(skill.get("kind", "")), str(skill.get("color", "#ffffff")), float(skill.get("radius", 70.0)))
+
+
+## Unbroken Stride: forward [param reach] at once — stopped short by a wall —
+## cutting every enemy along the way, and untouchable for a breath after.
+func _blink(reach: float, damage: float) -> void:
+	var start := global_position
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsRayQueryParameters2D.create(start + Vector2(0, -10), start + Vector2(facing * reach, -10), 1)
+	query.exclude = [get_rid()]
+	var hit := space.intersect_ray(query)
+	var travel := reach
+	if not hit.is_empty():
+		travel = maxf(0.0, absf((hit.position as Vector2).x - start.x) - 10.0)
+	var end := start + Vector2(facing * travel, 0)
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var crossed := node as Enemy
+		if crossed == null or crossed.is_dead():
+			continue
+		var along := (crossed.global_position.x - start.x) * facing
+		if along >= -6.0 and along <= travel + 14.0 and absf(crossed.global_position.y - start.y) <= 32.0:
+			crossed.take_damage(damage, self, {"knockback": 0.8})
+	Fx.dust(start, Vector2(-facing, 0), 6, Color(0.8, 0.78, 0.72, 0.7))
+	global_position = end
+	velocity = Vector2.ZERO
+	_hurt_grace_left = maxf(_hurt_grace_left, 0.3)
 
 
 ## The nearest living enemy in front, within reach.
@@ -1946,6 +2079,19 @@ func _skill_fx(kind: String, color_hex: String, radius: float) -> void:
 			Fx.ash(global_position + Vector2(facing * 50.0, -12.0), tint, 20, 50.0, 18.0)
 			Juice.shake(2.5)
 			Audio.play(&"hit_crit", -6.0, 0.8)
+		"toll":
+			Fx.ring(global_position + Vector2(0, -10), radius, tint)
+			Fx.flash(global_position + Vector2(0, -10), tint, radius * 1.8, 0.4, 1.2)
+			Juice.shake(3.0)
+			Audio.play(&"bell", -6.0)
+		"hex":
+			Fx.flash(global_position + Vector2(facing * 50.0, -12.0), tint, 70.0, 0.35, 1.1)
+			Fx.ash(global_position + Vector2(facing * 60.0, -12.0), tint, 16, 40.0, 14.0)
+			Audio.play(&"hit_crit", -8.0, 0.6)
+		"blink":
+			Fx.flash(global_position + Vector2(0, -12.0), tint, 60.0, 0.3)
+			Juice.shake(2.0)
+			Audio.play(&"swing", -2.0, 1.2)
 	_play("attack")
 
 

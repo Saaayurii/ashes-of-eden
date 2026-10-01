@@ -160,6 +160,15 @@
     }
   },
   {
+    "id": "ch1_finale_book",
+    "blocking": false,
+    "start": "e",
+    "nodes": {
+      "e": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_FINALE_BOOK", "next": "o"},
+      "o": {"speaker": "SPEAKER_OPHANIM", "text": "DLG_CH1_FINALE_BOOK_ANSWER"}
+    }
+  },
+  {
     "id": "ch1_finale_will",
     "blocking": false,
     "start": "l",

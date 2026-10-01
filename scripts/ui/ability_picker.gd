@@ -34,11 +34,14 @@ func _ready() -> void:
 
 
 ## [param reroll], when given, deals a new hand: the rosary (Relics) lets the
-## player ask for one, Game.rerolls times a night.
+## player ask for one, Game.rerolls times a night. The hand can always be
+## turned down (Refuse): the result is then an empty Dictionary, and the run
+## gives the body back some breath instead (Player.refuse_gift).
 func pick(options: Array[Dictionary], reroll := Callable()) -> Dictionary:
 	_deal(options)
 	_reroll = reroll
 	_show_reroll()
+	_show_refuse()
 	visible = true
 	Net.set_paused(true)
 	if cards.get_child_count() > 0:
@@ -46,6 +49,8 @@ func pick(options: Array[Dictionary], reroll := Callable()) -> Dictionary:
 	var result: Dictionary = await chosen
 	if _reroll_button != null:
 		_reroll_button.visible = false
+	if _refuse_button != null:
+		_refuse_button.visible = false
 	visible = false
 	Net.set_paused(false)
 	return result
@@ -53,6 +58,7 @@ func pick(options: Array[Dictionary], reroll := Callable()) -> Dictionary:
 
 var _reroll := Callable()
 var _reroll_button: Button
+var _refuse_button: Button
 
 
 func _deal(options: Array[Dictionary]) -> void:
@@ -72,6 +78,19 @@ func _show_reroll() -> void:
 		_reroll_button.pressed.connect(_on_reroll)
 	_reroll_button.visible = _reroll.is_valid() and Game.rerolls > 0
 	_reroll_button.text = tr("PICKER_REROLL") % Game.rerolls
+
+
+## Under the cards, after the rosary: none of these.
+func _show_refuse() -> void:
+	if _refuse_button == null:
+		_refuse_button = Button.new()
+		_refuse_button.name = "Refuse"
+		cards.get_parent().add_child(_refuse_button)
+		_refuse_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		_refuse_button.pressed.connect(func() -> void: chosen.emit({}))
+	_refuse_button.text = tr("PICKER_REFUSE")
+	_refuse_button.tooltip_text = tr("PICKER_REFUSE_HINT")
+	_refuse_button.visible = true
 
 
 func _on_reroll() -> void:

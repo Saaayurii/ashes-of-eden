@@ -12,8 +12,12 @@ without a night at stake. Dead Cells has its training room; this is ours
 - **Bestiary → a creature's page → Spar with it**: any kind the player has
   *seen*, bosses included, bar the Ophanim's seals. Only from the main menu's
   bestiary: from the pause menu it would walk out of the night being played.
+- **The night's end → Spar with it: <name>**: after a death to anything the
+  yard can stand up, the end screen offers that very creature (solo only; not
+  the lava, the drop or a seal). The night is already over, so nothing is lost
+  by going.
 
-Both set `Game.practice` to an enemy id and start the Run, which opens
+All three set `Game.practice` to an enemy id and start the Run, which opens
 `scenes/rooms/practice_yard.tscn` (`Run.PRACTICE_ROOM`, room index
 `Run.PRACTICE_INDEX`) instead of the chapter. Leaving through the pause menu
 clears it.

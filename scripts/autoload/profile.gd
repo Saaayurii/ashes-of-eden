@@ -7,6 +7,8 @@ const PATH := "user://profile.json"
 const VERSION := 2
 ## Nights in a row on one path before the world starts to notice (habit()).
 const HABIT_NIGHTS := 3
+## Nights the chronicle keeps (Profile.data.history).
+const HISTORY := 10
 
 var data: Dictionary = _defaults()
 
@@ -39,6 +41,8 @@ static func _defaults() -> Dictionary:
 		"relics": {},
 		# The night of the day's best (scripts/run/daily.gd): {date, area, seconds, won, tries}.
 		"daily": {},
+		# The chronicle (bestiary): the last HISTORY nights, newest last.
+		"history": [],
 		# Counters the deeds read (Achievements.COUNTERS): parries, backstabs…
 		"deeds": {},
 		# Deeds done (data/achievements): id -> the unix time it happened.
@@ -46,6 +50,8 @@ static func _defaults() -> Dictionary:
 		# The world notices (docs/CORE_LOOP.md): the path the last nights leaned
 		# to, and how many in a row. HABIT_NIGHTS of them and it is a habit.
 		"habit": {"path": "", "nights": 0},
+		# Where the last night ended in a death (LastFall): {room, x, y, by}.
+		"last_fall": {},
 	}
 
 
@@ -59,6 +65,12 @@ func _ready() -> void:
 	EventBus.player_parried.connect(count.bind("parries"))
 	EventBus.player_unscathed.connect(func(_index: int) -> void: count("unscathed"))
 	EventBus.player_rested.connect(func(_room: String) -> void: count("rests"))
+	# a store, if this build carries one and it is running (docs/STEAM.md)
+	set_process(StoreBridge.start())
+
+
+func _process(_delta: float) -> void:
+	StoreBridge.poll()
 
 
 func load_profile() -> void:
@@ -78,11 +90,34 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 	data.total_seconds += seconds
 	data.ash += ash
 	_note_lean()
+	_chronicle(wave, kills, seconds, won)
+	# every gift carried and resonance woken is a page in the codex (bestiary
+	# "gift:<id>", "res:<id>"): named from then on, its nights counted
+	for ability in Game.abilities:
+		_codex("gift:" + str(ability.get("id", "")))
+	for id in Game.resonances:
+		_codex("res:" + str(id))
+	# an omen drawn is a page in the book (bestiary "omen:<id>"): its nights, its dawns
+	if Game.omen != "":
+		var drawn: Dictionary = data.bestiary.get("omen:" + Game.omen, {"seen": true, "met": true, "kills": 0})
+		drawn["nights"] = int(drawn.get("nights", 0)) + 1
+		drawn["dawns"] = int(drawn.get("dawns", 0)) + (1 if won else 0)
+		data.bestiary["omen:" + Game.omen] = drawn
+	# the bestiary remembers who laid this player low, and how often
+	if not won and Data.enemies.has(Game.slain_by):
+		var entry: Dictionary = data.bestiary.get(Game.slain_by, {})
+		entry["seen"] = true
+		entry["kills"] = int(entry.get("kills", 0))
+		entry["felled"] = int(entry.get("felled", 0)) + 1
+		data.bestiary[Game.slain_by] = entry
 	if won:
 		data.wins = int(data.get("wins", 0)) + 1
 		_bump("wins_" + Game.dominant_path())
 		if Settings.difficulty == "judgment":
 			_bump("wins_judgment")
+		# a dawn under an omen (data/omens); the night of the day's counts too
+		if Game.omen != "":
+			_bump("wins_omen")
 		# a dawn opens the next vial of wrath (scripts/run/vials.gd)
 		# the night of the day pours a vial the profile may not have opened: it
 		# opens nothing and counts for no vial deed
@@ -92,6 +127,42 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 				_bump("wins_vial_%d" % Game.vial)
 	save()
 	check_achievements()
+
+
+## One line of the chronicle per night: where it ended, how it leaned, what it
+## carried. Gift and resonance ids, so a renamed gift reads in the new name and
+## a removed one is simply left out (Chronicle in the bestiary).
+func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
+	if not (data.get("history") is Array):
+		data.history = []
+	data.history.append({
+		"night": int(data.nights),
+		"date": Time.get_date_string_from_system(),
+		"area": area,
+		"won": won,
+		"path": Game.dominant_path() if Game.lead() >= 2 else "",
+		"seconds": int(seconds),
+		"kills": kills,
+		"vial": Game.vial,
+		"omen": Game.omen,
+		"daily": Game.daily != "",
+		"gifts": Game.abilities.map(func(a: Dictionary) -> String: return str(a.get("id", ""))),
+		"resonances": Game.resonances.duplicate(),
+		"slain_by": "" if won else Game.slain_by,
+		"dealt": roundi(Game.dealt),
+		"taken": roundi(Game.taken),
+		"parries": Game.parries,
+	})
+	while data.history.size() > HISTORY:
+		data.history.pop_front()
+
+
+func _codex(key: String) -> void:
+	if key.ends_with(":"):
+		return
+	var page: Dictionary = data.bestiary.get(key, {"seen": true, "met": true, "kills": 0})
+	page["nights"] = int(page.get("nights", 0)) + 1
+	data.bestiary[key] = page
 
 
 ## A night that leaned clearly one way (the lead the aura shows at) extends
@@ -147,6 +218,7 @@ func check_achievements() -> Array:
 		save()
 		for id in fresh:
 			EventBus.achievement_unlocked.emit(id)
+		StoreBridge.mirror(fresh)
 	return fresh
 
 
@@ -195,6 +267,22 @@ func record_kill(enemy_id: String) -> void:
 		save()
 		EventBus.bestiary_unlocked.emit(enemy_id)
 	check_achievements()
+
+
+## A boss laid low in [param seconds] (Enemy.fight_time): its page keeps the
+## best. Never in the yard; returns whether it was a new best.
+func record_boss_time(enemy_id: String, seconds: float) -> bool:
+	if Net.dedicated or enemy_id == "" or Game.practice != "" or seconds <= 0.0:
+		return false
+	var entry: Dictionary = data.bestiary.get(enemy_id, {})
+	var best := float(entry.get("best_time", 0.0))
+	if best > 0.0 and best <= seconds:
+		return false
+	entry["best_time"] = snappedf(seconds, 0.1)
+	data.bestiary[enemy_id] = entry
+	save()
+	check_achievements()  # Swift Judgment reads the best fights
+	return true
 
 
 ## Talked to a person: their bestiary page opens. Ids are "npc:<id>".

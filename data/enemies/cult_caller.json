@@ -2,6 +2,7 @@
   "id": "cult_caller",
   "name": "ENEMY_CULT_CALLER",
   "lore": "ENEMY_CULT_CALLER_LORE",
+  "tip": "TIP_CULT_CALLER",
   "hp": 48,
   "speed": 62,
   "damage": 0,

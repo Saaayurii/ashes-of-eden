@@ -36,6 +36,12 @@ const CAPS := {
 	"clean_clear_charge": [0.0, 1.0],
 	"wrath_after_hit": [0.0, 1.0],
 	"desperate_crit_heal": [0.0, 12.0],
+	# gift mechanics of the moves (data/abilities: Benediction, Cruel Opening, Quick Study, Watchman's Patience)
+	"technique_heal": [0.0, 10.0],
+	"windup_bonus": [0.0, 1.0],
+	"cursed_damage": [0.0, 1.0],
+	"charge_speed": [0.0, 1.0],
+	"parry_window": [0.0, 0.15],
 }
 ## Caps expressed as multipliers of the base value rather than absolutes.
 const RELATIVE := ["attack_cooldown", "speed"]

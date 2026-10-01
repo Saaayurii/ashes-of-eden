@@ -3459,6 +3459,10 @@ texture = ExtResource("decor_graveyard_coffin_1")
 
 [node name="Props" type="Node2D" parent="."]
 
+[node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(540, 380)
+prop_id = "altar_book"
+
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(660, 380)
 npc_id = "matthew"

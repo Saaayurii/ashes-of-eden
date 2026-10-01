@@ -3,7 +3,9 @@ extends SceneTree
 ##   - a larger text size grows the story text, the hints and the toasts;
 ##   - reduced flashes dim a flash of light, the white of a blow and the red
 ##     at the screen's edge, and full puts them back;
-##   - the settings menu offers both, and they are saved.
+##   - the settings menu offers both, and they are saved;
+##   - vibration (phones and gamepads) follows a blow's weight and its switch;
+##   - the game speed slows the night, keeps hit-stops, never the daily.
 ## Puts the settings back as it found them, through their setters.
 ##   godot --headless --path . -s scripts/tools/accessibility_test.gd
 
@@ -102,6 +104,62 @@ func _run() -> void:
 	settings.set_flashes("reduced")
 	cfg.load("user://settings.cfg")
 	_check(cfg.get_value("access", "flashes", "") == "reduced", "and keep them")
+
+	# vibration: a blow taken buzzes the phone and the pads, the switch stops it
+	var juice = root.get_node("Juice")
+	var was_vibration: bool = settings.vibration
+	settings.set_vibration(true)
+	juice.last_buzz = {}
+	root.get_node("EventBus").player_hurt.emit(0.25)
+	_check(int(juice.last_buzz.get("ms", 0)) > 0, "a blow taken buzzes (%s)" % juice.last_buzz)
+	var small: float = float(juice.last_buzz.get("strength", 0.0))
+	juice.last_buzz = {}
+	root.get_node("EventBus").player_hurt.emit(0.05)
+	_check(float(juice.last_buzz.get("strength", 1.0)) < small, "  a smaller one, softer")
+	settings.set_vibration(false)
+	juice.last_buzz = {}
+	root.get_node("EventBus").player_hurt.emit(0.25)
+	_check(juice.last_buzz.is_empty(), "  and the switch in Settings stops it")
+	settings.set_vibration(was_vibration)
+
+	# damage numbers: off means the figure is not drawn at all
+	var was_numbers: bool = settings.damage_numbers
+	var labels := func() -> int:
+		return current_scene.get_children().filter(func(n: Node) -> bool: return n is Label).size() if current_scene else 0
+	settings.set_damage_numbers(true)
+	var before: int = labels.call()
+	fx.damage_number(Vector2(100, 100), 12.0)
+	_check(labels.call() == before + 1, "a damage number is drawn")
+	settings.set_damage_numbers(false)
+	before = labels.call()
+	fx.damage_number(Vector2(100, 100), 12.0)
+	_check(labels.call() == before, "  and not with Damage numbers off")
+	settings.set_damage_numbers(was_numbers)
+
+	# game speed: the whole night slower, never online or in the night of the day
+	var was_speed: float = settings.game_speed
+	var game = root.get_node("Game")
+	_check(menu.find_child("GameSpeedRow", true, false) != null, "the settings offer a game speed")
+	settings.set_game_speed(0.7)
+	cfg.load("user://settings.cfg")
+	_check(is_equal_approx(float(cfg.get_value("access", "game_speed", 1.0)), 0.7), "  and keep it")
+	_check(is_equal_approx(settings.time_scale(true), 0.7), "  a slowed night runs at 70 %")
+	_check(is_equal_approx(settings.time_scale(), 1.0), "  a tool script runs at full speed unless it asks")
+	game.daily = "2026-10-01"
+	_check(is_equal_approx(settings.time_scale(true), 1.0), "  the night of the day is never slowed")
+	game.daily = ""
+	settings.set_game_speed(0.33)
+	_check(is_equal_approx(settings.game_speed, 1.0), "  a speed that is not offered is full speed")
+	juice.set_base_scale(0.7)
+	_check(is_equal_approx(Engine.time_scale, 0.7), "Juice holds the clock at the slowed speed")
+	juice.hit_stop(0.05, 0.05)
+	_check(Engine.time_scale < 0.1, "  a hit-stop still freezes it")
+	await create_timer(0.2, true, false, true).timeout
+	_check(is_equal_approx(Engine.time_scale, 0.7), "  and gives back the slowed speed, not full (%.2f)" % Engine.time_scale)
+	juice.set_base_scale(1.0)
+	_check(is_equal_approx(Engine.time_scale, 1.0), "  and full speed when the night is over")
+	settings.set_game_speed(was_speed)
+	_check(is_equal_approx(settings.game_speed, was_speed), "  put back as it was")
 
 	settings.set_text_size(was_size)
 	settings.set_flashes(was_flashes)

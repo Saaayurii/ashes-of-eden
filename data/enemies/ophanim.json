@@ -2,6 +2,7 @@
   "id": "ophanim",
   "name": "ENEMY_OPHANIM",
   "lore": "ENEMY_OPHANIM_LORE",
+  "tip": "TIP_OPHANIM",
   "hp": 1500,
   "speed": 120,
   "damage": 8,

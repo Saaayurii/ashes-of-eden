@@ -2,6 +2,7 @@
   "id": "fallen_guard",
   "name": "ENEMY_FALLEN_GUARD",
   "lore": "ENEMY_FALLEN_GUARD_LORE",
+  "tip": "TIP_FALLEN_GUARD",
   "hp": 80,
   "speed": 48,
   "damage": 0,

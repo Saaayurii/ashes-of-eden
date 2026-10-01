@@ -9,12 +9,13 @@ class_name Achievements
 ##   notes     N or "all"          records found in secret caches
 ##   moves     [ids] or "all"      special moves pulled off (data/techniques)
 ##   deeds     {counter: N}        a counter Profile.count keeps (COUNTERS)
+##   fast      {boss id: seconds}  laid low within that long (its best_time)
 ## Several keys in one "unlock" must all hold. The id is also the name a store
 ## achievement will carry (Steam's API name), so it never changes once shipped.
 
 ## What Profile.count may keep. A new one → here, the code that counts it,
 ## and the validator reads this list (validate_data.gd).
-const COUNTERS := ["parries", "backstabs", "ripostes", "unscathed", "rests",
+const COUNTERS := ["parries", "backstabs", "ripostes", "unscathed", "rests", "curses_lifted", "wins_omen", "refusals",
 	"wins_grace", "wins_temptation", "wins_will", "wins_judgment",
 	"wins_vial_1", "wins_vial_2", "wins_vial_3", "wins_vial_4", "wins_vial_5"]
 
@@ -90,4 +91,8 @@ static func _parts(unlock: Dictionary) -> Array:
 		parts.append([have, moves.size()])
 	for counter in unlock.get("deeds", {}):
 		parts.append([int(data.get("deeds", {}).get(counter, 0)), int(unlock.deeds[counter])])
+	# a boss's best fight (Profile.record_boss_time) within the time: done or not
+	for boss_id in unlock.get("fast", {}):
+		var best := float(data.bestiary.get(boss_id, {}).get("best_time", 0.0))
+		parts.append([1 if best > 0.0 and best <= float(unlock.fast[boss_id]) else 0, 1])
 	return parts

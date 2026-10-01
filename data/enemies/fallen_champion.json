@@ -2,6 +2,7 @@
   "id": "fallen_champion",
   "name": "ENEMY_FALLEN_CHAMPION",
   "lore": "ENEMY_FALLEN_CHAMPION_LORE",
+  "tip": "TIP_FALLEN_CHAMPION",
   "hp": 95,
   "speed": 42,
   "damage": 0,
