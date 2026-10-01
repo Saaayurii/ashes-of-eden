@@ -624,12 +624,12 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 	if int(entry.get("ash", 0)) < 0 or int(entry.get("ash", 0)) > 50:
 		_error("%s: ash is 0..50 (docs/BALANCE.md: permanent power stays small)" % where)
 	for key in unlock:
-		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "moves", "deeds", "fast"].has(key):
+		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "items", "moves", "deeds", "fast"].has(key):
 			_error("%s: unlock.%s is not a condition Achievements reads" % [where, key])
 	for key in ["nights", "wins", "total_kills"]:
 		if unlock.has(key) and int(unlock[key]) < 1:
 			_error("%s: unlock.%s must be at least 1" % [where, key])
-	for key in ["known", "notes"]:
+	for key in ["known", "notes", "items"]:
 		if unlock.has(key) and str(unlock[key]) != "all" and int(unlock[key]) < 1:
 			_error("%s: unlock.%s is a number or \"all\"" % [where, key])
 	for enemy in unlock.get("kills", {}):

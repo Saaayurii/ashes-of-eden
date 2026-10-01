@@ -26,6 +26,7 @@ hold:
 | `notes` | records found in secret caches | `{"notes": "all"}` |
 | `moves` | special moves pulled off (`data/techniques`), `"all"` or a list | `{"moves": ["lunge", "cleave"]}` |
 | `deeds` | a counter `Profile.count` keeps | `{"deeds": {"parries": 50}}` |
+| `items` | items found at least once (codex pages `item:<id>`), N or `"all"` | `{"items": "all"}` |
 | `fast` | a boss laid low within that many seconds (its best fight, `Profile.record_boss_time`) | `{"fast": {"ophanim": 90}}` |
 
 The counters (`Achievements.COUNTERS`): `parries`, `backstabs`, `ripostes`, `unscathed` (rooms cleared without a

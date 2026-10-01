@@ -91,7 +91,14 @@ func _run() -> void:
 	book._show("item:censer_ember")
 	_check(book.lore_label.text == tr(data.items["censer_ember"].description)
 		and book.tags_label.text == tr("RARITY_COMMON"), "  its page says what it does, and how rare")
+	var deeds = load("res://scripts/meta/achievements.gd")
+	profile.data.achievements = {}
+	for id in data.items:
+		profile.data.bestiary["item:" + id] = {"seen": true, "met": true, "kills": 0, "nights": 1}
+	profile.check_achievements()
+	_check(profile.data.achievements.has("curator"), "every item found is Keeper of Relics")
 	profile.data.bestiary.erase("item:pilgrims_knot")
+	_check(deeds.progress("curator") == [data.items.size() - 1, data.items.size()], "  one missing, one short")
 	book._show("item:pilgrims_knot")
 	_check(book.lore_label.text == "" and book.hint_label.text == tr("BESTIARY_HINT_ITEM"), "  one never found stays a question")
 	book.queue_free()

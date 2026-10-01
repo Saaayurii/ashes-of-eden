@@ -7,6 +7,7 @@ class_name Achievements
 ##   kills     {enemy id: N}       slain at least N of each
 ##   known     N or "all"          bestiary kinds slain (the practice dummy aside)
 ##   notes     N or "all"          records found in secret caches
+##   items     N or "all"          items found at least once (the codex, "item:<id>")
 ##   moves     [ids] or "all"      special moves pulled off (data/techniques)
 ##   deeds     {counter: N}        a counter Profile.count keeps (COUNTERS)
 ##   fast      {boss id: seconds}  laid low within that long (its best_time)
@@ -80,6 +81,13 @@ static func _parts(unlock: Dictionary) -> Array:
 		var have := 0
 		for id in Data.notes:
 			if data.bestiary.get("note:" + id, {}).get("met", false):
+				have += 1
+		parts.append([have, need])
+	if unlock.has("items"):
+		var need: int = Data.items.size() if str(unlock.items) == "all" else int(unlock.items)
+		var have := 0
+		for id in Data.items:
+			if data.bestiary.get("item:" + id, {}).get("met", false):
 				have += 1
 		parts.append([have, need])
 	if unlock.has("moves"):
