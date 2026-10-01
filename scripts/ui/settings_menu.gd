@@ -77,6 +77,7 @@ func _refresh() -> void:
 		_text_size.select(Settings.TEXT_SIZES.keys().find(Settings.text_size))
 		_flashes.select(Settings.FLASHES.find(Settings.flashes))
 		_auto_attack.set_pressed_no_signal(Settings.auto_attack)
+		_damage_numbers.set_pressed_no_signal(Settings.damage_numbers)
 	if _touch_mode:
 		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
@@ -119,6 +120,7 @@ func _build_speech() -> void:
 var _text_size: OptionButton
 var _flashes: OptionButton
 var _auto_attack: CheckButton
+var _damage_numbers: CheckButton
 
 
 func _build_access() -> void:
@@ -135,8 +137,11 @@ func _build_access() -> void:
 	var at := anchor.get_index() + 1
 	_auto_attack = CheckButton.new()
 	_auto_attack.toggled.connect(Settings.set_auto_attack)
+	_damage_numbers = CheckButton.new()
+	_damage_numbers.toggled.connect(Settings.set_damage_numbers)
 	for pair in [["SETTINGS_TEXT_SIZE", _text_size, "TextSizeRow"], ["SETTINGS_FLASHES", _flashes, "FlashesRow"],
-			["SETTINGS_AUTO_ATTACK", _auto_attack, "AutoAttackRow"]]:
+			["SETTINGS_AUTO_ATTACK", _auto_attack, "AutoAttackRow"],
+			["SETTINGS_DAMAGE_NUMBERS", _damage_numbers, "DamageNumbersRow"]]:
 		var row := _row(pair[0], pair[1])
 		row.name = pair[2]
 		box.add_child(row)

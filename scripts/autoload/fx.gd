@@ -432,6 +432,8 @@ func shadow(parent: Node, offset: Vector2, width := 24.0, opacity := 1.0) -> Spr
 
 
 func damage_number(position: Vector2, amount: float, color := Color(1, 0.95, 0.8)) -> void:
+	if not Settings.damage_numbers:
+		return
 	popup(position + Vector2(randf_range(-6, 6), 0), str(int(round(amount))), color, 10)
 
 

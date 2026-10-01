@@ -37,6 +37,9 @@ var flashes := "full"
 ## The assist swing: the sword comes out by itself at an awake enemy in reach
 ## (Player._auto_swing). Off by default; the casual way to play on a phone.
 var auto_attack := false
+## Numbers over the struck (Fx.damage_number). Off for a quieter screen: the
+## blow still flashes, staggers and sounds, only the figure is not drawn.
+var damage_numbers := true
 var difficulty := "standard"
 var vial := 0
 ## Whether a new night may draw an omen (data/omens); the night of the day
@@ -74,6 +77,7 @@ func _ready() -> void:
 	if not TEXT_SIZES.has(text_size):
 		text_size = "normal"
 	auto_attack = bool(cfg.get_value("access", "auto_attack", false))
+	damage_numbers = bool(cfg.get_value("access", "damage_numbers", true))
 	flashes = str(cfg.get_value("access", "flashes", "full"))
 	if not FLASHES.has(flashes):
 		flashes = "full"
@@ -120,6 +124,7 @@ func save() -> void:
 	cfg.set_value("access", "text_size", text_size)
 	cfg.set_value("access", "flashes", flashes)
 	cfg.set_value("access", "auto_attack", auto_attack)
+	cfg.set_value("access", "damage_numbers", damage_numbers)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "vial", vial)
 	cfg.set_value("game", "omens", omens)
@@ -205,6 +210,12 @@ func set_text_size(size: String) -> void:
 ## the white of a hit, the hurt vignette).
 func flash_scale() -> float:
 	return 0.35 if flashes == "reduced" else 1.0
+
+
+func set_damage_numbers(enabled: bool) -> void:
+	damage_numbers = enabled
+	save()
+	changed.emit()
 
 
 func set_auto_attack(enabled: bool) -> void:

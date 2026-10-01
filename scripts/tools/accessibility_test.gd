@@ -121,6 +121,20 @@ func _run() -> void:
 	_check(juice.last_buzz.is_empty(), "  and the switch in Settings stops it")
 	settings.set_vibration(was_vibration)
 
+	# damage numbers: off means the figure is not drawn at all
+	var was_numbers: bool = settings.damage_numbers
+	var labels := func() -> int:
+		return current_scene.get_children().filter(func(n: Node) -> bool: return n is Label).size() if current_scene else 0
+	settings.set_damage_numbers(true)
+	var before: int = labels.call()
+	fx.damage_number(Vector2(100, 100), 12.0)
+	_check(labels.call() == before + 1, "a damage number is drawn")
+	settings.set_damage_numbers(false)
+	before = labels.call()
+	fx.damage_number(Vector2(100, 100), 12.0)
+	_check(labels.call() == before, "  and not with Damage numbers off")
+	settings.set_damage_numbers(was_numbers)
+
 	settings.set_text_size(was_size)
 	settings.set_flashes(was_flashes)
 	current_scene = null
