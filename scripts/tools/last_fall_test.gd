@@ -106,6 +106,7 @@ func _run() -> void:
 	_check(game.flags.has("last_fall_found") and (game.essence > before or game.level > level_before),
 		"walking over it gives back some essence (%s, %.1f -> %.1f)" % [game.flags.has("last_fall_found"), before, game.essence])
 	_check(profile.data.last_fall.is_empty(), "  once: it does not lie there another night")
+	_check(run.dialogue.is_open(), "  and Elian says a word over it")
 	await _settle(1.5)
 	run._load_room(run.ROOMS.find(tree_room))
 	await _settle(0.3)

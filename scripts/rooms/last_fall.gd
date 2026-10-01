@@ -88,6 +88,10 @@ func _take() -> void:
 	var line := tr("LAST_FALL") if killer == "" or not Data.enemies.has(killer) \
 		else tr("LAST_FALL_BY") % tr(str(Data.enemies[killer].get("name", killer)))
 	Fx.popup(global_position + Vector2(0, -40), line, Color(0.85, 0.85, 0.95), 8)
+	# and Elian says a word over it, in the voice of the path he leans to
+	var run := get_tree().current_scene
+	if run != null and run.get("dialogue") != null:
+		run.dialogue.play("ch1_last_fall")
 	Fx.ash(global_position + Vector2(0, -10), Color(0.8, 0.8, 0.9, 0.7), 14, 30.0, 8.0)
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 1.2)
