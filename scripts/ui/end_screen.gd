@@ -65,6 +65,10 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	# the vial this night was played under, and the one a dawn opens (data/vials)
 	if Game.vial > 0:
 		stats.text += "   ·   " + tr(str(Vials.spec(Game.vial).get("name", "")))
+	# what laid him low, above the numbers (Player.slain_by)
+	var killer := slain_name(Game.slain_by) if not won else ""
+	if killer != "":
+		stats.text = tr("RUN_SLAIN_BY") % killer + "\n" + stats.text
 	# the night of the day: where it stands against the day's best (Daily)
 	if Game.daily != "":
 		var day := Daily.best(Game.daily)
@@ -94,3 +98,17 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 		%Retry.grab_focus()
 	else:
 		%Menu.grab_focus()
+
+
+## What laid him low, by name: an enemy's, the lava, the drop. "" for nothing known.
+static func slain_name(id: String) -> String:
+	match id:
+		"":
+			return ""
+		"lava":
+			return TranslationServer.translate("SLAIN_LAVA")
+		"fall":
+			return TranslationServer.translate("SLAIN_FALL")
+	if Data.enemies.has(id):
+		return TranslationServer.translate(str(Data.enemies[id].get("name", id)))
+	return ""

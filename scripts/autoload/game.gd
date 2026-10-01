@@ -45,6 +45,10 @@ var daily := ""
 var daily_best := false
 ## Rooms this body cleared without a wound, this night (Run._on_unscathed).
 var unscathed := 0
+## What laid our own body low this night (Player.slain_by): an enemy id,
+## "lava", "fall", or "" while it stands. The end screen, the chronicle and
+## the bestiary read it.
+var slain_by := ""
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
 var vial := 0
 ## Times the gift cards may still be dealt again tonight (the rosary, Relics).
@@ -74,6 +78,7 @@ func new_run() -> void:
 	level = 1
 	ash_earned = 0
 	unscathed = 0
+	slain_by = ""
 	vial = 0
 	rerolls = 0
 	essence_bonus = 0.0

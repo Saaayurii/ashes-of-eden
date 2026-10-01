@@ -259,6 +259,8 @@ func _show(id: String) -> void:
 	_stat("BESTIARY_ESSENCE", str(int(stats.get("essence", 0))))
 	_place_row(stats, entry)
 	_stat("BESTIARY_SLAIN", str(kills))
+	if int(entry.get("felled", 0)) > 0:
+		_stat("BESTIARY_FELLED", str(int(entry.felled)))
 	if stats.has("lore"):
 		lore_label.text = tr(stats.lore)
 	_show_abilities(stats)
@@ -311,6 +313,9 @@ func _show_night(night: Dictionary) -> void:
 		_stat("MENU_DAILY", "◆")
 	_stat("CHRONICLE_TIME", _clock(float(night.get("seconds", 0))))
 	_stat("CHRONICLE_KILLS", str(int(night.get("kills", 0))))
+	var killer := EndScreen.slain_name(str(night.get("slain_by", "")))
+	if killer != "":
+		_stat("CHRONICLE_SLAIN_BY", killer)
 	var names: Array = []
 	for gift in night.get("gifts", []):
 		if Data.abilities.has(gift):

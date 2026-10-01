@@ -301,6 +301,9 @@ var _skill_cd := 0.0
 ## as hard until this many more enemies have fallen. Saved with the body; a
 ## death pays it off.
 var curse := 0
+## What dealt the last blow that took the body down (_blame): an enemy id,
+## "lava" or "fall". Our own body hands it to Game.slain_by.
+var slain_by := ""
 ## Where the body last stood on firm ground for a moment: lava puts it back here.
 var _safe_position := Vector2.ZERO
 var _safe_time := 0.0
@@ -733,6 +736,9 @@ func _check_room_bounds() -> void:
 		return
 	fell_outside_room = true
 	hp = 0.0
+	slain_by = "fall"
+	if _is_mine():
+		Game.slain_by = slain_by
 	_emit_hp()
 	_go_down()
 	if Net.active:
@@ -908,7 +914,7 @@ func burn(amount: float, danger := Rect2()) -> void:
 	_burn_left = 1.0
 	_dash_left = 0.0
 	_blocking = false
-	_apply_damage(amount, null, {"from_x": global_position.x - facing * 40.0})
+	_apply_damage(amount, null, {"from_x": global_position.x - facing * 40.0, "killer": "lava"})
 	Fx.ash(global_position + Vector2(0, -6), Color(1.0, 0.5, 0.2), 18, 60.0, 8.0)
 	Fx.flash(global_position, Color(1.0, 0.5, 0.2), 90.0, 0.4)
 	if _dead:
@@ -934,7 +940,7 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 		var owner_id := get_multiplayer_authority()
 		if multiplayer.get_peers().has(owner_id):
 			var path: NodePath = source.get_path() if source != null and source.is_inside_tree() else NodePath()
-			_net_damage.rpc_id(owner_id, amount, _attacker_x(source, info), path)
+			_net_damage.rpc_id(owner_id, amount, _attacker_x(source, info), path, _blame(source, info))
 		return  # a body whose owner has left takes nothing; the run frees it
 	_apply_damage(amount, source, info)
 
@@ -943,11 +949,23 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 ## on every peer, so a block here still knows which way the blow came from and
 ## a parry here can still answer the body that swung over there.
 @rpc("any_peer", "call_remote", "reliable")
-func _net_damage(amount: float, from_x: float, source_path: NodePath) -> void:
+func _net_damage(amount: float, from_x: float, source_path: NodePath, killer := "") -> void:
 	var source: Node = null if source_path.is_empty() else get_node_or_null(source_path)
 	# A projectile can already have burst before this RPC arrives. Its nonempty
 	# path still identifies combat damage, even if there is no node to resolve.
-	_apply_damage(amount, source, {"from_x": from_x, "combat_hit": not source_path.is_empty()})
+	_apply_damage(amount, source, {"from_x": from_x, "combat_hit": not source_path.is_empty(), "killer": killer})
+
+
+## Who to blame for a blow: the enemy that struck or loosed it, the lava, or
+## what the sender already named (a forwarded hit).
+func _blame(source: Node, info: Dictionary) -> String:
+	if source is Enemy:
+		return (source as Enemy).enemy_id
+	if source is Hazard:
+		return "lava"
+	if source != null and "shooter_id" in source and str(source.shooter_id) != "":
+		return str(source.shooter_id)
+	return str(info.get("killer", ""))
 
 
 func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) -> void:
@@ -1034,6 +1052,9 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 			_dead = true
 			_rally_pool = 0.0
 			_rally_left = 0.0
+			slain_by = _blame(source, info)
+			if _is_mine():
+				Game.slain_by = slain_by
 			_emit_hp()
 			_go_down()
 			if Net.active:
@@ -1124,6 +1145,7 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	_rally_pool = 0.0
 	_rally_left = 0.0
 	fell_outside_room = false
+	slain_by = ""
 	curse = 0
 	_healing_left = 0.0
 	_slamming = false

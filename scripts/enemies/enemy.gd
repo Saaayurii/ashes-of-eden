@@ -1052,6 +1052,7 @@ func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool) -> v
 	projectile.motion = str(_attack.get("projectile_motion", "straight"))
 	projectile.motion_amount = float(_attack.get("motion_amount", 0.0))
 	projectile.cosmetic = cosmetic
+	projectile.shooter_id = enemy_id
 	get_parent().add_child(projectile)
 	projectile.global_position = origin
 	_cast_flare(origin, projectile.tint)

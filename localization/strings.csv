@@ -800,3 +800,8 @@ CURSE_LIFTED,"The curse lifts","Проклятие снято","Проклятт
 HUD_CURSE,"Cursed — wounds ×2 · %d foes","Проклят — раны ×2 · врагов: %d","Проклятий — рани ×2 · ворогів: %d","受诅——伤痛×2 · 尚余%d敌"
 DEED_CURSED,"Paid in Blood","Уплачено кровью","Сплачено кров'ю","以血偿还"
 DEED_CURSED_DESC,"Open a cursed chest and live until its curse lifts.","Открыть проклятый сундук и дожить, пока проклятие не спадёт.","Відкрити прокляту скриню й дожити, доки прокляття не спаде.","开启一只受诅的箱子，并活到诅咒散去。"
+RUN_SLAIN_BY,"Laid low by: %s","Сражён: %s","Повалений: %s","倒于：%s"
+SLAIN_LAVA,"the burning ground","горящая земля","палаюча земля","焚地"
+SLAIN_FALL,"the drop into the dark","падение во тьму","падіння в темряву","坠入黑暗"
+BESTIARY_FELLED,"Laid you low","Сразил вас","Повалив вас","击倒你"
+CHRONICLE_SLAIN_BY,"Laid low by","Сражён","Повалений","倒于"

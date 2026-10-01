@@ -83,6 +83,13 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 	data.ash += ash
 	_note_lean()
 	_chronicle(wave, kills, seconds, won)
+	# the bestiary remembers who laid this player low, and how often
+	if not won and Data.enemies.has(Game.slain_by):
+		var entry: Dictionary = data.bestiary.get(Game.slain_by, {})
+		entry["seen"] = true
+		entry["kills"] = int(entry.get("kills", 0))
+		entry["felled"] = int(entry.get("felled", 0)) + 1
+		data.bestiary[Game.slain_by] = entry
 	if won:
 		data.wins = int(data.get("wins", 0)) + 1
 		_bump("wins_" + Game.dominant_path())
@@ -117,6 +124,7 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 		"daily": Game.daily != "",
 		"gifts": Game.abilities.map(func(a: Dictionary) -> String: return str(a.get("id", ""))),
 		"resonances": Game.resonances.duplicate(),
+		"slain_by": "" if won else Game.slain_by,
 	})
 	while data.history.size() > HISTORY:
 		data.history.pop_front()
