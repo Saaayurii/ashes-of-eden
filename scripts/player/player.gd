@@ -354,6 +354,48 @@ func _ready() -> void:
 
 
 ## True when this body is ours to drive: single player, or our seat in a session.
+## The assist swing (Settings.auto_attack, docs/GDD.md's casual question): the
+## blade comes out on its own at an enemy that is already after us and within
+## a swing, and the body turns to it. Never at a sleeper — the backstab stays a
+## choice — and never during a roll, a block, a charge or a scripted pose.
+## Returns whether it swung.
+const AUTO_REACH := 46.0
+const AUTO_HEIGHT := 30.0
+
+
+func _auto_swing() -> bool:
+	if not Settings.auto_attack or not _is_mine() or _attack_cd > 0.0 or _charging or _blocking \
+			or _dash_left > 0.0 or _scripted_left > 0.0 or _dead:
+		return false
+	var target := auto_target()
+	if target == null:
+		return false
+	var side := 1 if target.global_position.x >= global_position.x else -1
+	if side != facing:
+		facing = side
+		body.flip_h = facing < 0
+		hitbox.scale.x = facing * stats.attack_scale
+	_attack()
+	return true
+
+
+## The nearest awake enemy within a swing, either side; null for none.
+func auto_target() -> Enemy:
+	var best: Enemy = null
+	var best_d := INF
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Enemy
+		if enemy == null or enemy.is_dead() or enemy.is_unaware():
+			continue
+		var d := enemy.global_position - global_position
+		if absf(d.x) > AUTO_REACH * stats.attack_scale or absf(d.y) > AUTO_HEIGHT:
+			continue
+		if absf(d.x) < best_d:
+			best_d = absf(d.x)
+			best = enemy
+	return best
+
+
 func _is_mine() -> bool:
 	return not Net.active or is_multiplayer_authority()
 
@@ -592,6 +634,8 @@ func _physics_process(delta: float) -> void:
 		elif Input.is_action_just_pressed("heal") and heal_charges > 0 and on_floor and hp < stats.max_hp \
 				and not _blocking:
 			_start_heal()
+		else:
+			_auto_swing()  # only with Settings.auto_attack on
 
 	if _healing_left > 0.0:
 		_healing_left -= delta

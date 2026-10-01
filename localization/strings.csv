@@ -759,3 +759,4 @@ RELIC_BOOTS_DESC,"The roll comes back a little sooner.","Кувырок возв
 RELIC_ROSARY,"Rosary","Чётки","Чотки","念珠"
 RELIC_ROSARY_DESC,"Once a night, the gift cards may be dealt again.","Раз за ночь карты даров можно перетасовать.","Раз за ніч карти дарів можна перетасувати.","每夜一次，可重新发放赐福卡牌。"
 RELIC_EARLY_DESC,"%s joins the gifts now, before its night comes.","%s входит в дары сейчас, не дожидаясь своей ночи.","%s входить у дари вже зараз, не чекаючи своєї ночі.","%s 现在就加入赐福，不必等到它的那一夜。"
+SETTINGS_AUTO_ATTACK,"Auto attack","Автоатака","Автоатака","自动攻击"

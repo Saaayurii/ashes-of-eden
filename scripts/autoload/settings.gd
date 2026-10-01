@@ -31,6 +31,9 @@ var screen_shake := true
 var lighting := true
 var text_size := "normal"
 var flashes := "full"
+## The assist swing: the sword comes out by itself at an awake enemy in reach
+## (Player._auto_swing). Off by default; the casual way to play on a phone.
+var auto_attack := false
 var difficulty := "standard"
 var vial := 0
 ## The hero's cloak (data/skins); only an unlocked one is ever kept (Skins.unlocked).
@@ -63,6 +66,7 @@ func _ready() -> void:
 	text_size = str(cfg.get_value("access", "text_size", "normal"))
 	if not TEXT_SIZES.has(text_size):
 		text_size = "normal"
+	auto_attack = bool(cfg.get_value("access", "auto_attack", false))
 	flashes = str(cfg.get_value("access", "flashes", "full"))
 	if not FLASHES.has(flashes):
 		flashes = "full"
@@ -107,6 +111,7 @@ func save() -> void:
 	cfg.set_value("video", "lighting", lighting)
 	cfg.set_value("access", "text_size", text_size)
 	cfg.set_value("access", "flashes", flashes)
+	cfg.set_value("access", "auto_attack", auto_attack)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "vial", vial)
 	cfg.set_value("game", "skin", skin)
@@ -191,6 +196,12 @@ func set_text_size(size: String) -> void:
 ## the white of a hit, the hurt vignette).
 func flash_scale() -> float:
 	return 0.35 if flashes == "reduced" else 1.0
+
+
+func set_auto_attack(enabled: bool) -> void:
+	auto_attack = enabled
+	save()
+	changed.emit()
 
 
 func set_flashes(mode: String) -> void:

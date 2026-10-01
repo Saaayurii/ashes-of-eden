@@ -76,6 +76,7 @@ func _refresh() -> void:
 	if _text_size:
 		_text_size.select(Settings.TEXT_SIZES.keys().find(Settings.text_size))
 		_flashes.select(Settings.FLASHES.find(Settings.flashes))
+		_auto_attack.set_pressed_no_signal(Settings.auto_attack)
 	if _touch_mode:
 		_touch_mode.select(Settings.TOUCH_MODES.find(Settings.touch_mode))
 		_touch_scale.set_value_no_signal(Settings.touch_scale)
@@ -117,6 +118,7 @@ func _build_speech() -> void:
 ## text is, and whether flashes are dimmed (Settings.text_size / flashes).
 var _text_size: OptionButton
 var _flashes: OptionButton
+var _auto_attack: CheckButton
 
 
 func _build_access() -> void:
@@ -131,7 +133,10 @@ func _build_access() -> void:
 		_flashes.add_item("FLASHES_" + mode.to_upper())
 	_flashes.item_selected.connect(func(index: int) -> void: Settings.set_flashes(Settings.FLASHES[index]))
 	var at := anchor.get_index() + 1
-	for pair in [["SETTINGS_TEXT_SIZE", _text_size, "TextSizeRow"], ["SETTINGS_FLASHES", _flashes, "FlashesRow"]]:
+	_auto_attack = CheckButton.new()
+	_auto_attack.toggled.connect(Settings.set_auto_attack)
+	for pair in [["SETTINGS_TEXT_SIZE", _text_size, "TextSizeRow"], ["SETTINGS_FLASHES", _flashes, "FlashesRow"],
+			["SETTINGS_AUTO_ATTACK", _auto_attack, "AutoAttackRow"]]:
 		var row := _row(pair[0], pair[1])
 		row.name = pair[2]
 		box.add_child(row)
