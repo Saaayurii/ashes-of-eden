@@ -45,6 +45,7 @@ func _ready() -> void:
 			continue
 		_characters.append(id)
 	_character = maxi(0, _characters.find(str(Profile.data.get("menu_character", HERO))))
+	_show_version()
 	%Prev.pressed.connect(_turn_character.bind(-1))
 	%Next.pressed.connect(_turn_character.bind(1))
 	_show_character()
@@ -216,3 +217,17 @@ func _show_character() -> void:
 func _place_character_select() -> void:
 	var under := layers.to_global(FIGURE_FEET + Vector2(0, 6))
 	character_select.position = under - Vector2(character_select.size.x / 2.0, 0)
+
+
+## The build's version in a corner (application/config/version), so a bug
+## report or a screenshot says which alpha it came from.
+func _show_version() -> void:
+	var label := Label.new()
+	label.name = "Version"
+	label.text = "v" + str(ProjectSettings.get_setting("application/config/version", ""))
+	label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	label.add_theme_font_size_override("font_size", 8)
+	label.add_theme_color_override("font_color", Color(0.6, 0.57, 0.62, 0.7))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(label)
+	label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 4)

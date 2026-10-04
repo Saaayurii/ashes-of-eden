@@ -12,7 +12,7 @@
 ![Языки](https://img.shields.io/badge/языки-EN%20·%20RU%20·%20UK%20·%20ZH-lightgrey.svg)
 ![Платформы](https://img.shields.io/badge/платформы-Windows%20·%20Linux%20·%20macOS%20·%20Web%20·%20Android-lightgrey.svg)
 
-**[▶ Играть в браузере](https://saaayurii.github.io/ashes-of-eden/)** · [APK для Android](https://github.com/Saaayurii/ashes-of-eden/actions/workflows/mobile.yml) (debug-подпись, из Actions)
+**[▶ Играть в браузере](https://saaayurii.github.io/ashes-of-eden/)** · [Скачать альфу](https://github.com/Saaayurii/ashes-of-eden/releases) (Windows · Linux · macOS · APK для Android)
 
 [README in English](README.md) · [Дизайн-документ](docs/GDD.md) · [Планы](docs/ROADMAP.md) · [Как помочь](CONTRIBUTING.md)
 
@@ -28,10 +28,11 @@
 история внутри, для тех, кому она нужна. Игру можно пройти, не прочитав ни слова, и она всё
 равно будет о чём-то.
 
-> **Статус — прототип, `v0.1.0-dev`.** Проходится от начала до конца: 15 комнат в 8 областях,
-> 14 видов врагов, включая мини-босса и босса с двумя фазами, 36 даров, 13 диалоговых деревьев
-> с ветвлением, которое мир запоминает, четыре языка, онлайн-кооп и дуэль один на один
-> с кроссплатформенностью. Чего пока нет — [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Статус — альфа, `v0.1.0-alpha.1`.** Глава I проходится от начала до конца: 15 комнат в 8 областях
+> с двумя развилками, 17 видов врагов с элитами и аффиксами, мини-босс и босс, 47 даров и 16
+> резонансов, 37 диалоговых деревьев, которые мир запоминает, четыре языка, онлайн-кооп и дуэль
+> один на один с кроссплатформенностью. Шероховатости будут — [пишите о них](https://github.com/Saaayurii/ashes-of-eden/issues).
+> Чего пока нет — [docs/ROADMAP.md](docs/ROADMAP.md).
 
 **Бесплатно. Open source. Без pay-to-win. Без лутбоксов.** — [как игра зарабатывает](docs/MONETIZATION.md)
 

@@ -6,6 +6,11 @@ Tag a version and CI does the rest:
 git tag v0.1.0 && git push origin v0.1.0
 ```
 
+A tag with a hyphen — `v0.1.0-alpha.1`, `v0.2.0-beta.1` — is published as a **pre-release**.
+`docs/releases/<tag>.md`, if it exists, is the release's text (the generated commit list follows).
+Bump `application/config/version` in `project.godot` (shown in the main menu's corner) and the
+Android `version/name` in `export_presets.cfg` before tagging.
+
 That runs `.github/workflows/release.yml` (Windows, Linux, macOS, Web, attached to the GitHub
 release) and `.github/workflows/mobile.yml` (Android, and iOS when it can be built). `pages.yml`
 has already put the Web build at https://saaayurii.github.io/ashes-of-eden/ from `main`.

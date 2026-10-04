@@ -71,6 +71,17 @@ jobs:
             exit 1
           fi
 
+      # What search engines and phones ask for beside the game (robots.txt,
+      # sitemap.xml, manifest, icons, the link preview, verification files):
+      # tools/web/make_site.py writes them, docs/SEO.md says why.
+      - name: Add the site files
+        # build/web was written by the container, as root.
+        run: |
+          set -eux
+          sudo cp -r tools/web/site/. build/web/
+          sudo rm -f build/web/.gdignore
+          ls build/web
+
       # The browser needs to know what a .pck and a .wasm are; Pages gets this
       # right for .wasm and serves .pck as octet-stream, which is what we want.
       - name: Upload

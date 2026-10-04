@@ -82,12 +82,24 @@ jobs:
           name: builds
           path: dist/*
 
+      # docs/releases/<tag>.md, when it exists, is the release's text; the
+      # generated list of commits follows it. A tag with a hyphen
+      # (v0.1.0-alpha.1, v0.2.0-beta.2) is a pre-release, not "Latest".
+      - name: Release notes
+        id: notes
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          notes="docs/releases/${GITHUB_REF_NAME}.md"
+          if [ -f "$notes" ]; then echo "path=$notes" >> "$GITHUB_OUTPUT"; fi
+
       - name: GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
+          body_path: ${{ steps.notes.outputs.path }}
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
 
 
   sign-macos:

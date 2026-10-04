@@ -29,14 +29,73 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
-	<title>Ashes of Eden</title>
-	<meta name="description" content="An open-source 2D pixel action roguelite about a human soul that neither Heaven nor the Abyss can claim.">
+	<title>Ashes of Eden — dark pixel action roguelite, free in your browser</title>
+	<meta name="description" content="Ashes of Eden: a free, open-source 2D pixel action roguelite. A hanged man rises in a cursed graveyard; Heaven and the Abyss both want his soul. Play in the browser on PC, phone or tablet. English, Русский, Українська, 中文.">
+	<meta name="keywords" content="Ashes of Eden, roguelite, roguelike, pixel art, action, platformer, metroidvania, dark fantasy, browser game, free game, open source, Godot, играть онлайн, бесплатная игра, рогалик, пиксельная игра, браузерная игра">
+	<meta name="author" content="Ashes of Eden contributors">
+	<meta name="robots" content="index, follow, max-image-preview:large">
+	<link rel="canonical" href="https://saaayurii.github.io/ashes-of-eden/">
 	<meta name="theme-color" content="#0d0c0b">
-	<meta property="og:title" content="Ashes of Eden">
-	<meta property="og:description" content="They hanged Elian and buried him outside the fence. He got up anyway.">
+	<meta name="color-scheme" content="dark">
+	<!-- "Add to Home Screen" opens the game without the browser around it:
+	     the only full screen an iPhone's Safari gives a page. -->
+	<link rel="manifest" href="manifest.webmanifest">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="Ashes of Eden">
+	<!-- Search consoles: paste the verification code into content="" (or drop
+	     their HTML file into tools/web/site/), see docs/SEO.md. -->
+	<meta name="google-site-verification" content="">
+	<meta name="yandex-verification" content="">
+	<meta property="og:site_name" content="Ashes of Eden">
+	<meta property="og:title" content="Ashes of Eden — play free in your browser">
+	<meta property="og:description" content="They hanged Elian and buried him outside the fence. He got up anyway. A dark 2D pixel action roguelite, open source.">
 	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://saaayurii.github.io/ashes-of-eden/">
+	<meta property="og:image" content="https://saaayurii.github.io/ashes-of-eden/og.jpg">
+	<meta property="og:image:width" content="1024">
+	<meta property="og:image:height" content="500">
+	<meta property="og:image:alt" content="Elian in the moonlit graveyard of Ashes of Eden">
+	<meta property="og:locale" content="en_US">
+	<meta property="og:locale:alternate" content="ru_RU">
+	<meta property="og:locale:alternate" content="uk_UA">
+	<meta property="og:locale:alternate" content="zh_CN">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Ashes of Eden — play free in your browser">
+	<meta name="twitter:description" content="A dark 2D pixel action roguelite about a soul neither Heaven nor the Abyss can claim.">
+	<meta name="twitter:image" content="https://saaayurii.github.io/ashes-of-eden/og.jpg">
 	<link id="-gd-engine-icon" rel="icon" type="image/png" href="$GODOT_PROJECT_NAME.icon.png">
-	<link rel="apple-touch-icon" href="$GODOT_PROJECT_NAME.apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+	<link rel="apple-touch-icon" href="apple-touch-icon.png">
+	<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "VideoGame",
+		"name": "Ashes of Eden",
+		"url": "https://saaayurii.github.io/ashes-of-eden/",
+		"description": "A free, open-source 2D pixel action roguelite. A hanged man rises in a cursed graveyard, and Heaven and the Abyss both want his soul. Every night a new hand of gifts; the path he leans to changes the world and the ending.",
+		"image": "https://saaayurii.github.io/ashes-of-eden/og.jpg",
+		"screenshot": [
+			"https://saaayurii.github.io/ashes-of-eden/screens/graveyard.webp",
+			"https://saaayurii.github.io/ashes-of-eden/screens/boss-knight.webp",
+			"https://saaayurii.github.io/ashes-of-eden/screens/swamp.webp",
+			"https://saaayurii.github.io/ashes-of-eden/screens/hell-gate.webp",
+			"https://saaayurii.github.io/ashes-of-eden/screens/village.webp"
+		],
+		"genre": ["Action", "Roguelite", "Platformer", "Dark fantasy"],
+		"gamePlatform": ["Web browser", "Windows", "macOS", "Linux", "Android"],
+		"applicationCategory": "Game",
+		"operatingSystem": "Any (web browser)",
+		"playMode": ["SinglePlayer", "CoOp", "MultiPlayer"],
+		"inLanguage": ["en", "ru", "uk", "zh-CN"],
+		"isAccessibleForFree": true,
+		"offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+		"license": "https://github.com/saaayurii/ashes-of-eden",
+		"sameAs": ["https://github.com/saaayurii/ashes-of-eden"],
+		"author": {"@type": "Organization", "name": "Ashes of Eden contributors", "url": "https://github.com/saaayurii/ashes-of-eden"}
+	}
+	</script>
 	<style>
 		:root {
 			--ash: #0d0c0b;
@@ -50,6 +109,7 @@
 		* { box-sizing: border-box; }
 		html, body {
 			margin: 0; padding: 0; height: 100%;
+			height: 100dvh;
 			background: var(--ash);
 			color: var(--bone);
 			font-family: Georgia, "Times New Roman", serif;
@@ -67,9 +127,9 @@
 		#canvas:focus { outline: none; }
 
 		#gate {
-			position: fixed; inset: 0; overflow: hidden;
+			position: fixed; inset: 0; overflow: hidden auto;
 			display: flex; flex-direction: column;
-			align-items: center; justify-content: center;
+			align-items: center; justify-content: safe center;
 			gap: 1rem; padding: 2rem 1.5rem;
 			text-align: center;
 			transition: opacity .5s ease;
@@ -99,7 +159,9 @@
 					rgba(13,12,11,0) 26%, rgba(13,12,11,0) 58%,
 					rgba(13,12,11,.92) 100%);
 		}
-		#gate > *:not(#art):not(#veil) { position: relative; }
+		/* A short screen scrolls the gate rather than squashing what is on it
+		   (a flex column shrinks its children; Elian lost his legs to it). */
+		#gate > *:not(#art):not(#veil) { position: relative; flex-shrink: 0; }
 
 		h1 {
 			margin: 0; font-weight: normal;
@@ -182,6 +244,52 @@
 			text-shadow: 0 1px 3px rgba(0,0,0,.9);
 		}
 
+		/* Full screen, always one tap away: top right, over the game as well
+		   as the gate, gone while the page already fills the screen. A
+		   browser that cannot (an iPhone's Safari) gets the way that works
+		   there instead: Share → Add to Home Screen. */
+		#full {
+			position: fixed; z-index: 10;
+			top: max(.6rem, env(safe-area-inset-top));
+			right: max(.6rem, env(safe-area-inset-right));
+			width: 2.6rem; height: 2.6rem; padding: 0;
+			display: flex; align-items: center; justify-content: center;
+			color: var(--gold); background: rgba(13, 12, 11, .62);
+			border: 1px solid rgba(232, 200, 122, .45); border-radius: 4px;
+			box-shadow: none; opacity: .9;
+			transition: opacity .4s ease;
+		}
+		#full svg { width: 1.3rem; height: 1.3rem; }
+		#full:hover:not(:disabled) { transform: none; opacity: 1; box-shadow: none; }
+		/* Over the game it steps back, so it does not sit on the HUD's minimap. */
+		body.playing #full { opacity: .35; }
+		body.playing #full:hover, body.playing #full:focus-visible { opacity: 1; }
+		body.fullscreen #full { display: none; }
+		#tip {
+			position: fixed; z-index: 10;
+			top: calc(max(.6rem, env(safe-area-inset-top)) + 3.1rem);
+			right: max(.6rem, env(safe-area-inset-right));
+			max-width: 17rem; margin: 0; padding: .6rem .8rem;
+			font-size: .85rem; line-height: 1.45; text-align: left;
+			background: rgba(13, 12, 11, .92); color: var(--bone);
+			border: 1px solid rgba(232, 200, 122, .35); border-radius: 4px;
+		}
+		/* What the game is, in words a search engine and a stranger can read
+		   before pressing anything: the gate is the whole page until then. */
+		#about {
+			max-width: 36rem; margin: .4rem 0 0;
+			font-size: .74rem; line-height: 1.5; color: var(--dim);
+			text-shadow: 0 1px 3px rgba(0,0,0,.95);
+		}
+		#about p { margin: .2rem 0; }
+		#about a { color: var(--gold); }
+		/* A phone on its side: room for a line of words and a small figure. */
+		@media (max-height: 520px) {
+			#about { display: none; }
+			#gate { gap: .55rem; padding: 1rem 1.5rem; }
+			#gate #elian { transform: scale(.4); height: calc(var(--ch) * .4); }
+		}
+
 		/* A phone in portrait has room for the figure or for the words, not
 		   both at full size. The figure gives way. */
 		@media (max-height: 720px), (max-width: 520px) {
@@ -214,7 +322,24 @@
 		<p class="note" id="note">Loading…</p>
 		<button id="play" disabled>Play</button>
 		<p class="warn" id="warn" hidden></p>
+		<section id="about">
+			<p>A free, open-source 2D pixel action roguelite. Fight through a cursed
+				village, graveyard, swamp and crypts; pick a gift each night and lean
+				toward grace, temptation or will. Keyboard, gamepad or touch.</p>
+			<p lang="ru">Бесплатный пиксельный экшен-рогалик с открытым кодом: повешенный
+				встаёт из могилы, а Небо и Бездна спорят за его душу. Играйте прямо
+				в браузере — на компьютере, телефоне или планшете.</p>
+			<p><a href="https://github.com/saaayurii/ashes-of-eden">Source, downloads and credits on GitHub</a></p>
+		</section>
 	</div>
+
+	<button id="full" type="button" aria-label="Full screen" title="Full screen">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+			stroke-linecap="square" aria-hidden="true">
+			<path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6"/>
+		</svg>
+	</button>
+	<p id="tip" hidden></p>
 
 	<script src="$GODOT_URL"></script>
 	<script>
@@ -225,6 +350,60 @@
 		const warn = document.getElementById("warn");
 
 		const GAME = new Engine($GODOT_CONFIG);
+		const full = document.getElementById("full");
+		const tip = document.getElementById("tip");
+		const canvas = document.getElementById("canvas");
+
+		// Full screen. A phone or tablet should not have to find it: the Play
+		// click asks for it, since a browser grants it only inside a gesture.
+		// The corner button asks again after Esc or a rotated tablet left it.
+		// An iPhone's Safari has no full screen for a page at all; the home
+		// screen shortcut (manifest.webmanifest) is the way there.
+		const root = document.documentElement;
+		const canFull = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+		const standalone = window.matchMedia("(display-mode: fullscreen)").matches ||
+			window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+		const touch = window.matchMedia("(pointer: coarse)").matches;
+
+		function isFull() {
+			return standalone || !!(document.fullscreenElement || document.webkitFullscreenElement);
+		}
+		function showState() {
+			document.body.classList.toggle("fullscreen", isFull());
+			if (isFull()) { tip.hidden = true; }
+		}
+		function goFull() {
+			if (isFull()) { return; }
+			if (!canFull) {
+				tip.textContent = /^ru|^uk/.test(navigator.language || "")
+					? "На iPhone игра открывается на весь экран с иконки: «Поделиться» → «На экран „Домой“»."
+					: "On an iPhone the game goes full screen from its icon: Share → Add to Home Screen.";
+				tip.hidden = !tip.hidden;
+				return;
+			}
+			const asked = root.requestFullscreen
+				? root.requestFullscreen({navigationUI: "hide"})
+				: root.webkitRequestFullscreen();
+			Promise.resolve(asked).then(() => {
+				// Phones play sideways. Refused outside full screen and on
+				// desktops, which is fine: nothing depends on it.
+				if (touch && screen.orientation && screen.orientation.lock) {
+					screen.orientation.lock("landscape").catch(() => {});
+				}
+				// Chrome lets the game keep Esc (its pause key) instead of
+				// spending it on leaving full screen; a long press still leaves.
+				if (navigator.keyboard && navigator.keyboard.lock) {
+					navigator.keyboard.lock(["Escape"]).catch(() => {});
+				}
+			}).catch(() => {});
+		}
+		document.addEventListener("fullscreenchange", showState);
+		document.addEventListener("webkitfullscreenchange", showState);
+		showState();
+		full.addEventListener("click", () => {
+			goFull();
+			canvas.focus();
+		});
 
 		function mb(bytes) { return (bytes / 1048576).toFixed(0); }
 
@@ -253,6 +432,9 @@
 			play.focus();
 
 			play.addEventListener("click", () => {
+				// The game takes the whole screen at once, on any device that can;
+				// the corner button brings it back after Esc or a tab switch.
+				if (canFull) { goFull(); }
 				play.disabled = true;
 				gate.classList.add("loading");
 				note.textContent = "Loading…";
@@ -266,7 +448,8 @@
 					fill.style.width = "100%";
 					gate.classList.add("gone");
 					setTimeout(() => gate.remove(), 560);
-					document.getElementById("canvas").focus();
+					document.body.classList.add("playing");
+					canvas.focus();
 				}).catch((err) => {
 					fatal("The game could not start: " + err);
 				});

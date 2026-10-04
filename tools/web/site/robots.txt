@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://saaayurii.github.io/ashes-of-eden/sitemap.xml
