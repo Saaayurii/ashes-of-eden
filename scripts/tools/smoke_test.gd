@@ -129,8 +129,15 @@ func _check_transition(run, data) -> void:
 	_assert(transition.get_node("%Title").text != "" and transition.get_node("%Chapter").text != "",
 		"the card names the chapter and the place (%s / %s)"
 		% [transition.get_node("%Chapter").text, transition.get_node("%Title").text])
+	_assert(not transition.get_node("%PassageArt").visible,
+		"graveyard card does not reuse the swamp threshold")
 	_assert(transition._progress() < 0.01 and not transition.visible, "the curtain opens again")
 	_assert(not transition.active, "the controls come back")
+	var swamp: Dictionary = data.chapter_for("res://scenes/rooms/swamp_moon.tscn")
+	await transition.cover(swamp, true)
+	await transition.reveal(swamp, true)
+	_assert(transition.get_node("%PassageArt").visible and transition.get_node("%PassageArt").texture != null,
+		"swamp card has its own painted threshold")
 	transition.instant = true
 
 

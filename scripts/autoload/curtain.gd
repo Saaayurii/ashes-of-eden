@@ -50,6 +50,11 @@ const HANDOVER := 5.0
 ## The card before a scene the room is about to play: name the place and get
 ## out of the way, the scene is the thing.
 const BEFORE_SCENE_HOLD := 0.35
+## A painted threshold appears only when entering a new place, not between
+## every two rooms of the same chapter. Keep gameplay geometry separate.
+const PASSAGE_ART := {
+	"swamp": preload("res://assets/ui/transitions/graveyard_to_swamp.png"),
+}
 
 ## No curtain, no card, no waiting: _load_room stays synchronous. On by default
 ## under a tool script (godot -s ...), which drives the game with nobody
@@ -75,6 +80,7 @@ var _brisk := false
 
 @onready var ash: ColorRect = %Ash
 @onready var card: Control = %Card
+@onready var passage_art: TextureRect = %PassageArt
 @onready var embers: CPUParticles2D = %Embers
 @onready var chapter_label: Label = %Chapter
 @onready var rule: ColorRect = %Rule
@@ -99,6 +105,7 @@ func _ready() -> void:
 	_title_home = title.position.y
 	_set_progress(0.0)
 	card.modulate.a = 0.0
+	passage_art.visible = false
 	line.modulate.a = 0.0
 	embers.emitting = false
 	visible = false
@@ -202,6 +209,10 @@ func change_scene(path := "", keep_closed := false, while_black := Callable()) -
 
 
 func _play_card(chapter: Dictionary) -> void:
+	var chapter_id := str(chapter.get("id", ""))
+	passage_art.visible = PASSAGE_ART.has(chapter_id)
+	if passage_art.visible:
+		passage_art.texture = PASSAGE_ART[chapter_id]
 	chapter_label.text = tr(str(chapter.get("chapter", "")))
 	title.text = tr(str(chapter.get("title", "")))
 	epigraph.text = tr(str(chapter.subtitle)) if chapter.has("subtitle") else ""
