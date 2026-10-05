@@ -38,7 +38,7 @@ const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spiri
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
 const CUTSCENE_STEPS := {
 	"hold": [], "release": [], "letterbox": [], "wait": ["time"], "camera": [],
-	"title": [], "flash": [], "fx": ["kind"],
+	"title": [], "flash": [], "fx": ["kind"], "presence": [],
 	"move": ["who"], "walk": ["who"], "anim": ["who", "anim"], "face": ["who", "dir"],
 	"dialogue": ["id"], "shake": [], "sound": ["name"], "music": ["name"], "fade": ["to"],
 	"appear": ["who"], "vanish": ["who"], "panel": ["image"], "panel_clear": [],

@@ -1,47 +1,17 @@
 {
   "id": "church_matthew",
   "steps": [
-    {
-      "do": "hold"
-    },
-    {
-      "do": "letterbox",
-      "on": true,
-      "time": 0.4
-    },
-    {
-      "do": "sound",
-      "name": "bell",
-      "volume": -6
-    },
-    {
-      "do": "camera",
-      "to": "npc:matthew",
-      "zoom": 1.25,
-      "time": 1.4
-    },
-    {
-      "do": "wait",
-      "time": 1.4
-    },
-    {
-      "do": "sound",
-      "name": "bell",
-      "volume": -9
-    },
-    {
-      "do": "camera",
-      "to": "player",
-      "zoom": 1.0,
-      "time": 1.0
-    },
-    {
-      "do": "letterbox",
-      "on": false,
-      "time": 0.3
-    },
-    {
-      "do": "release"
-    }
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.4},
+    {"do": "sound", "name": "bell", "volume": -6},
+    {"do": "flash", "color": "#f0dcb0", "strength": 0.18, "time": 1.2},
+    {"do": "camera", "to": "npc:matthew", "zoom": 1.7, "offset": [0, -8], "time": 1.6},
+    {"do": "fx", "kind": "light", "at": "npc:matthew", "offset": [0, -18], "color": "#ffcf8a", "radius": 70, "time": 2.2, "energy": 0.8},
+    {"do": "wait", "time": 1.4},
+    {"do": "sound", "name": "bell", "volume": -9},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 1.0},
+    {"do": "walk", "who": "player", "by": [36, 0], "time": 0.8},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
   ]
 }

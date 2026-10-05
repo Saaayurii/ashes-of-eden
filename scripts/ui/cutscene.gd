@@ -71,6 +71,14 @@ var _cinema_tweens := {}
 var _cast := {}
 var _shot_zoom := 1.0
 var _shot_tween: Tween
+## Something in the dark (the "presence" step): a glow above the fade, pinned
+## to a point in the room, breathing.
+var _presence: TextureRect
+var _presence_at := Vector2.ZERO
+var _presence_strength := 0.0
+var _presence_clock := 0.0
+## Two slits in the glow's heart, so it reads as somebody, not a lamp.
+var _presence_eyes: TextureRect
 
 
 func _ready() -> void:
@@ -88,6 +96,16 @@ func _ready() -> void:
 	_fade.mouse_filter = MOUSE_FILTER_IGNORE
 	_fade.set_anchors_preset(PRESET_FULL_RECT)
 	add_child(_fade)
+	_presence = TextureRect.new()
+	_presence.mouse_filter = MOUSE_FILTER_IGNORE
+	_presence.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_presence.visible = false
+	add_child(_presence)
+	_presence_eyes = TextureRect.new()
+	_presence_eyes.mouse_filter = MOUSE_FILTER_IGNORE
+	_presence_eyes.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_presence_eyes.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_presence.add_child(_presence_eyes)
 	_flash = ColorRect.new()
 	_flash.color = Color(1, 1, 1, 0)
 	_flash.mouse_filter = MOUSE_FILTER_IGNORE
@@ -221,6 +239,11 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if _presence.visible:
+		_presence_clock += delta
+		var screen := get_viewport().get_canvas_transform() * _presence_at
+		_presence.position = screen - _presence.size / 2.0
+		_presence.modulate.a = _presence_strength * (0.72 + 0.28 * sin(_presence_clock * 2.1))
 	if _skip_armed > 0.0:
 		_skip_armed -= delta
 		if _skip_armed <= 0.0:
@@ -323,6 +346,7 @@ func clear() -> void:
 ## What a beat can leave on screen: a title, a flash, a cast on the camera.
 func _reset_beats() -> void:
 	_title.visible = false
+	_presence.visible = false
 	_flash.color.a = 0.0
 	_cast.clear()
 	_skip_armed = 0.0
@@ -421,6 +445,8 @@ func _run(step: Dictionary, instant: bool) -> void:
 		"flash":
 			if not instant:
 				_flash_screen(step)
+		"presence":
+			_set_presence(step, seconds, instant)
 		"fx":
 			if not instant:
 				_burst(step)
@@ -530,6 +556,55 @@ func _flash_screen(step: Dictionary) -> void:
 	_flash.color = Color(Color(str(step.get("color", "#ffffff"))), strength)
 	var tween := _tween()
 	tween.tween_property(_flash, "color:a", 0.0, float(step.get("time", 0.45))).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+## The dark looks back: a soft glow with a hot core, above the fade (a light
+## in the room would be dimmed with it). "on": false lets it go.
+func _set_presence(step: Dictionary, seconds: float, instant: bool) -> void:
+	if not step.get("on", true):
+		if instant or seconds <= 0.0:
+			_presence.visible = false
+			return
+		var out := _tween()
+		out.tween_property(self, "_presence_strength", 0.0, seconds)
+		out.tween_callback(func() -> void: _presence.visible = false)
+		return
+	_presence_at = _position_of(step.get("at", "player"))
+	var offset: Array = step.get("offset", [0, 0])
+	_presence_at += Vector2(float(offset[0]), float(offset[1]))
+	var color := Color(str(step.get("color", "#c0181a")))
+	var radius := float(step.get("radius", 60.0))
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, 0.12, 0.45, 1.0])
+	gradient.colors = PackedColorArray([color.lightened(0.5), color, Color(color, 0.35), Color(color, 0.0)])
+	var glow := GradientTexture2D.new()
+	glow.gradient = gradient
+	glow.fill = GradientTexture2D.FILL_RADIAL
+	glow.fill_from = Vector2(0.5, 0.5)
+	glow.fill_to = Vector2(1.0, 0.5)
+	glow.width = 64
+	glow.height = 64
+	_presence.texture = glow
+	_presence.size = Vector2.ONE * radius * 2.0
+	var eyes := Image.create(14, 3, false, Image.FORMAT_RGBA8)
+	var hot := color.lightened(0.75)
+	for x in [2, 3, 10, 11]:
+		eyes.set_pixel(x, 1, hot)
+	for x in [1, 4, 9, 12]:
+		eyes.set_pixel(x, 1, Color(hot, 0.55))  # slits, narrowing at the ends
+	_presence_eyes.texture = ImageTexture.create_from_image(eyes)
+	_presence_eyes.size = Vector2(28, 6)
+	_presence_eyes.position = _presence.size / 2.0 - _presence_eyes.size / 2.0
+	_presence_eyes.visible = step.get("eyes", true)
+	_presence.visible = true
+	_presence_clock = 0.0
+	var strength := float(step.get("strength", 0.8))
+	if instant or seconds <= 0.0:
+		_presence_strength = strength
+		return
+	_presence_strength = 0.0
+	var tween := _tween()
+	tween.tween_property(self, "_presence_strength", strength, seconds)
 
 
 ## A one-shot effect at an actor or a point, through Fx like everything else.
