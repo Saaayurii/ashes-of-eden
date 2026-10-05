@@ -25,6 +25,9 @@
     {"do": "dialogue", "id": "ch1_finale_grace", "path": "grace"},
     {"do": "dialogue", "id": "ch1_finale_temptation", "path": "temptation"},
     {"do": "dialogue", "id": "ch1_finale_will", "path": "will"},
+    {"do": "fade", "to": 0.55, "time": 1.2},
+    {"do": "title", "name": "CHAPTER_I", "subtitle": "CHAPTER_I_END", "time": 2.6, "sound": "bell", "volume": -10},
+    {"do": "fade", "to": 0.0, "time": 1.0},
     {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.9},
     {"do": "letterbox", "on": false, "time": 0.4},
     {"do": "release"}
