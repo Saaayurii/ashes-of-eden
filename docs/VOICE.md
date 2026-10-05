@@ -118,10 +118,15 @@ Two things worth knowing before the first run:
 
 ## Who speaks, and who does not
 
-Sixteen parts are cast. Everyone who carries a scene is voiced in all four
+Seventeen parts are cast. Everyone who carries a scene is voiced in all four
 languages: Elian, the angel, the stranger, the voice in the dark, the blind
-preacher, the Ophanim, Father Matthew, Severin, the Knight of the Watch, the
-narrator, and the three records Elian reads out of the caches.
+preacher, the Knight of Ash, the Ophanim, Father Matthew, Severin, the Knight
+of the Watch, the narrator, and the three records Elian reads out of the caches.
+
+Loudness is set per part by `gain_db`, not left to the model: a line should land
+near −24 dB mean and −4 dB peak (`ffmpeg -af volumedetect`) like its neighbours.
+The preacher's model, slowed and pitched, came out twelve decibels under the rest
+and was barely audible under the nave's music until its `gain_db` said so.
 
 **Sister Agnes, Mara and the crone are English and Ukrainian only.** That is
 the licence rule again rather than a choice. Piper's clean-licensed voices are
