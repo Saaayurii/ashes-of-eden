@@ -171,6 +171,8 @@ const SLAM_RECOVERY := 0.22
 ## Not a climb: gravity still wins, only slowly, and only while the stick is
 ## held into the wall.
 const WALL_SLIDE_SPEED := 72.0
+## A cursor this close to him, sideways, does not turn him (Settings.mouse_aims).
+const AIM_DEADZONE := 6.0
 ## A push off the wall, away and up. It costs the air jump it hands back, so a
 ## wall is a second chance rather than unlimited height.
 const WALL_JUMP_PUSH := 230.0
@@ -384,6 +386,24 @@ const AUTO_REACH := 46.0
 const AUTO_HEIGHT := 30.0
 
 
+## The mouse scheme (Settings.mouse_aims): a swing, a cast and a guard turn
+## to the cursor. Not mid-roll (the dash strike keeps the roll's way), not
+## while a wall jump has the steering locked, and only for our own body.
+func _aim_at_cursor() -> void:
+	if Settings.mouse_aims() and _is_mine():
+		_aim_at(get_global_mouse_position().x)
+
+
+func _aim_at(x: float) -> void:
+	if _dash_left > 0.0 or _turn_lock_left > 0.0 or absf(x - global_position.x) < AIM_DEADZONE:
+		return
+	var side := 1 if x > global_position.x else -1
+	if side != facing:
+		facing = side
+		body.flip_h = facing < 0
+		hitbox.scale.x = facing * stats.attack_scale
+
+
 func _auto_swing() -> bool:
 	if not Settings.auto_attack or not _is_mine() or _attack_cd > 0.0 or _charging or _blocking \
 			or _dash_left > 0.0 or _scripted_left > 0.0 or _dead:
@@ -537,6 +557,7 @@ func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
 	_skill_cd = maxf(0.0, _skill_cd - delta)
 	if controls_enabled and not skill.is_empty() and _skill_cd <= 0.0 and Input.is_action_just_pressed("skill"):
+		_aim_at_cursor()
 		_cast_skill()
 	_burn_left = maxf(0.0, _burn_left - delta)
 	if on_floor and _burn_left <= 0.0:
@@ -623,6 +644,8 @@ func _physics_process(delta: float) -> void:
 	elif not wants_block and _blocking:
 		_lower_block()
 	_block_was_down = block_down
+	if _blocking:
+		_aim_at_cursor()  # the guard faces the cursor, whichever way he steps
 
 	# --- horizontal ---
 	if _dash_left > 0.0:
@@ -653,6 +676,8 @@ func _physics_process(delta: float) -> void:
 			if _blocking:
 				_lower_block()  # the riposte: straight out of the block into the swing
 			var technique := _technique_for_press(on_floor)
+			if technique != "lunge":  # the lunge goes the way the taps said
+				_aim_at_cursor()
 			if technique != "":
 				_technique(technique)
 			else:

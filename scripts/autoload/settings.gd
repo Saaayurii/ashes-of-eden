@@ -12,7 +12,28 @@ const PATH := "user://settings.cfg"
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const BUSES := ["Master", "Music", "SFX"]
 ## Actions the player may rebind, in menu order.
-const BINDABLE_ACTIONS := ["move_left", "move_right", "jump", "attack", "block", "dash", "heal", "skill", "interact", "pause"]
+const BINDABLE_ACTIONS := ["move_left", "move_right", "move_up", "move_down", "jump", "attack", "block", "dash", "heal", "skill", "interact", "pause"]
+## How the hands sit (Settings.control_scheme), in menu order: "keyboard" is
+## the project's own map (both hands on the keys: WASD + J/K/L), "mouse" the
+## left hand on WASD and the right on the mouse — MOUSE_LAYOUT replaces the
+## keyboard and mouse half of the map, the hero turns to the cursor when he
+## swings, casts or guards (mouse_aims), and the cursor is a crosshair in play.
+## Each scheme keeps its own rebinds; a pad and the touch pad are never touched.
+const CONTROL_SCHEMES := ["keyboard", "mouse"]
+## A binding is one int: a key's physical keycode, or minus a mouse button's
+## index (MOUSE_BUTTON_LEFT = 1 → -1). The first of an action's list is the one
+## a prompt names and the one a rebind replaces.
+const MOUSE_LAYOUT := {
+	"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
+	"move_up": [KEY_W, KEY_UP], "move_down": [KEY_S, KEY_DOWN],
+	"jump": [KEY_SPACE, KEY_W], "attack": [-MOUSE_BUTTON_LEFT], "block": [-MOUSE_BUTTON_RIGHT],
+	"dash": [KEY_SHIFT], "heal": [KEY_R], "skill": [KEY_Q, -MOUSE_BUTTON_MIDDLE],
+	"interact": [KEY_E], "pause": [KEY_ESCAPE],
+}
+## Mouse buttons a binding may use: not the wheel, whose "press" has no release.
+const MOUSE_BINDABLE := [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_XBUTTON1, MOUSE_BUTTON_XBUTTON2]
+const MOUSE_NAMES := {MOUSE_BUTTON_LEFT: "MOUSE_LEFT", MOUSE_BUTTON_RIGHT: "MOUSE_RIGHT", MOUSE_BUTTON_MIDDLE: "MOUSE_MIDDLE",
+	MOUSE_BUTTON_XBUTTON1: "MOUSE_BACK", MOUSE_BUTTON_XBUTTON2: "MOUSE_FORWARD"}
 ## Difficulty modes: enemy HP and damage only. Never story or loot (docs/BALANCE.md).
 const DIFFICULTIES := {"pilgrim": [0.8, 0.75], "standard": [1.0, 1.0], "judgment": [1.25, 1.35]}
 ## How much of the curtain between places a player wants to sit through on
@@ -67,8 +88,15 @@ var vibration := true  # phones and tablets: a buzz on a blow taken, a parry, a 
 ## or who simply dislikes it — should not have to mute the SFX bus to be rid
 ## of it. Off leaves the captions exactly as they were.
 var speech := true
-## action -> physical keycode of the primary keyboard key. Gamepad bindings stay as in project.godot.
+var control_scheme := "keyboard"
+## With the mouse scheme: the hero turns to the cursor for a swing, a skill and
+## a guard. Off leaves the mouse as plain buttons and the stick as the only aim.
+var mouse_aim := true
+## action -> binding (see MOUSE_LAYOUT) of the primary key or button, per
+## scheme: keys for "keyboard", mouse_keys for "mouse". Gamepad bindings stay
+## as in project.godot.
 var keys: Dictionary = {}
+var mouse_keys: Dictionary = {}
 
 
 func _ready() -> void:
@@ -110,9 +138,16 @@ func _ready() -> void:
 	touch_left_handed = bool(cfg.get_value("touch", "left_handed", false))
 	vibration = bool(cfg.get_value("touch", "vibration", true))
 	speech = bool(cfg.get_value("audio", "speech", true))
+	control_scheme = str(cfg.get_value("controls", "scheme", "keyboard"))
+	if not CONTROL_SCHEMES.has(control_scheme):
+		control_scheme = "keyboard"
+	mouse_aim = bool(cfg.get_value("controls", "mouse_aim", true))
 	for action in BINDABLE_ACTIONS:
 		if cfg.has_section_key("keys", action):
 			keys[action] = int(cfg.get_value("keys", action))
+		if cfg.has_section_key("keys_mouse", action):
+			mouse_keys[action] = int(cfg.get_value("keys_mouse", action))
+	_make_crosshair()
 	apply_all()
 
 
@@ -150,8 +185,12 @@ func save() -> void:
 	cfg.set_value("touch", "left_handed", touch_left_handed)
 	cfg.set_value("touch", "vibration", vibration)
 	cfg.set_value("audio", "speech", speech)
+	cfg.set_value("controls", "scheme", control_scheme)
+	cfg.set_value("controls", "mouse_aim", mouse_aim)
 	for action in keys:
 		cfg.set_value("keys", action, keys[action])
+	for action in mouse_keys:
+		cfg.set_value("keys_mouse", action, mouse_keys[action])
 	cfg.save(PATH)
 
 
@@ -350,17 +389,81 @@ func set_lighting(enabled: bool) -> void:
 
 ## Replaces the keyboard binding of an action with one physical key.
 func bind_key(action: String, physical_keycode: int) -> void:
-	keys[action] = physical_keycode
+	bind(action, physical_keycode)
+
+
+## Rebinds [param action] in the scheme in hand to one key (a physical keycode)
+## or mouse button (minus its index). Another bindable action that had it as
+## its primary gets this one's old primary instead, so no two actions ever
+## fight over a key and nothing is left unbound.
+func bind(action: String, binding: int) -> void:
+	if binding == 0 or (binding < 0 and not MOUSE_BINDABLE.has(-binding)):
+		return
+	var map := overrides()
+	var old := primary(action)
+	for other in BINDABLE_ACTIONS:
+		if other != action and primary(other) == binding and old != 0:
+			map[other] = old
+	map[action] = binding
 	_apply_keys()
 	save()
 	changed.emit()
 
 
+## The binding a key or button press would make (see MOUSE_LAYOUT), or 0 for
+## an event a binding cannot use (the wheel, a pad, a key with no position).
+static func binding_of(event: InputEvent) -> int:
+	if event is InputEventKey:
+		var key := event as InputEventKey
+		return int(key.physical_keycode) if key.physical_keycode != KEY_NONE else int(key.keycode)
+	if event is InputEventMouseButton and MOUSE_BINDABLE.has((event as InputEventMouseButton).button_index):
+		return -int((event as InputEventMouseButton).button_index)
+	return 0
+
+
+## The first key or mouse button of an action as the map stands, or 0.
+func primary(action: String) -> int:
+	if not InputMap.has_action(action):
+		return 0
+	for event in InputMap.action_get_events(action):
+		var binding := binding_of(event)
+		if binding != 0:
+			return binding
+	return 0
+
+
+## The rebinds of the scheme in hand.
+func overrides() -> Dictionary:
+	return mouse_keys if control_scheme == "mouse" else keys
+
+
+## Back to the scheme's own layout (only the scheme in hand).
 func reset_keys() -> void:
-	keys.clear()
+	overrides().clear()
 	_apply_keys()
 	save()
 	changed.emit()
+
+
+func set_control_scheme(scheme: String) -> void:
+	if not CONTROL_SCHEMES.has(scheme):
+		return
+	control_scheme = scheme
+	_apply_keys()
+	save()
+	changed.emit()
+
+
+func set_mouse_aim(enabled: bool) -> void:
+	mouse_aim = enabled
+	save()
+	changed.emit()
+
+
+## Whether the hero turns to the cursor now: the mouse scheme with aiming on,
+## and the player's hand on the keyboard and mouse rather than a pad or glass.
+func mouse_aims() -> bool:
+	return control_scheme == "mouse" and mouse_aim and not using_pad and not touch_enabled()
 
 
 ## Human-readable name of the primary keyboard key of an action.
@@ -370,6 +473,10 @@ const PAD_BUTTONS := ["A", "B", "X", "Y", "View", "Guide", "Menu", "LS", "RS", "
 	"D-Up", "D-Down", "D-Left", "D-Right"]
 ## The device the player last pressed something on (Settings.device_changed).
 var using_pad := false
+
+
+func _process(_delta: float) -> void:
+	_update_cursor()
 
 
 func _input(event: InputEvent) -> void:
@@ -392,14 +499,20 @@ func key_name(action: String, on_pad := true) -> String:
 			if event is InputEventJoypadMotion:
 				var axis := int((event as InputEventJoypadMotion).axis)
 				return "LT" if axis == JOY_AXIS_TRIGGER_LEFT else ("RT" if axis == JOY_AXIS_TRIGGER_RIGHT else ("LS" if axis < 2 else "RS"))
-	for event in InputMap.action_get_events(action):
-		if event is InputEventKey:
-			# headless and the browser cannot map a physical key to the layout's
-			# own letter: the US name of the key is the next best thing
-			if DisplayServer.get_name() == "headless" or OS.has_feature("web"):
-				return OS.get_keycode_string(event.physical_keycode)
-			return OS.get_keycode_string(DisplayServer.keyboard_get_keycode_from_physical(event.physical_keycode))
-	return "—"
+	var binding := primary(action)
+	return binding_name(binding) if binding != 0 else "—"
+
+
+## What a binding is called: a mouse button by its short name, a key by the
+## letter the player's own layout prints on it.
+func binding_name(binding: int) -> String:
+	if binding < 0:
+		return tr(MOUSE_NAMES[-binding]) if MOUSE_NAMES.has(-binding) else "M%d" % -binding
+	# headless and the browser cannot map a physical key to the layout's own
+	# letter: the US name of the key is the next best thing
+	if DisplayServer.get_name() == "headless" or OS.has_feature("web"):
+		return OS.get_keycode_string(binding)
+	return OS.get_keycode_string(DisplayServer.keyboard_get_keycode_from_physical(binding))
 
 
 func _apply_volume(bus: String) -> void:
@@ -417,18 +530,77 @@ func _apply_fullscreen() -> void:
 		DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 
 
-## Project defaults first, then the player's overrides on top.
+## Project defaults first, then the scheme's layout, then the player's
+## rebinds of that scheme on top. Pad events are never touched.
 func _apply_keys() -> void:
 	InputMap.load_from_project_settings()
-	for action in keys:
-		if not InputMap.has_action(action):
-			continue
-		for event in InputMap.action_get_events(action):
-			if event is InputEventKey:
-				InputMap.action_erase_event(action, event)
-		var key := InputEventKey.new()
-		key.physical_keycode = keys[action]
-		InputMap.action_add_event(action, key)
+	if control_scheme == "mouse":
+		for action in MOUSE_LAYOUT:
+			_set_bindings(action, MOUSE_LAYOUT[action])
+	var map := overrides()
+	for action in map:
+		_set_bindings(action, [int(map[action])])
+
+
+## Replaces the key and mouse half of an action with [param bindings], in order.
+func _set_bindings(action: String, bindings: Array) -> void:
+	if not InputMap.has_action(action):
+		return
+	for event in InputMap.action_get_events(action):
+		if event is InputEventKey or event is InputEventMouseButton:
+			InputMap.action_erase_event(action, event)
+	for binding in bindings:
+		var event: InputEvent
+		if int(binding) < 0:
+			var button := InputEventMouseButton.new()
+			button.button_index = (-int(binding)) as MouseButton
+			event = button
+		else:
+			var key := InputEventKey.new()
+			key.physical_keycode = int(binding) as Key
+			event = key
+		event.device = -1  # every keyboard and mouse, as project.godot has them
+		InputMap.action_add_event(action, event)
+
+
+## The crosshair the mouse scheme shows in play (CURSOR_CROSS). Drawn here,
+## pale bone with a dark rim so it reads on the night and on fire alike.
+func _make_crosshair() -> void:
+	if DisplayServer.get_name() == "headless" or OS.has_feature("mobile"):
+		return
+	var size := 21
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var c := size / 2
+	var ink := Color(0.95, 0.88, 0.7)
+	var rim := Color(0.08, 0.05, 0.05, 0.9)
+	for pass_index in 2:
+		var color := rim if pass_index == 0 else ink
+		var grow := 1 if pass_index == 0 else 0
+		for i in range(3, 8):  # four ticks with a gap round the centre
+			for w in range(-grow, grow + 1):
+				for point in [Vector2i(c - i, c + w), Vector2i(c + i, c + w), Vector2i(c + w, c - i), Vector2i(c + w, c + i)]:
+					image.set_pixelv(point, color)
+		for w in range(-grow, grow + 1):
+			for h in range(-grow, grow + 1):
+				image.set_pixel(c + w, c + h, color)
+	Input.set_custom_mouse_cursor(image, Input.CURSOR_CROSS, Vector2(c, c))
+
+
+var _cursor_shape := Input.CURSOR_ARROW
+
+
+## The crosshair stands for the cursor only while a body of ours is ours to
+## steer; menus, dialogue and the pause get the arrow back.
+func _update_cursor() -> void:
+	var shape := Input.CURSOR_ARROW
+	if mouse_aims() and not get_tree().paused:
+		for node in get_tree().get_nodes_in_group("player"):
+			if (not Net.active or node.is_multiplayer_authority()) and bool(node.get("controls_enabled")):
+				shape = Input.CURSOR_CROSS
+				break
+	if shape != _cursor_shape:
+		_cursor_shape = shape
+		Input.set_default_cursor_shape(shape)
 
 
 func _detect_locale() -> String:
