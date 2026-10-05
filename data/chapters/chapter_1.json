@@ -69,7 +69,7 @@
     "title": "AREA_ASHES",
     "subtitle": "AREA_ASHES_SUB",
     "color": "#ff8a4a",
-    "rooms": ["res://scenes/rooms/crypt_lava.tscn"]
+    "rooms": ["res://scenes/rooms/ashes_threshold.tscn", "res://scenes/rooms/crypt_lava.tscn"]
   },
   {
     "id": "gate",

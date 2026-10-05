@@ -34,6 +34,7 @@ const FAR_WINDOWS := {
 	"crypt_threshold": [1],    # the blue cemetery beyond the broken roof
 	"crypt_skulls": [1, 2, 3],   # the drowned city beyond the arches
 	"crypt_lava": [2],           # 1 carries the painted pillar and cage, 3 the lava rock
+	"ashes_threshold": [1],     # blue night outside the left church window
 	"hell_gate": [1, 2, 3],
 }
 
