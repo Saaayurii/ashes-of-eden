@@ -23,6 +23,7 @@ const LAYOUTS := {
 	"graveyard_cross": {"far": [["crypt", .23, .47, 1.7], ["tree", .76, .50, 1.7]], "mid": [["angel", .52, .67, 1.6], ["dead_tree", .91, .70, 1.5]]},
 	"graveyard_arches": {"far": [["arch", .17, .49, 2.1], ["crypt", .83, .50, 1.5]], "mid": [["dead_tree", .41, .66, 1.5], ["monument", .72, .67, 2.0]]},
 	"graveyard_tree": {"far": [["crypt", .25, .49, 1.6], ["arch", .75, .47, 1.8]], "mid": [["tree", .56, .69, 1.45], ["angel", .89, .66, 1.5]]},
+	"swamp_threshold": {"far": [], "mid": []}, # Painted cemetery-to-marsh passage has its own depth.
 	"swamp_moon": {"far": [["tree", .19, .54, 1.9], ["dead_tree", .76, .51, 1.8]], "mid": [["dead_tree", .46, .73, 1.55], ["tree", .88, .71, 1.4]]},
 	"swamp_red": {"far": [["dead_tree", .27, .51, 2.0], ["tree", .81, .53, 1.6]], "mid": [["tree", .52, .74, 1.5], ["dead_tree", .92, .72, 1.35]]},
 	"swamp_crypt": {"far": [["crypt", .20, .51, 1.65], ["dead_tree", .76, .53, 1.8]], "mid": [["grave", .46, .72, 1.7], ["tree", .87, .71, 1.45]]},

@@ -3,6 +3,8 @@ extends SceneTree
 ## walking into a doorway or appearing over a gap.
 
 const PAIRS := [
+	["graveyard_tree", "swamp_threshold"],
+	["swamp_threshold", "swamp_moon"],
 	["swamp_crypt", "catacombs_threshold"],
 	["swamp_red", "catacombs_threshold"],
 	["catacombs_threshold", "catacombs_1"],
@@ -22,6 +24,7 @@ func _run() -> void:
 	for pair in PAIRS:
 		await _check_marker(pair[0], "Door")
 		await _check_marker(pair[1], "PlayerSpawn")
+	await _walk_passage("swamp_threshold")
 	await _walk_passage("catacombs_threshold")
 	await _walk_passage("crypt_threshold")
 	print("CHAPTER_THRESHOLD_%s" % ("OK" if failures == 0 else "FAILED"))

@@ -27,6 +27,7 @@
     "subtitle": "AREA_SWAMP_SUB",
     "color": "#9ec8a8",
     "rooms": [
+      "res://scenes/rooms/swamp_threshold.tscn",
       "res://scenes/rooms/swamp_moon.tscn",
       "res://scenes/rooms/swamp_red.tscn",
       "res://scenes/rooms/swamp_crypt.tscn"

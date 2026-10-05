@@ -12,6 +12,7 @@ const DOORWAYS := {
 	"graveyard_cross": [1225, 1265, 386],   # the arch under the chapel of the statue
 	"graveyard_arches": [1420, 1460, 292],  # the ruined arch with a candle
 	"graveyard_tree": [1495, 1540, 241],    # the arch between the gate pillars
+	"swamp_threshold": [1460, 1550, 363],   # the open arch across the marsh causeway
 	"swamp_moon": [1490, 1540, 413],        # under the gallows with the lantern
 	"swamp_red": [1540, 1580, 255],         # the gap in the ruin past the fence
 	"swamp_crypt": [1280, 1350, 560],       # the crypt door, down its candle stair

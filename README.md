@@ -30,7 +30,7 @@ Side-view, fast and forgiving in the spirit of Dead Cells on the surface; a seri
 ambiguous story underneath for anyone who wants it. You can finish the game without reading a word,
 and it will still have been about something.
 
-> **Status — alpha, `v0.1.0-alpha.1`.** Chapter I is playable start to finish: 17 rooms across 8 areas
+> **Status — alpha, `v0.1.0-alpha.1`.** Chapter I is playable start to finish: 18 rooms across 8 areas
 > with two forks, 17 kinds of enemy with elites and affixes, a mid-boss and a boss, 47 gifts and 16
 > resonances, 37 dialogue trees the world remembers, four languages, online co-op and a 1v1 duel
 > with crossplay. Expect rough edges; [report them](https://github.com/Saaayurii/ashes-of-eden/issues).

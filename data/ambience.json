@@ -5,6 +5,7 @@
     {"match": "graveyard_cross",  "effects": ["clouds", "ravens"]},
     {"match": "graveyard_arches", "effects": ["clouds", "wisps", "lightning"]},
     {"match": "graveyard_tree",   "effects": ["clouds", "leaves", "wisps"]},
+    {"match": "swamp_threshold",   "effects": ["clouds", "wisps"]},
     {"match": "swamp_moon",       "effects": ["clouds", "wisps"]},
     {"match": "swamp_red",        "effects": ["embers", "wisps"]},
     {"match": "swamp_crypt",      "effects": ["motes", "wisps"]},

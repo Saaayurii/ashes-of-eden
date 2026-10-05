@@ -15,6 +15,7 @@ const ROOMS := [
 	"res://scenes/rooms/graveyard_cross.tscn",
 	"res://scenes/rooms/graveyard_arches.tscn",
 	"res://scenes/rooms/graveyard_tree.tscn",
+	"res://scenes/rooms/swamp_threshold.tscn",
 	"res://scenes/rooms/swamp_moon.tscn",
 	"res://scenes/rooms/swamp_red.tscn",
 	"res://scenes/rooms/swamp_crypt.tscn",

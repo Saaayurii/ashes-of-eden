@@ -23,6 +23,7 @@ const FAR_WINDOWS := {
 	"graveyard_cross": [1, 2, 3],
 	"graveyard_arches": [1, 2, 3],
 	"graveyard_tree": [1, 2, 3],
+	"swamp_threshold": [1],    # the distant hill above the opened cemetery gate
 	"swamp_moon": [1, 2],        # 3: the pool under the lower gallery
 	"swamp_red": [1, 2],         # 3: the water by the pier
 	"swamp_crypt": [1, 2],       # 3: the water under the boat
