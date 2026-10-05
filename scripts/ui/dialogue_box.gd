@@ -326,7 +326,7 @@ func _show_bubble(node: Dictionary) -> void:
 func _line_typed() -> void:
 	_typing = null
 	if _choices.is_empty():
-		_bubble_hint.text = "%s ▸" % Settings.key_name("interact")
+		_bubble_hint.text = "%s ›" % Settings.key_name("interact")
 		return
 	for index in _choices.size():
 		var button := Button.new()
