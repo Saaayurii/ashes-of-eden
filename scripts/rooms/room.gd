@@ -58,6 +58,8 @@ func _ready() -> void:
 	_configure_depth_windows()
 	HELL_DEPTH.attach(self)
 	INTERIOR_ARCHITECTURE.attach(self)
+	# every painted flame flickers, and the place moves as itself: data/backdrops.json
+	BackdropLife.attach(self)
 	DEPTH_LAYERS.attach(self)
 	RestPoint.attach(self)
 	if music != "":

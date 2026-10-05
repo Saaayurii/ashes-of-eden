@@ -101,6 +101,8 @@ func _process(delta: float) -> void:
 	_clear_glow = move_toward(_clear_glow, 0.0, delta * 0.12)
 	_update_clouds(delta)
 	_update_reactive_scenery(delta)
+	# the painting answers the same gusts (scripts/rooms/backdrop_life.gd)
+	BackdropLife.react(get_parent(), _wind_origin, _wind_direction, _wind_energy, _clear_glow)
 	for bird in _birds:
 		var speed: float = _bird_speed[bird]
 		bird.position.x += speed * delta

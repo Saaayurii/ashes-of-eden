@@ -129,6 +129,7 @@ func _init() -> void:
 	_check_untranslated(strings)
 	_check_cjk_font(strings)
 	_check_story_flags()
+	_check_backdrops()
 
 	for w in warnings:
 		print("WARNING: " + w)
@@ -1000,6 +1001,43 @@ const FLAGS_READ_IN_CODE := ["voice_yes", "matthew_confessed", "matthew_judged",
 const FLAGS_SET_IN_CODE := ["blood_paid"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
+
+
+## data/backdrops.json (scripts/rooms/backdrop_life.gd): every room of the
+## chapter is named, each names a family that exists, each zone a known kind
+## and a rect. Whether a rect lies on its picture is backdrop_life_test.gd's.
+const BACKDROP_KINDS := ["falls", "water", "sway", "glow", "lava", "haze", "stars", "pulse"]  # BackdropLife.KINDS
+const BACKDROP_ZONES := 24  # BackdropLife.MAX_ZONES
+
+
+func _check_backdrops() -> void:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/backdrops.json"))
+	if not parsed is Dictionary:
+		_error("data/backdrops.json: not a JSON object")
+		return
+	var families: Dictionary = parsed.get("families", {})
+	var rooms: Dictionary = parsed.get("rooms", {})
+	# run.gd needs the autoloads to compile; its ROOMS are read as text
+	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")
+	var listed := run.substr(run.find("const ROOMS := ["))
+	listed = listed.substr(0, listed.find("]"))
+	var scene := RegEx.create_from_string("rooms/(\\w+)\\.tscn")
+	for found in scene.search_all(listed):
+		if not rooms.has(found.get_string(1)):
+			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % found.get_string(1))
+	for key in rooms:
+		var room: Dictionary = rooms[key]
+		if not families.has(str(room.get("family", ""))):
+			_error("data/backdrops.json: %s names an unknown family \"%s\"" % [key, room.get("family", "")])
+		var zones: Array = room.get("zones", [])
+		if zones.size() > BACKDROP_ZONES:
+			_error("data/backdrops.json: %s has %d zones, the shader holds %d" % [key, zones.size(), BACKDROP_ZONES])
+		for zone in zones:
+			if not BACKDROP_KINDS.has(str(zone.get("kind", ""))):
+				_error("data/backdrops.json: %s: unknown zone kind \"%s\"" % [key, zone.get("kind", "")])
+			var rect = zone.get("rect", [])
+			if not rect is Array or rect.size() != 4 or float(rect[2]) <= 0.0 or float(rect[3]) <= 0.0:
+				_error("data/backdrops.json: %s: a %s zone needs rect [x, y, w, h]" % [key, zone.get("kind", "")])
 
 
 func _check_story_flags() -> void:
