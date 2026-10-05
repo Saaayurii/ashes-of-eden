@@ -8,7 +8,7 @@
       "red": "res://scenes/rooms/swamp_red.tscn",
       "crypt": "res://scenes/rooms/swamp_crypt.tscn"
     },
-    "then": "res://scenes/rooms/catacombs_1.tscn"
+    "then": "res://scenes/rooms/catacombs_threshold.tscn"
   },
   {
     "id": "catacombs_fork",

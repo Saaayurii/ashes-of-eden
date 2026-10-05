@@ -26,6 +26,7 @@ const FAR_WINDOWS := {
 	"swamp_moon": [1, 2],        # 3: the pool under the lower gallery
 	"swamp_red": [1, 2],         # 3: the water by the pier
 	"swamp_crypt": [1, 2],       # 3: the water under the boat
+	"catacombs_threshold": [1], # distant marsh beyond the causeway
 	"catacombs_1": [],           # every opening is a recess in the same wall
 	"catacombs_2": [],
 	"catacombs_3": [],

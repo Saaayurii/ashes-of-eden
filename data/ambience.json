@@ -8,6 +8,7 @@
     {"match": "swamp_moon",       "effects": ["clouds", "wisps"]},
     {"match": "swamp_red",        "effects": ["embers", "wisps"]},
     {"match": "swamp_crypt",      "effects": ["motes", "wisps"]},
+    {"match": "catacombs_threshold", "effects": ["motes", "wisps"]},
     {"match": "catacombs_1",     "effects": ["motes", "bats"]},
     {"match": "catacombs_2",     "effects": ["motes", "wisps"]},
     {"match": "catacombs_3",     "effects": ["motes", "bats", "wisps"]},

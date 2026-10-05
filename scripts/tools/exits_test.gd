@@ -15,6 +15,7 @@ const DOORWAYS := {
 	"swamp_moon": [1490, 1540, 413],        # under the gallows with the lantern
 	"swamp_red": [1540, 1580, 255],         # the gap in the ruin past the fence
 	"swamp_crypt": [1280, 1350, 560],       # the crypt door, down its candle stair
+	"catacombs_threshold": [1440, 1510, 415], # the open arch at the causeway's end
 	"catacombs_1": [1470, 1505, 440],       # the wooden door on the ossuary floor
 	"catacombs_2": [1430, 1470, 229],       # the arch at the end of the upper floor
 	"catacombs_3": [1250, 1320, 583],       # the tunnel mouth, bottom right

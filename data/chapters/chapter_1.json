@@ -39,6 +39,7 @@
     "subtitle": "AREA_CATACOMBS_SUB",
     "color": "#d8cbb0",
     "rooms": [
+      "res://scenes/rooms/catacombs_threshold.tscn",
       "res://scenes/rooms/catacombs_1.tscn",
       "res://scenes/rooms/catacombs_2.tscn",
       "res://scenes/rooms/catacombs_3.tscn"

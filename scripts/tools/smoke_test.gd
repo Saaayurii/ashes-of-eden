@@ -102,9 +102,9 @@ func _run() -> void:
 	_assert(run_end.visible, "run end screen shown")
 	_assert(run.player.hp > 0.0, "player alive")
 	_assert(run.kills == expected_kills, "all %d enemies counted (%d)" % [expected_kills, run.kills])
-	# one gift per door and per level-up, until the pool of gifts runs dry
-	var gifts_possible: int = mini(total_rooms, root.get_node("Data").abilities.size())
-	_assert(game.abilities.size() >= gifts_possible, "at least one gift per room (%d)" % game.abilities.size())
+	# Quiet passages have no gift; every area's final door still does.
+	var gifts_possible: int = mini(root.get_node("Data").chapters.size(), root.get_node("Data").abilities.size())
+	_assert(game.abilities.size() >= gifts_possible, "at least one gift per area (%d)" % game.abilities.size())
 	_assert(game.level >= 2, "essence levelled up (level %d)" % game.level)
 	_assert(game.alignment["will"] >= 1, "stranger choice applied: %s" % game.alignment)
 	_assert(game.flags.has("stranger_refused"), "story flag set")

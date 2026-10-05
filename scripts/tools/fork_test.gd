@@ -3,7 +3,7 @@ extends SceneTree
 ##   - the way splits after the crone's swamp and after the knight's niche,
 ##     and both ways join again at the same room;
 ##   - the player picks by answering the question; unanswered, the first way;
-##   - a night is 14 rooms whichever way, and the numbers shown have no gaps;
+##   - a night is 15 rooms whichever way, and the numbers shown have no gaps;
 ##   - a door out of either way is a door out of the place: the gift is there;
 ##   - a save in a way the night took resumes on that way.
 ##   godot --headless --path . -s scripts/tools/fork_test.gd
@@ -50,8 +50,10 @@ func _run() -> void:
 	_check(route.next_index(rooms, at.call("swamp_moon"), "red") == at.call("swamp_red"), "swamp: red is one way")
 	_check(route.next_index(rooms, at.call("swamp_moon"), "crypt") == at.call("swamp_crypt"), "swamp: the crypt is the other")
 	_check(route.next_index(rooms, at.call("swamp_moon")) == at.call("swamp_red"), "unanswered: the first way")
-	_check(route.next_index(rooms, at.call("swamp_red")) == at.call("catacombs_1")
-		and route.next_index(rooms, at.call("swamp_crypt")) == at.call("catacombs_1"), "both come out at the catacombs")
+	_check(route.next_index(rooms, at.call("swamp_red")) == at.call("catacombs_threshold")
+		and route.next_index(rooms, at.call("swamp_crypt")) == at.call("catacombs_threshold")
+		and route.next_index(rooms, at.call("catacombs_threshold")) == at.call("catacombs_1"),
+		"both pass the marsh causeway before the catacombs")
 	_check(route.next_index(rooms, at.call("catacombs_2")) == at.call("crypt_threshold")
 		and route.next_index(rooms, at.call("catacombs_3")) == at.call("crypt_threshold")
 		and route.next_index(rooms, at.call("crypt_threshold")) == at.call("crypt_skulls"),
@@ -59,7 +61,7 @@ func _run() -> void:
 	_check(route.next_index(rooms, at.call("graveyard_tree")) == at.call("swamp_moon"), "elsewhere, the next room")
 	_check(route.length(rooms) == rooms.size() - 2, "a night is %d rooms whichever way" % route.length(rooms))
 	_check(route.step(rooms, at.call("swamp_red")) == route.step(rooms, at.call("swamp_crypt")), "both ways have the same number")
-	_check(route.step(rooms, at.call("catacombs_1")) == route.step(rooms, at.call("swamp_red")) + 1, "and the number after is the next one: no gap")
+	_check(route.step(rooms, at.call("catacombs_threshold")) == route.step(rooms, at.call("swamp_red")) + 1, "and the number after is the next one: no gap")
 
 	# the Run
 	change_scene_to_file("res://scenes/run/run.tscn")
@@ -85,10 +87,10 @@ func _run() -> void:
 	_check(shown.contains(str(route.step(rooms, at.call("swamp_crypt")) + 1)), "the HUD counts the way walked (%s)" % shown)
 	var saved: Dictionary = root.get_node("Saves").capture(_path("swamp_crypt"), 0, 0.0, run.player)
 	_check(int(saved.room_number) == route.step(rooms, at.call("swamp_crypt")) + 1, "and so does a save")
-	_check(route.next_index(rooms, root.get_node("Saves").room_index(saved.room)) == at.call("catacombs_1"),
+	_check(route.next_index(rooms, root.get_node("Saves").room_index(saved.room)) == at.call("catacombs_threshold"),
 		"a save on this way resumes on it")
 	picked = await run._next_room()
-	_check(picked == at.call("catacombs_1"), "out of the crypt: the catacombs, no question")
+	_check(picked == at.call("catacombs_threshold"), "out of the crypt: the causeway, no question")
 
 	print("FORK TEST %s" % ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	current_scene = null

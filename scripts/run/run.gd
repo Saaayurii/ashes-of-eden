@@ -18,6 +18,7 @@ const ROOMS := [
 	"res://scenes/rooms/swamp_moon.tscn",
 	"res://scenes/rooms/swamp_red.tscn",
 	"res://scenes/rooms/swamp_crypt.tscn",
+	"res://scenes/rooms/catacombs_threshold.tscn",
 	"res://scenes/rooms/catacombs_1.tscn",
 	"res://scenes/rooms/catacombs_2.tscn",
 	"res://scenes/rooms/catacombs_3.tscn",
