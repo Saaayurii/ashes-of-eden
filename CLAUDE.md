@@ -86,6 +86,8 @@ Godot 4.7 / GDScript, 2D pixel action roguelite. Open source, community-driven, 
 - There may be two players in the tree: no `get_first_node_in_group("player")`; pick by `is_multiplayer_authority()` or act on all of them.
 - Replicated properties are declared in code (`Net.attach_sync`, called from the spawner's spawn function before the node enters the tree), not in a `.tscn`.
 - New enemy theatre (a telegraph, a swing, a beam) → an RPC next to `_net_strike`, guarded by `if Net.active`.
+- **Rooms by code, from anywhere** (docs/RELAY.md): what ZeroTier/Radmin are used for, inside the game. Both players dial out to the relay (`scripts/net/relay_server.gd`, headless Godot, `--relay`, `make relay`); `RelayPeer` is a `MultiplayerPeerExtension` over a relay room, so RPCs and synchronizers run unchanged; `HostPeer` lets a host listen locally *and* hold the room at once; `LanBeacon` lists games on the same Wi-Fi (not in a browser). Codes: `RelayProtocol.normalize_code`, no look-alike characters. The relay URL is `ashes/network/relay_url` in project.godot (`--relay-url=` overrides; "" = no codes, Wi-Fi and addresses only). Every build talks to every other — browser, desktop, Android, iOS — so never add a transport one of them lacks. `relay_test.gd`, `tools/net_test.sh coop-relay|pvp-relay`.
+- **The link is shown, and a dead one is said out loud**: `Net` pings once a second (`link_ms`, `link_silence`), `NetOverlay` (autoload) draws the bars, "connection unstable" after `LINK_STALL`, "<name> left the game" (`Net.partner_left`) and "Connection lost" with the reason (`Net.connection_lost`, `_lost`); `LINK_TIMEOUT` of silence ends it. A guest on another `application/config/version` is refused (`NET_ERR_VERSION`).
 
 ## Run
 

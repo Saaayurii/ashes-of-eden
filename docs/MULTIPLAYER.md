@@ -22,8 +22,10 @@ stalls the ones behind it; for two players in a side-view brawler that is a
 trade we can afford, and it is the only option that keeps a phone and a browser
 in the same match.
 
-One consequence worth knowing: **a browser cannot listen for connections.** If
-both players are in a browser, somebody has to run the dedicated host below.
+One consequence worth knowing: **a browser cannot listen for connections.**
+Through the relay (docs/RELAY.md) it does not need to: a browser hosts a room
+by code like any other build. Without a relay, two browsers need the dedicated
+host below.
 
 ## Who decides what
 
@@ -62,13 +64,15 @@ can tell a sleeper from a hunter.
 
 Main menu → **Play together**.
 
-1. One player picks the mode and presses **Create game**. The screen shows the
-   addresses a friend can reach them on.
-2. The other types that address and presses **Join**.
+1. One player picks the mode and presses **Create game**. The screen shows a
+   **code** (`PF7-Z3V`) and the addresses a friend on the same network can use.
+2. The other types the code into **Join** — from any network, on any device —
+   or picks the game from **Games on this network**, or types an address.
 3. Both press **Ready**; the host presses **Start**.
 
-Default port is `8910` (TCP). Over the internet the host has to forward it, or
-run the dedicated host somewhere with a public address.
+Codes go through the relay, so nobody forwards a port: docs/RELAY.md. The
+host also listens on `8910` (TCP) itself, which is what a friend on the same
+Wi-Fi or a typed address connects to directly.
 
 The address field also takes a full URL, which is what a browser needs when the
 page is served over HTTPS:
@@ -79,6 +83,10 @@ wss://play.example.com/game
 
 A page on `https://` may not open a plain `ws://` socket — browsers block it.
 Put the host behind a TLS proxy and hand out the `wss://` URL.
+
+While a match runs, the link shows at the top of the screen (round trip in
+ms), "connection unstable" appears when the other side goes quiet, and a match
+the wire ended says why over the menu (docs/RELAY.md, "The link, on screen").
 
 ## Dedicated host
 

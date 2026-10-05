@@ -5,6 +5,8 @@
 #   tools/net_test.sh pvp             host + guest, duel
 #   tools/net_test.sh coop-dedicated  headless referee + two guests
 #   tools/net_test.sh pvp-dedicated
+#   tools/net_test.sh coop-relay      relay + host + guest joining by code
+#   tools/net_test.sh pvp-relay
 #
 # Fails when any side prints a FAIL line or never prints a verdict.
 set -uo pipefail
@@ -14,19 +16,28 @@ godot="${2:-${GODOT:-godot}}"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 port="${NET_TEST_PORT:-8911}"
 out="$(mktemp -d)"
-trap 'rm -rf "$out"' EXIT
+trap '[ -n "${NET_TEST_KEEP:-}" ] || rm -rf "$out"' EXIT
 
 mode="${want%-dedicated}"
-if [ "$mode" = "$want" ]; then
-    roles=(host guest)
-else
-    roles=(referee guest guest2)
-fi
+mode="${mode%-relay}"
+extra=()
+case "$want" in
+    *-dedicated) roles=(referee guest guest2) ;;
+    *-relay)
+        # The relay on $port; the host's own server one above it, which the
+        # guest never touches: it comes in by code, through the relay.
+        roles=(relay host guest)
+        extra=("--relay-url=ws://127.0.0.1:$port" "--relay-code=ACE234")
+        ;;
+    *) roles=(host guest) ;;
+esac
 
 pids=()
 for role in "${roles[@]}"; do
+    role_port="$port"
+    [ "$role" = "host" ] && [ ${#extra[@]} -gt 0 ] && role_port=$((port + 1))
     "$godot" --headless --path "$root" -s scripts/tools/net_test.gd -- \
-        "--role=$role" "--mode=$mode" "--port=$port" >"$out/$role.log" 2>&1 &
+        "--role=$role" "--mode=$mode" "--port=$role_port" "${extra[@]}" >"$out/$role.log" 2>&1 &
     pids+=($!)
 done
 

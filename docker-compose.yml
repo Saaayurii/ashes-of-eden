@@ -33,6 +33,17 @@ services:
     ports:
       - "8910:8910"
 
+  # The relay: rooms by code, so two players on any networks and any devices
+  # find each other without an open port (docs/RELAY.md). Plain ws:// here;
+  # docs/RELAY.md puts Caddy in front of it for the wss:// a browser needs.
+  relay:
+    extends:
+      service: godot
+    command: ["relay", "--port=8920"]
+    ports:
+      - "8920:8920"
+    restart: unless-stopped
+
   build:
     extends:
       service: godot

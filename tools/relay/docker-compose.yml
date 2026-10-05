@@ -1,0 +1,34 @@
+# The relay on a server of its own (docs/RELAY.md):
+#
+#   RELAY_DOMAIN=relay.example.com docker compose -f tools/relay/docker-compose.yml up -d --build
+#
+# Then the game's relay URL is wss://relay.example.com (project.godot,
+# ashes/network/relay_url). Ports 80 and 443 must be open for Caddy.
+services:
+  relay:
+    build:
+      context: ../..
+      args:
+        GODOT_VERSION: "4.7.2"
+    image: ashes-of-eden/godot:4.7.2
+    volumes:
+      - ../..:/project
+    command: ["relay", "--port=8920"]
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      RELAY_DOMAIN: ${RELAY_DOMAIN:?set RELAY_DOMAIN to the relay's domain}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - relay
+    restart: unless-stopped
+
+volumes:
+  caddy_data:

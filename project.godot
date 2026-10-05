@@ -35,6 +35,7 @@ Net="*res://scripts/autoload/net.gd"
 Saves="*res://scripts/autoload/saves.gd"
 Playtest="*res://scripts/autoload/playtest.gd"
 Curtain="*res://scenes/ui/curtain.tscn"
+NetOverlay="*res://scripts/ui/net_overlay.gd"
 
 [display]
 
@@ -160,3 +161,7 @@ renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true
+
+[ashes]
+
+network/relay_url=""
