@@ -1,0 +1,6 @@
+# The relay behind TLS, for the wss:// a browser on https:// must use
+# (docs/RELAY.md). Caddy fetches and renews the certificate by itself; point
+# the domain's A record at this machine first.
+{$RELAY_DOMAIN} {
+	reverse_proxy relay:8920
+}

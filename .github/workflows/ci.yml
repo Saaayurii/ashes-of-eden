@@ -39,8 +39,8 @@ jobs:
       - name: Crossplay stand (co-op and duel)
         # Two Godot processes finding each other over a socket — the most
         # likely place for this to stick, even though it has not yet. Around
-        # two minutes in practice.
-        timeout-minutes: 12
+        # two minutes in practice, about five with the relay modes.
+        timeout-minutes: 18
         run: docker compose run --rm net-test
 
       # Half the repository is written by scripts that promise byte-identical

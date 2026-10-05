@@ -4,6 +4,7 @@
 #   entrypoint test                headless end-to-end smoke test of the game loop
 #   entrypoint net-test [mode...]  two-process crossplay stand (default: all four)
 #   entrypoint server [--flags]    dedicated headless host for two browsers
+#   entrypoint relay [--flags]     the relay rooms by code go through (docs/RELAY.md)
 #   entrypoint build [preset...]   export presets (default: all desktop + web)
 #   entrypoint build-debug Android debug-signed export (test APKs)
 #   entrypoint godot <args...>     raw godot command
@@ -66,12 +67,13 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/save_test.gd
         godot --headless -s scripts/tools/secret_test.gd
         godot --headless -s scripts/tools/room_jump_test.gd
+        godot --headless -s scripts/tools/relay_test.gd
         ;;
     net-test)
         shift
         import
         modes=("$@")
-        [ ${#modes[@]} -eq 0 ] && modes=(coop pvp coop-dedicated pvp-dedicated)
+        [ ${#modes[@]} -eq 0 ] && modes=(coop pvp coop-dedicated pvp-dedicated coop-relay pvp-relay)
         for mode in "${modes[@]}"; do
             GODOT=godot tools/net_test.sh "$mode"
         done
@@ -80,6 +82,11 @@ case "${1:-validate}" in
         shift
         import
         exec godot --headless -- --server "$@"
+        ;;
+    relay)
+        shift
+        import
+        exec godot --headless -- --relay "$@"
         ;;
     build|build-debug)
         # build-debug signs with the image's debug keystore: what a test APK
