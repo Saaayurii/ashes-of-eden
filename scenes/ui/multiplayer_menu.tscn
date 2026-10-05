@@ -139,7 +139,7 @@ text = "MP_ADDRESS"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(118, 0)
 layout_mode = 2
-placeholder_text = "192.168.1.5"
+placeholder_text = "ACE-234"
 
 [node name="PortLabel" type="Label" parent="Scroll/Center/Panel/VBox/Setup/AddressRow"]
 layout_mode = 2
@@ -157,11 +157,52 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "MP_JOIN"
 
+[node name="Lan" type="VBoxContainer" parent="Scroll/Center/Panel/VBox/Setup"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="Scroll/Center/Panel/VBox/Setup/Lan"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.78, 0.6, 1)
+theme_override_font_sizes/font_size = 10
+text = "MP_LAN"
+
+[node name="LanList" type="VBoxContainer" parent="Scroll/Center/Panel/VBox/Setup/Lan"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
 [node name="Lobby" type="VBoxContainer" parent="Scroll/Center/Panel/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 6
+
+[node name="InviteRow" type="HBoxContainer" parent="Scroll/Center/Panel/VBox/Lobby"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Scroll/Center/Panel/VBox/Lobby/InviteRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "MP_CODE"
+
+[node name="Code" type="Label" parent="Scroll/Center/Panel/VBox/Lobby/InviteRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.83, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+auto_translate_mode = 2
+text = "…"
+
+[node name="Copy" type="Button" parent="Scroll/Center/Panel/VBox/Lobby/InviteRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MP_COPY"
 
 [node name="Roster" type="Label" parent="Scroll/Center/Panel/VBox/Lobby"]
 unique_name_in_owner = true

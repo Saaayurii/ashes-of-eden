@@ -1,4 +1,4 @@
-.PHONY: pull-playtest android android-image validate test net-test build build-web web image editor server
+.PHONY: pull-playtest android android-image validate test net-test build build-web web image editor server relay
 
 image:      ## build the Docker image with headless Godot
 	docker compose build godot
@@ -14,6 +14,9 @@ net-test:   ## two-process crossplay stand: co-op and duel, in Docker
 
 server:     ## dedicated headless host on ws://localhost:8910 (for two browsers)
 	docker compose run --rm --service-ports server
+
+relay:      ## the relay rooms by code go through, on ws://localhost:8920 (docs/RELAY.md)
+	docker compose run --rm --service-ports relay
 
 build:      ## export Windows/Linux/macOS/Web to ./build
 	docker compose run --rm build

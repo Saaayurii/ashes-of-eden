@@ -128,6 +128,7 @@ func _init() -> void:
 				_error("empty %s translation for %s" % [LOCALES[i], key])
 	_check_untranslated(strings)
 	_check_cjk_font(strings)
+	_check_glyphs(strings)
 	_check_story_flags()
 	_check_backdrops()
 
@@ -471,6 +472,67 @@ func _check_cjk_font(strings: Dictionary) -> void:
 		% [chars.size(), "".join(chars).left(40)]
 		+ "(first seen in %s) — run tools/art/make_cjk_font.py and commit the result"
 		% missing[chars[0]])
+
+
+## Every character the game can put on screen must be in a font it ships: the
+## Latin face (EB Garamond, which Forum falls back to) or the CJK subset. A
+## desktop hides a gap behind a system font; the Web draws a box — "▸" in the
+## talk prompt and "✓ ★" in the move list did exactly that. Checks every
+## locale's strings and the non-ASCII literals in scripts, scenes and data.
+const BODY_FONT := "res://assets/fonts/EBGaramond-Variable.ttf"
+
+
+func _check_glyphs(strings: Dictionary) -> void:
+	var body: FontFile = load(BODY_FONT)
+	var cjk: FontFile = load(CJK_FONT)
+	if body == null or cjk == null:
+		return
+	var missing := {}
+	for key in strings:
+		for text in strings[key]:
+			_note_missing(str(text), body, cjk, missing, key)
+	for path in _files_under("res://scripts", ["gd"]) + _files_under("res://scenes", ["tscn"]) \
+			+ _files_under("res://data", ["json"]):
+		if path.begins_with("res://scripts/tools/"):
+			continue
+		_note_missing(FileAccess.get_file_as_string(path), body, cjk, missing, path, true)
+	if missing.is_empty():
+		return
+	var chars := missing.keys()
+	chars.sort()
+	for ch in chars:
+		_error("'%s' (U+%04X, in %s) is in no font the game ships: the Web build draws a box. "
+			% [ch, ch.unicode_at(0), missing[ch]]
+			+ "Use another mark, or add it to the marks in tools/art/make_cjk_font.py and rerun it")
+
+
+## [param literals_only]: in source, only what sits between double quotes is
+## ever drawn; comments may say what they like.
+func _note_missing(text: String, body: FontFile, cjk: FontFile, missing: Dictionary, where: String,
+		literals_only := false) -> void:
+	var inside := not literals_only
+	for i in text.length():
+		var code := text.unicode_at(i)
+		if literals_only:
+			if code == 0x22:
+				inside = not inside
+				continue
+			if code == 0x0A:
+				inside = false
+		if not inside or code < 0x80 or code == 0xFEFF:
+			continue
+		if not body.has_char(code) and not cjk.has_char(code):
+			missing[text[i]] = where
+
+
+func _files_under(dir: String, extensions: Array) -> Array:
+	var found: Array = []
+	for file in DirAccess.get_files_at(dir):
+		if extensions.has(file.get_extension()):
+			found.append(dir.path_join(file))
+	for sub in DirAccess.get_directories_at(dir):
+		found.append_array(_files_under(dir.path_join(sub), extensions))
+	return found
 
 
 ## A translation identical to the English is, nine times in ten, a line that

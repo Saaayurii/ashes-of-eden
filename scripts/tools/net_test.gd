@@ -8,6 +8,11 @@ extends SceneTree
 ## --role=referee is the dedicated host two browsers would share: it holds no
 ## body of its own and starts the match once both guests are ready.
 ##
+## --role=relay runs the relay (docs/RELAY.md); with --relay-url= and
+## --relay-code= the host opens that room and the guest joins it by code, so
+## the whole game runs through the relay, the way two friends on different
+## networks would play.
+##
 ## tools/net_test.sh runs both and fails the build if either side prints FAIL.
 ## Deliberately untyped: -s scripts compile before autoloads exist, so naming
 ## game classes here would compile them too early and fail on Data/Game.
@@ -38,6 +43,20 @@ func _run() -> void:
 	net.local_name = role
 
 	var session_mode = net.Mode.PVP if mode == "pvp" else net.Mode.COOP
+	var code := str(args.get("relay-code", ""))
+	if role == "relay":
+		var relay = load("res://scripts/net/relay_server.gd").new()
+		root.add_child(relay)
+		_ok(relay.listen(port) == OK, "relaying on %d" % port)
+		if not await _until(func() -> bool: return relay.rooms_opened > 0, "a room opened", 30.0):
+			await _finish()
+			return
+		# up until the host leaves, which ends the room
+		await _until(func() -> bool: return relay.room_count() == 0, "the room closed with its host", 150.0)
+		_ok(relay.packets_relayed > 100, "the game went through the relay (%d packets)" % relay.packets_relayed)
+		relay.stop()
+		await _finish()
+		return
 	if role == "referee":
 		_ok(net.host(session_mode, port, true) == OK, "refereeing on %d" % port)
 		_ok(net.dedicated and not net.peers.has(1), "the referee holds no seat")
@@ -49,7 +68,25 @@ func _run() -> void:
 		return
 
 	if role == "host":
+		if not code.is_empty():
+			await _wait(1.0)  # the relay is starting in the process beside us
 		_ok(net.host(session_mode, port) == OK, "listening on %d" % port)
+		if not code.is_empty():
+			await _until(func() -> bool: return net.invite_code != "", "a room code from the relay")
+			_ok(net.invite_code == code, "the relay gave room %s" % net.invite_code)
+	elif not code.is_empty():
+		# Until the host has its room the relay says there is no such game;
+		# a friend would try again, and so does the guest here.
+		var tries := 0
+		while true:
+			await _wait(1.5)
+			tries += 1
+			if net.join(code, port) == OK and await _until(func() -> bool: return net.peers.size() == 2 \
+					or not net.active, "an answer from room %s" % code, 10.0) and net.active:
+				break
+			if tries >= 10:
+				break
+		_ok(net.active, "joined room %s by code (try %d)" % [code, tries])
 	else:
 		await _wait(1.0)  # give the host its socket
 		_ok(net.join(address, port) == OK, "dialling %s:%d" % [address, port])
@@ -68,6 +105,11 @@ func _run() -> void:
 		await _finish()
 		return
 	await _wait(0.5)
+	# the link is measured both ways: what the overlay's bars and banner read
+	await _until(func() -> bool: return net.link_ms() >= 0, "the round trip is measured")
+	_ok(net.link_ms() < 1000 and net.link_silence() < net.LINK_STALL * 2.0,
+		"the link reads steady (%d ms, %.1f s quiet)" % [net.link_ms(), net.link_silence()])
+	_ok(root.get_node("NetOverlay").link.visible, "the overlay shows the link")
 
 	if mode == "pvp":
 		await _duel()

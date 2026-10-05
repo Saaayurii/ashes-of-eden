@@ -9,11 +9,24 @@ extends Node
 ## Authority: the host simulates the world (rooms, enemies, score); every player
 ## body is simulated by whoever owns it and mirrored to the others. Damage is
 ## always applied by the owner of the body that takes it (see Player.take_damage).
+##
+## Three ways in, all on the same screen (docs/RELAY.md): a code through the
+## relay (anywhere, behind any router, from a browser too — what people use
+## ZeroTier or Radmin for, without either), a game heard on the same Wi-Fi
+## (LanBeacon), or an address typed by hand. A host offers the first two at once
+## (HostPeer).
 
 signal lobby_changed
 signal match_started(mode: int)
 signal failed(reason_key: String)
 signal closed(reason_key: String)
+## The host's room code arrived, or went away with the relay.
+signal invite_changed
+## A match ended because the wire did (host gone, relay gone, silence past
+## LINK_TIMEOUT). NetOverlay says so; the scene is already on its way to the menu.
+signal connection_lost(reason_key: String)
+## The other player left a match we are still in (the host carries on).
+signal partner_left(peer_name: String)
 
 enum Mode {COOP, PVP}
 
@@ -26,6 +39,20 @@ const MODE_SCENES := {
 	Mode.PVP: "res://scenes/pvp/arena.tscn",
 }
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
+## Where the relay lives (docs/RELAY.md); "" until one is deployed, and then
+## only the Wi-Fi and the typed address are offered. --relay-url= overrides it.
+const RELAY_SETTING := "ashes/network/relay_url"
+const BEACON_INTERVAL := 1.0
+const RELAY_RETRY := 4.0
+## The link is measured with a ping a second each way (link_ms, link_silence).
+const PING_INTERVAL := 1.0
+## Silence this long reads as an unstable link (NetOverlay shows it) ...
+const LINK_STALL := 2.5
+## ... and this long as a dead one: a guest gives up on the host, a host lets
+## the silent guest go. A WebSocket can take far longer to notice by itself.
+const LINK_TIMEOUT := 15.0
+
+enum Online {OFF, WAITING, READY, FAILED}
 
 ## A session exists (hosting or connected). False = plain single player.
 var active := false
@@ -38,8 +65,24 @@ var in_match := false
 var peers: Dictionary = {}
 var local_name := ""
 var last_error := ""
+## The host's room code on the relay ("" while there is none) and where that stands.
+var invite_code := ""
+var online: Online = Online.OFF
+## Whether a friend on this network can reach us directly (the local server is up).
+var listening_locally := false
 
 var _connect_timer: SceneTreeTimer
+var _relay: RelayPeer
+var _beacon: LanBeacon
+var _beacon_clock := 0.0
+var _beacon_port := DEFAULT_PORT
+var _retry_clock := 0.0
+## The room code this host held last, asked for again after a reconnect.
+var _last_code := ""
+## peer id -> smoothed round trip in ms, and when we last heard from it
+var _rtt := {}
+var _heard := {}
+var _ping_clock := 0.0
 
 
 func _ready() -> void:
@@ -51,17 +94,173 @@ func _ready() -> void:
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 
+func _process(delta: float) -> void:
+	if active:
+		_measure(delta)
+	if not hosting:
+		return
+	# The relay can drop a host's room (a restart, a lost connection) while the
+	# local game stands: the code goes, a friend on the Wi-Fi can still come,
+	# and the room is asked for again every few seconds until it is back.
+	if _relay != null and online != Online.FAILED \
+			and _relay.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
+		online = Online.FAILED
+		invite_code = ""
+		_retry_clock = RELAY_RETRY
+		invite_changed.emit()
+	if online == Online.FAILED and not in_match and multiplayer.multiplayer_peer is HostPeer:
+		_retry_clock -= delta
+		if _retry_clock <= 0.0:
+			_retry_clock = RELAY_RETRY
+			_open_room(multiplayer.multiplayer_peer)
+	if _beacon != null and not in_match:
+		_beacon_clock -= delta
+		if _beacon_clock <= 0.0:
+			_beacon_clock = BEACON_INTERVAL
+			_beacon.announce(local_name, int(mode), _beacon_port, invite_code)
+
+
+# ------------------------------------------------------------------ link ---
+
+## The peers whose link we watch: a guest watches the host, a host its guests.
+func _watched() -> Array:
+	if not active:
+		return []
+	if not multiplayer.is_server():
+		return [1]
+	var ids: Array = []
+	for id in multiplayer.get_peers():
+		ids.append(id)
+	return ids
+
+
+func _measure(delta: float) -> void:
+	var now := Time.get_ticks_msec()
+	var connected := multiplayer.multiplayer_peer != null \
+		and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+	if not connected or (not multiplayer.is_server() and multiplayer.get_unique_id() <= 1):
+		return
+	_ping_clock -= delta
+	var send := _ping_clock <= 0.0
+	if send:
+		_ping_clock = PING_INTERVAL
+	for id in _watched():
+		if not _heard.has(id):
+			_heard[id] = now  # the clock starts when we first look
+		if send:
+			_ping.rpc_id(id, now)
+		if now - int(_heard[id]) > LINK_TIMEOUT * 1000.0:
+			if multiplayer.is_server():
+				multiplayer.multiplayer_peer.disconnect_peer(id)
+				_heard.erase(id)
+			else:
+				_lost("NET_ERR_TIMEOUT")
+				return
+
+
+## The round trip to whoever we watch, in ms (the worst of them for a host),
+## or -1 before the first answer.
+func link_ms() -> int:
+	var worst := -1
+	for id in _watched():
+		if _rtt.has(id):
+			worst = maxi(worst, int(round(float(_rtt[id]))))
+	return worst
+
+
+## Seconds since the quietest watched peer was last heard; 0 when all is well.
+func link_silence() -> float:
+	var now := Time.get_ticks_msec()
+	var worst := 0.0
+	for id in _watched():
+		if _heard.has(id):
+			worst = maxf(worst, (now - int(_heard[id])) / 1000.0)
+	return worst
+
+
+## Who the quiet one is, for "waiting for …".
+func quiet_name() -> String:
+	var now := Time.get_ticks_msec()
+	var quiet := 1
+	var longest := -1
+	for id in _watched():
+		var silent := now - int(_heard.get(id, now))
+		if silent > longest:
+			longest = silent
+			quiet = id
+	return name_of(quiet)
+
+
+@rpc("any_peer", "call_remote", "unreliable")
+func _ping(sent: int) -> void:
+	var from := multiplayer.get_remote_sender_id()
+	_heard[from] = Time.get_ticks_msec()
+	_pong.rpc_id(from, sent)
+
+
+@rpc("any_peer", "call_remote", "unreliable")
+func _pong(sent: int) -> void:
+	var from := multiplayer.get_remote_sender_id()
+	var now := Time.get_ticks_msec()
+	_heard[from] = now
+	var sample := float(now - sent)
+	_rtt[from] = sample if not _rtt.has(from) else lerpf(float(_rtt[from]), sample, 0.3)
+
+
+## The wire is gone under a match or a lobby: drop the session and tell
+## whoever listens why, the overlay included when a match was running.
+func _lost(reason_key: String) -> void:
+	var playing := in_match
+	last_error = reason_key
+	leave()
+	closed.emit(reason_key)
+	if playing:
+		connection_lost.emit(reason_key)
+
+
+## Asks the relay for a room and hangs it on the host's wires, in place of a
+## dead one. Asks for the old code back, so a friend who has it still gets in.
+func _open_room(merged: HostPeer) -> void:
+	if _relay != null:
+		merged.remove(_relay)
+	var wanted := _last_code if not _last_code.is_empty() else _wanted_code()
+	_relay = RelayPeer.new()
+	if _relay.open_host(relay_url(), wanted) != OK:
+		_relay = null
+		online = Online.FAILED
+		_retry_clock = RELAY_RETRY
+		return
+	merged.add(_relay)
+	online = Online.WAITING
+	_relay.code_assigned.connect(_on_code_assigned)
+
+
+func _on_code_assigned(code: String) -> void:
+	invite_code = code
+	_last_code = code
+	online = Online.READY
+	invite_changed.emit()
+
+
 # ---------------------------------------------------------------- session ---
 
 func host(session_mode: Mode, port := DEFAULT_PORT, headless := false) -> Error:
 	leave()
-	var peer := WebSocketMultiplayerPeer.new()
-	var err := peer.create_server(port)
-	if err != OK:
+	var merged := HostPeer.new()
+	# A browser cannot listen; everywhere else a friend on the same network
+	# connects straight in, with no relay in between.
+	if not OS.has_feature("web"):
+		var local := WebSocketMultiplayerPeer.new()
+		if local.create_server(port) == OK:
+			merged.add(local)
+			listening_locally = true
+	if not headless and not relay_url().is_empty():
+		_open_room(merged)
+	if merged.children.is_empty():
 		last_error = "NET_ERR_PORT"
 		failed.emit(last_error)
-		return err
-	multiplayer.multiplayer_peer = peer
+		return ERR_CANT_CREATE
+	multiplayer.multiplayer_peer = merged
 	active = true
 	hosting = true
 	dedicated = headless
@@ -69,7 +268,11 @@ func host(session_mode: Mode, port := DEFAULT_PORT, headless := false) -> Error:
 	peers = {}
 	if not dedicated:
 		peers[1] = {"name": local_name, "ready": true, "slot": 0}
+	if LanBeacon.supported() and listening_locally:
+		_beacon = LanBeacon.new()
+		_beacon_port = port
 	lobby_changed.emit()
+	invite_changed.emit()
 	return OK
 
 
@@ -78,12 +281,27 @@ func host(session_mode: Mode, port := DEFAULT_PORT, headless := false) -> Error:
 ## which is what a browser needs when the page itself is served over HTTPS.
 func join(address: String, port := DEFAULT_PORT) -> Error:
 	leave()
-	var peer := WebSocketMultiplayerPeer.new()
-	var err := peer.create_client(url_for(address, port))
-	if err != OK:
-		last_error = "NET_ERR_ADDRESS"
-		failed.emit(last_error)
-		return err
+	var peer: MultiplayerPeer
+	if is_code(address):
+		if relay_url().is_empty():
+			last_error = "NET_ERR_NO_RELAY"
+			failed.emit(last_error)
+			return ERR_UNCONFIGURED
+		_relay = RelayPeer.new()
+		if _relay.open_join(relay_url(), address) != OK:
+			last_error = _relay.error_key
+			_relay = null
+			failed.emit(last_error)
+			return ERR_CANT_CONNECT
+		peer = _relay
+	else:
+		var direct := WebSocketMultiplayerPeer.new()
+		var err := direct.create_client(url_for(address, port))
+		if err != OK:
+			last_error = "NET_ERR_ADDRESS"
+			failed.emit(last_error)
+			return err
+		peer = direct
 	multiplayer.multiplayer_peer = peer
 	active = true
 	hosting = false
@@ -93,6 +311,31 @@ func join(address: String, port := DEFAULT_PORT) -> Error:
 	_connect_timer = get_tree().create_timer(CONNECT_TIMEOUT, true, false, true)
 	_connect_timer.timeout.connect(_on_connect_timeout)
 	return OK
+
+
+## A room code rather than an address: six letters from the code alphabet,
+## nothing that could be a host name with a dot or a port.
+static func is_code(text: String) -> bool:
+	return not text.contains(".") and not text.contains(":") \
+		and not RelayProtocol.normalize_code(text).is_empty()
+
+
+## The relay to use: the command line first (tests, a private relay), then the
+## project setting a release ships with.
+static func relay_url() -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--relay-url="):
+			return arg.trim_prefix("--relay-url=")
+	return str(ProjectSettings.get_setting(RELAY_SETTING, ""))
+
+
+## A code the host asks the relay for (--relay-code=, for the test stand);
+## the relay hands out a random one when it is taken or absent.
+static func _wanted_code() -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--relay-code="):
+			return arg.trim_prefix("--relay-code=")
+	return ""
 
 
 static func url_for(address: String, port := DEFAULT_PORT) -> String:
@@ -116,7 +359,16 @@ func leave() -> void:
 	dedicated = false
 	in_match = false
 	peers = {}
+	_relay = null
+	_beacon = null
+	invite_code = ""
+	_last_code = ""
+	_rtt.clear()
+	_heard.clear()
+	online = Online.OFF
+	listening_locally = false
 	lobby_changed.emit()
+	invite_changed.emit()
 
 
 # ------------------------------------------------------------------ lobby ---
@@ -238,28 +490,35 @@ func _on_peer_connected(id: int) -> void:
 
 
 func _on_peer_disconnected(id: int) -> void:
+	_rtt.erase(id)
+	_heard.erase(id)
 	if not is_server():
 		return
+	if in_match and peers.has(id):
+		partner_left.emit(name_of(id))
 	peers.erase(id)
 	_push_lobby()
 
 
 func _on_connected() -> void:
 	_cancel_timeout()
-	_hello.rpc_id(1, local_name)
+	_hello.rpc_id(1, local_name, game_version())
 
 
 func _on_connection_failed() -> void:
 	_cancel_timeout()
 	last_error = "NET_ERR_CONNECT"
+	if _relay != null:
+		last_error = _relay.error_key if not _relay.error_key.is_empty() else "NET_ERR_RELAY"
 	leave()
 	failed.emit(last_error)
 
 
 func _on_server_disconnected() -> void:
-	last_error = "NET_ERR_HOST_LEFT"
-	leave()
-	closed.emit(last_error)
+	var reason := "NET_ERR_HOST_LEFT"
+	if _relay != null and not _relay.error_key.is_empty():
+		reason = _relay.error_key
+	_lost(reason)
 
 
 func _on_connect_timeout() -> void:
@@ -297,12 +556,23 @@ func _try_start() -> void:
 	_begin.rpc(int(mode))
 
 
+## Two builds of the game would desync on the first room, so a guest on
+## another version is sent away with a reason instead.
+static func game_version() -> String:
+	return str(ProjectSettings.get_setting("application/config/version", ""))
+
+
 @rpc("any_peer", "reliable")
-func _hello(peer_name: String) -> void:
+func _hello(peer_name: String, version := "") -> void:
 	if not is_server():
 		return
 	var id := multiplayer.get_remote_sender_id()
 	if not peers.has(id):
+		return
+	if version != game_version():
+		_kicked.rpc_id(id, "NET_ERR_VERSION")
+		peers.erase(id)
+		_push_lobby()
 		return
 	peers[id].name = peer_name.strip_edges().left(16)
 	_push_lobby()
@@ -367,6 +637,8 @@ func _default_name() -> String:
 ## Dedicated referee mode, for when both players are in a browser (a browser
 ## cannot listen for connections, so somebody has to):
 ##   godot --headless -- --server --port=8910 --mode=coop
+## or the relay that rooms by code go through (docs/RELAY.md):
+##   godot --headless -- --relay --port=8920
 ## Returns true when the command line asked for it and the host is up.
 func start_from_cli() -> bool:
 	var args := {}
@@ -375,6 +647,17 @@ func start_from_cli() -> bool:
 			continue
 		var pair := arg.substr(2).split("=", true, 1)
 		args[pair[0]] = pair[1] if pair.size() > 1 else "true"
+	if args.has("relay"):
+		var relay_port := int(args.get("port", RelayProtocol.DEFAULT_PORT))
+		var relay := RelayServer.new()
+		relay.name = "Relay"
+		get_tree().root.add_child.call_deferred(relay)
+		if relay.listen(relay_port) != OK:
+			printerr("[Relay] could not listen on port %d" % relay_port)
+			get_tree().quit(1)
+			return true
+		print("[Relay] listening on ws://0.0.0.0:%d (protocol %d)" % [relay_port, RelayProtocol.VERSION])
+		return true
 	if not args.has("server"):
 		return false
 	var port := int(args.get("port", DEFAULT_PORT))
