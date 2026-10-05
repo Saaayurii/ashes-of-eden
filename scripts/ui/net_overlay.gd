@@ -26,6 +26,9 @@ var lost_reason: Label
 var _bars := 0
 var _colour := DEAD
 var _toast_left := 0.0
+var rejoin_button: Button
+## A Rejoin is under way: its failure comes back as the lost panel, not silence.
+var _rejoining := false
 
 
 func _ready() -> void:
@@ -34,6 +37,8 @@ func _ready() -> void:
 	_build()
 	Net.connection_lost.connect(_on_lost)
 	Net.partner_left.connect(_on_partner_left)
+	Net.failed.connect(_on_rejoin_failed)
+	Net.match_started.connect(func(_mode: int) -> void: _rejoining = false)
 
 
 func _build() -> void:
@@ -85,12 +90,21 @@ func _build() -> void:
 	lost_reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lost_reason.custom_minimum_size = Vector2(240, 0)
 	column.add_child(lost_reason)
+	var buttons := HBoxContainer.new()
+	buttons.name = "Buttons"
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 8)
+	column.add_child(buttons)
+	rejoin_button = Button.new()
+	rejoin_button.name = "Rejoin"
+	rejoin_button.text = "NET_REJOIN"
+	rejoin_button.pressed.connect(_on_rejoin)
+	buttons.add_child(rejoin_button)
 	var ok := Button.new()
 	ok.name = "Ok"
 	ok.text = "NET_LOST_OK"
-	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	ok.pressed.connect(func() -> void: lost_panel.visible = false)
-	column.add_child(ok)
+	buttons.add_child(ok)
 	lost_panel.visible = false
 	add_child(lost_panel)
 
@@ -185,4 +199,28 @@ func _on_lost(reason_key: String) -> void:
 	lost_panel.visible = true
 	lost_panel.reset_size()
 	lost_panel.position = (lost_panel.get_parent_area_size() - lost_panel.size) / 2.0
-	lost_panel.get_node("Column/Ok").grab_focus.call_deferred()
+	rejoin_button.visible = Net.can_rejoin()
+	var first: Button = rejoin_button if rejoin_button.visible else lost_panel.get_node("Column/Buttons/Ok")
+	first.grab_focus.call_deferred()
+
+
+## Back into the night the wire dropped us out of (Net.rejoin): the host takes
+## us in late and our body comes back as it was (Run._admit_late).
+func _on_rejoin() -> void:
+	lost_panel.visible = false
+	_rejoining = true
+	toast.text = tr("NET_REJOINING")
+	toast.visible = true
+	_centre(toast)
+	_toast_left = Net.CONNECT_TIMEOUT
+	if Net.rejoin() != OK:
+		_on_rejoin_failed(Net.last_error)
+
+
+func _on_rejoin_failed(reason_key: String) -> void:
+	if not _rejoining:
+		return
+	_rejoining = false
+	_toast_left = 0.0
+	Net.rejoin_offered = true  # the way back stays open for another try
+	_on_lost(reason_key)

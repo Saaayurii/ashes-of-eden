@@ -57,6 +57,31 @@ guest) and keeps the round trip.
   plays on, with "<name> left the game".
 - A guest on another version of the game is turned away with that reason
   rather than desyncing on the first room.
+- The lobby shows each player's round trip beside their name.
+
+## Coming back: late join and Rejoin
+
+A co-op night has a seat for whoever comes in after it started — a friend
+arriving late, or one whose wire went down coming back (`Net._can_take_late`;
+a duel does not, the host has already been given the round).
+
+- **Rejoin.** When a guest's co-op match ends under it, "Connection lost"
+  offers **Rejoin**, and the Play together screen comes back with the code
+  already filled in. Before the scene went, the run captured what the body
+  carried (`Saves.capture` into `Net.rejoin_snapshot`): gifts, stats, wounds,
+  flasks, the lean. Back in, the body gets all of it again, under the night as
+  the host keeps it now (room, level, essence, story flags). The snapshot
+  belongs to that host: joining any other one, or starting a fresh night,
+  drops it.
+- **How the host lets someone in mid-match.** While a match runs, replicated
+  nodes are shown only to the peers in it (`Net._shown_to`, the filter every
+  `attach_sync` carries). Godot's replication sends every spawn the moment a
+  peer connects, before any signal of ours runs; a spawn that reaches a menu
+  is lost for good. So the newcomer sees nothing until it has built the run
+  scene; then the host sends the night (`Run._net_join_state`), shows it the
+  world (`Net.reveal_to`, which spawns every body and enemy on it as they
+  stand) and spawns its body.
+- The host plays on alone meanwhile; its toast says the friend left.
 
 ## Running a relay
 
@@ -102,6 +127,7 @@ itself seats two players), 1 MB a frame; a socket that has not said hello in
 godot --headless -s scripts/tools/relay_test.gd    # codes, routing, refusals, kick, host leaving, HostPeer, LanBeacon
 tools/net_test.sh coop-relay                        # the real game over the relay: relay + host + guest by code
 tools/net_test.sh pvp-relay
+tools/net_test.sh coop-rejoin                       # the guest's link dies mid-night; Rejoin puts it back as it was
 ```
 
 Both run in CI (`make test`, `make net-test`).

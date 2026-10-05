@@ -73,7 +73,7 @@ case "${1:-validate}" in
         shift
         import
         modes=("$@")
-        [ ${#modes[@]} -eq 0 ] && modes=(coop pvp coop-dedicated pvp-dedicated coop-relay pvp-relay)
+        [ ${#modes[@]} -eq 0 ] && modes=(coop pvp coop-dedicated pvp-dedicated coop-relay pvp-relay coop-rejoin)
         for mode in "${modes[@]}"; do
             GODOT=godot tools/net_test.sh "$mode"
         done

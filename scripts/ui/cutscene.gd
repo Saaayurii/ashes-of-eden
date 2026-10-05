@@ -361,7 +361,8 @@ func _camera_to(step: Dictionary, seconds: float, instant: bool) -> void:
 ## Give the room back to the player's camera, where it always was.
 func _camera_home(_instant: bool) -> void:
 	var home := _home()
-	if home != null:
+	# leaving the scene mid-cutscene: the player's camera is already on its way out
+	if home != null and home.is_inside_tree() and home.enabled:
 		home.make_current()
 		home.reset_smoothing()
 	if is_instance_valid(_camera):
