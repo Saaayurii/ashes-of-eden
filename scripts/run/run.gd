@@ -21,6 +21,7 @@ const ROOMS := [
 	"res://scenes/rooms/catacombs_1.tscn",
 	"res://scenes/rooms/catacombs_2.tscn",
 	"res://scenes/rooms/catacombs_3.tscn",
+	"res://scenes/rooms/crypt_threshold.tscn",
 	"res://scenes/rooms/crypt_skulls.tscn",
 	"res://scenes/rooms/preacher_nave.tscn",
 	"res://scenes/rooms/church.tscn",

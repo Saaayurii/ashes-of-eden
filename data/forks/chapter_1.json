@@ -19,6 +19,6 @@
       "upper": "res://scenes/rooms/catacombs_2.tscn",
       "lower": "res://scenes/rooms/catacombs_3.tscn"
     },
-    "then": "res://scenes/rooms/crypt_skulls.tscn"
+    "then": "res://scenes/rooms/crypt_threshold.tscn"
   }
 ]

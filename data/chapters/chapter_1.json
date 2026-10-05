@@ -50,7 +50,7 @@
     "title": "AREA_CRYPTS",
     "subtitle": "AREA_CRYPTS_SUB",
     "color": "#a8c0e0",
-    "rooms": ["res://scenes/rooms/crypt_skulls.tscn", "res://scenes/rooms/preacher_nave.tscn"]
+    "rooms": ["res://scenes/rooms/crypt_threshold.tscn", "res://scenes/rooms/crypt_skulls.tscn", "res://scenes/rooms/preacher_nave.tscn"]
   },
   {
     "id": "church",

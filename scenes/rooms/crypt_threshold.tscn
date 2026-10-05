@@ -1,0 +1,121 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="room"]
+[ext_resource type="Texture2D" path="res://assets/levels/catacombs_crypt_threshold_v2.png" id="painting"]
+[ext_resource type="Script" path="res://scripts/rooms/door.gd" id="door"]
+[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
+
+[sub_resource type="ShaderMaterial" id="window_mat"]
+shader = ExtResource("depth_shader")
+shader_parameter/plate_width = 1672.0
+shader_parameter/opacity = 1.0
+
+[sub_resource type="RectangleShape2D" id="floor"]
+size = Vector2(1600, 220)
+
+[sub_resource type="RectangleShape2D" id="wall"]
+size = Vector2(16, 720)
+
+[sub_resource type="RectangleShape2D" id="door_area"]
+size = Vector2(24, 64)
+
+[node name="Room" type="Node2D"]
+script = ExtResource("room")
+width = 1600
+height = 720
+painting_source = "res://assets/levels/catacombs_crypt_threshold_v2.png"
+depth_parallax = 0.01
+
+[node name="Painting" type="Sprite2D" parent="."]
+texture_filter = 2
+texture = ExtResource("painting")
+centered = false
+scale = Vector2(0.9569378, 0.7651435)
+
+[node name="DepthWindows" type="Node2D" parent="."]
+
+[node name="Window1Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+scale = Vector2(0.9569378, 0.7651435)
+texture = ExtResource("painting")
+material = SubResource("window_mat")
+polygon = PackedVector2Array(1080, 420, 900, 270, 1260, 270)
+uv = PackedVector2Array(1080, 420, 900, 270, 1260, 270)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[node name="Window1Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+scale = Vector2(0.9569378, 0.7651435)
+texture = ExtResource("painting")
+material = SubResource("window_mat")
+polygon = PackedVector2Array(1080, 420, 1260, 270, 1260, 560)
+uv = PackedVector2Array(1080, 420, 1260, 270, 1260, 560)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[node name="Window1Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+scale = Vector2(0.9569378, 0.7651435)
+texture = ExtResource("painting")
+material = SubResource("window_mat")
+polygon = PackedVector2Array(1080, 420, 1260, 560, 900, 560)
+uv = PackedVector2Array(1080, 420, 1260, 560, 900, 560)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[node name="Window1Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+scale = Vector2(0.9569378, 0.7651435)
+texture = ExtResource("painting")
+material = SubResource("window_mat")
+polygon = PackedVector2Array(1080, 420, 900, 560, 900, 270)
+uv = PackedVector2Array(1080, 420, 900, 560, 900, 270)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[node name="DecorBack" type="Parallax2D" parent="."]
+
+[node name="Geometry" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Floor" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(800, 608)
+shape = SubResource("floor")
+
+[node name="LeftWall" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-8, 360)
+shape = SubResource("wall")
+
+[node name="RightWall" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1608, 360)
+shape = SubResource("wall")
+
+[node name="Ledges" type="StaticBody2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="DecorMid" type="Node2D" parent="."]
+
+[node name="DecorFront" type="Node2D" parent="."]
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(55, 483)
+
+[node name="Door" type="Area2D" parent="."]
+position = Vector2(1550, 466)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("door")
+painted_arch = true
+
+[node name="Shape" type="CollisionShape2D" parent="Door"]
+shape = SubResource("door_area")
+
+[node name="Gate" type="Sprite2D" parent="Door"]
+
+[node name="Glow" type="Sprite2D" parent="Door"]
+visible = false

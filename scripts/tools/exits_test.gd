@@ -18,6 +18,7 @@ const DOORWAYS := {
 	"catacombs_1": [1470, 1505, 440],       # the wooden door on the ossuary floor
 	"catacombs_2": [1430, 1470, 229],       # the arch at the end of the upper floor
 	"catacombs_3": [1250, 1320, 583],       # the tunnel mouth, bottom right
+	"crypt_threshold": [1530, 1570, 498],    # the arch at the open crypt edge
 	"crypt_skulls": [1380, 1425, 615],      # the barred arch by the tombstones
 	"crypt_lava": [1435, 1470, 208],        # the barred arch at the stair's foot
 	"hell_gate": [1290, 1350, 372],         # the chained gate of the pit

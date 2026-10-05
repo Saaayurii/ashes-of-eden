@@ -29,6 +29,7 @@ const FAR_WINDOWS := {
 	"catacombs_1": [],           # every opening is a recess in the same wall
 	"catacombs_2": [],
 	"catacombs_3": [],
+	"crypt_threshold": [1],    # the blue cemetery beyond the broken roof
 	"crypt_skulls": [1, 2, 3],   # the drowned city beyond the arches
 	"crypt_lava": [2],           # 1 carries the painted pillar and cage, 3 the lava rock
 	"hell_gate": [1, 2, 3],

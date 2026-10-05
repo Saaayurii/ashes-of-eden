@@ -3,7 +3,7 @@ extends SceneTree
 ##   - the way splits after the crone's swamp and after the knight's niche,
 ##     and both ways join again at the same room;
 ##   - the player picks by answering the question; unanswered, the first way;
-##   - a night is 13 rooms whichever way, and the numbers shown have no gaps;
+##   - a night is 14 rooms whichever way, and the numbers shown have no gaps;
 ##   - a door out of either way is a door out of the place: the gift is there;
 ##   - a save in a way the night took resumes on that way.
 ##   godot --headless --path . -s scripts/tools/fork_test.gd
@@ -52,8 +52,10 @@ func _run() -> void:
 	_check(route.next_index(rooms, at.call("swamp_moon")) == at.call("swamp_red"), "unanswered: the first way")
 	_check(route.next_index(rooms, at.call("swamp_red")) == at.call("catacombs_1")
 		and route.next_index(rooms, at.call("swamp_crypt")) == at.call("catacombs_1"), "both come out at the catacombs")
-	_check(route.next_index(rooms, at.call("catacombs_2")) == at.call("crypt_skulls")
-		and route.next_index(rooms, at.call("catacombs_3")) == at.call("crypt_skulls"), "both galleries come out at the skull crypt")
+	_check(route.next_index(rooms, at.call("catacombs_2")) == at.call("crypt_threshold")
+		and route.next_index(rooms, at.call("catacombs_3")) == at.call("crypt_threshold")
+		and route.next_index(rooms, at.call("crypt_threshold")) == at.call("crypt_skulls"),
+		"both galleries cross the same threshold before the skull crypt")
 	_check(route.next_index(rooms, at.call("graveyard_tree")) == at.call("swamp_moon"), "elsewhere, the next room")
 	_check(route.length(rooms) == rooms.size() - 2, "a night is %d rooms whichever way" % route.length(rooms))
 	_check(route.step(rooms, at.call("swamp_red")) == route.step(rooms, at.call("swamp_crypt")), "both ways have the same number")

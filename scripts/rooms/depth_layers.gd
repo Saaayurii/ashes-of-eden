@@ -29,6 +29,7 @@ const LAYOUTS := {
 	"catacombs_1": {"far": [["arch", .20, .48, 2.2], ["pillar", .77, .48, 2.3]], "mid": [["crypt", .45, .70, 1.4], ["pillar", .91, .73, 1.8]]},
 	"catacombs_2": {"far": [["pillar", .16, .47, 2.4], ["arch", .74, .49, 2.0]], "mid": [["pillar", .48, .72, 1.8], ["grave", .87, .71, 1.6]]},
 	"catacombs_3": {"far": [["crypt", .21, .50, 1.6], ["arch", .80, .47, 2.1]], "mid": [["pillar", .51, .70, 1.9], ["monument", .91, .73, 2.1]]},
+	"crypt_threshold": {"far": [], "mid": []}, # Its own painting and sky window, never stock cutouts.
 	"crypt_skulls": {"far": [["arch", .22, .48, 2.0], ["crypt", .77, .50, 1.6]], "mid": [["grave", .47, .72, 1.7], ["pillar", .90, .70, 1.8]]},
 	"preacher_nave": {"far": [["arch", .18, .63, 1.6], ["arch", .81, .63, 1.6]], "mid": [["pillar", .37, .80, 1.45], ["pillar", .64, .80, 1.45]]},
 	"church": {"far": [["arch", .22, .62, 1.7], ["arch", .79, .62, 1.7]], "mid": [["angel", .42, .81, 1.2], ["pillar", .67, .81, 1.5]]},

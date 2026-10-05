@@ -12,6 +12,7 @@
     {"match": "catacombs_2",     "effects": ["motes", "wisps"]},
     {"match": "catacombs_3",     "effects": ["motes", "bats", "wisps"]},
     {"match": "crypt_skulls",    "effects": ["motes", "wisps"]},
+    {"match": "crypt_threshold", "effects": ["motes", "wisps"]},
     {"match": "crypt_lava",      "effects": ["embers", "motes"]},
     {"match": "hell_gate",       "effects": ["embers", "bats"]},
     {"match": "preacher_nave",   "effects": ["motes", "petals"]},
