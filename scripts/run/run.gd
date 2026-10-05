@@ -86,6 +86,8 @@ var checkpoint: Dictionary = {}
 
 ## Our own body. The other player's is in the same container, owned by them.
 var player: Player
+## The practice yard's drills (PracticeDrills), made on entering the yard.
+var drills: PracticeDrills
 
 @onready var players_root: Node2D = $Players
 @onready var entities: Node2D = $Entities
@@ -1108,20 +1110,22 @@ func _reload() -> void:
 func _practice_begin() -> void:
 	room.door.visible = false
 	room.door.open = false
+	if drills == null:
+		drills = PracticeDrills.new(self)
+		add_child(drills)
 	_practice_spawn()
 	if $UI.get_node_or_null("MoveList") == null:
 		var moves := MoveList.new()
 		moves.name = "MoveList"
+		moves.drills = drills
 		$UI.add_child(moves)
 
 
+## What stands there is the drill's to say (PracticeDrills: spar, guard, stalk).
 func _practice_spawn() -> void:
 	if room == null or not _is_server():
 		return
-	var spec: Dictionary = Data.enemies.get(Game.practice, {})
-	var flying: bool = spec.get("behaviour", "walker") in ["flyer", "boss_ophanim"]
-	var at: Vector2 = room.player_spawn.global_position + Vector2(room.width * 0.45, -70.0 if flying else -8.0)
-	room.spawn_enemy(Game.practice, at, true)
+	drills.spawn()
 
 
 ## Down: the body clears away and another stands up. A boss lingering dimmed

@@ -8,8 +8,16 @@ class_name MoveList
 const DIM := Color(0.62, 0.6, 0.66)
 const DONE := Color(0.98, 0.85, 0.5)
 
+## The yard's drills (set by Run before this enters the tree): what stands
+## across from the hero, the key that changes it, the blocks, parries and
+## backstabs so far.
+var drills: PracticeDrills
 var _rows := {}  # technique id -> Label
 var _done := {}
+var _header: Label
+var _drill: Label
+var _hint: Label
+var _tally: Label
 
 
 func _ready() -> void:
@@ -24,12 +32,16 @@ func _ready() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 1)
 	add_child(column)
-	var foe := str(Data.enemies.get(Game.practice, {}).get("name", Game.practice))
-	var header := Label.new()
-	header.text = tr("PRACTICE_HUD") % tr(foe)
-	header.add_theme_color_override("font_color", DIM)
-	header.add_theme_font_size_override("font_size", 8)
-	column.add_child(header)
+	_header = _line(column, DIM)
+	_drill = _line(column, DONE)
+	_hint = _line(column, DIM)
+	_tally = _line(column, DIM)
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hint.custom_minimum_size.x = 170.0
+	if drills != null:
+		drills.changed.connect(_write_drill)
+	Settings.device_changed.connect(_write_drill)
+	_write_drill()
 	var title := Label.new()
 	title.text = tr("TECH_TITLE")
 	title.add_theme_color_override("font_color", DONE)
@@ -50,6 +62,32 @@ func _ready() -> void:
 	EventBus.technique_performed.connect(_on_performed)
 	# top right, under nothing: the HUD keeps the top left
 	set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 6)
+
+
+func _line(column: VBoxContainer, colour: Color) -> Label:
+	var label := Label.new()
+	label.add_theme_color_override("font_color", colour)
+	label.add_theme_font_size_override("font_size", 8)
+	column.add_child(label)
+	return label
+
+
+func _write_drill() -> void:
+	var id := drills.foe_id() if drills != null else Game.practice
+	_header.text = tr("PRACTICE_HUD") % tr(str(Data.enemies.get(id, {}).get("name", id)))
+	_drill.visible = drills != null
+	_hint.visible = false
+	_tally.visible = false
+	if drills == null:
+		return
+	_drill.text = tr("DRILL_LINE") % [tr(PracticeDrills.NAMES[drills.drill]), Settings.key_name("interact")]
+	var hint: String = PracticeDrills.HINTS[drills.drill]
+	_hint.visible = hint != ""
+	_hint.text = tr(hint) if hint != "" else ""
+	_tally.visible = drills.drill != "spar" or drills.tally.values().any(func(n: int) -> bool: return n > 0)
+	_tally.text = tr("DRILL_TALLY") % [drills.tally.blocked, drills.tally.parried, drills.tally.backstab]
+	if drills.tally.best > 1:
+		_tally.text += "\n" + tr("DRILL_STREAK") % [drills.tally.streak, drills.tally.best]
 
 
 func _write(id: String) -> void:

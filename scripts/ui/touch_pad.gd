@@ -306,6 +306,8 @@ func _own_player() -> Node:
 func _npc_near(player: Node) -> bool:
 	if player == null:
 		return false
+	if Game.practice != "":
+		return true  # the yard's talk button changes the drill (PracticeDrills)
 	# a person to talk to, or a thing that asks before it is used (a rest
 	# point, a cursed chest)
 	for npc in get_tree().get_nodes_in_group("npc") + get_tree().get_nodes_in_group("interactable"):

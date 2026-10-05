@@ -42,6 +42,8 @@ signal boss_hp_changed(name_key: String, hp: float, max_hp: float)
 signal boss_died
 ## A blow caught on a timed block (Player._parry).
 signal player_parried
+## A blow caught on a raised guard, too late for a parry (Player.take_damage).
+signal player_blocked
 ## A physical beat strong enough for the room to answer: footsteps stay local,
 ## while jumps, rolls, swings and hard landings bend fog and nearby foliage.
 signal world_impulse(position: Vector2, direction: Vector2, strength: float, kind: StringName)

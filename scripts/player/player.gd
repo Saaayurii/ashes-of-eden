@@ -1092,6 +1092,8 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		_block_fx(amount, from_x)
 		if Net.active:
 			_net_block_fx.rpc(amount, from_x)
+		if _is_mine():
+			EventBus.player_blocked.emit()
 	else:
 		_hit_fx(amount)
 		if _attack_anim_left <= 0.0 and _dash_left <= 0.0:
