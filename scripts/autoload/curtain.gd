@@ -54,6 +54,7 @@ const BEFORE_SCENE_HOLD := 0.35
 ## every two rooms of the same chapter. Keep gameplay geometry separate.
 const PASSAGE_ART := {
 	"swamp": preload("res://assets/ui/transitions/graveyard_to_swamp.png"),
+	"catacombs": preload("res://assets/ui/transitions/swamp_to_catacombs.png"),
 }
 
 ## No curtain, no card, no waiting: _load_room stays synchronous. On by default
