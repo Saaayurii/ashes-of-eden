@@ -54,12 +54,12 @@ func _run() -> void:
 					for other in group_materials.values():
 						assert(polygon.material != other, "%s shares material across openings" % key)
 					group_materials[group] = polygon.material
-			var single_vista: bool = key in ["swamp_threshold", "catacombs_threshold", "crypt_threshold"]
+			var single_vista: bool = key in ["swamp_threshold", "catacombs_threshold", "crypt_threshold", "ashes_threshold"]
 			assert(group_materials.size() >= (1 if single_vista else 3),
 				"%s needs separate authored openings" % key)
 		count += 1
 		room.queue_free()
 		await process_frame
-	assert(count == 22, "all 22 room scenes have authored depth")
+	assert(count == 23, "all 23 room scenes have authored depth")
 	print("DEPTH_LAYERS_OK %d" % count)
 	quit()

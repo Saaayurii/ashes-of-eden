@@ -16,6 +16,7 @@
     {"match": "crypt_skulls",    "effects": ["motes", "wisps"]},
     {"match": "crypt_threshold", "effects": ["motes", "wisps"]},
     {"match": "crypt_lava",      "effects": ["embers", "motes"]},
+    {"match": "ashes_threshold", "effects": ["motes", "embers"]},
     {"match": "hell_gate",       "effects": ["embers", "bats"]},
     {"match": "preacher_nave",   "effects": ["motes", "petals"]},
     {"match": "church",          "effects": ["motes", "petals"]},
