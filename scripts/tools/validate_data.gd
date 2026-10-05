@@ -37,7 +37,8 @@ const PROP_KINDS := ["destructible", "chest"]
 const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold"]
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
 const CUTSCENE_STEPS := {
-	"hold": [], "release": [], "letterbox": [], "wait": ["time"], "camera": ["to"],
+	"hold": [], "release": [], "letterbox": [], "wait": ["time"], "camera": [],
+	"title": [], "flash": [], "fx": ["kind"], "presence": [],
 	"move": ["who"], "walk": ["who"], "anim": ["who", "anim"], "face": ["who", "dir"],
 	"dialogue": ["id"], "shake": [], "sound": ["name"], "music": ["name"], "fade": ["to"],
 	"appear": ["who"], "vanish": ["who"], "panel": ["image"], "panel_clear": [],
@@ -129,6 +130,7 @@ func _init() -> void:
 	_check_cjk_font(strings)
 	_check_glyphs(strings)
 	_check_story_flags()
+	_check_backdrops()
 
 	for w in warnings:
 		print("WARNING: " + w)
@@ -188,6 +190,11 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			elif entry.get("bestiary", true) and not ["seal", "dummy"].has(entry.get("behaviour", "walker")) \
 					and not entry.has("extends"):
 				_error("%s: an enemy that can kill needs a \"tip\" (how to meet it)" % where)
+			# a boss is named on arrival by the cutscene's title card
+			if entry.has("epithet"):
+				_use_key(entry.epithet, where)
+			elif entry.get("boss", false) and not entry.has("extends"):
+				_error("%s: a boss needs an \"epithet\" for its title card" % where)
 			for tag in entry.get("tags", []):
 				_use_key("TAG_" + str(tag).to_upper(), where)  # the bestiary shows them
 			if not entry.has("extends"):
@@ -951,8 +958,39 @@ func _check_cutscene(entry: Dictionary, where: String) -> void:
 				_error("%s: step %s needs \"%s\"" % [where, kind, field])
 		if step.has("who"):
 			_check_actor(step.who, where)
-		if kind == "camera" and not (step.to is Array):
+		if kind == "camera":
+			if step.has("between"):
+				if not (step.between is Array) or step.between.size() != 2:
+					_error("%s: camera between needs two actors" % where)
+				else:
+					for actor in step.between:
+						_check_actor(actor, where)
+			elif not step.has("to"):
+				_error("%s: step camera needs \"to\" or \"between\"" % where)
+			elif not (step.to is Array):
+				_check_actor(step.to, where)
+		if (kind == "move" or kind == "walk") and step.has("to") and not (step.to is Array):
 			_check_actor(step.to, where)
+		if kind == "fx":
+			if not ["ash", "sparkle", "dust", "puff", "light", "debris"].has(str(step.kind)):
+				_error("%s: fx kind must be ash, sparkle, dust, puff, light or debris" % where)
+			if step.has("at") and not (step.at is Array):
+				_check_actor(step.at, where)
+		if kind == "title":
+			if not step.has("who") and not step.has("name"):
+				_error("%s: a title needs \"who\" or \"name\"" % where)
+			if step.has("at") and not ["top", "bottom"].has(str(step.at)):
+				_error("%s: a title stands at \"top\" or \"bottom\"" % where)
+			for key in ["name", "subtitle"]:
+				if step.has(key):
+					_use_key(step[key], where)
+		if kind == "dialogue" and step.has("cast"):
+			if not (step.cast is Dictionary):
+				_error("%s: cast must map speakers to actors" % where)
+			else:
+				for speaker in step.cast:
+					_use_key(speaker, where)
+					_check_actor(step.cast[speaker], where)
 		if kind == "move" or kind == "walk":
 			if not step.has("to") and not step.has("by"):
 				_error("%s: step %s needs \"to\" or \"by\"" % [where, kind])
@@ -1025,6 +1063,43 @@ const FLAGS_READ_IN_CODE := ["voice_yes", "matthew_confessed", "matthew_judged",
 const FLAGS_SET_IN_CODE := ["blood_paid"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
+
+
+## data/backdrops.json (scripts/rooms/backdrop_life.gd): every room of the
+## chapter is named, each names a family that exists, each zone a known kind
+## and a rect. Whether a rect lies on its picture is backdrop_life_test.gd's.
+const BACKDROP_KINDS := ["falls", "water", "sway", "glow", "lava", "haze", "stars", "pulse"]  # BackdropLife.KINDS
+const BACKDROP_ZONES := 24  # BackdropLife.MAX_ZONES
+
+
+func _check_backdrops() -> void:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/backdrops.json"))
+	if not parsed is Dictionary:
+		_error("data/backdrops.json: not a JSON object")
+		return
+	var families: Dictionary = parsed.get("families", {})
+	var rooms: Dictionary = parsed.get("rooms", {})
+	# run.gd needs the autoloads to compile; its ROOMS are read as text
+	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")
+	var listed := run.substr(run.find("const ROOMS := ["))
+	listed = listed.substr(0, listed.find("]"))
+	var scene := RegEx.create_from_string("rooms/(\\w+)\\.tscn")
+	for found in scene.search_all(listed):
+		if not rooms.has(found.get_string(1)):
+			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % found.get_string(1))
+	for key in rooms:
+		var room: Dictionary = rooms[key]
+		if not families.has(str(room.get("family", ""))):
+			_error("data/backdrops.json: %s names an unknown family \"%s\"" % [key, room.get("family", "")])
+		var zones: Array = room.get("zones", [])
+		if zones.size() > BACKDROP_ZONES:
+			_error("data/backdrops.json: %s has %d zones, the shader holds %d" % [key, zones.size(), BACKDROP_ZONES])
+		for zone in zones:
+			if not BACKDROP_KINDS.has(str(zone.get("kind", ""))):
+				_error("data/backdrops.json: %s: unknown zone kind \"%s\"" % [key, zone.get("kind", "")])
+			var rect = zone.get("rect", [])
+			if not rect is Array or rect.size() != 4 or float(rect[2]) <= 0.0 or float(rect[3]) <= 0.0:
+				_error("data/backdrops.json: %s: a %s zone needs rect [x, y, w, h]" % [key, zone.get("kind", "")])
 
 
 func _check_story_flags() -> void:

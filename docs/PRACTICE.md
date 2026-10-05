@@ -22,6 +22,28 @@ All three set `Game.practice` to an enemy id and start the Run, which opens
 `Run.PRACTICE_INDEX`) instead of the chapter. Leaving through the pause menu
 clears it.
 
+## Drills
+
+`interact` (E, the pad's button, the touch pad's talk button — shown
+everywhere in the yard) changes what stands across from the hero
+(`scripts/run/practice_drills.gd`, `Run.drills`):
+
+- **Spar** — the foe the yard was opened for (the straw man from the menu).
+- **Guard** — a foe that swings: hold Block into the blow, raise it as the
+  blow lands to parry. The straw man, a boss or a seal is stood in for by the
+  fallen guard, whose wind-up is the slowest of the walkers.
+- **Volley** — a foe that shoots (the zealot, unless the yard's own foe does):
+  a parry sends the bolt back, a roll goes through it.
+- **Stalk** — a foe pacing its patch with its back to the hero, set down on
+  the spot of the floor farthest from him. Once it knows he is there — seen,
+  or struck — it is put back unaware `STALK_RESET` seconds later, elsewhere.
+
+The move list counts blocks (`EventBus.player_blocked`), parries and
+backstabs, and the parries in a row since the last wound with the best such
+run. One foe at a time: changing the drill clears the floor and gives the
+room's count back by hand, so a respawn already due does not stand up a
+second. `practice_drills_test.gd`.
+
 ## Nothing counts
 
 A practice kill pays no essence and no Ash, writes nothing in the bestiary or

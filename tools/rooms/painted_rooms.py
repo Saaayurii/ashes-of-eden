@@ -431,8 +431,8 @@ PAINTED = {
     "hell_gate": dict(
         # Thirteenth panel, the Ophanim: the locked gate of the pit, a grand
         # stair up to it over a bridge of bone. The gate is the exit.
-        painting="hell_gate", width=1280, height=720, weather="embers", fog=0.15, intro="ch1_ophanim", music="boss_ophanim",
-        intro_cutscene="ophanim_arrival", outro_cutscene="ch1_finale",
+        painting="hell_gate", width=1280, height=720, weather="embers", fog=0.15, intro="", music="boss_ophanim",
+        intro_cutscene="ophanim_arrival", outro_cutscene="ch1_finale",  # its words are in the scene, not a caption under it
         ground=[(900, 372, 220, 30)],
         ledges=[(60, 142, 100, 12), (159, 176, 111, 14), (364, 239, 154, 14),
                 (81, 393, 64, 10), (123, 416, 100, 12), (194, 447, 51, 10), (203, 462, 95, 10), (290, 492, 168, 14),

@@ -42,6 +42,7 @@ func _ready() -> void:
 	back_button.pressed.connect(close)
 	Settings.changed.connect(_refresh)
 	_build_bindings()
+	_build_scheme()
 	_build_speech()
 	_build_skin()
 	_build_vial()
@@ -88,6 +89,10 @@ func _refresh() -> void:
 		_vibration.set_pressed_no_signal(Settings.vibration)
 	if _speech:
 		_speech.set_pressed_no_signal(Settings.speech)
+	if _scheme:
+		_scheme.select(Settings.CONTROL_SCHEMES.find(Settings.control_scheme))
+		_mouse_aim.set_pressed_no_signal(Settings.mouse_aim)
+		_mouse_aim.get_parent().visible = Settings.control_scheme == "mouse"
 	for action in Settings.BINDABLE_ACTIONS:
 		var button: Button = bindings.get_node_or_null(action)
 		if button:
@@ -285,6 +290,36 @@ func _push_touch() -> void:
 	Settings.set_touch(Settings.TOUCH_MODES[_touch_mode.selected], _touch_scale.value, _touch_opacity.value, _touch_left.button_pressed)
 
 
+## Keyboard alone or keyboard and mouse (Settings.control_scheme), right
+## under the Controls title so the bindings below show what it chose.
+var _scheme: OptionButton
+var _mouse_aim: CheckButton
+
+
+func _build_scheme() -> void:
+	var box: Container = bindings.get_parent()
+	var anchor := box.get_node_or_null("ControlsTitle")
+	var at := anchor.get_index() + 1 if anchor else bindings.get_index()
+	_scheme = OptionButton.new()
+	for scheme in Settings.CONTROL_SCHEMES:
+		_scheme.add_item("CONTROLS_" + scheme.to_upper())
+	_scheme.tooltip_text = "SETTINGS_SCHEME_HINT"
+	_scheme.item_selected.connect(func(index: int) -> void:
+		_rebinding = ""
+		Settings.set_control_scheme(Settings.CONTROL_SCHEMES[index]))
+	var row := _row("SETTINGS_SCHEME", _scheme)
+	row.name = "SchemeRow"
+	box.add_child(row)
+	box.move_child(row, at)
+	_mouse_aim = CheckButton.new()
+	_mouse_aim.tooltip_text = "SETTINGS_MOUSE_AIM_HINT"
+	_mouse_aim.toggled.connect(Settings.set_mouse_aim)
+	var aim_row := _row("SETTINGS_MOUSE_AIM", _mouse_aim)
+	aim_row.name = "MouseAimRow"
+	box.add_child(aim_row)
+	box.move_child(aim_row, at + 1)
+
+
 func _build_bindings() -> void:
 	for action in Settings.BINDABLE_ACTIONS:
 		var label := Label.new()
@@ -307,11 +342,16 @@ func _input(event: InputEvent) -> void:
 	if not visible:
 		return
 	if _rebinding != "":
-		if event is InputEventKey and event.pressed:
+		# A key, or a mouse button (not the wheel); Escape gives up. The click
+		# that opened the wait was its release, so this press is a new one.
+		var pressed := (event is InputEventKey or event is InputEventMouseButton) and event.is_pressed() and not event.is_echo()
+		if pressed:
 			get_viewport().set_input_as_handled()
-			if event.physical_keycode != KEY_ESCAPE:
-				Settings.bind_key(_rebinding, event.physical_keycode)
-			_rebinding = ""
+			var binding := Settings.binding_of(event)
+			if binding != KEY_ESCAPE and binding != 0:
+				Settings.bind(_rebinding, binding)
+			if binding != 0:
+				_rebinding = ""
 			_refresh()
 		return
 	if event.is_action_pressed("ui_cancel"):

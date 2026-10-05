@@ -1,6 +1,7 @@
 {
   "id": "ophanim",
   "name": "ENEMY_OPHANIM",
+  "epithet": "BOSS_EPITHET_OPHANIM",
   "lore": "ENEMY_OPHANIM_LORE",
   "tip": "TIP_OPHANIM",
   "hp": 1500,

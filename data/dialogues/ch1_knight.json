@@ -1,0 +1,58 @@
+{
+  "id": "ch1_knight",
+  "blocking": false,
+  "start": "k1",
+  "nodes": {
+    "k1": {
+      "speaker": "SPEAKER_KNIGHT_OF_ASH",
+      "text": "DLG_CH1_KNIGHT_1",
+      "next": "k_route"
+    },
+    "k_route": {
+      "branches": [
+        {
+          "flag": "voice_yes",
+          "next": "k_yes"
+        },
+        {
+          "flag": "voice_no",
+          "next": "k_no"
+        },
+        {
+          "flag": "voice_silent",
+          "next": "k_silent"
+        }
+      ],
+      "next": "k_unasked"
+    },
+    "k_yes": {
+      "speaker": "SPEAKER_KNIGHT_OF_ASH",
+      "text": "DLG_CH1_KNIGHT_YES",
+      "next": "k2"
+    },
+    "k_no": {
+      "speaker": "SPEAKER_KNIGHT_OF_ASH",
+      "text": "DLG_CH1_KNIGHT_NO",
+      "next": "k2"
+    },
+    "k_silent": {
+      "speaker": "SPEAKER_KNIGHT_OF_ASH",
+      "text": "DLG_CH1_KNIGHT_SILENT",
+      "next": "k2"
+    },
+    "k_unasked": {
+      "speaker": "SPEAKER_KNIGHT_OF_ASH",
+      "text": "DLG_CH1_KNIGHT_UNASKED",
+      "next": "k2"
+    },
+    "k2": {
+      "speaker": "SPEAKER_ELIAN",
+      "text": "DLG_CH1_KNIGHT_2",
+      "next": "k3"
+    },
+    "k3": {
+      "speaker": "SPEAKER_KNIGHT_OF_ASH",
+      "text": "DLG_CH1_KNIGHT_3"
+    }
+  }
+}

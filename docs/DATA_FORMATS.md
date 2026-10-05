@@ -191,7 +191,9 @@ so once in a caption (`UNLOCKED_TONIGHT`).
   {"do": "move", "who": "boss", "by": [0, -140], "time": 0.0},
   {"do": "camera", "to": "boss", "zoom": 1.25, "time": 1.1},
   {"do": "move", "who": "boss", "by": [0, 140], "time": 2.2, "ease": "out"},
-  {"do": "dialogue", "id": "ch1_ophanim_arrival"},
+  {"do": "flash", "color": "#ffe9b8", "strength": 0.7, "time": 0.8},
+  {"do": "title", "who": "boss", "at": "bottom", "time": 1.8, "wait": false},
+  {"do": "dialogue", "id": "ch1_ophanim", "cast": {"SPEAKER_OPHANIM": "boss"}, "zoom": 1.25},
   {"do": "anim", "who": "player", "anim": "draw"},
   {"do": "letterbox", "on": false, "time": 0.3},
   {"do": "release"}
@@ -199,8 +201,12 @@ so once in a caption (`UNLOCKED_TONIGHT`).
 ```
 
 A scene is a list of steps played in order by `scripts/ui/cutscene.gd`; a room names one in `intro_cutscene`
-(as it starts) and `outro_cutscene` (when it is cleared). Any button skips: the remaining steps are applied
-instantly, so the world after a skipped scene equals the world after a watched one. Actors: `player` (our own
+(as it starts) and `outro_cutscene` (when it is cleared). A skip takes two presses of any button (the first
+only lights the hint up — a thumb still on jump from the room before must not throw a scene away); the Skip
+button itself answers at once. The remaining steps are then applied instantly, so the world after a skipped
+scene equals the world after a watched one. While a scene holds the controls the HUD steps out and the touch
+pad dims (`CutscenePlayer.cinema()`); a room's own `intro` caption must not run under a scene that speaks —
+put the words in the scene. Actors: `player` (our own
 body), `boss`, `door`, `npc:<id>`; a point is `[x, y]` in room pixels.
 
 | step | fields | what happens |
@@ -208,11 +214,16 @@ body), `boss`, `door`, `npc:<id>`; a point is `[x, y]` in room pixels.
 | `hold` / `release` | — | hands off the controls, every enemy freezes / hands back. A scene that holds must release. |
 | `letterbox` | `on`, `time` | black bars slide in or out |
 | `wait` | `time` | |
-| `camera` | `to`, `zoom`, `time` | a camera of its own glides to the actor or point (room limits kept); `to: "player"` is home |
-| `move` / `walk` | `who`, `to` or `by`, `time`, `ease` | slide the body (walk also plays its walk strip and turns it) |
+| `camera` | `to` or `between`, `zoom`, `time`, `offset` | a camera of its own glides to the actor or point (room limits kept); `between: [a, b]` frames two actors together; `to: "player"` is home |
+| `move` / `walk` | `who`, `to` or `by`, `offset`, `time`, `ease`, `run` | slide the body (walk keeps its floor, turns it and plays its walk — or run — strip); `offset` from an actor named in `to` |
 | `anim` | `who`, `anim`, `hold` | play a strip on the body (`hold`: freeze on the first frame, enemies only) |
 | `face` | `who`, `dir` | turn the body (−1 / 1) |
-| `dialogue` | `id`, `wait` | a dialogue from `data/dialogues` (captions run under the scene; `wait: false` lets the scene go on) |
+| `dialogue` | `id`, `wait`, `cast`, `zoom` | a dialogue from `data/dialogues` (captions run under the scene; `wait: false` lets the scene go on). `cast` maps speaker keys to actors (`{"SPEAKER_ELIAN": "player", "SPEAKER_PREACHER": "boss"}`): each line cuts the camera to whoever says it at `zoom`, and it creeps in while they talk — shot and reverse shot |
+| `title` | `who` or `name`, `subtitle`, `at`, `time`, `wait`, `sound` | the boss's name and its `epithet` (enemy JSON; every boss needs one) over a thin gold rule, at the `top` third or the `bottom` (for one that hangs in the air) |
+| `flash` | `color`, `strength`, `time` | the whole screen goes that colour and fades back; dimmed by `Settings.flash_scale()` |
+| `presence` | `at`, `offset`, `color`, `radius`, `strength`, `eyes`, `time`, `on` | something in the dark looks back: a breathing glow with two slits for eyes, pinned to a point in the room and drawn above the `fade` (a light in the room would be dimmed with it); `on: false` lets it go. The Voice in the catacombs |
+| `fx` | `kind`, `at`, `offset`, `color`, `amount` | a one-shot through `Fx` at an actor or point: `ash`, `sparkle`, `dust`, `puff`, `debris`, `light` (`radius`, `energy`) |
+| `panel` / `panel_clear` | `image`, `time`, `drift`, `drift_time`, `pan` | a painting over the screen; it drifts in (`drift` 0.05 by default, 0 for none) and may `pan` by `[x, y]` |
 | `shake`, `sound`, `music`, `fade` | `strength` / `name`, `volume` / `name` / `to`, `time`, `color` | theatre |
 | `appear` / `vanish` | `who`, `time`, `ash` | a figure fades in / out; `ash: true` leaves a burst of ash (struck down, not leaving). A vanished NPC is gone for good |
 
