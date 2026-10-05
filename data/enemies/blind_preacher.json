@@ -1,6 +1,7 @@
 {
   "id": "blind_preacher",
   "name": "ENEMY_BLIND_PREACHER",
+  "epithet": "BOSS_EPITHET_BLIND_PREACHER",
   "lore": "ENEMY_BLIND_PREACHER_LORE",
   "tip": "TIP_BLIND_PREACHER",
   "hp": 900,

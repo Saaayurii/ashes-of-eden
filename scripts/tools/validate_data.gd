@@ -37,7 +37,8 @@ const PROP_KINDS := ["destructible", "chest"]
 const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold"]
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
 const CUTSCENE_STEPS := {
-	"hold": [], "release": [], "letterbox": [], "wait": ["time"], "camera": ["to"],
+	"hold": [], "release": [], "letterbox": [], "wait": ["time"], "camera": [],
+	"title": [], "flash": [], "fx": ["kind"],
 	"move": ["who"], "walk": ["who"], "anim": ["who", "anim"], "face": ["who", "dir"],
 	"dialogue": ["id"], "shake": [], "sound": ["name"], "music": ["name"], "fade": ["to"],
 	"appear": ["who"], "vanish": ["who"], "panel": ["image"], "panel_clear": [],
@@ -187,6 +188,11 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			elif entry.get("bestiary", true) and not ["seal", "dummy"].has(entry.get("behaviour", "walker")) \
 					and not entry.has("extends"):
 				_error("%s: an enemy that can kill needs a \"tip\" (how to meet it)" % where)
+			# a boss is named on arrival by the cutscene's title card
+			if entry.has("epithet"):
+				_use_key(entry.epithet, where)
+			elif entry.get("boss", false) and not entry.has("extends"):
+				_error("%s: a boss needs an \"epithet\" for its title card" % where)
 			for tag in entry.get("tags", []):
 				_use_key("TAG_" + str(tag).to_upper(), where)  # the bestiary shows them
 			if not entry.has("extends"):
@@ -889,8 +895,39 @@ func _check_cutscene(entry: Dictionary, where: String) -> void:
 				_error("%s: step %s needs \"%s\"" % [where, kind, field])
 		if step.has("who"):
 			_check_actor(step.who, where)
-		if kind == "camera" and not (step.to is Array):
+		if kind == "camera":
+			if step.has("between"):
+				if not (step.between is Array) or step.between.size() != 2:
+					_error("%s: camera between needs two actors" % where)
+				else:
+					for actor in step.between:
+						_check_actor(actor, where)
+			elif not step.has("to"):
+				_error("%s: step camera needs \"to\" or \"between\"" % where)
+			elif not (step.to is Array):
+				_check_actor(step.to, where)
+		if (kind == "move" or kind == "walk") and step.has("to") and not (step.to is Array):
 			_check_actor(step.to, where)
+		if kind == "fx":
+			if not ["ash", "sparkle", "dust", "puff", "light", "debris"].has(str(step.kind)):
+				_error("%s: fx kind must be ash, sparkle, dust, puff, light or debris" % where)
+			if step.has("at") and not (step.at is Array):
+				_check_actor(step.at, where)
+		if kind == "title":
+			if not step.has("who") and not step.has("name"):
+				_error("%s: a title needs \"who\" or \"name\"" % where)
+			if step.has("at") and not ["top", "bottom"].has(str(step.at)):
+				_error("%s: a title stands at \"top\" or \"bottom\"" % where)
+			for key in ["name", "subtitle"]:
+				if step.has(key):
+					_use_key(step[key], where)
+		if kind == "dialogue" and step.has("cast"):
+			if not (step.cast is Dictionary):
+				_error("%s: cast must map speakers to actors" % where)
+			else:
+				for speaker in step.cast:
+					_use_key(speaker, where)
+					_check_actor(step.cast[speaker], where)
 		if kind == "move" or kind == "walk":
 			if not step.has("to") and not step.has("by"):
 				_error("%s: step %s needs \"to\" or \"by\"" % [where, kind])

@@ -1,6 +1,7 @@
 {
   "id": "knight_of_ash",
   "name": "ENEMY_KNIGHT_OF_ASH",
+  "epithet": "BOSS_EPITHET_KNIGHT_OF_ASH",
   "lore": "ENEMY_KNIGHT_OF_ASH_LORE",
   "tip": "TIP_KNIGHT_OF_ASH",
   "hp": 760,

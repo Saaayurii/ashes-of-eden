@@ -1,117 +1,27 @@
 {
   "id": "ch1_finale",
   "steps": [
-    {
-      "do": "hold"
-    },
-    {
-      "do": "letterbox",
-      "on": true,
-      "time": 0.5
-    },
-    {
-      "do": "camera",
-      "to": "boss",
-      "zoom": 1.2,
-      "time": 1.0
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_ophanim_fall"
-    },
-    {
-      "do": "wait",
-      "time": 0.4
-    },
-    {
-      "do": "camera",
-      "to": "player",
-      "zoom": 1.2,
-      "time": 1.0
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_confessed",
-      "if": "matthew_confessed"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_judged",
-      "if": "matthew_judged"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_released",
-      "if": "matthew_released"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_unknown",
-      "unless": [
-        "matthew_confessed",
-        "matthew_judged",
-        "matthew_released"
-      ]
-    },
-    {
-      "do": "sound",
-      "name": "bell",
-      "volume": 0
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_bell_asked",
-      "if": "matthew_bell"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_bell_left",
-      "if": "matthew_let_ring"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_names",
-      "if": "matthew_book_revealed"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_book",
-      "if": "book_read"
-    },
-    {
-      "do": "camera",
-      "to": "door",
-      "zoom": 1.15,
-      "time": 1.4
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_grace",
-      "path": "grace"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_temptation",
-      "path": "temptation"
-    },
-    {
-      "do": "dialogue",
-      "id": "ch1_finale_will",
-      "path": "will"
-    },
-    {
-      "do": "camera",
-      "to": "player",
-      "zoom": 1.0,
-      "time": 0.9
-    },
-    {
-      "do": "letterbox",
-      "on": false,
-      "time": 0.4
-    },
-    {
-      "do": "release"
-    }
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.5},
+    {"do": "camera", "to": "boss", "zoom": 1.2, "time": 1.0},
+    {"do": "dialogue", "id": "ch1_ophanim_fall", "cast": {"SPEAKER_OPHANIM": "boss", "SPEAKER_ELIAN": "player"}, "zoom": 1.2},
+    {"do": "wait", "time": 0.4},
+    {"do": "camera", "to": "player", "zoom": 1.2, "time": 1.0},
+    {"do": "dialogue", "id": "ch1_finale_confessed", "if": "matthew_confessed"},
+    {"do": "dialogue", "id": "ch1_finale_judged", "if": "matthew_judged"},
+    {"do": "dialogue", "id": "ch1_finale_released", "if": "matthew_released"},
+    {"do": "dialogue", "id": "ch1_finale_unknown", "unless": ["matthew_confessed", "matthew_judged", "matthew_released"]},
+    {"do": "sound", "name": "bell", "volume": 0},
+    {"do": "dialogue", "id": "ch1_finale_bell_asked", "if": "matthew_bell"},
+    {"do": "dialogue", "id": "ch1_finale_bell_left", "if": "matthew_let_ring"},
+    {"do": "dialogue", "id": "ch1_finale_names", "if": "matthew_book_revealed"},
+    {"do": "dialogue", "id": "ch1_finale_book", "if": "book_read"},
+    {"do": "camera", "to": "door", "zoom": 1.15, "time": 1.4},
+    {"do": "dialogue", "id": "ch1_finale_grace", "path": "grace"},
+    {"do": "dialogue", "id": "ch1_finale_temptation", "path": "temptation"},
+    {"do": "dialogue", "id": "ch1_finale_will", "path": "will"},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.9},
+    {"do": "letterbox", "on": false, "time": 0.4},
+    {"do": "release"}
   ]
 }

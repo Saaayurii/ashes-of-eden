@@ -1,5 +1,5 @@
 extends SceneTree
-## The scripted Preacher reveal must start in room 12 and release controls
+## The scripted Preacher reveal must start in the nave and release controls
 ## when skipped, just like the other two boss introductions.
 
 
@@ -13,7 +13,8 @@ func _run() -> void:
 	await process_frame
 	var run = current_scene
 	run.transition.instant = true
-	run._load_room(11)
+	# by name: threshold rooms between places keep moving the index
+	run._load_room(run.ROOMS.find("res://scenes/rooms/preacher_nave.tscn"))
 	var started := false
 	for frame in 180:
 		await process_frame

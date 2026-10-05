@@ -19,6 +19,9 @@ signal _released  # the running dialogue has finished
 ## This screen answered: the choice index, or -1 for "continue". The run relays
 ## it to the other player so both see the same story (docs/MULTIPLAYER.md).
 signal answered_locally(choice_index: int)
+## A line is about to be shown, in any look: who says it (a SPEAKER_ key). A
+## cutscene turns its camera to the speaker on it (CutscenePlayer, "cast").
+signal line_shown(speaker: String)
 
 ## Co-op: true on the screens that watch. The buttons are shown but dead, and
 ## the box waits for [method answer_remote] instead of for a click here.
@@ -153,6 +156,7 @@ func play(dialogue_id: String) -> void:
 		# read out over the caption; if not, spoken is 0.0 and everything below
 		# times itself the way it did before there was any voice at all.
 		var spoken := Audio.speak(str(node.get("text", "")))
+		line_shown.emit(str(node.get("speaker", "")))
 		if blocking and _in_bubbles():
 			_show_bubble(node)
 			choice = await _answered
