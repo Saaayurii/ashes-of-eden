@@ -60,6 +60,8 @@ var _held_player: Player
 ## "by" the offset again from wherever the tween was killed.
 var _goals := {}
 var _skip_armed := 0.0
+## Watched before (Profile.scene_seen): one press skips, no confirmation.
+var _seen_before := false
 var _flash: ColorRect
 var _title: Control
 var _title_name: Label
@@ -231,7 +233,7 @@ func _input(event: InputEvent) -> void:
 	for action in SKIP_ACTIONS:
 		if event.is_action_pressed(action):
 			get_viewport().set_input_as_handled()
-			if _skip_armed > 0.0:
+			if _skip_armed > 0.0 or _seen_before:
 				_skip()
 			else:
 				_arm_skip()
@@ -302,6 +304,7 @@ func play(cutscene_id: String) -> void:
 	_aborted = false
 	_dialogue_id = ""
 	_goals.clear()
+	_seen_before = Profile.scene_seen(cutscene_id)
 	_disarm_skip()
 	_hint.visible = true
 	EventBus.cutscene_started.emit(cutscene_id)
@@ -330,6 +333,7 @@ func play(cutscene_id: String) -> void:
 	_reset_beats()
 	playing = ""
 	if not _aborted:
+		Profile.record_scene(cutscene_id)
 		finished.emit(cutscene_id)
 		EventBus.cutscene_finished.emit(cutscene_id)
 

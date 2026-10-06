@@ -185,6 +185,7 @@ func _ready() -> void:
 	_speech = AudioStreamPlayer.new()
 	_speech.bus = "SFX"
 	add_child(_speech)
+	_setup_duck()
 	# Every Button in the project clicks, without touching a single scene.
 	get_tree().node_added.connect(_on_node_added)
 	# The cues that belong to the run rather than to any one body: they arrive
@@ -492,6 +493,37 @@ func _fading(player: AudioStreamPlayer) -> bool:
 
 ## How loud a story line sits against everything else in the room.
 const SPEECH_DB := -2.0
+## While a line is read the music steps back this far (an Amplify on the
+## Music bus, so the player's slider and the crossfades stay untouched), going
+## down quickly and coming back slowly, so a pause between two lines does not
+## pump the music up and down.
+const SPEECH_DUCK_DB := -7.0
+const DUCK_DOWN_DB_S := 28.0
+const DUCK_UP_DB_S := 7.0
+var _duck: AudioEffectAmplify
+
+
+func _setup_duck() -> void:
+	var bus := AudioServer.get_bus_index("Music")
+	if bus < 0:
+		return
+	_duck = AudioEffectAmplify.new()
+	_duck.volume_db = 0.0
+	AudioServer.add_bus_effect(bus, _duck)
+
+
+func _process(delta: float) -> void:
+	if _duck == null:
+		return
+	var speaking := _speech != null and _speech.playing
+	var target := SPEECH_DUCK_DB if speaking else 0.0
+	var rate := DUCK_DOWN_DB_S if target < _duck.volume_db else DUCK_UP_DB_S
+	_duck.volume_db = move_toward(_duck.volume_db, target, rate * delta)
+
+
+## How far the music is stepped back under speech right now (for tests).
+func duck_db() -> float:
+	return _duck.volume_db if _duck != null else 0.0
 
 
 ## Read a line out loud, if anybody has recorded it in the language being

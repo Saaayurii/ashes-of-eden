@@ -54,6 +54,9 @@ static func _defaults() -> Dictionary:
 		"habit": {"path": "", "nights": 0},
 		# Where the last night ended in a death (LastFall): {room, x, y, by}.
 		"last_fall": {},
+		# Cutscenes watched to their end or skipped (CutscenePlayer): id -> how
+		# many times. One seen before skips on a single press.
+		"scenes_seen": {},
 	}
 
 
@@ -354,6 +357,22 @@ func bestiary_known() -> int:
 				and int(data.bestiary[id].get("kills", 0)) > 0:
 			known += 1
 	return known
+
+
+## A scene has been through once more: never in the yard, never from a
+## dedicated referee, and never from a tool script (it would mark the scenes
+## seen in the profile of whoever ran the test).
+func record_scene(scene_id: String) -> void:
+	if scene_id == "" or Net.dedicated or Game.practice != "" or OS.get_cmdline_args().has("-s"):
+		return
+	var seen: Dictionary = data.get("scenes_seen", {})
+	seen[scene_id] = int(seen.get(scene_id, 0)) + 1
+	data["scenes_seen"] = seen
+	save()
+
+
+func scene_seen(scene_id: String) -> bool:
+	return int(data.get("scenes_seen", {}).get(scene_id, 0)) > 0
 
 
 func save() -> void:

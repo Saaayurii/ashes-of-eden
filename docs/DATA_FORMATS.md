@@ -203,7 +203,8 @@ so once in a caption (`UNLOCKED_TONIGHT`).
 A scene is a list of steps played in order by `scripts/ui/cutscene.gd`; a room names one in `intro_cutscene`
 (as it starts) and `outro_cutscene` (when it is cleared). A skip takes two presses of any button (the first
 only lights the hint up — a thumb still on jump from the room before must not throw a scene away); the Skip
-button itself answers at once. The remaining steps are then applied instantly, so the world after a skipped
+button itself answers at once, and so does a single press in a scene this profile has seen before
+(`Profile.scenes_seen`). The remaining steps are then applied instantly, so the world after a skipped
 scene equals the world after a watched one. While a scene holds the controls the HUD steps out and the touch
 pad dims (`CutscenePlayer.cinema()`); a room's own `intro` caption must not run under a scene that speaks —
 put the words in the scene. Actors: `player` (our own

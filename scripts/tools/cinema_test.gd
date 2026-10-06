@@ -8,6 +8,7 @@ extends SceneTree
 
 var failures := 0
 var _speakers: Array[String] = []
+var _was_seen := false
 
 
 func _init() -> void:
@@ -22,6 +23,7 @@ func _run() -> void:
 	run.transition.instant = true
 	var scene = run.cutscene
 	var hud: CanvasItem = run.get_node("UI/HUD")
+	_was_seen = root.get_node("Profile").scene_seen("preacher_arrival")
 	run._load_room(run.ROOMS.find("res://scenes/rooms/preacher_nave.tscn"))
 	if not await _until(func() -> bool: return scene.playing == "preacher_arrival", 6.0):
 		_assert(false, "the Preacher's arrival starts")
@@ -46,16 +48,36 @@ func _run() -> void:
 	var jump := InputEventAction.new()
 	jump.action = "jump"
 	jump.pressed = true
+	scene._seen_before = false  # a first viewing, whatever this machine's profile says
 	scene._input(jump)
 	_assert(scene.skip_armed() and not scene.skipping() and scene.playing != "", "one press only arms the skip")
 	scene._input(jump)
 	_assert(scene.skipping(), "the second press skips")
+	_assert(not root.get_node("Profile").scene_seen("qa_never_played"), "an unplayed scene is not seen")
 	_assert(await _until(func() -> bool: return scene.playing == "", 5.0), "the scene ends after the skip")
 	await create_timer(0.6).timeout
 	_assert(not scene.cinema() and hud.modulate.a > 0.95, "the HUD comes back (%.2f)" % hud.modulate.a)
 	_assert(player.controls_enabled and not root.get_node("Game").cutscene, "the controls come back")
 	_assert(player.camera.is_current(), "the room's own camera is current again")
 	_assert(not scene._title.visible and scene._flash.color.a <= 0.01, "no title or flash is left on screen")
+	_assert(not root.get_node("Profile").scene_seen("preacher_arrival") or _was_seen,
+		"a tool script does not mark the scene seen in the player's profile")
+
+	# watched before: one press is enough
+	scene.play("knight_arrival")
+	await process_frame
+	scene._seen_before = true
+	scene._input(jump)
+	_assert(scene.skipping(), "a scene seen before skips on one press")
+	await _until(func() -> bool: return scene.playing == "", 5.0)
+
+	# a spoken line steps the music back, and it comes back after
+	var audio = root.get_node("Audio")
+	if root.get_node("Settings").speech and audio.speak("DLG_CH1_PREACHER_1") > 0.0:
+		await create_timer(0.6).timeout
+		_assert(audio.duck_db() < -5.0, "the music steps back under a spoken line (%.1f dB)" % audio.duck_db())
+		audio.stop_speech()
+		_assert(await _until(func() -> bool: return audio.duck_db() > -0.5, 3.0), "and comes back after it")
 	_finish(run)
 
 
