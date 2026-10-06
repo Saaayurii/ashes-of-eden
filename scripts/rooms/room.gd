@@ -107,6 +107,9 @@ func _configure_depth_windows() -> void:
 		var group := polygon.name.get_slice("Feather", 0)
 		if not _depth_window_materials.has(group):
 			_depth_window_materials[group] = source.duplicate() as ShaderMaterial
+			# Explicit zero matters for static openings: an unset shader uniform
+			# reads back as null even though the shader renders its default 0.
+			(_depth_window_materials[group] as ShaderMaterial).set_shader_parameter("shift_px", 0.0)
 			var index := maxi(1, int(group.trim_prefix("Window")))
 			_depth_window_factors[group] = ROOM_LAYERS.window_factor(self, index,
 				clampf(0.68 + 0.16 * (index - 1), 0.68, 1.16))

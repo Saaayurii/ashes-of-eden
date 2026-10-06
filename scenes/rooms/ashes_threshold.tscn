@@ -24,7 +24,7 @@ script = ExtResource("room")
 width = 1600
 height = 720
 painting_source = "res://assets/levels/church_ashes_threshold.png"
-depth_parallax = 0.006
+depth_parallax = 0.0
 
 [node name="Painting" type="Sprite2D" parent="."]
 texture_filter = 2
