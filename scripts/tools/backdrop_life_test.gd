@@ -122,6 +122,7 @@ func _run() -> void:
 	var settings = root.get_node("/root/Settings")
 	var was_motion: bool = settings.backdrop_motion
 	var was_flashes: String = settings.flashes
+	var was_lighting: bool = settings.lighting
 	var night = load("res://scenes/rooms/village_night.tscn").instantiate()
 	root.add_child(night)
 	await process_frame
@@ -137,9 +138,20 @@ func _run() -> void:
 	for each in night_materials:
 		_check(float(each.get_shader_parameter("life_motion")) == 1.0 and float(each.get_shader_parameter("life_light")) == 1.0,
 			"village_night: the picture does not come back to life")
+	# the weak-GPU switch rests the picture and gives its life back after
+	var zones_lit: int = night_materials[0].get_shader_parameter("life_count")
+	settings.set_lighting(false)
+	for each in night_materials:
+		_check(int(each.get_shader_parameter("life_count")) == 0 and float(each.get_shader_parameter("life_flame")) == 0.0,
+			"village_night: the picture still lives with the lighting off")
+	settings.set_lighting(true)
+	_check(int(night_materials[0].get_shader_parameter("life_count")) == zones_lit and zones_lit > 0,
+		"village_night: the life did not come back with the lighting")
 	settings.set_backdrop_motion(was_motion)
 	settings.set_flashes(was_flashes)
-	_check(settings.backdrop_motion == was_motion and settings.flashes == was_flashes, "the player's settings were not put back")
+	settings.set_lighting(was_lighting)
+	_check(settings.backdrop_motion == was_motion and settings.flashes == was_flashes and settings.lighting == was_lighting,
+		"the player's settings were not put back")
 	night.queue_free()
 	await process_frame
 	# a room hears a boss weaken and a scene flash, through its Ambience

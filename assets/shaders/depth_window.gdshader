@@ -13,11 +13,20 @@ void fragment() {
 	plate_uv.x = clamp(plate_uv.x - shift_px / plate_width, 0.0, 1.0);
 	// the same life as the painting around the opening (backdrop_life.gdshaderinc)
 	vec2 px = plate_uv / TEXTURE_PIXEL_SIZE;
-	Life l = life_gather(px, TIME);
-	vec4 painted = texture(TEXTURE, plate_uv + l.offset * TEXTURE_PIXEL_SIZE);
-	vec4 wet = l.wet > 0.0 ? texture(TEXTURE, plate_uv + (l.offset + l.ripple) * TEXTURE_PIXEL_SIZE) : painted;
-	vec4 hot = l.molten > 0.0 ? texture(TEXTURE, plate_uv + (l.offset + l.melt) * TEXTURE_PIXEL_SIZE) : painted;
-	painted = life_finish(painted, wet, hot, l, px, TIME);
+	vec4 painted = texture(TEXTURE, plate_uv);
+	if (!life_quiet(px, painted)) {
+		Life l = life_gather(px, TIME);
+		painted = texture(TEXTURE, plate_uv + l.offset * TEXTURE_PIXEL_SIZE);
+		vec4 wet = painted;
+		if (l.wet > 0.0) {
+			wet = textureLod(TEXTURE, plate_uv + (l.offset + l.ripple) * TEXTURE_PIXEL_SIZE, 0.0);
+		}
+		vec4 hot = painted;
+		if (l.molten > 0.0) {
+			hot = textureLod(TEXTURE, plate_uv + (l.offset + l.melt) * TEXTURE_PIXEL_SIZE, 0.0);
+		}
+		painted = life_finish(painted, wet, hot, l, px, TIME);
+	}
 	vec4 vertex_tint = COLOR;
 	COLOR = vec4(painted.rgb * vertex_tint.rgb, painted.a * opacity * vertex_tint.a);
 }

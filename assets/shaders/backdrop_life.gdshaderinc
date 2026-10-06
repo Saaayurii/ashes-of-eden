@@ -18,6 +18,12 @@ uniform vec4 life_rect[LIFE_ZONES];   // x, y, w, h in painting pixels
 uniform vec4 life_shape[LIFE_ZONES];  // kind, strength, speed, extra (sway: 0 hangs, 1 stands; water: how bright water is)
 uniform vec4 life_tint[LIFE_ZONES];   // glow colour
 uniform int life_count = 0;
+// Which zones touch each LIFE_CELL x LIFE_CELL block of the painting: a bit
+// per zone, bits 0-7 in red, 8-15 in green, 16-23 in blue (BackdropLife
+// builds it). A pixel reads its block and visits only those zones — testing
+// all of them at every pixel cost ten times a plain sprite (backdrop_life_bench.gd).
+uniform sampler2D life_cells : filter_nearest;
+const float LIFE_CELL = 16.0;
 uniform float life_flame = 0.0;       // candle flicker strength
 uniform float life_flame_floor = 0.55; // brightness from which a warm pixel is a flame
 uniform float life_light = 1.0;       // Settings.flash_scale(): how far light may change
@@ -40,16 +46,32 @@ uniform float life_dread = 0.0;       // 0..1 as our own body nears death: the v
 uniform float life_beat_clock = -1.0; // the heartbeat's own clock (it quickens); < 0 = TIME
 const float LIFE_GUST_REACH = 260.0;
 
-float life_hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
+// Value noise read from a small tileable texture of random values
+// (BackdropLife.noise_texture, 128 x 128): one filtered read where the
+// arithmetic version cost four hashes — the difference on a phone's GPU.
+// textureLod, not texture: it is read inside loops and branches.
+uniform sampler2D life_noise_tex : repeat_enable, filter_linear;
+const float LIFE_NOISE_SIZE = 128.0;
 
 float life_noise(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * (3.0 - 2.0 * f);
-	return mix(mix(life_hash(i), life_hash(i + vec2(1.0, 0.0)), f.x),
-		mix(life_hash(i + vec2(0.0, 1.0)), life_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+	return textureLod(life_noise_tex, (p + 0.5) / LIFE_NOISE_SIZE, 0.0).r;
+}
+
+// True when nothing can happen at this pixel: no zone in its block, no
+// lightning, nothing that looks like a flame. The shader then draws the
+// painting as it is and skips the rest — most of a picture is quiet.
+bool life_quiet(vec2 px, vec4 col) {
+	if (life_flash > 0.0) {
+		return false;
+	}
+	ivec2 cell = ivec2(floor(px / LIFE_CELL));
+	ivec2 cells = textureSize(life_cells, 0);
+	if (life_count > 0 && cell.x >= 0 && cell.y >= 0 && cell.x < cells.x && cell.y < cells.y
+			&& texelFetch(life_cells, cell, 0).rgb != vec3(0.0)) {
+		return false;
+	}
+	float lum = dot(col.rgb, vec3(0.299, 0.587, 0.114));
+	return !(life_flame > 0.0 && col.r > col.b && lum > life_flame_floor - 0.2);
 }
 
 float life_edge(vec2 px, vec4 r) {
@@ -81,6 +103,7 @@ struct Life {
 	float lava;
 	float stars;
 	float pulse;
+	bool touched;  // some zone reached this pixel
 };
 
 Life life_gather(vec2 px, float t) {
@@ -97,15 +120,28 @@ Life life_gather(vec2 px, float t) {
 	l.lava = 0.0;
 	l.stars = 0.0;
 	l.pulse = 0.0;
+	l.touched = false;
+	ivec2 cell = ivec2(floor(px / LIFE_CELL));
+	ivec2 cells = textureSize(life_cells, 0);
+	int mask = 0;
+	if (life_count > 0 && cell.x >= 0 && cell.y >= 0 && cell.x < cells.x && cell.y < cells.y) {
+		ivec3 bits = ivec3(round(texelFetch(life_cells, cell, 0).rgb * 255.0));
+		mask = bits.r | (bits.g << 8) | (bits.b << 16);
+	}
 	for (int i = 0; i < LIFE_ZONES; i++) {
-		if (i >= life_count) {
+		if (mask == 0 || i >= life_count) {
 			break;
 		}
+		if (((mask >> i) & 1) == 0) {
+			continue;
+		}
+		mask &= ~(1 << i);
 		vec4 r = life_rect[i];
 		if (px.x < r.x || px.y < r.y || px.x > r.x + r.z || px.y > r.y + r.w) {
 			continue;
 		}
 		float w = life_edge(px, r);
+		l.touched = true;
 		vec4 s = life_shape[i];
 		int kind = int(s.x + 0.5);
 		float k = s.y;
@@ -179,9 +215,15 @@ vec4 life_finish(vec4 col, vec4 wet_col, vec4 hot_col, Life l, vec2 px, float t)
 	}
 	float lum = life_lum(col);
 	float warm = clamp((col.r - col.b) * 2.2, 0.0, 1.0);
+	// most of a picture is quiet: no zone, no flame, no lightning — as painted
+	bool flame_like = life_flame > 0.0 && warm > 0.0 && lum > life_flame_floor - 0.2;
+	if (!l.touched && !flame_like && life_flash <= 0.0) {
+		return col;
+	}
 	float cool = clamp((col.b - col.r) * 3.0, 0.0, 1.0);
 	// Each flame flickers on its own: the noise cell is about a candle wide.
-	if (life_flame > 0.0) {
+	// only what could be a flame or its glow pays for the noise
+	if (flame_like) {
 		float flame = smoothstep(life_flame_floor, life_flame_floor + 0.25, lum) * warm;
 		float flick = life_noise(px / 5.0 + vec2(t * 5.3, t * 1.7)) * 0.7 + life_noise(px / 11.0 - vec2(t * 2.1, 0.0)) * 0.3 - 0.5;
 		col.rgb *= 1.0 + life_light * flame * (life_flame * (1.0 + life_rage * 0.6) * flick * 1.4 + life_exhale * 0.25);
