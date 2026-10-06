@@ -43,6 +43,7 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 ## only the Wi-Fi and the typed address are offered. --relay-url= overrides it.
 const RELAY_SETTING := "ashes/network/relay_url"
 const BEACON_INTERVAL := 1.0
+const SYNC_GROUP := &"net_sync"
 const RELAY_RETRY := 4.0
 ## The link is measured with a ping a second each way (link_ms, link_silence).
 const PING_INTERVAL := 1.0
@@ -83,6 +84,19 @@ var _last_code := ""
 var _rtt := {}
 var _heard := {}
 var _ping_clock := 0.0
+## Where we joined last ({where, port}) and, after a co-op match the wire
+## ended under us, what our body carried (Saves.capture), so "Rejoin" puts
+## the same Elian back into the same night. Survives leave() on purpose.
+var rejoin_target := {}
+var rejoin_snapshot := {}
+var rejoin_offered := false
+## While a match runs on this host, replicated nodes are shown only to the
+## peers in it (attach_sync's filter). One who comes in later sees nothing
+## until it has built the match scene (reveal_to) — the replication layer
+## sends spawns the moment a peer connects, before any signal of ours runs,
+## and spawns that reach a menu are lost. Static so the filter can be.
+static var _gated := false
+static var _shown := {}
 
 
 func _ready() -> void:
@@ -168,6 +182,12 @@ func link_ms() -> int:
 	return worst
 
 
+## The round trip to one peer in ms, -1 before its first answer (the lobby
+## shows it beside each name; a guest knows only its own to the host).
+func peer_ms(peer_id: int) -> int:
+	return int(round(float(_rtt[peer_id]))) if _rtt.has(peer_id) else -1
+
+
 ## Seconds since the quietest watched peer was last heard; 0 when all is well.
 func link_silence() -> float:
 	var now := Time.get_ticks_msec()
@@ -211,6 +231,9 @@ func _pong(sent: int) -> void:
 ## whoever listens why, the overlay included when a match was running.
 func _lost(reason_key: String) -> void:
 	var playing := in_match
+	# a guest whose co-op night went down can walk back into it
+	rejoin_offered = playing and not hosting and mode == Mode.COOP \
+		and reason_key != "NET_ERR_VERSION" and not rejoin_target.is_empty()
 	last_error = reason_key
 	leave()
 	closed.emit(reason_key)
@@ -281,6 +304,10 @@ func host(session_mode: Mode, port := DEFAULT_PORT, headless := false) -> Error:
 ## which is what a browser needs when the page itself is served over HTTPS.
 func join(address: String, port := DEFAULT_PORT) -> Error:
 	leave()
+	# what our body carried belongs to the night we lost, not to another host's
+	if rejoin_target.get("where", "") != address.strip_edges() or int(rejoin_target.get("port", port)) != port:
+		rejoin_snapshot = {}
+	rejoin_target = {"where": address.strip_edges(), "port": port}
 	var peer: MultiplayerPeer
 	if is_code(address):
 		if relay_url().is_empty():
@@ -365,6 +392,8 @@ func leave() -> void:
 	_last_code = ""
 	_rtt.clear()
 	_heard.clear()
+	_gated = false
+	_shown.clear()
 	online = Online.OFF
 	listening_locally = false
 	lobby_changed.emit()
@@ -471,15 +500,65 @@ static func attach_sync(node: Node, props: Array, interval := 0.0) -> Multiplaye
 	sync.replication_config = config
 	sync.replication_interval = interval
 	sync.delta_interval = interval
+	sync.add_visibility_filter(_shown_to)
+	sync.add_to_group(SYNC_GROUP)
 	node.add_child(sync)
 	sync.set_multiplayer_authority(node.get_multiplayer_authority())
 	return sync
+
+
+static func _shown_to(peer: int) -> bool:
+	return not _gated or _shown.has(peer)
+
+
+# --------------------------------------------------------------- late join ---
+
+## A co-op night has room for whoever comes in after it started: a friend
+## arriving late, or one whose wire went down coming back. The host lets them
+## in hidden, tells them which scene to build, and shows them the world once
+## it is built (Run._admit_late calls reveal_to).
+func _can_take_late() -> bool:
+	return in_match and mode == Mode.COOP and peers.size() < MAX_PLAYERS
+
+
+## The late peer has built the match scene: everything replicated becomes
+## visible to it now, which sends it every body and enemy as they stand.
+func reveal_to(peer_id: int) -> void:
+	_shown[peer_id] = true
+	for sync in get_tree().get_nodes_in_group(SYNC_GROUP):
+		(sync as MultiplayerSynchronizer).update_visibility(peer_id)
+
+
+func is_late(peer_id: int) -> bool:
+	return _gated and not _shown.has(peer_id)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _join_running(session_mode: int) -> void:
+	mode = session_mode as Mode
+	in_match = true
+	match_started.emit(int(mode))
+	Curtain.change_scene(match_scene(), true)
+
+
+## "Rejoin" after a lost co-op match: the same place, the same way in.
+func can_rejoin() -> bool:
+	return rejoin_offered and not rejoin_target.is_empty() and not active
+
+
+func rejoin() -> Error:
+	rejoin_offered = false
+	return join(str(rejoin_target.where), int(rejoin_target.port))
 
 
 # --------------------------------------------------------------- internals ---
 
 func _on_peer_connected(id: int) -> void:
 	if not is_server():
+		return
+	if _can_take_late():
+		peers[id] = {"name": "…", "ready": true, "slot": _free_slot()}
+		_push_lobby()
 		return
 	if peers.size() >= MAX_PLAYERS or in_match:
 		_kicked.rpc_id(id, "NET_ERR_FULL")
@@ -492,6 +571,7 @@ func _on_peer_connected(id: int) -> void:
 func _on_peer_disconnected(id: int) -> void:
 	_rtt.erase(id)
 	_heard.erase(id)
+	_shown.erase(id)
 	if not is_server():
 		return
 	if in_match and peers.has(id):
@@ -576,6 +656,8 @@ func _hello(peer_name: String, version := "") -> void:
 		return
 	peers[id].name = peer_name.strip_edges().left(16)
 	_push_lobby()
+	if in_match and is_late(id):
+		_join_running.rpc_id(id, int(mode))
 
 
 @rpc("any_peer", "reliable")
@@ -610,6 +692,12 @@ func _lobby(roster: Dictionary, session_mode: int) -> void:
 func _begin(session_mode: int) -> void:
 	mode = session_mode as Mode
 	in_match = true
+	rejoin_snapshot = {}  # a fresh night: nothing to carry back into it
+	if multiplayer.is_server():
+		_gated = true
+		_shown.clear()
+		for id in multiplayer.get_peers():
+			_shown[id] = true
 	match_started.emit(int(mode))
 	# A night draws its own chapter card out of the black and opens the curtain
 	# itself; a duel has no such thing, so the arena is simply revealed.

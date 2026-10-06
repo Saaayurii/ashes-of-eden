@@ -23,6 +23,9 @@ var mode := "coop"
 var port := 8911
 var address := "127.0.0.1"
 var net
+## --rejoin: after the co-op checks the guest's wire "times out" and it comes
+## back through Rejoin, into the same room with the same body.
+var rejoin := false
 
 
 func _init() -> void:
@@ -39,6 +42,7 @@ func _run() -> void:
 	mode = str(args.get("mode", mode))
 	port = int(args.get("port", port))
 	address = str(args.get("address", address))
+	rejoin = args.has("rejoin")
 	net = root.get_node("Net")
 	net.local_name = role
 
@@ -160,6 +164,46 @@ func _coop() -> void:
 		run.player.global_position = run.room.door.global_position
 	await _until(func() -> bool: return run.room_index == 1, "host moved everyone to room 2", 40.0)
 	_ok(run.get_node("Players").get_child_count() == 2, "both bodies survived the door")
+	if rejoin:
+		await _rejoin(run)
+
+
+## The guest's link dies mid-night and it comes back through Rejoin: the host
+## plays on alone meanwhile, then takes it in late; the guest is in the same
+## room as the host, with the gifts and the lean it had, enemies and all.
+func _rejoin(run) -> void:
+	var game = root.get_node("Game")
+	if role == "host":
+		await _until(func() -> bool: return run.get_node("Players").get_child_count() == 1,
+			"the guest's body leaves with its wire", 30.0)
+		_ok(net.in_match and run.is_inside_tree(), "the host plays on alone")
+		await _until(func() -> bool: return run.get_node("Players").get_child_count() == 2,
+			"the guest is back in the night", 60.0)
+		await _wait(8.0)  # stay while the guest checks what it got back
+		return
+	await _wait(1.0)
+	# something only this body carries, to find again on the other side
+	run.player.stats.max_hp += 7.0
+	game.alignment["grace"] = int(game.alignment.get("grace", 0)) + 3
+	var max_hp: float = run.player.stats.max_hp
+	var grace: int = game.alignment["grace"]
+	net._lost("NET_ERR_TIMEOUT")
+	_ok(net.can_rejoin(), "a guest whose night went down is offered Rejoin")
+	_ok(not net.rejoin_snapshot.is_empty(), "  and keeps what its body carried")
+	await _until(func() -> bool: return current_scene != null \
+		and current_scene.scene_file_path.ends_with("main_menu.tscn"), "back at the menu", 20.0)
+	_ok(root.get_node("NetOverlay").lost_panel.visible \
+		and root.get_node("NetOverlay").rejoin_button.visible, "the overlay says why and offers Rejoin")
+	_ok(net.rejoin() == OK, "Rejoin dials the same host")
+	if not await _until(func() -> bool: return net.in_match and current_scene != null \
+			and current_scene.has_node("Players") and current_scene.player != null, "back in the night", 40.0):
+		return
+	run = current_scene
+	await _until(func() -> bool: return run.get_node("Players").get_child_count() == 2, "both bodies again")
+	_ok(run.room_index == 1, "in the room the host is in (%d)" % run.room_index)
+	_ok(is_equal_approx(run.player.stats.max_hp, max_hp), "with the body it had (max hp %.0f)" % run.player.stats.max_hp)
+	_ok(int(game.alignment.get("grace", 0)) == grace, "  and the lean it had")
+	_ok(game.level >= 1 and game.flags is Dictionary, "under the night the host keeps (level %d)" % game.level)
 
 
 # -------------------------------------------------------------------- duel ---

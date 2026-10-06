@@ -54,6 +54,10 @@ func _ready() -> void:
 	copy_button.pressed.connect(_on_copy)
 	_beacon.listen()
 	tree_exiting.connect(_beacon.close)
+	# back from a night the wire ended: the way in is already filled in
+	if not Net.rejoin_target.is_empty():
+		address.text = str(Net.rejoin_target.where)
+		port.text = str(Net.rejoin_target.port)
 	_refresh()
 	host_button.grab_focus()
 
@@ -64,6 +68,8 @@ func _process(delta: float) -> void:
 		return
 	_lan_clock = LAN_REFRESH
 	_refresh_lan()
+	if Net.active:
+		_refresh()  # the round trips beside the names move
 
 
 func _on_host() -> void:
@@ -176,6 +182,11 @@ func _refresh() -> void:
 		var who: String = Net.name_of(id)
 		if id == Net.my_id():
 			who += " (%s)" % tr("MP_YOU")
+		else:
+			# how far away they are: from the host, each guest; from a guest, the host
+			var ms := Net.peer_ms(id)
+			if ms >= 0:
+				who += "  ·  " + tr("NET_LINK_MS") % ms
 		lines.append("%s  %s" % [mark, who])
 	while lines.size() < Net.MAX_PLAYERS:
 		lines.append("○  %s" % tr("MP_EMPTY_SEAT"))

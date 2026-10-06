@@ -80,6 +80,8 @@ var _load_token := 0
 ## next room of the one we are in. Decided when the curtain starts, used when
 ## it opens again.
 var _pending_grand := false
+## The night as the host described it to us on a late join (_net_join_state).
+var _joined_state := {}
 ## The run as it stood when this room was entered: what every save writes
 ## (see Saves). Solo only.
 var checkpoint: Dictionary = {}
@@ -203,7 +205,11 @@ func _sender() -> int:
 func _scene_loaded() -> void:
 	if not multiplayer.is_server():
 		return
-	_scene_ready_peers[multiplayer.get_remote_sender_id()] = true
+	var id := multiplayer.get_remote_sender_id()
+	_scene_ready_peers[id] = true
+	if _started:
+		_admit_late(id)
+		return
 	_check_everyone_loaded()
 
 
@@ -218,6 +224,54 @@ func _check_everyone_loaded() -> void:
 		_spawn_player(id, Net.slot_of(id))
 	_go_to_room(0)
 	_net_begin.rpc()
+
+
+## Someone came into the night after it began — a friend arriving late, or one
+## whose wire went down coming back (Net._can_take_late). They have built this
+## scene; the night as it stands goes first, then the world is shown to them
+## (Net.reveal_to sends every body and enemy), then their own body.
+func _admit_late(id: int) -> void:
+	if _finished or not Net.is_late(id):
+		return
+	_net_join_state.rpc_id(id, {
+		"room": room_index,
+		"level": Game.level,
+		"essence": Game.essence,
+		"flags": Game.flags.duplicate(),
+		"walked": Game.walked.duplicate(),
+		"kills": kills,
+		"elapsed": elapsed,
+		"door": room != null and room.door.open,
+	})
+	Net.reveal_to(id)
+	_spawn_player(id, Net.slot_of(id))
+
+
+## The late peer's side: the shared night (level, essence, the story so far,
+## the way walked) and the room it is in, built here as the door would.
+@rpc("authority", "call_remote", "reliable")
+func _net_join_state(state: Dictionary) -> void:
+	_joined_state = state
+	_apply_shared(state)
+	kills = int(state.get("kills", 0))
+	elapsed = float(state.get("elapsed", 0.0))
+	_pending_grand = true
+	_load_room(int(state.get("room", 0)))
+	if bool(state.get("door", false)):
+		_net_door(true)
+
+
+func _apply_shared(state: Dictionary) -> void:
+	Game.level = maxi(1, int(state.get("level", 1)))
+	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
+	var flags = state.get("flags", {})
+	if flags is Dictionary:
+		Game.flags = flags.duplicate()
+	Game.walked.clear()
+	for path in state.get("walked", []):
+		if path is String:
+			Game.walked.append(path)
+	EventBus.essence_changed.emit(Game.essence, Game.essence_needed(), Game.level)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -352,6 +406,15 @@ func _on_player_ready(body: Player) -> void:
 	if Net.active and body.get_multiplayer_authority() != multiplayer.get_unique_id():
 		return
 	player = body
+	# Back after the wire went down: the same gifts, stats, wounds and lean as
+	# when it did (Net.rejoin_snapshot), under the night the host keeps now.
+	if Net.active and not Net.rejoin_snapshot.is_empty():
+		Saves.restore(Net.rejoin_snapshot, body)
+		Net.rejoin_snapshot = {}
+		_apply_shared(_joined_state)
+		body.died.connect(_on_local_death)
+		_place_local_player()
+		return
 	# what the Ash bought (data/relics); a loaded save puts its own stats back over it.
 	# Not in the night of the day: every player starts it the same.
 	if Game.daily == "":
@@ -1022,6 +1085,10 @@ func _on_peer_left(id: int) -> void:
 
 
 func _on_session_closed(_reason: String) -> void:
+	# What our body carried, for "Rejoin" (NetOverlay): a co-op guest whose
+	# wire went down walks back into the night as it was, not as a stranger.
+	if Net.rejoin_offered and player != null and room_index >= 0 and room_index < ROOMS.size():
+		Net.rejoin_snapshot = Saves.capture(ROOMS[room_index], kills, elapsed, player)
 	if is_inside_tree():
 		Curtain.change_scene(MENU_SCENE)
 
