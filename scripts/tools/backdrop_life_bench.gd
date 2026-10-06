@@ -4,6 +4,9 @@ extends SceneTree
 ## bound by filling pixels, plain and then with its life — still, and moving —
 ## and the frame times are compared. The ratio is what carries over to a
 ## weaker GPU: a phone or a browser fills the same pixels with the same shader.
+## It also weighs each kind of zone: the room again without it. The window
+## must be in front: macOS holds a covered window near 145 fps, and every
+## number then comes out the same (~6.9 ms) — rerun with it visible.
 ## Needs a display:
 ##   godot --path . -s scripts/tools/backdrop_life_bench.gd -- [room]
 
@@ -63,6 +66,16 @@ func _run() -> void:
 	var no_flame := await _measure()
 	material.set_shader_parameter("life_flame", flame)
 	print("BENCH   no zones (flames only) %.2f, no flames (zones only) %.2f, neither %.2f" % [no_zones, no_flame, bare])
+	# what each kind of zone costs: the room again without it
+	var found: Dictionary = life.rule(key)
+	for kind in life.KINDS:
+		var others: Array = found.zones.filter(func(z) -> bool: return z.kind != kind)
+		if others.size() == found.zones.size():
+			continue
+		life.configure(material, {"flame": found.flame, "flame_floor": found.flame_floor, "zones": others})
+		var without_kind := await _measure()
+		print("BENCH   %-6s x%d costs %.2f ms" % [kind, found.zones.size() - others.size(), moving - without_kind])
+	life.configure(material, found)
 	print("BENCH %s (%d zones), %d layers at 1920x1080:" % [key, life.rule(key).zones.size(), LAYERS])
 	print("BENCH   plain   %.2f ms/frame" % plain)
 	print("BENCH   still   %.2f ms/frame  (x%.2f)" % [still, still / plain])
