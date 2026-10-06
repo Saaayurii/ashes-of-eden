@@ -78,6 +78,6 @@
     "subtitle": "AREA_GATE_SUB",
     "color": "#fff1c2",
     "sound": "bell",
-    "rooms": ["res://scenes/rooms/hell_gate.tscn"]
+    "rooms": ["res://scenes/rooms/gate_threshold.tscn", "res://scenes/rooms/hell_gate.tscn"]
   }
 ]

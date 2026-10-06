@@ -35,6 +35,7 @@ const FAR_WINDOWS := {
 	"crypt_skulls": [1, 2, 3],   # the drowned city beyond the arches
 	"crypt_lava": [2],           # 1 carries the painted pillar and cage, 3 the lava rock
 	"ashes_threshold": [],      # the stained glass and its mullions are part of the church wall
+	"gate_threshold": [1, 2],    # only the distant city behind the two underbridge arches moves
 	"hell_gate": [1, 2, 3],
 }
 

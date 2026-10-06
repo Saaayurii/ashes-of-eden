@@ -37,6 +37,7 @@ const LAYOUTS := {
 	"church": {"far": [["arch", .22, .62, 1.7], ["arch", .79, .62, 1.7]], "mid": [["angel", .42, .81, 1.2], ["pillar", .67, .81, 1.5]]},
 	"ashes_threshold": {"far": [], "mid": []}, # Its own church-and-ash painting, no stock silhouettes.
 	"crypt_lava": {"far": [["pillar", .16, .48, 2.5], ["arch", .80, .49, 2.1]], "mid": [["crypt", .49, .73, 1.5], ["pillar", .91, .71, 1.8]]},
+	"gate_threshold": {"far": [], "mid": []}, # Blue crypt and burning gate share one authored bridge.
 	"hell_gate": {"far": [["arch", .23, .47, 2.2], ["pillar", .81, .47, 2.5]], "mid": [["pillar", .51, .73, 2.0], ["monument", .90, .71, 2.1]]},
 	"graveyard": {"far": [["crypt", .17, .55, 1.6], ["tree", .78, .54, 1.7]], "mid": [["angel", .48, .78, 1.5], ["dead_tree", .90, .75, 1.45]]},
 	"dead_bridge": {"far": [["arch", .22, .52, 2.0], ["dead_tree", .79, .56, 1.7]], "mid": [["pillar", .47, .76, 1.8], ["monument", .90, .78, 1.9]]},

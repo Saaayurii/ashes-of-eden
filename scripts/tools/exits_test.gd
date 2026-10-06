@@ -24,6 +24,7 @@ const DOORWAYS := {
 	"crypt_skulls": [1380, 1425, 615],      # the barred arch by the tombstones
 	"crypt_lava": [1435, 1470, 208],        # the barred arch at the stair's foot
 	"ashes_threshold": [1505, 1570, 392], # open fiery arch over the continuous nave floor
+	"gate_threshold": [1460, 1570, 339], # burning arch at the bridge's end
 	"hell_gate": [1290, 1350, 372],         # the chained gate of the pit
 }
 

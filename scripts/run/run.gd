@@ -29,6 +29,7 @@ const ROOMS := [
 	"res://scenes/rooms/church.tscn",
 	"res://scenes/rooms/ashes_threshold.tscn",
 	"res://scenes/rooms/crypt_lava.tscn",
+	"res://scenes/rooms/gate_threshold.tscn",
 	"res://scenes/rooms/hell_gate.tscn",
 ]
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"

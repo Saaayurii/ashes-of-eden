@@ -13,6 +13,8 @@ const PAIRS := [
 	["crypt_threshold", "crypt_skulls"],
 	["church", "ashes_threshold"],
 	["ashes_threshold", "crypt_lava"],
+	["crypt_lava", "gate_threshold"],
+	["gate_threshold", "hell_gate"],
 ]
 
 var failures := 0
@@ -30,6 +32,7 @@ func _run() -> void:
 	await _walk_passage("catacombs_threshold")
 	await _walk_passage("crypt_threshold")
 	await _walk_passage("ashes_threshold")
+	await _walk_passage("gate_threshold")
 	print("CHAPTER_THRESHOLD_%s" % ("OK" if failures == 0 else "FAILED"))
 	quit(0 if failures == 0 else 1)
 

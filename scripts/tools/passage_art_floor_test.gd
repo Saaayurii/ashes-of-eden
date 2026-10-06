@@ -1,5 +1,5 @@
 extends SceneTree
-## The four hand-painted passages have a single authored, walkable horizon.
+## The hand-painted passages have a single authored, walkable horizon.
 ## Keep their floor colliders on the visible stone edge, not a few pixels above
 ## it (hovering) or below it (sunken feet). Art rows were reviewed in Godot's
 ## 1600x720 room captures; the edge is remeasured from each PNG here.
@@ -9,6 +9,7 @@ const ART_FLOOR_Y := {
 	"catacombs_threshold": 415,
 	"crypt_threshold": 498,
 	"ashes_threshold": 392,
+	"gate_threshold": 339,
 }
 const PROBES := [100, 300, 500, 700, 900, 1100, 1300, 1500]
 

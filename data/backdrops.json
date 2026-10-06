@@ -266,6 +266,12 @@
       {"kind": "sway", "rect": [1160, 35, 55, 135]},
       {"kind": "sway", "rect": [225, 425, 75, 155]}
     ]},
+    "gate_threshold": {"family": "ashes", "zones": [
+      {"kind": "glow", "rect": [470, 0, 155, 130], "tint": "#9fbaff", "strength": 0.08, "speed": 0.4},
+      {"kind": "sway", "rect": [1190, 15, 90, 180], "strength": 1.0, "speed": 0.9},
+      {"kind": "lava", "rect": [950, 650, 240, 220], "strength": 0.55, "speed": 0.75},
+      {"kind": "glow", "rect": [1445, 170, 195, 300], "tint": "#ff6730", "strength": 0.12, "speed": 0.55}
+    ]},
     "hell_gate": {"family": "hell", "zones": [
       {"kind": "lava", "rect": [515, 15, 40, 130], "strength": 1.4, "speed": 2.0},
       {"kind": "lava", "rect": [675, 15, 35, 90], "strength": 1.4, "speed": 2.0},
