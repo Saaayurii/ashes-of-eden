@@ -57,6 +57,7 @@ const PASSAGE_ART := {
 	"catacombs": preload("res://assets/ui/transitions/swamp_to_catacombs.png"),
 	"crypts": preload("res://assets/ui/transitions/catacombs_to_crypts.png"),
 	"ashes": preload("res://assets/ui/transitions/church_to_ashes.png"),
+	"gate": preload("res://assets/ui/transitions/ashes_to_gate.png"),
 }
 
 ## No curtain, no card, no waiting: _load_room stays synchronous. On by default
