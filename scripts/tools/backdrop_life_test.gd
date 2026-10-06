@@ -218,5 +218,13 @@ func _run() -> void:
 	_check(sky.material is ShaderMaterial and int(sky.material.get_shader_parameter("life_count")) > 0, "main_menu: the village stands still")
 	menu.queue_free()
 	await process_frame
+	# the frame meter's line, as a phone's log will show it
+	var meter = load("res://scripts/autoload/frame_meter.gd")
+	var frames := PackedFloat32Array()
+	for i in 100:
+		frames.append(50.0 if i < 10 else 16.0)
+	var said: String = meter.line(frames, "hell_gate", "x")
+	_check(said.begins_with("[FrameMeter] hell_gate:") and said.contains("10/100 over 33 ms") and said.contains("50.0 ms p95"),
+		"the frame meter says: %s" % said)
 	print("backdrop_life_test: %s" % ("OK" if failures == 0 else "%d FAILED" % failures))
 	quit(1 if failures > 0 else 0)

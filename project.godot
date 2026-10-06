@@ -36,6 +36,7 @@ Saves="*res://scripts/autoload/saves.gd"
 Playtest="*res://scripts/autoload/playtest.gd"
 Curtain="*res://scenes/ui/curtain.tscn"
 NetOverlay="*res://scripts/ui/net_overlay.gd"
+FrameMeter="*res://scripts/autoload/frame_meter.gd"
 
 [display]
 
