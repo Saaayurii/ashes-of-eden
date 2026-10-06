@@ -27,6 +27,7 @@ func _check(ok: bool, message: String) -> void:
 
 
 func _run() -> void:
+	_check_grounded_animation_feet()
 	for name in ART_FLOOR_Y:
 		var path := "res://scenes/rooms/%s.tscn" % name
 		var room = load(path).instantiate()
@@ -65,9 +66,36 @@ func _run() -> void:
 			var hit: Dictionary = room.get_world_2d().direct_space_state.intersect_ray(ray)
 			_check(not hit.is_empty() and absf(float(hit.get("position", Vector2.ZERO).y) - art_y) <= 3.0,
 				"%s has no physical walkway under x=%d" % [name, x])
-		print("  ok   %s: painted edge %d, collider %.1f, eight supported probes" % [name, art_y, top])
+		# A ray proves the stone exists, not that the playable body's feet meet it.
+		# Keep the same baseline the later-room geometry test uses for the hero.
+		var hero = load("res://scenes/player/player.tscn").instantiate()
+		room.add_child(hero)
+		hero.controls_enabled = false
+		hero.camera.enabled = false
+		for x in [100, 800, 1500]:
+			hero.place_in_room(Vector2(x, art_y - 15))
+			hero.velocity = Vector2.ZERO
+			for frame in 16:
+				await physics_frame
+			_check(hero.is_on_floor() and absf(hero.position.y + 15.0 - art_y) <= 2.0,
+				"%s hero hovers or sinks at x=%d (feet %.1f, painting %d)" % [name, x, hero.position.y + 15.0, art_y])
+		print("  ok   %s: painted edge %d, collider %.1f, eight probes and three hero landings" % [name, art_y, top])
 		current_scene = null
 		room.queue_free()
 		await physics_frame
 	print("PASSAGE_ART_FLOOR_%s" % ("OK" if failures == 0 else "FAILED"))
 	quit(0 if failures == 0 else 1)
+
+
+func _check_grounded_animation_feet() -> void:
+	# The physics body can be perfectly grounded while an animation's opaque
+	# boots end several pixels early. Sprite cells are 64 px high and Body sits
+	# at -15; a used bottom of 62-64 places the boots on the +15 collider foot.
+	var frames := load("res://assets/sprites/elian_frames.tres") as SpriteFrames
+	for animation in [&"idle", &"walk", &"run", &"land"]:
+		for index in frames.get_frame_count(animation):
+			var texture := frames.get_frame_texture(animation, index)
+			var image := texture.get_image()
+			var used := image.get_used_rect()
+			_check(used.end.y >= 62 and used.end.y <= 64,
+				"hero %s frame %d visible boots end at row %d, not the collider foot" % [animation, index, used.end.y])

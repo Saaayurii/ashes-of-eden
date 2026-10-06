@@ -53,6 +53,21 @@ func _check_marker(room_name: String, marker_name: String) -> void:
 		printerr("CHAPTER_THRESHOLD_FAIL: %s/%s has no floor below %s" % [room_name, marker_name, at])
 	else:
 		print("  ok   %s/%s floor at %.1f" % [room_name, marker_name, hit.position.y])
+	# A ray alone can miss a cramped arrival: let the actual player settle at
+	# each destination spawn and verify that the floor is reachable there.
+	if marker_name == "PlayerSpawn" and supported:
+		var hero = load("res://scenes/player/player.tscn").instantiate()
+		room.add_child(hero)
+		hero.camera.enabled = false
+		hero.controls_enabled = false
+		hero.place_in_room(at)
+		for frame in 16:
+			await physics_frame
+		if not hero.is_on_floor() or absf(hero.global_position.y + 15.0 - float(hit.position.y)) > 2.0:
+			failures += 1
+			printerr("CHAPTER_THRESHOLD_FAIL: hero cannot land at %s/%s (at %s, floor %.1f)" % [room_name, marker_name, hero.global_position, hit.position.y])
+		hero.queue_free()
+		await physics_frame
 	current_scene = null
 	room.queue_free()
 	await physics_frame
