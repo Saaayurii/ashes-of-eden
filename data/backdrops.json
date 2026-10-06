@@ -62,6 +62,13 @@
       {"kind": "haze", "rect": [1150, 350, 522, 591], "strength": 0.6},
       {"kind": "lava", "rect": [1590, 60, 82, 520], "strength": 1.2, "speed": 1.6}
     ]},
+    "ashes_to_gate": {"family": "hell", "zones": [
+      {"kind": "sway", "rect": [205, 35, 75, 190], "strength": 0.8, "speed": 0.8},
+      {"kind": "glow", "rect": [0, 365, 235, 330], "tint": "#d7dfff", "strength": 0.07, "speed": 0.4},
+      {"kind": "sway", "rect": [1480, 150, 120, 260], "strength": 0.9, "speed": 0.8},
+      {"kind": "lava", "rect": [1240, 335, 431, 606], "strength": 0.65},
+      {"kind": "haze", "rect": [1170, 390, 501, 400], "strength": 0.45}
+    ]},
     "main_menu": {"family": "dawn", "zones": [
       {"kind": "glow", "rect": [440, 0, 60, 120], "tint": "#ffe2a8", "strength": 0.12, "speed": 0.4},
       {"kind": "sway", "rect": [118, 148, 30, 90], "strength": 1.2, "speed": 1.3},
