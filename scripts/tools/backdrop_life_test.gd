@@ -87,7 +87,25 @@ func _run() -> void:
 	_check(Vector2(wind.x, wind.y).distance_to(Vector2(100, 50)) < 0.5 and is_equal_approx(wind.z, 0.8) and is_equal_approx(wind.w, 1.0),
 		"practice_yard: the gust reached the painting as %s" % wind)
 	_check(is_equal_approx(float(backdrop.material.get_shader_parameter("life_exhale")), 0.5), "practice_yard: the cleared room's swell did not arrive")
+	# lightning, a wounded heart and its quickened clock reach the shader too
+	life.react(yard, Vector2.ZERO, Vector2.RIGHT, 0.0, 0.0, 0.4, 0.75, 12.5)
+	_check(is_equal_approx(float(backdrop.material.get_shader_parameter("life_flash")), 0.4)
+		and is_equal_approx(float(backdrop.material.get_shader_parameter("life_dread")), 0.75)
+		and is_equal_approx(float(backdrop.material.get_shader_parameter("life_beat_clock")), 12.5),
+		"practice_yard: lightning or the heartbeat did not reach the painting")
+	# dread: nothing while he is whole, all of it at death's door
+	_check(life.dread_of(1.0) == 0.0 and life.dread_of(life.DREAD_FROM) == 0.0, "dread before the body is wounded enough")
+	_check(life.dread_of(life.DREAD_FULL) == 1.0 and life.dread_of(0.01) == 1.0, "no full dread at death's door")
+	var half: float = life.dread_of((life.DREAD_FROM + life.DREAD_FULL) * 0.5)
+	_check(half > 0.4 and half < 0.6, "dread does not grow evenly (%s halfway)" % half)
 	yard.queue_free()
+	await process_frame
+	var arena = load("res://scenes/pvp/arena.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var dusk = arena.get_node("Parallax/Backdrop")
+	_check(dusk.material is ShaderMaterial and int(dusk.material.get_shader_parameter("life_count")) > 0, "arena: Babylon stands still")
+	arena.queue_free()
 	await process_frame
 	var menu = load("res://scenes/ui/main_menu.tscn").instantiate()
 	root.add_child(menu)

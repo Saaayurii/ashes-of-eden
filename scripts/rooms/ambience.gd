@@ -31,6 +31,8 @@ var _wind_direction := Vector2.RIGHT
 var _clear_glow := 0.0
 var _elapsed := 0.0
 var _hero: CharacterBody2D
+var _dread := 0.0
+var _beat := 0.0
 
 
 func _ready() -> void:
@@ -102,7 +104,11 @@ func _process(delta: float) -> void:
 	_update_clouds(delta)
 	_update_reactive_scenery(delta)
 	# the painting answers the same gusts (scripts/rooms/backdrop_life.gd)
-	BackdropLife.react(get_parent(), _wind_origin, _wind_direction, _wind_energy, _clear_glow)
+	# and the walls hear a wounded heart: the beat quickens on its own clock
+	_dread = move_toward(_dread, _own_dread(), delta * 0.5)
+	_beat += delta * (1.0 + _dread * BackdropLife.DREAD_TEMPO)
+	BackdropLife.react(get_parent(), _wind_origin, _wind_direction, _wind_energy, _clear_glow,
+		_flash.color.a if _flash != null else 0.0, _dread, _beat)
 	for bird in _birds:
 		var speed: float = _bird_speed[bird]
 		bird.position.x += speed * delta
@@ -113,6 +119,17 @@ func _process(delta: float) -> void:
 		_lightning_timer -= delta
 		if _lightning_timer <= 0.0:
 			_strike()
+
+
+## Our own body's health, read as dread (BackdropLife.dread_of); the other
+## player's wounds are theirs to hear.
+func _own_dread() -> float:
+	for node in get_tree().get_nodes_in_group("player"):
+		if node.is_multiplayer_authority() and "hp" in node and "stats" in node:
+			var most := float(node.stats.get("max_hp", 0.0))
+			if most > 0.0 and node.hp > 0.0:
+				return BackdropLife.dread_of(node.hp / most)
+	return 0.0
 
 
 # -------------------------------------------------------------- depth ---

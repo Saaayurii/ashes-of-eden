@@ -9,7 +9,8 @@
     "church": {"flame": 0.5, "flame_floor": 0.6},
     "ashes": {"flame": 0.35, "flame_floor": 0.72},
     "hell": {"flame": 0.22, "flame_floor": 0.82},
-    "dawn": {"flame": 0.45, "flame_floor": 0.6}
+    "dawn": {"flame": 0.45, "flame_floor": 0.74},
+    "dusk": {"flame": 0.45, "flame_floor": 0.8}
   },
   "rooms": {
     "main_menu": {"family": "dawn", "zones": [
@@ -21,6 +22,17 @@
       {"kind": "falls", "rect": [596, 108, 14, 56]},
       {"kind": "falls", "rect": [546, 183, 14, 50]},
       {"kind": "water", "rect": [480, 300, 160, 60], "floor": 0.08}
+    ]},
+    "arena": {"family": "dusk", "zones": [
+      {"kind": "glow", "rect": [135, 60, 70, 50], "tint": "#ffc27a", "strength": 0.12, "speed": 0.35},
+      {"kind": "sway", "rect": [35, 40, 42, 135], "strength": 1.0, "speed": 1.2},
+      {"kind": "sway", "rect": [78, 100, 62, 100], "anchor": "stands", "strength": 0.9, "speed": 1.3},
+      {"kind": "sway", "rect": [108, 172, 90, 100], "anchor": "stands", "strength": 0.9, "speed": 1.2},
+      {"kind": "sway", "rect": [418, 178, 70, 40], "anchor": "stands", "strength": 0.7, "speed": 1.4},
+      {"kind": "sway", "rect": [495, 175, 85, 95], "anchor": "stands", "strength": 0.9, "speed": 1.1},
+      {"kind": "falls", "rect": [503, 152, 22, 48]},
+      {"kind": "water", "rect": [195, 205, 350, 85], "floor": 0.15},
+      {"kind": "haze", "rect": [38, 150, 50, 50], "strength": 0.8}
     ]},
     "practice_yard": {"family": "dawn", "zones": [
       {"kind": "glow", "rect": [370, 90, 160, 100], "tint": "#ffb070", "strength": 0.12, "speed": 0.35},

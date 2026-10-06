@@ -7,7 +7,17 @@ extends SceneTree
 ## and the zones from data/backdrops.json are outlined on it. With `gust`, the
 ## frames are one apart and between them a full gust and a cleared-room swell
 ## arrive from the middle of the room, so the diff shows only what answers. Needs a display:
-##   godot --path . -s scripts/tools/backdrop_life_shot.gd -- out_dir [room|room] [gust]
+## `wound` does the same with the hero at death's door (the veins' beat),
+## `flash` with a lightning stroke. Beyond the chapter's rooms: main_menu,
+## practice_yard, arena.
+##   godot --path . -s scripts/tools/backdrop_life_shot.gd -- out_dir [room|room] [gust|wound|flash]
+
+## Pictures that are not rooms of the chapter: scene, its picture, its size.
+const EXTRA := {
+	"main_menu": ["res://scenes/ui/main_menu.tscn", "Layers/Background", Vector2i(640, 340)],
+	"practice_yard": ["res://scenes/rooms/practice_yard.tscn", "Parallax/Backdrop", Vector2i(704, 396)],
+	"arena": ["res://scenes/pvp/arena.tscn", "Parallax/Backdrop", Vector2i(640, 360)],
+}
 
 const GAP := 0.45
 
@@ -20,7 +30,19 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "/tmp"
 	var only: Array = Array(args[1].split("|")) if args.size() > 1 and args[1] != "" else []
-	var rooms: Array = load("res://scripts/run/run.gd").get_script_constant_map()["ROOMS"]
+	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")
+	var listed := run.substr(run.find("const ROOMS := ["))
+	listed = listed.substr(0, listed.find("]"))
+	var rooms: Array = []
+	for found in RegEx.create_from_string("res://scenes/rooms/\\w+\\.tscn").search_all(listed):
+		rooms.append(found.get_string())
+	for key in EXTRA:
+		if only.has(key):
+			rooms.append(EXTRA[key][0])
+	var mode := ""
+	for each in ["gust", "wound", "flash"]:
+		if args.has(each):
+			mode = each
 	var life = load("res://scripts/rooms/backdrop_life.gd")
 	for path in rooms:
 		var name: String = path.get_file().get_basename()
@@ -29,7 +51,20 @@ func _run() -> void:
 		var room = load(path).instantiate()
 		root.add_child(room)
 		current_scene = room
-		root.size = Vector2i(int(room.width), int(room.height))
+		root.size = EXTRA[name][2] if EXTRA.has(name) else Vector2i(int(room.width), int(room.height))
+		if EXTRA.has(name):
+			# a picture without a room: hold its materials the way a room does
+			var picture = room.get_node(EXTRA[name][1])
+			room.set_meta(&"backdrop_life", {"painting": picture, "materials": [picture.material]})
+			# nothing but the picture: menus, fog, the hero by the fire, the pause
+			for node in room.find_children("*", "CanvasLayer", true, false):
+				node.visible = false
+			var keep: Node = picture
+			while keep != room:
+				for sibling in keep.get_parent().get_children():
+					if sibling != keep and sibling is CanvasItem:
+						sibling.visible = false
+				keep = keep.get_parent()
 		root.content_scale_size = root.size
 		var camera := Camera2D.new()
 		camera.anchor_mode = Camera2D.ANCHOR_MODE_FIXED_TOP_LEFT
@@ -38,27 +73,34 @@ func _run() -> void:
 		for frame in 10:
 			await process_frame
 		_still(room)
+		paused = false
 		await process_frame
 		await process_frame
-		var gust: bool = args.has("gust")
+		var gust: bool = mode != ""
 		if gust:
 			# one frame apart, so all that changes is the answer to the gust
 			var ambience = room.get_node_or_null("Ambience")
 			if ambience != null:
 				ambience.free()
-			life.react(room, Vector2.ZERO, Vector2.RIGHT, 0.0, 0.0)
+			life.react(room, Vector2.ZERO, Vector2.RIGHT, 0.0, 0.0, 0.0, 0.0, 0.1)
 			await process_frame
 			await process_frame
 		var a := root.get_texture().get_image()
 		if gust:
-			life.react(room, Vector2(room.width, room.height) * 0.5, Vector2.RIGHT, 1.0, 1.0)
+			match mode:
+				"gust":
+					life.react(room, Vector2(root.size) * 0.5, Vector2.RIGHT, 1.0, 1.0)
+				"wound":
+					life.react(room, Vector2.ZERO, Vector2.RIGHT, 0.0, 0.0, 0.0, 1.0, 0.1)
+				"flash":
+					life.react(room, Vector2.ZERO, Vector2.RIGHT, 0.0, 0.0, 0.55)
 			await process_frame
 			await process_frame
 		else:
 			await create_timer(GAP).timeout
 		var b := root.get_texture().get_image()
 		a.save_png("%s/%s_life.png" % [out, name])
-		_diff(a, b, room, life).save_png("%s/%s_diff.png" % [out, name])
+		_diff(a, b, room, life, name).save_png("%s/%s_diff.png" % [out, name])
 		print("%s: written" % name)
 		room.queue_free()
 		await process_frame
@@ -77,7 +119,7 @@ func _still(room: Node) -> void:
 		node.enabled = false
 
 
-func _diff(a: Image, b: Image, room: Node, life) -> Image:
+func _diff(a: Image, b: Image, room: Node, life, name: String) -> Image:
 	var out := Image.create(a.get_width(), a.get_height(), false, Image.FORMAT_RGB8)
 	for y in a.get_height():
 		for x in a.get_width():
@@ -86,8 +128,8 @@ func _diff(a: Image, b: Image, room: Node, life) -> Image:
 			var d := clampf((absf(ca.r - cb.r) + absf(ca.g - cb.g) + absf(ca.b - cb.b)) * 12.0, 0.0, 1.0)
 			var base := ca.get_luminance() * 0.35
 			out.set_pixel(x, y, Color(base + d, base + d * 0.8, base))
-	var painting = life.painting_of(room)
-	var found: Dictionary = life.rule(room.scene_file_path.get_file().get_basename())
+	var painting = room.get_meta(&"backdrop_life").painting if room.has_meta(&"backdrop_life") else null
+	var found: Dictionary = life.rule(name)
 	if painting == null or found.is_empty():
 		return out
 	var xf: Transform2D = painting.get_global_transform()
@@ -104,3 +146,4 @@ func _diff(a: Image, b: Image, room: Node, life) -> Image:
 			out.set_pixel(int(rect.position.x), y, c)
 			out.set_pixel(int(rect.end.x), y, c)
 	return out
+

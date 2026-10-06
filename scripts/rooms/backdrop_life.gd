@@ -24,6 +24,12 @@ const KINDS := {
 	"pulse": [7, 0.8, 0.9],
 }
 const META := &"backdrop_life"
+## A wounded hero hears the walls: below this share of health the veins beat
+## harder and faster, fully so at DREAD_FULL.
+const DREAD_FROM := 0.4
+const DREAD_FULL := 0.1
+## How much faster the heart beats at full dread.
+const DREAD_TEMPO := 0.9
 ## The interiors paint their wall onto a sprite of their own.
 const INTERIOR_PAINTINGS := ["Interior/AuthoredMasonry/ChurchPainting", "Interior/AuthoredMasonry/PreacherPainting"]
 
@@ -79,9 +85,12 @@ static func attach_sprite(sprite: Sprite2D, key: String) -> Array[ShaderMaterial
 
 
 ## The room answers the hero: [param origin] and [param direction] of the
-## latest gust (world space), its [param energy] (0 when calm), and how much
-## of the cleared-room swell is left. Called by Ambience every frame.
-static func react(room: Node, origin: Vector2, direction: Vector2, energy: float, exhale: float) -> void:
+## latest gust (world space), its [param energy] (0 when calm), how much of the
+## cleared-room swell is left, a lightning [param flash], the [param dread] of
+## our own body near death and the heartbeat's [param beat] clock (< 0 leaves
+## it on the shader's TIME). Called by Ambience every frame.
+static func react(room: Node, origin: Vector2, direction: Vector2, energy: float, exhale: float,
+		flash := 0.0, dread := 0.0, beat := -1.0) -> void:
 	if room == null or not room.has_meta(META):
 		return
 	var life: Dictionary = room.get_meta(META)
@@ -93,6 +102,15 @@ static func react(room: Node, origin: Vector2, direction: Vector2, energy: float
 	for material: ShaderMaterial in life.materials:
 		material.set_shader_parameter("life_wind", wind)
 		material.set_shader_parameter("life_exhale", exhale)
+		material.set_shader_parameter("life_flash", flash)
+		material.set_shader_parameter("life_dread", dread)
+		material.set_shader_parameter("life_beat_clock", beat)
+
+
+## How hard the place's heart beats for a body with [param share] of its
+## health left: nothing above DREAD_FROM, all of it at DREAD_FULL and below.
+static func dread_of(share: float) -> float:
+	return clampf((DREAD_FROM - share) / (DREAD_FROM - DREAD_FULL), 0.0, 1.0)
 
 
 ## The sprite that carries the room's picture, or null.

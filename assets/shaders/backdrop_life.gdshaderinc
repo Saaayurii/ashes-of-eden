@@ -28,6 +28,9 @@ uniform float life_motion = 1.0;      // 0 stills every displacement
 // room cleared lets the light swell for a moment.
 uniform vec4 life_wind = vec4(0.0);   // x, y, energy, push (-1 left … 1 right)
 uniform float life_exhale = 0.0;      // 0..1 after a room is cleared
+uniform float life_flash = 0.0;       // lightning: the sky and the cold stone light up
+uniform float life_dread = 0.0;       // 0..1 as our own body nears death: the veins beat harder
+uniform float life_beat_clock = -1.0; // the heartbeat's own clock (it quickens); < 0 = TIME
 const float LIFE_GUST_REACH = 260.0;
 
 float life_hash(vec2 p) {
@@ -137,7 +140,8 @@ Life life_gather(vec2 px, float t) {
 		} else if (kind == 6) {
 			l.stars += w * k * (life_noise(floor(px / 2.0) * 0.9 + vec2(t * sp, 0.0)) - 0.5);
 		} else if (kind == 7) {
-			l.pulse += w * k * life_beat(t * sp + local.x * 0.15);
+			float clock = life_beat_clock < 0.0 ? t : life_beat_clock;
+			l.pulse += w * k * (1.0 + life_dread) * life_beat(clock * sp + local.x * 0.15);
 		}
 	}
 	l.offset *= life_motion;
@@ -182,5 +186,6 @@ vec4 life_finish(vec4 col, vec4 wet_col, vec4 hot_col, Life l, vec2 px, float t)
 	col.rgb *= 1.0 + l.stars * smoothstep(0.5, 0.85, lum) * (1.0 - warm) * 2.0 * life_light;
 	float red = smoothstep(0.08, 0.3, col.r - max(col.g, col.b));
 	col.rgb *= 1.0 + l.pulse * red * 0.3 * life_light;
+	col.rgb += vec3(0.7, 0.78, 1.0) * life_flash * life_light * (0.15 + cool) * smoothstep(0.1, 0.55, lum) * 0.5;
 	return col;
 }
