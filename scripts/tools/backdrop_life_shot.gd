@@ -8,9 +8,10 @@ extends SceneTree
 ## frames are one apart and between them a full gust and a cleared-room swell
 ## arrive from the middle of the room, so the diff shows only what answers. Needs a display:
 ## `wound` does the same with the hero at death's door (the veins' beat),
-## `flash` with a lightning stroke, `rage` with a boss nearly down. Beyond the chapter's rooms: main_menu,
+## `flash` with a lightning stroke, `rage` with a boss nearly down, `lean`
+## with the hero deep in temptation. Beyond the chapter's rooms: main_menu,
 ## practice_yard, arena.
-##   godot --path . -s scripts/tools/backdrop_life_shot.gd -- out_dir [room|room] [gust|wound|flash|rage]
+##   godot --path . -s scripts/tools/backdrop_life_shot.gd -- out_dir [room|room] [gust|wound|flash|rage|lean]
 
 ## Pictures that are not rooms of the chapter: scene, its picture, its size.
 const EXTRA := {
@@ -40,7 +41,7 @@ func _run() -> void:
 		if only.has(key):
 			rooms.append(EXTRA[key][0])
 	var mode := ""
-	for each in ["gust", "wound", "flash", "rage"]:
+	for each in ["gust", "wound", "flash", "rage", "lean"]:
 		if args.has(each):
 			mode = each
 	var life = load("res://scripts/rooms/backdrop_life.gd")
@@ -94,6 +95,8 @@ func _run() -> void:
 					life.react(room, {"dread": 1.0, "beat": 0.1})
 				"flash":
 					life.react(room, {"flash": 0.55})
+				"lean":
+					life.react(room, {"path": "temptation", "lead": 6})
 				"rage":
 					life.react(room, {"rage": 1.0, "beat": 0.1})
 			await process_frame

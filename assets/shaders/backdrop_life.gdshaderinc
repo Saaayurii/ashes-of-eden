@@ -33,6 +33,9 @@ uniform vec3 life_flash_tint = vec3(0.7, 0.78, 1.0);
 // A boss fight heats the place: 0 at its first blow, near 1 as it falls —
 // glows, lava, haze, flames and veins all burn harder.
 uniform float life_rage = 0.0;
+// The path the hero leans to (Game.dominant_path) colours every painted
+// flame: rgb from data/backdrops.json "lean", a = how far he leans.
+uniform vec4 life_lean = vec4(1.0, 1.0, 1.0, 0.0);
 uniform float life_dread = 0.0;       // 0..1 as our own body nears death: the veins beat harder
 uniform float life_beat_clock = -1.0; // the heartbeat's own clock (it quickens); < 0 = TIME
 const float LIFE_GUST_REACH = 260.0;
@@ -182,6 +185,9 @@ vec4 life_finish(vec4 col, vec4 wet_col, vec4 hot_col, Life l, vec2 px, float t)
 		float flame = smoothstep(life_flame_floor, life_flame_floor + 0.25, lum) * warm;
 		float flick = life_noise(px / 5.0 + vec2(t * 5.3, t * 1.7)) * 0.7 + life_noise(px / 11.0 - vec2(t * 2.1, 0.0)) * 0.3 - 0.5;
 		col.rgb *= 1.0 + life_light * flame * (life_flame * (1.0 + life_rage * 0.6) * flick * 1.4 + life_exhale * 0.25);
+		// the flame and the warm glow around it take the colour of his path
+		float halo = smoothstep(life_flame_floor - 0.2, life_flame_floor + 0.1, lum) * warm;
+		col.rgb = mix(col.rgb, life_lum(col) * life_lean.rgb * 1.5, halo * life_lean.a * 0.85);
 	}
 	col.rgb += vec3(0.72, 0.84, 1.0) * l.falls * smoothstep(0.18, 0.55, lum) * cool * 0.4 * life_light;
 	col.rgb += vec3(0.85, 0.9, 1.0) * glint * smoothstep(0.08, 0.4, lum) * 0.35 * life_light;

@@ -100,6 +100,13 @@ func _run() -> void:
 	_check(float(backdrop.material.get_shader_parameter("life_rage")) == 0.0
 		and float(backdrop.material.get_shader_parameter("life_beat_clock")) < 0.0,
 		"practice_yard: a calm room keeps the last fight's heat")
+	# the flames lean with the hero from the aura's threshold
+	_check(life.lean_of("grace", 1).w == 0.0 and life.lean_of("nobody", 9).w == 0.0, "the flames lean before the hero does")
+	var red: Vector4 = life.lean_of("temptation", life.LEAN_FULL)
+	_check(red.w == 1.0 and red.x > red.z, "temptation does not redden the flames (%s)" % red)
+	_check(life.lean_of("will", 2).w > 0.0 and life.lean_of("will", 2).w < life.lean_of("will", 4).w, "the flames do not lean further as he does")
+	life.react(yard, {"path": "grace", "lead": 4})
+	_check((backdrop.material.get_shader_parameter("life_lean") as Vector4).w > 0.0, "practice_yard: the lean did not reach the flames")
 	# rage: none before the first blow, all of it as the boss falls
 	_check(life.rage_of(1.0) == 0.0 and life.rage_of(0.0) == 0.0 and is_equal_approx(life.rage_of(0.25), 0.75),
 		"a boss fight's heat does not follow the boss's health")
@@ -109,6 +116,31 @@ func _run() -> void:
 	var half: float = life.dread_of((life.DREAD_FROM + life.DREAD_FULL) * 0.5)
 	_check(half > 0.4 and half < 0.6, "dread does not grow evenly (%s halfway)" % half)
 	yard.queue_free()
+	await process_frame
+	# the settings reach a room's painting and its openings at once; the
+	# player's own settings are put back the way they were changed
+	var settings = root.get_node("/root/Settings")
+	var was_motion: bool = settings.backdrop_motion
+	var was_flashes: String = settings.flashes
+	var night = load("res://scenes/rooms/village_night.tscn").instantiate()
+	root.add_child(night)
+	await process_frame
+	var night_materials: Array = night.get_meta(&"backdrop_life").materials
+	_check(night_materials.size() > 1, "village_night: its openings do not share the painting's life")
+	settings.set_backdrop_motion(false)
+	settings.set_flashes("reduced")
+	for each in night_materials:
+		_check(float(each.get_shader_parameter("life_motion")) == 0.0, "village_night: the picture still moves with Moving backdrops off")
+		_check(is_equal_approx(float(each.get_shader_parameter("life_light")), 0.35), "village_night: its light ignores reduced flashes")
+	settings.set_backdrop_motion(true)
+	settings.set_flashes("full")
+	for each in night_materials:
+		_check(float(each.get_shader_parameter("life_motion")) == 1.0 and float(each.get_shader_parameter("life_light")) == 1.0,
+			"village_night: the picture does not come back to life")
+	settings.set_backdrop_motion(was_motion)
+	settings.set_flashes(was_flashes)
+	_check(settings.backdrop_motion == was_motion and settings.flashes == was_flashes, "the player's settings were not put back")
+	night.queue_free()
 	await process_frame
 	# a room hears a boss weaken and a scene flash, through its Ambience
 	var lava = load("res://scenes/rooms/crypt_lava.tscn").instantiate()

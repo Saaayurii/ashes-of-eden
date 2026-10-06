@@ -1,5 +1,6 @@
 {
   "_comment": "The life of each painted backdrop: scripts/rooms/backdrop_life.gd, docs/BACKDROP_LIFE.md. A family sets how painted flames burn (flame: flicker strength; flame_floor: how bright a warm pixel must be to count as a flame — raise it where whole walls glow). A room may override both and lists zones in painting pixels (the texture the room draws, wide panels included): kind falls | water (floor: how bright its lit water is — darker pixels, posts and reeds, keep still) | sway (anchor hangs/stands; strength = pixels) | glow (tint) | lava | haze | stars | pulse; strength and speed are optional.",
+  "lean": {"grace": "#ffeec4", "temptation": "#ff5038", "will": "#a9a7b0"},
   "families": {
     "graveyard": {"flame": 0.55, "flame_floor": 0.6},
     "swamp": {"flame": 0.5, "flame_floor": 0.55},

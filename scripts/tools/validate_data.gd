@@ -1078,6 +1078,11 @@ func _check_backdrops() -> void:
 		_error("data/backdrops.json: not a JSON object")
 		return
 	var families: Dictionary = parsed.get("families", {})
+	# the flames take the colour of the path he leans to: one tint per path
+	var lean: Dictionary = parsed.get("lean", {})
+	for path in ["grace", "temptation", "will"]:
+		if not lean.has(path) or not Color.html_is_valid(str(lean[path])):
+			_error("data/backdrops.json: lean needs a colour for %s" % path)
 	var rooms: Dictionary = parsed.get("rooms", {})
 	# run.gd needs the autoloads to compile; its ROOMS are read as text
 	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")

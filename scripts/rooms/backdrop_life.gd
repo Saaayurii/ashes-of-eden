@@ -32,6 +32,9 @@ const DREAD_FULL := 0.1
 const DREAD_TEMPO := 0.9
 ## The colour lightning lights the painting with; a scene may flash another.
 const LIGHTNING := Color(0.7, 0.78, 1.0)
+## The flames lean with the hero from the aura's threshold, fully at LEAN_FULL.
+const LEAN_FROM := 2
+const LEAN_FULL := 6
 ## The interiors paint their wall onto a sprite of their own.
 const INTERIOR_PAINTINGS := ["Interior/AuthoredMasonry/ChurchPainting", "Interior/AuthoredMasonry/PreacherPainting"]
 
@@ -83,6 +86,12 @@ static func attach_sprite(sprite: Sprite2D, key: String) -> Array[ShaderMaterial
 	sprite.material = material
 	configure(material, found)
 	materials.append(material)
+	# the settings may change while the picture is up (the pause menu); the
+	# watcher frees with the sprite, and its connection with it
+	var watcher := SettingsWatcher.new()
+	watcher.name = "BackdropLifeSettings"
+	watcher.materials = materials
+	sprite.add_child(watcher)
 	return materials
 
 
@@ -93,6 +102,7 @@ static func attach_sprite(sprite: Sprite2D, key: String) -> Array[ShaderMaterial
 ##   dread    our own body near death (dread_of), 0..1
 ##   beat     the heartbeat's own clock (< 0 leaves it on the shader's TIME)
 ##   rage     a boss fight's heat (rage_of), 0..1
+##   path, lead  the path the hero leans to and by how much (Game): the flames take its colour
 ## Called by Ambience every frame.
 static func react(room: Node, mood: Dictionary) -> void:
 	if room == null or not room.has_meta(META):
@@ -105,6 +115,7 @@ static func react(room: Node, mood: Dictionary) -> void:
 	var direction: Vector2 = mood.get("direction", Vector2.RIGHT)
 	var wind := Vector4(at.x, at.y, float(mood.get("energy", 0.0)), clampf(direction.x, -1.0, 1.0))
 	var tint: Color = mood.get("flash_tint", LIGHTNING)
+	var lean := lean_of(str(mood.get("path", "")), int(mood.get("lead", 0)))
 	for material: ShaderMaterial in life.materials:
 		material.set_shader_parameter("life_wind", wind)
 		material.set_shader_parameter("life_exhale", float(mood.get("exhale", 0.0)))
@@ -113,6 +124,18 @@ static func react(room: Node, mood: Dictionary) -> void:
 		material.set_shader_parameter("life_dread", float(mood.get("dread", 0.0)))
 		material.set_shader_parameter("life_beat_clock", float(mood.get("beat", -1.0)))
 		material.set_shader_parameter("life_rage", float(mood.get("rage", 0.0)))
+		material.set_shader_parameter("life_lean", lean)
+
+
+## The colour the painted flames take for a lean: the path's tint from
+## data/backdrops.json and how strongly, as rgb + a. Below a lead of LEAN_FROM
+## (the aura's threshold, Player._update_aura) nothing; full at LEAN_FULL.
+static func lean_of(path: String, lead: int) -> Vector4:
+	var tints: Dictionary = _load().get("lean", {})
+	if lead < LEAN_FROM or not tints.has(path):
+		return Vector4(1.0, 1.0, 1.0, 0.0)
+	var tint := Color(str(tints[path]))
+	return Vector4(tint.r, tint.g, tint.b, clampf(float(lead - 1) / float(LEAN_FULL - 1), 0.2, 1.0))
 
 
 ## How hot a boss fight runs with [param share] of the boss's health left:
@@ -166,7 +189,7 @@ static func configure(material: ShaderMaterial, found: Dictionary) -> void:
 	material.set_shader_parameter("life_count", count)
 	material.set_shader_parameter("life_flame", float(found.flame))
 	material.set_shader_parameter("life_flame_floor", float(found.flame_floor))
-	material.set_shader_parameter("life_light", Settings.flash_scale())
+	apply_settings(material)
 
 
 static func _load() -> Dictionary:
@@ -177,3 +200,22 @@ static func _load() -> Dictionary:
 		if parsed is Dictionary:
 			_rules = parsed
 	return _rules
+
+
+## What the player asked for: light changes as dimmed as `flashes`, and the
+## picture held still when `backdrop_motion` is off.
+static func apply_settings(material: ShaderMaterial) -> void:
+	material.set_shader_parameter("life_light", Settings.flash_scale())
+	material.set_shader_parameter("life_motion", 1.0 if Settings.backdrop_motion else 0.0)
+
+
+## Re-applies the settings to a picture's materials whenever they change.
+class SettingsWatcher extends Node:
+	var materials: Array[ShaderMaterial] = []
+
+	func _ready() -> void:
+		Settings.changed.connect(_refresh)
+
+	func _refresh() -> void:
+		for each in materials:
+			BackdropLife.apply_settings(each)

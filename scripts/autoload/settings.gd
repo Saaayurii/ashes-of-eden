@@ -58,6 +58,10 @@ var screen_shake := true
 var lighting := true
 var text_size := "normal"
 var flashes := "full"
+## The painted backdrops move (BackdropLife: banners, water, lava, haze). Off
+## for eyes that tire of a picture that moves; its light still breathes, as
+## dimmed as `flashes` asks.
+var backdrop_motion := true
 ## The assist swing: the sword comes out by itself at an awake enemy in reach
 ## (Player._auto_swing). Off by default; the casual way to play on a phone.
 var auto_attack := false
@@ -114,6 +118,7 @@ func _ready() -> void:
 		text_size = "normal"
 	auto_attack = bool(cfg.get_value("access", "auto_attack", false))
 	damage_numbers = bool(cfg.get_value("access", "damage_numbers", true))
+	backdrop_motion = bool(cfg.get_value("access", "backdrop_motion", true))
 	flashes = str(cfg.get_value("access", "flashes", "full"))
 	if not FLASHES.has(flashes):
 		flashes = "full"
@@ -172,6 +177,7 @@ func save() -> void:
 	cfg.set_value("access", "flashes", flashes)
 	cfg.set_value("access", "auto_attack", auto_attack)
 	cfg.set_value("access", "damage_numbers", damage_numbers)
+	cfg.set_value("access", "backdrop_motion", backdrop_motion)
 	cfg.set_value("access", "game_speed", game_speed)
 	cfg.set_value("access", "block_toggle", block_toggle)
 	cfg.set_value("game", "difficulty", difficulty)
@@ -297,6 +303,12 @@ func set_damage_numbers(enabled: bool) -> void:
 
 func set_auto_attack(enabled: bool) -> void:
 	auto_attack = enabled
+	save()
+	changed.emit()
+
+
+func set_backdrop_motion(enabled: bool) -> void:
+	backdrop_motion = enabled
 	save()
 	changed.emit()
 

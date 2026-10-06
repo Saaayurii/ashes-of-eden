@@ -123,6 +123,7 @@ func _process(delta: float) -> void:
 	BackdropLife.react(get_parent(), {
 		"origin": _wind_origin, "direction": _wind_direction, "energy": _wind_energy,
 		"exhale": _clear_glow, "dread": _dread, "beat": _beat, "rage": _rage,
+		"path": Game.dominant_path(), "lead": Game.lead(),
 		"flash": _scene_flash if scene_lit else lightning,
 		"flash_tint": _scene_flash_tint if scene_lit else BackdropLife.LIGHTNING,
 	})
