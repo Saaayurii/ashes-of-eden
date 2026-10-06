@@ -148,6 +148,11 @@ func _check_transition(run, data) -> void:
 	await transition.reveal(crypts, true)
 	_assert(transition.get_node("%PassageArt").visible and transition.get_node("%PassageArt").texture != null,
 		"crypts card has its own painted threshold")
+	var ashes: Dictionary = data.chapter_for("res://scenes/rooms/ashes_threshold.tscn")
+	await transition.cover(ashes, true)
+	await transition.reveal(ashes, true)
+	_assert(transition.get_node("%PassageArt").visible and transition.get_node("%PassageArt").texture == transition.PASSAGE_ART["ashes"],
+		"ashes card has its own painted church-to-ash threshold")
 	transition.instant = true
 
 
