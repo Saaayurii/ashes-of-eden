@@ -28,7 +28,11 @@ uniform float life_motion = 1.0;      // 0 stills every displacement
 // room cleared lets the light swell for a moment.
 uniform vec4 life_wind = vec4(0.0);   // x, y, energy, push (-1 left … 1 right)
 uniform float life_exhale = 0.0;      // 0..1 after a room is cleared
-uniform float life_flash = 0.0;       // lightning: the sky and the cold stone light up
+uniform float life_flash = 0.0;       // lightning or a scene's flash: the sky and the cold stone light up
+uniform vec3 life_flash_tint = vec3(0.7, 0.78, 1.0);
+// A boss fight heats the place: 0 at its first blow, near 1 as it falls —
+// glows, lava, haze, flames and veins all burn harder.
+uniform float life_rage = 0.0;
 uniform float life_dread = 0.0;       // 0..1 as our own body nears death: the veins beat harder
 uniform float life_beat_clock = -1.0; // the heartbeat's own clock (it quickens); < 0 = TIME
 const float LIFE_GUST_REACH = 260.0;
@@ -127,21 +131,21 @@ Life life_gather(vec2 px, float t) {
 			vec2 d = (local - 0.5) * 2.0;
 			float fall = clamp(1.0 - dot(d, d), 0.0, 1.0);
 			float breath = 0.55 + 0.3 * sin(t * sp) + 0.15 * life_noise(vec2(t * sp * 0.7, float(i)));
-			l.glow += life_tint[i].rgb * (w * k * fall * (breath + life_exhale * 1.5));
+			l.glow += life_tint[i].rgb * (w * k * fall * (breath * (1.0 + life_rage * 1.5) + life_exhale * 1.5));
 		} else if (kind == 4) {
 			vec2 flow = vec2(life_noise(px * 0.045 + vec2(t * sp * 0.6, 0.0)), life_noise(px * 0.045 - vec2(0.0, t * sp * 0.9) + 7.0));
 			l.melt += (flow - 0.5) * k * 1.6 * w;
 			l.molten = max(l.molten, w);
-			l.lava += w * k * (life_noise(px * 0.03 - vec2(t * sp * 0.25, t * sp * 0.4)) - 0.35);
+			l.lava += w * k * (1.0 + life_rage) * (life_noise(px * 0.03 - vec2(t * sp * (0.25 + life_rage * 0.25), t * sp * 0.4)) - 0.35);
 		} else if (kind == 5) {
 			float rise = t * sp * 2.5;
 			vec2 shimmer = vec2(life_noise(px * vec2(0.09, 0.05) + vec2(0.0, rise)), life_noise(px * vec2(0.05, 0.09) + vec2(3.0, rise)));
-			l.offset += (shimmer - 0.5) * k * 1.8 * w * (0.35 + 0.65 * local.y);
+			l.offset += (shimmer - 0.5) * k * 1.8 * (1.0 + life_rage * 0.4) * w * (0.35 + 0.65 * local.y);
 		} else if (kind == 6) {
 			l.stars += w * k * (life_noise(floor(px / 2.0) * 0.9 + vec2(t * sp, 0.0)) - 0.5);
 		} else if (kind == 7) {
 			float clock = life_beat_clock < 0.0 ? t : life_beat_clock;
-			l.pulse += w * k * (1.0 + life_dread) * life_beat(clock * sp + local.x * 0.15);
+			l.pulse += w * k * (1.0 + life_dread + life_rage) * life_beat(clock * sp + local.x * 0.15);
 		}
 	}
 	l.offset *= life_motion;
@@ -177,7 +181,7 @@ vec4 life_finish(vec4 col, vec4 wet_col, vec4 hot_col, Life l, vec2 px, float t)
 	if (life_flame > 0.0) {
 		float flame = smoothstep(life_flame_floor, life_flame_floor + 0.25, lum) * warm;
 		float flick = life_noise(px / 5.0 + vec2(t * 5.3, t * 1.7)) * 0.7 + life_noise(px / 11.0 - vec2(t * 2.1, 0.0)) * 0.3 - 0.5;
-		col.rgb *= 1.0 + life_light * flame * (life_flame * flick * 1.4 + life_exhale * 0.25);
+		col.rgb *= 1.0 + life_light * flame * (life_flame * (1.0 + life_rage * 0.6) * flick * 1.4 + life_exhale * 0.25);
 	}
 	col.rgb += vec3(0.72, 0.84, 1.0) * l.falls * smoothstep(0.18, 0.55, lum) * cool * 0.4 * life_light;
 	col.rgb += vec3(0.85, 0.9, 1.0) * glint * smoothstep(0.08, 0.4, lum) * 0.35 * life_light;
@@ -186,6 +190,6 @@ vec4 life_finish(vec4 col, vec4 wet_col, vec4 hot_col, Life l, vec2 px, float t)
 	col.rgb *= 1.0 + l.stars * smoothstep(0.5, 0.85, lum) * (1.0 - warm) * 2.0 * life_light;
 	float red = smoothstep(0.08, 0.3, col.r - max(col.g, col.b));
 	col.rgb *= 1.0 + l.pulse * red * 0.3 * life_light;
-	col.rgb += vec3(0.7, 0.78, 1.0) * life_flash * life_light * (0.15 + cool) * smoothstep(0.1, 0.55, lum) * 0.5;
+	col.rgb += life_flash_tint * life_flash * life_light * (0.15 + cool) * smoothstep(0.1, 0.55, lum) * 0.5;
 	return col;
 }

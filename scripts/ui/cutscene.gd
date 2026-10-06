@@ -560,6 +560,8 @@ func _flash_screen(step: Dictionary) -> void:
 	_flash.color = Color(Color(str(step.get("color", "#ffffff"))), strength)
 	var tween := _tween()
 	tween.tween_property(_flash, "color:a", 0.0, float(step.get("time", 0.45))).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# the painting behind catches the same light (scripts/rooms/backdrop_life.gd)
+	EventBus.backdrop_flash.emit(strength, float(step.get("time", 0.45)), _flash.color)
 
 
 ## The dark looks back: a soft glow with a hot core, above the fade (a light

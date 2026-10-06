@@ -40,6 +40,9 @@ signal player_rested(room_path: String)
 signal alignment_changed(alignment: Dictionary)
 signal boss_hp_changed(name_key: String, hp: float, max_hp: float)
 signal boss_died
+## A scene's flash (scripts/ui/cutscene.gd) lights the painted backdrop too:
+## strength already scaled by Settings.flash_scale(), fading over seconds.
+signal backdrop_flash(strength: float, seconds: float, color: Color)
 ## A blow caught on a timed block (Player._parry).
 signal player_parried
 ## A blow caught on a raised guard, too late for a parry (Player.take_damage).

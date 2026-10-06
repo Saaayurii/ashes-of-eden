@@ -33,12 +33,20 @@ var _elapsed := 0.0
 var _hero: CharacterBody2D
 var _dread := 0.0
 var _beat := 0.0
+var _rage := 0.0
+var _rage_target := 0.0
+var _scene_flash := 0.0
+var _scene_flash_fade := 1.0
+var _scene_flash_tint := BackdropLife.LIGHTNING
 
 
 func _ready() -> void:
 	EventBus.world_impulse.connect(_on_world_impulse)
 	EventBus.enemy_died.connect(_on_enemy_died)
 	EventBus.room_cleared.connect(_on_room_cleared)
+	EventBus.boss_hp_changed.connect(_on_boss_hp_changed)
+	EventBus.boss_died.connect(_on_boss_died)
+	EventBus.backdrop_flash.connect(_on_backdrop_flash)
 	call_deferred("_collect_reactive_scenery")
 
 
@@ -107,8 +115,17 @@ func _process(delta: float) -> void:
 	# and the walls hear a wounded heart: the beat quickens on its own clock
 	_dread = move_toward(_dread, _own_dread(), delta * 0.5)
 	_beat += delta * (1.0 + _dread * BackdropLife.DREAD_TEMPO)
-	BackdropLife.react(get_parent(), _wind_origin, _wind_direction, _wind_energy, _clear_glow,
-		_flash.color.a if _flash != null else 0.0, _dread, _beat)
+	# a boss fight heats the place as the boss weakens; a scene's flash fades
+	_rage = move_toward(_rage, _rage_target, delta * 0.6)
+	_scene_flash = move_toward(_scene_flash, 0.0, delta / _scene_flash_fade)
+	var lightning := _flash.color.a if _flash != null else 0.0
+	var scene_lit := _scene_flash > lightning
+	BackdropLife.react(get_parent(), {
+		"origin": _wind_origin, "direction": _wind_direction, "energy": _wind_energy,
+		"exhale": _clear_glow, "dread": _dread, "beat": _beat, "rage": _rage,
+		"flash": _scene_flash if scene_lit else lightning,
+		"flash_tint": _scene_flash_tint if scene_lit else BackdropLife.LIGHTNING,
+	})
 	for bird in _birds:
 		var speed: float = _bird_speed[bird]
 		bird.position.x += speed * delta
@@ -250,6 +267,22 @@ func _spawn_air_wake(at: Vector2, direction: Vector2, strength: float) -> void:
 
 func _on_enemy_died(_enemy_id: StringName, at: Vector2) -> void:
 	_on_world_impulse(at, Vector2(0.0, -1.0), 0.55, &"enemy_death")
+
+
+func _on_boss_hp_changed(_name_key: String, hp: float, max_hp: float) -> void:
+	_rage_target = BackdropLife.rage_of(hp / max_hp if max_hp > 0.0 else 0.0)
+
+
+func _on_boss_died() -> void:
+	# the place lets go all at once
+	_rage_target = 0.0
+	_clear_glow = 1.0
+
+
+func _on_backdrop_flash(strength: float, seconds: float, color: Color) -> void:
+	_scene_flash = clampf(strength, 0.0, 1.0)
+	_scene_flash_fade = maxf(seconds, 0.05) / maxf(_scene_flash, 0.01)
+	_scene_flash_tint = color
 
 
 func _on_room_cleared(_index: int) -> void:

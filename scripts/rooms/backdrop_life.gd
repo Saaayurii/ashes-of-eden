@@ -30,6 +30,8 @@ const DREAD_FROM := 0.4
 const DREAD_FULL := 0.1
 ## How much faster the heart beats at full dread.
 const DREAD_TEMPO := 0.9
+## The colour lightning lights the painting with; a scene may flash another.
+const LIGHTNING := Color(0.7, 0.78, 1.0)
 ## The interiors paint their wall onto a sprite of their own.
 const INTERIOR_PAINTINGS := ["Interior/AuthoredMasonry/ChurchPainting", "Interior/AuthoredMasonry/PreacherPainting"]
 
@@ -84,27 +86,39 @@ static func attach_sprite(sprite: Sprite2D, key: String) -> Array[ShaderMaterial
 	return materials
 
 
-## The room answers the hero: [param origin] and [param direction] of the
-## latest gust (world space), its [param energy] (0 when calm), how much of the
-## cleared-room swell is left, a lightning [param flash], the [param dread] of
-## our own body near death and the heartbeat's [param beat] clock (< 0 leaves
-## it on the shader's TIME). Called by Ambience every frame.
-static func react(room: Node, origin: Vector2, direction: Vector2, energy: float, exhale: float,
-		flash := 0.0, dread := 0.0, beat := -1.0) -> void:
+## The room answers what happens in it. [param mood] (missing keys are calm):
+##   origin, direction  the latest gust, world space   energy  its strength, 0 calm
+##   exhale   what is left of the cleared-room swell, 0..1
+##   flash    lightning or a scene's flash, 0..1, of colour flash_tint (lightning's blue by default)
+##   dread    our own body near death (dread_of), 0..1
+##   beat     the heartbeat's own clock (< 0 leaves it on the shader's TIME)
+##   rage     a boss fight's heat (rage_of), 0..1
+## Called by Ambience every frame.
+static func react(room: Node, mood: Dictionary) -> void:
 	if room == null or not room.has_meta(META):
 		return
 	var life: Dictionary = room.get_meta(META)
 	var painting := life.painting as Sprite2D
 	if not is_instance_valid(painting):
 		return
-	var at: Vector2 = painting.get_global_transform().affine_inverse() * origin
-	var wind := Vector4(at.x, at.y, energy, clampf(direction.x, -1.0, 1.0))
+	var at: Vector2 = painting.get_global_transform().affine_inverse() * (mood.get("origin", Vector2.ZERO) as Vector2)
+	var direction: Vector2 = mood.get("direction", Vector2.RIGHT)
+	var wind := Vector4(at.x, at.y, float(mood.get("energy", 0.0)), clampf(direction.x, -1.0, 1.0))
+	var tint: Color = mood.get("flash_tint", LIGHTNING)
 	for material: ShaderMaterial in life.materials:
 		material.set_shader_parameter("life_wind", wind)
-		material.set_shader_parameter("life_exhale", exhale)
-		material.set_shader_parameter("life_flash", flash)
-		material.set_shader_parameter("life_dread", dread)
-		material.set_shader_parameter("life_beat_clock", beat)
+		material.set_shader_parameter("life_exhale", float(mood.get("exhale", 0.0)))
+		material.set_shader_parameter("life_flash", float(mood.get("flash", 0.0)))
+		material.set_shader_parameter("life_flash_tint", Vector3(tint.r, tint.g, tint.b))
+		material.set_shader_parameter("life_dread", float(mood.get("dread", 0.0)))
+		material.set_shader_parameter("life_beat_clock", float(mood.get("beat", -1.0)))
+		material.set_shader_parameter("life_rage", float(mood.get("rage", 0.0)))
+
+
+## How hot a boss fight runs with [param share] of the boss's health left:
+## nothing before the first blow, all of it as the last one lands.
+static func rage_of(share: float) -> float:
+	return clampf(1.0 - share, 0.0, 1.0) if share > 0.0 else 0.0
 
 
 ## How hard the place's heart beats for a body with [param share] of its
