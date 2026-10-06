@@ -36,7 +36,7 @@ func _ready() -> void:
 	Game.new_run()  # gifts and alignment play no part in a duel; start from clean stats
 	Audio.music(&"arena")
 	# Babylon at dusk breathes like every room (data/backdrops.json)
-	BackdropLife.attach_sprite($Parallax/Backdrop as Sprite2D, "arena")
+	BackdropLife.attach_picture($Parallax/Backdrop as Sprite2D, "arena")
 	spawner.spawn_function = _make_player
 	players_root.child_entered_tree.connect(_on_player_entered)
 	# Settings decides, not this file: a player who turned the pad off in

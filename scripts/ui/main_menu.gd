@@ -36,7 +36,7 @@ const PAINTING := Vector2(640, 340)
 
 func _ready() -> void:
 	# the village at dawn breathes like every room (data/backdrops.json)
-	BackdropLife.attach_sprite($Layers/Background as Sprite2D, "main_menu")
+	BackdropLife.attach_picture($Layers/Background as Sprite2D, "main_menu")
 	_fit_layers()
 	get_viewport().size_changed.connect(_fit_layers)
 	_characters.assign([HERO])

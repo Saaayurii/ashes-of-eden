@@ -216,6 +216,7 @@ func _play_card(chapter: Dictionary) -> void:
 	passage_art.visible = PASSAGE_ART.has(chapter_id)
 	if passage_art.visible:
 		passage_art.texture = PASSAGE_ART[chapter_id]
+		BackdropLife.attach_picture(passage_art, BackdropLife.picture_key(passage_art.texture))
 	chapter_label.text = tr(str(chapter.get("chapter", "")))
 	title.text = tr(str(chapter.get("title", "")))
 	epigraph.text = tr(str(chapter.subtitle)) if chapter.has("subtitle") else ""

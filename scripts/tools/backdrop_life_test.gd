@@ -67,6 +67,36 @@ func _run() -> void:
 				"%s: %s does not share the painting's life" % [name, polygon.name])
 		room.queue_free()
 		await process_frame
+	# the pictures that are not rooms: cutscene panels and passage cards
+	var shown := TextureRect.new()
+	root.add_child(shown)
+	var pictures: Array = []
+	for each in DirAccess.get_files_at("res://assets/cutscenes") + DirAccess.get_files_at("res://assets/ui/transitions"):
+		if each.ends_with(".png"):
+			pictures.append(each.get_basename())
+	_check(pictures.size() >= 6, "only %d scene and passage pictures found" % pictures.size())
+	for key in pictures:
+		var picture: Dictionary = life.rule(key)
+		_check(not picture.is_empty(), "%s: no rule — the picture stands still" % key)
+		var file := "res://assets/cutscenes/%s.png" % key
+		if not ResourceLoader.exists(file):
+			file = "res://assets/ui/transitions/%s.png" % key
+		var texture: Texture2D = load(file)
+		_check(life.picture_key(texture) == key, "%s: its texture is keyed as %s" % [key, life.picture_key(texture)])
+		for zone in picture.get("zones", []):
+			var r: Array = zone.rect
+			_check(Rect2(Vector2.ZERO, texture.get_size()).encloses(Rect2(r[0], r[1], r[2], r[3])),
+				"%s: %s zone %s is not on the %s picture" % [key, zone.kind, r, texture.get_size()])
+		shown.texture = texture
+		var set: Array = life.attach_picture(shown, key)
+		_check(set.size() == 1 and shown.material == set[0] and int(set[0].get_shader_parameter("life_count")) == picture.zones.size(),
+			"%s: the panel did not come to life" % key)
+	# one panel showing picture after picture keeps one material and one watcher
+	_check(shown.get_children().filter(func(n) -> bool: return n.name.begins_with("BackdropLifeSettings")).size() == 1,
+		"a panel shown twice grew a second settings watcher")
+	life.attach_picture(shown, "no_such_picture")
+	_check(shown.material == null, "a picture with no rule kept the last one's life")
+	shown.free()
 	# a room the table does not name keeps its picture as it was
 	var plain_room = load("res://scenes/rooms/dead_bridge.tscn").instantiate()
 	root.add_child(plain_room)

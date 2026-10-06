@@ -37,7 +37,7 @@ func _run() -> void:
 		sprite.scale = Vector2(1920.0, 1080.0) / texture.get_size()
 		holder.add_child(sprite)
 		sprites.append(sprite)
-	var material: ShaderMaterial = life.attach_sprite(sprites[0], key)[0]
+	var material: ShaderMaterial = life.attach_picture(sprites[0], key)[0]
 	var plain := await _measure()
 	# any custom shader at all, for the floor under the life's own cost
 	var trivial := ShaderMaterial.new()

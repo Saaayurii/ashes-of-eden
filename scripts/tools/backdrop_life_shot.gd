@@ -10,7 +10,7 @@ extends SceneTree
 ## `wound` does the same with the hero at death's door (the veins' beat),
 ## `flash` with a lightning stroke, `rage` with a boss nearly down, `lean`
 ## with the hero deep in temptation. Beyond the chapter's rooms: main_menu,
-## practice_yard, arena.
+## practice_yard, arena, and any cutscene panel or passage card by its file name.
 ##   godot --path . -s scripts/tools/backdrop_life_shot.gd -- out_dir [room|room] [gust|wound|flash|rage|lean]
 
 ## Pictures that are not rooms of the chapter: scene, its picture, its size.
@@ -40,6 +40,11 @@ func _run() -> void:
 	for key in EXTRA:
 		if only.has(key):
 			rooms.append(EXTRA[key][0])
+	# a cutscene panel or a passage card, by its file's name
+	for key in only:
+		for folder in ["res://assets/cutscenes/", "res://assets/ui/transitions/"]:
+			if ResourceLoader.exists(folder + key + ".png"):
+				rooms.append(folder + key + ".png")
 	var mode := ""
 	for each in ["gust", "wound", "flash", "rage", "lean"]:
 		if args.has(each):
@@ -49,10 +54,23 @@ func _run() -> void:
 		var name: String = path.get_file().get_basename()
 		if not only.is_empty() and not only.has(name):
 			continue
-		var room = load(path).instantiate()
-		root.add_child(room)
+		var room
+		if path.ends_with(".png"):
+			# a picture alone, drawn at its own size, alive as a panel is
+			room = Node2D.new()
+			var picture := Sprite2D.new()
+			picture.texture = load(path)
+			picture.centered = false
+			room.add_child(picture)
+			life.attach_picture(picture, name)
+			room.set_meta(&"backdrop_life", {"painting": picture, "materials": [picture.material]})
+			root.add_child(room)
+			root.size = Vector2i(picture.texture.get_size())
+		else:
+			room = load(path).instantiate()
+			root.add_child(room)
+			root.size = EXTRA[name][2] if EXTRA.has(name) else Vector2i(int(room.width), int(room.height))
 		current_scene = room
-		root.size = EXTRA[name][2] if EXTRA.has(name) else Vector2i(int(room.width), int(room.height))
 		if EXTRA.has(name):
 			# a picture without a room: hold its materials the way a room does
 			var picture = room.get_node(EXTRA[name][1])

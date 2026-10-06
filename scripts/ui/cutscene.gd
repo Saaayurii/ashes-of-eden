@@ -482,6 +482,8 @@ func _show_panel(path: String, seconds: float, step := {}, instant := false) -> 
 		push_warning("Cutscene %s: missing panel %s" % [playing, path])
 		return
 	_panel.texture = texture
+	# a panel breathes like a room: torches, the moon, wet stone (data/backdrops.json)
+	BackdropLife.attach_picture(_panel, BackdropLife.picture_key(texture))
 	_panel.modulate.a = 0.0 if seconds > 0.0 else 1.0
 	_panel.visible = true
 	# A still painting drifts: a slow push in (and an optional pan) for as long

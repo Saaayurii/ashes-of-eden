@@ -14,6 +14,54 @@
     "dusk": {"flame": 0.45, "flame_floor": 0.8}
   },
   "rooms": {
+    "elian_gallows_approach": {"family": "graveyard", "zones": [
+      {"kind": "glow", "rect": [1195, 65, 110, 100], "tint": "#d6e0ff", "strength": 0.13, "speed": 0.5},
+      {"kind": "stars", "rect": [700, 0, 972, 180]},
+      {"kind": "glow", "rect": [1440, 200, 140, 90], "tint": "#ffc27a", "strength": 0.1, "speed": 0.7},
+      {"kind": "haze", "rect": [100, 380, 80, 90], "strength": 0.8},
+      {"kind": "haze", "rect": [1040, 470, 70, 80], "strength": 0.8},
+      {"kind": "water", "rect": [550, 750, 890, 191], "floor": 0.15},
+      {"kind": "sway", "rect": [140, 0, 80, 385], "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [775, 160, 60, 190], "strength": 1.2, "speed": 1.1},
+      {"kind": "sway", "rect": [590, 105, 30, 200], "strength": 1.0, "speed": 0.9}
+    ]},
+    "elian_gallows_drop": {"family": "graveyard", "zones": [
+      {"kind": "glow", "rect": [1195, 65, 110, 100], "tint": "#d6e0ff", "strength": 0.13, "speed": 0.5},
+      {"kind": "stars", "rect": [700, 0, 972, 180]},
+      {"kind": "glow", "rect": [1440, 200, 140, 90], "tint": "#ffc27a", "strength": 0.1, "speed": 0.7},
+      {"kind": "haze", "rect": [100, 380, 80, 90], "strength": 0.8},
+      {"kind": "haze", "rect": [1040, 470, 70, 80], "strength": 0.8},
+      {"kind": "water", "rect": [550, 750, 890, 191], "floor": 0.15},
+      {"kind": "sway", "rect": [140, 0, 80, 385], "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [775, 160, 60, 190], "strength": 1.2, "speed": 1.1},
+      {"kind": "sway", "rect": [545, 105, 100, 405], "strength": 1.6, "speed": 0.55}
+    ]},
+    "graveyard_to_swamp": {"family": "swamp", "zones": [
+      {"kind": "water", "rect": [0, 800, 1672, 141], "floor": 0.08},
+      {"kind": "sway", "rect": [330, 330, 170, 250], "strength": 1.2, "speed": 1.0},
+      {"kind": "sway", "rect": [1450, 200, 160, 300], "strength": 1.2, "speed": 1.1}
+    ]},
+    "swamp_to_catacombs": {"family": "blood", "zones": [
+      {"kind": "water", "rect": [0, 780, 700, 160], "floor": 0.08},
+      {"kind": "sway", "rect": [1270, 0, 320, 200], "strength": 1.2, "speed": 1.0},
+      {"kind": "sway", "rect": [1550, 80, 55, 220], "strength": 1.4, "speed": 1.0},
+      {"kind": "sway", "rect": [1365, 110, 45, 140], "strength": 1.6, "speed": 1.2},
+      {"kind": "sway", "rect": [0, 100, 200, 250], "strength": 1.1, "speed": 1.0},
+      {"kind": "pulse", "rect": [1300, 550, 372, 390], "strength": 0.5}
+    ]},
+    "catacombs_to_crypts": {"family": "crypt", "zones": [
+      {"kind": "sway", "rect": [195, 160, 60, 130], "strength": 1.6, "speed": 1.2},
+      {"kind": "sway", "rect": [35, 300, 70, 170], "strength": 1.4, "speed": 1.0},
+      {"kind": "glow", "rect": [1100, 400, 400, 350], "tint": "#9cc0ff", "strength": 0.08, "speed": 0.4},
+      {"kind": "pulse", "rect": [0, 0, 330, 500], "strength": 0.5}
+    ]},
+    "church_to_ashes": {"family": "ashes", "zones": [
+      {"kind": "glow", "rect": [150, 100, 120, 320], "tint": "#9cc0ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "sway", "rect": [40, 100, 55, 270], "strength": 1.0, "speed": 1.0},
+      {"kind": "lava", "rect": [1180, 380, 492, 561], "strength": 0.8},
+      {"kind": "haze", "rect": [1150, 350, 522, 591], "strength": 0.6},
+      {"kind": "lava", "rect": [1590, 60, 82, 520], "strength": 1.2, "speed": 1.6}
+    ]},
     "main_menu": {"family": "dawn", "zones": [
       {"kind": "glow", "rect": [440, 0, 60, 120], "tint": "#ffe2a8", "strength": 0.12, "speed": 0.4},
       {"kind": "sway", "rect": [118, 148, 30, 90], "strength": 1.2, "speed": 1.3},

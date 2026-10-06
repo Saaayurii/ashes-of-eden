@@ -1072,6 +1072,20 @@ const BACKDROP_KINDS := ["falls", "water", "sway", "glow", "lava", "haze", "star
 const BACKDROP_ZONES := 24  # BackdropLife.MAX_ZONES
 
 
+## The pictures that are not rooms: every cutscene panel and every passage
+## card (Curtain.PASSAGE_ART, read as text — curtain.gd needs the autoloads).
+func backdrop_pictures() -> Array:
+	var found := {}
+	for entry in _load_entries("res://data/cutscenes"):
+		for step in entry.get("steps", []):
+			if step is Dictionary and str(step.get("do", "")) == "panel" and str(step.get("image", "")) != "":
+				found[str(step.image)] = true
+	var curtain := FileAccess.get_file_as_string("res://scripts/autoload/curtain.gd")
+	for each in RegEx.create_from_string("res://assets/ui/transitions/\\w+\\.png").search_all(curtain):
+		found[each.get_string()] = true
+	return found.keys()
+
+
 func _check_backdrops() -> void:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/backdrops.json"))
 	if not parsed is Dictionary:
@@ -1092,6 +1106,10 @@ func _check_backdrops() -> void:
 	for found in scene.search_all(listed):
 		if not rooms.has(found.get_string(1)):
 			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % found.get_string(1))
+	# every picture a scene shows or a passage card carries breathes too
+	for picture in backdrop_pictures():
+		if not rooms.has(picture.get_file().get_basename()):
+			_error("data/backdrops.json: no rule for %s — the picture would stand still" % picture)
 	for key in rooms:
 		var room: Dictionary = rooms[key]
 		if not families.has(str(room.get("family", ""))):

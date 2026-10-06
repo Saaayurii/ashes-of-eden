@@ -65,7 +65,7 @@ static func attach(room: Node2D) -> void:
 	var painting := painting_of(room)
 	if painting == null:
 		return
-	var materials := attach_sprite(painting, room.scene_file_path.get_file().get_basename())
+	var materials := attach_picture(painting, room.scene_file_path.get_file().get_basename())
 	if materials.is_empty():
 		return
 	var found := rule(room.scene_file_path.get_file().get_basename())
@@ -79,25 +79,43 @@ static func attach(room: Node2D) -> void:
 	room.set_meta(META, {"painting": painting, "materials": materials})
 
 
-## Brings any one picture to life under the rule [param key] (the main menu's
-## backdrop is not a room). Returns the materials it set, empty without a rule.
-static func attach_sprite(sprite: Sprite2D, key: String) -> Array[ShaderMaterial]:
+## Brings any one picture to life under the rule [param key]: the main
+## menu's backdrop, the arena's, a cutscene's panel, a passage card — anything
+## that draws one texture (a Sprite2D or a TextureRect). Called again with a
+## new key (a panel showing another picture) it reconfigures the same
+## material. Returns the materials it set, empty without a rule — and a
+## picture with no rule is given back its plain look.
+static func attach_picture(item: CanvasItem, key: String) -> Array[ShaderMaterial]:
 	var materials: Array[ShaderMaterial] = []
-	var found := rule(key)
-	if found.is_empty() or sprite == null:
+	if item == null:
 		return materials
-	var material := ShaderMaterial.new()
-	material.shader = SHADER
-	sprite.material = material
+	var found := rule(key)
+	var material := item.material as ShaderMaterial
+	var ours := material != null and material.shader == SHADER
+	if found.is_empty():
+		if ours:
+			item.material = null
+		return materials
+	if not ours:
+		material = ShaderMaterial.new()
+		material.shader = SHADER
+		item.material = material
 	configure(material, found)
 	materials.append(material)
 	# the settings may change while the picture is up (the pause menu); the
-	# watcher frees with the sprite, and its connection with it
-	var watcher := SettingsWatcher.new()
-	watcher.name = "BackdropLifeSettings"
+	# watcher frees with the picture, and its connection with it
+	var watcher := item.get_node_or_null("BackdropLifeSettings") as SettingsWatcher
+	if watcher == null:
+		watcher = SettingsWatcher.new()
+		watcher.name = "BackdropLifeSettings"
+		item.add_child(watcher)
 	watcher.materials = materials
-	sprite.add_child(watcher)
 	return materials
+
+
+## The rule key of a picture that is not a room: its file's name.
+static func picture_key(texture: Texture2D) -> String:
+	return texture.resource_path.get_file().get_basename() if texture != null else ""
 
 
 ## The room answers what happens in it. [param mood] (missing keys are calm):
