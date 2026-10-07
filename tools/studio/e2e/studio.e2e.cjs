@@ -16,6 +16,11 @@ const URL = `http://127.0.0.1:${PORT}/tools/studio/`;
 const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' });
 const before = new Set(git('status', '--porcelain', '--untracked-files=all').split('\n').filter(Boolean));
 
+// The studio's view of the game (tools/studio/import, not tracked). serve.py
+// rebuilds it after each write, so a run leaves it listing the enemy it made;
+// a second run then saw e2e_archer as taken and wrote e2e_archer_2.
+const rebuildStudioData = () => execFileSync('python3', ['tools/studio/build_data.py'], { cwd: ROOT, stdio: 'ignore' });
+
 function restore() {
   // put back what the studio wrote: tracked files to HEAD, new files removed
   for (const line of git('status', '--porcelain', '--untracked-files=all').split('\n').filter(Boolean)) {
@@ -24,6 +29,7 @@ function restore() {
     if (line.startsWith('??')) fs.rmSync(path.join(ROOT, file), { force: true });
     else git('checkout', '--', file);
   }
+  rebuildStudioData();
 }
 
 const steps = [];
@@ -35,6 +41,7 @@ async function step(name, fn) {
 }
 
 (async () => {
+  rebuildStudioData();
   const server = spawn('python3', ['tools/studio/serve.py'], { cwd: ROOT, env: { ...process.env, STUDIO_PORT: String(PORT) }, stdio: 'inherit' });
   const browser = await chromium.launch();
   const errors = [];
@@ -46,10 +53,24 @@ async function step(name, fn) {
     await page.goto(URL);
     await page.waitForFunction(() => typeof Writer !== 'undefined' && Writer.mode === 'local');
 
+    // Before any other tab has loaded: the wizard is reached from the
+    // characters tab straight away, and its room list used to come up empty.
+    await step('the enemy wizard lists the rooms on a fresh page', async () => {
+      await page.waitForFunction(() => P);  // the wizard does nothing until the current character is loaded
+      assert.equal(await page.evaluate(() => roomNames().length), 0, 'no tab has loaded the rooms yet');
+      await page.evaluate(() => { enemyWizard(); });
+      await page.waitForFunction(() => document.querySelectorAll('#dlg[open] .rp-room option').length > 10, null, { timeout: 15000 });
+      const rooms = await page.$$eval('#dlg .rp-room option', o => o.map(x => x.value));
+      assert.ok(rooms.includes('graveyard_cross'), rooms.join(' '));
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     await step('every tab loads the game', async () => {
       for (const m of ['bg', 'cut', 'snd', 'chars']) { await page.evaluate(m => setMode(m), m); await page.waitForTimeout(1500); }
-      const n = await page.evaluate(() => ({ rooms: bgs.length, cuts: cuts.length, snd: document.querySelectorAll('#sndList .irow').length }));
-      assert.ok(n.rooms > 10 && n.cuts > 5 && n.snd > 50, JSON.stringify(n));
+      // the rooms arrive in the background (25 files and their pictures): wait for them, not for a clock
+      const count = () => page.evaluate(() => ({ rooms: bgs.length, cuts: cuts.length, snd: document.querySelectorAll('#sndList .irow').length }));
+      await page.waitForFunction(() => bgs.length > 10 && cuts.length > 5 && document.querySelectorAll('#sndList .irow').length > 50, null, { timeout: 30000 })
+        .catch(async () => assert.fail(JSON.stringify(await count())));
     });
 
     await step('a generated-style frame becomes a clean 44 px sprite', async () => {
@@ -89,6 +110,74 @@ async function step(name, fn) {
       assert.match(t.edit, /Edit Image 1: change ONLY the pose/);
       assert.match(t.strip, /STYLE AND SCALE ONLY/);
       for (const v of Object.values(t)) assert.doesNotMatch(v, /exactly 44|image pixels/);
+      // the next steps want the idle as it was: two clean frames
+      await page.evaluate(async () => { const f = P.animations.find(a => a.name === 'idle').frames[2]; f.src = null; save(); await SS.build(); });
+    });
+
+    await step('the sandbox posts the strips to the game and hears it took them', async () => {
+      // the game's side is studio_live_test.gd; here a stand-in page answers like StudioLive
+      await page.route('**/studio-live.html', r => r.fulfill({ contentType: 'text/html', body: `<script>
+        addEventListener('message', e => { if (e.source !== parent || e.data.type !== 'ashes-live') return; window.got = e.data;
+          parent.postMessage({ type: 'ashes-live-applied', animations: Object.keys(e.data.strips) }, '*'); });
+        parent.postMessage({ type: 'ashes-live-ready' }, '*');</script>` }));
+      await page.click('[data-act="chars-sandbox"]');
+      await page.waitForFunction(() => /в игре: idle/.test(document.querySelector('#sbState')?.textContent || ''), null, { timeout: 15000 });
+      const got = await page.frameLocator('#sbFrame').locator('html').evaluate(() => ({ cell: window.got.cell, base: window.got.extends, idle: window.got.strips.idle.slice(0, 22) }));
+      assert.deepEqual(got.cell, [48, 56]);
+      assert.equal(got.base, 'cultist');
+      assert.equal(got.idle, 'data:image/png;base64,');
+      await page.click('#sandbox [data-sb="close"]');
+      assert.equal(await page.getAttribute('#sbFrame', 'src'), 'about:blank', 'closing the panel unloads the game: no music behind the studio');
+    });
+
+    await step('the rig cuts a part sheet, walks it with planted feet and bakes 44 px frames', async () => {
+      const r = await page.evaluate(async () => {
+        setMode('rig');
+        const c = document.createElement('canvas'); c.width = 900; c.height = 600; const x = c.getContext('2d');
+        x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 900, 600);
+        x.fillStyle = '#2f5a2a'; x.beginPath(); x.ellipse(170, 150, 55, 62, 0, 0, 7); x.fill();
+        x.fillStyle = '#3d6b33'; x.fillRect(120, 200, 110, 190);                                   // body
+        x.fillStyle = '#4a3a2a'; x.fillRect(420, 120, 46, 250); x.fillStyle = '#2a1e16'; x.fillRect(420, 370, 70, 30);  // leg + boot
+        x.fillStyle = '#3d6b33'; x.fillRect(620, 120, 36, 100); x.fillStyle = '#d6b08a'; x.fillRect(624, 220, 28, 100); // arm
+        x.strokeStyle = '#7a5230'; x.lineWidth = 10; x.beginPath(); x.arc(700, 300, 200, -0.9, 0.9); x.stroke();           // bow
+        await rigLoadSheet(c.toDataURL('image/png'));
+        const roles = Object.keys(P.rig.parts).sort();
+        const walk = P.animations.find(a => /walk|run/.test(a.name)); P.current = walk.id; renderRig();
+        document.querySelector('[data-rig="gen-walk"]').click(); await new Promise(r => setTimeout(r, 200));
+        const checks = [...document.querySelectorAll('#rigChecks div')].map(d => d.className);
+        rigUI.imgs.clear();  // the parts not loaded yet when «Запечь» is pressed: the bake waits for them
+        await rigBake(); await new Promise(r => setTimeout(r, 2500)); await SS.build();
+        const hs = walk.frames.map(f => SS.processed().get(f.id)).map(p => { const d = p.getContext('2d').getImageData(0, 0, p.width, p.height).data; let t = 999, b = -1;
+          for (let y = 0; y < p.height; y++) for (let xx = 0; xx < p.width; xx++) if (d[(y * p.width + xx) * 4 + 3]) { t = Math.min(t, y); b = Math.max(b, y); } return [b - t + 1, b]; });
+        setMode('chars');
+        return { roles, checks, baked: walk.frames.filter(f => f.baked).length, n: walk.frames.length, hs };
+      });
+      assert.deepEqual(r.roles, ['arm', 'body', 'leg', 'weapon']);
+      assert.ok(r.checks.length >= 4 && r.checks.every(c => c === 'ok'), JSON.stringify(r.checks));
+      assert.equal(r.baked, r.n);
+      for (const [h] of r.hs) assert.ok(h >= 42 && h <= 45, `height ${h}`);
+      assert.equal(new Set(r.hs.map(([, b]) => b)).size, 1, 'the feet stand on one row in every frame');
+    });
+
+    await step('a frame that jumps aside turns the badge on «→ В игру» red', async () => {
+      const r = await page.evaluate(async () => {
+        setMode('chars'); const a = P.animations.find(a => a.name === 'idle'); P.current = a.id; renderAll();
+        await SS.build(); paintProcessed();
+        const before = artReport.filter(c => c.bad && c.anim === 'idle').map(c => c.msg);
+        const c = document.createElement('canvas'); c.width = c.height = 1024; const x = c.getContext('2d');
+        x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 1024, 1024);
+        for (let j = 0; j < 55; j++) for (let i = 0; i < 18; i++) if (Math.abs(i - 9) < 6) { x.fillStyle = (i + j) % 3 ? '#3f6b2e' : '#22301a'; x.fillRect(360 + i * 11, 220 + j * 11, 11, 11); }
+        const file = new File([await new Promise(r => c.toBlob(r, 'image/png'))], 'f.png', { type: 'image/png' });
+        const f = a.frames[2]; await SS.assignFiles([file], { type: 'frame', id: f.id }); f.dx = 14; save();
+        await new Promise(r => setTimeout(r, 2500)); await SS.build(); paintProcessed();
+        const badge = document.querySelector('[data-act="chars-game"] .badge')?.textContent;
+        const msgs = [...document.querySelectorAll('#artChecks .warn')].map(d => d.textContent);
+        f.src = null; f.dx = 0; save(); await SS.build(); paintProcessed();
+        return { before, badge, msgs };
+      });
+      assert.deepEqual(r.before, [], 'the clean idle has nothing red: ' + JSON.stringify(r));
+      assert.ok(+r.badge >= 1, `badge ${r.badge}`);
+      assert.ok(r.msgs.some(m => /idle.*прыгает/.test(m)), r.msgs.join(' | '));
     });
 
     await step('undo and redo', async () => {
@@ -113,6 +202,8 @@ async function step(name, fn) {
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
       const text = await page.textContent('#dlg');
       assert.match(text, /data\/enemies\/e2e_archer\.json/, text);
+      // only the Russian name and tip were given: she is told English shows Russian
+      assert.match(text, /без английского/, text);
       const scene = fs.readFileSync(path.join(ROOT, 'scenes/rooms/graveyard_cross.tscn'), 'utf8');
       assert.match(scene, /enemy_id = "e2e_archer"/);
       const entry = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemies/e2e_archer.json'), 'utf8'));

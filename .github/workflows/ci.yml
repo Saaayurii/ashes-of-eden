@@ -71,9 +71,12 @@ jobs:
       # The studio itself in Chromium, against its local server: every tab
       # loads, a frame becomes a sprite, undo, the enemy wizard (with the room
       # regenerated), a dialogue line. It puts back everything it writes.
+      # Then its GitHub side against a fake GitHub in memory: a send opens a
+      # pull request, the owner's review shows, her answer, a fix in the same PR.
       - name: Art studio in a browser
         working-directory: tools/studio/e2e
         run: |
           npm install --no-save --no-package-lock playwright@1.49.1 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
           node studio.e2e.cjs
+          node studio.github.e2e.cjs

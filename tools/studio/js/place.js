@@ -40,7 +40,8 @@ function drawRoomOverview(c, room, spot, enemyId) {
 // Returns a getter for what was chosen: {room, x, y} or null.
 function roomPicker(box, enemyId, initial) {
   let pick = initial || null;
-  box.innerHTML = `<div class="row" style="margin:0"><select class="rp-room" style="width:auto"><option value="">— не ставить в комнату —</option>${roomNames().map(n => `<option ${pick?.room === n ? 'selected' : ''}>${n}</option>`).join('')}</select>
+  const roomOptions = () => `<option value="">— не ставить в комнату —</option>${roomNames().map(n => `<option ${pick?.room === n ? 'selected' : ''}>${n}</option>`).join('')}`;
+  box.innerHTML = `<div class="row" style="margin:0"><select class="rp-room" style="width:auto">${roomOptions()}</select>
     <span class="muted rp-info">${pick ? `${pick.room}: ${pick.x}, ${pick.y}` : 'Выбери комнату и кликни по полу, где ему стоять'}</span></div>
     <canvas class="rp-map" style="width:100%;display:none;margin-top:6px;border-radius:6px;cursor:crosshair"></canvas>
     <div class="note">Зелёное — пол, красные — враги, которые уже там стоят. Студия ставит точку на ближайший пол под кликом; дойти до врага игрок должен — это ещё раз проверит генератор комнат.</div>`;
@@ -60,7 +61,11 @@ function roomPicker(box, enemyId, initial) {
     pick = { room: sel.value, ...s }; info.textContent = `${pick.room}: ${pick.x}, ${pick.y}`;
     drawRoomOverview(map, room, pick, enemyId);
   };
-  if (pick) show();
+  // The room list lives with the cutscenes and backgrounds tabs. The enemy
+  // wizard opens from the characters tab too, before either has loaded — the
+  // list was empty and the enemy could go into no room. Load the order here.
+  if (roomNames().length) { if (pick) show(); }
+  else loadCutData().then(() => { sel.innerHTML = roomOptions(); if (pick) show(); });
   return () => pick;
 }
 

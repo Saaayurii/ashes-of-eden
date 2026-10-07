@@ -188,6 +188,10 @@ async function runInGodot(room) {
 }
 
 /* ---------- what each part of the studio sends ---------- */
+// The red badge's checks (lib.js artChecks) asked once more before her work leaves.
+const artOk = () => { const bad = (typeof artReport !== 'undefined' ? artReport : []).filter(c => c.bad);
+  return !bad.length || confirm('Проверки нашли:\n' + bad.map(c => '• ' + c.msg).join('\n') + '\n\nВсё равно отправить?'); };
+
 async function charFiles() {
   await build();
   const S = P.settings, W = +S.cellW, H = +S.cellH, name = slug(P.name), origin = P.origin || {};
@@ -326,11 +330,11 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   switch (b.dataset.act) {
     case 'auth': authDialog(); break;
-    case 'chars-game': sendToGame(charFiles, 'chars'); break;
+    case 'chars-game': if (artOk()) sendToGame(charFiles, 'chars'); break;
     case 'bg-game': sendToGame(bgFiles, 'bg'); break;
     case 'cut-game-send': sendToGame(cutFiles, 'cut'); break;
     case 'sent': sentDialog(); break;
-    case 'chars-enemy': enemyWizard(); break;
+    case 'chars-enemy': if (artOk()) enemyWizard(); break;
     case 'snd-game': sendToGame(soundFiles); break;
     case 'chars-share': shareProject('chars'); break;
     case 'bg-share': shareProject('bgs'); break;
@@ -501,7 +505,7 @@ async function enemyWizard() {
   const bases = enemyList.filter(e => !e.boss && !e.extends && BEHAVIOUR_RU[e.behaviour] && e.bestiary !== false);
   if (!bases.length) return dialog('<h3>Сделать врагом</h3><p>Нет данных о врагах игры: запусти студию из папки игры или с сайта.</p>');
   const S = P.settings, id = slug(P.name), anims = P.animations;
-  const pick = slot => (anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null)?.id || '';
+  const pick = slot => enemySlotFor(anims, slot)?.id || '';
   const taken = enemyList.some(e => e.id === id);
   let getPlace = null; ewVoices = {}; ewAvatar = null;
   setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id); });
@@ -573,6 +577,7 @@ async function enemyFiles(f) {
   return { files, title: `Studio: enemy ${f.id}`,
     body: `Новый враг **${f.id}** (бой как у \`${f.base}\`): анимации ${Object.keys(animations).join(', ')}, кадр ${W}×${H}.`,
     notes: [`Подраться с ним: превью этой отправки с ?practice=${f.id}.`,
+      ...(['name', 'tip'].some(k => !f[k].en) ? ['Имя или подсказка без английского: в английской версии (и в uk / zh_CN) пока стоит русский текст — впиши «(англ.)» и отправь ещё раз.'] : []),
       f.place ? `Стоит в комнате ${f.place.room} (${f.place.x}, ${f.place.y}); сцену пересоберёт робот студии и проверит, что до врага можно дойти.` : 'В комнаты не поставлен — только тренировочный двор.'] };
 }
 

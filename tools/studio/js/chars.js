@@ -6,20 +6,24 @@ function maskImage(img, tol, mode) {
   const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
   const c = mk(w, h), x = c.getContext('2d', { willReadFrequently: true });
   x.drawImage(img, 0, 0);
-  const id = x.getImageData(0, 0, w, h), m = maskPixels(id.data, w, h, tol, mode);
+  const id = x.getImageData(0, 0, w, h);
+  // the background's own colour, when it was a colour and not transparency: the checks look for its fringe
+  let tr = 0, sm = 0; for (let p = 0; p < w * h; p += 7) { sm++; if (id.data[p * 4 + 3] < 200) tr++; }
+  const key = mode !== 'alpha' && tr / sm <= 0.02 ? cornerColor(id.data, w, h).slice(0, 3) : null;
+  const m = maskPixels(id.data, w, h, tol, mode);
   x.putImageData(id, 0, 0);
-  return { c, w, h, m };
+  return { c, w, h, m, key };
 }
-function cropMask({ c, w, h, m }) {
+function cropMask({ c, w, h, m, key }) {
   const b = cropBox(m, w, h); if (!b) return null;
   const cw = b.x1 - b.x0 + 1, ch = b.y1 - b.y0 + 1, out = mk(cw, ch);
   out.getContext('2d').drawImage(c, b.x0, b.y0, cw, ch, 0, 0, cw, ch);
-  return { canvas: out, w: cw, h: ch, ox: b.x0, oy: b.y0, cov: b.cnt / (w * h), data: out.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, cw, ch).data };
+  return { canvas: out, w: cw, h: ch, ox: b.x0, oy: b.y0, key, cov: b.cnt / (w * h), data: out.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, cw, ch).data };
 }
 function compose(s, f, S) {
   const W = +S.cellW, H = +S.cellH, c = mk(W, H), t = mk(s.w, s.h);
   t.getContext('2d').putImageData(s.img, 0, 0);
-  const keep = S.anchor === 'none';
+  const keep = S.anchor === 'none' || f.baked;
   const x = (keep ? Math.round(s.ox || 0) : Math.round(W / 2 - anchorX(s, S.anchor))) + (f.dx | 0);
   const y = (keep ? Math.round(s.oy || 0) : H - (+S.bottomPad) - s.h) + (f.dy | 0);
   c.getContext('2d').drawImage(t, x, y);
@@ -38,13 +42,13 @@ async function getCut(key, src) {
   return cut;
 }
 
-let processed = new Map(), procRef = null, palette = null, warnings = [];
+let processed = new Map(), procRef = null, palette = null, warnings = [], artReport = [];
 let building = false, buildAgain = false, buildTimer = null;
 function scheduleBuild(ms = 250) { clearTimeout(buildTimer); buildTimer = setTimeout(build, ms); }
 async function build() {
   if (building) { buildAgain = true; return; }
   building = true;
-  try { do { buildAgain = false; await doBuild(); } while (buildAgain); }
+  try { do { buildAgain = false; await doBuild(); } while (buildAgain); if (typeof sandboxChanged === 'function') sandboxChanged(); }
   catch (e) { console.error(e); toast('Ошибка обработки: ' + e.message, 'err'); }
   finally { building = false; }
 }
@@ -54,7 +58,7 @@ async function doBuild() {
   let gp = 0;
   if (grid) {
     const cuts = [];
-    for (const a of P.animations) for (const f of a.frames) if (f.src && !f.off) { const c = await getCut(f.id, f.src); if (c) cuts.push(c); }
+    for (const a of P.animations) for (const f of a.frames) if (f.src && !f.off && !f.baked) { const c = await getCut(f.id, f.src); if (c) cuts.push(c); }
     if (P.reference) { const c = await getCut('ref', P.reference); if (c) cuts.push(c); }
     gp = +S.pixelSize > 0 ? +S.pixelSize : cuts.length ? globalGridP(cuts) : 0;
     if (gp) warn.push(`ℹ Размер «пикселя» в картинках: ${gp.toFixed(1)} px${+S.pixelSize > 0 ? ' (задан вручную)' : ' (найден автоматически)'}`);
@@ -68,6 +72,10 @@ async function doBuild() {
       if (cut.cov < 0.02 && S.bgMode !== 'alpha') warn.push(`${a.name} #${i + 1}: от персонажа почти ничего не осталось — фон похож на персонажа. Уменьши «Допуск фона» или попроси в ChatGPT пурпурный фон`);
       items.push({ f, cut, i });
     }
+    if (!items.length) continue;
+    // frames baked from the rig are already pixel art at the game's size, placed in the cell: taken as they are
+    for (const it of items.filter(it => it.f.baked)) { const c = copyCut(it.cut); c.ox = it.cut.ox; c.oy = it.cut.oy; smalls.push(c); out.push({ s: c, f: it.f, a, i: it.i }); }
+    items.splice(0, items.length, ...items.filter(it => !it.f.baked));
     if (!items.length) continue;
     const maxH = Math.max(...items.map(it => it.cut.h));
     if (grid && gp) {
@@ -118,7 +126,20 @@ async function doBuild() {
   if (grew) renderFrames();
   procRef = refS ? compose(refS, { dx: 0, dy: 0 }, S) : null;
   warnings = warn;
+  const keyOf = new Map(); for (const it of out) keyOf.set(it.f.id, cutCache.get(it.f.id + '|' + fingerprint(it.f.src) + '|' + S.tolerance + '|' + S.bgMode)?.key || null);
+  artReport = artChecks(P.animations.map(a => ({ name: a.name, loop: a.loop,
+    frames: a.frames.filter(f => !f.off && processed.has(f.id)).map(f => { const c = processed.get(f.id); return { data: c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height, key: keyOf.get(f.id) }; }) })),
+  { contentH: S.contentH, palette: S.palette, fit: S.scaleMode !== 'none', flyer: studioFlyer() });
   paintProcessed();
+}
+
+// A flyer has no ground line to hold: the game's enemy of this name, or the one it is set to fight like.
+function studioFlyer() {
+  if (typeof enemyList === 'undefined') return false;
+  if (!enemyList) { if (!studioFlyer.asked) { studioFlyer.asked = true; fetch('import/enemies.json').then(r => r.json()).then(j => { enemyList ||= j; scheduleBuild(0); }).catch(() => {}); } return false; }
+  const base = typeof sandbox !== 'undefined' ? sandbox.base : '';
+  // the same list the practice yard flies by (scripts/run/practice_drills.gd)
+  return ['flyer', 'boss_ophanim'].includes((enemyList.find(e => e.id === P.id) || enemyList.find(e => e.id === base))?.behaviour);
 }
 
 /* ---------- strip slicing ---------- */
@@ -224,7 +245,7 @@ async function genFrame(a, f) {
   try {
     const refs = await refImages(frameRefs(a, i, true), a, i);
     const src = await apiImage(framePrompt(a, i, true), refs, '1024x1024');
-    f.src = await normalizeImage(src); save(); scheduleBuild(50);
+    f.src = await normalizeImage(src); f.baked = false; save(); scheduleBuild(50);
     toast(`${a.name}: кадр ${i + 1} готов`);
   } catch (e) { toast('Ошибка генерации: ' + e.message, 'err'); throw e; }
   finally { busy.delete(f.id); renderFrames(); }
@@ -256,7 +277,7 @@ async function applyStrip(a, src, n = a.frames.length) {
   while (a.frames.length < n) a.frames.push(newFrame());
   if (a.frames.length > n) a.frames = a.frames.slice(0, n);
   const { slices, auto } = await sliceStrip(src, n);
-  slices.forEach((s, i) => { a.frames[i].src = s; a.frames[i].dx = a.frames[i].dy = 0; a.frames[i].sc = 1; });
+  slices.forEach((s, i) => { a.frames[i].src = s; a.frames[i].baked = false; a.frames[i].dx = a.frames[i].dy = 0; a.frames[i].sc = 1; });
   save(); renderFrames(); scheduleBuild(50);
   toast(auto ? `Лента разрезана на ${n} кадров по промежуткам` : `Не нашёл ${n} отдельных фигур, разрезал ленту на равные части. Проверь кадры.`, auto ? '' : 'err');
 }
@@ -377,6 +398,10 @@ function paintProcessed() {
   });
   paintRef();
   $('#pal').innerHTML = palette ? palette.map(p => `<i style="background:rgb(${p})" title="rgb(${p})"></i>`).join('') : '<span class="muted" style="font-size:12px">выключена</span>';
+  // the checks before sending: what is wrong in red, on top; the badge on «→ В игру» counts it
+  const bad = artReport.filter(c => c.bad);
+  $('#artChecks').innerHTML = artReport.map(c => `<div class="${c.bad ? 'warn' : 'note'}">${c.bad ? '✗' : '✓'} ${esc(c.msg)}</div>`).join('');
+  $$('[data-act="chars-game"]').forEach(b => { b.querySelector('.badge')?.remove(); if (bad.length) b.insertAdjacentHTML('beforeend', `<span class="badge" title="${esc(bad.map(c => c.msg).join('\n'))}">${bad.length}</span>`); });
   $('#warns').innerHTML = warnings.slice(0, 6).map(w => w.startsWith('ℹ') ? `<div class="note">${esc(w)}</div>`
     : w.startsWith('FIX') ? `<div class="warn">⚠ ${esc(w.slice(3))}<br><button class="sm primary" data-act="fix-gridfit" style="margin-top:4px">Подогнать под рост ${esc(P.settings.contentH)} px</button></div>`
     : `<div class="warn">⚠ ${esc(w)}</div>`).join('');
@@ -483,7 +508,7 @@ async function assignFiles(files, target) {
   for (const file of files) {
     if (i >= a.frames.length) a.frames.push(newFrame());
     const fr = a.frames[i++];
-    fr.src = await normalizeImage(await blobToDataURL(file)); fr.dx = fr.dy = 0; fr.sc = 1;
+    fr.src = await normalizeImage(await blobToDataURL(file)); fr.baked = false; fr.dx = fr.dy = 0; fr.sc = 1;
   }
   const nextEmpty = a.frames.slice(i - 1).find(x => !x.src) || a.frames[Math.min(i, a.frames.length - 1)];
   save(); renderTabs(); renderFrames(); scheduleBuild(50);
@@ -598,7 +623,7 @@ document.addEventListener('click', async e => {
       download(await zip.generateAsync({ type: 'blob' }), `${name}_frames.zip`); toast(`Скачано кадров: ${fr.length}`); break;
     }
     case 'f-up': { const fs = await pickFiles('image/*', true); await assignFiles(fs, { type: 'frame', id: fid }); break; }
-    case 'f-clear': F.src = null; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
+    case 'f-clear': F.src = null; F.baked = false; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
     case 'f-off': F.off = !F.off; save(); renderFrames(); break;
     case 'f-del':
       if (a.frames.length <= 1) return;
@@ -701,6 +726,7 @@ document.addEventListener('paste', e => {
   if (!files.length) return;
   e.preventDefault();
   if (mode === 'bg') { bgAddFiles(files).catch(err => toast(err.message, 'err')); return; }
+  if (mode === 'rig') { blobToDataURL(files[0]).then(rigLoadSheet).catch(err => toast(err.message, 'err')); return; }
   if (mode !== 'chars') return;
   assignFiles(files, selected).catch(err => toast(err.message, 'err'));
 });
