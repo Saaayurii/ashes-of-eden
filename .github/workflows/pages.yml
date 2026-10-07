@@ -82,6 +82,18 @@ jobs:
           sudo rm -f build/web/.gdignore
           ls build/web
 
+      # The art studio (tools/studio/README.md) is served beside the game at
+      # /studio/. Its data is built from this commit, and the pictures and
+      # sounds it shows are read from the same commit on raw.githubusercontent
+      # (they are not copied: Pages would carry the whole assets folder twice).
+      - name: Add the art studio
+        run: |
+          set -eux
+          python3 -m pip install --quiet pillow
+          python3 tools/studio/build_data.py --asset-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/"
+          sudo mkdir -p build/web/studio
+          sudo cp -r tools/studio/index.html tools/studio/lib.js tools/studio/repo.js tools/studio/refs tools/studio/import build/web/studio/
+
       # The browser needs to know what a .pck and a .wasm are; Pages gets this
       # right for .wasm and serves .pck as octet-stream, which is what we want.
       - name: Upload

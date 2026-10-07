@@ -1,0 +1,88 @@
+"""Tests for the studio's Python half: the data it reads about the game, and
+the guard on what the local server may write.
+
+    python3 -m unittest discover -s tools/studio/tests
+"""
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+STUDIO = Path(__file__).resolve().parents[1]
+ROOT = STUDIO.parents[1]
+sys.path.insert(0, str(STUDIO))
+
+import build_data  # noqa: E402
+import serve  # noqa: E402
+
+
+class SpriteFrames(unittest.TestCase):
+    def test_hero_frames_parse_with_cells_and_durations(self):
+        text = (ROOT / "assets/sprites/elian_frames.tres").read_text(encoding="utf-8")
+        anims = {name: (fps, loop, frames) for name, fps, loop, frames in build_data.parse_sprite_frames(text)}
+        for needed in ("idle", "run", "attack", "death"):  # player.gd relies on them
+            self.assertIn(needed, anims)
+        fps, loop, frames = anims["idle"]
+        self.assertTrue(loop)
+        self.assertTrue(all(f[1][2:] == (128, 64) for f in frames))
+        self.assertTrue(all(f[2] > 0 for f in frames))
+
+    def test_hero_project_knows_its_generator(self):
+        hero = build_data.hero(ROOT)
+        self.assertEqual(hero["origin"]["generator"], build_data.HERO_GENERATOR)
+        self.assertEqual(hero["settings"]["cellW"], 128)
+        self.assertTrue(all(a["file"].startswith("res://assets/sprites/") for a in hero["animations"]))
+
+
+class Rooms(unittest.TestCase):
+    def test_graveyard_layers(self):
+        room = build_data.room_project(ROOT, ROOT / "scenes/rooms/graveyard.tscn")
+        by_name = {l["name"]: l for l in room["layers"]}
+        self.assertEqual(by_name["Parallax"]["scroll"], [0.1, 0.1])
+        self.assertIn("DecorFront", by_name)
+        self.assertEqual(room["origin"]["generator"], build_data.ROOM_GENERATOR)
+        for res in room["images"]:
+            self.assertTrue((ROOT / res.removeprefix("res://")).exists(), res)
+
+    def test_take_base(self):
+        self.assertEqual(build_data.take_base("hit_2"), "hit")
+        self.assertEqual(build_data.take_base("hit_crit"), "hit_crit")
+        self.assertEqual(build_data.take_base("block_11"), "block")
+
+
+class Build(unittest.TestCase):
+    def test_everything_is_written_and_consistent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            counts = build_data.build(ROOT, out, "https://example/")
+            meta = json.loads((out / "meta.json").read_text(encoding="utf-8"))
+            self.assertEqual(meta["assetBase"], "https://example/")
+            self.assertIn("assets/sprites/elian_frames.tres", meta["generated"])
+            self.assertIn("assets/audio/sfx/bell.wav", meta["generated"])
+            self.assertEqual(counts["cutscenes"], len(list((ROOT / "data/cutscenes").glob("*.json"))))
+            for listing in ("list.json", "rooms_list.json"):
+                for rel in json.loads((out / listing).read_text(encoding="utf-8")):
+                    self.assertTrue((out / rel).exists(), rel)
+            story = json.loads((out / "cutscenes.json").read_text(encoding="utf-8"))
+            self.assertIn("knight_arrival", story["played_in"])
+            self.assertIn("village_night", story["room_order"])
+            audio = json.loads((out / "audio.json").read_text(encoding="utf-8"))
+            self.assertTrue(all(not t["url"].startswith(("http", "/")) for e in audio for t in e["takes"]))
+
+
+class ServeGuard(unittest.TestCase):
+    def test_allowed(self):
+        for ok in ("assets/sprites/archer_idle.png", "data/cutscenes/x.json", "localization/strings.csv",
+                   "tools/studio/projects/chars/archer.json"):
+            self.assertEqual(serve.safe_path(ok), (ROOT / ok).resolve())
+
+    def test_refused(self):
+        for bad in ("scripts/player/player.gd", "../outside.txt", "assets/../scripts/x.gd",
+                    "project.godot", "tools/studio/serve.py", "/etc/passwd"):
+            with self.assertRaises(ValueError, msg=bad):
+                serve.safe_path(bad)
+
+
+if __name__ == "__main__":
+    unittest.main()
