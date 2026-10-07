@@ -69,6 +69,26 @@ studio posts the strips of each enemy slot (`enemySlotFor`, `liveMessage` in
 base in `Data.enemies` as `studio_live` and swaps the yard's foe. Seconds, no
 pull request; the page keeps nothing. `studio_live_test.gd` covers the game side.
 
+**Rigs bake into frames.** «Риг» (`js/rig.js`, maths in `js/rig-core.js`,
+Node-tested in `tests/rig.test.js`) is ref2game's cut-out rig
+(`.claude/skills/ref2game/references/animation.md`, `templates/live/lib.js`
+`twoBone`, `scripts/partrig.py`) as a frame generator. A part sheet (body
+without limbs, one leg, one arm, the weapon; magenta or transparent) is keyed
+and cut into pieces; roles are guessed by shape and can be fixed by hand.
+Joints are measured on the drawings (partrig's rows) and dragged into place.
+Each limb is cut into thigh/shin/foot or upper/fore arm; the far side is the
+same drawing, darker, drawn behind the body. Poses are per frame: drag a foot
+or a hand and two-bone IK sets the joint between, drag the hips and the
+planted feet stay. Keys blend smoothly. «🚶 Шаг» generates a walk in place —
+feet planted and sliding back at body speed, hips riding the stance leg — and
+«🫁 Дыхание» generates a breath. The measured checks run on the joint trace
+before baking: foot slide, ground, stride, lift and pops. «Запечь» renders
+every frame at 8× the game's size, shrinks it by the dominant colour of each
+cell to `contentH`, and writes the frames into the animation as `baked`.
+The frame pipeline takes those as they are (no grid search, kept in place in
+the cell) and the sandbox shows them at once. A walk's fps is set from the
+base enemy's speed, so the feet keep their grip in the game.
+
 **A character can become an enemy.** «⚔ Сделать врагом» writes
 `data/enemies/<id>.json` that `extends` an enemy the game has (its fight, its
 sounds), with the strips she drew, name, lore and the `tip` the validator wants,
@@ -133,15 +153,19 @@ node studio.github.e2e.cjs   # (same folder) send → PR → owner's review → 
    ещё до вливания (сразу в комнату катсцены или на тренировку с новым врагом).
    Там же замечания владельца: ответить, поправить — «→ В игру» допишет
    исправления в ту же отправку.
-9. **🎮 Песочница** — игра рядом с кадрами: твой персонаж на тренировочном
+9. **Риг** — лист частей (тело без рук и ног, нога, рука, оружие) → тяни
+   розовые точки: стопы, кисти, таз, голова. «🚶 Шаг» делает ходьбу, ноги
+   стоят на земле; «Запечь» — кадры 44 px в выбранную анимацию. Красное в
+   «Проверках» — поправь до запекания.
+10. **🎮 Песочница** — игра рядом с кадрами: твой персонаж на тренировочном
    дворе, дерётся как выбранный враг и обновляется сам через пару секунд после
    правки. Кликни по игре, чтобы управлять. Ничего не отправляет.
-10. **⚔ Сделать врагом** — персонаж становится врагом игры: выбираешь, на кого
+11. **⚔ Сделать врагом** — персонаж становится врагом игры: выбираешь, на кого
    он похож по бою, имя, описание и подсказку «как драться».
-11. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
+12. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
     анимацию. Звуки: обрезка — тяни ручки на волне; Cmd/Ctrl+Z работает везде.
-12. В мастере врага: **Где появляется** — выбери комнату и кликни по полу на
+13. В мастере врага: **Где появляется** — выбери комнату и кликни по полу на
     карте (зелёное — пол, красное — кто уже стоит). **Голос** — свои крики
     файлом или с микрофона. Катсцена: **🏠 В комнату** — при входе или после
     зачистки. Сцены комнат пересоберёт робот, ничего делать не нужно.
-13. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.
+14. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.

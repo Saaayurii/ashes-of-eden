@@ -19,7 +19,7 @@ function cropMask({ c, w, h, m }) {
 function compose(s, f, S) {
   const W = +S.cellW, H = +S.cellH, c = mk(W, H), t = mk(s.w, s.h);
   t.getContext('2d').putImageData(s.img, 0, 0);
-  const keep = S.anchor === 'none';
+  const keep = S.anchor === 'none' || f.baked;
   const x = (keep ? Math.round(s.ox || 0) : Math.round(W / 2 - anchorX(s, S.anchor))) + (f.dx | 0);
   const y = (keep ? Math.round(s.oy || 0) : H - (+S.bottomPad) - s.h) + (f.dy | 0);
   c.getContext('2d').drawImage(t, x, y);
@@ -54,7 +54,7 @@ async function doBuild() {
   let gp = 0;
   if (grid) {
     const cuts = [];
-    for (const a of P.animations) for (const f of a.frames) if (f.src && !f.off) { const c = await getCut(f.id, f.src); if (c) cuts.push(c); }
+    for (const a of P.animations) for (const f of a.frames) if (f.src && !f.off && !f.baked) { const c = await getCut(f.id, f.src); if (c) cuts.push(c); }
     if (P.reference) { const c = await getCut('ref', P.reference); if (c) cuts.push(c); }
     gp = +S.pixelSize > 0 ? +S.pixelSize : cuts.length ? globalGridP(cuts) : 0;
     if (gp) warn.push(`ℹ Размер «пикселя» в картинках: ${gp.toFixed(1)} px${+S.pixelSize > 0 ? ' (задан вручную)' : ' (найден автоматически)'}`);
@@ -68,6 +68,10 @@ async function doBuild() {
       if (cut.cov < 0.02 && S.bgMode !== 'alpha') warn.push(`${a.name} #${i + 1}: от персонажа почти ничего не осталось — фон похож на персонажа. Уменьши «Допуск фона» или попроси в ChatGPT пурпурный фон`);
       items.push({ f, cut, i });
     }
+    if (!items.length) continue;
+    // frames baked from the rig are already pixel art at the game's size, placed in the cell: taken as they are
+    for (const it of items.filter(it => it.f.baked)) { const c = copyCut(it.cut); c.ox = it.cut.ox; c.oy = it.cut.oy; smalls.push(c); out.push({ s: c, f: it.f, a, i: it.i }); }
+    items.splice(0, items.length, ...items.filter(it => !it.f.baked));
     if (!items.length) continue;
     const maxH = Math.max(...items.map(it => it.cut.h));
     if (grid && gp) {
@@ -228,7 +232,7 @@ async function genFrame(a, f) {
   busy.add(f.id); renderFrames();
   try {
     const src = await apiImage(framePrompt(a, i, true), refs, '1024x1024');
-    f.src = await normalizeImage(src); save(); scheduleBuild(50);
+    f.src = await normalizeImage(src); f.baked = false; save(); scheduleBuild(50);
     toast(`${a.name}: кадр ${i + 1} готов`);
   } catch (e) { toast('Ошибка генерации: ' + e.message, 'err'); throw e; }
   finally { busy.delete(f.id); renderFrames(); }
@@ -260,7 +264,7 @@ async function applyStrip(a, src, n = a.frames.length) {
   while (a.frames.length < n) a.frames.push(newFrame());
   if (a.frames.length > n) a.frames = a.frames.slice(0, n);
   const { slices, auto } = await sliceStrip(src, n);
-  slices.forEach((s, i) => { a.frames[i].src = s; a.frames[i].dx = a.frames[i].dy = 0; a.frames[i].sc = 1; });
+  slices.forEach((s, i) => { a.frames[i].src = s; a.frames[i].baked = false; a.frames[i].dx = a.frames[i].dy = 0; a.frames[i].sc = 1; });
   save(); renderFrames(); scheduleBuild(50);
   toast(auto ? `Лента разрезана на ${n} кадров по промежуткам` : `Не нашёл ${n} отдельных фигур, разрезал ленту на равные части. Проверь кадры.`, auto ? '' : 'err');
 }
@@ -486,7 +490,7 @@ async function assignFiles(files, target) {
   for (const file of files) {
     if (i >= a.frames.length) a.frames.push(newFrame());
     const fr = a.frames[i++];
-    fr.src = await normalizeImage(await blobToDataURL(file)); fr.dx = fr.dy = 0; fr.sc = 1;
+    fr.src = await normalizeImage(await blobToDataURL(file)); fr.baked = false; fr.dx = fr.dy = 0; fr.sc = 1;
   }
   const nextEmpty = a.frames.slice(i - 1).find(x => !x.src) || a.frames[Math.min(i, a.frames.length - 1)];
   save(); renderTabs(); renderFrames(); scheduleBuild(50);
@@ -600,7 +604,7 @@ document.addEventListener('click', async e => {
       download(await zip.generateAsync({ type: 'blob' }), `${name}_frames.zip`); toast(`Скачано кадров: ${fr.length}`); break;
     }
     case 'f-up': { const fs = await pickFiles('image/*', true); await assignFiles(fs, { type: 'frame', id: fid }); break; }
-    case 'f-clear': F.src = null; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
+    case 'f-clear': F.src = null; F.baked = false; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
     case 'f-off': F.off = !F.off; save(); renderFrames(); break;
     case 'f-del':
       if (a.frames.length <= 1) return;
@@ -703,6 +707,7 @@ document.addEventListener('paste', e => {
   if (!files.length) return;
   e.preventDefault();
   if (mode === 'bg') { bgAddFiles(files).catch(err => toast(err.message, 'err')); return; }
+  if (mode === 'rig') { blobToDataURL(files[0]).then(rigLoadSheet).catch(err => toast(err.message, 'err')); return; }
   if (mode !== 'chars') return;
   assignFiles(files, selected).catch(err => toast(err.message, 'err'));
 });
