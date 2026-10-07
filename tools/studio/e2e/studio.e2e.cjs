@@ -183,6 +183,20 @@ async function step(name, fn) {
       assert.ok(r.msgs.some(m => /idle.*прыгает/.test(m)), r.msgs.join(' | '));
     });
 
+    await step('a second press of «→ В игру» while the first send runs is not a second send', async () => {
+      const r = await page.evaluate(async () => {
+        let builds = 0;
+        const slow = async () => { builds++; await new Promise(r => setTimeout(r, 600)); return { files: {}, title: 'e2e twice' }; };
+        const first = sendToGame(slow), second = sendToGame(slow);
+        await Promise.all([first, second]);
+        const toasts = [...document.querySelectorAll('#toasts *')].map(t => t.textContent).join(' | ');
+        const d = document.querySelector('#dlg'); d.close(); d.replaceChildren();
+        return { builds, toasts };
+      });
+      assert.equal(r.builds, 1, 'built and sent once');
+      assert.match(r.toasts, /Уже отправляю/);
+    });
+
     await step('undo and redo', async () => {
       const seq = await page.evaluate(() => {
         const f = () => P.animations.find(a => a.name === 'idle').frames[1];

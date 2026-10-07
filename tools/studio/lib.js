@@ -733,5 +733,20 @@ function mergeOverrides(text, entries) {
   return JSON.stringify(sorted, null, 2) + '\n';
 }
 
-Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+// ---- one send, one pull request ----
+// A fingerprint of what a send writes (the studio project itself left out: it carries
+// timestamps), so the same work sent twice is found instead of opening a second pull request.
+// entries: [[path, Uint8Array]]
+async function filesFingerprint(entries) {
+  const enc = new TextEncoder(), parts = [];
+  for (const [path, bytes] of entries.filter(([p]) => !p.startsWith('tools/studio/projects/')).sort((a, b) => a[0] < b[0] ? -1 : 1)) {
+    parts.push(enc.encode(path + '\n'), new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes)));
+  }
+  const all = new Uint8Array(parts.reduce((n, p) => n + p.length, 0)); let o = 0;
+  for (const p of parts) { all.set(p, o); o += p.length; }
+  return [...new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', all))].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
+
+Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);
