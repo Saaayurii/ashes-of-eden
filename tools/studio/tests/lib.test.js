@@ -374,3 +374,36 @@ test('the fringe is the source\'s own background colour: a purple ghost on a tra
   const tint = figure(55, 0, 44, put => put(28, 30, [120, 20, 110])); tint.key = [255, 0, 255];
   assert.ok(L.artChecks([{ name: 'idle', frames: [tint] }], { contentH: 44 }).find(x => x.id === 'halo'), 'the key blended into a dark outline');
 });
+
+// --- editing what a generator draws: only what she changed, written beside it ---
+
+test('frameEdits keeps untouched frames out and finds a replaced frame and a touch-up', () => {
+  const orig = [{ id: 'cultist_idle', frames: [0, 1, 2].map(i => ({ id: `cultist_idle_${i}`, src: `s${i}`, dx: 0, dy: 0, sc: 1 })),
+    regions: [0, 1, 2].map(i => ['res://assets/sprites/cultist_v2_idle.png', i * 32, 0, 32, 40]) }];
+  const mine = [{ id: 'cultist_idle', name: 'idle', frames: [
+    { id: 'cultist_idle_0', src: 's0', dx: 0, dy: 0, sc: 1 },
+    { id: 'cultist_idle_1', src: 's1', dx: 0, dy: 0, sc: 1, patch: { '3,4': [1, 2, 3, 255], '40,4': [0, 0, 0, 0] } },
+    { id: 'cultist_idle_2', src: 'new', dx: 0, dy: 0, sc: 1 }] }];
+  const e = L.frameEdits(mine, orig);
+  assert.equal(e.length, 2, 'the untouched frame is not an edit');
+  assert.deepEqual(e[0], { res: 'res://assets/sprites/cultist_v2_idle.png', x: 32, y: 0, w: 32, h: 40, frame: 'cultist_idle_1', whole: false, pixels: [[3, 4]] }, 'a touch-up is its pixels, inside the cell');
+  assert.equal(e[1].whole, true); assert.equal(e[1].x, 64);
+  mine[0].frames.push({ id: 'x', src: 'y' });
+  assert.throws(() => L.frameEdits(mine, orig), /не удлинять/);
+  assert.throws(() => L.frameEdits([{ id: 'cultist_fly', name: 'fly', frames: [] }], orig), /новым персонажем/);
+});
+
+test('an override is her picture, its mask and a manifest line the Python side reads', () => {
+  assert.deepEqual(L.overrideFiles('assets/levels/graveyard_cross_wide.png'),
+    { edit: 'tools/studio/overrides/assets/levels/graveyard_cross_wide.png', mask: 'tools/studio/overrides/assets/levels/graveyard_cross_wide.mask.png' });
+  const a = new Uint8ClampedArray([0, 0, 0, 255, 10, 10, 10, 255, 5, 5, 5, 0]), b = new Uint8ClampedArray([0, 0, 0, 255, 30, 10, 10, 255, 9, 5, 5, 0]);
+  assert.deepEqual([...L.diffMask(a, b, 3, 1)], [0, 1, 0]);
+  const was = '{\n  "assets/props/altar_book.png": {\n    "size": [\n      128,\n      32\n    ],\n    "base": "abc",\n    "stale": true,\n    "by": "x",\n    "at": "2026-10-01"\n  }\n}\n';
+  const out = JSON.parse(L.mergeOverrides(was, { 'assets/props/altar_book.png': { size: [128, 32], by: 'her', at: '2026-10-07' }, 'assets/levels/a.png': { size: [1, 1], by: 'her', at: '2026-10-07' } }));
+  assert.deepEqual(Object.keys(out), ['assets/levels/a.png', 'assets/props/altar_book.png']);
+  assert.equal(out['assets/props/altar_book.png'].stale, undefined, 'drawn again: no longer stale');
+  assert.equal(out['assets/props/altar_book.png'].base, null, 'and the generator records the picture she drew on now');
+  const kept = JSON.parse(L.mergeOverrides(was.replace('"stale": true,\n    ', ''), { 'assets/props/altar_book.png': { size: [128, 32], by: 'her', at: '2026-10-08' } }));
+  assert.equal(kept['assets/props/altar_book.png'].base, 'abc', 'not stale: the base she first drew on is kept');
+  assert.equal(out['assets/levels/a.png'].base, null, 'the generator records a new one');
+});

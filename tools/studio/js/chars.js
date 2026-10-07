@@ -125,6 +125,12 @@ async function doBuild() {
   processed = next;
   if (grew) renderFrames();
   procRef = refS ? compose(refS, { dx: 0, dy: 0 }, S) : null;
+  // the generator drew something else under her edit since she made it (tools/art/studio_overrides.py)
+  if (P.origin?.kind === 'game') {
+    const mine = new Set(P.animations.flatMap(a => (a.regions || []).map(r => String(r[0]).replace('res://', ''))));
+    const stale = Object.entries(META.overrides || {}).filter(([p, e]) => e.stale && mine.has(p)).map(([p]) => p.split('/').pop());
+    if (stale.length) warn.unshift(`База изменилась — проверь: ${stale.join(', ')}. Генератор перерисовал картинку под твоей правкой; посмотри кадры и отправь ещё раз.`);
+  }
   warnings = warn;
   const keyOf = new Map(); for (const it of out) keyOf.set(it.f.id, cutCache.get(it.f.id + '|' + fingerprint(it.f.src) + '|' + S.tolerance + '|' + S.bgMode)?.key || null);
   artReport = artChecks(P.animations.map(a => ({ name: a.name, loop: a.loop,
@@ -284,7 +290,7 @@ async function applyStrip(a, src, n = a.frames.length) {
 
 /* ---------- export ---------- */
 async function exportGodot() {
-  const r = await charFiles().catch(e => { toast(e.message, 'err'); return null; }); if (!r) return;
+  const r = await charFiles(true).catch(e => { toast(e.message, 'err'); return null; }); if (!r) return;
   const zip = new JSZip(), dir = zip.folder(r.name);
   for (const [path, b] of Object.entries(r.files)) dir.file(path.split('/').pop(), b);
   for (const [an, sh] of Object.entries(r.sheets)) for (const [i, f] of sh.frames.entries()) dir.file(`frames/${an}/${an}_${String(i).padStart(2, '0')}.png`, await canvasBlob(processed.get(f.id)));
@@ -369,7 +375,8 @@ function renderFrames() {
       <div class="row">
         <button class="sm" data-act="f-gen">⚡ API</button>
         <button class="sm" data-act="f-copy">📋 Промпт</button>
-        <button class="sm" data-act="f-up">⬆ Файл</button>
+        <button class="sm" data-act="f-paste" title="Вставить картинку из буфера (на iPad — вместо Cmd+V)">📋 Вставить</button>
+        <button class="sm" data-act="f-up" title="Файл или фото (на iPad — «Фото» или «Файлы»)">⬆ Файл</button>
         ${processed.has(f.id) ? '<button class="sm" data-act="f-dl" title="Скачать готовый кадр PNG (Shift — исходную картинку)">⬇</button>' : ''}
         ${f.src ? '<button class="sm ghost danger" data-act="f-clear" title="Убрать картинку">⌫</button>' : ''}
       </div>
@@ -566,6 +573,7 @@ document.addEventListener('click', async e => {
     }
     case 'export-godot': exportGodot().catch(err => toast('Ошибка экспорта: ' + err.message, 'err')); break;
     case 'ref-upload': { const fs = await pickFiles('image/*', false); await assignFiles(fs, { type: 'ref' }); break; }
+    case 'ref-paste': { const src = await clipboardImage(); if (!src) { toast('В буфере нет картинки', 'err'); break; } P.reference = await normalizeImage(src); save(); renderRef(); scheduleBuild(50); toast('Референс обновлён'); break; }
     case 'ref-clear': if (P.reference && confirm('Убрать референс?')) { P.reference = null; save(); renderRef(); scheduleBuild(0); } break;
     case 'ref-copy': {
       if (!P.reference) return toast('Референса нет', 'err');
@@ -623,6 +631,9 @@ document.addEventListener('click', async e => {
       download(await zip.generateAsync({ type: 'blob' }), `${name}_frames.zip`); toast(`Скачано кадров: ${fr.length}`); break;
     }
     case 'f-up': { const fs = await pickFiles('image/*', true); await assignFiles(fs, { type: 'frame', id: fid }); break; }
+    // a tablet has no Cmd+V for a picture: the clipboard read behind a button (Safari asks once with its «Вставить» bubble)
+    case 'f-paste': { const src = await clipboardImage(); if (!src) { toast('В буфере нет картинки: в ChatGPT нажми на картинку → «Скопировать», или «⬆ Файл» → Фото', 'err'); break; }
+      await assignFiles([new File([dataURLtoBlob(src)], 'clipboard.png', { type: 'image/png' })], { type: 'frame', id: fid }); break; }
     case 'f-clear': F.src = null; F.baked = false; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
     case 'f-off': F.off = !F.off; save(); renderFrames(); break;
     case 'f-del':

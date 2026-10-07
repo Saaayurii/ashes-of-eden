@@ -2,9 +2,11 @@ name: Studio robot
 
 # A pull request from the art studio (tools/studio) that places an enemy in a
 # room or ties a cutscene to one changes tools/rooms/studio_rooms.json — the
-# room generator's input. The scenes are the generator's output and CI fails
-# when they do not match it, so the robot regenerates them here and pushes
-# the result onto the same branch. A push made with GITHUB_TOKEN starts no
+# room generator's input; one that edits a generated picture adds an override
+# (tools/studio/overrides), which the picture's generator lays over its own.
+# The scenes and pictures are the generators' output and CI fails when they
+# do not match it, so the robot regenerates them here and pushes the result
+# onto the same branch. A push made with GITHUB_TOKEN starts no
 # workflow by itself, so it then starts CI on the branch and the Pages build
 # (which carries the pull request's playable preview) by hand.
 
@@ -12,6 +14,8 @@ on:
   pull_request:
     paths:
       - "tools/rooms/studio_rooms.json"
+      # her edits of pictures a generator owns (tools/art/studio_overrides.py)
+      - "tools/studio/overrides/**"
 
 permissions:
   contents: write
@@ -42,20 +46,30 @@ jobs:
       - name: Regenerate the rooms
         run: python3 tools/rooms/generate_rooms.py
 
+      # Each generator that owns one of her edits lays it over its own picture,
+      # records the picture she drew on (or marks the edit stale when the
+      # generator now draws something else under it), and a picture in a
+      # generator's folder that nobody generates takes it as it is. An edit
+      # that no longer fits its picture fails here, naming it.
+      - name: Lay her edits of generated pictures
+        if: hashFiles('tools/studio/overrides/overrides.json') != ''
+        run: python3 tools/art/studio_overrides.py regenerate
+
       - name: Push the regenerated scenes and start the checks
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ github.head_ref }}
         run: |
           set -eu
-          if git diff --quiet -- scenes/rooms assets/levels; then
-            echo "The scenes already match the table." >> "$GITHUB_STEP_SUMMARY"
+          OWNED="scenes/rooms assets tools/studio/overrides data/enemy_archetypes/tree.json"
+          if git diff --quiet -- $OWNED; then
+            echo "The generated files already match the tables and her edits." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git config user.name "studio-robot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A scenes/rooms assets/levels
-          git commit -m "Studio robot: regenerate rooms from tools/rooms/studio_rooms.json"
+          git add -A $OWNED
+          git commit -m "Studio robot: regenerate what her edits and tools/rooms/studio_rooms.json change"
           git push origin "HEAD:$BRANCH"
           git diff --stat HEAD~1 >> "$GITHUB_STEP_SUMMARY"
           gh workflow run ci.yml --ref "$BRANCH"

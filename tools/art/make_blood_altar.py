@@ -15,6 +15,7 @@ Writes assets/props/blood_altar.png. Deterministic (no randomness at all).
 import os
 
 from PIL import Image
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "assets", "props", "blood_altar.png")
@@ -84,7 +85,7 @@ def main():
     drips(img, W * 2)
     rect(img, W * 3 + 9, 18, W * 3 + 30, 18, STAIN)  # spent: a stain on the rim
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    img.save(OUT)
+    patched(OUT, img).save(OUT)
     print("wrote", os.path.relpath(OUT, ROOT))
 
 

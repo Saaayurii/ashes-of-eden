@@ -23,6 +23,7 @@ import random
 import sys
 
 from PIL import Image
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "assets", "props")
@@ -255,13 +256,13 @@ def build(place, spec):
     # picture compresses differently between Pillow or zlib versions, so the
     # file changes on a machine that only regenerated it — which is how CI
     # caught this: identical pixels, different bytes, a diff nobody made.
-    strip.save(path, "PNG", optimize=False, compress_level=6)
+    patched(path, strip).save(path, "PNG", optimize=False, compress_level=6)
     print("%s  %dx%d x%d  palette %s" % (os.path.relpath(path, ROOT), w, h, len(frames), pal["base"]))
     ring = NICHE_RING.get(place, 0)
     if ring:
         niche = draw_niche(w, h, ring, pal, random.Random(seed + 9))
         niche_path = os.path.join(OUT, "secret_niche_%s.png" % place)
-        niche.save(niche_path, "PNG", optimize=False, compress_level=6)
+        patched(niche_path, niche).save(niche_path, "PNG", optimize=False, compress_level=6)
         print("%s  %dx%d" % (os.path.relpath(niche_path, ROOT), niche.width, niche.height))
 
 

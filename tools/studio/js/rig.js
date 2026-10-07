@@ -282,13 +282,15 @@ function renderRigTimeline() {
 }
 function renderRig() {
   if (!P) return;
+  // the header wraps onto more rows on a narrow screen (or with other fonts): the stage fits under it
+  document.documentElement.style.setProperty('--hdr', ($('header.top')?.offsetHeight || 50) + 'px');
   const sel = $('#rigAnim');
   if (sel) sel.innerHTML = P.animations.map(a => `<option value="${a.id}" ${a.id === P.current ? 'selected' : ''}>${esc(a.name)} (${a.frames.length})</option>`).join('');
   rigUI.frame = Math.min(rigUI.frame, rigFrames() - 1);
   renderRigSide(); renderRigTimeline(); rigDraw();
 }
 function rigLoop() { if (mode === 'rig' && rigUI.playing) rigDraw(); requestAnimationFrame(rigLoop); }
-window.addEventListener('resize', () => { if (mode === 'rig') rigDraw(); });
+window.addEventListener('resize', () => { if (mode === 'rig') { document.documentElement.style.setProperty('--hdr', ($('header.top')?.offsetHeight || 50) + 'px'); rigDraw(); } });
 requestAnimationFrame(rigLoop);
 
 document.addEventListener('click', async e => {
@@ -321,6 +323,8 @@ document.addEventListener('input', e => {
 });
 // another character: its own rig, its own pieces
 document.addEventListener('change', e => { if (e.target.id === 'projSel') { rigUI.pieces = null; rigUI.frame = 0; rigUI.imgs.clear(); if (mode === 'rig') renderRig(); } });
+// the pencil drags the joints; once a pencil was seen, a finger (a palm) does nothing here
+palmGuard($('#rigCanvas'), { fingers: 'ignore-after-pen' });
 document.addEventListener('pointerdown', e => { if (e.target.id === 'rigCanvas') rigDown(e); });
 document.addEventListener('pointermove', e => { if (rigUI.drag) rigMove(e); });
 document.addEventListener('pointerup', rigUp);

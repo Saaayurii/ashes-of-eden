@@ -15,6 +15,7 @@ import math
 import os
 
 from PIL import Image
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "assets", "props", "altar_book.png")
@@ -114,7 +115,7 @@ def main():
     lifting(img, W * 2, 62)
     open_book(img, W * 3)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    img.save(OUT)
+    patched(OUT, img).save(OUT)
     print("wrote", os.path.relpath(OUT, ROOT))
 
 

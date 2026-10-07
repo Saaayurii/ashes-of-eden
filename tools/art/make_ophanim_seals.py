@@ -16,6 +16,7 @@ import math
 import os
 
 from PIL import Image, ImageDraw, ImageFilter
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 OUT = os.path.join(ROOT, "assets", "sprites")
@@ -108,7 +109,7 @@ def main():
                   spread=i / 4, fade=1.0 - i * 0.2) for i in range(5)]
     for name, frames in (("idle", idle), ("hurt", hurt), ("death", death)):
         path = os.path.join(OUT, "ophanim_seal_%s.png" % name)
-        strip(frames).save(path, "PNG", optimize=False, compress_level=6)
+        patched(path, strip(frames)).save(path, "PNG", optimize=False, compress_level=6)
         print(os.path.relpath(path, ROOT), "%d frames" % len(frames))
 
 

@@ -19,6 +19,7 @@ import os
 
 import numpy as np
 from PIL import Image
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 W, H = 640, 360
@@ -349,13 +350,13 @@ RACK_PALETTE = {
 
 def main():
     path = os.path.join(ROOT, "assets", "backgrounds", "practice_yard.png")
-    backdrop().save(path, optimize=True)
+    patched(path, backdrop()).save(path, optimize=True)
     print(os.path.relpath(path, ROOT))
     folder = os.path.join(ROOT, "assets", "decor", "practice")
     os.makedirs(folder, exist_ok=True)
     for name, rows, palette in (("dummy", DUMMY, DUMMY_PALETTE), ("rack", RACK, RACK_PALETTE)):
         out = os.path.join(folder, name + ".png")
-        sprite(rows, palette).save(out, optimize=True)
+        patched(out, sprite(rows, palette)).save(out, optimize=True)
         print(os.path.relpath(out, ROOT))
     # the dummy as something to hit (data/enemies/training_dummy.json): a
     # 32x40 cell, its foot on the bottom row, rocking on its post when struck
@@ -369,7 +370,7 @@ def main():
             turned = pad.rotate(angle, resample=Image.Resampling.NEAREST, center=(32, 79))
             strip.alpha_composite(turned.crop((16, 40, 48, 80)), (32 * i, 0))
         out = os.path.join(ROOT, "assets", "sprites", "training_dummy_%s.png" % name)
-        strip.save(out, optimize=True)
+        patched(out, strip).save(out, optimize=True)
         print(os.path.relpath(out, ROOT))
 
 

@@ -35,6 +35,7 @@ import io
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 from PIL import Image
@@ -79,13 +80,15 @@ def _frame(fid, img):
     return {"id": fid, "pose": "", "src": data_url(img), "dx": 0, "dy": 0, "sc": 1, "off": False, "dur": 1}
 
 
-def _anim(pid, name, fps, loop, imgs, res=None, durations=None):
+def _anim(pid, name, fps, loop, imgs, res=None, durations=None, regions=None):
+    """regions: where each frame lies in the game's files, [res, x, y, w, h] — the studio
+    writes an edit of a generated picture back there, as an override (tools/art/studio_overrides.py)."""
     aid = f"{pid}_{name}"
     frames = [_frame(f"{aid}_{i}", im) for i, im in enumerate(imgs)]
     for f, d in zip(frames, durations or []):
         f["dur"] = d
     return {"id": aid, "name": name, "fps": fps, "loop": loop, "scale": 1, "notes": "",
-            "frames": frames, "file": res, "_imgs": imgs}
+            "frames": frames, "file": res, "regions": regions or [], "_imgs": imgs}
 
 
 def _character(pid, cell, animations, description, origin):
@@ -142,7 +145,8 @@ def hero(root: Path):
             imgs.append(sheets[res].crop((x, y, x + w, y + h)))
             cell = cell or (w, h)
         if imgs:
-            anims.append(_anim("elian", name, fps, loop, imgs, frames[0][0], [f[2] for f in frames]))
+            anims.append(_anim("elian", name, fps, loop, imgs, frames[0][0], [f[2] for f in frames],
+                               [[res, x, y, w, h] for res, (x, y, w, h), _ in frames]))
     c = _character("elian", cell, anims, "hero, imported from the game",
                    {"kind": "game", "generator": HERO_GENERATOR, "tres": tres})
     c["rev"] = rev(root, tres, *sorted(sheets))
@@ -162,7 +166,8 @@ def bestiary(root: Path):
             if path.exists():
                 imgs = slice_strip(path, cw, ch)
                 if imgs:
-                    anims.append(_anim(e["id"], name, float(sp.get("fps", 8)), name in ("idle", "walk"), imgs, res))
+                    anims.append(_anim(e["id"], name, float(sp.get("fps", 8)), name in ("idle", "walk"), imgs, res,
+                                       regions=[[res, i * cw, 0, cw, ch] for i in range(len(imgs))]))
         if anims:
             c = _character(e["id"], (cw, ch), anims, f"{e.get('family', 'enemy')} enemy, imported from the game",
                            {"kind": "game", "generator": BESTIARY_GENERATOR})
@@ -427,6 +432,22 @@ def generated(root: Path):
     return sorted(set(files) - owned), owners
 
 
+def overridable(files, owners):
+    """The generated PNGs the studio may edit — as an override (tools/art/studio_overrides.py)
+    that their generator lays over its own picture, never the file itself."""
+    sys.path.insert(0, str(STUDIO.parents[0] / "art"))
+    from studio_overrides import OVERRIDABLE
+    roots = [p for g in owners if g["name"] in OVERRIDABLE for p in g["paths"]]
+    return [f for f in files if f.lower().endswith(".png")
+            and any(f == p or f.startswith(p.rstrip("/") + "/") for p in roots)]
+
+
+def overrides(root: Path):
+    """The studio's edits of generated pictures, as tools/art/studio_overrides.py keeps them."""
+    path = root / "tools/studio/overrides/overrides.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -458,7 +479,8 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     owner, name = REPO.split("/")
     write(out, "meta.json", {"repo": REPO, "branch": branch, "assetBase": asset_base, "sha": sha or head_sha(root),
                              "site": f"https://{owner.lower()}.github.io/{name}/",
-                             "generated": files, "generators": owners})
+                             "generated": files, "generators": owners,
+                             "overridable": overridable(files, owners), "overrides": overrides(root)})
     return {"chars": len(chars), "rooms": len(rooms), "cutscenes": len(st["cutscenes"])}
 
 

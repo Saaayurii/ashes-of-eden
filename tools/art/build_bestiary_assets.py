@@ -10,6 +10,7 @@ from pathlib import Path
 from statistics import median
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -223,7 +224,7 @@ def split_atlas(source: Path, names: list[str], columns: int, rows: int) -> None
         cell.thumbnail((192, 192), Image.Resampling.LANCZOS)
         canvas = Image.new("RGBA", (192, 192), (10, 8, 12, 255))
         canvas.alpha_composite(cell, ((192 - cell.width) // 2, (192 - cell.height) // 2))
-        canvas.save(PORTRAITS / f"{name}.png", optimize=True)
+        patched(PORTRAITS / f"{name}.png", canvas).save(PORTRAITS / f"{name}.png", optimize=True)
 
 
 def frames(path: Path, cell: tuple[int, int]) -> list[Image.Image]:
@@ -238,7 +239,7 @@ def save_strip(path: Path, sequence: list[Image.Image]) -> None:
     for frame in sequence:
         output.alpha_composite(frame, (x, 0))
         x += frame.width
-    output.save(path, optimize=True)
+    patched(path, output).save(path, optimize=True)
 
 
 def tint(frame: Image.Image, color: tuple[int, int, int], strength: float) -> Image.Image:
