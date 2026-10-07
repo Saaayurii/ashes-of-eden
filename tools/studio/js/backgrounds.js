@@ -430,6 +430,7 @@ function hitTest(px, py) {
   }
   return null;
 }
+palmGuard($('#bgCanvas'), { fingers: 'use' });   // a finger pans the scene; a palm under the pencil does nothing
 $('#bgCanvas').addEventListener('pointerdown', e => {
   if (!BG) return;
   const [px, py] = canvasPoint(e), it = e.altKey ? null : hitTest(px, py);

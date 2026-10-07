@@ -2,9 +2,9 @@
 'use strict';
 
 /* ---------- pixel touch-ups (frame.patch, applied after processing; lib.js applyPatch) ---------- */
-const paint = { fid: null, tool: 'pen', color: [0, 0, 0, 255], zoom: 8, down: false };
+const paint = { fid: null, tool: 'pen', color: [0, 0, 0, 255], zoom: 8, down: false, hover: null, view: { x: 0, y: 0, s: 1 } };
 const toHex8 = c => '#' + c.slice(0, 3).map(v => v.toString(16).padStart(2, '0')).join('');
-function openPaint(fid) { paint.fid = fid; $('#paintModal').hidden = false; requestAnimationFrame(() => { drawPaint(); renderPaintPal(); }); }
+function openPaint(fid) { paint.fid = fid; paint.view = { x: 0, y: 0, s: 1 }; applyPaintView(); $('#paintModal').hidden = false; requestAnimationFrame(() => { drawPaint(); renderPaintPal(); }); }
 function closePaint() { $('#paintModal').hidden = true; save(); renderFrames(); }
 function drawPaint() {
   const src = processed.get(paint.fid); if (!src || $('#paintModal').hidden) return;
@@ -20,7 +20,11 @@ function drawPaint() {
   x.fillStyle = 'rgba(255,255,255,.06)';
   for (let i = 1; i < W; i++) x.fillRect(i * k, 0, 1, H * k);
   for (let j = 1; j < H; j++) x.fillRect(0, j * k, W * k, 1);
+  // a hovering pencil: the pixel it would paint
+  if (paint.hover) { x.strokeStyle = paint.tool === 'eraser' ? '#ff6b6b' : '#ffd166'; x.lineWidth = 2; x.strokeRect(paint.hover[0] * k + 1, paint.hover[1] * k + 1, k - 2, k - 2); }
 }
+// Two fingers pinch and pan the canvas (js/touch.js); the pixels stay sharp (image-rendering: pixelated).
+function applyPaintView() { const v = paint.view, c = $('#paintCanvas'); c.style.transformOrigin = '0 0'; c.style.transform = v.s === 1 && !v.x && !v.y ? '' : `translate(${v.x}px, ${v.y}px) scale(${v.s})`; }
 function renderPaintPal() {
   const src = processed.get(paint.fid); if (!src) return;
   const d = src.getContext('2d').getImageData(0, 0, src.width, src.height).data, count = new Map();
@@ -33,7 +37,7 @@ function setPaintColor(c) { paint.color = [c[0], c[1], c[2], 255]; $('#paintColo
 function setTool(t) { paint.tool = t; $$('#paintModal [data-pt]').forEach(b => b.classList.toggle('on', b.dataset.pt === t)); }
 function paintAt(e) {
   const src = processed.get(paint.fid), { f } = findFrame(paint.fid); if (!src || !f) return;
-  const x = Math.floor(e.offsetX / paint.zoom), y = Math.floor(e.offsetY / paint.zoom);
+  const [lx, ly] = localPoint($('#paintCanvas'), e), x = Math.floor(lx / paint.zoom), y = Math.floor(ly / paint.zoom);
   if (x < 0 || y < 0 || x >= src.width || y >= src.height) return;
   const ctx = src.getContext('2d');
   if (paint.tool === 'picker' || e.altKey) { const p = ctx.getImageData(x, y, 1, 1).data; if (p[3]) setPaintColor(p); setTool('pen'); return; }
@@ -42,15 +46,27 @@ function paintAt(e) {
   else { f.patch[`${x},${y}`] = [...paint.color]; ctx.fillStyle = toHex8(paint.color); ctx.fillRect(x, y, 1, 1); }
   drawPaint();
 }
-$('#paintCanvas').addEventListener('pointerdown', e => { paint.down = true; e.currentTarget.setPointerCapture(e.pointerId); paintAt(e); });
-$('#paintCanvas').addEventListener('pointermove', e => { if (paint.down && paint.tool !== 'picker') paintAt(e); });
-$('#paintCanvas').addEventListener('pointerup', () => { if (paint.down) { paint.down = false; save(); } });
+inkSurface($('#paintCanvas'), {
+  draw(e, phase) {
+    if (phase === 'down') { paint.down = true; paintAt(e); }
+    else if (phase === 'move') { if (paint.down && paint.tool !== 'picker') paintAt(e); }
+    else if (paint.down) { paint.down = false; save(); }
+  },
+  hover(e) {
+    const c = $('#paintCanvas'), src = processed.get(paint.fid);
+    const at = e && src ? (([lx, ly]) => [Math.floor(lx / paint.zoom), Math.floor(ly / paint.zoom)])(localPoint(c, e)) : null;
+    if (String(at) !== String(paint.hover)) { paint.hover = at; drawPaint(); }
+  },
+  view: () => paint.view,
+  setView(v) { paint.view = v; applyPaintView(); },
+});
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-pt],[data-pc],[data-act="f-paint"],[data-act="paint-close"],[data-act="paint-clear"]'); if (!t) return;
+  const t = e.target.closest('[data-pt],[data-pc],[data-act="f-paint"],[data-act="paint-close"],[data-act="paint-clear"],[data-act="paint-fit"]'); if (!t) return;
   if (t.dataset.pt) setTool(t.dataset.pt);
   else if (t.dataset.pc) { const k = +t.dataset.pc; setPaintColor([k >> 16 & 255, k >> 8 & 255, k & 255]); }
   else if (t.dataset.act === 'f-paint') openPaint(t.closest('[data-fid]').dataset.fid);
   else if (t.dataset.act === 'paint-close') closePaint();
+  else if (t.dataset.act === 'paint-fit') { paint.view = { x: 0, y: 0, s: 1 }; applyPaintView(); }
   else if (t.dataset.act === 'paint-clear') { const { f } = findFrame(paint.fid); if (f && confirm('Стереть все ручные правки этого кадра?')) { f.patch = {}; save(); build().then(drawPaint); } }
 });
 document.addEventListener('input', e => { if (e.target.id === 'paintColor') { const h = e.target.value; setPaintColor([1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))); } if (e.target.id === 'paintOnion') drawPaint(); });
@@ -83,7 +99,7 @@ function undoRedo(redo) {
   const obj = unsnapshot(h.last, undoTable);
   // what is restored is the new baseline, so re-rendering does not count as a change
   const settle = o => { h.last = snapshot(o, undoTable); return o; };
-  if (mode === 'chars') { const i = projects.indexOf(P); P = settle(migrate(obj)); if (i >= 0) projects[i] = P; persist(); renderAll(); scheduleBuild(0); }
+  if (mode === 'chars') { const i = projects.indexOf(P); P = settle(migrate(obj)); if (i >= 0) projects[i] = P; persist(); renderAll(); build().then(() => { if (!$('#paintModal').hidden) drawPaint(); }); }
   else if (mode === 'bg') { const i = bgs.indexOf(BG); BG = settle(migrateBg(obj)); if (i >= 0) bgs[i] = BG; persistBg(); renderBgAll(); }
   else if (mode === 'snd') {
     settle(obj);

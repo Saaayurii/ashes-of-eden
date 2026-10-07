@@ -72,7 +72,7 @@ main{padding:12px 16px;min-width:0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;position:relative}
 .card.sel{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel)}
 .card.off{opacity:.45}
-.card .ch{display:flex;gap:4px;align-items:center}
+.card .ch{display:flex;gap:4px;align-items:center;flex-wrap:wrap;row-gap:2px}
 .card .imgs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
 .card .src{aspect-ratio:1;border-radius:6px;overflow:hidden;display:grid;place-items:center;font-size:11px;color:var(--muted);text-align:center;padding:4px}
 .card .src img{width:100%;height:100%;object-fit:contain}
@@ -179,6 +179,8 @@ dialog#dlg{background:var(--panel);color:var(--text);border:1px solid var(--line
 dialog#dlg::backdrop{background:#0009}
 #sandbox{position:fixed;right:12px;bottom:12px;z-index:50;width:min(640px,calc(100vw - 24px));height:min(420px,calc(100vh - 24px));min-width:320px;min-height:240px;resize:both;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 30px #000a}
 #sandbox[hidden]{display:none}
+.card{min-width:0}
+@media (pointer:coarse){button.sm{min-height:32px;min-width:32px}.modes button{min-height:36px}.fsbar button{min-height:40px;min-width:40px}input[type=range]{min-height:28px}}
 .badge{display:inline-block;min-width:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:#d33;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center}
 .artchecks .warn{color:#ff8a8a}
 #sandbox .sb-head{display:flex;gap:6px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -276,6 +278,7 @@ a{color:var(--sel)}
       <div class="imgs" id="refImgs"></div>
       <div class="row">
         <button class="sm" data-act="ref-upload">Загрузить референс</button>
+        <button class="sm" data-act="ref-paste" title="Вставить из буфера (на iPad — вместо Cmd+V)">📋 Вставить</button>
         <button class="sm ghost" data-act="ref-copy" title="Скопировать картинку, чтобы вставить в ChatGPT">Копировать</button>
         <button class="sm ghost danger" data-act="ref-clear">✕</button>
       </div>
@@ -532,10 +535,13 @@ a{color:var(--sel)}
     <label class="inline" style="margin:0"><input type="checkbox" id="paintOnion"> Калька</label>
     <span class="grow"></span>
     <span class="muted" style="font-size:12px">Правки ложатся поверх готового кадра; если потом сменить масштаб или выравнивание, они съедут.</span>
+    <button class="sm ghost" data-act="undo" title="Отменить (Cmd/Ctrl+Z)">↶</button>
+    <button class="sm ghost" data-act="redo" title="Вернуть (Cmd/Ctrl+Shift+Z)">↷</button>
+    <button class="sm ghost" data-act="paint-fit" title="Вернуть масштаб (после щипка двумя пальцами)">⤢</button>
     <button class="sm ghost danger" data-act="paint-clear">Стереть правки</button>
     <button class="sm primary" data-act="paint-close">Готово</button>
   </div>
-  <div class="fsstage" id="paintStage"><canvas id="paintCanvas" class="checker" style="cursor:crosshair"></canvas></div>
+  <div class="fsstage" id="paintStage" style="overflow:hidden"><canvas id="paintCanvas" class="checker" style="cursor:crosshair;touch-action:none;image-rendering:pixelated"></canvas></div>
   <div class="fsstrip" id="paintPal"></div>
 </div>
 <dialog id="dlg"></dialog>
@@ -544,6 +550,7 @@ a{color:var(--sel)}
 <script src="lib.js"></script>
 <script src="repo.js"></script>
 <script src="js/core.js"></script>
+<script src="js/touch.js"></script>
 <script src="js/chars.js"></script>
 <script src="js/backgrounds.js"></script>
 <script src="js/sounds.js"></script>

@@ -372,7 +372,8 @@ function renderFrames() {
       <div class="row">
         <button class="sm" data-act="f-gen">⚡ API</button>
         <button class="sm" data-act="f-copy">📋 Промпт</button>
-        <button class="sm" data-act="f-up">⬆ Файл</button>
+        <button class="sm" data-act="f-paste" title="Вставить картинку из буфера (на iPad — вместо Cmd+V)">📋 Вставить</button>
+        <button class="sm" data-act="f-up" title="Файл или фото (на iPad — «Фото» или «Файлы»)">⬆ Файл</button>
         ${processed.has(f.id) ? '<button class="sm" data-act="f-dl" title="Скачать готовый кадр PNG (Shift — исходную картинку)">⬇</button>' : ''}
         ${f.src ? '<button class="sm ghost danger" data-act="f-clear" title="Убрать картинку">⌫</button>' : ''}
       </div>
@@ -569,6 +570,7 @@ document.addEventListener('click', async e => {
     }
     case 'export-godot': exportGodot().catch(err => toast('Ошибка экспорта: ' + err.message, 'err')); break;
     case 'ref-upload': { const fs = await pickFiles('image/*', false); await assignFiles(fs, { type: 'ref' }); break; }
+    case 'ref-paste': { const src = await clipboardImage(); if (!src) { toast('В буфере нет картинки', 'err'); break; } P.reference = await normalizeImage(src); save(); renderRef(); scheduleBuild(50); toast('Референс обновлён'); break; }
     case 'ref-clear': if (P.reference && confirm('Убрать референс?')) { P.reference = null; save(); renderRef(); scheduleBuild(0); } break;
     case 'ref-copy': {
       if (!P.reference) return toast('Референса нет', 'err');
@@ -625,6 +627,9 @@ document.addEventListener('click', async e => {
       download(await zip.generateAsync({ type: 'blob' }), `${name}_frames.zip`); toast(`Скачано кадров: ${fr.length}`); break;
     }
     case 'f-up': { const fs = await pickFiles('image/*', true); await assignFiles(fs, { type: 'frame', id: fid }); break; }
+    // a tablet has no Cmd+V for a picture: the clipboard read behind a button (Safari asks once with its «Вставить» bubble)
+    case 'f-paste': { const src = await clipboardImage(); if (!src) { toast('В буфере нет картинки: в ChatGPT нажми на картинку → «Скопировать», или «⬆ Файл» → Фото', 'err'); break; }
+      await assignFiles([new File([dataURLtoBlob(src)], 'clipboard.png', { type: 'image/png' })], { type: 'frame', id: fid }); break; }
     case 'f-clear': F.src = null; F.baked = false; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
     case 'f-off': F.off = !F.off; save(); renderFrames(); break;
     case 'f-del':
