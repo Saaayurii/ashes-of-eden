@@ -67,7 +67,8 @@
 
 Чтобы её работа попадала в `main` только через тебя:
 
-1. Settings → Collaborators → пригласить её с ролью **Write**.
+1. Она уже в репозитории (Collaborators, роль **Write**) — проверь, что роль
+   именно Write, не Admin: Admin может обойти правила ветки.
 2. Settings → Branches → Add branch ruleset (или classic protection) для `main`:
    - Require a pull request before merging, **1 approval**;
    - **Require review from Code Owners** (файл `.github/CODEOWNERS` = ты);
