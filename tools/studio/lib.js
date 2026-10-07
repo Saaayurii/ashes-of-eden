@@ -535,6 +535,62 @@ function mergeStudioRooms(text, change) {
   return JSON.stringify(sorted, null, 2).replace(/\[\n\s+("[^"]*"),\n\s+(-?[\d.]+),\n\s+(-?[\d.]+)\n\s+\]/g, '[$1, $2, $3]') + '\n';
 }
 
+// ---- prompts for an image model (ChatGPT in the browser, or the API) ----
+//
+// What an image model does with a sprite request, observed: it ignores an exact
+// height or block size (asked for 44 px in 16×16 blocks, it drew 87 and 55), and
+// over a long chat it drifts the character. So the prompt never asks for a size —
+// the studio fixes scale in code (grid recovery + "fit to height") — every
+// attached image is named with the one thing it is for, and a frame after the
+// first is an edit of the approved one, not a new drawing.
+const REF_ROLES = {
+  design: 'the CHARACTER DESIGN: copy its proportions, outfit, colours, hair, weapon and silhouette exactly',
+  style: 'STYLE AND SCALE ONLY (the game\'s hero): match its pixel size, outline, palette darkness and how much detail a body this small carries. Do NOT draw this knight, do not copy his armour, cloak or sword',
+  approved: 'the APPROVED FRAME of this animation: the same character at the right scale',
+};
+// refs: the roles attached, in the order they are attached (['design', 'style', 'approved']).
+function refLines(refs) {
+  if (!refs.length) return [];
+  return ['Attached images, in order:', ...refs.map((r, i) => `Image ${i + 1}: ${REF_ROLES[r]}.`)];
+}
+const PIXEL_CLAUSE = 'Pixel art: crisp square pixels on one even grid, hard edges, no anti-aliasing, no blur, no gradients, a small palette. Chunky low-resolution pixels, not fine detail. Do not aim for any exact pixel count: the game rescales the picture itself.';
+const bgLine = transparent => transparent
+  ? 'Transparent background, no floor, no shadow.'
+  : 'Background: solid flat pure magenta (#FF00FF), perfectly uniform, no gradient, no floor, no shadow.';
+// o: { kind: 'frame' | 'strip', description, style, view, anim: {name, notes, poses: [...]},
+//      index (frame), refs (roles attached), transparent }
+// A frame with 'approved' among its refs is an edit of that frame.
+function spritePrompt(o) {
+  const refs = o.refs || [], img = r => `Image ${refs.indexOf(r) + 1}`;
+  const who = o.description || (refs.includes('design') ? `the character in ${img('design')}` : 'the character');
+  const a = o.anim, poses = a.poses || [], name = `"${a.name}"${a.notes ? ` (${a.notes})` : ''}`;
+  const out = refLines(refs);
+  if (o.kind === 'strip') {
+    out.push(
+      `Create a sprite strip: exactly ${poses.length} animation frames of the SAME character in ONE horizontal row, left to right.`,
+      `Character: ${who}.`, `Style: ${o.style}.`,
+      `View: ${o.view}, full body in every frame. All frames have the same scale, the feet stand on the same ground line, frames are evenly spaced with clear empty gaps between them and nothing overlaps.`,
+      PIXEL_CLAUSE,
+      `Animation ${name}:`, ...poses.map((p, i) => `${i + 1}. ${p || 'next pose of the motion'}`),
+      bgLine(o.transparent),
+      'No text, no numbers, no labels, no grid lines, no frame borders, no motion blur.');
+  } else if (refs.includes('approved')) {
+    out.push(
+      `Edit ${img('approved')}: change ONLY the pose, to frame ${o.index + 1} of ${poses.length} of the animation ${name}: ${poses[o.index] || 'the next pose of the motion'}.`,
+      'Keep everything else identical: the same character, outfit and colours, the same size in the picture, the same pixel size and palette, the feet on the same ground line, the same background. Do not redraw the character from scratch and do not change the camera.',
+      'Only one character. No text, no labels, no frame border, no motion blur, no effects.');
+  } else {
+    out.push(
+      'Create ONE frame of a 2D game sprite animation.',
+      `Character: ${who}.`, `Style: ${o.style}.`,
+      `View: ${o.view}, full body visible, centered, the figure about two thirds of the picture's height, feet on a ground line near the bottom.`,
+      PIXEL_CLAUSE,
+      `Animation ${name}, frame ${o.index + 1} of ${poses.length}: ${poses[o.index] || 'the next pose of the motion'}.`,
+      bgLine(o.transparent),
+      'Only one character. No text, no labels, no frame border, no motion blur, no effects.');
+  }
+  return out.join('\n');
+}
 
 // ---- the sandbox («Песочница»): what the studio posts to the game (StudioLive) ----
 
@@ -677,5 +733,5 @@ function mergeOverrides(text, entries) {
   return JSON.stringify(sorted, null, 2) + '\n';
 }
 
-Object.assign(g, { OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);
