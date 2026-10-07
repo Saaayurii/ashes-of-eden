@@ -89,6 +89,20 @@ The frame pipeline takes those as they are (no grid search, kept in place in
 the cell) and the sandbox shows them at once. A walk's fps is set from the
 base enemy's speed, so the feet keep their grip in the game.
 
+**Checked before it leaves.** After every rebuild `artChecks` (`lib.js`)
+measures the processed frames. It checks the height (the idle's, not a raised
+blade's) against the one asked for and against the hero's 44 px. It checks
+that the feet stay on one row and that the legs' centre does not jump between
+frames in idle and walk/run. Attacks, rolls and deaths move on purpose, and a
+flyer (`flyer` / `boss_ophanim`, as the practice yard has it) has no ground
+line. It looks for a palette larger than the one set, for the source's own
+background colour left on the silhouette's edge (the key measured when the
+background was removed, so a purple ghost on a transparent source is not a
+fringe), and for soft alpha. What is wrong is listed in red under the preview
+and counted in a badge on «→ В игру» and «⚔ Сделать врагом», which ask once
+more before sending. Calibrated against the game's own 22 characters: none of
+them turns it red.
+
 **A character can become an enemy.** «⚔ Сделать врагом» writes
 `data/enemies/<id>.json` that `extends` an enemy the game has (its fight, its
 sounds), with the strips she drew, name, lore and the `tip` the validator wants,
@@ -142,7 +156,8 @@ cd tools/studio/e2e && npm install --no-save --no-package-lock playwright@1.49.1
 4. **Катсцены.** Шаги, реплики (ru/en), превью с картинами, титрами и звуком.
 5. **Звуки.** Прослушать, заменить файлом или записью с микрофона, обрезать,
    громкость.
-6. **→ В игру** — отправить; **☁ Поделиться** — сохранить проект для всех;
+6. **→ В игру** — отправить (красный значок на кнопке — проверки нашли
+   что-то: рост, ноги, рывки, цвет фона по краю; список под превью); **☁ Поделиться** — сохранить проект для всех;
    **⬇ zip** — скачать файлы себе. Ошиблась — Cmd/Ctrl+Z.
 7. **Мои отправки** — что с каждой отправкой: на проверке → проверено →
    влито → в игре. «Открыть в студии» вернёт отправленное, даже на другом

@@ -313,19 +313,37 @@ test('a clean character passes, said to be the hero\'s height', () => {
 });
 
 test('the checks catch hopping feet, a jump, a wrong height, a big palette and a magenta fringe', () => {
-  const feet = L.artChecks([{ name: 'walk', loop: true, frames: [figure(55), figure(52)] }], { contentH: 44 });
+  const feet = L.artChecks([{ name: 'idle', frames: [figure(), figure()] }, { name: 'walk', loop: true, frames: [figure(55), figure(52)] }], { contentH: 44 });
   assert.ok(feet.find(c => c.id === 'feet' && c.bad));
-  assert.equal(L.artChecks([{ name: 'jump', frames: [figure(55), figure(40)] }], { contentH: 44 }).find(c => c.id === 'feet'), undefined, 'a jump may leave the ground');
+  assert.equal(L.artChecks([{ name: 'idle', frames: [figure(), figure()] }, { name: 'attack', frames: [figure(55), figure(40, 14)] }], { contentH: 44 }).filter(c => c.bad).length, 0, 'an attack may leave the ground and lunge');
+  assert.equal(L.artChecks([{ name: 'idle', loop: true, frames: [figure(50), figure(46)] }, { name: 'walk', frames: [figure(50), figure(44)] }], { contentH: 44 }).find(c => c.id === 'feet'), undefined, 'a flyer hovers: no line to hold');
   const jump = L.artChecks([{ name: 'idle', loop: true, frames: [figure(55, 0), figure(55, 14)] }], { contentH: 44 });
   assert.match(jump.find(c => c.id === 'jump').msg, /кадрами 1 и 2/);
   assert.ok(L.artChecks([{ name: 'idle', frames: [figure(55, 0, 30)] }], { contentH: 44 }).find(c => c.id === 'height' && c.bad));
-  const big = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, put => { for (let k = 0; k < 60; k++) put(30 + (k % 10), 20 + (k / 10 | 0), [k * 4, 100, 200 - k]); })] }], { contentH: 44, palette: 16 });
-  assert.ok(big.find(c => c.id === 'palette' && c.bad));
-  const halo = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, put => put(28, 30, [250, 10, 240]))] }], { contentH: 44 });
+  const many = put => { for (let k = 0; k < 60; k++) put(30 + (k % 10), 20 + (k / 10 | 0), [k * 4, 100, 200 - k]); };
+  assert.ok(L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, many)] }], { contentH: 44, palette: 16 }).find(c => c.id === 'palette' && c.bad), 'more colours than the palette she set');
+  assert.equal(L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, many)] }], { contentH: 44, palette: 0 }).find(c => c.id === 'palette').bad, false, 'no palette set: said, not red');
+  const fringe = figure(55, 0, 44, put => put(28, 30, [250, 10, 240])); fringe.key = [255, 0, 255];
+  const halo = L.artChecks([{ name: 'idle', frames: [fringe] }], { contentH: 44 });
   assert.ok(halo.find(c => c.id === 'halo' && c.bad));
   const soft = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, put => put(28, 31, [60, 80, 50, 120]))] }], { contentH: 44 });
   assert.ok(soft.find(c => c.id === 'soft' && c.bad));
+  const boss = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 52)] }, { name: 'attack', frames: [figure(55, 0, 54)] }], { contentH: 52 });
+  assert.deepEqual(boss.filter(c => c.bad), [], 'the height is the idle\'s: a raised blade in an attack is not the body');
+  assert.deepEqual(L.artChecks([{ name: 'idle', frames: [figure(55, 0, 30)] }], { contentH: 44, fit: false }).filter(c => c.bad), [], 'a game sprite taken as it is: its height is the game\'s');
+  assert.equal(L.artChecks([{ name: 'idle', frames: [figure(), figure()] }, { name: 'walk', frames: [figure(55), figure(49)] }], { contentH: 44, flyer: true }).find(c => c.id === 'feet'), undefined, 'a flyer');
   const brute = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 52)] }], { contentH: 52 });
   assert.deepEqual(brute.filter(c => c.bad), [], 'bigger than the hero on purpose is information, not an error');
   assert.match(brute.find(c => c.id === 'hero').msg, /выше героя/);
+});
+
+test('the fringe is the source\'s own background colour: a purple ghost on a transparent source is not one', () => {
+  const ghost = figure(55, 0, 44, put => { for (let y = 20; y < 50; y++) put(28, y, [200, 40, 220]); });
+  assert.equal(L.artChecks([{ name: 'idle', frames: [ghost] }], { contentH: 44 }).find(x => x.id === 'halo'), undefined, 'no key: nothing to look for');
+  const cloak = figure(55, 0, 44, put => { for (let y = 20; y < 50; y++) put(28, y, [63, 107, 46]); }); cloak.key = [255, 0, 255];
+  assert.equal(L.artChecks([{ name: 'idle', frames: [cloak] }], { contentH: 44 }).find(x => x.id === 'halo'), undefined, 'a green cloak on magenta');
+  const screen = figure(55, 0, 44, put => put(28, 30, [40, 200, 60])); screen.key = [0, 255, 0];
+  assert.ok(L.artChecks([{ name: 'idle', frames: [screen] }], { contentH: 44 }).find(x => x.id === 'halo'), 'green-screen fringe on a green key');
+  const tint = figure(55, 0, 44, put => put(28, 30, [120, 20, 110])); tint.key = [255, 0, 255];
+  assert.ok(L.artChecks([{ name: 'idle', frames: [tint] }], { contentH: 44 }).find(x => x.id === 'halo'), 'the key blended into a dark outline');
 });

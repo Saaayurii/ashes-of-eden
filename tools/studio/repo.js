@@ -188,6 +188,10 @@ async function runInGodot(room) {
 }
 
 /* ---------- what each part of the studio sends ---------- */
+// The red badge's checks (lib.js artChecks) asked once more before her work leaves.
+const artOk = () => { const bad = (typeof artReport !== 'undefined' ? artReport : []).filter(c => c.bad);
+  return !bad.length || confirm('Проверки нашли:\n' + bad.map(c => '• ' + c.msg).join('\n') + '\n\nВсё равно отправить?'); };
+
 async function charFiles() {
   await build();
   const S = P.settings, W = +S.cellW, H = +S.cellH, name = slug(P.name), origin = P.origin || {};
@@ -326,11 +330,11 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   switch (b.dataset.act) {
     case 'auth': authDialog(); break;
-    case 'chars-game': sendToGame(charFiles, 'chars'); break;
+    case 'chars-game': if (artOk()) sendToGame(charFiles, 'chars'); break;
     case 'bg-game': sendToGame(bgFiles, 'bg'); break;
     case 'cut-game-send': sendToGame(cutFiles, 'cut'); break;
     case 'sent': sentDialog(); break;
-    case 'chars-enemy': enemyWizard(); break;
+    case 'chars-enemy': if (artOk()) enemyWizard(); break;
     case 'snd-game': sendToGame(soundFiles); break;
     case 'chars-share': shareProject('chars'); break;
     case 'bg-share': shareProject('bgs'); break;
