@@ -90,14 +90,15 @@ async function step(name, fn) {
       const placed = await page.evaluate(() => { const map = document.querySelector('.rp-map'); map.onclick({ offsetX: 420 * map.clientWidth / 1440, offsetY: 430 * map.clientWidth / 1440 }); return document.querySelector('.rp-info').textContent; });
       assert.match(placed, /graveyard_cross: 420, 506/);
       await page.click('#dlg [data-dlg="0"]');
-      await page.waitForFunction(() => /Записано в игру|Не получилось/i.test(document.querySelector('#dlg')?.innerText || ''), null, { timeout: 120000 });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
       const text = await page.textContent('#dlg');
       assert.match(text, /data\/enemies\/e2e_archer\.json/, text);
       const scene = fs.readFileSync(path.join(ROOT, 'scenes/rooms/graveyard_cross.tscn'), 'utf8');
       assert.match(scene, /enemy_id = "e2e_archer"/);
       const entry = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemies/e2e_archer.json'), 'utf8'));
       assert.equal(entry.extends, 'cultist'); assert.equal(entry.voice, 'cultist');
-      await page.evaluate(() => document.querySelector('#dlg').close());
+      // a closed dialog keeps its text: empty it, or the next step's wait passes at once
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
     await step('a dialogue line edited in a cutscene changes one line of strings.csv', async () => {
@@ -109,7 +110,7 @@ async function step(name, fn) {
         CUT.strings[key] = { ru: 'e2e строка', en: cutData.strings[key].en }; saveCut();
         sendToGame(cutFiles, 'cut');
       });
-      await page.waitForFunction(() => /Записано в игру|Не получилось/i.test(document.querySelector('#dlg')?.innerText || ''), null, { timeout: 60000 });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
       const diff = git('diff', '--numstat', '--', 'localization/strings.csv', 'data/cutscenes', 'data/dialogues').trim().split('\n');
       assert.deepEqual(diff, ['1\t1\tlocalization/strings.csv'], diff.join(' | '));
     });
