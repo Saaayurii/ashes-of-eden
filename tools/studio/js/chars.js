@@ -6,20 +6,24 @@ function maskImage(img, tol, mode) {
   const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
   const c = mk(w, h), x = c.getContext('2d', { willReadFrequently: true });
   x.drawImage(img, 0, 0);
-  const id = x.getImageData(0, 0, w, h), m = maskPixels(id.data, w, h, tol, mode);
+  const id = x.getImageData(0, 0, w, h);
+  // the background's own colour, when it was a colour and not transparency: the checks look for its fringe
+  let tr = 0, sm = 0; for (let p = 0; p < w * h; p += 7) { sm++; if (id.data[p * 4 + 3] < 200) tr++; }
+  const key = mode !== 'alpha' && tr / sm <= 0.02 ? cornerColor(id.data, w, h).slice(0, 3) : null;
+  const m = maskPixels(id.data, w, h, tol, mode);
   x.putImageData(id, 0, 0);
-  return { c, w, h, m };
+  return { c, w, h, m, key };
 }
-function cropMask({ c, w, h, m }) {
+function cropMask({ c, w, h, m, key }) {
   const b = cropBox(m, w, h); if (!b) return null;
   const cw = b.x1 - b.x0 + 1, ch = b.y1 - b.y0 + 1, out = mk(cw, ch);
   out.getContext('2d').drawImage(c, b.x0, b.y0, cw, ch, 0, 0, cw, ch);
-  return { canvas: out, w: cw, h: ch, ox: b.x0, oy: b.y0, cov: b.cnt / (w * h), data: out.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, cw, ch).data };
+  return { canvas: out, w: cw, h: ch, ox: b.x0, oy: b.y0, key, cov: b.cnt / (w * h), data: out.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, cw, ch).data };
 }
 function compose(s, f, S) {
   const W = +S.cellW, H = +S.cellH, c = mk(W, H), t = mk(s.w, s.h);
   t.getContext('2d').putImageData(s.img, 0, 0);
-  const keep = S.anchor === 'none';
+  const keep = S.anchor === 'none' || f.baked;
   const x = (keep ? Math.round(s.ox || 0) : Math.round(W / 2 - anchorX(s, S.anchor))) + (f.dx | 0);
   const y = (keep ? Math.round(s.oy || 0) : H - (+S.bottomPad) - s.h) + (f.dy | 0);
   c.getContext('2d').drawImage(t, x, y);
@@ -38,13 +42,13 @@ async function getCut(key, src) {
   return cut;
 }
 
-let processed = new Map(), procRef = null, palette = null, warnings = [];
+let processed = new Map(), procRef = null, palette = null, warnings = [], artReport = [];
 let building = false, buildAgain = false, buildTimer = null;
 function scheduleBuild(ms = 250) { clearTimeout(buildTimer); buildTimer = setTimeout(build, ms); }
 async function build() {
   if (building) { buildAgain = true; return; }
   building = true;
-  try { do { buildAgain = false; await doBuild(); } while (buildAgain); }
+  try { do { buildAgain = false; await doBuild(); } while (buildAgain); if (typeof sandboxChanged === 'function') sandboxChanged(); }
   catch (e) { console.error(e); toast('Ошибка обработки: ' + e.message, 'err'); }
   finally { building = false; }
 }
@@ -54,7 +58,7 @@ async function doBuild() {
   let gp = 0;
   if (grid) {
     const cuts = [];
-    for (const a of P.animations) for (const f of a.frames) if (f.src && !f.off) { const c = await getCut(f.id, f.src); if (c) cuts.push(c); }
+    for (const a of P.animations) for (const f of a.frames) if (f.src && !f.off && !f.baked) { const c = await getCut(f.id, f.src); if (c) cuts.push(c); }
     if (P.reference) { const c = await getCut('ref', P.reference); if (c) cuts.push(c); }
     gp = +S.pixelSize > 0 ? +S.pixelSize : cuts.length ? globalGridP(cuts) : 0;
     if (gp) warn.push(`ℹ Размер «пикселя» в картинках: ${gp.toFixed(1)} px${+S.pixelSize > 0 ? ' (задан вручную)' : ' (найден автоматически)'}`);
@@ -68,6 +72,10 @@ async function doBuild() {
       if (cut.cov < 0.02 && S.bgMode !== 'alpha') warn.push(`${a.name} #${i + 1}: от персонажа почти ничего не осталось — фон похож на персонажа. Уменьши «Допуск фона» или попроси в ChatGPT пурпурный фон`);
       items.push({ f, cut, i });
     }
+    if (!items.length) continue;
+    // frames baked from the rig are already pixel art at the game's size, placed in the cell: taken as they are
+    for (const it of items.filter(it => it.f.baked)) { const c = copyCut(it.cut); c.ox = it.cut.ox; c.oy = it.cut.oy; smalls.push(c); out.push({ s: c, f: it.f, a, i: it.i }); }
+    items.splice(0, items.length, ...items.filter(it => !it.f.baked));
     if (!items.length) continue;
     const maxH = Math.max(...items.map(it => it.cut.h));
     if (grid && gp) {
@@ -117,8 +125,27 @@ async function doBuild() {
   processed = next;
   if (grew) renderFrames();
   procRef = refS ? compose(refS, { dx: 0, dy: 0 }, S) : null;
+  // the generator drew something else under her edit since she made it (tools/art/studio_overrides.py)
+  if (P.origin?.kind === 'game') {
+    const mine = new Set(P.animations.flatMap(a => (a.regions || []).map(r => String(r[0]).replace('res://', ''))));
+    const stale = Object.entries(META.overrides || {}).filter(([p, e]) => e.stale && mine.has(p)).map(([p]) => p.split('/').pop());
+    if (stale.length) warn.unshift(`База изменилась — проверь: ${stale.join(', ')}. Генератор перерисовал картинку под твоей правкой; посмотри кадры и отправь ещё раз.`);
+  }
   warnings = warn;
+  const keyOf = new Map(); for (const it of out) keyOf.set(it.f.id, cutCache.get(it.f.id + '|' + fingerprint(it.f.src) + '|' + S.tolerance + '|' + S.bgMode)?.key || null);
+  artReport = artChecks(P.animations.map(a => ({ name: a.name, loop: a.loop,
+    frames: a.frames.filter(f => !f.off && processed.has(f.id)).map(f => { const c = processed.get(f.id); return { data: c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height, key: keyOf.get(f.id) }; }) })),
+  { contentH: S.contentH, palette: S.palette, fit: S.scaleMode !== 'none', flyer: studioFlyer() });
   paintProcessed();
+}
+
+// A flyer has no ground line to hold: the game's enemy of this name, or the one it is set to fight like.
+function studioFlyer() {
+  if (typeof enemyList === 'undefined') return false;
+  if (!enemyList) { if (!studioFlyer.asked) { studioFlyer.asked = true; fetch('import/enemies.json').then(r => r.json()).then(j => { enemyList ||= j; scheduleBuild(0); }).catch(() => {}); } return false; }
+  const base = typeof sandbox !== 'undefined' ? sandbox.base : '';
+  // the same list the practice yard flies by (scripts/run/practice_drills.gd)
+  return ['flyer', 'boss_ophanim'].includes((enemyList.find(e => e.id === P.id) || enemyList.find(e => e.id === base))?.behaviour);
 }
 
 /* ---------- strip slicing ---------- */
@@ -152,39 +179,36 @@ async function sliceStrip(src, n) {
 }
 
 /* ---------- prompts ---------- */
-const bgClause = forApi => (forApi && api.transparent)
-  ? 'Transparent background, no floor, no shadow.'
-  : 'Background: solid flat pure magenta (#FF00FF), perfectly uniform, no gradient, no floor, no shadow.';
-// Размер блока для ChatGPT: персонаж в CH «пикселей» занимает ~70% высоты картинки 1024 px.
-const blockPx = () => Math.max(4, Math.round(1024 * 0.7 / Math.max(8, +P.settings.contentH)));
-const pixelClause = () => `Pixel scale: true low-resolution pixel art. The character is exactly ${P.settings.contentH} art pixels tall. Every art pixel is a uniform square block of exactly ${blockPx()}×${blockPx()} image pixels, all blocks on ONE fixed grid across the whole image, no half-blocks, no smooth gradients inside blocks.`;
-function framePrompt(a, i, forApi) {
-  const S = P.settings, f = a.frames[i];
-  return [
-    'Create ONE frame of a 2D game sprite animation. The attached reference image is the exact character design: keep identical proportions, outfit, colors, hair, weapon and silhouette.',
-    `Character: ${P.description || 'the character from the reference image'}.`,
-    `Style: ${S.style}.`,
-    `View: ${S.view}, full body visible, centered, feet on the same ground line near the bottom.`,
-    pixelClause(),
-    `Animation "${a.name}"${a.notes ? ` (${a.notes})` : ''}, frame ${i + 1} of ${a.frames.length}: ${f.pose || 'the next pose of the motion'}.`,
-    bgClause(forApi),
-    'Only one character. No text, no labels, no frame border, no motion blur, no effects.',
-  ].join('\n');
+// The text is lib.js's spritePrompt; here is only which images go with it, by role.
+// The hero's style sheet is a scale and palette reference, never a design.
+const STYLE_REF = 'refs/elian_style_idle.png';
+let styleRefData = null;
+async function styleRef() {
+  if (!styleRefData) styleRefData = await fetch(STYLE_REF).then(r => r.ok ? r.blob() : Promise.reject(new Error(STYLE_REF))).then(blobToDataURL);
+  return styleRefData;
 }
-function stripPrompt(a, forApi) {
-  const S = P.settings, n = a.frames.length;
-  return [
-    `Create a sprite strip: exactly ${n} animation frames of the SAME character in ONE horizontal row, left to right. The attached reference image is the exact character design: keep identical proportions, outfit, colors, hair, weapon and silhouette in every frame.`,
-    `Character: ${P.description || 'the character from the reference image'}.`,
-    `Style: ${S.style}.`,
-    `View: ${S.view}, full body in every frame. All frames have the same scale, the feet stand on the same ground line, frames are evenly spaced with clear empty gaps between them and nothing overlaps.`,
-    pixelClause(),
-    `Animation "${a.name}"${a.notes ? ` (${a.notes})` : ''}:`,
-    ...a.frames.map((f, i) => `${i + 1}. ${f.pose || 'next pose of the motion'}`),
-    bgClause(forApi),
-    'No text, no numbers, no labels, no grid lines, no frame borders, no motion blur.',
-  ].join('\n');
+// The frame later frames are edits of: the first drawn one of this animation.
+const approvedFrame = (a, i) => a.frames.find((x, j) => j !== i && x.src && !x.off) || null;
+// Roles attached, in order. In ChatGPT an edit carries only the approved frame:
+// the design is already in that chat (one chat per animation).
+function frameRefs(a, i, forApi) {
+  const ok = approvedFrame(a, i), design = P.reference ? ['design'] : [];
+  if (!forApi) return ok ? ['approved'] : [...design, 'style'];
+  return [...design, ok && api.chain ? 'approved' : 'style'];
 }
+const promptBase = (a, forApi) => ({ description: P.description, style: P.settings.style, view: P.settings.view, transparent: !!(forApi && api.transparent),
+  anim: { name: a.name, notes: a.notes, poses: a.frames.map(f => f.pose) } });
+const framePrompt = (a, i, forApi) => spritePrompt({ ...promptBase(a, forApi), kind: 'frame', index: i, refs: frameRefs(a, i, forApi) });
+const stripRefs = () => P.reference ? ['design', 'style'] : ['style'];
+const stripPrompt = (a, forApi) => spritePrompt({ ...promptBase(a, forApi), kind: 'strip', refs: stripRefs() });
+// The images themselves for the API, in the prompt's order.
+async function refImages(roles, a, i) {
+  const out = [];
+  for (const r of roles) out.push(r === 'design' ? P.reference : r === 'style' ? await styleRef() : approvedFrame(a, i).src);
+  return out;
+}
+const REF_NAMES = { design: 'референс персонажа', style: 'tools/studio/refs/elian_style_idle.png (масштаб и палитра)', approved: 'одобренный кадр этой анимации' };
+const attachHint = roles => roles.length ? 'Приложи по порядку: ' + roles.map((r, k) => `${k + 1}) ${REF_NAMES[r]}`).join(', ') + '.' : '';
 
 /* ---------- OpenAI ---------- */
 // Who can generate: a key in this browser, the local server's key, or — signed
@@ -222,13 +246,12 @@ async function apiImage(prompt, refs, size) {
 }
 async function genFrame(a, f) {
   if (busy.has(f.id)) return;
-  const i = a.frames.indexOf(f), refs = [];
-  if (P.reference) refs.push(P.reference);
-  if (api.chain) { const prev = a.frames.slice(0, i).reverse().find(x => x.src && !x.off); if (prev) refs.push(prev.src); }
+  const i = a.frames.indexOf(f);
   busy.add(f.id); renderFrames();
   try {
+    const refs = await refImages(frameRefs(a, i, true), a, i);
     const src = await apiImage(framePrompt(a, i, true), refs, '1024x1024');
-    f.src = await normalizeImage(src); save(); scheduleBuild(50);
+    f.src = await normalizeImage(src); f.baked = false; save(); scheduleBuild(50);
     toast(`${a.name}: кадр ${i + 1} готов`);
   } catch (e) { toast('Ошибка генерации: ' + e.message, 'err'); throw e; }
   finally { busy.delete(f.id); renderFrames(); }
@@ -250,7 +273,7 @@ async function genStrip(a) {
   const key = 'anim:' + a.id; if (busy.has(key)) return;
   busy.add(key); a.frames.forEach(f => busy.add(f.id)); renderAll();
   try {
-    const refs = P.reference ? [P.reference] : [];
+    const refs = await refImages(stripRefs(), a);
     const src = await apiImage(stripPrompt(a, true), refs, '1536x1024');
     await applyStrip(a, src);
   } catch (e) { toast('Ошибка генерации: ' + e.message, 'err'); }
@@ -260,14 +283,14 @@ async function applyStrip(a, src, n = a.frames.length) {
   while (a.frames.length < n) a.frames.push(newFrame());
   if (a.frames.length > n) a.frames = a.frames.slice(0, n);
   const { slices, auto } = await sliceStrip(src, n);
-  slices.forEach((s, i) => { a.frames[i].src = s; a.frames[i].dx = a.frames[i].dy = 0; a.frames[i].sc = 1; });
+  slices.forEach((s, i) => { a.frames[i].src = s; a.frames[i].baked = false; a.frames[i].dx = a.frames[i].dy = 0; a.frames[i].sc = 1; });
   save(); renderFrames(); scheduleBuild(50);
   toast(auto ? `Лента разрезана на ${n} кадров по промежуткам` : `Не нашёл ${n} отдельных фигур, разрезал ленту на равные части. Проверь кадры.`, auto ? '' : 'err');
 }
 
 /* ---------- export ---------- */
 async function exportGodot() {
-  const r = await charFiles().catch(e => { toast(e.message, 'err'); return null; }); if (!r) return;
+  const r = await charFiles(true).catch(e => { toast(e.message, 'err'); return null; }); if (!r) return;
   const zip = new JSZip(), dir = zip.folder(r.name);
   for (const [path, b] of Object.entries(r.files)) dir.file(path.split('/').pop(), b);
   for (const [an, sh] of Object.entries(r.sheets)) for (const [i, f] of sh.frames.entries()) dir.file(`frames/${an}/${an}_${String(i).padStart(2, '0')}.png`, await canvasBlob(processed.get(f.id)));
@@ -321,6 +344,7 @@ function renderAnimBar() {
     <div class="row" style="margin:0">
       <button data-act="anim-dl" title="Скачать все готовые кадры анимации и ленту одним zip">⬇ Кадры (.zip)</button>
       <button data-act="copy-strip" title="Промпт на все кадры одной картинкой, для ChatGPT">📋 Промпт ленты</button>
+      <button data-act="frame-files" title="Картинки из файлов — по порядку в кадры, начиная с выбранного (или первого пустого)">📂 Файлы</button>
       <button data-act="import-strip" title="Вставить картинку-ленту из буфера или файла и разрезать на кадры">Импорт ленты</button>
       <button data-act="gen-strip" ${sb || genRunning ? 'disabled' : ''}>${sb ? '…генерирую' : '⚡ Лентой'}</button>
       <button data-act="gen-all" ${sb ? 'disabled' : ''}>${genRunning ? '■ Остановить' : '⚡ Все кадры'}</button>
@@ -351,7 +375,8 @@ function renderFrames() {
       <div class="row">
         <button class="sm" data-act="f-gen">⚡ API</button>
         <button class="sm" data-act="f-copy">📋 Промпт</button>
-        <button class="sm" data-act="f-up">⬆ Файл</button>
+        <button class="sm" data-act="f-paste" title="Вставить картинку из буфера (на iPad — вместо Cmd+V)">📋 Вставить</button>
+        <button class="sm" data-act="f-up" title="Файл или фото (на iPad — «Фото» или «Файлы»)">⬆ Файл</button>
         ${processed.has(f.id) ? '<button class="sm" data-act="f-dl" title="Скачать готовый кадр PNG (Shift — исходную картинку)">⬇</button>' : ''}
         ${f.src ? '<button class="sm ghost danger" data-act="f-clear" title="Убрать картинку">⌫</button>' : ''}
       </div>
@@ -380,6 +405,10 @@ function paintProcessed() {
   });
   paintRef();
   $('#pal').innerHTML = palette ? palette.map(p => `<i style="background:rgb(${p})" title="rgb(${p})"></i>`).join('') : '<span class="muted" style="font-size:12px">выключена</span>';
+  // the checks before sending: what is wrong in red, on top; the badge on «→ В игру» counts it
+  const bad = artReport.filter(c => c.bad);
+  $('#artChecks').innerHTML = artReport.map(c => `<div class="${c.bad ? 'warn' : 'note'}">${c.bad ? '✗' : '✓'} ${esc(c.msg)}</div>`).join('');
+  $$('[data-act="chars-game"]').forEach(b => { b.querySelector('.badge')?.remove(); if (bad.length) b.insertAdjacentHTML('beforeend', `<span class="badge" title="${esc(bad.map(c => c.msg).join('\n'))}">${bad.length}</span>`); });
   $('#warns').innerHTML = warnings.slice(0, 6).map(w => w.startsWith('ℹ') ? `<div class="note">${esc(w)}</div>`
     : w.startsWith('FIX') ? `<div class="warn">⚠ ${esc(w.slice(3))}<br><button class="sm primary" data-act="fix-gridfit" style="margin-top:4px">Подогнать под рост ${esc(P.settings.contentH)} px</button></div>`
     : `<div class="warn">⚠ ${esc(w)}</div>`).join('');
@@ -486,7 +515,7 @@ async function assignFiles(files, target) {
   for (const file of files) {
     if (i >= a.frames.length) a.frames.push(newFrame());
     const fr = a.frames[i++];
-    fr.src = await normalizeImage(await blobToDataURL(file)); fr.dx = fr.dy = 0; fr.sc = 1;
+    fr.src = await normalizeImage(await blobToDataURL(file)); fr.baked = false; fr.dx = fr.dy = 0; fr.sc = 1;
   }
   const nextEmpty = a.frames.slice(i - 1).find(x => !x.src) || a.frames[Math.min(i, a.frames.length - 1)];
   save(); renderTabs(); renderFrames(); scheduleBuild(50);
@@ -544,6 +573,7 @@ document.addEventListener('click', async e => {
     }
     case 'export-godot': exportGodot().catch(err => toast('Ошибка экспорта: ' + err.message, 'err')); break;
     case 'ref-upload': { const fs = await pickFiles('image/*', false); await assignFiles(fs, { type: 'ref' }); break; }
+    case 'ref-paste': { const src = await clipboardImage(); if (!src) { toast('В буфере нет картинки', 'err'); break; } P.reference = await normalizeImage(src); save(); renderRef(); scheduleBuild(50); toast('Референс обновлён'); break; }
     case 'ref-clear': if (P.reference && confirm('Убрать референс?')) { P.reference = null; save(); renderRef(); scheduleBuild(0); } break;
     case 'ref-copy': {
       if (!P.reference) return toast('Референса нет', 'err');
@@ -568,7 +598,7 @@ document.addEventListener('click', async e => {
       if (last.src && !confirm('У последнего кадра есть картинка. Удалить?')) return;
       a.frames.pop(); save(); renderTabs(); renderAnimBar(); renderFrames(); scheduleBuild(); break;
     }
-    case 'copy-strip': copyText(stripPrompt(a, false)); break;
+    case 'copy-strip': copyText(stripPrompt(a, false)).then(() => toast(`Промпт ленты скопирован. ${attachHint(stripRefs())} Каждая анимация — в новом чате ChatGPT.`)); break;
     case 'import-strip': {
       let src = await clipboardImage();
       if (!src) { const [file] = await pickFiles('image/*', false); if (!file) return; src = await blobToDataURL(file); }
@@ -580,10 +610,11 @@ document.addEventListener('click', async e => {
       try { await applyStrip(a, src, n); renderTabs(); renderAnimBar(); } catch (err) { toast('Не получилось разрезать: ' + err.message, 'err'); }
       break;
     }
+    case 'frame-files': $('#frameFiles').click(); break;
     case 'gen-strip': genStrip(a); break;
     case 'gen-all': genAll(a); break;
     case 'f-gen': if (needRef()) genFrame(a, F).catch(() => {}); break;
-    case 'f-copy': copyText(framePrompt(a, a.frames.indexOf(F), false)); break;
+    case 'f-copy': { const i = a.frames.indexOf(F), roles = frameRefs(a, i, false); copyText(framePrompt(a, i, false)).then(() => toast(`Промпт скопирован. ${attachHint(roles)} ${roles.includes('approved') ? 'Тот же чат, что и для одобренного кадра.' : 'Новая анимация — новый чат ChatGPT.'}`)); break; }
     case 'fix-gridfit': P.settings.scaleMode = 'gridfit'; save(); renderSide(); scheduleBuild(0); toast('Масштаб: «Сетка пикселей + подогнать рост»'); break;
     case 'f-dl': {
       const i = a.frames.indexOf(F) + 1, base = `${slug(P.name)}_${slug(a.name)}_${String(i).padStart(2, '0')}`;
@@ -600,7 +631,10 @@ document.addEventListener('click', async e => {
       download(await zip.generateAsync({ type: 'blob' }), `${name}_frames.zip`); toast(`Скачано кадров: ${fr.length}`); break;
     }
     case 'f-up': { const fs = await pickFiles('image/*', true); await assignFiles(fs, { type: 'frame', id: fid }); break; }
-    case 'f-clear': F.src = null; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
+    // a tablet has no Cmd+V for a picture: the clipboard read behind a button (Safari asks once with its «Вставить» bubble)
+    case 'f-paste': { const src = await clipboardImage(); if (!src) { toast('В буфере нет картинки: в ChatGPT нажми на картинку → «Скопировать», или «⬆ Файл» → Фото', 'err'); break; }
+      await assignFiles([new File([dataURLtoBlob(src)], 'clipboard.png', { type: 'image/png' })], { type: 'frame', id: fid }); break; }
+    case 'f-clear': F.src = null; F.baked = false; F.dx = F.dy = 0; F.sc = 1; save(); renderTabs(); renderFrames(); scheduleBuild(0); break;
     case 'f-off': F.off = !F.off; save(); renderFrames(); break;
     case 'f-del':
       if (a.frames.length <= 1) return;
@@ -703,6 +737,7 @@ document.addEventListener('paste', e => {
   if (!files.length) return;
   e.preventDefault();
   if (mode === 'bg') { bgAddFiles(files).catch(err => toast(err.message, 'err')); return; }
+  if (mode === 'rig') { blobToDataURL(files[0]).then(rigLoadSheet).catch(err => toast(err.message, 'err')); return; }
   if (mode !== 'chars') return;
   assignFiles(files, selected).catch(err => toast(err.message, 'err'));
 });
@@ -721,6 +756,14 @@ document.addEventListener('drop', e => {
   const target = card ? { type: 'frame', id: card.dataset.fid } : e.target.closest('#refZone') ? { type: 'ref' } : null;
   if (target) select(target);
   assignFiles([...e.dataTransfer.files], target).catch(err => toast(err.message, 'err'));
+});
+// Files into frames: from the selected frame on, or the first empty one of this animation.
+$('#frameFiles').addEventListener('change', e => {
+  const files = [...e.target.files], a = curAnim(); e.target.value = '';
+  if (!files.length || !a) return;
+  const sel = selected?.type === 'frame' && a.frames.some(f => f.id === selected.id) ? selected : null;
+  const f = sel ? null : a.frames.find(x => !x.src) || a.frames[0];
+  assignFiles(files, sel || (f && { type: 'frame', id: f.id })).catch(err => toast(err.message, 'err'));
 });
 window.addEventListener('beforeunload', () => { if (saveTimer) persist(); });
 

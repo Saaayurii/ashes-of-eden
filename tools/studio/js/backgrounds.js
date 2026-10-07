@@ -52,6 +52,7 @@ function setMode(m) {
   if (mode === 'cut' && m !== 'cut') cutStop();
   mode = m; document.body.dataset.mode = m; document.body.classList.toggle('mode-bg', m === 'bg');
   if (m === 'snd' || m === 'cut') enterStoryMode(m);
+  if (m === 'rig' && typeof renderRig === 'function') renderRig();
   $$('.modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
   try { localStorage.setItem('ss_mode', m); } catch {}
   if (m === 'bg') {
@@ -196,6 +197,8 @@ function renderLayerProps() {
     </div>
     <div class="row"><button class="sm" data-act="bg-ldup">Копия слоя</button><button class="sm ghost danger" data-act="bg-ldel">🗑 Удалить слой</button></div>`;
 }
+// A picture a generator draws that she may repaint as an override: its path, or null.
+const repaintable = meta => { const p = String(meta?.res || '').replace('res://', ''); return p && overridableSet().has(p) ? p : null; };
 function renderItemPanel() {
   const l = curLayer(), r = findBgItem(bgSel.item);
   let h = '';
@@ -204,7 +207,9 @@ function renderItemPanel() {
     const col = it.kind === 'rect' ? it.color : it.modulate;
     h += `<section><h3>Картинка</h3>
       ${meta ? `<img class="ithumb checker" src="${meta.src || A(meta.url)}" alt="">
-      <div class="note">${esc(meta.res || 'своя картинка')} · ${meta.w}×${meta.h}</div>` : `<div class="note">Прямоугольник цвета</div>`}
+      <div class="note">${esc(meta.res || 'своя картинка')} · ${meta.w}×${meta.h}</div>
+      ${repaintable(meta) ? `<button class="sm" data-act="bg-repaint" title="Картинка того же размера (например, исправленная в ChatGPT или Procreate) ляжет правкой поверх генератора — тем, чем отличается">🖌 Перерисовать картину</button>
+        ${META.overrides?.[repaintable(meta)]?.stale ? '<div class="warn">⚠ База изменилась — проверь: генератор перерисовал картину под твоей правкой.</div>' : META.overrides?.[repaintable(meta)] ? '<div class="note">Есть твоя правка этой картины.</div>' : ''}` : ''}` : `<div class="note">Прямоугольник цвета</div>`}
       <div class="grid2">
         <div><label>X</label><input type="number" data-it="x" value="${+it.x.toFixed(1)}"></div>
         <div><label>Y</label><input type="number" data-it="y" value="${+it.y.toFixed(1)}"></div>
@@ -366,6 +371,17 @@ document.addEventListener('click', async e => {
     case 'lib-close': $('#libModal').hidden = true; break;
     case 'lib-pick': { const en = library.find(x => x.res === b.dataset.res); if (en) { bgAddGame(en); toast(`Добавлено: ${en.res.split('/').pop()}`); } break; }
     case 'bg-isel': bgSelectItem(b.dataset.iid); break;
+    case 'bg-repaint': {
+      // a room's painting is the room generator's: her repaint goes as an override (repo.js convertToOverrides)
+      const r = findBgItem(bgSel.item), meta = r && BG.images[r.it.img], path = meta && repaintable(meta); if (!path) return;
+      const [file] = await pickFiles('image/*', false); if (!file) return;
+      const im = await loadImage(await blobToDataURL(file));
+      if (im.naturalWidth !== meta.w || im.naturalHeight !== meta.h) return toast(`Картина ${meta.w}×${meta.h}, а эта ${im.naturalWidth}×${im.naturalHeight}. Нужен тот же размер — правка ложится поверх картины игры.`, 'err');
+      sendToGame(async () => ({ files: { [path]: file }, title: `Studio: перерисована картина ${path.split('/').pop()}`,
+        body: `Правка картины \`${path}\` из студии: что отличается от игры, ляжет поверх генератора комнат.`,
+        notes: ['Робот студии пересоберёт комнату с твоей правкой в этой же отправке.'] }), 'bg');
+      return;
+    }
     case 'bg-idel': case 'bg-idup': case 'bg-iup': case 'bg-idown': {
       const r = findBgItem(bgSel.item); if (!r) return;
       if (act === 'bg-idel') { r.l.items.splice(r.i, 1); bgSel.item = null; }
@@ -429,6 +445,7 @@ function hitTest(px, py) {
   }
   return null;
 }
+palmGuard($('#bgCanvas'), { fingers: 'use' });   // a finger pans the scene; a palm under the pencil does nothing
 $('#bgCanvas').addEventListener('pointerdown', e => {
   if (!BG) return;
   const [px, py] = canvasPoint(e), it = e.altKey ? null : hitTest(px, py);

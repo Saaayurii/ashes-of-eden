@@ -46,7 +46,11 @@ dist/
 node_modules/
 package.json
 package-lock.json
-.claude/
+.claude/*
+# …except what an artist's Claude needs from a fresh clone (docs/ARTIST.md):
+# the project's skills and its permission list
+!.claude/skills/
+!.claude/settings.json
 
 # Python bytecode
 __pycache__/
@@ -60,3 +64,6 @@ g2pW/
 # (tools/art/make_cjk_font.py). The subset it produces is committed.
 tools/art/.cache/
 tools/studio/import/
+
+# An artist's working folder: references, ChatGPT downloads, studies (.claude/skills/ashes-art)
+art-inbox/

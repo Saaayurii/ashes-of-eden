@@ -16,6 +16,8 @@ from copy import deepcopy
 
 import numpy as np
 from PIL import Image, ImageOps
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "art"))
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DECOR_DIR = os.path.join(ROOT, "assets", "decor")
@@ -411,6 +413,8 @@ def _expand_panel(painting, inserts, focal=(), floors=()):
         if x < 0 or y < 0 or x + overlay.width > target.width or y + overlay.height > target.height:
             raise ValueError(f"{painting}: authored seam overlay exceeds the painting")
         target.alpha_composite(overlay, (x, y))
+    # her repaint from the art studio, laid over the widened painting (tools/studio/overrides)
+    target = patched(output_path, target)
     pending_path = output_path + ".pending.png"
     target.save(pending_path)
     # Do not invalidate Godot's imported texture when the painting has not

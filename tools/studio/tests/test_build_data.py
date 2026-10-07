@@ -93,6 +93,17 @@ class PreviewPage(unittest.TestCase):
         self.assertIn("'practice'", page)
         self.assertIn("Превью отправки #7", page)
 
+    def test_live_page_is_the_main_pack_in_studio_live(self):
+        import make_preview_page
+        html = ('<body><script>const canFull = !!(root.requestFullscreen || root.webkitRequestFullscreen);'
+                'const GAME = new Engine({"args":[],"executable":"index","fileSizes":{"index.pck":10}});</script></body>')
+        page = make_preview_page.live_page(html)
+        self.assertIn("const canFull = false;", page)
+        self.assertIn('"args": ["--", "--studio-live"]', page)
+        self.assertIn('"persistentPaths": []', page)
+        self.assertIn('"index.pck": 10', page)
+        self.assertNotIn("mainPack", page)
+
 
 class ServeGuard(unittest.TestCase):
     def test_allowed(self):

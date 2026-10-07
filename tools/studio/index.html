@@ -72,7 +72,7 @@ main{padding:12px 16px;min-width:0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;position:relative}
 .card.sel{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel)}
 .card.off{opacity:.45}
-.card .ch{display:flex;gap:4px;align-items:center}
+.card .ch{display:flex;gap:4px;align-items:center;flex-wrap:wrap;row-gap:2px}
 .card .imgs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
 .card .src{aspect-ratio:1;border-radius:6px;overflow:hidden;display:grid;place-items:center;font-size:11px;color:var(--muted);text-align:center;padding:4px}
 .card .src img{width:100%;height:100%;object-fit:contain}
@@ -108,8 +108,15 @@ main{padding:12px 16px;min-width:0}
 .modes button{border:0;border-radius:0;background:transparent}
 .modes button.on{background:var(--panel2);color:var(--accent)}
 .hdr-chars,.hdr-bg,.hdr-cut,.hdr-snd{display:contents}
-body:not([data-mode=chars]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
-body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout{display:none!important}
+body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
+body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout{display:none!important}
+.riglayout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - var(--hdr, 50px))}
+.rigside{position:static;max-height:none;overflow:auto}
+.rigmain{min-width:0;display:flex;flex-direction:column;padding:10px;gap:8px}
+#rigCanvas{width:100%;flex:1;min-height:0;background:repeating-conic-gradient(#20232b 0 25%,#262a33 0 50%) 0 0/24px 24px;border-radius:6px;touch-action:none;cursor:crosshair}
+.rigtimeline{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.rigchecks .ok{color:#8fd18f}.rigchecks .bad{color:#ff7a7a;font-weight:600}
+#rigTip{min-height:1.2em}
 .cutlayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - 50px)}
 .cutside,.sndside{position:static;max-height:none;overflow:auto;display:flex;flex-direction:column;gap:8px}
 .cutmain,.sndmain{min-width:0;overflow:auto}
@@ -170,6 +177,16 @@ body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not(
 .libgrid span{font-size:11px;color:var(--muted);word-break:break-all}
 dialog#dlg{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;max-width:640px;width:calc(100% - 32px);padding:18px}
 dialog#dlg::backdrop{background:#0009}
+#sandbox{position:fixed;right:12px;bottom:12px;z-index:50;width:min(640px,calc(100vw - 24px));height:min(420px,calc(100vh - 24px));min-width:320px;min-height:240px;resize:both;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 30px #000a}
+#sandbox[hidden]{display:none}
+.card{min-width:0}
+@media (pointer:coarse){button.sm{min-height:32px;min-width:32px}.modes button{min-height:36px}.fsbar button{min-height:40px;min-width:40px}input[type=range]{min-height:28px}}
+.badge{display:inline-block;min-width:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:#d33;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center}
+.artchecks .warn{color:#ff8a8a}
+#sandbox .sb-head{display:flex;gap:6px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--line)}
+#sandbox .sb-head .grow{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#sandbox iframe{flex:1;border:0;background:#000;width:100%}
+#sandbox .sb-foot{padding:3px 8px;font-size:11px}
 .dlgbtns{justify-content:flex-end;margin-top:14px}
 .steps{padding-left:18px;line-height:1.5}
 .steps li{margin-bottom:6px}
@@ -195,7 +212,7 @@ a{color:var(--sel)}
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -206,6 +223,7 @@ a{color:var(--sel)}
     <button data-act="chars-from-game" class="ghost" title="Загрузить персонажей игры и общие проекты">Из игры</button>
     <button data-act="export-godot" class="ghost" title="Скачать zip с файлами для Godot">⬇ zip</button>
     <button data-act="chars-share" class="ghost" title="Сохранить проект в репозиторий, чтобы его видели все">☁ Поделиться</button>
+    <button data-act="chars-sandbox" class="ghost" title="Игра рядом с кадрами: твой персонаж на тренировочном дворе, обновляется сам">🎮 Песочница</button>
     <button data-act="chars-enemy" class="ghost" title="Сделать из персонажа врага игры">⚔ Сделать врагом</button>
     <button data-act="chars-game" class="primary" title="Записать персонажа в игру">→ В игру</button>
   </span>
@@ -256,10 +274,13 @@ a{color:var(--sel)}
     <input id="pName" placeholder="archer">
     <label>Описание для промпта (лучше по-английски)</label>
     <textarea id="pDesc" rows="3" placeholder="green-hooded elf archer, brown leather armor, wooden longbow, quiver on the back"></textarea>
+    <!-- a file input that stays in the page, so an agent driving the browser can upload into it -->
+    <input type="file" id="frameFiles" accept="image/*" multiple hidden>
     <div class="refzone" id="refZone" title="Кликни и нажми Ctrl+V, или перетащи картинку">
       <div class="imgs" id="refImgs"></div>
       <div class="row">
         <button class="sm" data-act="ref-upload">Загрузить референс</button>
+        <button class="sm" data-act="ref-paste" title="Вставить из буфера (на iPad — вместо Cmd+V)">📋 Вставить</button>
         <button class="sm ghost" data-act="ref-copy" title="Скопировать картинку, чтобы вставить в ChatGPT">Копировать</button>
         <button class="sm ghost danger" data-act="ref-clear">✕</button>
       </div>
@@ -329,7 +350,7 @@ a{color:var(--sel)}
     <select data-api="quality"><option value="low">low (дёшево, для проб)</option><option value="medium">medium</option><option value="high">high</option><option value="auto">auto</option></select>
     <label class="inline"><input type="checkbox" data-api="transparent"> Прозрачный фон</label>
     <label class="inline"><input type="checkbox" data-api="fidelity"> Высокая точность к референсу</label>
-    <label class="inline"><input type="checkbox" data-api="chain"> Передавать предыдущий кадр как референс</label>
+    <label class="inline"><input type="checkbox" data-api="chain"> Следующие кадры — правка одобренного (первого нарисованного)</label>
   </details>
 
   <details>
@@ -365,6 +386,7 @@ a{color:var(--sel)}
           <span class="grow"></span>
           <button class="sm" data-act="fs-open" title="На весь экран (F)">⛶ На весь экран</button>
         </div>
+        <div id="artChecks" class="artchecks"></div>
         <div id="warns"></div>
       </div>
       <div class="pbox">
@@ -450,6 +472,15 @@ a{color:var(--sel)}
   </main>
 </div>
 
+<div id="rigLayout" class="riglayout">
+  <aside class="side rigside" id="rigSide"></aside>
+  <main class="rigmain">
+    <div class="row" style="margin:0"><label class="inline" style="margin:0">Анимация <select id="rigAnim" style="width:220px"></select></label><span class="grow muted" id="rigTip"></span></div>
+    <canvas id="rigCanvas" width="900" height="560"></canvas>
+    <div class="rigtimeline" id="rigTimeline"></div>
+  </main>
+</div>
+
 <div id="sndLayout" class="sndlayout">
   <aside class="side sndside">
     <div class="modes">
@@ -506,10 +537,13 @@ a{color:var(--sel)}
     <label class="inline" style="margin:0"><input type="checkbox" id="paintOnion"> Калька</label>
     <span class="grow"></span>
     <span class="muted" style="font-size:12px">Правки ложатся поверх готового кадра; если потом сменить масштаб или выравнивание, они съедут.</span>
+    <button class="sm ghost" data-act="undo" title="Отменить (Cmd/Ctrl+Z)">↶</button>
+    <button class="sm ghost" data-act="redo" title="Вернуть (Cmd/Ctrl+Shift+Z)">↷</button>
+    <button class="sm ghost" data-act="paint-fit" title="Вернуть масштаб (после щипка двумя пальцами)">⤢</button>
     <button class="sm ghost danger" data-act="paint-clear">Стереть правки</button>
     <button class="sm primary" data-act="paint-close">Готово</button>
   </div>
-  <div class="fsstage" id="paintStage"><canvas id="paintCanvas" class="checker" style="cursor:crosshair"></canvas></div>
+  <div class="fsstage" id="paintStage" style="overflow:hidden"><canvas id="paintCanvas" class="checker" style="cursor:crosshair;touch-action:none;image-rendering:pixelated"></canvas></div>
   <div class="fsstrip" id="paintPal"></div>
 </div>
 <dialog id="dlg"></dialog>
@@ -518,11 +552,15 @@ a{color:var(--sel)}
 <script src="lib.js"></script>
 <script src="repo.js"></script>
 <script src="js/core.js"></script>
+<script src="js/touch.js"></script>
 <script src="js/chars.js"></script>
 <script src="js/backgrounds.js"></script>
 <script src="js/sounds.js"></script>
 <script src="js/cutscenes.js"></script>
 <script src="js/place.js"></script>
+<script src="js/sandbox.js"></script>
+<script src="js/rig-core.js"></script>
+<script src="js/rig.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>
 </body>

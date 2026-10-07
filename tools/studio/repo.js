@@ -93,6 +93,7 @@ const ownerOf = path => (META.generators || []).find(g => g.paths.some(p => path
 
 // files: {path: Blob|string}; del: [path]. Returns a link or a log to show.
 async function commitFiles(files, del, title, body, intoPr = null) {
+  await convertToOverrides(files);  // a generated picture she edited goes beside its generator, never over it
   const gen = generatedSet(), paths = Object.keys(files);
   const blocked = [...paths, ...del].filter(p => gen.has(p));
   if (blocked.length) {
@@ -187,9 +188,89 @@ async function runInGodot(room) {
   toast(r.ok ? `Godot открывает комнату ${room}…` : 'Не запустилось: ' + r.error, r.ok ? '' : 'err');
 }
 
+/* ---------- edits of what a generator draws: overrides (lib.js frameEdits, tools/art/studio_overrides.py) ---------- */
+const overridableSet = () => new Set(META.overridable || []);
+async function pictureData(url) {
+  const im = await loadImage(url), c = mk(im.naturalWidth, im.naturalHeight), x = c.getContext('2d', { willReadFrequently: true });
+  x.drawImage(im, 0, 0); return { c, x, w: c.width, h: c.height, data: x.getImageData(0, 0, c.width, c.height).data };
+}
+// The mask of an edit already in the game, so a new one adds to it rather than undoing it.
+async function oldMask(path, w, h) {
+  const out = new Uint8Array(w * h);
+  if (!META.overrides?.[path]) return out;
+  try { const m = await pictureData(A(overrideFiles(path).mask)); if (m.w === w && m.h === h) for (let p = 0; p < w * h; p++) out[p] = m.data[p * 4] > 127 ? 1 : 0; } catch {}
+  return out;
+}
+function maskBlob(mask, w, h) {
+  const c = mk(w, h), x = c.getContext('2d'), id = x.createImageData(w, h);
+  for (let p = 0; p < w * h; p++) { const v = mask[p] ? 255 : 0; id.data.set([v, v, v, 255], p * 4); }
+  x.putImageData(id, 0, 0); return canvasBlob(c);
+}
+// pics: {path: {c (canvas of her picture), mask, w, h}} → the override files and the manifest, into files
+async function addOverrides(files, pics) {
+  const entries = {}, who = Writer.mode === 'github' ? gh.login : 'local', at = new Date().toISOString().slice(0, 10);
+  for (const [path, t] of Object.entries(pics)) {
+    if (!t.mask.some(v => v)) continue;
+    const f = overrideFiles(path);
+    files[f.edit] = await canvasBlob(t.c); files[f.mask] = await maskBlob(t.mask, t.w, t.h);
+    entries[path] = { size: [t.w, t.h], by: who, at };
+  }
+  if (Object.keys(entries).length) files[OVERRIDE_DIR + 'overrides.json'] = mergeOverrides(await repoText(OVERRIDE_DIR + 'overrides.json'), entries);
+  return Object.keys(entries);
+}
+// A character the game draws with a generator (the bestiary, the hero): only the frames she changed,
+// laid into the game's own pictures where they lie (build_data's regions), as overrides.
+async function gameCharOverrides() {
+  const orig = await (await fetch(`import/chars/${encodeURIComponent(P.id)}.sprite.json`, { cache: 'no-store' })).json();
+  const edits = frameEdits(P.animations, orig.animations), pics = {}, direct = {};
+  if (!edits.length) throw new Error('Нечего отправлять: ни один кадр не отличается от игры. Поправь кадр (✎) или замени картинку.');
+  for (const e of edits) {
+    const path = e.res.replace('res://', '');
+    let t = pics[path] || direct[path];
+    if (!t) { t = await pictureData(A(path)); t.mask = await oldMask(path, t.w, t.h); (overridableSet().has(path) || generatedSet().has(path) ? pics : direct)[path] = t; }
+    const proc = processed.get(e.frame); if (!proc) continue;
+    if (e.whole) {
+      t.x.clearRect(e.x, e.y, e.w, e.h); t.x.drawImage(proc, 0, 0, e.w, e.h, e.x, e.y, e.w, e.h);
+      for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) t.mask[y * t.w + x] = 1;
+    } else {
+      const d = proc.getContext('2d').getImageData(0, 0, proc.width, proc.height).data;
+      for (const [px, py] of e.pixels) {
+        const i = (py * proc.width + px) * 4; t.x.clearRect(e.x + px, e.y + py, 1, 1);
+        t.x.putImageData(new ImageData(new Uint8ClampedArray(d.slice(i, i + 4)), 1, 1), e.x + px, e.y + py);
+        t.mask[(e.y + py) * t.w + e.x + px] = 1;
+      }
+    }
+  }
+  const files = {};
+  for (const [path, t] of Object.entries(direct)) files[path] = await canvasBlob(t.c);
+  const done = await addOverrides(files, pics);
+  const frames = edits.length, name = P.name;
+  return { files, title: `Studio: ${name} — правка ${frames} кадр(ов)`,
+    body: `Правка персонажа игры **${name}**: ${frames} кадр(ов) в ${[...done, ...Object.keys(direct)].map(p => '`' + p + '`').join(', ')}.`,
+    notes: done.length ? [`Картинки ${name} собирает генератор (${P.origin.generator}); правка лежит в tools/studio/overrides/, и генератор кладёт её поверх своей картинки. Робот студии пересоберёт их в этой же отправке.`] : [] };
+}
+// Any other generated picture she replaced whole (a room's painting): what differs from the game's is hers.
+async function convertToOverrides(files) {
+  const pics = {};
+  for (const path of Object.keys(files).filter(p => generatedSet().has(p) && overridableSet().has(p))) {
+    const mine = await pictureData(await blobToDataURL(files[path])), theirs = await pictureData(A(path));
+    delete files[path];
+    if (mine.w !== theirs.w || mine.h !== theirs.h) throw new Error(`${path}: картинка ${mine.w}×${mine.h}, а в игре ${theirs.w}×${theirs.h}. Правка ложится поверх картинки генератора — размер должен совпадать.`);
+    mine.mask = diffMask(mine.data, theirs.data, mine.w, mine.h, 8, await oldMask(path, mine.w, mine.h));
+    pics[path] = mine;
+  }
+  return addOverrides(files, pics);
+}
+
 /* ---------- what each part of the studio sends ---------- */
-async function charFiles() {
+// The red badge's checks (lib.js artChecks) asked once more before her work leaves.
+const artOk = () => { const bad = (typeof artReport !== 'undefined' ? artReport : []).filter(c => c.bad);
+  return !bad.length || confirm('Проверки нашли:\n' + bad.map(c => '• ' + c.msg).join('\n') + '\n\nВсё равно отправить?'); };
+
+// zip: the strips as they are, for her own use; into the game: a generated character goes as overrides
+async function charFiles(zip = false) {
   await build();
+  if (!zip && P.origin?.kind === 'game' && P.origin.generator) return gameCharOverrides();
   const S = P.settings, W = +S.cellW, H = +S.cellH, name = slug(P.name), origin = P.origin || {};
   const base = String(S.resPath || 'res://assets/sprites/').replace(/\/*$/, '/'), used = new Set(), files = {}, anims = [], manifest = [], sheets = {};
   for (const a of P.animations) {
@@ -326,11 +407,11 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   switch (b.dataset.act) {
     case 'auth': authDialog(); break;
-    case 'chars-game': sendToGame(charFiles, 'chars'); break;
+    case 'chars-game': if (artOk()) sendToGame(charFiles, 'chars'); break;
     case 'bg-game': sendToGame(bgFiles, 'bg'); break;
     case 'cut-game-send': sendToGame(cutFiles, 'cut'); break;
     case 'sent': sentDialog(); break;
-    case 'chars-enemy': enemyWizard(); break;
+    case 'chars-enemy': if (artOk()) enemyWizard(); break;
     case 'snd-game': sendToGame(soundFiles); break;
     case 'chars-share': shareProject('chars'); break;
     case 'bg-share': shareProject('bgs'); break;
@@ -501,7 +582,7 @@ async function enemyWizard() {
   const bases = enemyList.filter(e => !e.boss && !e.extends && BEHAVIOUR_RU[e.behaviour] && e.bestiary !== false);
   if (!bases.length) return dialog('<h3>Сделать врагом</h3><p>Нет данных о врагах игры: запусти студию из папки игры или с сайта.</p>');
   const S = P.settings, id = slug(P.name), anims = P.animations;
-  const pick = slot => (anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null)?.id || '';
+  const pick = slot => enemySlotFor(anims, slot)?.id || '';
   const taken = enemyList.some(e => e.id === id);
   let getPlace = null; ewVoices = {}; ewAvatar = null;
   setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id); });
@@ -573,6 +654,7 @@ async function enemyFiles(f) {
   return { files, title: `Studio: enemy ${f.id}`,
     body: `Новый враг **${f.id}** (бой как у \`${f.base}\`): анимации ${Object.keys(animations).join(', ')}, кадр ${W}×${H}.`,
     notes: [`Подраться с ним: превью этой отправки с ?practice=${f.id}.`,
+      ...(['name', 'tip'].some(k => !f[k].en) ? ['Имя или подсказка без английского: в английской версии (и в uk / zh_CN) пока стоит русский текст — впиши «(англ.)» и отправь ещё раз.'] : []),
       f.place ? `Стоит в комнате ${f.place.room} (${f.place.x}, ${f.place.y}); сцену пересоберёт робот студии и проверит, что до врага можно дойти.` : 'В комнаты не поставлен — только тренировочный двор.'] };
 }
 

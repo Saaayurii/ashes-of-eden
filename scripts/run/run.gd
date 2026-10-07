@@ -156,6 +156,8 @@ func _ready() -> void:
 		var spar := _requested_practice()
 		if spar != "":
 			Game.practice = spar
+		if StudioLive.requested():
+			_start_studio_live()
 		_spawn_player(1, 0)
 		var jump := _requested_room()
 		if Game.practice != "":
@@ -1243,6 +1245,32 @@ func _practice_revive() -> void:
 		return
 	player.revive(room.player_spawn.global_position, 1.0)
 	player.camera.reset_smoothing()
+
+
+## The studio's sandbox (StudioLive): the yard, the straw man until her first
+## post, then whatever she is drawing — swapped in place at every post.
+var studio_live: StudioLive
+
+
+func _start_studio_live() -> void:
+	print("run: studio sandbox, waiting for the studio")
+	Game.practice = StudioLive.WAITING_FOR
+	Game.daily = ""
+	studio_live = StudioLive.new()
+	studio_live.name = "StudioLive"
+	studio_live.applied.connect(func(_spec: Dictionary) -> void: _studio_live_swap())
+	add_child(studio_live)
+
+
+func _studio_live_swap() -> void:
+	Game.practice = StudioLive.ID
+	if room == null or room_index != PRACTICE_INDEX:
+		return  # the yard spawns it itself when it comes up
+	for node in get_tree().get_nodes_in_group("enemies"):
+		node.queue_free()
+	await get_tree().process_frame
+	if is_inside_tree() and room_index == PRACTICE_INDEX:
+		_practice_spawn()
 
 
 ## From the night's end straight into the yard against what killed him: the

@@ -535,6 +535,203 @@ function mergeStudioRooms(text, change) {
   return JSON.stringify(sorted, null, 2).replace(/\[\n\s+("[^"]*"),\n\s+(-?[\d.]+),\n\s+(-?[\d.]+)\n\s+\]/g, '[$1, $2, $3]') + '\n';
 }
 
+// ---- prompts for an image model (ChatGPT in the browser, or the API) ----
+//
+// What an image model does with a sprite request, observed: it ignores an exact
+// height or block size (asked for 44 px in 16×16 blocks, it drew 87 and 55), and
+// over a long chat it drifts the character. So the prompt never asks for a size —
+// the studio fixes scale in code (grid recovery + "fit to height") — every
+// attached image is named with the one thing it is for, and a frame after the
+// first is an edit of the approved one, not a new drawing.
+const REF_ROLES = {
+  design: 'the CHARACTER DESIGN: copy its proportions, outfit, colours, hair, weapon and silhouette exactly',
+  style: 'STYLE AND SCALE ONLY (the game\'s hero): match its pixel size, outline, palette darkness and how much detail a body this small carries. Do NOT draw this knight, do not copy his armour, cloak or sword',
+  approved: 'the APPROVED FRAME of this animation: the same character at the right scale',
+};
+// refs: the roles attached, in the order they are attached (['design', 'style', 'approved']).
+function refLines(refs) {
+  if (!refs.length) return [];
+  return ['Attached images, in order:', ...refs.map((r, i) => `Image ${i + 1}: ${REF_ROLES[r]}.`)];
+}
+const PIXEL_CLAUSE = 'Pixel art: crisp square pixels on one even grid, hard edges, no anti-aliasing, no blur, no gradients, a small palette. Chunky low-resolution pixels, not fine detail. Do not aim for any exact pixel count: the game rescales the picture itself.';
+const bgLine = transparent => transparent
+  ? 'Transparent background, no floor, no shadow.'
+  : 'Background: solid flat pure magenta (#FF00FF), perfectly uniform, no gradient, no floor, no shadow.';
+// o: { kind: 'frame' | 'strip', description, style, view, anim: {name, notes, poses: [...]},
+//      index (frame), refs (roles attached), transparent }
+// A frame with 'approved' among its refs is an edit of that frame.
+function spritePrompt(o) {
+  const refs = o.refs || [], img = r => `Image ${refs.indexOf(r) + 1}`;
+  const who = o.description || (refs.includes('design') ? `the character in ${img('design')}` : 'the character');
+  const a = o.anim, poses = a.poses || [], name = `"${a.name}"${a.notes ? ` (${a.notes})` : ''}`;
+  const out = refLines(refs);
+  if (o.kind === 'strip') {
+    out.push(
+      `Create a sprite strip: exactly ${poses.length} animation frames of the SAME character in ONE horizontal row, left to right.`,
+      `Character: ${who}.`, `Style: ${o.style}.`,
+      `View: ${o.view}, full body in every frame. All frames have the same scale, the feet stand on the same ground line, frames are evenly spaced with clear empty gaps between them and nothing overlaps.`,
+      PIXEL_CLAUSE,
+      `Animation ${name}:`, ...poses.map((p, i) => `${i + 1}. ${p || 'next pose of the motion'}`),
+      bgLine(o.transparent),
+      'No text, no numbers, no labels, no grid lines, no frame borders, no motion blur.');
+  } else if (refs.includes('approved')) {
+    out.push(
+      `Edit ${img('approved')}: change ONLY the pose, to frame ${o.index + 1} of ${poses.length} of the animation ${name}: ${poses[o.index] || 'the next pose of the motion'}.`,
+      'Keep everything else identical: the same character, outfit and colours, the same size in the picture, the same pixel size and palette, the feet on the same ground line, the same background. Do not redraw the character from scratch and do not change the camera.',
+      'Only one character. No text, no labels, no frame border, no motion blur, no effects.');
+  } else {
+    out.push(
+      'Create ONE frame of a 2D game sprite animation.',
+      `Character: ${who}.`, `Style: ${o.style}.`,
+      `View: ${o.view}, full body visible, centered, the figure about two thirds of the picture's height, feet on a ground line near the bottom.`,
+      PIXEL_CLAUSE,
+      `Animation ${name}, frame ${o.index + 1} of ${poses.length}: ${poses[o.index] || 'the next pose of the motion'}.`,
+      bgLine(o.transparent),
+      'Only one character. No text, no labels, no frame border, no motion blur, no effects.');
+  }
+  return out.join('\n');
+}
 
-Object.assign(g, { snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+// ---- the sandbox («Песочница»): what the studio posts to the game (StudioLive) ----
+
+// The animation that plays an enemy's slot: one named like it, or for the attack
+// any "attack…"/"shoot…" (the enemy wizard's rule).
+function enemySlotFor(anims, slot) {
+  return anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null;
+}
+// The post itself; strips: {slot: data URL of a strip of whole cells}.
+function liveMessage({ name, base, cell, fps, strips }) {
+  return { type: 'ashes-live', name: name || '', extends: base || 'cultist', cell: [+cell[0], +cell[1]], fps: +fps || 8, strips };
+}
+
+// ---- checks before a character is sent (the red badge on «→ В игру») ----
+//
+// What the eye misses in a strip of small frames and the game shows at once:
+// a character of the wrong size beside the hero, feet that hop between frames,
+// a figure that jumps sideways, a palette that has grown past the game's look,
+// and a fringe of the chroma key or soft alpha left round the edges.
+const HERO_H = 44;
+// Only the cycles that should stand still in place are held to a line and a centre: an attack, a roll,
+// a death or a landing moves the body on purpose (the game's own art does).
+const STEADY = /^(idle|walk|run|rest)$|поко|ходь|бег/i;
+function frameStats(fr) {
+  const { data: d, w, h } = fr; let top = h, bottom = -1, cx = 0, cy = 0, n = 0, soft = 0, halo = 0;
+  const colours = new Set(), [kh, keySat] = fr.key ? hsv(...fr.key) : [0, 0];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, a = d[i + 3]; if (!a) continue;
+    if (a < 255) soft++;
+    n++; cx += x; cy += y; if (y < top) top = y; if (y > bottom) bottom = y;
+    colours.add(d[i] << 16 | d[i + 1] << 8 | d[i + 2]);
+    // the background's colour left on the silhouette's edge: close to the key, or its tint over a dark outline
+    if (fr.key) {
+      const near = cdist(d[i], d[i + 1], d[i + 2], ...fr.key) < 3 * 70 * 70, [hu, sa] = hsv(d[i], d[i + 1], d[i + 2]), dh = Math.abs(hu - kh);
+      if (near || (keySat > 0.5 && sa > 0.45 && Math.min(dh, 360 - dh) < 18)) {
+        const clear = (xx, yy) => xx < 0 || yy < 0 || xx >= w || yy >= h || !d[(yy * w + xx) * 4 + 3];
+        if (clear(x - 1, y) || clear(x + 1, y) || clear(x, y - 1) || clear(x, y + 1)) halo++;
+      }
+    }
+  }
+  if (!n) return null;
+  // where the body stands: the centre of its lower 40 % (the legs), which a swung blade or a cape does not drag about
+  const from = bottom - Math.round((bottom - top + 1) * 0.4); let lx = 0, ly = 0, ln = 0;
+  for (let y = Math.max(top, from); y <= bottom; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3]) { lx += x; ly += y; ln++; }
+  return { height: bottom - top + 1, top, bottom, cx: lx / ln, cy: ly / ln, n, soft, halo, colours };
+}
+// anims: [{name, loop, frames: [{data, w, h, key}]}]; o: {contentH, palette (the limit she set, 0 = none),
+// fit (false: the studio does not scale this one, its height is the game's), flyer (no ground under it)}.
+// → [{id, bad, anim, msg}] — bad ones turn the badge red, the rest are said for information.
+function artChecks(anims, o = {}) {
+  const out = [], CH = +o.contentH || HERO_H, all = new Set();
+  const add = (id, bad, anim, msg) => out.push({ id, bad, anim, msg });
+  const stats = anims.map(a => ({ a, st: a.frames.map(frameStats) })).filter(x => x.st.some(Boolean));
+  // a flyer hovers: its idle's lowest row moves, and nothing of it stands on a line
+  const idle = stats.find(x => /^idle$|поко/i.test(x.a.name)) || stats[0];
+  const bottoms = s => s.st.filter(Boolean).map(f => f.bottom), spreadOf = s => { const b = bottoms(s); return Math.max(...b) - Math.min(...b); };
+  const flyer = !!o.flyer || (!!idle && spreadOf(idle) > 1);
+  for (const { a, st } of stats) {
+    const ok = st.filter(Boolean);
+    for (const s of ok) for (const c of s.colours) all.add(c);
+    const hmax = Math.max(...ok.map(s => s.height));
+    if (STEADY.test(a.name) && !flyer && ok.length > 1) {
+      const spread = spreadOf({ st });
+      if (spread > 1) add('feet', true, a.name, `«${a.name}»: ноги не на одной линии — низ гуляет на ${spread} px между кадрами`);
+    }
+    if (STEADY.test(a.name) && !flyer) {
+      const jump = Math.max(4, hmax * 0.2), seq = st.map((s, i) => [s, i]).filter(([s]) => s);
+      for (let k = 1; k < seq.length + (a.loop && seq.length > 2 ? 1 : 0); k++) {
+        const [p, i] = seq[k - 1], [q, j] = seq[k % seq.length], d = Math.hypot(q.cx - p.cx, q.cy - p.cy);
+        if (d > jump) { add('jump', true, a.name, `«${a.name}»: между кадрами ${i + 1} и ${j + 1} персонаж прыгает на ${d.toFixed(0)} px`); break; }
+      }
+    }
+    const halo = ok.reduce((t, s) => t + s.halo, 0), soft = ok.reduce((t, s) => t + s.soft, 0);
+    if (halo) add('halo', true, a.name, `«${a.name}»: по краю остался цвет фона (${halo} px) — подними «Допуск фона» или поправь ✎`);
+    if (soft) add('soft', true, a.name, `«${a.name}»: полупрозрачные пиксели (${soft}) — в пиксель-арте край или есть, или нет`);
+  }
+  // height: of the idle (a raised blade in an attack is not the body's height)
+  const tall = idle ? Math.max(...idle.st.filter(Boolean).map(f => f.height)) : 0;
+  if (tall) {
+    if (o.fit !== false && Math.abs(tall - CH) > 2) add('height', true, '', `Рост ${tall} px, а задан ${CH} px — нажми «Сетка пикселей + подогнать рост»`);
+    else if (Math.abs(tall - HERO_H) > 2) add('hero', false, '', `Рост ${tall} px — ${tall > HERO_H ? 'выше' : 'ниже'} героя (${HERO_H} px) в ${(tall > HERO_H ? tall / HERO_H : HERO_H / tall).toFixed(1)} раза`);
+    else add('hero', false, '', `Рост ${tall} px — как у героя`);
+  }
+  // the game's own sprites are not strict palettes (the hero has thousands of colours), so only a palette
+  // she asked for and did not get is an error; without one the count is said for information
+  if (+o.palette > 0 && all.size > +o.palette) add('palette', true, '', `Цветов ${all.size} — больше, чем задано в палитре (${o.palette})`);
+  else if (all.size) add('palette', false, '', `Цветов: ${all.size}${+o.palette > 0 ? ` (палитра ${o.palette})` : ' — палитра выключена'}`);
+  return out;
+}
+
+// ---- editing what a generator draws: overrides (tools/art/studio_overrides.py) ----
+//
+// A generated picture is never written by the studio. Her edit goes beside the
+// generator — her picture whole, a mask of what she changed, a line in
+// tools/studio/overrides/overrides.json — and the generator lays it over its
+// own picture. The mask must hold only what she changed: the studio's own
+// processing does not give back a game sprite pixel for pixel (soft alpha
+// becomes hard), so an untouched frame stays out of it.
+const OVERRIDE_DIR = 'tools/studio/overrides/';
+const overrideFiles = path => ({ edit: OVERRIDE_DIR + path, mask: OVERRIDE_DIR + path.replace(/\.png$/i, '') + '.mask.png' });
+// What she changed in a character from the game, slot by slot against what the game has
+// (the studio's import of it): a frame replaced or moved is its whole region, a touch-up its pixels.
+// anims / orig: [{id, frames: [{id, src, dx, dy, sc, patch, off}], regions: [[res, x, y, w, h]]}]
+// → [{res, x, y, w, h, frame, whole, pixels: [[x, y]]}] (pixels in the frame's own cell); throws on what an
+// override cannot hold (a frame added past the strip, an animation the game does not have).
+function frameEdits(anims, orig) {
+  const out = [];
+  for (const a of anims) {
+    const o = orig.find(x => x.id === a.id);
+    if (!o) throw new Error(`Анимации «${a.name}» нет у этого персонажа в игре — новую анимацию добавляют новым персонажем.`);
+    if (a.frames.length > (o.regions || []).length) throw new Error(`В «${a.name}» кадров больше, чем в игре (${o.regions.length}): ленту, которую собирает генератор, можно править, но не удлинять.`);
+    a.frames.forEach((f, i) => {
+      if (f.off) return;
+      const of = o.frames[i], [res, x, y, w, h] = o.regions[i];
+      const whole = !of || f.id !== of.id || f.src !== of.src || (+f.dx || 0) !== (+of.dx || 0) || (+f.dy || 0) !== (+of.dy || 0) || (+f.sc || 1) !== (+of.sc || 1);
+      const pixels = whole ? [] : Object.keys(f.patch || {}).map(k => k.split(',').map(Number)).filter(([px, py]) => px >= 0 && py >= 0 && px < w && py < h);
+      if (whole || pixels.length) out.push({ res, x, y, w, h, frame: f.id, whole, pixels });
+    });
+  }
+  return out;
+}
+// A mask (1 = hers) of where two RGBA pictures differ by more than tol in any channel, OR'd into `into`.
+function diffMask(a, b, w, h, tol = 8, into = new Uint8Array(w * h)) {
+  for (let p = 0; p < w * h; p++) {
+    const i = p * 4;
+    if (Math.abs(a[i] - b[i]) > tol || Math.abs(a[i + 1] - b[i + 1]) > tol || Math.abs(a[i + 2] - b[i + 2]) > tol || Math.abs(a[i + 3] - b[i + 3]) > tol) into[p] = 1;
+  }
+  return into;
+}
+// The manifest with these entries set, in the shape the Python side writes (sorted, two spaces).
+// An edit made again keeps the base it was first drawn on; a stale one she has now looked at and
+// drawn again is no longer stale, and its base is left for the generator to record anew.
+function mergeOverrides(text, entries) {
+  const all = text ? JSON.parse(text) : {};
+  for (const [path, e] of Object.entries(entries)) {
+    const was = all[path] || {};
+    all[path] = { size: e.size, base: was.stale ? null : (was.base ?? null), by: e.by, at: e.at };
+  }
+  const sorted = Object.fromEntries(Object.keys(all).sort().map(k => [k, all[k]]));
+  return JSON.stringify(sorted, null, 2) + '\n';
+}
+
+Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

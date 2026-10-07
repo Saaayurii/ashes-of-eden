@@ -26,7 +26,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WRITABLE = ("assets/", "data/cutscenes/", "data/dialogues/", "data/enemies/", "data/backdrops.json",
-            "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json")
+            "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json",
+            "tools/studio/overrides/")
 PORT = int(os.environ.get("STUDIO_PORT", "8765"))
 
 
@@ -87,6 +88,12 @@ def run(cmd, timeout=600):
     return r.returncode, (r.stdout + r.stderr)[-6000:]
 
 
+def dirty_files(paths):
+    """Tracked files git sees as modified under these paths."""
+    out = subprocess.run(["git", "status", "--porcelain", "--"] + paths, cwd=ROOT, capture_output=True, text=True).stdout
+    return [line[3:] for line in out.splitlines() if line[:2] != "??"]
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=str(ROOT), **kw)
@@ -123,6 +130,25 @@ class Handler(SimpleHTTPRequestHandler):
                     run(["git", "checkout", "--", "assets/levels"])
                     if code != 0:
                         return self._json(200, {"ok": False, "error": "генератор комнат не принял изменения:\n" + regenerated[-3000:]})
+                if any(w.startswith("tools/studio/overrides/") for w in written):
+                    # her edit of a generated picture: the generators that own it lay it over their own
+                    # picture (what the studio's robot does on a pull request). What else they rewrite
+                    # here differs by a level from CI's machine, so only the overridden pictures keep
+                    # the regeneration; everything else is put back as it was a moment ago — including
+                    # anything of hers not committed yet.
+                    owned = ["assets", "scenes/rooms", "data/enemy_archetypes"]
+                    before = {rel: (ROOT / rel).read_bytes() for rel in dirty_files(owned) if (ROOT / rel).is_file()}
+                    code, out = run([sys.executable, "tools/art/studio_overrides.py", "regenerate"])
+                    if code != 0:
+                        return self._json(200, {"ok": False, "error": "генератор не принял правку:\n" + out[-3000:]})
+                    keep = set(json.loads((ROOT / "tools/studio/overrides/overrides.json").read_text(encoding="utf-8")))
+                    for rel in dirty_files(owned):
+                        if rel in keep:
+                            continue
+                        if rel in before:
+                            (ROOT / rel).write_bytes(before[rel])
+                        else:
+                            run(["git", "checkout", "--", rel])
                 # the page reads the game through import/: rebuild it, or it would show the old version
                 subprocess.run([sys.executable, str(ROOT / "tools/studio/build_data.py")], cwd=ROOT, capture_output=True)
                 return self._json(200, {"ok": True, "written": written, "deleted": removed, "regenerated": bool(regenerated)})
@@ -150,12 +176,21 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(500, {"ok": False, "error": f"{type(e).__name__}: {e}"})
 
 
+class Server(ThreadingHTTPServer):
+    # The page asks for the game's rooms all at once (rooms_list.json, then 25
+    # files and their pictures) while the browser still holds other loads open.
+    # With socketserver's backlog of 5 the extra connections were reset: the
+    # import failed with "Failed to fetch" and the backgrounds tab stayed empty.
+    request_queue_size = 128
+    daemon_threads = True
+
+
 def main():
     if not (ROOT / "tools/studio/import/meta.json").exists():
         print("building the studio's data first (tools/studio/build_data.py)…")
         subprocess.run([sys.executable, str(ROOT / "tools/studio/build_data.py")], check=True)
     print(f"Studio: http://localhost:{PORT}/tools/studio/  (writes into {ROOT})")
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    Server(("127.0.0.1", PORT), Handler).serve_forever()
 
 
 if __name__ == "__main__":
