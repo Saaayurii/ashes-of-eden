@@ -26,7 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WRITABLE = ("assets/", "data/cutscenes/", "data/dialogues/", "data/enemies/", "data/backdrops.json",
-            "localization/strings.csv", "tools/studio/projects/")
+            "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json")
 PORT = int(os.environ.get("STUDIO_PORT", "8765"))
 
 
@@ -63,6 +63,25 @@ def apply_changes(files, delete):
     return written, removed
 
 
+def image(req):
+    """A picture for the studio with the key in this machine's environment (generate_image.py)."""
+    import tempfile
+    sys.path.insert(0, str(ROOT / "tools/studio"))
+    import generate_image
+    with tempfile.TemporaryDirectory() as tmp:
+        refs = []
+        for i, d in enumerate(req.pop("refs", [])):
+            Path(tmp, f"ref{i}.png").write_bytes(base64.b64decode(d.split(",", 1)[1]))
+            refs.append(f"ref{i}.png")
+        path = Path(tmp, "request.json")
+        path.write_text(json.dumps({**req, "refs": refs, "out": "out.png"}), encoding="utf-8")
+        try:
+            out = generate_image.generate(path)
+        except SystemExit as e:
+            return {"ok": False, "error": str(e)}
+        return {"ok": True, "b64": base64.b64encode(out.read_bytes()).decode()}
+
+
 def run(cmd, timeout=600):
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=timeout)
     return r.returncode, (r.stdout + r.stderr)[-6000:]
@@ -95,9 +114,20 @@ class Handler(SimpleHTTPRequestHandler):
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
             if self.path == "/api/write":
                 written, removed = apply_changes(data.get("files", []), data.get("delete", []))
+                regenerated = ""
+                if "tools/rooms/studio_rooms.json" in written:
+                    # what the studio's robot does on a pull request: the scenes follow the table.
+                    # The panels it also re-encodes differ by a level here and there on other
+                    # machines than CI's, so they are put back; only the scenes are meant to move.
+                    code, regenerated = run([sys.executable, "tools/rooms/generate_rooms.py"])
+                    run(["git", "checkout", "--", "assets/levels"])
+                    if code != 0:
+                        return self._json(200, {"ok": False, "error": "генератор комнат не принял изменения:\n" + regenerated[-3000:]})
                 # the page reads the game through import/: rebuild it, or it would show the old version
                 subprocess.run([sys.executable, str(ROOT / "tools/studio/build_data.py")], cwd=ROOT, capture_output=True)
-                return self._json(200, {"ok": True, "written": written, "deleted": removed})
+                return self._json(200, {"ok": True, "written": written, "deleted": removed, "regenerated": bool(regenerated)})
+            if self.path == "/api/image":
+                return self._json(200, image(data))
             g = godot()
             if self.path in ("/api/validate", "/api/run") and not g:
                 return self._json(500, {"ok": False, "error": "Godot not found: set GODOT=/path/to/godot"})

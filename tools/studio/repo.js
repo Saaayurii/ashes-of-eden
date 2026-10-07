@@ -279,7 +279,10 @@ async function cutFiles() {
     notes.push('Для новых картин добавлены неподвижные правила в data/backdrops.json (зоны «оживления» можно дописать потом).');
   }
   const rooms = cutData?.played_in?.[id];
-  notes.push(rooms ? `Катсцену показывает комната ${rooms.join(', ')}.` : 'Катсцену пока не показывает ни одна комната: её подключают полем intro_cutscene / outro_cutscene в tools/rooms/generate_rooms.py.');
+  if (CUT.attach) {
+    files['tools/rooms/studio_rooms.json'] = mergeStudioRooms(files['tools/rooms/studio_rooms.json'] || await repoText('tools/rooms/studio_rooms.json'), { room: CUT.attach.room, [CUT.attach.when]: id });
+    notes.push(`Будет играть в комнате ${CUT.attach.room} ${CUT.attach.when === 'outro_cutscene' ? 'после зачистки' : 'при входе'}; сцену пересоберёт робот студии.`);
+  } else notes.push(rooms ? `Катсцену показывает комната ${rooms.join(', ')}.` : 'Катсцену пока не показывает ни одна комната — «🏠 В комнату», чтобы подключить.');
   return { id, files, notes, title: `Studio: cutscene ${id}`, body: `Катсцена **${id}**: ${CUT.steps.length} шагов.` };
 }
 async function soundFiles() {
@@ -389,6 +392,10 @@ async function previewOf(p) {
     const files = (await ghApi(`/repos/${META.repo}/pulls/${p.number}/files?per_page=100`)).map(f => f.filename);
     const scene = files.map(f => f.match(/^data\/cutscenes\/(.+)\.json$/)?.[1]).find(Boolean);
     room = scene && cutData?.played_in?.[scene]?.[0] || null;
+    if (scene && files.includes('tools/rooms/studio_rooms.json')) {
+      const table = JSON.parse(await ghApi(`/repos/${META.repo}/contents/tools/rooms/studio_rooms.json?ref=${p.head.sha}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }));
+      room = Object.keys(table).find(r => [table[r].intro_cutscene, table[r].outro_cutscene].includes(scene)) || room;
+    }
     practice = files.map(f => f.match(/^data\/enemies\/(.+)\.json$/)?.[1]).find(Boolean) || null;
   } catch {}
   const q = practice ? '?practice=' + practice : room ? '?room=' + room : '';
@@ -460,6 +467,30 @@ document.addEventListener('click', async e => {
   catch (err) { toast('Не отправилось: ' + err.message, 'err'); }
 });
 
+/* ---------- a character becomes an enemy (its voice: <id>_<kind>_N.wav, Enemy._voice) ---------- */
+const ENEMY_VOICES = [['alert', 'заметил'], ['attack', 'замах'], ['hurt', 'больно'], ['death', 'смерть']];
+let ewVoices = {}, ewAvatar = null, ewRec = null;
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-ewv]'); if (!b) return;
+  const row = b.closest('[data-ew-voice]'), kind = row?.dataset.ewVoice, state = row?.querySelector('.ewv-state');
+  const mark = () => { if (state) state.textContent = ewVoices[kind] ? 'свой ✓' : 'как у образца'; };
+  if (b.dataset.ewv === 'up') { const [f] = await pickFiles('audio/*,.wav,.mp3,.ogg', false); if (f) { try { await AC().decodeAudioData(await f.arrayBuffer()); ewVoices[kind] = f; } catch { toast('Не читается как звук', 'err'); } mark(); } }
+  else if (b.dataset.ewv === 'play') { AC().resume?.(); const src = ewVoices[kind]; if (src) playBuf(await AC().decodeAudioData(await src.arrayBuffer())); else { const base = enemyList.find(x => x.id === document.getElementById('ewBase').value); const ent = sndEntry(`sfx/${base?.voice}_${kind}`); if (ent?.takes[0]) playBuf(await takeBuffer(ent.takes[0])); else toast('У образца нет такого звука'); } }
+  else if (b.dataset.ewv === 'rec') {
+    if (ewRec) { ewRec.stop(); return; }
+    let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { return toast('Нет доступа к микрофону', 'err'); }
+    const chunks = [], rec = new MediaRecorder(stream); ewRec = rec; b.textContent = '■ Стоп';
+    rec.ondataavailable = ev => chunks.push(ev.data);
+    rec.onstop = () => { stream.getTracks().forEach(t => t.stop()); ewRec = null; b.textContent = '● Запись'; ewVoices[kind] = new Blob(chunks, { type: rec.mimeType }); mark(); };
+    rec.start();
+  }
+  else if (b.dataset.ewv === 'avatar') { const [f] = await pickFiles('image/*', false); if (f) { ewAvatar = await normalizeImage(await blobToDataURL(f), 128); document.getElementById('ewAvatar').textContent = 'своя картинка ✓'; } }
+});
+async function wavOf(blobOrUrl) {
+  const buf = blobOrUrl instanceof Blob ? await AC().decodeAudioData(await blobOrUrl.arrayBuffer()) : await decodeUrl(A(blobOrUrl));
+  return encodeWav(buf);
+}
+
 /* ---------- a character becomes an enemy: data/enemies/<id>.json that extends one the game has ---------- */
 const ENEMY_SLOTS = [['idle', 'покой (обязательно)'], ['walk', 'ходьба'], ['attack', 'атака'], ['attack_alt', 'вторая атака'], ['special', 'особое'], ['hurt', 'боль'], ['death', 'смерть']];
 const BEHAVIOUR_RU = { walker: 'ходит и бьёт', flyer: 'летает', caster: 'держит дистанцию и колдует' };
@@ -472,6 +503,8 @@ async function enemyWizard() {
   const S = P.settings, id = slug(P.name), anims = P.animations;
   const pick = slot => (anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null)?.id || '';
   const taken = enemyList.some(e => e.id === id);
+  let getPlace = null; ewVoices = {}; ewAvatar = null;
+  setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id); });
   await dialog(`<h3>Сделать «${esc(P.name)}» врагом</h3>
     <div class="fgrid">
       <div><label>Имя файла (латиницей)</label><input id="ewId" value="${esc(taken ? id + '_2' : id)}"></div>
@@ -486,10 +519,18 @@ async function enemyWizard() {
     <h3 style="margin-top:12px">Анимации</h3>
     <div class="fgrid">${ENEMY_SLOTS.map(([slot, ru]) => `<div><label>${ru}</label><select data-ew-slot="${slot}"><option value="">— нет —</option>${anims.map(a => `<option value="${a.id}" ${pick(slot) === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></div>`).join('')}</div>
     ${+S.bottomPad !== 1 ? `<div class="warn" id="ewPad">У врагов ноги стоят на 1 px выше низа кадра (так ставит их enemy.gd), а у этого персонажа отступ снизу ${S.bottomPad}. <button class="sm" data-act="ew-pad">Поставить 1</button></div>` : ''}
-    <div class="note">Бой (здоровье, скорость, атаки, звуки ударов) враг берёт у выбранного. В комнаты врага ставит генератор комнат — это сделает разработчик; посмотреть и подраться можно сразу на тренировочном дворе в превью.</div>
+    <h3 style="margin-top:12px">Голос</h3>
+    <div class="ewvoice">${ENEMY_VOICES.map(([k, ru]) => `<div class="row" style="margin:2px 0" data-ew-voice="${k}"><span style="width:90px">${ru}</span>
+      <button class="sm" data-ewv="up">⬆ Файл</button><button class="sm" data-ewv="rec">● Запись</button><button class="sm ghost" data-ewv="play">▶</button><span class="muted ewv-state">как у образца</span></div>`).join('')}</div>
+    <div class="note">Без своих звуков враг кричит голосом того, на кого похож. Если дать хотя бы один — недостающие студия возьмёт у образца.</div>
+    <h3 style="margin-top:12px">Портрет для бестиария</h3>
+    <div class="row" style="margin:0"><button class="sm" data-ewv="avatar">⬆ Своя картинка</button><span class="muted" id="ewAvatar">по умолчанию — анимация покоя</span></div>
+    <h3 style="margin-top:12px">Где появляется</h3>
+    <div id="ewPlace"></div>
+    <div class="note">Бой (здоровье, скорость, атаки) враг берёт у выбранного. Подраться с ним можно сразу на тренировочном дворе в превью.</div>
     <div class="warn" id="ewErr"></div>`,
     [['→ В игру', d => {
-      const v = q => d.querySelector(q).value.trim(), form = { id: slug(v('#ewId')), base: v('#ewBase'),
+      const v = q => d.querySelector(q).value.trim(), form = { id: slug(v('#ewId')), base: v('#ewBase'), place: getPlace?.() || null, voices: { ...ewVoices }, avatar: ewAvatar,
         name: { ru: v('#ewNameRu'), en: v('#ewNameEn') }, lore: { ru: v('#ewLoreRu'), en: v('#ewLoreEn') }, tip: { ru: v('#ewTipRu'), en: v('#ewTipEn') },
         map: Object.fromEntries([...d.querySelectorAll('[data-ew-slot]')].map(x => [x.dataset.ewSlot, x.value])) };
       const err = !form.id ? 'Нужно имя файла' : enemyList.some(e => e.id === form.id) ? `Враг «${form.id}» в игре уже есть — выбери другое имя` : !form.map.idle ? 'Нужна анимация «покой»'
@@ -513,11 +554,59 @@ async function enemyFiles(f) {
   if (!animations.idle) throw new Error('В анимации «покой» нет готовых кадров');
   const KEY = f.id.toUpperCase(), fps = +P.animations.find(x => x.id === f.map.idle)?.fps || 8;
   const entry = { id: f.id, extends: f.base, name: `ENEMY_${KEY}`, lore: `ENEMY_${KEY}_LORE`, tip: `TIP_${KEY}`, sprite: { cell: [W, H], fps, animations } };
+  const baseVoice = enemyList.find(e => e.id === f.base)?.voice || f.base;
+  if (Object.keys(f.voices || {}).length) {
+    await loadSndLib();
+    for (const [kind] of ENEMY_VOICES) {
+      if (f.voices[kind]) { files[`assets/audio/sfx/${f.id}_${kind}_1.wav`] = await wavOf(f.voices[kind]); continue; }
+      // a cue she did not record keeps the voice of the one it fights like
+      const takes = sndEntry(`sfx/${baseVoice}_${kind}`)?.takes || [];
+      for (const [i, t] of takes.filter(t => t.url).entries()) files[`assets/audio/sfx/${f.id}_${kind}_${i + 1}.wav`] = await wavOf(t.url);
+    }
+  } else entry.voice = baseVoice;
+  if (f.avatar) { files[`assets/portraits/${f.id}.png`] = dataURLtoBlob(f.avatar); entry.avatar = `res://assets/portraits/${f.id}.png`; }
   files[`data/enemies/${f.id}.json`] = JSON.stringify(entry, null, 2) + '\n';
   const fill = v => ({ ru: v.ru || v.en, en: v.en || v.ru });
   files['localization/strings.csv'] = mergeStrings(await repoText('localization/strings.csv'),
     { [entry.name]: fill(f.name), [entry.lore]: fill(f.lore.ru || f.lore.en ? f.lore : { ru: '…', en: '…' }), [entry.tip]: fill(f.tip) });
+  if (f.place) files['tools/rooms/studio_rooms.json'] = mergeStudioRooms(await repoText('tools/rooms/studio_rooms.json'), { room: f.place.room, spawn: [f.id, f.place.x, f.place.y] });
   return { files, title: `Studio: enemy ${f.id}`,
     body: `Новый враг **${f.id}** (бой как у \`${f.base}\`): анимации ${Object.keys(animations).join(', ')}, кадр ${W}×${H}.`,
-    notes: [`Подраться с ним: превью этой отправки с ?practice=${f.id}.`, 'В комнаты его ставит генератор комнат (EnemySpawn в tools/rooms/generate_rooms.py). Звуки — как у того, на кого он похож, пока не появятся свои (<id>_hurt, _death…).'] };
+    notes: [`Подраться с ним: превью этой отправки с ?practice=${f.id}.`,
+      f.place ? `Стоит в комнате ${f.place.room} (${f.place.x}, ${f.place.y}); сцену пересоберёт робот студии и проверит, что до врага можно дойти.` : 'В комнаты не поставлен — только тренировочный двор.'] };
+}
+
+/* ---------- pictures without a key in the browser ---------- */
+// Local: tools/studio/serve.py runs generate_image.py with its own OPENAI_API_KEY.
+async function localImage(req, refs) {
+  const r = await (await fetch('/api/image', { method: 'POST', body: JSON.stringify({ ...req, refs }) })).json();
+  if (!r.ok) throw new Error(r.error);
+  return 'data:image/png;base64,' + r.b64;
+}
+// Hosted: a studio-gen/<login> branch = main + one commit with the request;
+// .github/workflows/studio-images.yml answers with out.png beside it.
+async function robotImage(req, refs) {
+  const R = `/repos/${META.repo}`, branch = `studio-gen/${gh.login}`, id = uid(), dir = `tools/studio/requests/${id}`;
+  const main = await ghApi(`${R}/git/ref/heads/${META.branch}`), head = await ghApi(`${R}/git/commits/${main.object.sha}`);
+  const tree = [];
+  for (const [i, d] of refs.entries()) {
+    const b = await ghApi(`${R}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: await blobB64(dataURLtoBlob(d)), encoding: 'base64' }) });
+    tree.push({ path: `${dir}/ref${i}.png`, mode: '100644', type: 'blob', sha: b.sha });
+  }
+  tree.push({ path: `${dir}/request.json`, mode: '100644', type: 'blob', content: JSON.stringify({ ...req, refs: refs.map((_, i) => `ref${i}.png`), out: 'out.png' }, null, 2) });
+  const t = await ghApi(`${R}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: head.tree.sha, tree }) });
+  const c = await ghApi(`${R}/git/commits`, { method: 'POST', body: JSON.stringify({ message: `Studio images: request ${id}`, tree: t.sha, parents: [main.object.sha] }) });
+  try { await ghApi(`${R}/git/refs/heads/${branch}`, { method: 'PATCH', body: JSON.stringify({ sha: c.sha, force: true }) }); }
+  catch (e) { if (e.status !== 422 && e.status !== 404) throw e; await ghApi(`${R}/git/refs`, { method: 'POST', body: JSON.stringify({ ref: 'refs/heads/' + branch, sha: c.sha }) }); }
+  toast('Картинка заказана — робот GitHub рисует (обычно до минуты)…');
+  const since = Date.now();
+  while (Date.now() - since < 5 * 60e3) {
+    await new Promise(r => setTimeout(r, 6000));
+    const res = await fetch(`https://api.github.com${R}/contents/${dir}/out.png?ref=${encodeURIComponent(branch)}`, { headers: { Authorization: 'Bearer ' + gh.token, Accept: 'application/vnd.github.raw' }, cache: 'no-store' });
+    if (res.ok) return blobToDataURL(await res.blob());
+    const runs = (await ghApi(`${R}/actions/runs?branch=${encodeURIComponent(branch)}&head_sha=${c.sha}`)).workflow_runs || [];
+    const failed = runs.find(x => x.conclusion === 'failure');
+    if (failed) throw new Error(`робот не смог нарисовать: ${failed.html_url} (если там «OPENAI_API_KEY is not set» — владелец ещё не добавил ключ в секреты репозитория)`);
+  }
+  throw new Error('робот не ответил за 5 минут');
 }

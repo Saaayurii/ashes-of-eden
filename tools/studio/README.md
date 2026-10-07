@@ -63,10 +63,39 @@ she can answer, and a fix goes into the same pull request.
 sounds), with the strips she drew, name, lore and the `tip` the validator wants,
 in all four locales. Rooms still get their spawns from the room generator.
 
+**Rooms through the generator, by a robot.** Placing an enemy or tying a
+cutscene to a room writes `tools/rooms/studio_rooms.json`, which
+`generate_rooms.py` merges into its tables (spawns in the finished room's
+pixels, checked by `check_reach` like every walker). On a studio pull request
+`.github/workflows/studio-robot.yml` regenerates the rooms, pushes the scenes
+onto the branch and starts CI and the preview again; `serve.py` does the same
+locally (keeping the panels as committed — their re-encoding differs by a level
+on other machines than CI's). The placement map snaps a click to the floor
+below it by the rule `check_reach` uses.
+
+**Pictures without a key in the browser.** ⚡ generation goes, in order, to a
+key typed in this browser, the local server's `OPENAI_API_KEY`, or — signed in
+through GitHub — `.github/workflows/studio-images.yml`: the studio points
+`studio-gen/<login>` at main plus one commit with the request, the workflow
+draws it with the repository secret `OPENAI_API_KEY` (`generate_image.py`) and
+pushes `out.png` back.
+
+**Enemy voices.** Without her own sounds an enemy speaks with the voice of the
+one it fights like (`"voice"`); with any of hers, the cues she left out are
+copied from that one as `<id>_<kind>_N.wav`, so it never falls silent. A
+portrait is optional (`avatar`); otherwise the bestiary plays its idle strip.
+
+The page is plain scripts in `js/` sharing one scope, loaded in order by
+`index.html`; `lib.js` (pure) and `repo.js` (the repository side) beside them.
+
 ```sh
-python3 -m unittest discover -s tools/studio/tests   # converter, server guard
 node --test tools/studio/tests/*.test.js             # lib.js, formats against the real files
+python3 -m unittest discover -s tools/studio/tests   # converter, server guard, preview page
+cd tools/studio/e2e && npm install --no-save --no-package-lock playwright@1.49.1 \
+  && npx playwright install chromium && node studio.e2e.cjs   # the page in Chromium (CI runs it)
 ```
+
+
 
 ## Для художника (как пользоваться)
 
@@ -96,3 +125,8 @@ node --test tools/studio/tests/*.test.js             # lib.js, formats against t
    он похож по бою, имя, описание и подсказку «как драться».
 10. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
     анимацию. Звуки: обрезка — тяни ручки на волне; Cmd/Ctrl+Z работает везде.
+11. В мастере врага: **Где появляется** — выбери комнату и кликни по полу на
+    карте (зелёное — пол, красное — кто уже стоит). **Голос** — свои крики
+    файлом или с микрофона. Катсцена: **🏠 В комнату** — при входе или после
+    зачистки. Сцены комнат пересоберёт робот, ничего делать не нужно.
+12. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.
