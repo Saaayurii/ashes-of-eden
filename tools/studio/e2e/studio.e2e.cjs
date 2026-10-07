@@ -204,11 +204,78 @@ async function step(name, fn) {
       assert.deepEqual(diff, ['1\t1\tlocalization/strings.csv'], diff.join(' | '));
     });
 
+    // ---- an iPad with an Apple Pencil: a touch screen, the pencil as a pen pointer (CDP), a palm as a touch ----
+    await step('on a tablet the pencil paints, a palm and a finger do not, two fingers zoom, the rig takes the pencil', async () => {
+      const ctx = await browser.newContext({ viewport: { width: 820, height: 1180 }, hasTouch: true, deviceScaleFactor: 2 });
+      const tab = await ctx.newPage(); tab.on('pageerror', e => errors.push('tablet: ' + e));
+      tab.on('dialog', d => d.accept(d.type() === 'prompt' ? 'e2e_tablet' : undefined));
+      await tab.goto(URL); await tab.waitForFunction(() => typeof Writer !== 'undefined' && Writer.mode === 'local');
+      const cdp = await ctx.newCDPSession(tab);
+      const pen = (type, x, y, buttons = 1) => cdp.send('Input.dispatchMouseEvent', { type, x, y, button: type === 'mouseMoved' && !buttons ? 'none' : 'left', buttons, clickCount: 1, pointerType: 'pen' });
+      const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], id) => ({ x, y, id })) });
+      const fid = await tab.evaluate(async () => {
+        document.querySelector('[data-act="proj-new"]').click(); await new Promise(r => setTimeout(r, 300));
+        Object.assign(P.settings, { cellW: 48, cellH: 56, bottomPad: 1, contentH: 44, scaleMode: 'gridfit' }); save();
+        const c = document.createElement('canvas'); c.width = c.height = 1024; const x = c.getContext('2d');
+        x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 1024, 1024);
+        for (let j = 0; j < 55; j++) for (let i = 0; i < 18; i++) if (Math.abs(i - 9) < 6) { x.fillStyle = (i + j) % 3 ? '#3f6b2e' : '#22301a'; x.fillRect(360 + i * 11, 220 + j * 11, 11, 11); }
+        const a = P.animations.find(a => a.name === 'idle');
+        await SS.assignFiles([new File([await new Promise(r => c.toBlob(r, 'image/png'))], 'f.png', { type: 'image/png' })], { type: 'frame', id: a.frames[0].id });
+        await new Promise(r => setTimeout(r, 2000)); await SS.build();
+        openPaint(a.frames[0].id); await new Promise(r => setTimeout(r, 300));
+        return a.frames[0].id;
+      });
+      assert.ok(await tab.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no sideways scroll at 820×1180');
+      const at = (px, py) => tab.evaluate(([px, py]) => { const c = $('#paintCanvas'), r = c.getBoundingClientRect(), k = paint.zoom * r.width / c.width;
+        return [r.left + (px + 0.5) * k, r.top + (py + 0.5) * k]; }, [px, py]);
+      const patch = () => tab.evaluate(fid => Object.keys(findFrame(fid).f.patch || {}), fid);
+      // the pencil hovers (Pencil Pro), then draws a line
+      await pen('mouseMoved', ...await at(5, 5), 0);
+      assert.deepEqual(await tab.evaluate(() => paint.hover), [5, 5], 'a hovering pencil shows its pixel');
+      await pen('mousePressed', ...await at(5, 5)); await pen('mouseMoved', ...await at(8, 5)); await pen('mouseReleased', ...await at(8, 5), 0);
+      assert.ok((await patch()).includes('5,5') && (await patch()).includes('8,5'), 'the pencil paints');
+      // a palm lands while the pencil is down
+      await pen('mousePressed', ...await at(10, 10));
+      await touch('touchStart', [await at(20, 20)]); await touch('touchMove', [await at(22, 20)]); await touch('touchEnd', []);
+      await pen('mouseReleased', ...await at(10, 10), 0);
+      assert.ok(!(await patch()).includes('20,20') && !(await patch()).includes('22,20'), 'the palm does not paint');
+      // a finger alone, once a pencil was seen, does not paint either
+      await touch('touchStart', [await at(30, 30)]); await touch('touchEnd', []);
+      assert.ok(!(await patch()).includes('30,30'), 'a finger does not paint after the pencil');
+      // two fingers spread: the canvas zooms
+      const [cx, cy] = await at(24, 28);
+      await touch('touchStart', [[cx - 40, cy], [cx + 40, cy]]); await touch('touchMove', [[cx - 120, cy], [cx + 120, cy]]); await touch('touchEnd', []);
+      assert.ok(await tab.evaluate(() => paint.view.s) > 2, 'two fingers zoom in');
+      assert.ok(await tab.evaluate(() => !!document.querySelector('#paintModal [data-act="undo"]') && !!document.querySelector('#paintModal [data-act="redo"]')), 'undo and redo on screen');
+      // the rig: the pencil drags a foot, a palm drags nothing
+      await tab.evaluate(async () => {
+        closePaint(); setMode('rig');
+        const c = document.createElement('canvas'); c.width = 900; c.height = 600; const x = c.getContext('2d');
+        x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 900, 600);
+        x.fillStyle = '#3d6b33'; x.fillRect(120, 140, 110, 250); x.fillStyle = '#4a3a2a'; x.fillRect(420, 120, 46, 250); x.fillRect(420, 370, 70, 30);
+        x.fillStyle = '#d6b08a'; x.fillRect(620, 120, 36, 200);
+        await rigLoadSheet(c.toDataURL('image/png')); renderRig(); await new Promise(r => setTimeout(r, 300)); rigDraw();
+      });
+      await tab.evaluate(() => { $('#rigCanvas').scrollIntoView({ block: 'center' }); rigDraw(); });
+      const foot = await tab.evaluate(() => { const h = rigUI.handles.find(h => h.id === 'ankleNear'), v = rigUI.view, c = $('#rigCanvas'), r = c.getBoundingClientRect();
+        return [r.left + (v[4] + h.at[0] * v[0]) * r.width / c.width, r.top + (v[5] + h.at[1] * v[3]) * r.height / c.height]; });
+      await touch('touchStart', [foot]); await touch('touchMove', [[foot[0] + 30, foot[1] - 20]]); await touch('touchEnd', []);
+      assert.ok(foot[1] > 0 && foot[1] < 1180, `the foot is on screen at ${foot}`);
+      assert.equal(await tab.evaluate(() => rigAnim().keys.length), 0, 'a palm on the rig moves nothing');
+      await pen('mousePressed', ...foot); await pen('mouseMoved', foot[0] + 30, foot[1] - 20); await pen('mouseReleased', foot[0] + 30, foot[1] - 20, 0);
+      const why = await tab.evaluate(() => JSON.stringify({ keys: rigAnim().keys.length, canvas: [$('#rigCanvas').width, $('#rigCanvas').height], rect: (r => [r.left, r.top, r.width, r.height].map(Math.round))($('#rigCanvas').getBoundingClientRect()), hdr: $('header.top').offsetHeight, view: innerHeight, pen: Ink.penSeen }));
+      assert.equal(await tab.evaluate(() => rigAnim().keys.length), 1, 'the pencil keys a pose ' + why + ' foot ' + foot.map(Math.round));
+      await ctx.close();
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {
     await browser.close();
     server.kill();
     restore();
+    // serve.py rebuilt the studio's import/ after the wizard wrote its enemy; build it again from what is
+    // committed, or the next run finds e2e_archer already in the game and names its enemy e2e_archer_2
+    try { execFileSync('python3', ['tools/studio/build_data.py'], { cwd: ROOT, stdio: 'ignore' }); } catch {}
   }
 })().catch(e => { console.error('studio e2e FAILED:', e.message || e); process.exitCode = 1; });

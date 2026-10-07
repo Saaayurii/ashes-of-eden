@@ -143,6 +143,17 @@ node studio.github.e2e.cjs   # (same folder) send → PR → owner's review → 
 
 
 
+**A tablet and a pencil** (`js/touch.js`). Every drawing surface has
+`touch-action: none`. One pointer does the work: a palm on the glass is ignored,
+and a palm that landed first is let go when the pencil touches. Once a pencil
+has been seen on the device, a single finger no longer paints; two fingers pinch
+and pan the pixel editor. A hovering Apple Pencil Pro shows the pixel it would
+paint. Squeeze and double tap never reach a web page, so every tool has its
+button: ↶ ↷ inside the pixel editor, «📋 Вставить» on each frame and on the
+reference (a picture from the clipboard without Cmd+V), and «⬆ Файл», which
+opens Photos and Files on an iPad. The e2e test drives it as an iPad
+(820×1180, touch) with a pen pointer through CDP.
+
 ## Для художника (как пользоваться)
 
 1. Открой <https://saaayurii.github.io/ashes-of-eden/studio/>. Справа вверху
