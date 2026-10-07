@@ -55,8 +55,9 @@ func _ready() -> void:
 	if Net.start_from_cli():
 		visible = false
 		return
-	# The studio's sandbox (StudioLive): no menu, straight into the yard.
-	if StudioLive.requested():
+	# The studio's sandbox (StudioLive), and a studio pull request's preview
+	# asked for a room or an enemy: no menu, straight there.
+	if StudioLive.requested() or Run.asks_for_a_place():
 		visible = false
 		Saves.pending = {}
 		Curtain.change_scene.call_deferred(RUN_SCENE, true)

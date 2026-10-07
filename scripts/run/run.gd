@@ -356,6 +356,19 @@ func _requested_room() -> int:
 const PRACTICE_ARG := "practice="
 
 
+## Whether the command line asks for a place (a room or the practice yard) the
+## main menu should open at once: a studio preview page without this lands on
+## the menu, and its `?practice=` only works after Play there — which nobody
+## looking at a new enemy would guess.
+static func asks_for_a_place(args := OS.get_cmdline_user_args()) -> bool:
+	if not args.has(PREVIEW_ARG):
+		return false
+	for arg in args:
+		if arg.begins_with(ROOM_ARG) or arg.begins_with(PRACTICE_ARG):
+			return true
+	return false
+
+
 func _requested_practice() -> String:
 	var args := OS.get_cmdline_user_args()
 	if not OS.is_debug_build() and not args.has(PREVIEW_ARG):
