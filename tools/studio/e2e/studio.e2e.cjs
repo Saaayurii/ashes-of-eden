@@ -190,6 +190,47 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('a touch-up of an enemy the bestiary generator draws goes as an override and lands in its strip', async () => {
+      const pre = new Set(git('status', '--porcelain', '--', 'assets', 'scenes/rooms', 'data/enemy_archetypes').split('\n').filter(Boolean));
+      const res = await page.evaluate(async () => {
+        setMode('chars');
+        const p = migrate(await (await fetch('import/chars/cultist.sprite.json')).json()); projects.push(p); P = p; renderAll(); await build();
+        const a = P.animations.find(a => a.name === 'idle'), f = a.frames[1];
+        f.patch = { '12,30': [230, 20, 30, 255], '13,30': [230, 20, 30, 255] }; save(); await build();
+        sendToGame(charFiles, 'chars');
+        return { cell: [+P.settings.cellW, +P.settings.cellH], file: a.file };
+      });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 180000 });
+      const text = await page.textContent('#dlg');
+      assert.match(text, /tools\/studio\/overrides\/assets\/sprites\/cultist_v2_idle\.png/, text);
+      assert.doesNotMatch(text, /Не получилось/, text);
+      const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/studio/overrides/overrides.json'), 'utf8'));
+      assert.ok(manifest['assets/sprites/cultist_v2_idle.png']?.base, 'the generator recorded the picture she drew on');
+      // in the game's strip, frame 2 (x = one cell in), the two red pixels; nothing else in assets moved
+      const px = execFileSync('python3', ['-c', `from PIL import Image; im = Image.open('assets/sprites/cultist_v2_idle.png').convert('RGBA'); print(im.getpixel((${res.cell[0]} + 12, 30)), im.getpixel((${res.cell[0]} + 13, 30)))`], { cwd: ROOT, encoding: 'utf8' }).trim();
+      assert.equal(px, '(230, 20, 30, 255) (230, 20, 30, 255)');
+      const moved = git('status', '--porcelain', '--', 'assets', 'scenes/rooms', 'data/enemy_archetypes').split('\n').filter(l => l && !l.startsWith('??') && !pre.has(l));
+      assert.deepEqual(moved.map(l => l.slice(3)), ['assets/sprites/cultist_v2_idle.png'], 'only the edited strip changed');
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
+    await step('a room painting repainted whole goes as an override of what differs', async () => {
+      const panel = 'assets/levels/graveyard_cross_wide.png';
+      await page.evaluate(async panel => {
+        const im = await loadImage(A(panel)), c = mk(im.naturalWidth, im.naturalHeight), x = c.getContext('2d');
+        x.drawImage(im, 0, 0); x.fillStyle = 'rgb(20, 200, 40)'; x.fillRect(300, 200, 5, 4);
+        sendToGame(async () => ({ files: { [panel]: await canvasBlob(c) }, title: 'e2e repaint', body: '' }));
+      }, panel);
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 180000 });
+      const text = await page.textContent('#dlg');
+      assert.doesNotMatch(text, /Не получилось/, text);
+      const mask = execFileSync('python3', ['-c', `from PIL import Image; m = Image.open('tools/studio/overrides/assets/levels/graveyard_cross_wide.mask.png').convert('L'); print(m.getbbox())`], { cwd: ROOT, encoding: 'utf8' }).trim();
+      assert.equal(mask, '(300, 200, 305, 204)', 'the mask is what she changed, nothing more');
+      const px = execFileSync('python3', ['-c', `from PIL import Image; print(Image.open('${panel}').convert('RGB').getpixel((302, 201)))`], { cwd: ROOT, encoding: 'utf8' }).trim();
+      assert.equal(px, '(20, 200, 40)', 'the room generator laid it into the painting');
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     await step('a dialogue line edited in a cutscene changes one line of strings.csv', async () => {
       git('checkout', '--', 'localization/strings.csv');
       await page.evaluate(async () => {
