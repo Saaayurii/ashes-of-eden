@@ -71,6 +71,21 @@ async function step(name, fn) {
       assert.ok(Math.abs(h - 44) <= 1, `height ${h}`);
     });
 
+    await step('the sandbox posts the strips to the game and hears it took them', async () => {
+      // the game's side is studio_live_test.gd; here a stand-in page answers like StudioLive
+      await page.route('**/studio-live.html', r => r.fulfill({ contentType: 'text/html', body: `<script>
+        addEventListener('message', e => { if (e.source !== parent || e.data.type !== 'ashes-live') return; window.got = e.data;
+          parent.postMessage({ type: 'ashes-live-applied', animations: Object.keys(e.data.strips) }, '*'); });
+        parent.postMessage({ type: 'ashes-live-ready' }, '*');</script>` }));
+      await page.click('[data-act="chars-sandbox"]');
+      await page.waitForFunction(() => /в игре: idle/.test(document.querySelector('#sbState')?.textContent || ''), null, { timeout: 15000 });
+      const got = await page.frameLocator('#sbFrame').locator('html').evaluate(() => ({ cell: window.got.cell, base: window.got.extends, idle: window.got.strips.idle.slice(0, 22) }));
+      assert.deepEqual(got.cell, [48, 56]);
+      assert.equal(got.base, 'cultist');
+      assert.equal(got.idle, 'data:image/png;base64,');
+      await page.click('#sandbox [data-sb="close"]');
+    });
+
     await step('undo and redo', async () => {
       const seq = await page.evaluate(() => {
         const f = () => P.animations.find(a => a.name === 'idle').frames[1];

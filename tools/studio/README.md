@@ -58,6 +58,17 @@ links it, straight into the room of a changed cutscene or the practice yard
 against a new enemy; the owner's reviews and comments show under each send,
 she can answer, and a fix goes into the same pull request.
 
+**She sees it in the game while drawing.** «🎮 Песочница» opens the Web build
+beside the frames (`studio-live.html`, made by `make_preview_page.py --live`
+in `pages.yml`; served from the working tree the studio embeds the hosted one).
+The game starts with `--studio-live` (`scripts/run/studio_live.gd`) in the
+practice yard and says `ashes-live-ready`; after every rebuild of the frames the
+studio posts the strips of each enemy slot (`enemySlotFor`, `liveMessage` in
+`lib.js`) with the enemy it fights like, and the game makes textures of them
+(`Image.load_png_from_buffer` → `Fx.runtime_strips`), lays the creature over its
+base in `Data.enemies` as `studio_live` and swaps the yard's foe. Seconds, no
+pull request; the page keeps nothing. `studio_live_test.gd` covers the game side.
+
 **A character can become an enemy.** «⚔ Сделать врагом» writes
 `data/enemies/<id>.json` that `extends` an enemy the game has (its fight, its
 sounds), with the strips she drew, name, lore and the `tip` the validator wants,
@@ -121,12 +132,15 @@ cd tools/studio/e2e && npm install --no-save --no-package-lock playwright@1.49.1
    ещё до вливания (сразу в комнату катсцены или на тренировку с новым врагом).
    Там же замечания владельца: ответить, поправить — «→ В игру» допишет
    исправления в ту же отправку.
-9. **⚔ Сделать врагом** — персонаж становится врагом игры: выбираешь, на кого
+9. **🎮 Песочница** — игра рядом с кадрами: твой персонаж на тренировочном
+   дворе, дерётся как выбранный враг и обновляется сам через пару секунд после
+   правки. Кликни по игре, чтобы управлять. Ничего не отправляет.
+10. **⚔ Сделать врагом** — персонаж становится врагом игры: выбираешь, на кого
    он похож по бою, имя, описание и подсказку «как драться».
-10. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
+11. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
     анимацию. Звуки: обрезка — тяни ручки на волне; Cmd/Ctrl+Z работает везде.
-11. В мастере врага: **Где появляется** — выбери комнату и кликни по полу на
+12. В мастере врага: **Где появляется** — выбери комнату и кликни по полу на
     карте (зелёное — пол, красное — кто уже стоит). **Голос** — свои крики
     файлом или с микрофона. Катсцена: **🏠 В комнату** — при входе или после
     зачистки. Сцены комнат пересоберёт робот, ничего делать не нужно.
-12. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.
+13. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.

@@ -11,6 +11,12 @@ It is the game's own index.html with three changes:
     flag: a changed scene can be walked into, a new enemy fought at once.
 
     python3 tools/studio/make_preview_page.py build/web/index.html 12 build/web/preview/12.pck > build/web/preview-12.html
+
+`--live` writes the studio's sandbox instead (studio-live.html): the main
+build's own pack, nothing kept, `--studio-live` (scripts/run/studio_live.gd),
+for the iframe of the studio's «Песочница».
+
+    python3 tools/studio/make_preview_page.py --live build/web/index.html > build/web/studio-live.html
 """
 import json
 import re
@@ -41,6 +47,19 @@ def preview_page(html: str, number: int, pack_size: int) -> str:
     return page.replace("</body>", banner + "</body>", 1)
 
 
+def live_page(html: str) -> str:
+    m = ENGINE.search(html)
+    if not m:
+        raise ValueError("no `new Engine({...})` in the page")
+    cfg = json.loads(m[1])
+    cfg["persistentPaths"] = []
+    cfg["args"] = ["--", "--studio-live"]
+    return html[:m.start()] + f"new Engine({json.dumps(cfg)})" + html[m.end():]
+
+
 if __name__ == "__main__":
+    if sys.argv[1] == "--live":
+        sys.stdout.write(live_page(Path(sys.argv[2]).read_text(encoding="utf-8")))
+        sys.exit(0)
     html, number, pack = sys.argv[1], int(sys.argv[2]), Path(sys.argv[3])
     sys.stdout.write(preview_page(Path(html).read_text(encoding="utf-8"), number, pack.stat().st_size))
