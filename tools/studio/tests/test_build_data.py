@@ -32,6 +32,16 @@ class LivingBackdrops(unittest.TestCase):
         self.assertEqual(life["kinds"]["glow"], {"index": 3, "strength": 0.12, "speed": 0.8})
         self.assertEqual(life["max_zones"], 24)
 
+    def test_platform_pieces_know_where_they_lie(self):
+        tiles = build_data.tiles(ROOT)
+        pieces = {p["name"]: p for p in tiles["pieces"]}
+        self.assertEqual(tiles["overlap"], 3)
+        self.assertIn("practice_yard", tiles["played"])
+        self.assertIn("practice_yard", pieces["ground_2"]["uses"])
+        for p in pieces.values():
+            self.assertTrue((ROOT / p["url"]).exists(), p["name"])
+
+
 
 class SpriteFrames(unittest.TestCase):
     def test_hero_frames_parse_with_cells_and_durations(self):

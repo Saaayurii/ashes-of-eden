@@ -355,6 +355,23 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('a platform piece redrawn at another size goes in fitted to its own', async () => {
+      const scenes = git('status', '--porcelain', '--', 'scenes');
+      await page.evaluate(async () => {
+        const d = document.querySelector('#dlg'); if (d.open) d.close(); d.replaceChildren(); localStorage.removeItem('ss_tiles');
+        setMode('bg'); await tilesDialog(); TILES.sel = 'ground_2'; renderTiles();
+        const c = mk(200, 140), x = c.getContext('2d'); x.fillStyle = '#6b4'; x.fillRect(20, 10, 160, 20); x.fillStyle = '#543'; x.fillRect(20, 30, 160, 100);
+        await tilesTake(new File([await canvasBlob(c)], 't.png', { type: 'image/png' }));
+        document.querySelector('[data-act="tiles-send"]').click();
+      });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
+      assert.equal(git('status', '--porcelain', '--', 'assets/decor/platforms').trim(), 'M assets/decor/platforms/ground_2.png');
+      assert.equal(git('status', '--porcelain', '--', 'scenes'), scenes, 'no scene is rewritten for a piece of the same size');
+      const png = fs.readFileSync(path.join(ROOT, 'assets/decor/platforms/ground_2.png'));
+      assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [67, 46]);
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {

@@ -191,6 +191,12 @@ body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not(
 .libgrid span{font-size:11px;color:var(--muted);word-break:break-all}
 dialog#dlg{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;max-width:640px;width:calc(100% - 32px);padding:18px}
 dialog#dlg::backdrop{background:#0009}
+dialog#dlg.wide{max-width:960px}
+.tilegrid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:40vh;overflow:auto}
+.tilegrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px}
+.tilegrid button.on{outline:2px solid var(--accent)}
+.tilegrid img{image-rendering:pixelated}
+.btnlike{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer;margin:0}
 #sandbox{position:fixed;right:12px;bottom:12px;z-index:50;width:min(640px,calc(100vw - 24px));height:min(420px,calc(100vh - 24px));min-width:320px;min-height:240px;resize:both;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 30px #000a}
 #sandbox[hidden]{display:none}
 .card{min-width:0}
@@ -247,6 +253,7 @@ a{color:var(--sel)}
     <button data-act="bg-del" class="ghost danger">Удалить</button>
     <span class="grow"></span>
     <button data-act="bg-rooms" class="ghost" title="Загрузить все комнаты игры со слоями">Комнаты из игры</button>
+    <button data-act="tiles-open" class="ghost" title="Куски, из которых генератор складывает пол, полки и края комнат">🧱 Плитки</button>
     <button data-act="bg-import" class="ghost">Открыть…</button>
     <button data-act="bg-save" class="ghost">Сохранить (.json)</button>
     <button data-act="bg-export" class="ghost" title="Скачать zip">⬇ zip</button>
@@ -602,6 +609,7 @@ a{color:var(--sel)}
 <script src="js/rig-core.js"></script>
 <script src="js/rig.js"></script>
 <script src="js/life.js"></script>
+<script src="js/tiles.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>
 </body>

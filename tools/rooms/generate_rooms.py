@@ -7,6 +7,7 @@ hand in Godot, delete it from ROOMS so this script never overwrites it.
 
     python3 tools/rooms/generate_rooms.py
 """
+import hashlib
 import json
 import os
 import random
@@ -1040,8 +1041,12 @@ def lay(x0, x1, pieces, rng, left_cap=None, right_cap=None):
         out.append((left_cap, x0, PIECES[left_cap]["w"], True))
         x += PIECES[left_cap]["w"] - OVERLAP
     stop = x1 - (PIECES[right_cap]["w"] - OVERLAP if right_cap else 0)
+    previous = left_cap
     while x < stop:
-        name = rng.choice(pieces)
+        # never the same piece twice in a row: a pair of twins is the first
+        # thing an eye finds in a laid floor
+        name = rng.choice([p for p in pieces if p != previous] or pieces)
+        previous = name
         w = PIECES[name]["w"]
         last = x + w >= stop
         if last and stop - x < w * 0.45 and out:
@@ -1056,6 +1061,15 @@ def lay(x0, x1, pieces, rng, left_cap=None, right_cap=None):
     return out
 
 
+def _piece_shade(prefix, x):
+    """A piece a few percent darker or lighter than its neighbours: the same
+    six blocks laid along a floor read as stamped until each sits in its own
+    light. Hashed from where it lies, so a regeneration is not a diff."""
+    h = int(hashlib.md5(f"{prefix}:{x}".encode()).hexdigest()[:4], 16) / 0xFFFF
+    v = round(0.9 + 0.1 * h, 3)
+    return "" if v >= 0.995 else f"modulate = Color({v}, {v}, {round(v * 0.98 + 0.02, 3)}, 1)\n"
+
+
 def piece_nodes(layout, top_y, prefix, used):
     """Sprites for a lay() result, each piece's walkable top on top_y."""
     out = []
@@ -1066,6 +1080,7 @@ def piece_nodes(layout, top_y, prefix, used):
                    f'position = Vector2({x}, {top_y - info["top"]})\n'
                    f'texture = ExtResource("piece_{name}")\ncentered = false\n'
                    + ("flip_h = true\n" if flip else "")
+                   + _piece_shade(prefix, x)
                    + (f'region_enabled = true\nregion_rect = Rect2(0, 0, {w}, {info["h"]})\n' if w < info["w"] else "")
                    + "\n")
     return "".join(out)

@@ -44,6 +44,14 @@ path's colour). Change the shader there, change `LIFE_FS` here.
 `lib.js setBackdropRule` rewrites one rule in the file's own style; every rule
 of the real file must round-trip byte for byte (`tests/lib.test.js`).
 
+**Platform pieces** (`js/tiles.js`, «🧱 Плитки» in the backgrounds tab).
+`build_data.py` writes `import/tiles.json`: `assets/decor/platforms/manifest.json`,
+which scenes lay each piece, which rooms are played. A piece she redraws is
+fitted to its manifest size and its alpha hardened as `slice_batch9.py` does;
+at the same size the scenes need no change, so only the PNG is written. The
+row preview is `generate_rooms.lay()` in miniature: no twins side by side,
+`OVERLAP` between pieces, each in its own shade (`_piece_shade`).
+
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
 practice yard and the rooms' paintings are generator-owned, and an edit of one
@@ -261,3 +269,9 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     «Зачистка», ползунки «Босс» и «Раны», «Путь» — как место отвечает герою.
     «◐ Без жизни» — сравнить с нарисованным. → В игру меняет только твои
     правила в `data/backdrops.json` (не больше 24 зон на картину).
+17. **🧱 Плитки** (во вкладке «Задники») — куски, из которых генератор
+    складывает пол, полки и края комнат там, где их не нарисовала картина
+    (тренировочный двор, пол церкви и нефа). Видно, где каждый лежит и как
+    генератор кладёт ряд. ⬇ Скачать → перерисуй (📋 Промпт — для ChatGPT,
+    приложи скачанный кусок образцом) → ⬆ Своя картинка или Cmd/Ctrl+V:
+    студия подгонит к размеру куска. → В игру — кусок встанет во все комнаты.

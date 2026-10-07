@@ -507,6 +507,29 @@ def life(root: Path):
             "max_zones": int(re.search(r"const MAX_ZONES := (\d+)", src)[1]), "pictures": out}
 
 
+# ------------------------------------------------------- platform pieces
+# assets/decor/platforms: the pieces tools/rooms/generate_rooms.py lays over a
+# room's colliders (terrain_nodes). A piece she redraws at the same size goes
+# straight in: the scenes name the file, the manifest keeps its size and top.
+def tiles(root: Path):
+    manifest = json.loads((root / "assets/decor/platforms/manifest.json").read_text(encoding="utf-8"))
+    uses = {name: {} for name in manifest}
+    for scene in sorted((root / "scenes/rooms").glob("*.tscn")):
+        text = scene.read_text(encoding="utf-8")
+        for name in manifest:
+            n = text.count(f'ExtResource("piece_{name}")')
+            if n:
+                uses[name][scene.stem] = n
+    src = (root / "tools/rooms/generate_rooms.py").read_text(encoding="utf-8")
+    overlap = int(re.search(r"^OVERLAP = (\d+)", src, re.M)[1])
+    run = (root / "scripts/run/run.gd").read_text(encoding="utf-8")
+    played = re.findall(r'"res://scenes/rooms/(\w+)\.tscn"', re.search(r"const ROOMS := \[(.*?)\]", run, re.S)[1])
+    played += re.findall(r'PRACTICE_ROOM := "res://scenes/rooms/(\w+)\.tscn"', run)
+    return {"overlap": overlap, "played": played, "pieces": [dict(name=name, res=f"res://assets/decor/platforms/{name}.png",
+                                                url=f"assets/decor/platforms/{name}.png", uses=uses[name], **info)
+                                           for name, info in manifest.items()]}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -530,6 +553,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "rooms_list.json", [write(out, f"rooms/{r['id']}.bg.json", r) for r in rooms])
     write(out, "library.json", library(root))
     write(out, "life.json", life(root))
+    write(out, "tiles.json", tiles(root))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])
