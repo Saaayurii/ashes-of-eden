@@ -361,6 +361,21 @@ def story(root: Path, strings, rooms):
             "families": sorted(backdrops.get("families", {}).keys()), "pictures": sorted(backdrops.get("rooms", {}).keys())}
 
 
+def enemies(root: Path, strings):
+    """What the enemy wizard offers to inherit from: every enemy with its fight in short."""
+    out = []
+    for f in sorted((root / "data/enemies").glob("*.json")):
+        e = json.loads(f.read_text(encoding="utf-8"))
+        attacks = e.get("attacks", []) + ([e["attack"]] if "attack" in e else [])
+        name = strings.get(e.get("name", ""), {})
+        out.append({"id": e.get("id", f.stem), "extends": e.get("extends"), "behaviour": e.get("behaviour", "walker"),
+                    "boss": bool(e.get("boss")), "tags": e.get("tags", []), "hp": e.get("hp"), "speed": e.get("speed"),
+                    "material": e.get("material"), "attacks": sorted({a.get("type", "?") for a in attacks}),
+                    "name": {"ru": name.get("ru", ""), "en": name.get("en", "")},
+                    "sprite": e.get("sprite", {}).get("cell"), "bestiary": e.get("bestiary", True)})
+    return out
+
+
 def shared(kind, game_ids=()):
     """Projects saved from the studio into tools/studio/projects/<kind>/.
 
@@ -420,11 +435,14 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "rooms_list.json", [write(out, f"rooms/{r['id']}.bg.json", r) for r in rooms])
     write(out, "library.json", library(root))
     write(out, "audio.json", audio(root, strings))
+    write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])
     st["cutscenes"] += shared("cuts", {c["id"] for c in st["cutscenes"]})
     write(out, "cutscenes.json", st)
     files, owners = generated(root)
+    owner, name = REPO.split("/")
     write(out, "meta.json", {"repo": REPO, "branch": branch, "assetBase": asset_base, "sha": sha or head_sha(root),
+                             "site": f"https://{owner.lower()}.github.io/{name}/",
                              "generated": files, "generators": owners})
     return {"chars": len(chars), "rooms": len(rooms), "cutscenes": len(st["cutscenes"])}
 

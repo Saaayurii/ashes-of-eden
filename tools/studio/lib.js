@@ -505,9 +505,11 @@ function mergeDecision(local, incoming) {
 }
 
 // One line for a pull request the studio opened. checks: {total, failed, pending}.
-function prStatus({ state, merged, checks, deployed }) {
+// review: the latest review state ('CHANGES_REQUESTED', 'APPROVED', …).
+function prStatus({ state, merged, checks, deployed, review }) {
   if (merged) return deployed ? { key: 'live', label: 'в игре', tone: 'ok' } : { key: 'merged', label: 'влито, публикуется…', tone: 'wait' };
   if (state === 'closed') return { key: 'closed', label: 'закрыто без вливания', tone: 'bad' };
+  if (review === 'CHANGES_REQUESTED') return { key: 'changes', label: 'просят исправить', tone: 'bad' };
   if (checks?.failed) return { key: 'failed', label: 'проверка нашла ошибки', tone: 'bad' };
   if (checks?.pending || !checks?.total) return { key: 'checking', label: 'на проверке', tone: 'wait' };
   return { key: 'ready', label: 'проверено, ждёт владельца', tone: 'ok' };
