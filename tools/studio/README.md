@@ -93,6 +93,7 @@ node --test tools/studio/tests/*.test.js             # lib.js, formats against t
 python3 -m unittest discover -s tools/studio/tests   # converter, server guard, preview page
 cd tools/studio/e2e && npm install --no-save --no-package-lock playwright@1.49.1 \
   && npx playwright install chromium && node studio.e2e.cjs   # the page in Chromium (CI runs it)
+node studio.github.e2e.cjs   # (same folder) send → PR → owner's review → answer → fix, against a fake GitHub
 ```
 
 
