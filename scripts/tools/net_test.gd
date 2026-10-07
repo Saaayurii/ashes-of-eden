@@ -92,8 +92,20 @@ func _run() -> void:
 				break
 		_ok(net.active, "joined room %s by code (try %d)" % [code, tries])
 	else:
-		await _wait(1.0)  # give the host its socket
-		_ok(net.join(address, port) == OK, "dialling %s:%d" % [address, port])
+		# The host is a Godot starting up beside us — slower than a second on a
+		# busy runner, and a refused dial drops the session (Net.leave). A
+		# friend would dial again; so does the guest, until somebody answers.
+		var tries := 0
+		while true:
+			await _wait(1.0)
+			tries += 1
+			if net.join(address, port) == OK and await _until_quiet(func() -> bool: return not net.active \
+					or root.multiplayer.multiplayer_peer.get_connection_status() \
+					== MultiplayerPeer.CONNECTION_CONNECTED, 10.0) and net.active:
+				break
+			if tries >= 15:
+				break
+		_ok(net.active, "dialled %s:%d (try %d)" % [address, port, tries])
 
 	if not await _until(func() -> bool: return net.peers.size() == 2, "both seats taken", 30.0):
 		await _finish()
@@ -301,6 +313,17 @@ func _until(condition: Callable, label: String, limit := 20.0) -> bool:
 		await _tick(0.25)
 		spent += 0.25
 	_ok(false, label + " (timeout)")
+	return false
+
+
+## _until without a verdict: for a try that may fail and be made again.
+func _until_quiet(condition: Callable, limit: float) -> bool:
+	var spent := 0.0
+	while spent < limit:
+		if condition.call():
+			return true
+		await _tick(0.25)
+		spent += 0.25
 	return false
 
 
