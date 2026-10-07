@@ -182,6 +182,23 @@ test('an edited dialogue in a multi-dialogue file touches only itself', () => {
   assert.equal(y[1].nodes[d.start].speaker, 'SPEAKER_ELIAN');
 });
 
+test('a living-backdrop rule rewrites only itself, in the file\'s own style', () => {
+  const t = fs.readFileSync(path.join(ROOT, 'data/backdrops.json'), 'utf8');
+  const rooms = JSON.parse(t).rooms;
+  for (const [key, rule] of Object.entries(rooms)) assert.equal(L.setBackdropRule(t, key, rule), t, key);
+  const zones = [{ kind: 'sway', rect: [10, 20, 30, 40], strength: 2, anchor: 'stands' }];
+  const u = L.setBackdropRule(t, 'church', { family: 'church', zones });   // "church" is a family too
+  assert.deepEqual(JSON.parse(u).rooms.church.zones, zones);
+  assert.deepEqual(JSON.parse(u).families, JSON.parse(t).families);
+  assert.match(u, /"strength": 2\.0, "anchor": "stands"\}/);
+  const at = t.indexOf('\n    "church": {', t.indexOf('"rooms"')), after = t.indexOf('\n    "ashes_threshold": {');
+  assert.ok(u.startsWith(t.slice(0, at)) && u.endsWith(t.slice(after)));
+  const last = Object.keys(rooms).at(-1), v = L.setBackdropRule(t, last, { family: 'hell', zones: [] });
+  assert.deepEqual(JSON.parse(v).rooms[last], { family: 'hell', zones: [] });
+  const w = L.setBackdropRule(t, 'studio_new', { family: 'dusk', flame: 0.4, zones });
+  assert.deepEqual(JSON.parse(w).rooms.studio_new, { family: 'dusk', flame: 0.4, zones });
+});
+
 test('a new cutscene picture gets a still rule; existing rules keep their layout', () => {
   const t = fs.readFileSync(path.join(ROOT, 'data/backdrops.json'), 'utf8');
   const u = L.insertBackdropRules(t, { studio_panel_1: 'dusk', elian_gallows_drop: 'dusk' });

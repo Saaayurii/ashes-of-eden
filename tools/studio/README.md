@@ -32,6 +32,18 @@ backgrounds and cutscenes are plain new files. A changed generated sound is
 written as a new numbered take beside it (`Audio._clip` prefers takes), the way
 `generate_sfx.py` says to replace a placeholder.
 
+**Living backdrops** (`js/life.js`, the «Оживление» tab). `build_data.py` writes
+`import/life.json`: every picture a rule in `data/backdrops.json` can light — a
+room's painting as `BackdropLife.painting_of` finds it (the interiors from
+`interior_architecture.gd`), the menu's and the arena's, every cutscene panel
+and passage card — with the zone kinds and their defaults read from
+`BackdropLife.KINDS`. The page runs `backdrop_life.gdshaderinc` ported to
+WebGL2 (one loop over the zones instead of the cell grid; the same noise, the
+same reactions: gust, lightning, a cleared room, a boss's rage, dread, the
+path's colour). Change the shader there, change `LIFE_FS` here.
+`lib.js setBackdropRule` rewrites one rule in the file's own style; every rule
+of the real file must round-trip byte for byte (`tests/lib.test.js`).
+
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
 practice yard and the rooms' paintings are generator-owned, and an edit of one
@@ -241,3 +253,11 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     файлом или с микрофона. Катсцена: **🏠 В комнату** — при входе или после
     зачистки. Сцены комнат пересоберёт робот, ничего делать не нужно.
 15. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.
+16. **Оживление** — картина комнаты (катсцены, перехода, меню) живёт так же,
+    как в игре: тот же шейдер. Тяни по картине — новая зона: водопад, вода,
+    качается (знамя, мох, клетка), свечение (луна, витраж), лава, марево,
+    звёзды, пульс. Зону двигают мышью и тянут за угол; «＋ Нарисовать» — новая
+    поверх другой. Справа сила, скорость, цвет. Кнопки «Порыв», «Молния»,
+    «Зачистка», ползунки «Босс» и «Раны», «Путь» — как место отвечает герою.
+    «◐ Без жизни» — сравнить с нарисованным. → В игру меняет только твои
+    правила в `data/backdrops.json` (не больше 24 зон на картину).

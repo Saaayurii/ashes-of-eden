@@ -448,6 +448,65 @@ def overrides(root: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+# ----------------------------------------------------------- living backdrops
+# data/backdrops.json keys a rule by room scene name or by picture file name;
+# the studio's zone editor needs the picture each key lights.
+LIFE_NODES = ["Painting", "Parallax/Backdrop", "Interior/AuthoredMasonry/ChurchPainting",
+              "Interior/AuthoredMasonry/PreacherPainting"]   # BackdropLife.painting_of
+LIFE_SCENES = {"main_menu": ("scenes/ui/main_menu.tscn", "Layers/Background"),
+               "arena": ("scenes/pvp/arena.tscn", "Parallax/Backdrop")}
+# the church and the nave paint their wall in code (scripts/rooms/interior_architecture.gd PAINTINGS)
+LIFE_INTERIORS = r'const PAINTINGS := \{(.*?)\}'
+LIFE_DIRS = ["assets/cutscenes", "assets/ui/transitions"]   # cutscene panels, passage cards
+
+
+def _scene_texture(root: Path, scene: Path, paths):
+    ext, nodes = parse_tscn(scene.read_text(encoding="utf-8"))
+    by_path = {}
+    for n in nodes[1:]:
+        parent = n["parent"] or "."
+        by_path[n["name"] if parent == "." else f"{parent}/{n['name']}"] = n
+    for want in paths:
+        n = by_path.get(want)
+        m = n and re.match(r'ExtResource\("([^"]+)"\)', n["props"].get("texture", ""))
+        if m and m[1] in ext:
+            return ext[m[1]]
+    return None
+
+
+def life(root: Path):
+    rules = json.loads((root / "data/backdrops.json").read_text(encoding="utf-8"))
+    src = (root / "scripts/rooms/backdrop_life.gd").read_text(encoding="utf-8")
+    block = re.search(r"const KINDS := \{(.*?)\n\}", src, re.S)[1]
+    kinds = {k: {"index": int(i), "strength": float(st), "speed": float(sp)}
+             for k, i, st, sp in re.findall(r'"(\w+)": \[(\d+), ([\d.]+), ([\d.]+)\]', block)}
+    pictures = {}
+    for scene in sorted((root / "scenes/rooms").glob("*.tscn")):
+        res = _scene_texture(root, scene, LIFE_NODES)
+        if res:
+            pictures[scene.stem] = {"res": res, "kind": "room"}
+    inner = re.search(LIFE_INTERIORS, (root / "scripts/rooms/interior_architecture.gd").read_text(encoding="utf-8"), re.S)
+    for key, res in re.findall(r'"(\w+)": "(res://[^"]+)"', inner[1] if inner else ""):
+        pictures[key] = {"res": res, "kind": "room"}
+    for key, (scene, node) in LIFE_SCENES.items():
+        res = (root / scene).exists() and _scene_texture(root, root / scene, [node])
+        if res:
+            pictures[key] = {"res": res, "kind": "scene"}
+    for d in LIFE_DIRS:
+        for p in sorted((root / d).glob("*.png")):
+            pictures.setdefault(p.stem, {"res": "res://" + p.relative_to(root).as_posix(), "kind": "picture"})
+    out = []
+    for key, pic in pictures.items():
+        size = _size(root, pic["res"])
+        if not size:
+            continue
+        rule = rules.get("rooms", {}).get(key)
+        out.append({"key": key, "kind": pic["kind"], "res": pic["res"], "url": asset_url(pic["res"]),
+                    "w": size[0], "h": size[1], "has_rule": rule is not None})
+    return {"kinds": kinds, "families": rules.get("families", {}), "lean": rules.get("lean", {}),
+            "max_zones": int(re.search(r"const MAX_ZONES := (\d+)", src)[1]), "pictures": out}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -470,6 +529,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     rooms += shared("bgs", {r["id"] for r in rooms})
     write(out, "rooms_list.json", [write(out, f"rooms/{r['id']}.bg.json", r) for r in rooms])
     write(out, "library.json", library(root))
+    write(out, "life.json", life(root))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])

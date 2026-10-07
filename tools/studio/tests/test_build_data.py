@@ -17,6 +17,22 @@ import build_data  # noqa: E402
 import serve  # noqa: E402
 
 
+class LivingBackdrops(unittest.TestCase):
+    def test_every_rule_has_its_picture_and_the_kinds_their_defaults(self):
+        life = build_data.life(ROOT)
+        rules = json.loads((ROOT / "data/backdrops.json").read_text(encoding="utf-8"))["rooms"]
+        pictures = {p["key"]: p for p in life["pictures"]}
+        for key in rules:
+            self.assertIn(key, pictures, f"the studio cannot show the picture of rule {key}")
+            self.assertTrue(pictures[key]["has_rule"])
+        for key in ("church", "preacher_nave"):   # painted in code, not in the scene
+            self.assertIn("interior", pictures[key]["res"])
+        self.assertEqual(pictures["graveyard_cross"]["res"], "res://assets/levels/graveyard_cross_wide.png")
+        self.assertEqual(set(life["kinds"]), {"falls", "water", "sway", "glow", "lava", "haze", "stars", "pulse"})
+        self.assertEqual(life["kinds"]["glow"], {"index": 3, "strength": 0.12, "speed": 0.8})
+        self.assertEqual(life["max_zones"], 24)
+
+
 class SpriteFrames(unittest.TestCase):
     def test_hero_frames_parse_with_cells_and_durations(self):
         text = (ROOT / "assets/sprites/elian_frames.tres").read_text(encoding="utf-8")

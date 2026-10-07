@@ -431,6 +431,36 @@ function insertBackdropRules(text, rules) {
   if (!lines.length) return text;
   return text.replace(/("rooms":\s*\{\n)/, `$1${lines.join('\n')}\n`);
 }
+// One picture's rule in data/backdrops.json, rewritten in the file's own style
+// (a zone a line, floats keep their ".0", the other rules untouched); a key it
+// does not have yet goes at the top of "rooms". rule = {family, flame?, flame_floor?, zones}.
+const LIFE_FLOATS = new Set(['strength', 'speed', 'floor', 'flame', 'flame_floor']);
+function lifeValue(k, v) {
+  if (Array.isArray(v)) return '[' + v.map(x => lifeValue('', x)).join(', ') + ']';
+  if (LIFE_FLOATS.has(k) && typeof v === 'number' && Number.isInteger(v)) return v.toFixed(1);
+  return JSON.stringify(v);
+}
+function lifeObject(o) {
+  return '{' + Object.entries(o).filter(([, v]) => v !== undefined).map(([k, v]) => JSON.stringify(k) + ': ' + lifeValue(k, v)).join(', ') + '}';
+}
+function lifeEntry(key, rule) {
+  const { zones = [], ...head } = rule;
+  const top = lifeObject(head).slice(0, -1);
+  const lead = `    ${JSON.stringify(key)}: ${top}${top.length > 1 ? ', ' : ''}"zones": `;
+  if (!zones.length) return lead + '[]}';
+  return lead + '[\n' + zones.map(z => '      ' + lifeObject(z)).join(',\n') + '\n    ]}';
+}
+function setBackdropRule(text, key, rule) {
+  const at = text.indexOf(`\n    ${JSON.stringify(key)}: {`, text.indexOf('"rooms": {'));   // a family may share the name
+  if (at < 0) return text.replace(/("rooms":\s*\{\n)/, `$1${lifeEntry(key, rule)},\n`);
+  const start = at + 1;
+  // the entry ends where the next rule (or the end of "rooms") begins
+  const next = text.slice(start + 1).search(/\n(    "[^"]+": \{|  \})/);
+  let end = start + 1 + next;
+  const comma = text[end - 1] === ',';
+  if (comma) end -= 1;
+  return text.slice(0, start) + lifeEntry(key, rule) + text.slice(end);
+}
 // data/cutscenes writes these as floats ("time": 1.0; a shake's strength is whole); JSON.parse forgets the ".0"
 const CUTSCENE_FLOATS = new Set(['time', 'zoom', 'strength', 'to', 'drift', 'drift_time']);
 function fmtStep(s) {
@@ -733,5 +763,5 @@ function mergeOverrides(text, entries) {
   return JSON.stringify(sorted, null, 2) + '\n';
 }
 
-Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

@@ -331,6 +331,30 @@ async function step(name, fn) {
       await ctx.close();
     });
 
+    await step('a living-backdrop zone drawn over the picture adds one line to backdrops.json', async () => {
+      git('checkout', '--', 'data/backdrops.json');
+      await page.evaluate(async () => { const d = document.querySelector('#dlg'); if (d.open) d.close(); d.replaceChildren(); localStorage.removeItem('ss_life'); setMode('life'); await lifeEnter(); await lifeOpen('catacombs_2'); });
+      await page.waitForFunction(() => LIFE.pics.has('catacombs_2'));
+      const moving = await page.evaluate(() => {
+        const gl = LIFE.gl, W = gl.drawingBufferWidth, H = gl.drawingBufferHeight;
+        const at = t => { gl.uniform1f(LIFE.u('t'), t); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); const b = new Uint8Array(4 * W * H); gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, b); return b; };
+        const a = at(1), b = at(1.5); let n = 0; for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 6) n++;
+        return n;
+      });
+      assert.ok(moving > 500, `the picture should breathe, ${moving} pixels changed`);
+      await page.evaluate(() => { $('#lifeNewKind').value = 'glow'; $('#lifeDraw').click(); });
+      const box = await page.locator('#lifeOver').boundingBox();
+      await page.mouse.move(box.x + box.width * 0.05, box.y + box.height * 0.1); await page.mouse.down();
+      await page.mouse.move(box.x + box.width * 0.15, box.y + box.height * 0.3, { steps: 5 }); await page.mouse.up();
+      const zones = await page.evaluate(() => lifeRule('catacombs_2').zones);
+      assert.equal(zones.at(-1).kind, 'glow'); assert.equal(zones[0].rect.join(), '0,0,600,300');   // drawn over zone 1, which stayed put
+      await page.click('#lifeSend');
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
+      const diff = git('diff', '--numstat', '--', 'data/backdrops.json').trim();
+      assert.equal(diff, '2\t1\tdata/backdrops.json', diff);
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {

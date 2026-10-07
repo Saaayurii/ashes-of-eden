@@ -53,6 +53,7 @@ function setMode(m) {
   mode = m; document.body.dataset.mode = m; document.body.classList.toggle('mode-bg', m === 'bg');
   if (m === 'snd' || m === 'cut') enterStoryMode(m);
   if (m === 'rig' && typeof renderRig === 'function') renderRig();
+  if (m === 'life' && typeof lifeEnter === 'function') lifeEnter();
   $$('.modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
   try { localStorage.setItem('ss_mode', m); } catch {}
   if (m === 'bg') {
