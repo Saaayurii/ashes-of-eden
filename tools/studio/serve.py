@@ -150,12 +150,21 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(500, {"ok": False, "error": f"{type(e).__name__}: {e}"})
 
 
+class Server(ThreadingHTTPServer):
+    # The page asks for the game's rooms all at once (rooms_list.json, then 25
+    # files and their pictures) while the browser still holds other loads open.
+    # With socketserver's backlog of 5 the extra connections were reset: the
+    # import failed with "Failed to fetch" and the backgrounds tab stayed empty.
+    request_queue_size = 128
+    daemon_threads = True
+
+
 def main():
     if not (ROOT / "tools/studio/import/meta.json").exists():
         print("building the studio's data first (tools/studio/build_data.py)…")
         subprocess.run([sys.executable, str(ROOT / "tools/studio/build_data.py")], check=True)
     print(f"Studio: http://localhost:{PORT}/tools/studio/  (writes into {ROOT})")
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    Server(("127.0.0.1", PORT), Handler).serve_forever()
 
 
 if __name__ == "__main__":
