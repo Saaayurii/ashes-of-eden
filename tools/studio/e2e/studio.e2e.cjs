@@ -121,6 +121,9 @@ async function step(name, fn) {
           parent.postMessage({ type: 'ashes-live-applied', animations: Object.keys(e.data.strips) }, '*'); });
         parent.postMessage({ type: 'ashes-live-ready' }, '*');</script>` }));
       await page.click('[data-act="chars-sandbox"]');
+      await page.waitForSelector('#sandbox');
+      const full = await page.evaluate(() => { const r = document.querySelector('#sandbox').getBoundingClientRect(); return [r.width, innerWidth, r.height, innerHeight]; });
+      assert.ok(full[0] >= full[1] - 1 && full[2] >= full[3] - 1, 'the sandbox opens filling the window: ' + full);
       await page.waitForFunction(() => /в игре: idle/.test(document.querySelector('#sbState')?.textContent || ''), null, { timeout: 15000 });
       const got = await page.frameLocator('#sbFrame').locator('html').evaluate(() => ({ cell: window.got.cell, base: window.got.extends, idle: window.got.strips.idle.slice(0, 22) }));
       assert.deepEqual(got.cell, [48, 56]);

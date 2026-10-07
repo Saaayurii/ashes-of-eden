@@ -5,7 +5,8 @@
  * fight like, and the game swaps the foe in place. No pull request, no export. */
 'use strict';
 
-const sandbox = { el: null, frame: null, ready: false, timer: 0, base: localStorage.getItem('ss_live_base') || 'cultist', sent: '' };
+const sandbox = { el: null, frame: null, ready: false, timer: 0, base: localStorage.getItem('ss_live_base') || 'cultist', sent: '', full: true };
+try { sandbox.full = localStorage.getItem('ss_live_full') !== '0'; } catch {}
 
 // The game on the same site when it has one (Pages, a local copy of the site),
 // otherwise the hosted one (the studio from the working tree): what she draws
@@ -30,18 +31,30 @@ async function sandboxOpen() {
       <span class="grow muted" id="sbState">загружаю игру…</span>
       <button class="sm" data-sb="send" title="Отправить кадры в игру сейчас">⟳</button>
       <button class="sm ghost" data-sb="reload" title="Перезапустить игру">↺</button>
+      <button class="sm ghost" data-sb="size" id="sbSize"></button>
+      <button class="sm ghost" data-sb="screen" title="Весь экран компьютера (Esc — выйти)">⛶</button>
       <button class="sm ghost" data-sb="close" title="Закрыть игру">✕</button></div>
     <iframe id="sbFrame" src="${esc(await sandboxUrl())}" allow="autoplay; fullscreen; gamepad" title="Игра"></iframe>
     <div class="sb-foot muted">Кликни по игре, чтобы управлять. Кадры обновятся сами через пару секунд после правки.</div>`;
   document.body.appendChild(el);
   sandbox.frame = el.querySelector('iframe');
+  sandboxSize();
   el.querySelector('#sbBase').addEventListener('change', e => { sandbox.base = e.target.value; try { localStorage.setItem('ss_live_base', sandbox.base); } catch {} sandboxPost(true); });
   el.addEventListener('click', e => {
     const b = e.target.closest('[data-sb]'); if (!b) return;
     if (b.dataset.sb === 'send') sandboxPost(true);
-    if (b.dataset.sb === 'close') { el.hidden = true; sandbox.ready = false; sandbox.sent = ''; sandbox.frame.src = 'about:blank'; }
+    if (b.dataset.sb === 'size') { sandbox.full = !sandbox.full; try { localStorage.setItem('ss_live_full', sandbox.full ? '1' : '0'); } catch {} sandboxSize(); }
+    if (b.dataset.sb === 'screen') { const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) Promise.resolve(f.call(el)).catch(() => toast('Браузер не дал открыть на весь экран', 'err')); sandbox.full = true; sandboxSize(); }
+    if (b.dataset.sb === 'close') { if (document.fullscreenElement === el) document.exitFullscreen?.().catch(() => {}); el.hidden = true; sandbox.ready = false; sandbox.sent = ''; sandbox.frame.src = 'about:blank'; }
     if (b.dataset.sb === 'reload') { sandbox.ready = false; sandbox.sent = ''; sandboxState('загружаю игру…'); sandboxUrl().then(u => { sandbox.frame.src = u; }); }
   });
+}
+// The game fills the studio's window (the default), or sits in a corner panel beside the frames.
+function sandboxSize() {
+  sandbox.el?.classList.toggle('full', sandbox.full);
+  const b = sandbox.el?.querySelector('#sbSize'); if (!b) return;
+  b.textContent = sandbox.full ? '▣' : '⬚';
+  b.title = sandbox.full ? 'Уменьшить: игра в углу, рядом с кадрами' : 'Развернуть на всё окно';
 }
 const sandboxState = t => { const s = sandbox.el?.querySelector('#sbState'); if (s) s.textContent = t; };
 
