@@ -520,8 +520,16 @@ func _build_ramp(points: Array) -> Gradient:
 	return gradient
 
 
+## Strips that exist only in memory, by the path a spec names them with: the
+## studio's sandbox (StudioLive) lays what she is drawing here, so an enemy's
+## SpriteFrames come out of add_strip the same way as from a file.
+static var runtime_strips := {}
+
+
 ## Builds SpriteFrames from a horizontal strip of equal cells.
 static func _load_strip_texture(path: String) -> Texture2D:
+	if runtime_strips.has(path):
+		return runtime_strips[path]
 	# A newly committed PNG has no .godot import entry on a clean checkout.
 	# Runtime previews and headless tests must still animate its actual cells.
 	if ResourceLoader.exists(path):

@@ -501,7 +501,7 @@ async function enemyWizard() {
   const bases = enemyList.filter(e => !e.boss && !e.extends && BEHAVIOUR_RU[e.behaviour] && e.bestiary !== false);
   if (!bases.length) return dialog('<h3>Сделать врагом</h3><p>Нет данных о врагах игры: запусти студию из папки игры или с сайта.</p>');
   const S = P.settings, id = slug(P.name), anims = P.animations;
-  const pick = slot => (anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null)?.id || '';
+  const pick = slot => enemySlotFor(anims, slot)?.id || '';
   const taken = enemyList.some(e => e.id === id);
   let getPlace = null; ewVoices = {}; ewAvatar = null;
   setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id); });

@@ -281,3 +281,14 @@ test('studio_rooms.json: one spot per enemy per room, cutscenes per room, stable
   assert.deepEqual(Object.keys(j), ['church', 'graveyard_cross']);
   assert.match(t, /\["archer", 720, 508\]/);
 });
+
+// --- the sandbox: which animation plays a slot, and the post the game reads ---
+
+test('sandbox posts pick an animation per enemy slot and carry the base', () => {
+  const anims = [{ id: 'a', name: 'idle' }, { id: 'b', name: 'shoot_bow' }, { id: 'c', name: 'walk' }];
+  assert.equal(L.enemySlotFor(anims, 'idle').id, 'a');
+  assert.equal(L.enemySlotFor(anims, 'attack').id, 'b');
+  assert.equal(L.enemySlotFor(anims, 'death'), null);
+  const m = L.liveMessage({ name: 'Лучница', base: '', cell: ['48', 56], fps: '', strips: { idle: 'data:' } });
+  assert.deepEqual(m, { type: 'ashes-live', name: 'Лучница', extends: 'cultist', cell: [48, 56], fps: 8, strips: { idle: 'data:' } });
+});

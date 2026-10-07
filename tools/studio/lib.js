@@ -536,5 +536,17 @@ function mergeStudioRooms(text, change) {
 }
 
 
-Object.assign(g, { snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+// ---- the sandbox («Песочница»): what the studio posts to the game (StudioLive) ----
+
+// The animation that plays an enemy's slot: one named like it, or for the attack
+// any "attack…"/"shoot…" (the enemy wizard's rule).
+function enemySlotFor(anims, slot) {
+  return anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null;
+}
+// The post itself; strips: {slot: data URL of a strip of whole cells}.
+function liveMessage({ name, base, cell, fps, strips }) {
+  return { type: 'ashes-live', name: name || '', extends: base || 'cultist', cell: [+cell[0], +cell[1]], fps: +fps || 8, strips };
+}
+
+Object.assign(g, { enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

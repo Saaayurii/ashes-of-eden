@@ -44,7 +44,7 @@ function scheduleBuild(ms = 250) { clearTimeout(buildTimer); buildTimer = setTim
 async function build() {
   if (building) { buildAgain = true; return; }
   building = true;
-  try { do { buildAgain = false; await doBuild(); } while (buildAgain); }
+  try { do { buildAgain = false; await doBuild(); } while (buildAgain); if (typeof sandboxChanged === 'function') sandboxChanged(); }
   catch (e) { console.error(e); toast('Ошибка обработки: ' + e.message, 'err'); }
   finally { building = false; }
 }
