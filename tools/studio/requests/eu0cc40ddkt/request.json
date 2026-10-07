@@ -1,0 +1,12 @@
+{
+  "prompt": "Create a sprite strip: exactly 7 animation frames of the SAME character in ONE horizontal row, left to right. The attached reference image is the exact character design: keep identical proportions, outfit, colors, hair, weapon and silhouette in every frame.\nCharacter: cult enemy, imported from the game.\nStyle: pixel art game sprite, crisp hard-edged pixels, no anti-aliasing, limited color palette, clean dark outline, dark fantasy.\nView: side view, character facing right, full body in every frame. All frames have the same scale, the feet stand on the same ground line, frames are evenly spaced with clear empty gaps between them and nothing overlaps.\nPixel scale: true low-resolution pixel art. The character is exactly 43 art pixels tall. Every art pixel is a uniform square block of exactly 17×17 image pixels, all blocks on ONE fixed grid across the whole image, no half-blocks, no smooth gradients inside blocks.\nAnimation \"attack\":\n1. next pose of the motion\n2. next pose of the motion\n3. next pose of the motion\n4. next pose of the motion\n5. next pose of the motion\n6. next pose of the motion\n7. next pose of the motion\nTransparent background, no floor, no shadow.\nNo text, no numbers, no labels, no grid lines, no frame borders, no motion blur.",
+  "size": "1536x1024",
+  "quality": "medium",
+  "model": "gpt-image-1",
+  "transparent": true,
+  "fidelity": true,
+  "refs": [
+    "ref0.png"
+  ],
+  "out": "out.png"
+}
