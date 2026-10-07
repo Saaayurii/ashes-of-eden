@@ -24,6 +24,7 @@ import sys
 from pathlib import Path
 
 ENGINE = re.compile(r"new Engine\((\{.*?\})\)", re.S)
+FULL = re.compile(r"const canFull = [^;]*;")
 
 
 def preview_page(html: str, number: int, pack_size: int) -> str:
@@ -54,7 +55,9 @@ def live_page(html: str) -> str:
     cfg = json.loads(m[1])
     cfg["persistentPaths"] = []
     cfg["args"] = ["--", "--studio-live"]
-    return html[:m.start()] + f"new Engine({json.dumps(cfg)})" + html[m.end():]
+    page = html[:m.start()] + f"new Engine({json.dumps(cfg)})" + html[m.end():]
+    # inside the studio's panel: Play starts it there, it does not take the screen
+    return FULL.sub("const canFull = false;", page)
 
 
 if __name__ == "__main__":

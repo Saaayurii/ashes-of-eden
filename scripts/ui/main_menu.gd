@@ -55,6 +55,12 @@ func _ready() -> void:
 	if Net.start_from_cli():
 		visible = false
 		return
+	# The studio's sandbox (StudioLive): no menu, straight into the yard.
+	if StudioLive.requested():
+		visible = false
+		Saves.pending = {}
+		Curtain.change_scene.call_deferred(RUN_SCENE, true)
+		return
 	Audio.music("menu")
 	for i in Settings.LOCALES.size():
 		var code: String = Settings.LOCALES[i]

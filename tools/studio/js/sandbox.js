@@ -7,12 +7,14 @@
 
 const sandbox = { el: null, frame: null, ready: false, timer: 0, base: localStorage.getItem('ss_live_base') || 'cultist', sent: '' };
 
-// The game on the same site when the studio is hosted, the hosted one when it
-// runs from the working tree: what she draws travels in the message, so the
-// main build's engine and data are all the game side needs.
-function sandboxUrl() {
-  const hosted = /\.github\.io$/.test(location.hostname);
-  return hosted ? new URL('../studio-live.html', location.href).href : (META.site || 'https://saaayurii.github.io/ashes-of-eden/') + 'studio-live.html';
+// The game on the same site when it has one (Pages, a local copy of the site),
+// otherwise the hosted one (the studio from the working tree): what she draws
+// travels in the message, so the main build's engine and data are all the game
+// side needs.
+async function sandboxUrl() {
+  const here = new URL('../studio-live.html', location.href).href;
+  try { if ((await fetch(here, { method: 'HEAD', cache: 'no-store' })).ok) return here; } catch {}
+  return (META.site || 'https://saaayurii.github.io/ashes-of-eden/') + 'studio-live.html';
 }
 
 async function sandboxOpen() {
@@ -28,7 +30,7 @@ async function sandboxOpen() {
       <button class="sm" data-sb="send" title="Отправить кадры в игру сейчас">⟳</button>
       <button class="sm ghost" data-sb="reload" title="Перезапустить игру">↺</button>
       <button class="sm ghost" data-sb="close" title="Спрятать (игра продолжит ждать)">✕</button></div>
-    <iframe id="sbFrame" src="${esc(sandboxUrl())}" allow="autoplay; fullscreen; gamepad" title="Игра"></iframe>
+    <iframe id="sbFrame" src="${esc(await sandboxUrl())}" allow="autoplay; fullscreen; gamepad" title="Игра"></iframe>
     <div class="sb-foot muted">Кликни по игре, чтобы управлять. Кадры обновятся сами через пару секунд после правки.</div>`;
   document.body.appendChild(el);
   sandbox.frame = el.querySelector('iframe');
@@ -37,7 +39,7 @@ async function sandboxOpen() {
     const b = e.target.closest('[data-sb]'); if (!b) return;
     if (b.dataset.sb === 'send') sandboxPost(true);
     if (b.dataset.sb === 'close') el.hidden = true;
-    if (b.dataset.sb === 'reload') { sandbox.ready = false; sandbox.sent = ''; sandboxState('загружаю игру…'); sandbox.frame.src = sandboxUrl(); }
+    if (b.dataset.sb === 'reload') { sandbox.ready = false; sandbox.sent = ''; sandboxState('загружаю игру…'); sandboxUrl().then(u => { sandbox.frame.src = u; }); }
   });
 }
 const sandboxState = t => { const s = sandbox.el?.querySelector('#sbState'); if (s) s.textContent = t; };
