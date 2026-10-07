@@ -46,6 +46,17 @@ async function step(name, fn) {
     await page.goto(URL);
     await page.waitForFunction(() => typeof Writer !== 'undefined' && Writer.mode === 'local');
 
+    // Before any other tab has loaded: the wizard is reached from the
+    // characters tab straight away, and its room list used to come up empty.
+    await step('the enemy wizard lists the rooms on a fresh page', async () => {
+      assert.equal(await page.evaluate(() => roomNames().length), 0, 'no tab has loaded the rooms yet');
+      await page.evaluate(() => { enemyWizard(); });
+      await page.waitForFunction(() => document.querySelectorAll('#dlg[open] .rp-room option').length > 10, null, { timeout: 15000 });
+      const rooms = await page.$$eval('#dlg .rp-room option', o => o.map(x => x.value));
+      assert.ok(rooms.includes('graveyard_cross'), rooms.join(' '));
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     await step('every tab loads the game', async () => {
       for (const m of ['bg', 'cut', 'snd', 'chars']) { await page.evaluate(m => setMode(m), m); await page.waitForTimeout(1500); }
       const n = await page.evaluate(() => ({ rooms: bgs.length, cuts: cuts.length, snd: document.querySelectorAll('#sndList .irow').length }));
