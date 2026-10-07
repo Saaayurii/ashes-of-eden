@@ -128,6 +128,9 @@ const JOINT_RU = { 'body.hipFar': 'бедро (дальнее)', 'body.hipNear':
 
 function rigDraw() {
   const cv = $('#rigCanvas'); if (!cv || mode !== 'rig') return;
+  // the canvas is as big as it is shown: a stretched one draws the rig squashed and misses the handles
+  const cw = Math.round(cv.clientWidth), chh = Math.round(cv.clientHeight);
+  if (cw && chh && (cv.width !== cw || cv.height !== chh)) { cv.width = cw; cv.height = chh; }
   const ctx = cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!rigReady()) { ctx.fillStyle = '#8a8f9c'; ctx.font = '15px system-ui'; ctx.textAlign = 'center'; ctx.fillText('Загрузи лист частей: тело без рук и ног, одна нога, одна рука, оружие — на пурпурном фоне', cv.width / 2, cv.height / 2); return; }
   rigFit(cv);
@@ -158,7 +161,7 @@ function rigDown(e) {
   let best = null, bd = 14 * 14;
   for (const h of rigUI.handles || []) { const d = (v[4] + h.at[0] * v[0] - x) ** 2 + (v[5] + h.at[1] * v[3] - y) ** 2; if (d < bd) { bd = d; best = h; } }
   if (!best) return;
-  e.preventDefault(); $('#rigCanvas').setPointerCapture(e.pointerId);
+  e.preventDefault(); try { $('#rigCanvas').setPointerCapture(e.pointerId); } catch {}
   const pose = rigUI.editJoints ? null : rigPoseAt(rigUI.frame);
   rigUI.drag = { id: best.id, start: toRig(x, y), pose: pose && JSON.parse(JSON.stringify(pose)),
     feet: pose && Object.fromEntries(['Far', 'Near'].map(s => [s, RIG.solvePose(rigModel(), pose).joints['ankle' + s]])) };
@@ -285,6 +288,7 @@ function renderRig() {
   renderRigSide(); renderRigTimeline(); rigDraw();
 }
 function rigLoop() { if (mode === 'rig' && rigUI.playing) rigDraw(); requestAnimationFrame(rigLoop); }
+window.addEventListener('resize', () => { if (mode === 'rig') rigDraw(); });
 requestAnimationFrame(rigLoop);
 
 document.addEventListener('click', async e => {
