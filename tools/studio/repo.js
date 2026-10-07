@@ -192,9 +192,9 @@ async function sendToGameOnce(build, tab) {
     r = await commitFiles(files, del, title, [body, ...notes].filter(Boolean).join('\n\n'), intoPr);
     if (obj) { obj.dirty = false; if (r.url) obj.pendingPr = r.number; storeOf(tab)?.(obj); }
     if (!r.updated && !r.duplicate) rememberSend({ kind: tab, objId: obj?.id, title, url: r.url, number: r.number, local: !!r.local }); else refreshSent();
-    if (r.duplicate) return dialog(`<h3>Это уже отправлено</h3><p>Точно такие же изменения уже ждут проверки в <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. Вторая отправка не создана.</p>`);
-    if (r.updated) return dialog(`<h3>Исправления добавлены</h3><p>Они в той же отправке <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. CI проверит их заново, превью пересоберётся.</p>`);
-    if (r.url) return dialog(`<h3>Отправлено</h3><p>Создан pull request: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></p><p>CI проверит данные; когда владелец его вольёт, изменения появятся в игре и в студии.</p>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}`);
+    if (r.duplicate) return void dialog(`<h3>Это уже отправлено</h3><p>Точно такие же изменения уже ждут проверки в <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. Вторая отправка не создана.</p>`);
+    if (r.updated) return void dialog(`<h3>Исправления добавлены</h3><p>Они в той же отправке <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. CI проверит их заново, превью пересоберётся.</p>`);
+    if (r.url) return void dialog(`<h3>Отправлено</h3><p>Создан pull request: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></p><p>CI проверит данные; когда владелец его вольёт, изменения появятся в игре и в студии.</p>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}`);
     const box = `<h3>Записано в игру</h3><p>${r.written.length} файл(ов)${r.deleted.length ? `, удалено ${r.deleted.length}` : ''}:</p><pre class="log">${esc([...r.written, ...r.deleted.map(d => '− ' + d)].join('\n'))}</pre>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}<div id="valOut" class="note">Проверяю данные игры (validate_data.gd)…</div>`;
     dialog(box);
     validate().then(v => { const el = document.getElementById('valOut'); if (el) el.outerHTML = v; });
