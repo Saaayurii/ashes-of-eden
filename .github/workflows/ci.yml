@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # the studio robot starts CI on a branch it has just pushed regenerated rooms to
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -25,7 +27,7 @@ jobs:
           load: true
           tags: ashes-of-eden/godot:4.7.2
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Validate data & localization
         run: docker compose run --rm validate
@@ -65,3 +67,13 @@ jobs:
         run: |
           python3 -m unittest discover -s tools/studio/tests
           node --test tools/studio/tests/*.test.js
+
+      # The studio itself in Chromium, against its local server: every tab
+      # loads, a frame becomes a sprite, undo, the enemy wizard (with the room
+      # regenerated), a dialogue line. It puts back everything it writes.
+      - name: Art studio in a browser
+        working-directory: tools/studio/e2e
+        run: |
+          npm install --no-save --no-package-lock playwright@1.49.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          node studio.e2e.cjs

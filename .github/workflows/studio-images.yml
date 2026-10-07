@@ -1,0 +1,48 @@
+name: Studio images
+
+# The art studio asks for a picture without holding an OpenAI key: it points
+# a studio-gen/<login> branch at main plus one commit holding the request
+# (replaced each time, so nothing piles up), and this generates the picture
+# with the repository secret OPENAI_API_KEY and pushes it back beside the
+# request. A push runs the workflow as the pushed branch has it, which is why
+# the request sits on top of main. Only people with push access can make such
+# a branch. See tools/studio/generate_image.py.
+
+on:
+  push:
+    branches: ["studio-gen/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: studio-images-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -eu
+          shopt -s nullglob
+          for req in tools/studio/requests/*/request.json; do
+            [ -f "$(dirname "$req")/out.png" ] && continue
+            python3 tools/studio/generate_image.py "$req"
+          done
+
+      - name: Hand the pictures back
+        run: |
+          set -eu
+          git config user.name "studio-robot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/studio/requests
+          git diff --cached --quiet && exit 0
+          git commit -m "Studio images: generated"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

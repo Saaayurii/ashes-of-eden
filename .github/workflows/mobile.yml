@@ -44,7 +44,7 @@ jobs:
           load: true
           tags: ashes-of-eden/godot:4.7.2
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
 
       # Plain docker build, not buildx: this image is FROM the one above, and
       # a buildx builder cannot see an image that only exists in the local

@@ -515,6 +515,26 @@ function prStatus({ state, merged, checks, deployed, review }) {
   return { key: 'ready', label: 'проверено, ждёт владельца', tone: 'ok' };
 }
 
+// ---- placing in rooms: tools/rooms/studio_rooms.json, the room generator's input ----
 
-Object.assign(g, { contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+// The floor under a point, by the rule check_reach (tools/rooms/painted_rooms.py)
+// uses: a surface [x, top, width] reaching the point's x (±8 px) whose top is
+// below its feet; an enemy's origin stands 12 px above that top.
+function snapToSurface(surfaces, x, y) {
+  let best = null;
+  for (const [sx, sy, sw] of surfaces || []) if (sx - 8 <= x && x <= sx + sw + 8 && sy >= y + 12 - 4 && (!best || sy < best[1])) best = [sx, sy, sw];
+  return best ? { x: Math.round(x), y: Math.round(best[1] - 12) } : null;
+}
+// change: {room, spawn: [id, x, y]} or {room, intro_cutscene | outro_cutscene: id}.
+// An enemy is placed once per room (placing it again moves it).
+function mergeStudioRooms(text, change) {
+  const all = text ? JSON.parse(text) : {}, r = all[change.room] ||= {};
+  if (change.spawn) { r.spawns = (r.spawns || []).filter(s => s[0] !== change.spawn[0]); r.spawns.push(change.spawn); }
+  for (const k of ['intro_cutscene', 'outro_cutscene']) if (change[k] !== undefined) r[k] = change[k];
+  const sorted = Object.fromEntries(Object.keys(all).sort().map(k => [k, all[k]]));
+  return JSON.stringify(sorted, null, 2).replace(/\[\n\s+("[^"]*"),\n\s+(-?[\d.]+),\n\s+(-?[\d.]+)\n\s+\]/g, '[$1, $2, $3]') + '\n';
+}
+
+
+Object.assign(g, { snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);
