@@ -61,6 +61,12 @@ the painting as a whole, a rough "how visible is the twin"). The studio cuts a
 band out with 80 px either side and the room's floors drawn on it, takes her
 repaint back, keeps only the band (feathered into its sides) and sends the wide
 painting through the override path, so only the band goes in.
+Before the band is cut out, her repaint is put back onto the crop the way
+ref2game's `variantfix.py` does (`lib.js alignEdit` / `warpEdit` /
+`matchColours`): an image model's edit drifts a few pixels, a percent or two in
+size and a shade in colour, so the offset and scale are searched against the
+80 px sides (which were to stay) and each channel's mean and spread brought to
+theirs.
 
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the

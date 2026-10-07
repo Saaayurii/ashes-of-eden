@@ -431,6 +431,68 @@ function insertBackdropRules(text, rules) {
   if (!lines.length) return text;
   return text.replace(/("rooms":\s*\{\n)/, `$1${lines.join('\n')}\n`);
 }
+// An image model's edit drifts: a few pixels aside, a percent or two bigger, a shade
+// warmer (ref2game's variantfix.py). These put an edit back onto its base using only
+// the parts that were meant to stay (keep(x, y)), so a repainted seam meets its sides.
+// Images are {data: RGBA, w, h} of the same size.
+function lumOf(img) { const l = new Float32Array(img.w * img.h); for (let i = 0; i < l.length; i++) l[i] = img.data[i * 4] * 0.299 + img.data[i * 4 + 1] * 0.587 + img.data[i * 4 + 2] * 0.114; return l; }
+function shrink(l, w, h, f) {
+  const W = Math.floor(w / f), H = Math.floor(h / f), o = new Float32Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { let s = 0; for (let j = 0; j < f; j++) for (let i = 0; i < f; i++) s += l[(y * f + j) * w + x * f + i]; o[y * W + x] = s / (f * f); }
+  return { l: o, w: W, h: H };
+}
+// the edit scaled by sc about the centre and moved by (dx, dy), read at (x, y): nearest neighbour
+const warpAt = (w, h, sc, dx, dy) => (x, y) => [Math.round((x - dx - w / 2) / sc + w / 2), Math.round((y - dy - h / 2) / sc + h / 2)];
+function warpError(base, edit, w, h, sc, dx, dy, keep, f) {
+  const at = warpAt(w, h, sc, dx, dy); let e = 0, n = 0;
+  for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) {
+    if (!keep(x * f, y * f)) continue;
+    const [sx, sy] = at(x, y); if (sx < 0 || sy < 0 || sx >= w || sy >= h) { e += 64; n++; continue; }
+    e += Math.abs(base[y * w + x] - edit[sy * w + sx]); n++;
+  }
+  return n ? e / n : Infinity;
+}
+function alignEdit(base, edit, keep, { scales = [0.97, 0.98, 0.99, 1, 1.01, 1.02, 1.03], reach = 16 } = {}) {
+  const f = 4, b4 = shrink(lumOf(base), base.w, base.h, f), e4 = shrink(lumOf(edit), edit.w, edit.h, f);
+  let best = { err: Infinity, sc: 1, dx: 0, dy: 0 };
+  const r4 = Math.ceil(reach / f);
+  for (const sc of scales) for (let dy = -r4; dy <= r4; dy++) for (let dx = -r4; dx <= r4; dx++) {
+    const err = warpError(b4.l, e4.l, b4.w, b4.h, sc, dx, dy, keep, f);
+    if (err < best.err) best = { err, sc, dx: dx * f, dy: dy * f };
+  }
+  // refine at full size around the coarse answer
+  const bl = lumOf(base), el = lumOf(edit), c = { ...best }; best = { ...c, err: Infinity };
+  const r = f / 2 + 1;   // the coarse step was f: the answer lies within half of it, give or take its rounding
+  for (let dy = c.dy - r; dy <= c.dy + r; dy++) for (let dx = c.dx - r; dx <= c.dx + r; dx++) {
+    const err = warpError(bl, el, base.w, base.h, c.sc, dx, dy, keep, 1);
+    if (err < best.err) best = { err, sc: c.sc, dx, dy };
+  }
+  return best;
+}
+function warpEdit(edit, { sc, dx, dy }) {
+  const { w, h } = edit, out = new Uint8ClampedArray(w * h * 4), at = warpAt(w, h, sc, dx, dy);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let [sx, sy] = at(x, y); sx = Math.min(w - 1, Math.max(0, sx)); sy = Math.min(h - 1, Math.max(0, sy));
+    out.set(edit.data.subarray((sy * w + sx) * 4, (sy * w + sx) * 4 + 4), (y * w + x) * 4);
+  }
+  return { data: out, w, h };
+}
+// each channel's mean and spread brought to the base's, measured where both are meant to agree
+function matchColours(base, img, keep) {
+  const out = new Uint8ClampedArray(img.data), stats = [];
+  for (let ch = 0; ch < 3; ch++) {
+    let n = 0, sb = 0, si = 0, qb = 0, qi = 0;
+    for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
+      if (!keep(x, y)) continue; const i = (y * img.w + x) * 4 + ch, b = base.data[i], v = img.data[i];
+      n++; sb += b; si += v; qb += b * b; qi += v * v;
+    }
+    if (!n) return { data: out, w: img.w, h: img.h };
+    const mb = sb / n, mi = si / n, db = Math.sqrt(Math.max(0, qb / n - mb * mb)), di = Math.sqrt(Math.max(0, qi / n - mi * mi)) || 1;
+    for (let i = ch; i < out.length; i += 4) out[i] = (img.data[i] - mi) / di * db + mb;
+    stats.push([mi - mb, di / (db || 1)]);
+  }
+  return { data: out, w: img.w, h: img.h, stats };
+}
 // One picture's rule in data/backdrops.json, rewritten in the file's own style
 // (a zone a line, floats keep their ".0", the other rules untouched); a key it
 // does not have yet goes at the top of "rooms". rule = {family, flame?, flame_floor?, zones}.
@@ -763,5 +825,5 @@ function mergeOverrides(text, entries) {
   return JSON.stringify(sorted, null, 2) + '\n';
 }
 
-Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, alignEdit, warpEdit, matchColours, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);
