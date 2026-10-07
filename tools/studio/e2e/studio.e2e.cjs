@@ -16,6 +16,11 @@ const URL = `http://127.0.0.1:${PORT}/tools/studio/`;
 const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' });
 const before = new Set(git('status', '--porcelain', '--untracked-files=all').split('\n').filter(Boolean));
 
+// The studio's view of the game (tools/studio/import, not tracked). serve.py
+// rebuilds it after each write, so a run leaves it listing the enemy it made;
+// a second run then saw e2e_archer as taken and wrote e2e_archer_2.
+const rebuildStudioData = () => execFileSync('python3', ['tools/studio/build_data.py'], { cwd: ROOT, stdio: 'ignore' });
+
 function restore() {
   // put back what the studio wrote: tracked files to HEAD, new files removed
   for (const line of git('status', '--porcelain', '--untracked-files=all').split('\n').filter(Boolean)) {
@@ -24,6 +29,7 @@ function restore() {
     if (line.startsWith('??')) fs.rmSync(path.join(ROOT, file), { force: true });
     else git('checkout', '--', file);
   }
+  rebuildStudioData();
 }
 
 const steps = [];
@@ -35,6 +41,7 @@ async function step(name, fn) {
 }
 
 (async () => {
+  rebuildStudioData();
   const server = spawn('python3', ['tools/studio/serve.py'], { cwd: ROOT, env: { ...process.env, STUDIO_PORT: String(PORT) }, stdio: 'inherit' });
   const browser = await chromium.launch();
   const errors = [];
@@ -49,6 +56,7 @@ async function step(name, fn) {
     // Before any other tab has loaded: the wizard is reached from the
     // characters tab straight away, and its room list used to come up empty.
     await step('the enemy wizard lists the rooms on a fresh page', async () => {
+      await page.waitForFunction(() => P);  // the wizard does nothing until the current character is loaded
       assert.equal(await page.evaluate(() => roomNames().length), 0, 'no tab has loaded the rooms yet');
       await page.evaluate(() => { enemyWizard(); });
       await page.waitForFunction(() => document.querySelectorAll('#dlg[open] .rp-room option').length > 10, null, { timeout: 15000 });
@@ -59,8 +67,10 @@ async function step(name, fn) {
 
     await step('every tab loads the game', async () => {
       for (const m of ['bg', 'cut', 'snd', 'chars']) { await page.evaluate(m => setMode(m), m); await page.waitForTimeout(1500); }
-      const n = await page.evaluate(() => ({ rooms: bgs.length, cuts: cuts.length, snd: document.querySelectorAll('#sndList .irow').length }));
-      assert.ok(n.rooms > 10 && n.cuts > 5 && n.snd > 50, JSON.stringify(n));
+      // the rooms arrive in the background (25 files and their pictures): wait for them, not for a clock
+      const count = () => page.evaluate(() => ({ rooms: bgs.length, cuts: cuts.length, snd: document.querySelectorAll('#sndList .irow').length }));
+      await page.waitForFunction(() => bgs.length > 10 && cuts.length > 5 && document.querySelectorAll('#sndList .irow').length > 50, null, { timeout: 30000 })
+        .catch(async () => assert.fail(JSON.stringify(await count())));
     });
 
     await step('a generated-style frame becomes a clean 44 px sprite', async () => {
@@ -104,6 +114,8 @@ async function step(name, fn) {
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
       const text = await page.textContent('#dlg');
       assert.match(text, /data\/enemies\/e2e_archer\.json/, text);
+      // only the Russian name and tip were given: she is told English shows Russian
+      assert.match(text, /без английского/, text);
       const scene = fs.readFileSync(path.join(ROOT, 'scenes/rooms/graveyard_cross.tscn'), 'utf8');
       assert.match(scene, /enemy_id = "e2e_archer"/);
       const entry = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemies/e2e_archer.json'), 'utf8'));
