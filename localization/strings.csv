@@ -988,7 +988,7 @@ BOSS_EPITHET_KNIGHT_OF_ASH,"An oath without a lord","Клятва без гос�
 BOSS_EPITHET_OPHANIM,"The wheel within the wheel","Колесо в колесе","Колесо в колесі","轮中之轮"
 CUTSCENE_SKIP_AGAIN,"Again to skip","Ещё раз — пропустить","Ще раз — пропустити","再按一次跳过"
 SPEAKER_KNIGHT_OF_ASH,"Knight of Ash","Рыцарь пепла","Лицар попелу","灰烬骑士"
-DLG_CH1_KNIGHT_1,"A voice told me fire was mercy. I believed it, and a town burned.","Голос сказал мне, что огонь — это милосердие. Я поверил, и сгорел город.","Голос сказав мені, що вогонь — це милосердя. Я повірив, і згоріло місто.","有个声音告诉我，火就是慈悲。我信了，于是一座城烧了。"
+DLG_CH1_KNIGHT_1,"A voice told me fire was mercy. I believed it, and a town burned.","Голос сказал мне, что огонь — это милосердие. Я поверил, и сгорел город. (проверка превью)","Голос сказав мені, що вогонь — це милосердя. Я повірив, і згоріло місто.","有个声音告诉我，火就是慈悲。我信了，于是一座城烧了。"
 DLG_CH1_KNIGHT_YES,"You told it yes. So did I. Let us see which of us it lied to.","Ты сказал ему «да». Я тоже. Посмотрим, кому из нас оно солгало.","Ти сказав йому «так». Я теж. Подивимось, кому з нас воно збрехало.","你对它说了“是”。我也说过。来看看它骗的是我们中的哪一个。"
 DLG_CH1_KNIGHT_NO,"You told it no. I never learned that word.","Ты сказал ему «нет». Я этому слову так и не научился.","Ти сказав йому «ні». Я цього слова так і не навчився.","你对它说了“不”。这个字，我一直没学会。"
 DLG_CH1_KNIGHT_SILENT,"You gave it silence. I wish I had kept mine.","Ты ответил ему молчанием. Жаль, что я не сберёг своего.","Ти відповів йому мовчанням. Шкода, що я не вберіг свого.","你以沉默回应它。我真希望当初也守住了我的沉默。"
