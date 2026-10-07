@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=3]
+[gd_scene load_steps=66 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/dead_bridge.png" id="2_backdrop"]
@@ -33,13 +33,15 @@
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_1.png" id="piece_ground_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_2.png" id="piece_ground_2"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_3.png" id="piece_ground_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_4.png" id="piece_ground_4"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_5.png" id="piece_ground_5"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ground_6.png" id="piece_ground_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_3.png" id="piece_ledge_3"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_4.png" id="piece_ledge_4"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_5.png" id="piece_ledge_5"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_7.png" id="piece_ledge_7"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_8.png" id="piece_ledge_8"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_1.png" id="piece_wall_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_2.png" id="piece_wall_2"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_3.png" id="piece_wall_3"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/wall_4.png" id="piece_wall_4"]
@@ -270,255 +272,269 @@ mouse_filter = 2
 position = Vector2(0, 308)
 texture = ExtResource("piece_ground_5")
 centered = false
+modulate = Color(0.964, 0.964, 0.965, 1)
 
 [node name="Ground1_2" type="Sprite2D" parent="Terrain"]
 position = Vector2(45, 310)
 texture = ExtResource("piece_ground_6")
 centered = false
+modulate = Color(0.975, 0.975, 0.976, 1)
 
 [node name="Ground1_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(90, 310)
-texture = ExtResource("piece_ground_6")
+position = Vector2(90, 314)
+texture = ExtResource("piece_ground_2")
 centered = false
 flip_h = true
+modulate = Color(0.938, 0.938, 0.939, 1)
 
 [node name="Ground1_4" type="Sprite2D" parent="Terrain"]
-position = Vector2(135, 318)
-texture = ExtResource("piece_ground_3")
+position = Vector2(154, 316)
+texture = ExtResource("piece_ground_4")
 centered = false
 flip_h = true
+modulate = Color(0.994, 0.994, 0.994, 1)
 
 [node name="Ground1_5" type="Sprite2D" parent="Terrain"]
-position = Vector2(188, 314)
+position = Vector2(197, 314)
 texture = ExtResource("piece_ground_2")
 centered = false
 flip_h = true
+modulate = Color(0.973, 0.973, 0.974, 1)
 
 [node name="Ground1_6" type="Sprite2D" parent="Terrain"]
-position = Vector2(252, 318)
-texture = ExtResource("piece_ground_3")
+position = Vector2(261, 316)
+texture = ExtResource("piece_ground_4")
 centered = false
+modulate = Color(0.943, 0.943, 0.944, 1)
 
 [node name="Ground1_7" type="Sprite2D" parent="Terrain"]
-position = Vector2(305, 314)
+position = Vector2(304, 314)
 texture = ExtResource("piece_ground_1")
 centered = false
+modulate = Color(0.961, 0.961, 0.962, 1)
 
 [node name="Ground1_8" type="Sprite2D" parent="Terrain"]
-position = Vector2(407, 314)
-texture = ExtResource("piece_ground_1")
-centered = false
-flip_h = true
-
-[node name="Ground1_9" type="Sprite2D" parent="Terrain"]
-position = Vector2(509, 314)
-texture = ExtResource("piece_ground_1")
-centered = false
-flip_h = true
-
-[node name="Ground1_10" type="Sprite2D" parent="Terrain"]
-position = Vector2(611, 310)
-texture = ExtResource("piece_ground_6")
-centered = false
-
-[node name="Ground1_11" type="Sprite2D" parent="Terrain"]
-position = Vector2(656, 308)
-texture = ExtResource("piece_ground_5")
-centered = false
-flip_h = true
-
-[node name="Ground1_12" type="Sprite2D" parent="Terrain"]
-position = Vector2(701, 310)
-texture = ExtResource("piece_ground_6")
-centered = false
-
-[node name="Ground1_13" type="Sprite2D" parent="Terrain"]
-position = Vector2(746, 318)
-texture = ExtResource("piece_ground_3")
-centered = false
-flip_h = true
-
-[node name="Ground1_14" type="Sprite2D" parent="Terrain"]
-position = Vector2(799, 314)
+position = Vector2(406, 314)
 texture = ExtResource("piece_ground_2")
 centered = false
 flip_h = true
+modulate = Color(0.993, 0.993, 0.993, 1)
+
+[node name="Ground1_9" type="Sprite2D" parent="Terrain"]
+position = Vector2(470, 314)
+texture = ExtResource("piece_ground_1")
+centered = false
+flip_h = true
+modulate = Color(0.968, 0.968, 0.969, 1)
+
+[node name="Ground1_10" type="Sprite2D" parent="Terrain"]
+position = Vector2(572, 314)
+texture = ExtResource("piece_ground_2")
+centered = false
+modulate = Color(0.911, 0.911, 0.913, 1)
+
+[node name="Ground1_11" type="Sprite2D" parent="Terrain"]
+position = Vector2(636, 316)
+texture = ExtResource("piece_ground_4")
+centered = false
+flip_h = true
+modulate = Color(0.973, 0.973, 0.974, 1)
+
+[node name="Ground1_12" type="Sprite2D" parent="Terrain"]
+position = Vector2(679, 314)
+texture = ExtResource("piece_ground_1")
+centered = false
+flip_h = true
+
+[node name="Ground1_13" type="Sprite2D" parent="Terrain"]
+position = Vector2(781, 310)
+texture = ExtResource("piece_ground_6")
+centered = false
+modulate = Color(0.974, 0.974, 0.975, 1)
+
+[node name="Ground1_14" type="Sprite2D" parent="Terrain"]
+position = Vector2(826, 316)
+texture = ExtResource("piece_ground_4")
+centered = false
+modulate = Color(0.951, 0.951, 0.952, 1)
 
 [node name="Ground1_15" type="Sprite2D" parent="Terrain"]
-position = Vector2(863, 310)
-texture = ExtResource("piece_ground_6")
+position = Vector2(869, 314)
+texture = ExtResource("piece_ground_1")
 centered = false
+modulate = Color(0.982, 0.982, 0.982, 1)
 
 [node name="Ground1_16" type="Sprite2D" parent="Terrain"]
-position = Vector2(908, 310)
-texture = ExtResource("piece_ground_6")
+position = Vector2(971, 316)
+texture = ExtResource("piece_ground_4")
 centered = false
+modulate = Color(0.943, 0.943, 0.944, 1)
 
 [node name="Ground1_17" type="Sprite2D" parent="Terrain"]
-position = Vector2(953, 310)
-texture = ExtResource("piece_ground_6")
+position = Vector2(976, 308)
+texture = ExtResource("piece_ground_5")
 centered = false
-
-[node name="Ground1_18" type="Sprite2D" parent="Terrain"]
-position = Vector2(998, 318)
-texture = ExtResource("piece_ground_3")
-centered = false
-region_enabled = true
-region_rect = Rect2(0, 0, 26, 44)
+modulate = Color(0.914, 0.914, 0.916, 1)
 
 [node name="Ground2Fill" type="ColorRect" parent="Terrain"]
 offset_left = 412.0
-offset_top = 307.0
+offset_top = 305.0
 offset_right = 612.0
 offset_bottom = 320.0
 color = Color(0.11, 0.09, 0.1, 1)
 mouse_filter = 2
 
 [node name="Ground2_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(412, 269)
-texture = ExtResource("piece_cap_2")
-centered = false
-flip_h = true
-
-[node name="Ground2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(446, 270)
-texture = ExtResource("piece_ground_3")
-centered = false
-flip_h = true
-
-[node name="Ground2_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(499, 266)
-texture = ExtResource("piece_ground_2")
-centered = false
-flip_h = true
-
-[node name="Ground2_4" type="Sprite2D" parent="Terrain"]
-position = Vector2(524, 270)
-texture = ExtResource("piece_ground_3")
-centered = false
-flip_h = true
-
-[node name="Ground2_5" type="Sprite2D" parent="Terrain"]
-position = Vector2(577, 266)
+position = Vector2(412, 266)
 texture = ExtResource("piece_cap_1")
 centered = false
+flip_h = true
+modulate = Color(0.927, 0.927, 0.928, 1)
+
+[node name="Ground2_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(444, 270)
+texture = ExtResource("piece_ground_3")
+centered = false
+flip_h = true
+modulate = Color(0.979, 0.979, 0.979, 1)
+
+[node name="Ground2_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(497, 260)
+texture = ExtResource("piece_ground_5")
+centered = false
+flip_h = true
+modulate = Color(0.934, 0.934, 0.935, 1)
+
+[node name="Ground2_4" type="Sprite2D" parent="Terrain"]
+position = Vector2(542, 270)
+texture = ExtResource("piece_ground_3")
+centered = false
+modulate = Color(0.948, 0.948, 0.949, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 36, 44)
+
+[node name="Ground2_5" type="Sprite2D" parent="Terrain"]
+position = Vector2(575, 269)
+texture = ExtResource("piece_cap_2")
+centered = false
+modulate = Color(0.949, 0.949, 0.95, 1)
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(120, 230)
 texture = ExtResource("piece_ledge_8")
 centered = false
 flip_h = true
+modulate = Color(0.926, 0.926, 0.927, 1)
 
 [node name="Platform1_2" type="Sprite2D" parent="Terrain"]
 position = Vector2(155, 230)
-texture = ExtResource("piece_ledge_8")
-centered = false
-
-[node name="Platform1_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(190, 230)
-texture = ExtResource("piece_ledge_5")
-centered = false
-region_enabled = true
-region_rect = Rect2(0, 0, 40, 46)
-
-[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(800, 230)
-texture = ExtResource("piece_ledge_7")
-centered = false
-flip_h = true
-
-[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(841, 230)
-texture = ExtResource("piece_ledge_7")
-centered = false
-
-[node name="Platform2_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(882, 230)
-texture = ExtResource("piece_ledge_3")
-centered = false
-region_enabled = true
-region_rect = Rect2(0, 0, 28, 46)
-
-[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(300, 180)
-texture = ExtResource("piece_ledge_8")
-centered = false
-flip_h = true
-
-[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(335, 180)
-texture = ExtResource("piece_ledge_8")
-centered = false
-flip_h = true
-
-[node name="Platform3_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(370, 180)
-texture = ExtResource("piece_ledge_8")
-centered = false
-region_enabled = true
-region_rect = Rect2(0, 0, 20, 43)
-
-[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(640, 180)
 texture = ExtResource("piece_ledge_4")
 centered = false
 
-[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(688, 180)
+[node name="Platform1_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(203, 230)
 texture = ExtResource("piece_ledge_8")
 centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 27, 43)
 
-[node name="Platform4_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(692, 180)
+[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(800, 230)
+texture = ExtResource("piece_ledge_5")
+centered = false
+flip_h = true
+modulate = Color(0.976, 0.976, 0.976, 1)
+
+[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(842, 230)
+texture = ExtResource("piece_ledge_4")
+centered = false
+flip_h = true
+modulate = Color(0.985, 0.985, 0.985, 1)
+
+[node name="Platform2_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(865, 230)
+texture = ExtResource("piece_ledge_5")
+centered = false
+modulate = Color(0.925, 0.925, 0.926, 1)
+
+[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(300, 180)
+texture = ExtResource("piece_ledge_3")
+centered = false
+modulate = Color(0.989, 0.989, 0.989, 1)
+
+[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(347, 180)
+texture = ExtResource("piece_ledge_5")
+centered = false
+modulate = Color(0.939, 0.939, 0.94, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 43, 46)
+
+[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(640, 180)
 texture = ExtResource("piece_ledge_8")
 centered = false
 flip_h = true
+modulate = Color(0.989, 0.989, 0.989, 1)
+
+[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(675, 180)
+texture = ExtResource("piece_ledge_4")
+centered = false
+modulate = Color(0.907, 0.907, 0.909, 1)
+
+[node name="Platform4_3" type="Sprite2D" parent="Terrain"]
+position = Vector2(679, 180)
+texture = ExtResource("piece_ledge_2")
+centered = false
 
 [node name="WallL_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 297)
-texture = ExtResource("piece_wall_5")
+position = Vector2(-4, 298)
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 234)
+position = Vector2(-4, 235)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 172)
+position = Vector2(-4, 173)
 texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_4" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 110)
-texture = ExtResource("piece_wall_2")
+position = Vector2(-4, 111)
+texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_5" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, 48)
-texture = ExtResource("piece_wall_2")
+position = Vector2(-4, 50)
+texture = ExtResource("piece_wall_1")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_6" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, -15)
+position = Vector2(-4, -13)
 texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallL_7" type="Sprite2D" parent="Terrain"]
-position = Vector2(-4, -77)
-texture = ExtResource("piece_wall_3")
+position = Vector2(-4, -76)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_1" type="Sprite2D" parent="Terrain"]
 position = Vector2(998, 298)
-texture = ExtResource("piece_wall_2")
+texture = ExtResource("piece_wall_4")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
@@ -535,25 +551,25 @@ centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_4" type="Sprite2D" parent="Terrain"]
-position = Vector2(998, 112)
-texture = ExtResource("piece_wall_3")
+position = Vector2(998, 111)
+texture = ExtResource("piece_wall_5")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_5" type="Sprite2D" parent="Terrain"]
-position = Vector2(998, 50)
+position = Vector2(998, 49)
 texture = ExtResource("piece_wall_3")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_6" type="Sprite2D" parent="Terrain"]
-position = Vector2(998, -12)
+position = Vector2(998, -13)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
 
 [node name="WallR_7" type="Sprite2D" parent="Terrain"]
-position = Vector2(998, -74)
+position = Vector2(998, -75)
 texture = ExtResource("piece_wall_2")
 centered = false
 modulate = Color(0.8, 0.8, 0.85, 1)
