@@ -36,7 +36,7 @@ function renderAuth() {
   else { b.textContent = 'Войти'; b.title = 'Войти через GitHub, чтобы отправлять изменения в игру'; b.className = 'ghost'; }
 }
 async function ghApi(path, opts = {}, token = gh?.token) {
-  const r = await fetch('https://api.github.com' + path, { ...opts, headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(opts.headers || {}) } });
+  const r = await fetch('https://api.github.com' + path, { ...opts, headers: { ...(token ? { Authorization: 'Bearer ' + token } : {}), Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(opts.headers || {}) } });
   if (opts.raw) { if (!r.ok) throw Object.assign(new Error('GitHub ' + r.status), { status: r.status }); return r.text(); }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(j.message || 'GitHub ' + r.status), { status: r.status });
@@ -58,7 +58,7 @@ function dialog(html, buttons = [['Закрыть']]) {
   d.innerHTML = `<div class="dlgbody">${html}</div><div class="row dlgbtns">${buttons.map(([label, act, cls], i) => `<button data-dlg="${i}" class="${cls || ''}">${label}</button>`).join('')}</div>`;
   return new Promise(res => {
     d.onclick = e => { const b = e.target.closest('[data-dlg]'); if (!b) return; const [, act] = buttons[+b.dataset.dlg]; if (act) { const v = act(d); if (v === false) return; } d.close(); res(+b.dataset.dlg); };
-    d.showModal();
+    if (!d.open) d.showModal();
   });
 }
 function authDialog() {
@@ -127,15 +127,27 @@ async function commitFiles(files, del, title, body) {
   const branch = `studio/${gh.login}-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12)}`;
   await ghApi(`${R}/git/refs`, { method: 'POST', body: JSON.stringify({ ref: 'refs/heads/' + branch, sha: c.sha }) });
   const pr = await ghApi(`${R}/pulls`, { method: 'POST', body: JSON.stringify({ title, head: branch, base: META.branch, body: body + '\n\n— отправлено из Sprite Studio (tools/studio)' }) });
-  return { url: pr.html_url };
+  return { url: pr.html_url, number: pr.number };
 }
-async function sendToGame(build) {
+// Which project a send belongs to, so the same pull request carries it and the
+// studio can open it again from the branch — on this computer or another one.
+const PROJECT_KIND = { chars: 'chars', bg: 'bgs', cut: 'cuts' };
+async function projectFile(kind, obj) {
+  const copy = JSON.parse(JSON.stringify(obj)); delete copy.shared; delete copy.pendingPr; delete copy.dirty;
+  if (kind === 'chars') { copy.reference = await shrinkSrc(copy.reference); for (const a of copy.animations) for (const f of a.frames) f.src = await shrinkSrc(f.src); }
+  return [`tools/studio/projects/${kind}/${slug(copy.id || copy.name)}.json`, JSON.stringify(copy) + '\n'];
+}
+async function sendToGame(build, tab) {
   if (!Writer.mode) { await authDialog(); if (!Writer.mode) return; }
   let r;
+  const obj = tab && undoTarget(tab), kind = PROJECT_KIND[tab];
   try {
     const { files, del = [], title, body = '', notes = [] } = await build();
+    if (obj && kind && !files[`tools/studio/projects/${kind}/${slug(obj.id || obj.name)}.json`]) { const [p, txt] = await projectFile(kind, obj); files[p] = txt; }
     toast('Отправляю…');
     r = await commitFiles(files, del, title, [body, ...notes].filter(Boolean).join('\n\n'));
+    if (obj) { obj.dirty = false; if (r.url) obj.pendingPr = r.number; storeOf(tab)?.(obj); }
+    rememberSend({ kind: tab, objId: obj?.id, title, url: r.url, number: r.number, local: !!r.local });
     if (r.url) return dialog(`<h3>Отправлено</h3><p>Создан pull request: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></p><p>CI проверит данные; когда владелец его вольёт, изменения появятся в игре и в студии.</p>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}`);
     const box = `<h3>Записано в игру</h3><p>${r.written.length} файл(ов)${r.deleted.length ? `, удалено ${r.deleted.length}` : ''}:</p><pre class="log">${esc([...r.written, ...r.deleted.map(d => '− ' + d)].join('\n'))}</pre>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}<div id="valOut" class="note">Проверяю данные игры (validate_data.gd)…</div>`;
     dialog(box);
@@ -280,13 +292,11 @@ async function shrinkSrc(src, max = 768) {
   return c.toDataURL('image/png');
 }
 async function shareProject(kind) {
-  const obj = kind === 'chars' ? P : kind === 'bgs' ? BG : CUT;
+  const tab = { chars: 'chars', bgs: 'bg', cuts: 'cut' }[kind], obj = undoTarget(tab);
   if (!obj) return;
-  const copy = JSON.parse(JSON.stringify(obj)); delete copy.shared;
-  if (kind === 'chars') { copy.reference = await shrinkSrc(copy.reference); for (const a of copy.animations) for (const f of a.frames) f.src = await shrinkSrc(f.src); }
-  const id = slug(copy.name || copy.id), path = `tools/studio/projects/${kind}/${id}.json`;
-  await sendToGame(async () => ({ files: { [path]: JSON.stringify(copy) + '\n' }, title: `Studio: share ${kind.slice(0, -1)} ${id}`,
-    body: `Проект студии \`${path}\` — после вливания он появится у всех, кто открывает студию.` }));
+  const [path, txt] = await projectFile(kind, obj);
+  await sendToGame(async () => ({ files: { [path]: txt }, title: `Studio: share ${kind.slice(0, -1)} ${slug(obj.id || obj.name)}`,
+    body: `Проект студии \`${path}\` — после вливания он появится у всех, кто открывает студию.` }), tab);
 }
 
 /* ---------- buttons ---------- */
@@ -294,9 +304,10 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   switch (b.dataset.act) {
     case 'auth': authDialog(); break;
-    case 'chars-game': sendToGame(charFiles); break;
-    case 'bg-game': sendToGame(bgFiles); break;
-    case 'cut-game-send': sendToGame(cutFiles); break;
+    case 'chars-game': sendToGame(charFiles, 'chars'); break;
+    case 'bg-game': sendToGame(bgFiles, 'bg'); break;
+    case 'cut-game-send': sendToGame(cutFiles, 'cut'); break;
+    case 'sent': sentDialog(); break;
     case 'snd-game': sendToGame(soundFiles); break;
     case 'chars-share': shareProject('chars'); break;
     case 'bg-share': shareProject('bgs'); break;
@@ -306,3 +317,83 @@ document.addEventListener('click', e => {
     case 'chars-from-game': importFromUrl('import/list.json').then(() => { renderAll(); scheduleBuild(0); }); break;
   }
 });
+
+/* ---------- my sends: what happened to them, and opening them again ---------- */
+const SENT_KEY = 'ss_sent';
+const loadSent = () => { try { return JSON.parse(localStorage.getItem(SENT_KEY) || '[]'); } catch { return []; } };
+function rememberSend(e) {
+  const list = [{ ...e, at: Date.now() }, ...loadSent()].slice(0, 60);
+  try { localStorage.setItem(SENT_KEY, JSON.stringify(list)); } catch {}
+  refreshSent();
+}
+const storeOf = tab => ({ chars: o => { if (o === P) persist(); else DB.put(o).catch(() => {}); },
+  bg: o => DB.put(o, 'backgrounds').catch(() => {}), cut: o => DB.put(o, 'cutscenes').catch(() => {}) })[tab];
+let sentCache = [];
+// Her pull requests (the studio names its branches studio/<login>-…), with checks and whether the site has them.
+async function fetchSent() {
+  if (Writer.mode !== 'github') return loadSent().map(e => ({ ...e, status: e.local ? { key: 'local', label: 'записано в папку игры', tone: 'ok' } : null }));
+  const R = `/repos/${META.repo}`;
+  const prs = (await ghApi(`${R}/pulls?state=all&per_page=50&sort=created&direction=desc`)).filter(p => p.head.ref.startsWith(`studio/${gh.login}-`)).slice(0, 20);
+  return Promise.all(prs.map(async p => {
+    let checks = null, deployed = false;
+    if (p.state === 'open') {
+      try {
+        const runs = (await ghApi(`${R}/commits/${p.head.sha}/check-runs?per_page=100`)).check_runs || [];
+        checks = { total: runs.length, pending: runs.filter(r => r.status !== 'completed').length, failed: runs.filter(r => ['failure', 'timed_out', 'cancelled'].includes(r.conclusion)).length };
+      } catch {}
+    }
+    if (p.merged_at && META.sha) {
+      try { const c = await ghApi(`${R}/compare/${p.merge_commit_sha}...${META.sha}`); deployed = c.status === 'ahead' || c.status === 'identical'; } catch {}
+    }
+    return { number: p.number, url: p.html_url, title: p.title, at: Date.parse(p.created_at), head: p.head.sha, branch: p.head.ref,
+      status: prStatus({ state: p.state, merged: !!p.merged_at, checks, deployed }) };
+  }));
+}
+// A sent project stays hers until the game has it: then the game's copy is hers too.
+function settlePending(list) {
+  const done = new Map(list.filter(e => e.number && ['live', 'closed'].includes(e.status?.key)).map(e => [e.number, e.status.key]));
+  for (const [tab, items] of [['chars', projects], ['bg', bgs], ['cut', cuts]]) for (const o of items) {
+    if (!o.pendingPr || !done.has(o.pendingPr)) continue;
+    if (done.get(o.pendingPr) === 'closed') o.dirty = true;  // not taken: keep it as her unsent work
+    delete o.pendingPr; storeOf(tab)?.(o);
+  }
+}
+async function refreshSent() {
+  try { sentCache = await fetchSent(); settlePending(sentCache); } catch { return; }
+  const open = sentCache.filter(e => ['checking', 'ready', 'failed', 'merged'].includes(e.status?.key)).length;
+  const b = document.getElementById('sentBtn');
+  if (b) { b.textContent = open ? `Мои отправки · ${open}` : 'Мои отправки'; b.classList.toggle('ok', !!sentCache.length && !open); }
+}
+const toneClass = t => t === 'ok' ? 'ok' : t === 'bad' ? 'warn' : 'muted';
+async function sentDialog() {
+  dialog('<h3>Мои отправки</h3><div class="note">Загружаю…</div>');
+  await refreshSent();
+  const rows = sentCache.map(e => `<div class="sentrow">
+      <div><b>${esc(e.title || '')}</b><div class="muted" style="font-size:12px">${new Date(e.at).toLocaleString('ru')}${e.number ? ` · #${e.number}` : ''}</div></div>
+      <span class="${toneClass(e.status?.tone)}">${esc(e.status?.label || '')}</span>
+      ${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">PR ↗</a>` : ''}
+      ${e.number ? `<button class="sm" data-open-pr="${e.number}">Открыть в студии</button>` : ''}
+    </div>`).join('') || '<div class="muted">Пока ничего не отправлено.</div>';
+  await dialog(`<h3>Мои отправки</h3>
+    <div class="note">«на проверке» — CI проверяет данные; «проверено» — ждёт, когда владелец вольёт; «в игре» — уже на сайте игры и в студии у всех. Через «Открыть в студии» можно вернуть отправленное и на другом компьютере.</div>
+    <div class="sentlist">${rows}</div>`);
+}
+// Bring a sent project back from its branch (or from main once it is in).
+async function openFromPr(number) {
+  try {
+    const R = `/repos/${META.repo}`, pr = await ghApi(`${R}/pulls/${number}`), ref = pr.merged_at ? META.branch : pr.head.sha;
+    const files = (await ghApi(`${R}/pulls/${number}/files?per_page=100`)).map(f => f.filename).filter(f => /^tools\/studio\/projects\/(chars|bgs|cuts)\/[^/]+\.json$/.test(f));
+    if (!files.length) return toast('В этой отправке нет проекта студии (это звуки или старая отправка)', 'err');
+    for (const f of files) {
+      const obj = JSON.parse(await ghApi(`${R}/contents/${f}?ref=${ref}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }));
+      const kind = f.split('/')[3];
+      obj.pendingPr = pr.merged_at ? undefined : number; obj.dirty = false;
+      if (kind === 'chars') { const p = migrate(obj), i = projects.findIndex(x => x.id === p.id); if (i >= 0) projects[i] = p; else projects.push(p); P = p; await persist(); setMode('chars'); renderAll(); scheduleBuild(0); }
+      else if (kind === 'bgs') { BG = migrateBg(obj); await bgUpsert(BG); setMode('bg'); renderBgAll(); }
+      else { CUT = migrateCut(obj); await cutUpsert(CUT); setMode('cut'); renderCutAll(); }
+    }
+    document.getElementById('dlg').close();
+    toast(`Открыто из отправки #${number}`);
+  } catch (e) { toast('Не получилось открыть: ' + e.message, 'err'); }
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-open-pr]'); if (b) openFromPr(+b.dataset.openPr); });

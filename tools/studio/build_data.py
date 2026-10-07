@@ -29,6 +29,7 @@ in tools/studio/projects/files.json and stay editable.
 import argparse
 import base64
 import csv
+import hashlib
 import importlib.util
 import io
 import json
@@ -55,6 +56,15 @@ def res_to_path(root: Path, res: str) -> Path:
 def asset_url(res: str) -> str:
     """res://assets/x.png -> assets/x.png; the page prefixes its asset base."""
     return res.removeprefix("res://")
+
+
+def rev(root: Path, *res):
+    """A short hash of the files a thing came from: the studio's sign that the game changed it."""
+    h = hashlib.sha1()
+    for r in res:
+        p = res_to_path(root, r) if r.startswith("res://") else root / r
+        h.update(p.read_bytes() if p.exists() else b"")
+    return h.hexdigest()[:12]
 
 
 def data_url(img: Image.Image) -> str:
@@ -133,8 +143,10 @@ def hero(root: Path):
             cell = cell or (w, h)
         if imgs:
             anims.append(_anim("elian", name, fps, loop, imgs, frames[0][0], [f[2] for f in frames]))
-    return _character("elian", cell, anims, "hero, imported from the game",
-                      {"kind": "game", "generator": HERO_GENERATOR, "tres": tres})
+    c = _character("elian", cell, anims, "hero, imported from the game",
+                   {"kind": "game", "generator": HERO_GENERATOR, "tres": tres})
+    c["rev"] = rev(root, tres, *sorted(sheets))
+    return c
 
 
 def bestiary(root: Path):
@@ -152,8 +164,10 @@ def bestiary(root: Path):
                 if imgs:
                     anims.append(_anim(e["id"], name, float(sp.get("fps", 8)), name in ("idle", "walk"), imgs, res))
         if anims:
-            out.append(_character(e["id"], (cw, ch), anims, f"{e.get('family', 'enemy')} enemy, imported from the game",
-                                  {"kind": "game", "generator": BESTIARY_GENERATOR}))
+            c = _character(e["id"], (cw, ch), anims, f"{e.get('family', 'enemy')} enemy, imported from the game",
+                           {"kind": "game", "generator": BESTIARY_GENERATOR})
+            c["rev"] = rev(root, *sorted(a["file"] for a in anims))
+            out.append(c)
     return out
 
 
@@ -253,6 +267,7 @@ def room_project(root: Path, path: Path):
         "viewW": round(640 / VIEW_ZOOM), "viewH": round(360 / VIEW_ZOOM), "ambient": ambient,
         "resDir": f"res://assets/backgrounds/{path.stem}/", "images": images, "layers": layers,
         "origin": {"kind": "game", "generator": ROOM_GENERATOR, "room": path.stem}, "updated": 0,
+        "rev": rev(root, path.relative_to(root).as_posix()),
         "intro_cutscene": top.get("intro_cutscene", '""').strip('"'), "outro_cutscene": top.get("outro_cutscene", '""').strip('"'),
     }
 
@@ -325,7 +340,8 @@ def story(root: Path, strings, rooms):
     for f in sorted((root / "data/cutscenes").glob("*.json")):
         c = json.loads(f.read_text(encoding="utf-8"))
         scenes.append({"id": c.get("id", f.stem), "kind": "cutscene", "steps": c.get("steps", []),
-                       "origin": {"kind": "game", "file": f.relative_to(root).as_posix()}, "updated": 0})
+                       "origin": {"kind": "game", "file": f.relative_to(root).as_posix()}, "updated": 0,
+                       "rev": rev(root, f.relative_to(root).as_posix())})
     dialogues = {}
     for f in sorted((root / "data/dialogues").glob("*.json")):
         d = json.loads(f.read_text(encoding="utf-8"))
@@ -345,12 +361,21 @@ def story(root: Path, strings, rooms):
             "families": sorted(backdrops.get("families", {}).keys()), "pictures": sorted(backdrops.get("rooms", {}).keys())}
 
 
-def shared(kind):
-    """Projects saved from the studio into tools/studio/projects/<kind>/."""
+def shared(kind, game_ids=()):
+    """Projects saved from the studio into tools/studio/projects/<kind>/.
+
+    A shared cutscene with a game cutscene's id is the same scene once its pull
+    request is in, so the game's file wins; a shared character or background
+    with a game id is somebody's variant and is listed beside it."""
     out = []
     for f in sorted((STUDIO / "projects" / kind).glob("*.json")):
         p = json.loads(f.read_text(encoding="utf-8"))
         p["shared"] = f.relative_to(ROOT).as_posix()
+        p["rev"] = rev(ROOT, p["shared"])
+        if p.get("id") in game_ids:
+            if kind == "cuts":
+                continue
+            p["id"] = "shared_" + p["id"]
         out.append(p)
     return out
 
@@ -379,20 +404,27 @@ def write(out: Path, rel: str, data):
     return rel
 
 
-def build(root: Path, out: Path, asset_base: str, branch: str = "main"):
+def head_sha(root: Path):
+    r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True)
+    return r.stdout.strip()
+
+
+def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str = ""):
     strings = load_strings(root)
-    chars = [hero(root)] + bestiary(root) + shared("chars")
+    chars = [hero(root)] + bestiary(root)
+    chars += shared("chars", {c["id"] for c in chars})
     write(out, "list.json", [write(out, f"chars/{c['id']}.sprite.json", c) for c in chars])
     rooms = [room_project(root, p) for p in sorted((root / "scenes/rooms").glob("*.tscn"))]
-    rooms = [r for r in rooms if r["layers"]] + shared("bgs")
+    rooms = [r for r in rooms if r["layers"]]
+    rooms += shared("bgs", {r["id"] for r in rooms})
     write(out, "rooms_list.json", [write(out, f"rooms/{r['id']}.bg.json", r) for r in rooms])
     write(out, "library.json", library(root))
     write(out, "audio.json", audio(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])
-    st["cutscenes"] += shared("cuts")
+    st["cutscenes"] += shared("cuts", {c["id"] for c in st["cutscenes"]})
     write(out, "cutscenes.json", st)
     files, owners = generated(root)
-    write(out, "meta.json", {"repo": REPO, "branch": branch, "assetBase": asset_base,
+    write(out, "meta.json", {"repo": REPO, "branch": branch, "assetBase": asset_base, "sha": sha or head_sha(root),
                              "generated": files, "generators": owners})
     return {"chars": len(chars), "rooms": len(rooms), "cutscenes": len(st["cutscenes"])}
 
@@ -401,9 +433,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--asset-base", default="../../", help="prefix for asset URLs (default: the repository, when the page is served from its root)")
     ap.add_argument("--branch", default="main")
+    ap.add_argument("--sha", default="", help="the commit the data is built from (default: HEAD)")
     ap.add_argument("--out", default=str(STUDIO / "import"))
     a = ap.parse_args()
-    print(build(ROOT, Path(a.out), a.asset_base, a.branch))
+    print(build(ROOT, Path(a.out), a.asset_base, a.branch, a.sha))
 
 
 if __name__ == "__main__":

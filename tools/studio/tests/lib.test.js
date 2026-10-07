@@ -237,3 +237,25 @@ test('a touch-up patch paints exactly its pixels', () => {
   assert.deepEqual([...d.subarray((2 * 4 + 1) * 4, (2 * 4 + 1) * 4 + 4)], [10, 20, 30, 255]);
   assert.equal(d.reduce((a, b) => a + b, 0), 10 + 20 + 30 + 255);
 });
+
+// --- her work against the game's copy ---
+
+test('the game copy replaces only what she has not changed', () => {
+  const game = { id: 'knight_arrival', kind: 'cutscene', steps: [{ do: 'hold' }], rev: 'a1', updated: 0 };
+  assert.equal(L.mergeDecision(null, game), 'take');
+  assert.equal(L.mergeDecision({ ...game, dirty: false, base: 'a1' }, { ...game, rev: 'b2' }), 'take');
+  const mine = { ...game, steps: [{ do: 'hold' }, { do: 'wait', time: 1 }], dirty: true, base: 'a1' };
+  assert.equal(L.mergeDecision(mine, game), 'keep');
+  assert.equal(L.mergeDecision(mine, { ...game, rev: 'b2' }), 'conflict');  // someone else changed it meanwhile
+  assert.equal(L.mergeDecision({ ...game, dirty: true, base: 'a1', current: 'x' }, { ...game, rev: 'b2' }), 'take');  // only browsed
+  assert.equal(L.mergeDecision({ ...mine, pendingPr: 12 }, { ...game, rev: 'b2' }), 'keep');  // sent, not in main yet
+});
+
+test('a pull request reads as one plain status', () => {
+  assert.equal(L.prStatus({ state: 'open', checks: { total: 2, pending: 1, failed: 0 } }).key, 'checking');
+  assert.equal(L.prStatus({ state: 'open', checks: { total: 2, pending: 0, failed: 1 } }).key, 'failed');
+  assert.equal(L.prStatus({ state: 'open', checks: { total: 2, pending: 0, failed: 0 } }).key, 'ready');
+  assert.equal(L.prStatus({ state: 'closed', merged: true, deployed: false }).key, 'merged');
+  assert.equal(L.prStatus({ state: 'closed', merged: true, deployed: true }).key, 'live');
+  assert.equal(L.prStatus({ state: 'closed', merged: false }).key, 'closed');
+});

@@ -95,6 +95,8 @@ class Handler(SimpleHTTPRequestHandler):
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
             if self.path == "/api/write":
                 written, removed = apply_changes(data.get("files", []), data.get("delete", []))
+                # the page reads the game through import/: rebuild it, or it would show the old version
+                subprocess.run([sys.executable, str(ROOT / "tools/studio/build_data.py")], cwd=ROOT, capture_output=True)
                 return self._json(200, {"ok": True, "written": written, "deleted": removed})
             g = godot()
             if self.path in ("/api/validate", "/api/run") and not g:

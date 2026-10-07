@@ -179,6 +179,8 @@ button.ok{color:var(--accent)}
 a{color:var(--sel)}
 #paintPal i{width:26px;height:26px;border-radius:4px;display:block;cursor:pointer;border:2px solid transparent;flex:none}
 #paintPal i.on{border-color:#fff}
+.sentlist{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:60vh;overflow:auto}
+.sentrow{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:6px}
 #toasts{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:6px;z-index:50}
 .toast{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);padding:8px 12px;border-radius:6px;max-width:380px}
 .toast.err{border-left-color:var(--err)}
@@ -237,6 +239,7 @@ a{color:var(--sel)}
   </span>
   <button class="ghost sm" data-act="undo" title="Отменить (Cmd/Ctrl+Z)">↶</button>
   <button class="ghost sm" data-act="redo" title="Вернуть (Cmd/Ctrl+Shift+Z)">↷</button>
+  <button id="sentBtn" class="ghost" data-act="sent" title="Что я отправила в игру и что с этим сейчас">Мои отправки</button>
   <button id="authBtn" class="ghost" data-act="auth">Войти</button>
 </header>
 
@@ -644,7 +647,7 @@ const DB = {
   del(id, store) { return this.run('readwrite', s => s.delete(id), store); },
 };
 let dbOk = true, saveTimer = null;
-function save() { P.updated = Date.now(); trackChange('chars'); clearTimeout(saveTimer); saveTimer = setTimeout(persist, 400); }
+function save() { P.updated = Date.now(); P.dirty = true; trackChange('chars'); clearTimeout(saveTimer); saveTimer = setTimeout(persist, 400); }
 async function persist() { if (!dbOk) return; try { await DB.put(P); } catch (e) { dbOk = false; toast('Не получилось сохранить в браузере: ' + e.message + '. Сохрани проект в .json вручную.', 'err'); } }
 
 const API_DEFAULT = { key: '', model: 'gpt-image-1', quality: 'medium', transparent: true, fidelity: true, chain: true };
@@ -1353,21 +1356,35 @@ document.addEventListener('drop', e => {
 window.addEventListener('beforeunload', () => { if (saveTimer) persist(); });
 
 // ?import=путь — файл проекта или список файлов (JSON-массив путей).
+// Lay copies from the game (or shared projects) over what this browser has,
+// without losing her work: lib.js mergeDecision says take, keep or ask.
+async function mergeIncoming(list, have, put, fix) {
+  let kept = 0; const conflicts = [];
+  for (const raw of list) {
+    const local = have.find(x => x.id === raw.id), d = mergeDecision(local, raw);
+    if (d === 'take') await put(fix({ ...raw, base: raw.rev, dirty: false }));
+    else if (d === 'keep') kept++;
+    else conflicts.push(raw);
+  }
+  if (conflicts.length) {
+    const names = conflicts.map(c => c.name || c.id).join(', ');
+    if (confirm(`В игре изменились: ${names}.\nУ тебя в них свои правки.\n\nOK — взять версию из игры (твои правки пропадут)\nОтмена — оставить свои`))
+      for (const raw of conflicts) await put(fix({ ...raw, base: raw.rev, dirty: false }));
+    else kept += conflicts.length;
+  }
+  return kept;
+}
 async function importFromUrl(url) {
   try {
     const data = await (await fetch(url)).json();
     const files = Array.isArray(data) ? data.map(f => new URL(f, new URL(url, location.href)).href) : null;
     const list = files ? await Promise.all(files.map(async f => (await fetch(f)).json())) : [data];
     const chars = list.filter(r => r.kind !== 'bg'), rooms = list.filter(r => r.kind === 'bg');
-    for (const raw of chars) {
-      const p = migrate(raw), ex = projects.findIndex(x => x.id === p.id);
-      if (ex >= 0) projects[ex] = p; else projects.push(p);
-      P = p; await persist();
-    }
-    if (chars.length) P = projects.find(p => p.id === chars[0].id);
-    for (const raw of rooms) await bgUpsert(migrateBg(raw));
+    const kept = await mergeIncoming(chars, projects, async p => { const ex = projects.findIndex(x => x.id === p.id); if (ex >= 0) projects[ex] = p; else projects.push(p); P = p; await persist(); }, migrate);
+    if (chars.length) P = projects.find(p => p.id === chars[0].id) || P;
+    const keptBg = await mergeIncoming(rooms, bgs, b => bgUpsert(b), migrateBg);
     if (rooms.length) { const first = rooms.find(r => r.name === 'graveyard') || rooms[0]; BG = bgs.find(b => b.id === first.id); setMode('bg'); }
-    toast(chars.length ? `Импортировано персонажей: ${chars.length}` : `Импортировано задников: ${rooms.length}`);
+    toast((chars.length ? `Персонажей из игры: ${chars.length}` : `Задников из игры: ${rooms.length}`) + (kept + keptBg ? ` · твои правки сохранены: ${kept + keptBg}` : ''));
   } catch (e) { toast('Не получилось импортировать: ' + e.message, 'err'); }
 }
 
@@ -1410,7 +1427,7 @@ let mode = 'chars', bgs = [], BG = null, bgSel = { layer: null, item: null };
 const bgView = { camX: 0, camY: 0, play: false, dir: 1, last: 0, dirty: true };
 let bgSaveTimer = null, library = null;
 const bgDirty = () => { bgView.dirty = true; };
-function saveBg() { if (!BG) return; BG.updated = Date.now(); trackChange('bg'); clearTimeout(bgSaveTimer); bgSaveTimer = setTimeout(persistBg, 400); }
+function saveBg() { if (!BG) return; BG.updated = Date.now(); BG.dirty = true; trackChange('bg'); clearTimeout(bgSaveTimer); bgSaveTimer = setTimeout(persistBg, 400); }
 async function persistBg() { if (!dbOk || !BG) return; try { await DB.put(BG, 'backgrounds'); } catch (e) { toast('Не получилось сохранить задник: ' + e.message, 'err'); } }
 async function bgUpsert(b) { const i = bgs.findIndex(x => x.id === b.id); if (i >= 0) bgs[i] = b; else bgs.push(b); if (dbOk) try { await DB.put(b, 'backgrounds'); } catch {} }
 const curLayer = () => BG?.layers.find(l => l.id === bgSel.layer) || null;
@@ -2063,13 +2080,14 @@ async function loadCutData() {
 }
 const migrateCut = c => { c.kind = 'cutscene'; c.steps ||= []; c.dialogues ||= {}; c.strings ||= {}; c.images ||= {}; return c; };
 let cutSaveTimer = null;
-function saveCut() { if (!CUT) return; CUT.updated = Date.now(); trackChange('cut'); clearTimeout(cutSaveTimer); cutSaveTimer = setTimeout(() => { if (dbOk) DB.put(CUT, 'cutscenes').catch(() => {}); }, 400); }
+function saveCut() { if (!CUT) return; CUT.updated = Date.now(); CUT.dirty = true; trackChange('cut'); clearTimeout(cutSaveTimer); cutSaveTimer = setTimeout(() => { if (dbOk) DB.put(CUT, 'cutscenes').catch(() => {}); }, 400); }
 async function cutUpsert(c) { const i = cuts.findIndex(x => x.id === c.id); if (i >= 0) cuts[i] = c; else cuts.push(c); if (dbOk) try { await DB.put(c, 'cutscenes'); } catch {} }
 async function cutInit() { try { cuts = ((await DB.all('cutscenes')) || []).map(migrateCut); } catch { cuts = []; } let last = null; try { last = localStorage.getItem('ss_lastcut'); } catch {} CUT = cuts.find(c => c.id === last) || cuts[0] || null; }
 async function importGameCutscenes() {
   const d = await loadCutData();
   if (!d.cutscenes.length) return toast('Катсцены игры недоступны: запусти студию из её папки и конвертер с --story', 'err');
-  for (const c of d.cutscenes) await cutUpsert(migrateCut(JSON.parse(JSON.stringify(c))));
+  const kept = await mergeIncoming(d.cutscenes.map(c => JSON.parse(JSON.stringify(c))), cuts, c => cutUpsert(c), migrateCut);
+  if (kept) toast(`Твои правки сохранены: ${kept}`);
   CUT = cuts.find(c => c.id === 'ch1_prologue') || cuts[0]; cutStepSel = -1; renderCutAll();
   toast(`Загружено катсцен: ${d.cutscenes.length}`);
 }
@@ -2633,6 +2651,7 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-act=
   if (imp) { history.replaceState(null, '', location.pathname); await importFromUrl(imp); }
   try { if (localStorage.getItem('ss_noside')) { $('.layout').classList.add('noside'); $('#bgLayout').classList.add('noside'); } } catch {}
   await bgInit();
+  refreshSent();
   renderAll(); applyPvBg(); syncPvControls(); scheduleBuild(0); requestAnimationFrame(loop);
   window.SS = { get P() { return P; }, build, sliceStrip, exportGodot, assignFiles, processed: () => processed };
 })();
