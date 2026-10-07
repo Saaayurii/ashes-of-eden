@@ -251,12 +251,21 @@ async function gameCharOverrides() {
   const orig = await (await fetch(`import/chars/${encodeURIComponent(P.id)}.sprite.json`, { cache: 'no-store' })).json();
   const edits = frameEdits(P.animations, orig.animations), pics = {}, direct = {};
   if (!edits.length) throw new Error('Нечего отправлять: ни один кадр не отличается от игры. Поправь кадр (✎) или замени картинку.');
+  // the studio's cell must be the game's, or every frame lands shifted and cut (the first cultist edit did)
+  const cell = edits.find(e => e.w !== +P.settings.cellW || e.h !== +P.settings.cellH);
+  if (cell) throw new Error(`Кадр в студии ${P.settings.cellW}×${P.settings.cellH}, а в игре у ${P.name} ${cell.w}×${cell.h}. Верни «Ширину» и «Высоту кадра» как в игре (или «Из игры» заново) и отправь ещё раз.`);
+  const opaque = (d, n = 0) => { for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; };
+  const thinner = [];
   for (const e of edits) {
     const path = e.res.replace('res://', '');
     let t = pics[path] || direct[path];
     if (!t) { t = await pictureData(A(path)); t.mask = await oldMask(path, t.w, t.h); (overridableSet().has(path) || generatedSet().has(path) ? pics : direct)[path] = t; }
     const proc = processed.get(e.frame); if (!proc) continue;
     if (e.whole) {
+      // a frame replaced whole that keeps much less of the figure than the game has: moved off, cut or emptied
+      const was = opaque(t.x.getImageData(e.x, e.y, e.w, e.h).data), now = opaque(proc.getContext('2d').getImageData(0, 0, e.w, e.h).data);
+      const an = P.animations.find(a => a.frames.some(f => f.id === e.frame));
+      if (was > 50 && now < was * 0.65) thinner.push(`${an?.name} #${an ? an.frames.findIndex(f => f.id === e.frame) + 1 : '?'}: было ${was} px, станет ${now}`);
       t.x.clearRect(e.x, e.y, e.w, e.h); t.x.drawImage(proc, 0, 0, e.w, e.h, e.x, e.y, e.w, e.h);
       for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) t.mask[y * t.w + x] = 1;
     } else {
@@ -268,6 +277,8 @@ async function gameCharOverrides() {
       }
     }
   }
+  if (thinner.length && !confirm(`В игре от персонажа останется заметно меньше:\n${thinner.slice(0, 8).join('\n')}\n\nОбычно это значит, что кадр сдвинут за край или пустой. Проверь кадры (⟲ возвращает сдвиг). Всё равно отправить?`))
+    throw new Error('Не отправлено: кадры почти пустые в игре. Поправь сдвиг (⟲) и отправь ещё раз.');
   const files = {};
   for (const [path, t] of Object.entries(direct)) files[path] = await canvasBlob(t.c);
   const done = await addOverrides(files, pics);

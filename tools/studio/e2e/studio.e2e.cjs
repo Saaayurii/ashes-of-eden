@@ -117,7 +117,8 @@ async function step(name, fn) {
     await step('the sandbox posts the strips to the game and hears it took them', async () => {
       // the game's side is studio_live_test.gd; here a stand-in page answers like StudioLive
       await page.route('**/studio-live.html', r => r.fulfill({ contentType: 'text/html', body: `<script>
-        addEventListener('message', e => { if (e.source !== parent || e.data.type !== 'ashes-live') return; window.got = e.data;
+        addEventListener('message', e => { if (e.source === parent && e.data.type === 'ashes-live-view') window.view = e.data;
+          if (e.source !== parent || e.data.type !== 'ashes-live') return; window.got = e.data;
           parent.postMessage({ type: 'ashes-live-applied', animations: Object.keys(e.data.strips) }, '*'); });
         parent.postMessage({ type: 'ashes-live-ready' }, '*');</script>` }));
       await page.click('[data-act="chars-sandbox"]');
@@ -129,6 +130,10 @@ async function step(name, fn) {
       assert.deepEqual(got.cell, [48, 56]);
       assert.equal(got.base, 'cultist');
       assert.equal(got.idle, 'data:image/png;base64,');
+      // show one animation on the spot, slowed, three of them: the game hears it
+      await page.selectOption('#sbAnim', 'idle'); await page.selectOption('#sbSpeed', '0.25'); await page.selectOption('#sbCount', '3');
+      const view = await page.frameLocator('#sbFrame').locator('html').evaluate(() => window.view);
+      assert.deepEqual(view, { type: 'ashes-live-view', anim: 'idle', speed: 0.25, count: 3 });
       await page.click('#sandbox [data-sb="close"]');
       assert.equal(await page.getAttribute('#sbFrame', 'src'), 'about:blank', 'closing the panel unloads the game: no music behind the studio');
     });
@@ -253,6 +258,26 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('an edit of a game character in the wrong cell, or moved off its cell, is stopped before it empties the game', async () => {
+      const r = await page.evaluate(async () => {
+        setMode('chars');
+        const keep = P, p = migrate(await (await fetch('import/chars/cultist.sprite.json')).json()); P = p; processed = new Map(); await build();
+        const out = {}, f = P.animations.find(a => a.name === 'idle').frames[2];
+        // the first cultist edit: 120 wide where the game has 116, the frames moved 34,23
+        const w = P.settings.cellW; P.settings.cellW = 120; f.dx = 34; f.dy = 23; await build();
+        out.badge = artReport.filter(c => c.bad).map(c => c.id);
+        try { await gameCharOverrides(); out.cell = 'sent'; } catch (e) { out.cell = e.message; }
+        P.settings.cellW = w; await build();
+        const was = window.confirm; window.confirm = () => false;
+        try { await gameCharOverrides(); out.thin = 'sent'; } catch (e) { out.thin = e.message; }
+        window.confirm = was; P = keep; processed = new Map(); await build();
+        return out;
+      });
+      assert.ok(r.badge.includes('cell') && r.badge.includes('clip'), 'the badge says so: ' + r.badge);
+      assert.match(r.cell, /Кадр в студии 120×70, а в игре .* 116×70/);
+      assert.match(r.thin, /почти пустые/);
+    });
+
     await step('a room painting repainted whole goes as an override of what differs', async () => {
       const panel = 'assets/levels/graveyard_cross_wide.png';
       await page.evaluate(async panel => {
@@ -287,9 +312,9 @@ async function step(name, fn) {
     // ---- an iPad with an Apple Pencil: a touch screen, the pencil as a pen pointer (CDP), a palm as a touch ----
     await step('on a tablet the pencil paints, a palm and a finger do not, two fingers zoom, the rig takes the pencil', async () => {
       const ctx = await browser.newContext({ viewport: { width: 820, height: 1180 }, hasTouch: true, deviceScaleFactor: 2 });
-      const tab = await ctx.newPage(); tab.on('pageerror', e => errors.push('tablet: ' + e));
+      const tab = await ctx.newPage(); tab.on('pageerror', e => errors.push('tablet: ' + e + ' ' + (e.stack || '').split('\n').slice(0, 3).join(' ')));
       tab.on('dialog', d => d.accept(d.type() === 'prompt' ? 'e2e_tablet' : undefined));
-      await tab.goto(URL); await tab.waitForFunction(() => typeof Writer !== 'undefined' && Writer.mode === 'local');
+      await tab.goto(URL); await tab.waitForFunction(() => typeof Writer !== 'undefined' && Writer.mode === 'local' && typeof P !== 'undefined' && !!P);
       const cdp = await ctx.newCDPSession(tab);
       const pen = (type, x, y, buttons = 1) => cdp.send('Input.dispatchMouseEvent', { type, x, y, button: type === 'mouseMoved' && !buttons ? 'none' : 'left', buttons, clickCount: 1, pointerType: 'pen' });
       const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], id) => ({ x, y, id })) });

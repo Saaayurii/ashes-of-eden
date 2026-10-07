@@ -83,7 +83,8 @@ async function doBuild() {
       for (const it of items) { natives.push(nativeSprite(it.cut, gp, +S.pixelSize > 0)); await tick(); }
       const nH = Math.max(...natives.map(n => n.h));
       natives.forEach((n, j) => {
-        const it = items[j], k = S.scaleMode === 'gridfit' ? CH / nH * (+a.scale || 1) * (+it.f.sc || 1) : 1;
+        // «1:1» keeps the drawn size, but her own scale of the animation and of the frame (− +) still applies
+        const it = items[j], k = (S.scaleMode === 'gridfit' ? CH / nH : 1) * (+a.scale || 1) * (+it.f.sc || 1);
         // подгоняем уже чистый пиксель-арт; доминантный цвет не смешивает соседние пиксели
         const s = Math.abs(k - 1) < 0.01 ? n : downscale({ data: n.img.data, w: n.w, h: n.h }, k, 'dominant');
         s.ox = s.oy = 0; smalls.push(s); out.push({ s, f: it.f, a, i: it.i });
@@ -115,11 +116,11 @@ async function doBuild() {
   palette = (+S.palette >= 2 && smalls.length) ? buildPalette(palSrc, +S.palette) : null;
   if (palette) palette.sort((p, q) => (p[0] * 3 + p[1] * 6 + p[2]) - (q[0] * 3 + q[1] * 6 + q[2]));
   if (palette) for (const s of smalls) applyPalette(s, palette);
-  const next = new Map();
+  const next = new Map(), clipped = [];
   for (const o of out) {
     const c = compose(o.s, o.f, S); next.set(o.f.id, c);
     if (o.f.patch) { const x = c.getContext('2d'), id = x.getImageData(0, 0, c.width, c.height); applyPatch(id.data, c.width, c.height, o.f.patch); x.putImageData(id, 0, 0); }
-    if (c._clip && !o.f.off) warn.push(`${o.a.name} #${o.i + 1}: персонаж вылезает за кадр`);
+    if (c._clip && !o.f.off) { warn.push(`${o.a.name} #${o.i + 1}: персонаж вылезает за кадр`); clipped.push(`${o.a.name} #${o.i + 1}`); }
   }
   const grew = [...next.keys()].some(k => !processed.has(k));
   processed = next;
@@ -136,6 +137,11 @@ async function doBuild() {
   artReport = artChecks(P.animations.map(a => ({ name: a.name, loop: a.loop,
     frames: a.frames.filter(f => !f.off && processed.has(f.id)).map(f => { const c = processed.get(f.id); return { data: c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height, key: keyOf.get(f.id) }; }) })),
   { contentH: S.contentH, palette: S.palette, fit: S.scaleMode !== 'none', flyer: studioFlyer() });
+  // a frame cut by the cell's edge loses what sticks out — in the game too: red, not a footnote
+  if (clipped.length) artReport.unshift({ id: 'clip', bad: true, anim: '', msg: `Персонаж вылезает за кадр: ${clipped.slice(0, 6).join(', ')}${clipped.length > 6 ? '…' : ''} — сдвинь кадр стрелками, уменьши (−) или ⟲` });
+  // a character from the game drawn in another cell than the game's own: every frame would land shifted
+  const cells = P.origin?.kind === 'game' ? [...new Set(P.animations.flatMap(a => (a.regions || []).map(r => `${r[3]}×${r[4]}`)))] : [];
+  if (cells.length === 1 && cells[0] !== `${+S.cellW}×${+S.cellH}`) artReport.unshift({ id: 'cell', bad: true, anim: '', msg: `Кадр ${S.cellW}×${S.cellH}, а в игре у этого персонажа ${cells[0]} — верни «Ширину» и «Высоту кадра», иначе правка ляжет в игру со сдвигом` });
   paintProcessed();
 }
 
@@ -520,6 +526,11 @@ async function assignFiles(files, target) {
   const nextEmpty = a.frames.slice(i - 1).find(x => !x.src) || a.frames[Math.min(i, a.frames.length - 1)];
   save(); renderTabs(); renderFrames(); scheduleBuild(50);
   if (nextEmpty) select({ type: 'frame', id: nextEmpty.id });
+  // a new drawing (from ChatGPT: hundreds of pixels) into a character taken from the game «1:1, as it is»
+  // would stick out of the game's cell on every side: say how to read it at the game's size instead
+  const S = P.settings, im = await loadImage(a.frames[i - 1].src).catch(() => null);
+  if (im && S.scaleMode === 'none' && (im.naturalHeight > +S.cellH * 1.5 || im.naturalWidth > +S.cellW * 1.5))
+    toast(`Картинка ${im.naturalWidth}×${im.naturalHeight} больше кадра ${S.cellW}×${S.cellH} и в режиме «1:1 без масштаба» вылезет за край. Слева «Масштаб» → «Сетка пикселей 1:1» (без мыла, если ChatGPT рисовал крупными пикселями) или «+ подогнать рост», и «Цветов в палитре» → 0.`, 'err');
 }
 async function clipboardImage() {
   try {

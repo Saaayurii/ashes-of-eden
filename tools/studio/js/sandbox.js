@@ -5,7 +5,7 @@
  * fight like, and the game swaps the foe in place. No pull request, no export. */
 'use strict';
 
-const sandbox = { el: null, frame: null, ready: false, timer: 0, base: localStorage.getItem('ss_live_base') || 'cultist', sent: '', full: true };
+const sandbox = { el: null, frame: null, ready: false, timer: 0, base: localStorage.getItem('ss_live_base') || 'cultist', sent: '', full: true, view: { anim: '', speed: 1, count: 1 } };
 try { sandbox.full = localStorage.getItem('ss_live_full') !== '0'; } catch {}
 
 // The game on the same site when it has one (Pages, a local copy of the site),
@@ -21,13 +21,16 @@ async function sandboxUrl() {
 async function sandboxOpen() {
   if (!P) return;
   // closed: the game was unloaded with the panel (its music must not play on behind the studio)
-  if (sandbox.el) { sandbox.el.hidden = false; sandboxState('загружаю игру…'); sandbox.frame.src = await sandboxUrl(); return; }
+  if (sandbox.el) { sandbox.el.hidden = false; sandboxAnims(); sandboxState('загружаю игру…'); sandbox.frame.src = await sandboxUrl(); return; }
   try { enemyList ||= await (await fetch('import/enemies.json')).json(); } catch { enemyList = []; }
   const bases = (enemyList || []).filter(e => !e.boss && !e.extends && BEHAVIOUR_RU[e.behaviour] && e.bestiary !== false);
   const el = sandbox.el = document.createElement('div');
   el.id = 'sandbox';
   el.innerHTML = `<div class="sb-head"><b>Песочница</b>
       <select id="sbBase" title="Как дерётся">${bases.map(e => `<option value="${e.id}" ${e.id === sandbox.base ? 'selected' : ''}>как ${esc(e.name?.ru || e.id)}</option>`).join('') || '<option value="cultist">как культист</option>'}</select>
+      <select id="sbAnim" title="Драться или показать одну анимацию на месте"></select>
+      <select id="sbSpeed" title="Замедлить игру, чтобы рассмотреть кадры"><option value="1">100 %</option><option value="0.5">50 %</option><option value="0.25">25 %</option></select>
+      <select id="sbCount" title="Сколько их на дворе"><option value="1">×1</option><option value="2">×2</option><option value="3">×3</option></select>
       <span class="grow muted" id="sbState">загружаю игру…</span>
       <button class="sm" data-sb="send" title="Отправить кадры в игру сейчас">⟳</button>
       <button class="sm ghost" data-sb="reload" title="Перезапустить игру">↺</button>
@@ -39,6 +42,10 @@ async function sandboxOpen() {
   document.body.appendChild(el);
   sandbox.frame = el.querySelector('iframe');
   sandboxSize();
+  for (const id of ['sbAnim', 'sbSpeed', 'sbCount']) el.querySelector('#' + id).addEventListener('change', () => {
+    sandbox.view = { anim: $('#sbAnim').value, speed: +$('#sbSpeed').value, count: +$('#sbCount').value }; sandboxView();
+  });
+  sandboxAnims();
   el.querySelector('#sbBase').addEventListener('change', e => { sandbox.base = e.target.value; try { localStorage.setItem('ss_live_base', sandbox.base); } catch {} sandboxPost(true); });
   el.addEventListener('click', e => {
     const b = e.target.closest('[data-sb]'); if (!b) return;
@@ -49,6 +56,19 @@ async function sandboxOpen() {
     if (b.dataset.sb === 'reload') { sandbox.ready = false; sandbox.sent = ''; sandboxState('загружаю игру…'); sandboxUrl().then(u => { sandbox.frame.src = u; }); }
   });
 }
+// What it can show: fight, or stand and play one of its animations.
+const SLOT_RU = { idle: 'покой', walk: 'ходьба', attack: 'атака', attack_alt: 'вторая атака', special: 'особое', hurt: 'боль', death: 'смерть' };
+function sandboxAnims() {
+  const sel = sandbox.el?.querySelector('#sbAnim'); if (!sel || !P) return;
+  const have = ENEMY_SLOTS.map(([slot]) => slot).filter(slot => enemySlotFor(P.animations, slot));
+  if (sandbox.view.anim && !have.includes(sandbox.view.anim)) sandbox.view.anim = '';
+  sel.innerHTML = '<option value="">⚔ дерётся</option>' + have.map(slot => `<option value="${slot}" ${slot === sandbox.view.anim ? 'selected' : ''}>▶ ${SLOT_RU[slot] || slot}</option>`).join('');
+}
+function sandboxView() {
+  if (!sandbox.ready || !sandbox.frame) return;
+  sandbox.frame.contentWindow.postMessage({ type: 'ashes-live-view', ...sandbox.view }, '*');
+}
+
 // The game fills the studio's window (the default), or sits in a corner panel beside the frames.
 function sandboxSize() {
   sandbox.el?.classList.toggle('full', sandbox.full);
@@ -84,11 +104,11 @@ async function sandboxPost(force) {
   sandboxState('отправляю…');
 }
 // Called after every rebuild of the frames (chars.js build()), so it never builds itself.
-function sandboxChanged() { clearTimeout(sandbox.timer); sandbox.timer = setTimeout(() => sandboxPost(false), 600); }
+function sandboxChanged() { clearTimeout(sandbox.timer); sandbox.timer = setTimeout(() => { sandboxAnims(); sandboxPost(false); }, 600); }
 
 window.addEventListener('message', e => {
   if (!sandbox.frame || e.source !== sandbox.frame.contentWindow || !e.data?.type) return;
-  if (e.data.type === 'ashes-live-ready') { sandbox.ready = true; sandbox.sent = ''; sandboxState('игра готова'); sandboxPost(true); }
+  if (e.data.type === 'ashes-live-ready') { sandbox.ready = true; sandbox.sent = ''; sandboxState('игра готова'); sandboxPost(true).then(sandboxView); }
   if (e.data.type === 'ashes-live-applied') sandboxState(`в игре: ${(e.data.animations || []).join(', ')} · ${new Date().toLocaleTimeString().slice(0, 5)}`);
 });
 document.addEventListener('click', e => { if (e.target.closest('[data-act="chars-sandbox"]')) sandboxOpen(); });
