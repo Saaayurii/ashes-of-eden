@@ -71,6 +71,26 @@ async function step(name, fn) {
       assert.ok(Math.abs(h - 44) <= 1, `height ${h}`);
     });
 
+    await step('«📂 Файлы» fills frames, and the prompts name their images by role', async () => {
+      const png = await page.evaluate(() => {
+        const a = P.animations.find(a => a.name === 'idle'); P.current = a.id; renderAll();
+        select({ type: 'frame', id: a.frames[2].id });
+        const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+        x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 256, 256); x.fillStyle = '#3f6b2e'; x.fillRect(100, 40, 56, 180);
+        return c.toDataURL('image/png').split(',')[1];
+      });
+      await page.setInputFiles('#frameFiles', { name: 'chatgpt.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
+      await page.waitForFunction(() => !!P.animations.find(a => a.name === 'idle').frames[2].src);
+      const t = await page.evaluate(() => {
+        const a = P.animations.find(a => a.name === 'idle');
+        return { edit: framePrompt(a, 3, false), strip: stripPrompt(a, false) };
+      });
+      assert.match(t.edit, /^Attached images, in order:\nImage 1: the APPROVED FRAME/);
+      assert.match(t.edit, /Edit Image 1: change ONLY the pose/);
+      assert.match(t.strip, /STYLE AND SCALE ONLY/);
+      for (const v of Object.values(t)) assert.doesNotMatch(v, /exactly 44|image pixels/);
+    });
+
     await step('undo and redo', async () => {
       const seq = await page.evaluate(() => {
         const f = () => P.animations.find(a => a.name === 'idle').frames[1];

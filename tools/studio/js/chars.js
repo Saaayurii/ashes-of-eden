@@ -152,39 +152,36 @@ async function sliceStrip(src, n) {
 }
 
 /* ---------- prompts ---------- */
-const bgClause = forApi => (forApi && api.transparent)
-  ? 'Transparent background, no floor, no shadow.'
-  : 'Background: solid flat pure magenta (#FF00FF), perfectly uniform, no gradient, no floor, no shadow.';
-// Размер блока для ChatGPT: персонаж в CH «пикселей» занимает ~70% высоты картинки 1024 px.
-const blockPx = () => Math.max(4, Math.round(1024 * 0.7 / Math.max(8, +P.settings.contentH)));
-const pixelClause = () => `Pixel scale: true low-resolution pixel art. The character is exactly ${P.settings.contentH} art pixels tall. Every art pixel is a uniform square block of exactly ${blockPx()}×${blockPx()} image pixels, all blocks on ONE fixed grid across the whole image, no half-blocks, no smooth gradients inside blocks.`;
-function framePrompt(a, i, forApi) {
-  const S = P.settings, f = a.frames[i];
-  return [
-    'Create ONE frame of a 2D game sprite animation. The attached reference image is the exact character design: keep identical proportions, outfit, colors, hair, weapon and silhouette.',
-    `Character: ${P.description || 'the character from the reference image'}.`,
-    `Style: ${S.style}.`,
-    `View: ${S.view}, full body visible, centered, feet on the same ground line near the bottom.`,
-    pixelClause(),
-    `Animation "${a.name}"${a.notes ? ` (${a.notes})` : ''}, frame ${i + 1} of ${a.frames.length}: ${f.pose || 'the next pose of the motion'}.`,
-    bgClause(forApi),
-    'Only one character. No text, no labels, no frame border, no motion blur, no effects.',
-  ].join('\n');
+// The text is lib.js's spritePrompt; here is only which images go with it, by role.
+// The hero's style sheet is a scale and palette reference, never a design.
+const STYLE_REF = 'refs/elian_style_idle.png';
+let styleRefData = null;
+async function styleRef() {
+  if (!styleRefData) styleRefData = await fetch(STYLE_REF).then(r => r.ok ? r.blob() : Promise.reject(new Error(STYLE_REF))).then(blobToDataURL);
+  return styleRefData;
 }
-function stripPrompt(a, forApi) {
-  const S = P.settings, n = a.frames.length;
-  return [
-    `Create a sprite strip: exactly ${n} animation frames of the SAME character in ONE horizontal row, left to right. The attached reference image is the exact character design: keep identical proportions, outfit, colors, hair, weapon and silhouette in every frame.`,
-    `Character: ${P.description || 'the character from the reference image'}.`,
-    `Style: ${S.style}.`,
-    `View: ${S.view}, full body in every frame. All frames have the same scale, the feet stand on the same ground line, frames are evenly spaced with clear empty gaps between them and nothing overlaps.`,
-    pixelClause(),
-    `Animation "${a.name}"${a.notes ? ` (${a.notes})` : ''}:`,
-    ...a.frames.map((f, i) => `${i + 1}. ${f.pose || 'next pose of the motion'}`),
-    bgClause(forApi),
-    'No text, no numbers, no labels, no grid lines, no frame borders, no motion blur.',
-  ].join('\n');
+// The frame later frames are edits of: the first drawn one of this animation.
+const approvedFrame = (a, i) => a.frames.find((x, j) => j !== i && x.src && !x.off) || null;
+// Roles attached, in order. In ChatGPT an edit carries only the approved frame:
+// the design is already in that chat (one chat per animation).
+function frameRefs(a, i, forApi) {
+  const ok = approvedFrame(a, i), design = P.reference ? ['design'] : [];
+  if (!forApi) return ok ? ['approved'] : [...design, 'style'];
+  return [...design, ok && api.chain ? 'approved' : 'style'];
 }
+const promptBase = (a, forApi) => ({ description: P.description, style: P.settings.style, view: P.settings.view, transparent: !!(forApi && api.transparent),
+  anim: { name: a.name, notes: a.notes, poses: a.frames.map(f => f.pose) } });
+const framePrompt = (a, i, forApi) => spritePrompt({ ...promptBase(a, forApi), kind: 'frame', index: i, refs: frameRefs(a, i, forApi) });
+const stripRefs = () => P.reference ? ['design', 'style'] : ['style'];
+const stripPrompt = (a, forApi) => spritePrompt({ ...promptBase(a, forApi), kind: 'strip', refs: stripRefs() });
+// The images themselves for the API, in the prompt's order.
+async function refImages(roles, a, i) {
+  const out = [];
+  for (const r of roles) out.push(r === 'design' ? P.reference : r === 'style' ? await styleRef() : approvedFrame(a, i).src);
+  return out;
+}
+const REF_NAMES = { design: 'референс персонажа', style: 'tools/studio/refs/elian_style_idle.png (масштаб и палитра)', approved: 'одобренный кадр этой анимации' };
+const attachHint = roles => roles.length ? 'Приложи по порядку: ' + roles.map((r, k) => `${k + 1}) ${REF_NAMES[r]}`).join(', ') + '.' : '';
 
 /* ---------- OpenAI ---------- */
 // Who can generate: a key in this browser, the local server's key, or — signed
@@ -222,11 +219,10 @@ async function apiImage(prompt, refs, size) {
 }
 async function genFrame(a, f) {
   if (busy.has(f.id)) return;
-  const i = a.frames.indexOf(f), refs = [];
-  if (P.reference) refs.push(P.reference);
-  if (api.chain) { const prev = a.frames.slice(0, i).reverse().find(x => x.src && !x.off); if (prev) refs.push(prev.src); }
+  const i = a.frames.indexOf(f);
   busy.add(f.id); renderFrames();
   try {
+    const refs = await refImages(frameRefs(a, i, true), a, i);
     const src = await apiImage(framePrompt(a, i, true), refs, '1024x1024');
     f.src = await normalizeImage(src); save(); scheduleBuild(50);
     toast(`${a.name}: кадр ${i + 1} готов`);
@@ -250,7 +246,7 @@ async function genStrip(a) {
   const key = 'anim:' + a.id; if (busy.has(key)) return;
   busy.add(key); a.frames.forEach(f => busy.add(f.id)); renderAll();
   try {
-    const refs = P.reference ? [P.reference] : [];
+    const refs = await refImages(stripRefs(), a);
     const src = await apiImage(stripPrompt(a, true), refs, '1536x1024');
     await applyStrip(a, src);
   } catch (e) { toast('Ошибка генерации: ' + e.message, 'err'); }
@@ -321,6 +317,7 @@ function renderAnimBar() {
     <div class="row" style="margin:0">
       <button data-act="anim-dl" title="Скачать все готовые кадры анимации и ленту одним zip">⬇ Кадры (.zip)</button>
       <button data-act="copy-strip" title="Промпт на все кадры одной картинкой, для ChatGPT">📋 Промпт ленты</button>
+      <button data-act="frame-files" title="Картинки из файлов — по порядку в кадры, начиная с выбранного (или первого пустого)">📂 Файлы</button>
       <button data-act="import-strip" title="Вставить картинку-ленту из буфера или файла и разрезать на кадры">Импорт ленты</button>
       <button data-act="gen-strip" ${sb || genRunning ? 'disabled' : ''}>${sb ? '…генерирую' : '⚡ Лентой'}</button>
       <button data-act="gen-all" ${sb ? 'disabled' : ''}>${genRunning ? '■ Остановить' : '⚡ Все кадры'}</button>
@@ -568,7 +565,7 @@ document.addEventListener('click', async e => {
       if (last.src && !confirm('У последнего кадра есть картинка. Удалить?')) return;
       a.frames.pop(); save(); renderTabs(); renderAnimBar(); renderFrames(); scheduleBuild(); break;
     }
-    case 'copy-strip': copyText(stripPrompt(a, false)); break;
+    case 'copy-strip': copyText(stripPrompt(a, false)).then(() => toast(`Промпт ленты скопирован. ${attachHint(stripRefs())} Каждая анимация — в новом чате ChatGPT.`)); break;
     case 'import-strip': {
       let src = await clipboardImage();
       if (!src) { const [file] = await pickFiles('image/*', false); if (!file) return; src = await blobToDataURL(file); }
@@ -580,10 +577,11 @@ document.addEventListener('click', async e => {
       try { await applyStrip(a, src, n); renderTabs(); renderAnimBar(); } catch (err) { toast('Не получилось разрезать: ' + err.message, 'err'); }
       break;
     }
+    case 'frame-files': $('#frameFiles').click(); break;
     case 'gen-strip': genStrip(a); break;
     case 'gen-all': genAll(a); break;
     case 'f-gen': if (needRef()) genFrame(a, F).catch(() => {}); break;
-    case 'f-copy': copyText(framePrompt(a, a.frames.indexOf(F), false)); break;
+    case 'f-copy': { const i = a.frames.indexOf(F), roles = frameRefs(a, i, false); copyText(framePrompt(a, i, false)).then(() => toast(`Промпт скопирован. ${attachHint(roles)} ${roles.includes('approved') ? 'Тот же чат, что и для одобренного кадра.' : 'Новая анимация — новый чат ChatGPT.'}`)); break; }
     case 'fix-gridfit': P.settings.scaleMode = 'gridfit'; save(); renderSide(); scheduleBuild(0); toast('Масштаб: «Сетка пикселей + подогнать рост»'); break;
     case 'f-dl': {
       const i = a.frames.indexOf(F) + 1, base = `${slug(P.name)}_${slug(a.name)}_${String(i).padStart(2, '0')}`;
@@ -721,6 +719,14 @@ document.addEventListener('drop', e => {
   const target = card ? { type: 'frame', id: card.dataset.fid } : e.target.closest('#refZone') ? { type: 'ref' } : null;
   if (target) select(target);
   assignFiles([...e.dataTransfer.files], target).catch(err => toast(err.message, 'err'));
+});
+// Files into frames: from the selected frame on, or the first empty one of this animation.
+$('#frameFiles').addEventListener('change', e => {
+  const files = [...e.target.files], a = curAnim(); e.target.value = '';
+  if (!files.length || !a) return;
+  const sel = selected?.type === 'frame' && a.frames.some(f => f.id === selected.id) ? selected : null;
+  const f = sel ? null : a.frames.find(x => !x.src) || a.frames[0];
+  assignFiles(files, sel || (f && { type: 'frame', id: f.id })).catch(err => toast(err.message, 'err'));
 });
 window.addEventListener('beforeunload', () => { if (saveTimer) persist(); });
 

@@ -281,3 +281,30 @@ test('studio_rooms.json: one spot per enemy per room, cutscenes per room, stable
   assert.deepEqual(Object.keys(j), ['church', 'graveyard_cross']);
   assert.match(t, /\["archer", 720, 508\]/);
 });
+
+// --- prompts: no exact size, every image named by its role, later frames are edits ---
+
+test('sprite prompts name each attached image by role and never ask for a pixel count', () => {
+  const anim = { name: 'walk', notes: '', poses: ['contact', 'passing', '', 'down'] };
+  const base = { description: 'a hooded archer', style: 'pixel art', view: 'side view, facing right', anim };
+  const first = L.spritePrompt({ ...base, kind: 'frame', index: 0, refs: ['design', 'style'] });
+  assert.match(first, /Image 1: the CHARACTER DESIGN/);
+  assert.match(first, /Image 2: STYLE AND SCALE ONLY/);
+  assert.match(first, /Do NOT draw this knight/);
+  assert.match(first, /frame 1 of 4: contact/);
+  assert.match(first, /magenta/);
+  for (const t of [first, L.spritePrompt({ ...base, kind: 'strip', refs: ['style'] })]) {
+    assert.doesNotMatch(t, /exactly \d+ (art )?pixels|\d+×\d+ image pixels|block of exactly/);
+    assert.match(t, /Do not aim for any exact pixel count/);
+  }
+  const edit = L.spritePrompt({ ...base, kind: 'frame', index: 2, refs: ['approved'] });
+  assert.match(edit, /^Attached images, in order:\nImage 1: the APPROVED FRAME/);
+  assert.match(edit, /Edit Image 1: change ONLY the pose, to frame 3 of 4/);
+  assert.match(edit, /next pose of the motion/);
+  assert.doesNotMatch(edit, /Create ONE frame/);
+  const strip = L.spritePrompt({ ...base, kind: 'strip', refs: ['design', 'style'], transparent: true });
+  assert.match(strip, /exactly 4 animation frames/);
+  assert.match(strip, /\n3\. next pose of the motion\n/);
+  assert.match(strip, /Transparent background/);
+  assert.match(L.spritePrompt({ ...base, description: '', kind: 'frame', index: 0, refs: ['design'] }), /Character: the character in Image 1\./);
+});

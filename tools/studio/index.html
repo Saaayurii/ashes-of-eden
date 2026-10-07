@@ -256,6 +256,8 @@ a{color:var(--sel)}
     <input id="pName" placeholder="archer">
     <label>Описание для промпта (лучше по-английски)</label>
     <textarea id="pDesc" rows="3" placeholder="green-hooded elf archer, brown leather armor, wooden longbow, quiver on the back"></textarea>
+    <!-- a file input that stays in the page, so an agent driving the browser can upload into it -->
+    <input type="file" id="frameFiles" accept="image/*" multiple hidden>
     <div class="refzone" id="refZone" title="Кликни и нажми Ctrl+V, или перетащи картинку">
       <div class="imgs" id="refImgs"></div>
       <div class="row">
@@ -329,7 +331,7 @@ a{color:var(--sel)}
     <select data-api="quality"><option value="low">low (дёшево, для проб)</option><option value="medium">medium</option><option value="high">high</option><option value="auto">auto</option></select>
     <label class="inline"><input type="checkbox" data-api="transparent"> Прозрачный фон</label>
     <label class="inline"><input type="checkbox" data-api="fidelity"> Высокая точность к референсу</label>
-    <label class="inline"><input type="checkbox" data-api="chain"> Передавать предыдущий кадр как референс</label>
+    <label class="inline"><input type="checkbox" data-api="chain"> Следующие кадры — правка одобренного (первого нарисованного)</label>
   </details>
 
   <details>
