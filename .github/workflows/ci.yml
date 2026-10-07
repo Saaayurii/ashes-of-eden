@@ -57,3 +57,11 @@ jobs:
       # somebody's browser. Node is already on the runner.
       - name: The web loading page still works
         run: python3 tools/web/check_shell.py
+
+      # The art studio (tools/studio): the picture, grid and audio maths, and
+      # the files it writes back into the game — strings.csv, dialogues and
+      # cutscenes must come back byte-identical when nothing in them changed.
+      - name: Art studio tests
+        run: |
+          python3 -m unittest discover -s tools/studio/tests
+          node --test tools/studio/tests/*.test.js
