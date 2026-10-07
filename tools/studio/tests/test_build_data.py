@@ -32,6 +32,18 @@ class LivingBackdrops(unittest.TestCase):
         self.assertEqual(life["kinds"]["glow"], {"index": 3, "strength": 0.12, "speed": 0.8})
         self.assertEqual(life["max_zones"], 24)
 
+    def test_seams_are_where_the_generator_inserts_them(self):
+        seams = build_data.seams(ROOT)
+        cross = seams["res://assets/levels/graveyard_cross_wide.png"]
+        self.assertEqual(cross["room"], "graveyard_cross")
+        self.assertEqual([(b["x"], b["w"]) for b in cross["bands"]], [(765, 160)])
+        arches = seams["res://assets/levels/graveyard_arches_wide.png"]["bands"]
+        self.assertEqual([b["x"] for b in arches], [440, 930])   # the second band sits one band further right
+        for s in seams.values():
+            for b in s["bands"]:
+                self.assertLessEqual(b["x"] + b["w"], s["w"])
+                self.assertGreater(b["score"], 0)
+
     def test_platform_pieces_know_where_they_lie(self):
         tiles = build_data.tiles(ROOT)
         pieces = {p["name"]: p for p in tiles["pieces"]}

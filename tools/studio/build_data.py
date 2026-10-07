@@ -530,6 +530,42 @@ def tiles(root: Path):
                                            for name, info in manifest.items()]}
 
 
+# ------------------------------------------------- seams of widened panels
+# A painted room is wider than its panel: generate_rooms.py inserts a band at
+# each ROOM_EXPANSION_CUTS cut, quilted from the painting either side of it.
+# Every pixel of a band is a copy of one 160 px away, so a banner or a window
+# near a cut stands there twice. The studio shows the bands, worst first, and
+# lets her repaint one; it goes in as an override of the wide painting.
+def seams(root: Path):
+    import ast
+    from PIL import ImageFilter, ImageStat
+    src = (root / "tools/rooms/generate_rooms.py").read_text(encoding="utf-8")
+    start = src.index("ROOM_EXPANSION_CUTS = {")
+    cuts = ast.literal_eval(src[src.index("{", start):src.index("\n}\n", start) + 2])
+    sys.path.insert(0, str(root / "tools/rooms"))
+    from painted_rooms import PAINTED
+    out = {}
+    for room, points in cuts.items():
+        r = PAINTED.get(room, {})
+        if "painting" not in r:
+            continue
+        res = f"res://assets/levels/{r['painting']}_wide.png"
+        path = res_to_path(root, res)
+        if not path.exists():
+            continue
+        amount = 120 if r.get("interior") else 160
+        im = Image.open(path).convert("L")
+        detail = lambda box: ImageStat.Stat(im.crop(box).filter(ImageFilter.FIND_EDGES)).mean[0]
+        whole = max(1.0, detail((0, 0, im.width, im.height)))
+        bands = []
+        for i, cut in enumerate(points):
+            x0 = cut + i * amount
+            # how busy the band is against the painting as a whole: fog and dark stone hide a twin, banners do not
+            bands.append({"x": x0, "w": amount, "cut": cut, "score": round(detail((x0, 0, x0 + amount, im.height)) / whole, 2)})
+        out[res] = {"room": room, "w": im.width, "h": im.height, "bands": bands}
+    return out
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -554,6 +590,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "library.json", library(root))
     write(out, "life.json", life(root))
     write(out, "tiles.json", tiles(root))
+    write(out, "seams.json", seams(root))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])

@@ -192,6 +192,9 @@ body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not(
 dialog#dlg{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;max-width:640px;width:calc(100% - 32px);padding:18px}
 dialog#dlg::backdrop{background:#0009}
 dialog#dlg.wide{max-width:960px}
+.seamlist{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.seam{flex:none;display:flex;flex-direction:column;gap:6px}
+.seamcv{display:block;border-radius:4px}
 .tilegrid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:40vh;overflow:auto}
 .tilegrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px}
 .tilegrid button.on{outline:2px solid var(--accent)}
@@ -610,6 +613,7 @@ a{color:var(--sel)}
 <script src="js/rig.js"></script>
 <script src="js/life.js"></script>
 <script src="js/tiles.js"></script>
+<script src="js/seams.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>
 </body>

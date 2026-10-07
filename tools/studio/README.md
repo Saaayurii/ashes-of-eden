@@ -52,6 +52,16 @@ at the same size the scenes need no change, so only the PNG is written. The
 row preview is `generate_rooms.lay()` in miniature: no twins side by side,
 `OVERLAP` between pieces, each in its own shade (`_piece_shade`).
 
+**Seams of widened paintings** (`js/seams.js`, «🩹 Швы» on a room's painting).
+`generate_rooms.py` widens each painted panel by quilting a band at every
+`ROOM_EXPANSION_CUTS` cut out of the painting either side, so anything that
+stands near a cut stands there twice. `build_data.py` writes `import/seams.json`
+(the bands in wide-painting pixels, and how busy each is — fine detail against
+the painting as a whole, a rough "how visible is the twin"). The studio cuts a
+band out with 80 px either side and the room's floors drawn on it, takes her
+repaint back, keeps only the band (feathered into its sides) and sends the wide
+painting through the override path, so only the band goes in.
+
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
 practice yard and the rooms' paintings are generator-owned, and an edit of one
@@ -275,3 +285,8 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     генератор кладёт ряд. ⬇ Скачать → перерисуй (📋 Промпт — для ChatGPT,
     приложи скачанный кусок образцом) → ⬆ Своя картинка или Cmd/Ctrl+V:
     студия подгонит к размеру куска. → В игру — кусок встанет во все комнаты.
+18. **🩹 Швы** (Задники → комната → картина) — расширенная картина комнаты:
+    полосы, которые вставил генератор, заметные первыми. ⬇ Кусок → в ChatGPT
+    с 📋 Промптом → ⬆ Заплатка (или Cmd/Ctrl+V). Меняется только полоса между
+    фиолетовыми рисками, края плавно сходятся; зелёные линии — пол, он должен
+    остаться на месте. «◐ Было» — сравнить. Уходит правкой поверх генератора.
