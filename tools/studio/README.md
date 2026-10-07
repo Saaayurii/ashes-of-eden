@@ -39,6 +39,16 @@ only inside the one that changed; a new cutscene picture gets a still rule in
 `data/backdrops.json` (the validator wants one for every panel); a new string
 fills all four locales, borrowing English where nobody translated yet.
 
+**It keeps her work.** Each send carries the studio project
+(`projects/<kind>/<id>.json`) in the same pull request, so **Мои отправки**
+lists her pull requests with their state — checking, checked, merged, live on
+the site (the merge commit is in the deployed `meta.json` sha) — and can open
+any of them back in the studio, from the branch, on any computer. Copies from
+the game never overwrite what she changed (`mergeDecision` in `lib.js`: every
+game item carries a `rev`, a hash of its files); if the game changed the same
+thing meanwhile, the studio asks which to keep. A sent project stays hers until
+its pull request is live, then follows the game again.
+
 ```sh
 python3 -m unittest discover -s tools/studio/tests   # converter, server guard
 node --test tools/studio/tests/*.test.js             # lib.js, formats against the real files
@@ -60,3 +70,7 @@ node --test tools/studio/tests/*.test.js             # lib.js, formats against t
    громкость.
 6. **→ В игру** — отправить; **☁ Поделиться** — сохранить проект для всех;
    **⬇ zip** — скачать файлы себе. Ошиблась — Cmd/Ctrl+Z.
+7. **Мои отправки** — что с каждой отправкой: на проверке → проверено →
+   влито → в игре. «Открыть в студии» вернёт отправленное, даже на другом
+   компьютере. «Из игры» никогда не затирает твои правки; если ту же вещь в
+   игре поменял кто-то ещё, студия спросит, какую версию оставить.

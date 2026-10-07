@@ -90,7 +90,7 @@ jobs:
         run: |
           set -eux
           python3 -m pip install --quiet pillow
-          python3 tools/studio/build_data.py --asset-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/"
+          python3 tools/studio/build_data.py --asset-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/" --sha "${GITHUB_SHA}"
           sudo mkdir -p build/web/studio
           sudo cp -r tools/studio/index.html tools/studio/lib.js tools/studio/repo.js tools/studio/refs tools/studio/import build/web/studio/
 

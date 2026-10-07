@@ -483,6 +483,36 @@ function applyPatch(data, w, h, patch) {
   }
 }
 
+// ---- keeping her work when the game (or a shared project) brings a newer copy ----
 
-Object.assign(g, { spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+// The part of a project that is the work itself, not where the editor stood.
+function contentKey(o) {
+  if (!o) return '';
+  const pick = o.kind === 'bg' ? ['width', 'height', 'layers', 'images', 'ambient']
+    : o.kind === 'cutscene' ? ['steps', 'dialogues', 'strings', 'images']
+    : ['animations', 'settings', 'reference', 'description'];
+  return JSON.stringify(pick.map(k => o[k] ?? null), (k, v) => k === 'busy' ? undefined : v);
+}
+// local: what this browser has (dirty = edited here, pendingPr = sent and not yet
+// in the game, base = the game revision it was taken from); incoming: the game's
+// or a shared copy (rev = revision). -> 'take' | 'keep' | 'conflict'
+function mergeDecision(local, incoming) {
+  if (!local) return 'take';
+  if (local.pendingPr) return 'keep';  // her change is on its way; main does not have it yet
+  if (!local.dirty || contentKey(local) === contentKey(incoming)) return 'take';
+  if (local.base != null && incoming.rev != null && local.base !== incoming.rev) return 'conflict';
+  return 'keep';
+}
+
+// One line for a pull request the studio opened. checks: {total, failed, pending}.
+function prStatus({ state, merged, checks, deployed }) {
+  if (merged) return deployed ? { key: 'live', label: 'в игре', tone: 'ok' } : { key: 'merged', label: 'влито, публикуется…', tone: 'wait' };
+  if (state === 'closed') return { key: 'closed', label: 'закрыто без вливания', tone: 'bad' };
+  if (checks?.failed) return { key: 'failed', label: 'проверка нашла ошибки', tone: 'bad' };
+  if (checks?.pending || !checks?.total) return { key: 'checking', label: 'на проверке', tone: 'wait' };
+  return { key: 'ready', label: 'проверено, ждёт владельца', tone: 'ok' };
+}
+
+
+Object.assign(g, { contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);
