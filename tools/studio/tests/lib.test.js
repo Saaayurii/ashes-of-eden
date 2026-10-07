@@ -260,3 +260,24 @@ test('a pull request reads as one plain status', () => {
   assert.equal(L.prStatus({ state: 'closed', merged: false }).key, 'closed');
   assert.equal(L.prStatus({ state: 'open', review: 'CHANGES_REQUESTED', checks: { total: 1, pending: 0, failed: 0 } }).key, 'changes');
 });
+
+// --- placing an enemy in a room ---
+
+test('a click snaps to the floor below it, as check_reach would find it', () => {
+  const surfaces = [[0, 520, 400], [500, 300, 100], [500, 560, 300]];
+  assert.deepEqual(L.snapToSurface(surfaces, 100, 400), { x: 100, y: 508 });
+  assert.deepEqual(L.snapToSurface(surfaces, 550, 200), { x: 550, y: 288 });  // the ledge, not the ground under it
+  assert.deepEqual(L.snapToSurface(surfaces, 550, 400), { x: 550, y: 548 });
+  assert.equal(L.snapToSurface(surfaces, 450, 400), null);  // a pit
+});
+
+test('studio_rooms.json: one spot per enemy per room, cutscenes per room, stable layout', () => {
+  let t = L.mergeStudioRooms('', { room: 'graveyard_cross', spawn: ['archer', 700, 508] });
+  t = L.mergeStudioRooms(t, { room: 'church', intro_cutscene: 'my_scene' });
+  t = L.mergeStudioRooms(t, { room: 'graveyard_cross', spawn: ['archer', 720, 508] });
+  const j = JSON.parse(t);
+  assert.deepEqual(j.graveyard_cross.spawns, [['archer', 720, 508]]);
+  assert.equal(j.church.intro_cutscene, 'my_scene');
+  assert.deepEqual(Object.keys(j), ['church', 'graveyard_cross']);
+  assert.match(t, /\["archer", 720, 508\]/);
+});

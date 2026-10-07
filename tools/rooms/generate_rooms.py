@@ -1544,6 +1544,21 @@ texture = SubResource("glow_tex")
 ROOMS.update({name: expand_painted_room(name, room) if name in ROOM_EXPANSION_CUTS else deepcopy(room)
               for name, room in PAINTED.items()})
 
+# What the art studio adds (tools/studio, its robot regenerates on its pull
+# requests): spawns of its enemies, in the finished room's own pixels (after
+# the painted widening, like a "wide" entry), and which cutscene a room plays.
+# The spawns go through check_reach like every other walker.
+STUDIO_ROOMS = os.path.join(ROOT, "tools", "rooms", "studio_rooms.json")
+if os.path.exists(STUDIO_ROOMS):
+    with open(STUDIO_ROOMS) as _f:
+        for _name, _extra in json.load(_f).items():
+            if _name not in ROOMS:
+                raise SystemExit(f"tools/rooms/studio_rooms.json names no room: {_name}")
+            ROOMS[_name]["spawns"] = list(ROOMS[_name].get("spawns", [])) + [tuple(s) for s in _extra.get("spawns", [])]
+            for _key in ("intro_cutscene", "outro_cutscene"):
+                if _key in _extra:
+                    ROOMS[_name][_key] = _extra[_key]
+
 if __name__ == "__main__":
     selected = set(sys.argv[1:])
     unknown = selected - ROOMS.keys()

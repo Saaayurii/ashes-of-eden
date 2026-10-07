@@ -59,7 +59,7 @@ jobs:
           load: true
           tags: ashes-of-eden/godot:4.7.2
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Validate data & localization
         run: docker compose run --rm validate
@@ -103,7 +103,7 @@ jobs:
           python3 -m pip install --quiet pillow
           python3 tools/studio/build_data.py --asset-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/" --sha "${GITHUB_SHA}"
           sudo mkdir -p build/web/studio
-          sudo cp -r tools/studio/index.html tools/studio/lib.js tools/studio/repo.js tools/studio/refs tools/studio/import build/web/studio/
+          sudo cp -r tools/studio/index.html tools/studio/lib.js tools/studio/repo.js tools/studio/js tools/studio/refs tools/studio/import build/web/studio/
 
       # Each open studio pull request: its own data pack on this build's engine
       # (tools/studio/make_preview_page.py). The newest three, so the site

@@ -204,7 +204,8 @@ def _size(root, res, cache={}):
 
 
 def room_project(root: Path, path: Path):
-    ext, nodes = parse_tscn(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+    ext, nodes = parse_tscn(text)
     top = nodes[0]["props"]
     images, layers = {}, []
     ambient = next((_color(n["props"].get("color")) for n in nodes if n["type"] == "CanvasModulate" and n["parent"] == "."), None)
@@ -261,7 +262,20 @@ def room_project(root: Path, path: Path):
     if loose:
         layer("Sprites", [1, 1], loose)
     layers.sort(key=lambda l: l["z"])
+    spawns = [[c["props"].get("enemy_id", '""').strip('"'), *_vec(c["props"].get("position"))]
+              for c in nodes if c["parent"] == "Spawns" and c["type"] == "Marker2D"]
+    # the tops of the room's colliders: where an enemy placed in the studio can stand
+    rects = {m[0]: (float(m[1]), float(m[2])) for m in re.findall(
+        r'\[sub_resource type="RectangleShape2D" id="([^"]+)"\]\s*size = Vector2\(([-\d.]+), ([-\d.]+)\)', text)}
+    surfaces = []
+    for c in nodes:
+        shape = re.match(r'SubResource\("([^"]+)"\)', c["props"].get("shape", ""))
+        if c["parent"] in ("Geometry", "Ledges") and c["type"] == "CollisionShape2D" and shape and shape[1] in rects:
+            (cx, cy), (w, h) = _vec(c["props"].get("position")), rects[shape[1]]
+            if w >= 16 and cy - h / 2 >= 0:
+                surfaces.append([round(cx - w / 2, 1), round(cy - h / 2, 1), round(w, 1)])
     return {
+        "spawns": spawns, "surfaces": surfaces,
         "id": "room_" + path.stem, "kind": "bg", "name": path.stem,
         "width": int(float(top.get("width", 1280))), "height": int(float(top.get("height", 360))),
         "viewW": round(640 / VIEW_ZOOM), "viewH": round(360 / VIEW_ZOOM), "ambient": ambient,
@@ -369,6 +383,7 @@ def enemies(root: Path, strings):
         attacks = e.get("attacks", []) + ([e["attack"]] if "attack" in e else [])
         name = strings.get(e.get("name", ""), {})
         out.append({"id": e.get("id", f.stem), "extends": e.get("extends"), "behaviour": e.get("behaviour", "walker"),
+                    "voice": e.get("voice", e.get("id", f.stem)),
                     "boss": bool(e.get("boss")), "tags": e.get("tags", []), "hp": e.get("hp"), "speed": e.get("speed"),
                     "material": e.get("material"), "attacks": sorted({a.get("type", "?") for a in attacks}),
                     "name": {"ru": name.get("ru", ""), "en": name.get("en", "")},

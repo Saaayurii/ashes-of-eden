@@ -1,0 +1,62 @@
+name: Studio robot
+
+# A pull request from the art studio (tools/studio) that places an enemy in a
+# room or ties a cutscene to one changes tools/rooms/studio_rooms.json — the
+# room generator's input. The scenes are the generator's output and CI fails
+# when they do not match it, so the robot regenerates them here and pushes
+# the result onto the same branch. A push made with GITHUB_TOKEN starts no
+# workflow by itself, so it then starts CI on the branch and the Pages build
+# (which carries the pull request's playable preview) by hand.
+
+on:
+  pull_request:
+    paths:
+      - "tools/rooms/studio_rooms.json"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: studio-robot-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    if: startsWith(github.head_ref, 'studio/') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      # the same Python and libraries generators.yml checks the rooms with
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python3 -m pip install --quiet numpy pillow
+
+      # check_reach runs here too: an enemy placed where the hero cannot get
+      # to it fails this step, and the pull request says so
+      - name: Regenerate the rooms
+        run: python3 tools/rooms/generate_rooms.py
+
+      - name: Push the regenerated scenes and start the checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -eu
+          if git diff --quiet -- scenes/rooms assets/levels; then
+            echo "The scenes already match the table." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "studio-robot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A scenes/rooms assets/levels
+          git commit -m "Studio robot: regenerate rooms from tools/rooms/studio_rooms.json"
+          git push origin "HEAD:$BRANCH"
+          git diff --stat HEAD~1 >> "$GITHUB_STEP_SUMMARY"
+          gh workflow run ci.yml --ref "$BRANCH"
+          gh workflow run pages.yml --ref main
