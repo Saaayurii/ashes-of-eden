@@ -233,12 +233,15 @@ async function step(name, fn) {
         x.fillStyle = '#d6b08a'; x.fillRect(620, 120, 36, 200);
         await rigLoadSheet(c.toDataURL('image/png')); renderRig(); await new Promise(r => setTimeout(r, 300)); rigDraw();
       });
+      await tab.evaluate(() => { $('#rigCanvas').scrollIntoView({ block: 'center' }); rigDraw(); });
       const foot = await tab.evaluate(() => { const h = rigUI.handles.find(h => h.id === 'ankleNear'), v = rigUI.view, c = $('#rigCanvas'), r = c.getBoundingClientRect();
         return [r.left + (v[4] + h.at[0] * v[0]) * r.width / c.width, r.top + (v[5] + h.at[1] * v[3]) * r.height / c.height]; });
       await touch('touchStart', [foot]); await touch('touchMove', [[foot[0] + 30, foot[1] - 20]]); await touch('touchEnd', []);
+      assert.ok(foot[1] > 0 && foot[1] < 1180, `the foot is on screen at ${foot}`);
       assert.equal(await tab.evaluate(() => rigAnim().keys.length), 0, 'a palm on the rig moves nothing');
       await pen('mousePressed', ...foot); await pen('mouseMoved', foot[0] + 30, foot[1] - 20); await pen('mouseReleased', foot[0] + 30, foot[1] - 20, 0);
-      assert.equal(await tab.evaluate(() => rigAnim().keys.length), 1, 'the pencil keys a pose');
+      const why = await tab.evaluate(() => JSON.stringify({ keys: rigAnim().keys.length, canvas: [$('#rigCanvas').width, $('#rigCanvas').height], rect: (r => [r.left, r.top, r.width, r.height].map(Math.round))($('#rigCanvas').getBoundingClientRect()), hdr: $('header.top').offsetHeight, view: innerHeight, pen: Ink.penSeen }));
+      assert.equal(await tab.evaluate(() => rigAnim().keys.length), 1, 'the pencil keys a pose ' + why + ' foot ' + foot.map(Math.round));
       await ctx.close();
     });
 
