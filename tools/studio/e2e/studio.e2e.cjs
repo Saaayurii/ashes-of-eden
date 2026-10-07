@@ -137,6 +137,27 @@ async function step(name, fn) {
       assert.equal(new Set(r.hs.map(([, b]) => b)).size, 1, 'the feet stand on one row in every frame');
     });
 
+    await step('a frame that jumps aside turns the badge on «→ В игру» red', async () => {
+      const r = await page.evaluate(async () => {
+        setMode('chars'); const a = P.animations.find(a => a.name === 'idle'); P.current = a.id; renderAll();
+        await SS.build(); paintProcessed();
+        const before = artReport.filter(c => c.bad && c.anim === 'idle').map(c => c.msg);
+        const c = document.createElement('canvas'); c.width = c.height = 1024; const x = c.getContext('2d');
+        x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 1024, 1024);
+        for (let j = 0; j < 55; j++) for (let i = 0; i < 18; i++) if (Math.abs(i - 9) < 6) { x.fillStyle = (i + j) % 3 ? '#3f6b2e' : '#22301a'; x.fillRect(360 + i * 11, 220 + j * 11, 11, 11); }
+        const file = new File([await new Promise(r => c.toBlob(r, 'image/png'))], 'f.png', { type: 'image/png' });
+        const f = a.frames[2]; await SS.assignFiles([file], { type: 'frame', id: f.id }); f.dx = 14; save();
+        await new Promise(r => setTimeout(r, 2500)); await SS.build(); paintProcessed();
+        const badge = document.querySelector('[data-act="chars-game"] .badge')?.textContent;
+        const msgs = [...document.querySelectorAll('#artChecks .warn')].map(d => d.textContent);
+        f.src = null; f.dx = 0; save(); await SS.build(); paintProcessed();
+        return { before, badge, msgs };
+      });
+      assert.deepEqual(r.before, [], 'the clean idle has nothing red: ' + JSON.stringify(r));
+      assert.ok(+r.badge >= 1, `badge ${r.badge}`);
+      assert.ok(r.msgs.some(m => /idle.*прыгает/.test(m)), r.msgs.join(' | '));
+    });
+
     await step('undo and redo', async () => {
       const seq = await page.evaluate(() => {
         const f = () => P.animations.find(a => a.name === 'idle').frames[1];
