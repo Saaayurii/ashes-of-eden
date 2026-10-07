@@ -1,0 +1,24 @@
+{
+  "id": "ash_archer",
+  "extends": "cultist",
+  "name": "ENEMY_ASH_ARCHER",
+  "lore": "ENEMY_ASH_ARCHER_LORE",
+  "tip": "TIP_ASH_ARCHER",
+  "sprite": {
+    "cell": [
+      96,
+      68
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/ash_archer_idle.png",
+      "walk": "res://assets/sprites/ash_archer_walk.png",
+      "attack": "res://assets/sprites/ash_archer_attack.png",
+      "attack_alt": "res://assets/sprites/ash_archer_attack_alt.png",
+      "special": "res://assets/sprites/ash_archer_special.png",
+      "hurt": "res://assets/sprites/ash_archer_hurt.png",
+      "death": "res://assets/sprites/ash_archer_death.png"
+    }
+  },
+  "voice": "cultist"
+}
