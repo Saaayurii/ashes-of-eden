@@ -1,6 +1,8 @@
 extends Control
 
 const RUN_SCENE := "res://scenes/run/run.tscn"
+## run.gd has no class_name: its static helpers are reached through the script.
+const RUN_SCRIPT := preload("res://scripts/run/run.gd")
 const MULTIPLAYER_SCENE := "res://scenes/ui/multiplayer_menu.tscn"
 ## Language names are shown in their own language on purpose: never translated.
 const NATIVE_NAMES := {"en": "English", "ru": "Русский", "uk": "Українська", "zh_CN": "简体中文"}
@@ -57,7 +59,7 @@ func _ready() -> void:
 		return
 	# The studio's sandbox (StudioLive), and a studio pull request's preview
 	# asked for a room or an enemy: no menu, straight there.
-	if StudioLive.requested() or Run.asks_for_a_place():
+	if StudioLive.requested() or RUN_SCRIPT.asks_for_a_place():
 		visible = false
 		Saves.pending = {}
 		Curtain.change_scene.call_deferred(RUN_SCENE, true)
