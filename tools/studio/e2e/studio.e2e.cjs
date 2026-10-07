@@ -86,6 +86,35 @@ async function step(name, fn) {
       await page.click('#sandbox [data-sb="close"]');
     });
 
+    await step('the rig cuts a part sheet, walks it with planted feet and bakes 44 px frames', async () => {
+      const r = await page.evaluate(async () => {
+        setMode('rig');
+        const c = document.createElement('canvas'); c.width = 900; c.height = 600; const x = c.getContext('2d');
+        x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 900, 600);
+        x.fillStyle = '#2f5a2a'; x.beginPath(); x.ellipse(170, 150, 55, 62, 0, 0, 7); x.fill();
+        x.fillStyle = '#3d6b33'; x.fillRect(120, 200, 110, 190);                                   // body
+        x.fillStyle = '#4a3a2a'; x.fillRect(420, 120, 46, 250); x.fillStyle = '#2a1e16'; x.fillRect(420, 370, 70, 30);  // leg + boot
+        x.fillStyle = '#3d6b33'; x.fillRect(620, 120, 36, 100); x.fillStyle = '#d6b08a'; x.fillRect(624, 220, 28, 100); // arm
+        x.strokeStyle = '#7a5230'; x.lineWidth = 10; x.beginPath(); x.arc(700, 300, 200, -0.9, 0.9); x.stroke();           // bow
+        await rigLoadSheet(c.toDataURL('image/png'));
+        const roles = Object.keys(P.rig.parts).sort();
+        const walk = P.animations.find(a => /walk|run/.test(a.name)); P.current = walk.id; renderRig();
+        document.querySelector('[data-rig="gen-walk"]').click(); await new Promise(r => setTimeout(r, 200));
+        const checks = [...document.querySelectorAll('#rigChecks div')].map(d => d.className);
+        rigUI.imgs.clear();  // the parts not loaded yet when «Запечь» is pressed: the bake waits for them
+        await rigBake(); await new Promise(r => setTimeout(r, 2500)); await SS.build();
+        const hs = walk.frames.map(f => SS.processed().get(f.id)).map(p => { const d = p.getContext('2d').getImageData(0, 0, p.width, p.height).data; let t = 999, b = -1;
+          for (let y = 0; y < p.height; y++) for (let xx = 0; xx < p.width; xx++) if (d[(y * p.width + xx) * 4 + 3]) { t = Math.min(t, y); b = Math.max(b, y); } return [b - t + 1, b]; });
+        setMode('chars');
+        return { roles, checks, baked: walk.frames.filter(f => f.baked).length, n: walk.frames.length, hs };
+      });
+      assert.deepEqual(r.roles, ['arm', 'body', 'leg', 'weapon']);
+      assert.ok(r.checks.length >= 4 && r.checks.every(c => c === 'ok'), JSON.stringify(r.checks));
+      assert.equal(r.baked, r.n);
+      for (const [h] of r.hs) assert.ok(h >= 42 && h <= 45, `height ${h}`);
+      assert.equal(new Set(r.hs.map(([, b]) => b)).size, 1, 'the feet stand on one row in every frame');
+    });
+
     await step('undo and redo', async () => {
       const seq = await page.evaluate(() => {
         const f = () => P.animations.find(a => a.name === 'idle').frames[1];
