@@ -19,7 +19,8 @@ async function sandboxUrl() {
 
 async function sandboxOpen() {
   if (!P) return;
-  if (sandbox.el) { sandbox.el.hidden = false; return sandboxPost(true); }
+  // closed: the game was unloaded with the panel (its music must not play on behind the studio)
+  if (sandbox.el) { sandbox.el.hidden = false; sandboxState('загружаю игру…'); sandbox.frame.src = await sandboxUrl(); return; }
   try { enemyList ||= await (await fetch('import/enemies.json')).json(); } catch { enemyList = []; }
   const bases = (enemyList || []).filter(e => !e.boss && !e.extends && BEHAVIOUR_RU[e.behaviour] && e.bestiary !== false);
   const el = sandbox.el = document.createElement('div');
@@ -29,7 +30,7 @@ async function sandboxOpen() {
       <span class="grow muted" id="sbState">загружаю игру…</span>
       <button class="sm" data-sb="send" title="Отправить кадры в игру сейчас">⟳</button>
       <button class="sm ghost" data-sb="reload" title="Перезапустить игру">↺</button>
-      <button class="sm ghost" data-sb="close" title="Спрятать (игра продолжит ждать)">✕</button></div>
+      <button class="sm ghost" data-sb="close" title="Закрыть игру">✕</button></div>
     <iframe id="sbFrame" src="${esc(await sandboxUrl())}" allow="autoplay; fullscreen; gamepad" title="Игра"></iframe>
     <div class="sb-foot muted">Кликни по игре, чтобы управлять. Кадры обновятся сами через пару секунд после правки.</div>`;
   document.body.appendChild(el);
@@ -38,7 +39,7 @@ async function sandboxOpen() {
   el.addEventListener('click', e => {
     const b = e.target.closest('[data-sb]'); if (!b) return;
     if (b.dataset.sb === 'send') sandboxPost(true);
-    if (b.dataset.sb === 'close') el.hidden = true;
+    if (b.dataset.sb === 'close') { el.hidden = true; sandbox.ready = false; sandbox.sent = ''; sandbox.frame.src = 'about:blank'; }
     if (b.dataset.sb === 'reload') { sandbox.ready = false; sandbox.sent = ''; sandboxState('загружаю игру…'); sandboxUrl().then(u => { sandbox.frame.src = u; }); }
   });
 }
