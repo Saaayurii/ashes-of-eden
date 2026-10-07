@@ -49,6 +49,20 @@ game item carries a `rev`, a hash of its files); if the game changed the same
 thing meanwhile, the studio asks which to keep. A sent project stays hers until
 its pull request is live, then follows the game again.
 
+**She plays what she sent.** For every open studio pull request (branch
+`studio/…`) `pages.yml` exports a data pack from its head and serves
+`preview-<n>.html`: the main build's engine with that pack
+(`make_preview_page.py`), nothing kept between visits, and `?room=` /
+`?practice=<enemy>` honoured through `--studio-preview` (`run.gd`). Мои отправки
+links it, straight into the room of a changed cutscene or the practice yard
+against a new enemy; the owner's reviews and comments show under each send,
+she can answer, and a fix goes into the same pull request.
+
+**A character can become an enemy.** «⚔ Сделать врагом» writes
+`data/enemies/<id>.json` that `extends` an enemy the game has (its fight, its
+sounds), with the strips she drew, name, lore and the `tip` the validator wants,
+in all four locales. Rooms still get their spawns from the room generator.
+
 ```sh
 python3 -m unittest discover -s tools/studio/tests   # converter, server guard
 node --test tools/studio/tests/*.test.js             # lib.js, formats against the real files
@@ -74,3 +88,11 @@ node --test tools/studio/tests/*.test.js             # lib.js, formats against t
    влито → в игре. «Открыть в студии» вернёт отправленное, даже на другом
    компьютере. «Из игры» никогда не затирает твои правки; если ту же вещь в
    игре поменял кто-то ещё, студия спросит, какую версию оставить.
+8. **▶ Играть с моими правками** — в «Моих отправках»: игра с твоими изменениями
+   ещё до вливания (сразу в комнату катсцены или на тренировку с новым врагом).
+   Там же замечания владельца: ответить, поправить — «→ В игру» допишет
+   исправления в ту же отправку.
+9. **⚔ Сделать врагом** — персонаж становится врагом игры: выбираешь, на кого
+   он похож по бою, имя, описание и подсказку «как драться».
+10. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
+    анимацию. Звуки: обрезка — тяни ручки на волне; Cmd/Ctrl+Z работает везде.

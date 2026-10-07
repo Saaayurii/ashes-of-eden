@@ -25,7 +25,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-WRITABLE = ("assets/", "data/cutscenes/", "data/dialogues/", "data/backdrops.json",
+WRITABLE = ("assets/", "data/cutscenes/", "data/dialogues/", "data/enemies/", "data/backdrops.json",
             "localization/strings.csv", "tools/studio/projects/")
 PORT = int(os.environ.get("STUDIO_PORT", "8765"))
 

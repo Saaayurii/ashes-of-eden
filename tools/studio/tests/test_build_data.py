@@ -71,9 +71,32 @@ class Build(unittest.TestCase):
             self.assertTrue(all(not t["url"].startswith(("http", "/")) for e in audio for t in e["takes"]))
 
 
+class Enemies(unittest.TestCase):
+    def test_wizard_bases(self):
+        listed = {e["id"]: e for e in build_data.enemies(ROOT, build_data.load_strings(ROOT))}
+        self.assertEqual(listed["cultist"]["behaviour"], "walker")
+        self.assertIn("melee", listed["cultist"]["attacks"])
+        self.assertTrue(listed["cultist"]["name"]["ru"])
+        self.assertEqual(listed["elite_possessed"]["extends"], "possessed_villager")
+
+
+class PreviewPage(unittest.TestCase):
+    def test_own_pack_no_saves_and_arguments(self):
+        import make_preview_page
+        html = '<body><script>const GAME = new Engine({"args":[],"executable":"index","fileSizes":{"index.pck":10,"index.wasm":20}});</script></body>'
+        page = make_preview_page.preview_page(html, 7, 99)
+        self.assertIn('"mainPack": "preview/7.pck"', page)
+        self.assertIn('"persistentPaths": []', page)
+        self.assertIn('"preview/7.pck": 99', page)
+        self.assertNotIn('"index.pck"', page)
+        self.assertIn("'--studio-preview'", page)
+        self.assertIn("'practice'", page)
+        self.assertIn("Превью отправки #7", page)
+
+
 class ServeGuard(unittest.TestCase):
     def test_allowed(self):
-        for ok in ("assets/sprites/archer_idle.png", "data/cutscenes/x.json", "localization/strings.csv",
+        for ok in ("assets/sprites/archer_idle.png", "data/cutscenes/x.json", "data/enemies/archer.json", "localization/strings.csv",
                    "tools/studio/projects/chars/archer.json"):
             self.assertEqual(serve.safe_path(ok), (ROOT / ok).resolve())
 

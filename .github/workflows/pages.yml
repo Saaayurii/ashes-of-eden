@@ -24,6 +24,13 @@ on:
       - ".github/workflows/mobile.yml"
       - ".github/workflows/generators.yml"
   workflow_dispatch:
+  # A pull request from the art studio (branch studio/…) gets a playable
+  # preview beside the game: preview-<n>.html, rebuilt when it changes and
+  # dropped when it closes. pull_request_target runs this file as it is on
+  # main, so the deploy is allowed; only branches of this repository (people
+  # with push access) are built.
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
 
 # One deploy at a time; a newer push supersedes a queued one but never
 # interrupts a deploy half-way.
@@ -33,6 +40,10 @@ concurrency:
 
 jobs:
   build:
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      (startsWith(github.event.pull_request.head.ref, 'studio/') &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     name: Export Web
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -93,6 +104,30 @@ jobs:
           python3 tools/studio/build_data.py --asset-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/" --sha "${GITHUB_SHA}"
           sudo mkdir -p build/web/studio
           sudo cp -r tools/studio/index.html tools/studio/lib.js tools/studio/repo.js tools/studio/refs tools/studio/import build/web/studio/
+
+      # Each open studio pull request: its own data pack on this build's engine
+      # (tools/studio/make_preview_page.py). The newest three, so the site
+      # stays far under Pages' 1 GB; preview/<n>.json says which commit it is.
+      - name: Previews of the studio's pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 30 \
+                --json number,headRefName,headRepositoryOwner,headRefOid \
+                --jq '.[] | select(.headRefName | startswith("studio/")) | select(.headRepositoryOwner.login == "'"$GITHUB_REPOSITORY_OWNER"'") | "\(.number) \(.headRefOid)"' | head -3)
+          sudo mkdir -p build/web/preview
+          echo "$prs" | while read -r n sha; do
+            [ -n "$n" ] || continue
+            git fetch -q --depth 1 origin "$sha"
+            git worktree add -f --detach "/tmp/pr-$n" "$sha"
+            docker run --rm -v "/tmp/pr-$n:/project" ashes-of-eden/godot:4.7.2 \
+              bash -c 'godot --headless --import --quit >/dev/null 2>&1 || true; godot --headless --export-pack Web /project/preview.pck'
+            sudo cp "/tmp/pr-$n/preview.pck" "build/web/preview/$n.pck"
+            python3 tools/studio/make_preview_page.py build/web/index.html "$n" "build/web/preview/$n.pck" | sudo tee "build/web/preview-$n.html" >/dev/null
+            echo "{\"number\": $n, \"sha\": \"$sha\"}" | sudo tee "build/web/preview/$n.json" >/dev/null
+            echo "preview #$n ($sha)" >> "$GITHUB_STEP_SUMMARY"
+          done
 
       # The browser needs to know what a .pck and a .wasm are; Pages gets this
       # right for .wasm and serves .pck as octet-stream, which is what we want.

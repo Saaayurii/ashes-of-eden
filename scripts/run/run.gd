@@ -153,6 +153,9 @@ func _ready() -> void:
 		deeds.say_text(tr("DAILY_START") % tr(str(Vials.spec(Game.vial).get("name", ""))))
 	if not Net.active:
 		var save := Saves.take_pending()
+		var spar := _requested_practice()
+		if spar != "":
+			Game.practice = spar
 		_spawn_player(1, 0)
 		var jump := _requested_room()
 		if Game.practice != "":
@@ -333,12 +336,36 @@ func _begin() -> void:
 ## so it will be harder this way than it is in play. That is the tool working,
 ## not the balance being wrong.
 const ROOM_ARG := "room="
+## A pull request's preview page (tools/studio/make_preview_page.py) passes this
+## so the release Web build takes `room=` too: whoever changed a room's scene or
+## art walks straight into it. The page keeps nothing (persistentPaths = []).
+const PREVIEW_ARG := "--studio-preview"
 
 
 func _requested_room() -> int:
-	if not OS.is_debug_build():
+	var args := OS.get_cmdline_user_args()
+	if not OS.is_debug_build() and not args.has(PREVIEW_ARG):
 		return -1
-	return room_from_args(OS.get_cmdline_user_args())
+	return room_from_args(args)
+
+
+## A preview page may ask for the practice yard against one enemy instead
+## (`practice=<id>`), so a creature fresh from the studio can be fought at once.
+const PRACTICE_ARG := "practice="
+
+
+func _requested_practice() -> String:
+	var args := OS.get_cmdline_user_args()
+	if not OS.is_debug_build() and not args.has(PREVIEW_ARG):
+		return ""
+	for arg in args:
+		if arg.begins_with(PRACTICE_ARG):
+			var want := arg.substr(PRACTICE_ARG.length()).strip_edges()
+			if Data.enemies.has(want):
+				print("run: practice yard against %s" % want)
+				return want
+			push_warning("run: no enemy called '%s'" % want)
+	return ""
 
 
 ## Which room a command line asks for, or -1 for none. Separate from the

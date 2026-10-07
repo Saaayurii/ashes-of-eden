@@ -181,6 +181,9 @@ a{color:var(--sel)}
 #paintPal i.on{border-color:#fff}
 .sentlist{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:60vh;overflow:auto}
 .sentrow{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:6px}
+.sentrow .wide{grid-column:1/-1}
+.note-item{border-left:2px solid var(--line);padding:4px 8px;margin:6px 0;font-size:12.5px;white-space:pre-wrap}
+.note-item.mine{border-left-color:var(--accent)}
 #toasts{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:6px;z-index:50}
 .toast{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);padding:8px 12px;border-radius:6px;max-width:380px}
 .toast.err{border-left-color:var(--err)}
@@ -203,6 +206,7 @@ a{color:var(--sel)}
     <button data-act="chars-from-game" class="ghost" title="Загрузить персонажей игры и общие проекты">Из игры</button>
     <button data-act="export-godot" class="ghost" title="Скачать zip с файлами для Godot">⬇ zip</button>
     <button data-act="chars-share" class="ghost" title="Сохранить проект в репозиторий, чтобы его видели все">☁ Поделиться</button>
+    <button data-act="chars-enemy" class="ghost" title="Сделать из персонажа врага игры">⚔ Сделать врагом</button>
     <button data-act="chars-game" class="primary" title="Записать персонажа в игру">→ В игру</button>
   </span>
   <span class="hdr-bg">
@@ -987,6 +991,8 @@ function renderFrames() {
   $('#frames').innerHTML = a.frames.map((f, i) => `
     <div class="card ${selected?.id === f.id ? 'sel' : ''} ${f.off ? 'off' : ''}" data-fid="${f.id}">
       <div class="ch"><b>#${i + 1}</b><span class="grow"></span>
+        <button class="sm ghost" data-act="f-insert" title="Вставить пустой кадр после этого">＋</button>
+        ${f.src ? `<button class="sm ghost" data-act="f-dup" title="Дублировать кадр">⧉</button><button class="sm ghost" data-act="f-mirror" title="Отразить по горизонтали">⇋</button><button class="sm ghost" data-act="f-copyto" title="Скопировать кадр в другую анимацию">→</button>` : ''}
         <button class="sm ghost" data-act="f-left" title="Сдвинуть раньше">◀</button>
         <button class="sm ghost" data-act="f-right" title="Сдвинуть позже">▶</button>
         <button class="sm ghost" data-act="f-off" title="${f.off ? 'Включить кадр' : 'Не использовать кадр'}">${f.off ? '◌' : '👁'}</button>
@@ -1257,6 +1263,26 @@ document.addEventListener('click', async e => {
       if (a.frames.length <= 1) return;
       if (F.src && !confirm('Удалить кадр с картинкой?')) return;
       a.frames = a.frames.filter(x => x !== F); save(); renderTabs(); renderAnimBar(); renderFrames(); scheduleBuild(); break;
+    case 'f-insert': { const i = a.frames.indexOf(F); a.frames.splice(i + 1, 0, newFrame()); save(); renderTabs(); renderAnimBar(); renderFrames(); break; }
+    case 'f-dup': {
+      const i = a.frames.indexOf(F), c = { ...JSON.parse(JSON.stringify(F)), id: uid() };
+      a.frames.splice(i + 1, 0, c); save(); renderTabs(); renderAnimBar(); renderFrames(); scheduleBuild(0); break;
+    }
+    case 'f-mirror': {
+      const img = await loadImage(F.src), c = mk(img.width, img.height), x = c.getContext('2d');
+      x.translate(img.width, 0); x.scale(-1, 1); x.drawImage(img, 0, 0);
+      F.src = c.toDataURL('image/png'); F.patch = {}; F.dx = -F.dx;  // touch-ups were for the other side
+      save(); renderFrames(); scheduleBuild(0); toast('Кадр отражён'); break;
+    }
+    case 'f-copyto': {
+      const others = P.animations.filter(x => x !== a);
+      if (!others.length) return toast('Других анимаций нет — добавь через «+ Анимация»', 'err');
+      const name = prompt(`В какую анимацию скопировать кадр? (${others.map(x => x.name).join(', ')})`, others[0].name);
+      const to = others.find(x => x.name === name?.trim()); if (!to) return;
+      const c = { ...JSON.parse(JSON.stringify(F)), id: uid() }, empty = to.frames.find(x => !x.src);
+      if (empty) Object.assign(empty, { ...c, id: empty.id, pose: empty.pose || c.pose }); else to.frames.push(c);
+      save(); renderTabs(); scheduleBuild(0); toast(`Скопировано в «${to.name}»`); break;
+    }
     case 'f-left': case 'f-right': {
       const i = a.frames.indexOf(F), j = i + (act === 'f-left' ? -1 : 1);
       if (j < 0 || j >= a.frames.length) return;
@@ -1927,7 +1953,7 @@ async function sndInit() {
   try { for (const m of (await DB.all('sounds')) || []) sndMods.set(m.id, m); } catch {}
 }
 let sndSaveTimer = null;
-function saveSnd(m) { m.updated = Date.now(); clearTimeout(sndSaveTimer); sndSaveTimer = setTimeout(() => { if (dbOk) DB.put(m, 'sounds').catch(() => {}); }, 300); }
+function saveSnd(m) { m.updated = Date.now(); trackChange('snd'); clearTimeout(sndSaveTimer); sndSaveTimer = setTimeout(() => { if (dbOk) DB.put(m, 'sounds').catch(() => {}); }, 300); }
 // Звук = библиотечная запись + наши изменения поверх (замены вариантов, новые варианты).
 function sndEntry(key) {
   const lib = sndLib?.find(e => e.key === key), mod = sndMods.get(key);
@@ -2008,6 +2034,25 @@ async function renderSndMain() {
     <div id="sndEditor"></div>`;
   renderSndEditor(e);
 }
+let sndWave = null;  // the clip under the trim handles
+// Trim by dragging on the waveform: the nearer handle follows the pointer.
+document.addEventListener('pointerdown', e => {
+  const c = e.target.closest?.('#wave'); if (!c || !sndWave) return;
+  const ent = sndEntry(sndSel), m = sndMod(ent);
+  m.takes[sndWave.stem] ||= { src: null, edits: { ...EDIT_DEFAULT } };
+  const ed = m.takes[sndWave.stem].edits ||= { ...EDIT_DEFAULT }, dur = sndWave.buf.duration;
+  const at = ev => Math.max(0, Math.min(dur, (ev.offsetX / c.clientWidth) * dur));
+  const t0 = at(e), end = ed.end || dur, key = Math.abs(t0 - (ed.start || 0)) <= Math.abs(t0 - end) ? 'start' : 'end';
+  const move = ev => {
+    const t = +at(ev).toFixed(2);
+    if (key === 'start') ed.start = Math.min(t, (ed.end || dur) - 0.02); else ed.end = Math.max(t, (ed.start || 0) + 0.02) >= dur - 0.005 ? 0 : Math.max(t, (ed.start || 0) + 0.02);
+    const f = document.querySelector(`[data-se="${key}"]`); if (f) f.value = ed[key];
+    drawWave(sndWave.buf, ed);
+  };
+  move(e); c.setPointerCapture(e.pointerId);
+  c.onpointermove = move;
+  c.onpointerup = () => { c.onpointermove = c.onpointerup = null; saveSnd(m); renderSndList(); };
+});
 async function renderSndEditor(e) {
   const box = $('#sndEditor'); const t = e.takes.find(x => x.stem === sndTake);
   if (!box || !t) return;
@@ -2026,6 +2071,7 @@ async function renderSndEditor(e) {
       <div><label>&nbsp;</label><label class="inline"><input type="checkbox" data-se="normalize" ${ed.normalize ? 'checked' : ''}> Выровнять громкость</label></div>
     </div>
     <div class="row"><button data-act="snd-play-edit">▶ Прослушать с правками</button><span class="muted" id="sndPeak"></span></div>`;
+  sndWave = { buf, stem: t.stem };
   drawWave(buf, ed);
 }
 function drawWave(buf, ed) {
@@ -2532,7 +2578,7 @@ document.addEventListener('input', e => {
 });
 $('#cutSel').addEventListener('change', e => { const c = cuts.find(x => x.id === e.target.value); if (!c) return; cutStop(); CUT = c; cutStepSel = -1; try { localStorage.setItem('ss_lastcut', c.id); } catch {} renderCutAll(); });
 async function enterStoryMode(m) {
-  if (m === 'snd') { await loadSndLib(); await loadCutData(); renderSndList(); renderSndMain(); }
+  if (m === 'snd') { await loadSndLib(); await loadCutData(); trackChange('snd'); renderSndList(); renderSndMain(); }
   if (m === 'cut') {
     await loadCutData(); await loadSndLib();
     if (!library) { try { library = await (await fetch('import/library.json')).json(); } catch {} }
@@ -2606,8 +2652,9 @@ window.addEventListener('resize', drawPaint);
 
 /* ---------- undo / redo (per tab; pictures are shared between snapshots, see lib.js) ---------- */
 const undoTable = { ids: new Map(), list: [] };
-const history = { chars: { u: [], r: [] }, bg: { u: [], r: [] }, cut: { u: [], r: [] } };
-const undoTarget = m => m === 'chars' ? P : m === 'bg' ? BG : m === 'cut' ? CUT : null;
+const history = { chars: { u: [], r: [] }, bg: { u: [], r: [] }, cut: { u: [], r: [] }, snd: { u: [], r: [] } };
+const undoTarget = m => m === 'chars' ? P : m === 'bg' ? BG : m === 'cut' ? CUT
+  : m === 'snd' ? { id: 'snd', mods: [...sndMods.values()].sort((a, b) => a.id.localeCompare(b.id)) } : null;
 function trackChange(m) {
   const h = history[m], o = undoTarget(m); if (!h || !o) return;
   const snap = snapshot(o, undoTable);
@@ -2627,6 +2674,13 @@ function undoRedo(redo) {
   const settle = o => { h.last = snapshot(o, undoTable); return o; };
   if (mode === 'chars') { const i = projects.indexOf(P); P = settle(migrate(obj)); if (i >= 0) projects[i] = P; persist(); renderAll(); scheduleBuild(0); }
   else if (mode === 'bg') { const i = bgs.indexOf(BG); BG = settle(migrateBg(obj)); if (i >= 0) bgs[i] = BG; persistBg(); renderBgAll(); }
+  else if (mode === 'snd') {
+    settle(obj);
+    const keep = new Set(obj.mods.map(m => m.id));
+    for (const id of sndMods.keys()) if (!keep.has(id)) { sndMods.delete(id); if (dbOk) DB.del(id, 'sounds').catch(() => {}); }
+    for (const m of obj.mods) { sndMods.set(m.id, m); if (dbOk) DB.put(m, 'sounds').catch(() => {}); }
+    renderSndList(); renderSndMain();
+  }
   else { const i = cuts.indexOf(CUT); CUT = settle(migrateCut(obj)); if (i >= 0) cuts[i] = CUT; if (dbOk) DB.put(CUT, 'cutscenes').catch(() => {}); renderCutAll(); }
   toast(redo ? 'Возвращено' : 'Отменено');
 }

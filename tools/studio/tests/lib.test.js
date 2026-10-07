@@ -258,4 +258,5 @@ test('a pull request reads as one plain status', () => {
   assert.equal(L.prStatus({ state: 'closed', merged: true, deployed: false }).key, 'merged');
   assert.equal(L.prStatus({ state: 'closed', merged: true, deployed: true }).key, 'live');
   assert.equal(L.prStatus({ state: 'closed', merged: false }).key, 'closed');
+  assert.equal(L.prStatus({ state: 'open', review: 'CHANGES_REQUESTED', checks: { total: 1, pending: 0, failed: 0 } }).key, 'changes');
 });
