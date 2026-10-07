@@ -548,5 +548,64 @@ function liveMessage({ name, base, cell, fps, strips }) {
   return { type: 'ashes-live', name: name || '', extends: base || 'cultist', cell: [+cell[0], +cell[1]], fps: +fps || 8, strips };
 }
 
-Object.assign(g, { enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+// ---- checks before a character is sent (the red badge on «→ В игру») ----
+//
+// What the eye misses in a strip of small frames and the game shows at once:
+// a character of the wrong size beside the hero, feet that hop between frames,
+// a figure that jumps sideways, a palette that has grown past the game's look,
+// and a fringe of the chroma key or soft alpha left round the edges.
+const HERO_H = 44;
+// No ground under these: their feet may leave the line.
+const AIRBORNE = /jump|fall|fly|air|прыж|паден|полёт|полет/i;
+function frameStats(fr) {
+  const { data: d, w, h } = fr; let top = h, bottom = -1, cx = 0, cy = 0, n = 0, soft = 0, halo = 0;
+  const colours = new Set();
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, a = d[i + 3]; if (!a) continue;
+    if (a < 255) soft++;
+    n++; cx += x; cy += y; if (y < top) top = y; if (y > bottom) bottom = y;
+    colours.add(d[i] << 16 | d[i + 1] << 8 | d[i + 2]);
+    // a key-coloured pixel: magenta or bright green, saturated and lit
+    const [hu, sa, va] = hsv(d[i], d[i + 1], d[i + 2]);
+    if (sa > 0.45 && va > 0.35 && (Math.abs(hu - 300) < 28 || Math.abs(hu - 120) < 22)) {
+      const clear = (xx, yy) => xx < 0 || yy < 0 || xx >= w || yy >= h || !d[(yy * w + xx) * 4 + 3];
+      if (clear(x - 1, y) || clear(x + 1, y) || clear(x, y - 1) || clear(x, y + 1)) halo++;
+    }
+  }
+  return n ? { height: bottom - top + 1, top, bottom, cx: cx / n, cy: cy / n, n, soft, halo, colours } : null;
+}
+// anims: [{name, loop, frames: [{data, w, h}]}]; o: {contentH, palette (the limit she set, 0 = none)}.
+// → [{id, bad, anim, msg}] — bad ones turn the badge red, the rest are said for information.
+function artChecks(anims, o = {}) {
+  const out = [], CH = +o.contentH || HERO_H, all = new Set();
+  const add = (id, bad, anim, msg) => out.push({ id, bad, anim, msg });
+  let tallest = 0;
+  for (const a of anims) {
+    const st = a.frames.map(frameStats), ok = st.filter(Boolean); if (!ok.length) continue;
+    for (const s of ok) for (const c of s.colours) all.add(c);
+    const hmax = Math.max(...ok.map(s => s.height)); tallest = Math.max(tallest, hmax);
+    if (!AIRBORNE.test(a.name) && ok.length > 1) {
+      const b = ok.map(s => s.bottom), spread = Math.max(...b) - Math.min(...b);
+      if (spread > 1) add('feet', true, a.name, `«${a.name}»: ноги не на одной линии — низ гуляет на ${spread} px между кадрами`);
+    }
+    const jump = Math.max(4, hmax * 0.15), seq = st.map((s, i) => [s, i]).filter(([s]) => s);
+    for (let k = 1; k < seq.length + (a.loop && seq.length > 2 ? 1 : 0); k++) {
+      const [p, i] = seq[k - 1], [q, j] = seq[k % seq.length], dx = q.cx - p.cx, dy = q.cy - p.cy, d = Math.hypot(dx, dy);
+      if (d > jump) { add('jump', true, a.name, `«${a.name}»: между кадрами ${i + 1} и ${j + 1} персонаж прыгает на ${d.toFixed(0)} px`); break; }
+    }
+    const halo = ok.reduce((t, s) => t + s.halo, 0), soft = ok.reduce((t, s) => t + s.soft, 0);
+    if (halo) add('halo', true, a.name, `«${a.name}»: по краю остался цвет фона (${halo} px) — подними «Допуск фона» или поправь ✎`);
+    if (soft) add('soft', true, a.name, `«${a.name}»: полупрозрачные пиксели (${soft}) — в пиксель-арте край или есть, или нет`);
+  }
+  if (tallest) {
+    if (Math.abs(tallest - CH) > 2) add('height', true, '', `Рост ${tallest} px, а задан ${CH} px — нажми «Сетка пикселей + подогнать рост»`);
+    else if (Math.abs(tallest - HERO_H) > 2) add('hero', tallest > HERO_H * 2, '', `Рост ${tallest} px — ${tallest > HERO_H ? 'выше' : 'ниже'} героя (${HERO_H} px) в ${(tallest / HERO_H).toFixed(1)} раза`);
+    else add('hero', false, '', `Рост ${tallest} px — как у героя`);
+  }
+  const limit = +o.palette > 0 ? +o.palette : 48;
+  if (all.size > limit) add('palette', true, '', `Цветов ${all.size} — больше ${limit}${+o.palette > 0 ? ', чем задано в палитре' : ''}: включи «Палитру» или уменьши число цветов`);
+  return out;
+}
+
+Object.assign(g, { HERO_H, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

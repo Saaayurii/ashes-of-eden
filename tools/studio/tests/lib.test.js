@@ -292,3 +292,40 @@ test('sandbox posts pick an animation per enemy slot and carry the base', () => 
   const m = L.liveMessage({ name: 'Лучница', base: '', cell: ['48', 56], fps: '', strips: { idle: 'data:' } });
   assert.deepEqual(m, { type: 'ashes-live', name: 'Лучница', extends: 'cultist', cell: [48, 56], fps: 8, strips: { idle: 'data:' } });
 });
+
+// --- checks before sending: size, feet, jumps, palette, key-colour halos ---
+
+function cellFrame(w, h, draw) {
+  const d = new Uint8ClampedArray(w * h * 4);
+  const put = (x, y, c) => { const i = (y * w + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = c[3] ?? 255; };
+  draw(put); return { data: d, w, h };
+}
+// a 44 px figure, its feet on row `foot`, shifted by dx
+const figure = (foot = 55, dx = 0, h = 44, extra) => cellFrame(48, 56, put => {
+  for (let y = foot - h + 1; y <= foot; y++) for (let x = 20 + dx; x < 28 + dx; x++) put(x, y, (x + y) % 2 ? [60, 80, 50] : [30, 40, 30]);
+  if (extra) extra(put);
+});
+
+test('a clean character passes, said to be the hero\'s height', () => {
+  const r = L.artChecks([{ name: 'idle', loop: true, frames: [figure(), figure(55, 1)] }], { contentH: 44 });
+  assert.deepEqual(r.filter(c => c.bad), []);
+  assert.match(r.find(c => c.id === 'hero').msg, /как у героя/);
+});
+
+test('the checks catch hopping feet, a jump, a wrong height, a big palette and a magenta fringe', () => {
+  const feet = L.artChecks([{ name: 'walk', loop: true, frames: [figure(55), figure(52)] }], { contentH: 44 });
+  assert.ok(feet.find(c => c.id === 'feet' && c.bad));
+  assert.equal(L.artChecks([{ name: 'jump', frames: [figure(55), figure(40)] }], { contentH: 44 }).find(c => c.id === 'feet'), undefined, 'a jump may leave the ground');
+  const jump = L.artChecks([{ name: 'idle', loop: true, frames: [figure(55, 0), figure(55, 14)] }], { contentH: 44 });
+  assert.match(jump.find(c => c.id === 'jump').msg, /кадрами 1 и 2/);
+  assert.ok(L.artChecks([{ name: 'idle', frames: [figure(55, 0, 30)] }], { contentH: 44 }).find(c => c.id === 'height' && c.bad));
+  const big = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, put => { for (let k = 0; k < 60; k++) put(30 + (k % 10), 20 + (k / 10 | 0), [k * 4, 100, 200 - k]); })] }], { contentH: 44, palette: 16 });
+  assert.ok(big.find(c => c.id === 'palette' && c.bad));
+  const halo = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, put => put(28, 30, [250, 10, 240]))] }], { contentH: 44 });
+  assert.ok(halo.find(c => c.id === 'halo' && c.bad));
+  const soft = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 44, put => put(28, 31, [60, 80, 50, 120]))] }], { contentH: 44 });
+  assert.ok(soft.find(c => c.id === 'soft' && c.bad));
+  const brute = L.artChecks([{ name: 'idle', frames: [figure(55, 0, 52)] }], { contentH: 52 });
+  assert.deepEqual(brute.filter(c => c.bad), [], 'bigger than the hero on purpose is information, not an error');
+  assert.match(brute.find(c => c.id === 'hero').msg, /выше героя/);
+});
