@@ -84,6 +84,7 @@ async function step(name, fn) {
       assert.equal(got.base, 'cultist');
       assert.equal(got.idle, 'data:image/png;base64,');
       await page.click('#sandbox [data-sb="close"]');
+      assert.equal(await page.getAttribute('#sbFrame', 'src'), 'about:blank', 'closing the panel unloads the game: no music behind the studio');
     });
 
     await step('undo and redo', async () => {
