@@ -32,6 +32,41 @@ backgrounds and cutscenes are plain new files. A changed generated sound is
 written as a new numbered take beside it (`Audio._clip` prefers takes), the way
 `generate_sfx.py` says to replace a placeholder.
 
+**Old content too: edits of what a generator draws are overrides.** The
+bestiary's strips, the props from `make_*.py`, the hero's special moves, the
+practice yard and the rooms' paintings are generator-owned, and an edit of one
+is never written over it. It goes beside the generator instead, the way rooms
+take `tools/rooms/studio_rooms.json`:
+- her picture whole, at `tools/studio/overrides/<path>`;
+- a mask of what she changed, at `<path>.mask.png`;
+- a line in `overrides.json`.
+
+Every generator that writes pictures passes them through
+`tools/art/studio_overrides.py` `patched()` just before saving, which lays her
+pixels over its own. Regenerating keeps her work and `check_generators.py`
+stays green with no exceptions.
+
+The mask holds only what she changed. For a character from the game,
+`frameEdits` in `lib.js` compares each frame slot with the game's (build_data
+gives every frame its `region` in the game's files): a replaced or moved frame
+is its whole cell, a ✎ touch-up is its pixels, and an untouched frame stays
+out. That matters because the studio's processing does not give a game sprite
+back pixel for pixel. For a picture replaced whole (🖌 «Перерисовать картину»
+on a room's painting in the backgrounds tab), the mask is where it differs from
+the game's.
+
+The robot (`studio-robot.yml`) runs `studio_overrides.py regenerate` on her
+pull request: the owning generators lay the edit and record the picture she
+drew on, and `settle` covers pictures in a generator's folder that nobody
+generates (the hero's strips in `assets/sprites`). The local server does the
+same and keeps only the overridden pictures of what the generators rewrite.
+
+If a generator later draws something else under an edit of the same size, the
+edit still applies, the entry is marked `stale`, and the studio says «База
+изменилась — проверь». If the size changed, the generator fails, naming the
+override. A frame cannot be added to a generated strip (make a new character),
+and the hero's `.tres` stays the generator's.
+
 **It keeps the repository's formatting.** `strings.csv`, dialogue files and
 cutscenes are rewritten byte-identically when unchanged (tests check this
 against the real files); a dialogue file holding several dialogues is edited
@@ -182,15 +217,21 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
    розовые точки: стопы, кисти, таз, голова. «🚶 Шаг» делает ходьбу, ноги
    стоят на земле; «Запечь» — кадры 44 px в выбранную анимацию. Красное в
    «Проверках» — поправь до запекания.
-10. **🎮 Песочница** — игра рядом с кадрами: твой персонаж на тренировочном
+10. **Старые персонажи и комнаты.** «Из игры» → враг, герой или комната →
+    правь кадры (✎, замена кадра) или картину комнаты (🖌 «Перерисовать
+    картину», тот же размер) → «→ В игру». Правка ляжет поверх того, что
+    рисует генератор; робот пересоберёт картинки в той же отправке. «База
+    изменилась — проверь» — генератор перерисовал картинку под правкой:
+    посмотри и отправь ещё раз.
+11. **🎮 Песочница** — игра рядом с кадрами: твой персонаж на тренировочном
    дворе, дерётся как выбранный враг и обновляется сам через пару секунд после
    правки. Кликни по игре, чтобы управлять. Ничего не отправляет.
-11. **⚔ Сделать врагом** — персонаж становится врагом игры: выбираешь, на кого
+12. **⚔ Сделать врагом** — персонаж становится врагом игры: выбираешь, на кого
    он похож по бою, имя, описание и подсказку «как драться».
-12. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
+13. Кадры: ＋ вставить, ⧉ дублировать, ⇋ отразить, → скопировать в другую
     анимацию. Звуки: обрезка — тяни ручки на волне; Cmd/Ctrl+Z работает везде.
-13. В мастере врага: **Где появляется** — выбери комнату и кликни по полу на
+14. В мастере врага: **Где появляется** — выбери комнату и кликни по полу на
     карте (зелёное — пол, красное — кто уже стоит). **Голос** — свои крики
     файлом или с микрофона. Катсцена: **🏠 В комнату** — при входе или после
     зачистки. Сцены комнат пересоберёт робот, ничего делать не нужно.
-14. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.
+15. ⚡ без своего ключа: войди через GitHub — рисует робот ключом владельца.

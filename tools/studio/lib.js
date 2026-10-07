@@ -625,5 +625,57 @@ function artChecks(anims, o = {}) {
   return out;
 }
 
-Object.assign(g, { HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+// ---- editing what a generator draws: overrides (tools/art/studio_overrides.py) ----
+//
+// A generated picture is never written by the studio. Her edit goes beside the
+// generator — her picture whole, a mask of what she changed, a line in
+// tools/studio/overrides/overrides.json — and the generator lays it over its
+// own picture. The mask must hold only what she changed: the studio's own
+// processing does not give back a game sprite pixel for pixel (soft alpha
+// becomes hard), so an untouched frame stays out of it.
+const OVERRIDE_DIR = 'tools/studio/overrides/';
+const overrideFiles = path => ({ edit: OVERRIDE_DIR + path, mask: OVERRIDE_DIR + path.replace(/\.png$/i, '') + '.mask.png' });
+// What she changed in a character from the game, slot by slot against what the game has
+// (the studio's import of it): a frame replaced or moved is its whole region, a touch-up its pixels.
+// anims / orig: [{id, frames: [{id, src, dx, dy, sc, patch, off}], regions: [[res, x, y, w, h]]}]
+// → [{res, x, y, w, h, frame, whole, pixels: [[x, y]]}] (pixels in the frame's own cell); throws on what an
+// override cannot hold (a frame added past the strip, an animation the game does not have).
+function frameEdits(anims, orig) {
+  const out = [];
+  for (const a of anims) {
+    const o = orig.find(x => x.id === a.id);
+    if (!o) throw new Error(`Анимации «${a.name}» нет у этого персонажа в игре — новую анимацию добавляют новым персонажем.`);
+    if (a.frames.length > (o.regions || []).length) throw new Error(`В «${a.name}» кадров больше, чем в игре (${o.regions.length}): ленту, которую собирает генератор, можно править, но не удлинять.`);
+    a.frames.forEach((f, i) => {
+      if (f.off) return;
+      const of = o.frames[i], [res, x, y, w, h] = o.regions[i];
+      const whole = !of || f.id !== of.id || f.src !== of.src || (+f.dx || 0) !== (+of.dx || 0) || (+f.dy || 0) !== (+of.dy || 0) || (+f.sc || 1) !== (+of.sc || 1);
+      const pixels = whole ? [] : Object.keys(f.patch || {}).map(k => k.split(',').map(Number)).filter(([px, py]) => px >= 0 && py >= 0 && px < w && py < h);
+      if (whole || pixels.length) out.push({ res, x, y, w, h, frame: f.id, whole, pixels });
+    });
+  }
+  return out;
+}
+// A mask (1 = hers) of where two RGBA pictures differ by more than tol in any channel, OR'd into `into`.
+function diffMask(a, b, w, h, tol = 8, into = new Uint8Array(w * h)) {
+  for (let p = 0; p < w * h; p++) {
+    const i = p * 4;
+    if (Math.abs(a[i] - b[i]) > tol || Math.abs(a[i + 1] - b[i + 1]) > tol || Math.abs(a[i + 2] - b[i + 2]) > tol || Math.abs(a[i + 3] - b[i + 3]) > tol) into[p] = 1;
+  }
+  return into;
+}
+// The manifest with these entries set, in the shape the Python side writes (sorted, two spaces).
+// An edit made again keeps the base it was first drawn on; a stale one she has now looked at and
+// drawn again is no longer stale, and its base is left for the generator to record anew.
+function mergeOverrides(text, entries) {
+  const all = text ? JSON.parse(text) : {};
+  for (const [path, e] of Object.entries(entries)) {
+    const was = all[path] || {};
+    all[path] = { size: e.size, base: was.stale ? null : (was.base ?? null), by: e.by, at: e.at };
+  }
+  const sorted = Object.fromEntries(Object.keys(all).sort().map(k => [k, all[k]]));
+  return JSON.stringify(sorted, null, 2) + '\n';
+}
+
+Object.assign(g, { OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

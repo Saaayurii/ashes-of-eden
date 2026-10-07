@@ -22,6 +22,7 @@ import os
 
 import numpy as np
 from PIL import Image, ImageFilter
+from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SPRITES = os.path.join(ROOT, "assets", "sprites")
@@ -39,7 +40,7 @@ def save(name, sequence):
     for i, frame in enumerate(sequence):
         out.alpha_composite(frame, (i * CELL[0], 0))
     path = os.path.join(SPRITES, name + ".png")
-    out.save(path, optimize=True)
+    patched(path, out).save(path, optimize=True)
     print(os.path.relpath(path, ROOT), "%d frames" % len(sequence))
 
 

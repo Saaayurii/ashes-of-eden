@@ -125,6 +125,12 @@ async function doBuild() {
   processed = next;
   if (grew) renderFrames();
   procRef = refS ? compose(refS, { dx: 0, dy: 0 }, S) : null;
+  // the generator drew something else under her edit since she made it (tools/art/studio_overrides.py)
+  if (P.origin?.kind === 'game') {
+    const mine = new Set(P.animations.flatMap(a => (a.regions || []).map(r => String(r[0]).replace('res://', ''))));
+    const stale = Object.entries(META.overrides || {}).filter(([p, e]) => e.stale && mine.has(p)).map(([p]) => p.split('/').pop());
+    if (stale.length) warn.unshift(`База изменилась — проверь: ${stale.join(', ')}. Генератор перерисовал картинку под твоей правкой; посмотри кадры и отправь ещё раз.`);
+  }
   warnings = warn;
   const keyOf = new Map(); for (const it of out) keyOf.set(it.f.id, cutCache.get(it.f.id + '|' + fingerprint(it.f.src) + '|' + S.tolerance + '|' + S.bgMode)?.key || null);
   artReport = artChecks(P.animations.map(a => ({ name: a.name, loop: a.loop,
@@ -288,7 +294,7 @@ async function applyStrip(a, src, n = a.frames.length) {
 
 /* ---------- export ---------- */
 async function exportGodot() {
-  const r = await charFiles().catch(e => { toast(e.message, 'err'); return null; }); if (!r) return;
+  const r = await charFiles(true).catch(e => { toast(e.message, 'err'); return null; }); if (!r) return;
   const zip = new JSZip(), dir = zip.folder(r.name);
   for (const [path, b] of Object.entries(r.files)) dir.file(path.split('/').pop(), b);
   for (const [an, sh] of Object.entries(r.sheets)) for (const [i, f] of sh.frames.entries()) dir.file(`frames/${an}/${an}_${String(i).padStart(2, '0')}.png`, await canvasBlob(processed.get(f.id)));
