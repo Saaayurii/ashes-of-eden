@@ -126,9 +126,7 @@
       "projectile_style": "ophanim",
       "color": "#fff3c4",
       "weight": 2,
-      "from_hp": 0.66,
-      "projectile_scale": 1.2,
-      "speed_jitter": 0.1
+      "from_hp": 0.66
     },
     {
       "type": "beam",

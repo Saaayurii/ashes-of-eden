@@ -415,6 +415,12 @@ def shared(kind, game_ids=()):
     return out
 
 
+## Files a generator writes only a part of, reading the rest as its input: the studio may
+## edit the rest. build_bestiary_assets.py writes_cells() sets "sprite.cell" and "pad_y" in
+## the archetype tree and keeps every other key as it found it — the attacks are input.
+GENERATOR_INPUTS = {"data/enemy_archetypes/tree.json"}
+
+
 def generated(root: Path):
     """Every tracked file a generator owns, straight from tools/check_generators.py,
     so the studio refuses exactly what CI would fail on."""
@@ -429,7 +435,7 @@ def generated(root: Path):
     # files the studio itself created in a generator's folder stay editable from the studio
     registry = STUDIO / "projects" / "files.json"
     owned = set(json.loads(registry.read_text(encoding="utf-8"))) if registry.exists() else set()
-    return sorted(set(files) - owned), owners
+    return sorted(set(files) - owned - GENERATOR_INPUTS), owners
 
 
 def overridable(files, owners):
@@ -608,17 +614,21 @@ def projectiles(root: Path, strings):
     hero = {"cell": [128, 64], "fps": 10, "scale": 1.0, "hero": True,
             "anims": {a: f"assets/sprites/elian_{a}.png" for a in ("idle", "attack") if (root / f"assets/sprites/elian_{a}.png").exists()}}
     dummy = body(resolved.get("training_dummy", {}).get("sprite", {}))
-    users = []
-    for f in sorted((root / "data/enemies").glob("*.json")):
-        e = json.loads(f.read_text(encoding="utf-8"))
-        places = [(["attacks", i], a) for i, a in enumerate(e.get("attacks", []))]
-        if "attack" in e:
-            places.append((["attack"], e["attack"]))
-        for path, a in places:
+    users, roster = [], []
+    tree_entries = json.loads(tree.read_text(encoding="utf-8")) if tree.exists() else []
+    for eid in sorted(raw):
+        e, at = raw[eid], attack_source(eid, raw, tree_entries)
+        if at is None:
+            continue
+        b = body(resolved.get(eid, {}).get("sprite", {}))
+        roster.append({"id": eid, "name": name(e.get("name", "")), "body": b, "boss": bool(resolved[eid].get("boss")),
+                       "behaviour": resolved[eid].get("behaviour", "walker"), "source": at,
+                       "attacks": [{"type": a.get("type"), "animation": a.get("animation")} for a in at["items"]]})
+        for i, a in enumerate(at["items"]):
             if a.get("type") == "ranged":
-                users.append({"kind": "enemy", "id": e.get("id", f.stem), "name": name(e.get("name", "")),
-                              "file": f"data/enemies/{f.name}", "path": path, "attack": a, "boss": bool(e.get("boss")),
-                              "body": body(resolved.get(e.get("id", f.stem), {}).get("sprite", {}))})
+                users.append({"kind": "enemy", "id": eid, "name": name(e.get("name", "")), "index": i,
+                              "file": at["file"], "path": at["path"] + [at["key"], i] if not at["inherited"] and not at["single"] else None,
+                              "attack": a, "boss": bool(resolved[eid].get("boss")), "body": b})
     for f in sorted((root / "data/abilities").glob("*.json")):
         for gi, g in enumerate(json.loads(f.read_text(encoding="utf-8"))):
             for ei, eff in enumerate(g.get("effects", [])):
@@ -626,7 +636,30 @@ def projectiles(root: Path, strings):
                     users.append({"kind": "gift", "id": g.get("id", ""), "name": name(g.get("name", "")),
                                   "file": f"data/abilities/{f.name}", "path": [gi, "effects", ei, "skill"], "attack": eff["skill"],
                                   "body": hero})
-    return {"styles": doc["styles"], "sheets": sheets, "users": users, "hero": hero, "dummy": dummy}
+    return {"styles": doc["styles"], "sheets": sheets, "users": users, "roster": roster, "hero": hero, "dummy": dummy}
+
+
+def attack_source(eid, raw, tree_entries):
+    """Where the attacks an enemy fights with are written (data_loader.gd: extends, then the
+    archetype overlay, whose "attacks" replace the file's and drop its single "attack").
+    {file, path, key, items, single, inherited}: path is the object holding `key` in `file`;
+    an inherited list (extends, nothing of its own) is written into the enemy's own file."""
+    for i, over in enumerate(tree_entries):
+        if over.get("id") == eid and "attacks" in over:
+            return {"file": "data/enemy_archetypes/tree.json", "path": [i], "key": "attacks", "items": over["attacks"],
+                    "single": False, "inherited": False}
+    e, own = raw[eid], f"data/enemies/{eid}.json"
+    if "attacks" in e:
+        return {"file": own, "path": [], "key": "attacks", "items": e["attacks"], "single": False, "inherited": False}
+    if "attack" in e:
+        return {"file": own, "path": [], "key": "attack", "items": [e["attack"]], "single": True, "inherited": False}
+    base = raw.get(e.get("extends"))
+    if base is not None:
+        items = base.get("attacks") or ([base["attack"]] if "attack" in base else [])
+        if items:
+            return {"file": own, "path": [], "key": "attacks", "items": items, "single": False, "inherited": True,
+                    "from": f"data/enemies/{e['extends']}.json", "from_key": "attacks" if "attacks" in base else "attack"}
+    return None
 
 
 def write(out: Path, rel: str, data):

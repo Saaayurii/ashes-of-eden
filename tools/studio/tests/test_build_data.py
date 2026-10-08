@@ -82,6 +82,18 @@ process.stdout.write(JSON.stringify(out));
             for text in texts:
                 self.assertEqual(json.dumps(json.loads(text), indent=2, ensure_ascii=False) + "\n", text, f)
 
+    def test_the_bestiary_generator_keeps_the_attacks_the_studio_writes(self):
+        # tree.json is generator-owned, but write_cells only sets sprite.cell / pad_y: the rest is its input
+        import importlib.util, ast
+        src = (ROOT / "tools/art/build_bestiary_assets.py").read_text(encoding="utf-8")
+        fn = next(n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef) and n.name == "write_cells")
+        body = ast.get_source_segment(src, fn)
+        touched = set(__import__("re").findall(r'entry\["sprite"\](?:\["(\w+)"\]|\.pop\("(\w+)")', body))
+        self.assertEqual({a or b for a, b in touched}, {"cell", "pad_y"}, "the generator now writes more of tree.json: the studio must not edit it")
+        files, _ = build_data.generated(ROOT)
+        self.assertNotIn("data/enemy_archetypes/tree.json", files)
+        self.assertEqual(serve.safe_path("data/enemy_archetypes/tree.json"), (ROOT / "data/enemy_archetypes/tree.json").resolve())
+
     def test_platform_pieces_know_where_they_lie(self):
         tiles = build_data.tiles(ROOT)
         pieces = {p["name"]: p for p in tiles["pieces"]}

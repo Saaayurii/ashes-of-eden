@@ -25,9 +25,9 @@ func _run() -> void:
 	enemy.stats = {"tags": ["human", "heaven"]}
 	assert(enemy._projectile_style() == "sacred")
 	for entry in [
-		["zealot", "lance"], ["preacher_acolyte", "halo"],
+		["zealot", "zealot"], ["preacher_acolyte", "halo"],
 		["blind_preacher", "preacher"], ["cult_caller", "hex"],
-		["knight_of_ash", "ember"], ["ophanim", "ophanim"], ["wraith", "wraith"],
+		["knight_of_ash", "ash"], ["ophanim", "ophanim"], ["wraith", "wraith"],
 	]:
 		var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(
 			"res://data/enemies/%s.json" % entry[0]))

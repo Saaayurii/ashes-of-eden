@@ -6,7 +6,9 @@
  * touched (lib.js patchJson), so the rest of each enemy's file stays byte for byte. */
 'use strict';
 
-const SHOTS = { data: null, styles: null, user: 0, style: null, edits: new Map(), sheets: new Map(), newSheets: new Map(),
+// edits: attack key -> her changes; adds: ranged attacks she gave a creature (users with added: true);
+// removed: keys of the ranged attacks she took away. Keys outlive a reload (shotKey).
+const SHOTS = { data: null, styles: null, user: 0, style: null, edits: new Map(), adds: [], removed: new Set(), sheets: new Map(), newSheets: new Map(),
   bolts: [], parts: [], clock: 0, next: 0, raf: 0, last: 0 };
 const SHOT_LOOK = { frames: 1, fps: 10, scale: 0.62, light: 20, trail: 8, shader: 0, pulse: 0.07, breathe: [0, 0], squash: [1, 0, 0], bob: [0.7, 20], wiggle: [0, 0], spin: 0 };
 const SHOT_ECHO = { offset: 9, sway: [3, 15], scale: 0.45, spin: 0, color: '#ffffff', alpha: -1 };
@@ -23,18 +25,28 @@ async function shotsLoad() {
   try {
     const saved = JSON.parse(localStorage.getItem('ss_shots') || '{}');
     if (saved.styles) SHOTS.styles = saved.styles;
-    for (const [k, v] of Object.entries(saved.edits || {})) SHOTS.edits.set(+k, v);
+    for (const [k, v] of Object.entries(saved.edits || {})) SHOTS.edits.set(k, v);
     for (const [k, v] of Object.entries(saved.sheets || {})) SHOTS.newSheets.set(k, v);
+    SHOTS.adds = saved.adds || []; SHOTS.removed = new Set(saved.removed || []);
   } catch {}
+  for (const add of SHOTS.adds) shotUserFor(add);
 }
+// an attack she added, as one more row: the creature it belongs to drawn and named as the others
+function shotUserFor(add) {
+  const r = SHOTS.data.roster.find(x => x.id === add.id); if (!r) return null;
+  const u = { kind: 'enemy', id: r.id, name: r.name, boss: r.boss, body: r.body, attack: add.attack, added: true, uid: add.uid };
+  SHOTS.data.users.push(u); return u;
+}
+const shotKey = u => u.added ? 'new:' + u.uid : `${u.kind}:${u.id}:${u.kind === 'gift' ? u.path.join('.') : u.index}`;
+const editOf = i => SHOTS.edits.get(shotKey(SHOTS.data.users[i]));
 function shotsSave() {
-  try { localStorage.setItem('ss_shots', JSON.stringify({ styles: SHOTS.styles, edits: Object.fromEntries(SHOTS.edits), sheets: Object.fromEntries(SHOTS.newSheets) })); }
+  try { localStorage.setItem('ss_shots', JSON.stringify({ styles: SHOTS.styles, edits: Object.fromEntries(SHOTS.edits), sheets: Object.fromEntries(SHOTS.newSheets), adds: SHOTS.adds, removed: [...SHOTS.removed] })); }
   catch (e) { toast('Не поместилось в память браузера: ' + e.message, 'err'); }
 }
 const shotUser = () => SHOTS.data.users[SHOTS.user];
 // an attack as the game reads it, with her edits on top, in the enemy's own key names
 function shotAttack(i = SHOTS.user) {
-  const u = SHOTS.data.users[i], raw = { ...u.attack, ...(SHOTS.edits.get(i) || {}) }, a = { ...raw };
+  const u = SHOTS.data.users[i], raw = { ...u.attack, ...(editOf(i) || {}) }, a = { ...raw };
   if (u.kind === 'gift') for (const [k, g] of Object.entries(GIFT_KEY)) if (g in raw) a[k] = raw[g];
   return a;
 }
@@ -52,7 +64,8 @@ function shotSheet(res) {
   }
   return SHOTS.sheets.get(res);
 }
-const shotsDirty = () => SHOTS.edits.size || SHOTS.newSheets.size || JSON.stringify(SHOTS.styles) !== JSON.stringify(SHOTS.data.styles);
+const shotsChanges = () => SHOTS.edits.size + SHOTS.adds.length + SHOTS.removed.size + SHOTS.newSheets.size + (JSON.stringify(SHOTS.styles) !== JSON.stringify(SHOTS.data.styles) ? 1 : 0);
+const shotsDirty = () => shotsChanges() > 0;
 
 /* ---------- the stage: who shoots, who is shot at ---------- */
 // The ground, the shooter's origin (its collision centre, 11 px above the ground as in the game),
@@ -230,23 +243,25 @@ function shotFrame(now) {
 function renderShots() {
   if (!SHOTS.data) return;
   const users = SHOTS.data.users, list = $('#shotList');
-  list.innerHTML = '<div class="muted">Враги</div>' + users.map((u, i) => u.kind === 'enemy' ? shotRow(u, i) : '').join('') +
+  list.innerHTML = '<div class="row" style="margin:0"><span class="muted grow">Враги</span><button class="sm" data-act="shot-give" title="Любому персонажу — новую дальнюю атаку или ещё одну">＋ Дать дальнюю атаку</button></div>' + users.map((u, i) => u.kind === 'enemy' ? shotRow(u, i) : '').join('') +
     '<div class="muted" style="margin-top:6px">Дары героя</div>' + users.map((u, i) => u.kind === 'gift' ? shotRow(u, i) : '').join('') +
     `<div class="muted" style="margin-top:6px">Стили (${Object.keys(SHOTS.styles).length}) — без атаки: «blade» — волна третьего удара героя</div>` +
     Object.keys(SHOTS.styles).map(k => `<div class="irow${SHOTS.style === k ? ' on' : ''}" data-act="shot-style" data-k="${esc(k)}"><span class="grow">${esc(k)}</span><span class="muted">${users.filter((u, i) => shotAttack(i).projectile_style === k).length || ''}</span></div>`).join('');
-  const send = $('#shotSend'); send.disabled = !shotsDirty(); send.textContent = shotsDirty() ? `→ В игру (${SHOTS.edits.size + (JSON.stringify(SHOTS.styles) !== JSON.stringify(SHOTS.data.styles) ? 1 : 0)})` : '→ В игру';
+  const send = $('#shotSend'); send.disabled = !shotsDirty(); send.textContent = shotsDirty() ? `→ В игру (${shotsChanges()})` : '→ В игру';
   renderShotProps();
 }
-const shotRow = (u, i) => `<div class="irow${i === SHOTS.user ? ' on' : ''}" data-act="shot-user" data-i="${i}"><span class="grow">${esc(u.name.ru || u.id)}${u.boss ? ' ⚜' : ''}</span>${SHOTS.edits.has(i) ? '<span class="badge">изменено</span>' : ''}<span class="muted">${esc(shotAttack(i).projectile_style || 'sacred')}</span></div>`;
+const shotRow = (u, i) => { const gone = SHOTS.removed.has(shotKey(u)), n = SHOTS.data.users.filter(q => q.kind === u.kind && q.id === u.id).indexOf(u) + 1, many = SHOTS.data.users.filter(q => q.kind === u.kind && q.id === u.id).length > 1;
+  return `<div class="irow${i === SHOTS.user ? ' on' : ''}" data-act="shot-user" data-i="${i}" style="${gone ? 'opacity:.45;text-decoration:line-through' : ''}"><span class="grow">${esc(u.name.ru || u.id)}${many ? ` · ${n}` : ''}${u.boss ? ' ⚜' : ''}</span>${u.added ? '<span class="badge new">новая</span>' : gone ? '<span class="badge">убрана</span>' : editOf(i) ? '<span class="badge">изменено</span>' : ''}<span class="muted">${esc(shotAttack(i).projectile_style || 'sacred')}</span></div>`; };
 function shotNum(k, v, min, max, step, label, hint = '') {
   return `<label class="lifenum" title="${esc(hint)}">${label} <span class="muted">${(+v).toFixed(step < 1 ? 2 : 0)}</span><input type="range" data-shot="${k}" min="${min}" max="${max}" step="${step}" value="${v}"></label>`;
 }
 function renderShotProps() {
   const u = shotUser(), a = shotAttack(), box = $('#shotProps'), styleKey = SHOTS.style || a.projectile_style || 'sacred', look = shotLook(styleKey);
   const gift = u.kind === 'gift';
-  box.innerHTML = `<div class="card"><div class="row" style="margin:0"><b class="grow">${esc(u.name.ru || u.id)}</b>${SHOTS.edits.has(SHOTS.user) ? '<button class="sm" data-act="shot-revert">↺ Как в игре</button>' : ''}</div>
+  box.innerHTML = `<div class="card"><div class="row" style="margin:0"><b class="grow">${esc(u.name.ru || u.id)}</b>${editOf(SHOTS.user) && !u.added ? '<button class="sm" data-act="shot-revert">↺ Как в игре</button>' : ''}</div>
+    ${u.kind === 'enemy' ? `<div class="row" style="margin:4px 0;flex-wrap:wrap"><button class="sm" data-act="shot-dup" title="Ещё одна дальняя атака этому же персонажу — копия этой, дальше меняй как хочешь">⧉ Ещё одна такая</button>${u.added ? '<button class="sm danger" data-act="shot-drop" title="Эта атака ещё не в игре — просто убрать её">✕ Убрать</button>' : SHOTS.removed.has(shotKey(u)) ? '<button class="sm" data-act="shot-keep">↺ Вернуть атаку</button>' : '<button class="sm danger" data-act="shot-remove" title="Персонаж больше не будет так стрелять">🗑 Убрать атаку</button>'}</div>` : ''}
     <div class="muted">${gift ? 'дар героя · ' : 'атака врага · '}${esc(u.file)}</div>
-    <label>Как выглядит<select data-shot="a.projectile_style">${Object.keys(SHOTS.styles).map(k => `<option${k === (a.projectile_style || 'sacred') ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select></label>
+    <label>Как выглядит<select data-shot="a.projectile_style">${Object.keys(SHOTS.styles).filter(k => gift || (SHOTS.styles[k].frames || 1) > 1).map(k => `<option${k === (a.projectile_style || 'sacred') ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select></label>
     <label>Полёт<select data-shot="a.projectile_motion">${Object.entries(SHOT_MOTIONS).map(([k, v]) => `<option value="${k}"${k === (a.projectile_motion || 'straight') ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
     ${(a.projectile_motion || 'straight') !== 'straight' ? shotNum('a.motion_amount', a.motion_amount ?? 1, 0.05, { wave: 30, arc: 120, return: 3.9, surge: 2, accelerate: 2, home: 4 }[a.projectile_motion] || 4, 0.05, { wave: 'Размах волны, px', arc: 'Сила падения', return: 'Через сколько секунд разворот', surge: 'Сколько висит, с', accelerate: 'Разгон', home: 'Поворот, рад/с' }[a.projectile_motion] || 'Сила') : ''}
     ${shotNum('a.projectile_speed', a.projectile_speed ?? (gift ? 300 : 170), 60, 480, 5, 'Скорость, px/с')}
@@ -278,10 +293,11 @@ function renderShotProps() {
 function shotSet(field, v) {
   if (field.startsWith('a.')) {
     const u = shotUser(), k = field.slice(2), key = u.kind === 'gift' ? (GIFT_KEY[k] || k) : k;
-    const edit = { ...(SHOTS.edits.get(SHOTS.user) || {}) }; edit[key] = v;
+    if (u.added) { u.attack[key] = v; SHOTS.adds.find(a => a.uid === u.uid).attack = u.attack; if (k === 'projectile_style') SHOTS.style = v; return shotsSave(); }
+    const edit = { ...(editOf(SHOTS.user) || {}) }; edit[key] = v;
     // a value back at the game's own is no edit
     for (const [ek, ev] of Object.entries(edit)) if (JSON.stringify(u.attack[ek]) === JSON.stringify(ev)) delete edit[ek];
-    if (Object.keys(edit).length) SHOTS.edits.set(SHOTS.user, edit); else SHOTS.edits.delete(SHOTS.user);
+    if (Object.keys(edit).length) SHOTS.edits.set(shotKey(u), edit); else SHOTS.edits.delete(shotKey(u));
     if (k === 'projectile_style') SHOTS.style = v;
   } else {
     const key = SHOTS.style || shotAttack().projectile_style || 'sacred', st = SHOTS.styles[key], path = field.slice(2).split('.');
@@ -304,26 +320,75 @@ async function shotTakeSheet(key, file) {
   shotsSave(); renderShots();
 }
 async function shotsFiles() {
-  const files = {}, touched = new Set();
+  const files = {}, touched = new Set(), texts = {};
   const doc = JSON.parse(await repoText('data/projectiles.json'));
   doc.styles = SHOTS.styles;
   files['data/projectiles.json'] = JSON.stringify(doc, null, 2) + '\n';
   for (const [res, url] of SHOTS.newSheets) if (Object.values(SHOTS.styles).some(s => s.sheet === res)) files[res.replace('res://', '')] = dataURLtoBlob(url);
-  const texts = {};
-  for (const [i, edit] of SHOTS.edits) {
-    const u = SHOTS.data.users[i];
-    texts[u.file] = patchJson(texts[u.file] ?? await repoText(u.file), u.path, edit);
-    touched.add(u.name.ru || u.id);
+  const text = async f => texts[f] ??= await repoText(f);
+  const users = SHOTS.data.users, label = u => u.name.ru || u.id;
+  // creatures whose list of attacks changes shape: one gained or lost an attack, or fights with a list it inherits
+  const reshaped = new Set([...SHOTS.adds.map(a => a.id), ...users.filter(u => SHOTS.removed.has(shotKey(u))).map(u => u.id)]);
+  for (const u of users) if (u.kind === 'enemy' && !u.added && editOf(users.indexOf(u)) && !u.path) reshaped.add(u.id);
+  // the rest: each edited attack changed where it stands, in place
+  for (const [i, u] of users.entries()) {
+    const edit = editOf(i); if (!edit || u.added || (u.kind === 'enemy' && reshaped.has(u.id))) continue;
+    texts[u.file] = patchJson(await text(u.file), u.path, edit); touched.add(label(u));
+  }
+  for (const id of reshaped) {
+    const r = SHOTS.data.roster.find(x => x.id === id), src = r.source;
+    // the attacks as they are written now — inherited ones from the base's file, each kept as its own text
+    const from = src.inherited ? src.from : src.file, items = jsonItems(await text(from), src.inherited ? [src.from_key] : [...src.path, src.key]);
+    const plan = [];
+    for (const [k, item] of items.entries()) {
+      const u = users.find(q => q.kind === 'enemy' && q.id === id && !q.added && q.index === k);
+      if (u && SHOTS.removed.has(shotKey(u))) continue;
+      const edit = u && editOf(users.indexOf(u));
+      plan.push(edit ? { raw: patchJson(item.raw, [], edit), level: item.level } : item);
+    }
+    for (const add of SHOTS.adds.filter(a => a.id === id)) plan.push(add.attack);
+    if (!plan.length) throw new Error(`У «${r.name.ru || id}» не осталось ни одной атаки.`);
+    texts[src.file] = setJsonList(await text(src.file), src.path, 'attacks', plan, src.single ? ['attack'] : []);
+    touched.add(r.name.ru || id);
   }
   Object.assign(files, texts);
+  const added = SHOTS.adds.map(a => SHOTS.data.roster.find(x => x.id === a.id)?.name.ru || a.id), removed = users.filter(u => SHOTS.removed.has(shotKey(u))).map(label);
   return { files, title: `Studio: ranged attacks — ${[...touched].join(', ') || 'styles'}`,
-    body: `Projectile looks (data/projectiles.json) and ranged attacks edited in the studio's «Снаряды»: ${[...touched].join(', ') || 'styles only'}.`,
-    notes: ['Подсказка «как драться» у врага должна остаться правдой: если залп стал другим, напиши об этом владельцу в отправке.'] };
+    body: `Projectile looks (data/projectiles.json) and ranged attacks edited in the studio's «Снаряды»: ${[...touched].join(', ') || 'styles only'}.` +
+      (added.length ? `\n\nNew ranged attacks: ${added.join(', ')}.` : '') + (removed.length ? `\n\nRanged attacks taken away: ${removed.join(', ')}.` : ''),
+    notes: ['Подсказка «как драться» у врага должна остаться правдой: если он стал стрелять иначе (или перестал), напиши об этом владельцу в отправке.'] };
+}
+
+/* ---------- giving a creature a ranged attack ---------- */
+// a fresh attack, or a copy of any ranged attack in the game — then tuned on its own
+function shotDefault(id) {
+  const r = SHOTS.data.roster.find(x => x.id === id), anims = Object.keys(r?.body?.anims || {});
+  const animated = Object.keys(SHOTS.styles).filter(k => (SHOTS.styles[k].frames || 1) > 1);
+  return { type: 'ranged', range: 260, windup: 0.8, damage: 8, cooldown: 2.4, recover: 0.35, projectile_speed: 170,
+    projectile_style: animated.includes('zealot') ? 'zealot' : animated[0], color: '#ffd27a',
+    animation: ['special', 'attack_alt', 'attack'].find(a => anims.includes(a)) || 'attack', weight: 1 };
+}
+function shotGive(id, base) {
+  const attack = base ? { ...structuredClone(base), type: 'ranged', weight: base.weight ?? 1 } : shotDefault(id);
+  for (const k of ['name']) delete attack[k];
+  const add = { uid: uid(), id, attack };
+  const u = shotUserFor(add); if (!u) return toast('Нет такого персонажа: ' + id, 'err');
+  SHOTS.adds.push(add); SHOTS.user = SHOTS.data.users.indexOf(u); SHOTS.style = null; SHOTS.bolts = []; SHOTS.next = 0;
+  shotsSave(); renderShots();
+  toast(`У «${u.name.ru || id}» новая дальняя атака — настрой её справа.`);
+}
+function shotGiveDialog() {
+  const ranged = SHOTS.data.users.filter(u => u.kind === 'enemy' && !u.added);
+  const thumb = r => r.body ? `<span class="shotthumb" style="background-image:url('${esc(A(r.body.anims.idle))}');background-size:auto ${Math.round(r.body.cell[1] * 0.5)}px;width:${Math.round(Math.min(r.body.cell[0], 120) * 0.5)}px;height:${Math.round(r.body.cell[1] * 0.5)}px"></span>` : '<span class="shotthumb"></span>';
+  dialog(`<h3>Дать дальнюю атаку</h3>
+    <p class="muted">Любому персонажу — даже тому, кто раньше только бил вблизи. Можно и вторую, третью: каждая настраивается отдельно.</p>
+    <label>На основе<select id="shotGiveBase"><option value="">новая, с нуля</option>${ranged.map((u, i) => `<option value="${SHOTS.data.users.indexOf(u)}">как у: ${esc(u.name.ru || u.id)} — ${esc(shotAttack(SHOTS.data.users.indexOf(u)).projectile_style)}, ${esc(SHOT_MOTIONS[shotAttack(SHOTS.data.users.indexOf(u)).projectile_motion || 'straight'])}</option>`).join('')}</select></label>
+    <div class="shotgive">${SHOTS.data.roster.map(r => `<button data-act="shot-give-to" data-id="${esc(r.id)}" title="${esc(r.attacks.map(a => a.type).join(', '))}">${thumb(r)}<span>${esc(r.name.ru || r.id)}${r.boss ? ' ⚜' : ''}</span><span class="muted">${r.attacks.filter(a => a.type === 'ranged').length ? 'уже стреляет' : 'только вблизи'}</span></button>`).join('')}</div>`, [['Отмена']]);
 }
 async function shotsSend() {
   await sendToGame(shotsFiles, null);
   // written: the local server rebuilt import/, so read the game's own values again
-  if (sendToGame.last?.local) { SHOTS.data = null; SHOTS.edits.clear(); SHOTS.newSheets.clear(); SHOTS.sheets.clear(); try { localStorage.removeItem('ss_shots'); } catch {} await shotsEnter(); }
+  if (sendToGame.last?.local) { SHOTS.data = null; SHOTS.edits.clear(); SHOTS.adds = []; SHOTS.removed.clear(); SHOTS.newSheets.clear(); SHOTS.sheets.clear(); SHOTS.user = 0; try { localStorage.removeItem('ss_shots'); } catch {} await shotsEnter(); }
 }
 
 async function shotsEnter() {
@@ -351,7 +416,21 @@ function shotsInit() {
     const act = b.dataset.act;
     if (act === 'shot-user') { SHOTS.user = +b.dataset.i; SHOTS.style = null; SHOTS.bolts = []; SHOTS.next = 0; return renderShots(); }
     if (act === 'shot-style') { SHOTS.style = b.dataset.k; return renderShots(); }
-    if (act === 'shot-revert') { SHOTS.edits.delete(SHOTS.user); shotsSave(); return renderShots(); }
+    if (act === 'shot-revert') { SHOTS.edits.delete(shotKey(shotUser())); shotsSave(); return renderShots(); }
+    if (act === 'shot-give') return shotGiveDialog();
+    if (act === 'shot-give-to') { const base = $('#shotGiveBase')?.value; $('#dlg').close(); return shotGive(b.dataset.id, base ? shotAttack(+base) : null); }
+    if (act === 'shot-dup') return shotGive(shotUser().id, shotAttack());
+    if (act === 'shot-remove' || act === 'shot-keep') {
+      const u = shotUser(), r = SHOTS.data.roster.find(x => x.id === u.id), k = shotKey(u);
+      if (act === 'shot-keep') SHOTS.removed.delete(k);
+      else {
+        const left = r.attacks.length - SHOTS.data.users.filter(q => q.id === u.id && !q.added && (SHOTS.removed.has(shotKey(q)) || q === u)).length + SHOTS.adds.filter(a => a.id === u.id).length;
+        if (left < 1) return toast('У персонажа должна остаться хоть одна атака — сначала дай ему другую.', 'err');
+        SHOTS.removed.add(k);
+      }
+      shotsSave(); return renderShots();
+    }
+    if (act === 'shot-drop') { const u = shotUser(); SHOTS.adds = SHOTS.adds.filter(a => a.uid !== u.uid); SHOTS.data.users.splice(SHOTS.user, 1); SHOTS.user = 0; shotsSave(); return renderShots(); }
     if (act === 'shot-fire') { SHOTS.next = SHOTS.clock; return; }
     if (act === 'shot-clone') {
       const from = SHOTS.style || shotAttack().projectile_style || 'sacred', name = slug(prompt('Имя нового стиля (латиницей):', from + '_2') || '');

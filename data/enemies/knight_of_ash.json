@@ -58,18 +58,15 @@
       "type": "ranged",
       "range": 470,
       "windup": 0.8,
-      "damage": 7,
+      "damage": 14,
       "cooldown": 3.0,
       "projectile_speed": 230,
       "projectile_motion": "arc",
       "motion_amount": 46,
-      "projectile_style": "ember",
+      "projectile_style": "ash",
       "color": "#ff5a4a",
       "weight": 2,
-      "from_hp": 0.6,
-      "projectiles": 3,
-      "spread": 16,
-      "speed_jitter": 0.1
+      "from_hp": 0.6
     }
   ],
   "summons": {
