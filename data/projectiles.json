@@ -1,0 +1,397 @@
+{
+  "_comment": "How every bolt looks in flight (scripts/fx/projectile.gd). sheet: a strip of `frames` frames played at `fps`. scale; light: glow radius; trail: trail particles; shader: the flight shader motion_kind (0 blade, 1 holy, 2 dark, 3 ember, 4 wheel). Animation, all optional: pulse (size breathes, 17/s), breathe [amount, speed], squash [base, amount, speed] (height only), bob [px, speed], wiggle [radians, speed], spin (radians/s). echo: the fainter copy behind it — offset px back, sway [px, speed], scale, spin, color, alpha. burst: what is left where it dies — fx sparkle | ash | debris | spark with color, count (spread, size). Edited in the art studio, tab «Снаряды».",
+  "styles": {
+    "blade": {
+      "sheet": "res://assets/sprites/projectiles/blade_wave_v2.png",
+      "frames": 1,
+      "scale": 0.76,
+      "shader": 0,
+      "burst": [
+        {
+          "fx": "spark",
+          "color": "#ffe6ad",
+          "count": 9
+        }
+      ]
+    },
+    "sacred": {
+      "sheet": "res://assets/sprites/projectiles/sacred_bolt_v2.png",
+      "frames": 1,
+      "shader": 1
+    },
+    "umbral": {
+      "sheet": "res://assets/sprites/projectiles/umbral_bolt_v2.png",
+      "frames": 1,
+      "shader": 2,
+      "burst": [
+        {
+          "fx": "debris",
+          "color": "#9452cc",
+          "count": 8
+        },
+        {
+          "fx": "ash",
+          "color": "#bf5ee0",
+          "count": 7
+        }
+      ]
+    },
+    "wraith": {
+      "sheet": "res://assets/sprites/projectiles/wraith_flight_v3.png",
+      "frames": 4,
+      "fps": 12,
+      "shader": 2,
+      "squash": [
+        1,
+        0.16,
+        13
+      ],
+      "echo": {
+        "offset": 8,
+        "sway": [
+          4,
+          25
+        ],
+        "color": "#47ffb8",
+        "alpha": 0.3
+      },
+      "burst": [
+        {
+          "fx": "ash",
+          "color": "#6ef2b3",
+          "count": 10,
+          "spread": 62,
+          "size": 5
+        }
+      ]
+    },
+    "zealot": {
+      "sheet": "res://assets/sprites/projectiles/zealot_flight_v3.png",
+      "frames": 4,
+      "fps": 11,
+      "shader": 1,
+      "bob": [
+        2,
+        19
+      ],
+      "echo": {
+        "offset": 7,
+        "sway": [
+          -4,
+          19
+        ],
+        "color": "#ffdb75",
+        "alpha": 0.36
+      }
+    },
+    "acolyte": {
+      "sheet": "res://assets/sprites/projectiles/acolyte_flight_v3.png",
+      "frames": 4,
+      "fps": 13,
+      "shader": 1,
+      "squash": [
+        0.78,
+        0,
+        0
+      ],
+      "echo": {
+        "offset": 11,
+        "sway": [
+          2,
+          28
+        ],
+        "color": "#ffe6a6",
+        "alpha": 0.27
+      }
+    },
+    "preacher": {
+      "sheet": "res://assets/sprites/projectiles/preacher_flight_v3.png",
+      "frames": 4,
+      "fps": 9,
+      "shader": 1,
+      "breathe": [
+        0.16,
+        11
+      ],
+      "echo": {
+        "scale": 0.56,
+        "color": "#fff0bf",
+        "alpha": 0.27
+      }
+    },
+    "cult": {
+      "sheet": "res://assets/sprites/projectiles/cult_flight_v3.png",
+      "frames": 4,
+      "fps": 11,
+      "shader": 2,
+      "trail": 6,
+      "wiggle": [
+        0.12,
+        16
+      ],
+      "echo": {
+        "offset": 7,
+        "sway": [
+          4.5,
+          22
+        ],
+        "color": "#b861ff",
+        "alpha": 0.34
+      },
+      "burst": [
+        {
+          "fx": "debris",
+          "color": "#9452cc",
+          "count": 8
+        },
+        {
+          "fx": "ash",
+          "color": "#bf5ee0",
+          "count": 7
+        }
+      ]
+    },
+    "ash": {
+      "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",
+      "frames": 4,
+      "fps": 12,
+      "shader": 3,
+      "trail": 6,
+      "bob": [
+        0.8,
+        37
+      ],
+      "echo": {
+        "offset": 12,
+        "sway": [
+          2,
+          20
+        ],
+        "color": "#ff3d14",
+        "alpha": 0.32
+      },
+      "burst": [
+        {
+          "fx": "debris",
+          "color": "#e6471f",
+          "count": 9
+        },
+        {
+          "fx": "ash",
+          "color": "#ff6629",
+          "count": 8
+        }
+      ]
+    },
+    "ophanim": {
+      "sheet": "res://assets/sprites/projectiles/ophanim_flight_v3.png",
+      "frames": 4,
+      "fps": 10,
+      "shader": 4,
+      "scale": 0.48,
+      "light": 29,
+      "bob": [
+        0,
+        0
+      ],
+      "spin": 9,
+      "echo": {
+        "offset": 0,
+        "sway": [
+          0,
+          0
+        ],
+        "spin": -6,
+        "scale": 0.7,
+        "color": "#87c7ff",
+        "alpha": 0.38
+      },
+      "burst": [
+        {
+          "fx": "sparkle",
+          "color": "#b8deff",
+          "count": 14,
+          "size": 7
+        }
+      ]
+    },
+    "hex": {
+      "sheet": "res://assets/sprites/projectiles/cult_flight_v3.png",
+      "frames": 4,
+      "fps": 14,
+      "shader": 2,
+      "scale": 0.84,
+      "trail": 7,
+      "spin": 4.5,
+      "pulse": 0.12,
+      "echo": {
+        "offset": 0,
+        "sway": [
+          0,
+          0
+        ],
+        "spin": -3,
+        "scale": 0.95,
+        "color": "#d07bff",
+        "alpha": 0.3
+      },
+      "burst": [
+        {
+          "fx": "debris",
+          "color": "#9452cc",
+          "count": 10
+        },
+        {
+          "fx": "sparkle",
+          "color": "#d9a6ff",
+          "count": 8,
+          "size": 5
+        }
+      ]
+    },
+    "ember": {
+      "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",
+      "frames": 4,
+      "fps": 18,
+      "shader": 3,
+      "scale": 0.46,
+      "trail": 11,
+      "light": 16,
+      "bob": [
+        1.6,
+        31
+      ],
+      "wiggle": [
+        0.25,
+        23
+      ],
+      "echo": {
+        "offset": 15,
+        "sway": [
+          3,
+          24
+        ],
+        "color": "#ff7a1a",
+        "alpha": 0.4,
+        "scale": 0.6
+      },
+      "burst": [
+        {
+          "fx": "ash",
+          "color": "#ff8a2a",
+          "count": 12,
+          "spread": 30,
+          "size": 3
+        }
+      ]
+    },
+    "lance": {
+      "sheet": "res://assets/sprites/projectiles/zealot_flight_v3.png",
+      "frames": 4,
+      "fps": 15,
+      "shader": 1,
+      "scale": 0.9,
+      "squash": [
+        0.55,
+        0.06,
+        21
+      ],
+      "pulse": 0.02,
+      "bob": [
+        0,
+        0
+      ],
+      "echo": {
+        "offset": 20,
+        "sway": [
+          1,
+          12
+        ],
+        "color": "#fff0b0",
+        "alpha": 0.24,
+        "scale": 0.7
+      },
+      "burst": [
+        {
+          "fx": "spark",
+          "color": "#ffe9a8",
+          "count": 8
+        },
+        {
+          "fx": "sparkle",
+          "color": "#fff4cf",
+          "count": 6,
+          "size": 5
+        }
+      ]
+    },
+    "halo": {
+      "sheet": "res://assets/sprites/projectiles/ophanim_flight_v3.png",
+      "frames": 4,
+      "fps": 16,
+      "shader": 4,
+      "scale": 0.32,
+      "light": 18,
+      "bob": [
+        0,
+        0
+      ],
+      "spin": -14,
+      "echo": {
+        "offset": 0,
+        "sway": [
+          0,
+          0
+        ],
+        "spin": 10,
+        "scale": 1.1,
+        "color": "#ffe9a8",
+        "alpha": 0.3
+      },
+      "burst": [
+        {
+          "fx": "sparkle",
+          "color": "#ffe9a8",
+          "count": 9,
+          "size": 5
+        }
+      ]
+    },
+    "will": {
+      "sheet": "res://assets/sprites/projectiles/blade_wave_v2.png",
+      "frames": 1,
+      "shader": 0,
+      "scale": 0.6,
+      "spin": 13,
+      "pulse": 0.03,
+      "bob": [
+        0,
+        0
+      ],
+      "trail": 9,
+      "echo": {
+        "offset": 0,
+        "sway": [
+          0,
+          0
+        ],
+        "spin": -9,
+        "scale": 0.85,
+        "color": "#c8c0b8",
+        "alpha": 0.35
+      },
+      "burst": [
+        {
+          "fx": "spark",
+          "color": "#ddd6cc",
+          "count": 10
+        },
+        {
+          "fx": "ash",
+          "color": "#a9a7b0",
+          "count": 8
+        }
+      ]
+    }
+  }
+}

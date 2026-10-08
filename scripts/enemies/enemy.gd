@@ -1017,19 +1017,11 @@ func _strike(to_target: Vector2) -> void:
 		"ranged":
 			_set_state(State.STRIKE, 0.25)
 			_play(animation)
-			var direction := (to_target + Vector2(0, -14)).normalized()
-			var origin := global_position + Vector2(facing * 12.0, -14.0)
-			var count := maxi(1, int(_attack.get("projectiles", 1)))
-			var spread := deg_to_rad(float(_attack.get("spread", 0.0)))
-			for i in count:
-				var offset := 0.0 if count == 1 else lerpf(-spread * 0.5, spread * 0.5, float(i) / float(count - 1))
-				var shot := direction.rotated(offset)
-				_spawn_projectile(origin, shot, false)
-				if Net.active:
-					_net_projectile.rpc(origin, shot, float(_attack.get("projectile_speed", 170)),
-						str(_attack.get("color", "#ffd27a")), _projectile_style(),
-						str(_attack.get("projectile_motion", "straight")),
-						float(_attack.get("motion_amount", 0.0)))
+			_fire_round(_attack, to_target)
+			# a volley: the same round again volley_gap later, aimed anew
+			for round_index in range(1, maxi(1, int(_attack.get("volley", 1)))):
+				get_tree().create_timer(float(_attack.get("volley_gap", 0.25)) * round_index, false) \
+					.timeout.connect(_fire_round.bind(_attack, Vector2.ZERO))
 		"lunge":
 			_set_state(State.STRIKE, float(_attack.get("lunge_time", 0.45)))
 			_lunge_dir = (to_target + Vector2(0, -10)).normalized()
@@ -1121,16 +1113,58 @@ func _net_nova(radius: float, color: String) -> void:
 	_nova_fx(radius, color)
 
 
-func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool) -> void:
+## One round of a ranged attack: projectiles fanned over spread, each at its
+## own speed when the attack has a speed_jitter. aim is the vector to the target,
+## or zero to look for it again (a volley's later rounds).
+func _fire_round(attack: Dictionary, aim: Vector2) -> void:
+	if is_dead() or not is_inside_tree():
+		return
+	if aim == Vector2.ZERO:
+		var target := _nearest_player()
+		if target == null:
+			return
+		aim = target.global_position - global_position
+	var direction := (aim + Vector2(0, -14)).normalized()
+	var origin := global_position + Vector2(facing * 12.0, -14.0)
+	var count := maxi(1, int(attack.get("projectiles", 1)))
+	var spread := deg_to_rad(float(attack.get("spread", 0.0)))
+	var jitter := float(attack.get("speed_jitter", 0.0))
+	for i in count:
+		var offset := 0.0 if count == 1 else lerpf(-spread * 0.5, spread * 0.5, float(i) / float(count - 1))
+		var shot := direction.rotated(offset)
+		var speed := float(attack.get("projectile_speed", 170)) * (1.0 + randf_range(-jitter, jitter))
+		_spawn_projectile(origin, shot, false, attack, speed)
+		if Net.active:
+			_net_projectile.rpc(origin, shot, speed, str(attack.get("color", "#ffd27a")), _projectile_style(attack),
+				str(attack.get("projectile_motion", "straight")), float(attack.get("motion_amount", 0.0)),
+				float(attack.get("projectile_scale", 1.0)))
+
+
+func _nearest_player() -> Node2D:
+	var best: Node2D = null
+	var near := INF
+	for node in get_tree().get_nodes_in_group("player"):
+		var body := node as Node2D
+		if body != null and not body.call("is_dead") and body.global_position.distance_to(global_position) < near:
+			near = body.global_position.distance_to(global_position)
+			best = body
+	return best
+
+
+func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool, attack: Dictionary = {},
+		speed := -1.0) -> void:
+	if attack.is_empty():
+		attack = _attack
 	Audio.play(&"projectile", -9.0)
 	var projectile := PROJECTILE_SCENE.instantiate()
-	projectile.damage = float(_attack.get("damage", 10)) if not cosmetic else 0.0
-	projectile.speed = float(_attack.get("projectile_speed", 170))
+	projectile.damage = float(attack.get("damage", 10)) if not cosmetic else 0.0
+	projectile.speed = speed if speed > 0.0 else float(attack.get("projectile_speed", 170))
 	projectile.direction = direction
-	projectile.tint = Color(_attack.get("color", "#ffd27a"))
-	projectile.visual_style = _projectile_style()
-	projectile.motion = str(_attack.get("projectile_motion", "straight"))
-	projectile.motion_amount = float(_attack.get("motion_amount", 0.0))
+	projectile.tint = Color(attack.get("color", "#ffd27a"))
+	projectile.visual_style = _projectile_style(attack)
+	projectile.size = float(attack.get("projectile_scale", 1.0))
+	projectile.motion = str(attack.get("projectile_motion", "straight"))
+	projectile.motion_amount = float(attack.get("motion_amount", 0.0))
 	projectile.cosmetic = cosmetic
 	projectile.shooter_id = enemy_id
 	get_parent().add_child(projectile)
@@ -1148,13 +1182,14 @@ func _cast_flare(origin: Vector2, tint: Color) -> void:
 ## Only the host's bolt bites.
 @rpc("authority", "call_remote", "reliable")
 func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: String,
-		style: String, motion: String, motion_amount: float) -> void:
+		style: String, motion: String, motion_amount: float, size: float) -> void:
 	var projectile := PROJECTILE_SCENE.instantiate()
 	projectile.damage = 0.0
 	projectile.speed = speed
 	projectile.direction = direction
 	projectile.tint = Color(color)
 	projectile.visual_style = style
+	projectile.size = size
 	projectile.motion = motion
 	projectile.motion_amount = motion_amount
 	projectile.cosmetic = true
@@ -1163,9 +1198,11 @@ func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: S
 	_cast_flare(origin, projectile.tint)
 
 
-func _projectile_style() -> String:
-	var explicit_style := str(_attack.get("projectile_style", ""))
-	if explicit_style in ["sacred", "umbral", "wraith", "zealot", "acolyte", "preacher", "cult", "ash", "ophanim"]:
+func _projectile_style(attack: Dictionary = {}) -> String:
+	if attack.is_empty():
+		attack = _attack
+	var explicit_style := str(attack.get("projectile_style", ""))
+	if explicit_style != "" and Projectile.has_style(explicit_style):
 		return explicit_style
 	if enemy_id == "wraith":
 		return "wraith"

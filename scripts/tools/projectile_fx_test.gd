@@ -25,9 +25,9 @@ func _run() -> void:
 	enemy.stats = {"tags": ["human", "heaven"]}
 	assert(enemy._projectile_style() == "sacred")
 	for entry in [
-		["zealot", "zealot"], ["preacher_acolyte", "acolyte"],
-		["blind_preacher", "preacher"], ["cult_caller", "cult"],
-		["knight_of_ash", "ash"], ["ophanim", "ophanim"], ["wraith", "wraith"],
+		["zealot", "lance"], ["preacher_acolyte", "halo"],
+		["blind_preacher", "preacher"], ["cult_caller", "hex"],
+		["knight_of_ash", "ember"], ["ophanim", "ophanim"], ["wraith", "wraith"],
 	]:
 		var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(
 			"res://data/enemies/%s.json" % entry[0]))
@@ -42,27 +42,37 @@ func _run() -> void:
 		enemy._attack = {"projectile_style": entry[1]}
 		assert(enemy._projectile_style() == entry[1])
 	enemy.free()
+	var styles: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/projectiles.json")).styles
 	for style in ["blade", "sacred", "umbral", "wraith", "zealot", "acolyte", "preacher", "cult", "ash", "ophanim"]:
+		assert(styles.has(style), "%s left data/projectiles.json" % style)
+	for style in styles:
 		var projectile = load("res://scenes/fx/projectile.tscn").instantiate()
 		projectile.visual_style = style
 		projectile._set_art()
-		assert(projectile.get_node("Art").texture != null)
-		if projectile.FLIGHT_FPS.has(style):
-			assert(projectile.get_node("Art").hframes == 4)
-			assert(projectile.get_node("Art").texture.get_width() == 384)
-			var sheet: Image = projectile.get_node("Art").texture.get_image()
-			var first: PackedByteArray = sheet.get_region(Rect2i(0, 0, 96, 128)).get_data()
-			for frame_id in range(1, 4):
-				assert(first != sheet.get_region(Rect2i(frame_id * 96, 0, 96, 128)).get_data(),
+		var art: Sprite2D = projectile.get_node("Art")
+		assert(art.texture != null, "%s has no sheet" % style)
+		var frames := int(styles[style].get("frames", 1))
+		assert(art.hframes == frames)
+		if frames > 1:
+			var w: int = art.texture.get_width() / frames
+			var h: int = art.texture.get_height()
+			var sheet: Image = art.texture.get_image()
+			var first: PackedByteArray = sheet.get_region(Rect2i(0, 0, w, h)).get_data()
+			for frame_id in range(1, frames):
+				assert(first != sheet.get_region(Rect2i(frame_id * w, 0, w, h)).get_data(),
 					"%s has repeated sprite frames" % style)
-			projectile._flight_clock = 1.0 / float(projectile.FLIGHT_FPS[style])
+			projectile._flight_clock = 1.0 / float(styles[style].get("fps", 10.0))
 			projectile._animate_art()
-			assert(projectile.get_node("Art").frame == 1)
+			assert(art.frame == 1)
 			assert(projectile.get_node("Echo").frame == 0)
-		else:
-			assert(projectile.get_node("Art").hframes == 1)
-			assert(projectile.get_node("Art").texture.get_width() == 96)
 		projectile.free()
+	# an attack's own size sits on top of the style's
+	var big = load("res://scenes/fx/projectile.tscn").instantiate()
+	big.visual_style = "cult"
+	big.size = 2.0
+	big._set_art()
+	assert(absf(big.get_node("Art").scale.x - 2.0 * float(styles.cult.get("scale", 0.62))) < 0.001)
+	big.free()
 	var live = load("res://scenes/fx/projectile.tscn").instantiate()
 	live.visual_style = "wraith"
 	live.speed = 0.0

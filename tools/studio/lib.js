@@ -493,6 +493,85 @@ function matchColours(base, img, keep) {
   }
   return { data: out, w: img.w, h: img.h, stats };
 }
+// data/enemies and data/abilities are Python's json.dumps(indent=2): "6.0" stays a float there,
+// which JSON.parse would forget. So an edit changes only the values it touches, in place,
+// and a new key goes in written the way Python would write it (jsonSpans, patchJson).
+function jsonSpans(text) {
+  let i = 0;
+  const ws = () => { while (i < text.length && ' \t\r\n'.includes(text[i])) i++; };
+  const value = () => {
+    ws(); const start = i, c = text[i];
+    if (c === '{') {
+      i++; const members = []; ws();
+      if (text[i] === '}') { i++; return { type: 'object', start, end: i, members }; }
+      for (;;) {
+        ws(); const keyStart = i, key = JSON.parse(text.slice(i, (str(), i))); ws(); i++;   // the ':'
+        const v = value(); members.push({ key, keyStart, value: v }); ws();
+        if (text[i] === ',') { i++; continue; }
+        i++; return { type: 'object', start, end: i, members };
+      }
+    }
+    if (c === '[') {
+      i++; const items = []; ws();
+      if (text[i] === ']') { i++; return { type: 'array', start, end: i, items }; }
+      for (;;) { items.push(value()); ws(); if (text[i] === ',') { i++; continue; } i++; return { type: 'array', start, end: i, items }; }
+    }
+    if (c === '"') { str(); return { type: 'string', start, end: i }; }
+    while (i < text.length && !',]} \t\r\n'.includes(text[i])) i++;
+    return { type: 'literal', start, end: i, raw: text.slice(start, i) };
+  };
+  const str = () => { i++; while (text[i] !== '"') i += text[i] === '\\' ? 2 : 1; i++; };
+  return value();
+}
+// a value written the way Python's json.dumps(indent=2, ensure_ascii=False) writes it, at depth `level`
+function pyJson(v, level = 0, float = false) {
+  const pad = n => '  '.repeat(n);
+  if (Array.isArray(v)) return v.length ? '[\n' + v.map(x => pad(level + 1) + pyJson(x, level + 1)).join(',\n') + '\n' + pad(level) + ']' : '[]';
+  if (v && typeof v === 'object') { const e = Object.entries(v).filter(([, x]) => x !== undefined); return e.length ? '{\n' + e.map(([k, x]) => pad(level + 1) + JSON.stringify(k) + ': ' + pyJson(x, level + 1)).join(',\n') + '\n' + pad(level) + '}' : '{}'; }
+  if (typeof v === 'number' && float && Number.isInteger(v)) return v.toFixed(1);
+  return JSON.stringify(v);
+}
+function jsonAt(node, path) {
+  for (const k of path) node = node.type === 'object' ? node.members.find(m => m.key === k)?.value : node.items?.[k];
+  return node;
+}
+// set (or, with undefined, remove) keys of the object at `path`; everything else stays as it was
+function patchJson(text, path, changes) {
+  // removals one at a time, each on the text the last one left: neighbours share their commas
+  for (const [k, v] of Object.entries(changes)) if (v === undefined) text = patchJsonOnce(text, path, { [k]: undefined });
+  const set = Object.fromEntries(Object.entries(changes).filter(([, v]) => v !== undefined));
+  return Object.keys(set).length ? patchJsonOnce(text, path, set) : text;
+}
+function patchJsonOnce(text, path, changes) {
+  const edits = [], obj = jsonAt(jsonSpans(text), path);
+  if (!obj || obj.type !== 'object') throw new Error('no object at ' + JSON.stringify(path));
+  const lineStart = at => text.lastIndexOf('\n', at - 1) + 1;
+  const level = m => Math.round((m.keyStart - lineStart(m.keyStart)) / 2);
+  const adds = [];
+  for (const [key, v] of Object.entries(changes)) {
+    const k = obj.members.findIndex(m => m.key === key), m = obj.members[k];
+    if (v === undefined) {
+      if (!m) continue;
+      // the member's line, and the comma before it if it was the last one
+      const from = k === obj.members.length - 1 && k > 0 ? obj.members[k - 1].value.end : lineStart(m.keyStart) - 1;
+      const to = k === obj.members.length - 1 ? m.value.end : obj.members[k + 1].keyStart - (obj.members[k + 1].keyStart - lineStart(obj.members[k + 1].keyStart)) - 1;
+      edits.push([from, to, '']);
+    } else if (m) {
+      const was = m.value.type === 'literal' && /[.eE]/.test(m.value.raw);
+      const out = pyJson(v, level(m), was);
+      if (text.slice(m.value.start, m.value.end) !== out && JSON.stringify(JSON.parse(text.slice(m.value.start, m.value.end))) !== JSON.stringify(v)) edits.push([m.value.start, m.value.end, out]);
+    } else adds.push([key, v]);
+  }
+  if (adds.length) {
+    const last = obj.members.at(-1), lvl = last ? level(last) : jsonAt.depth ?? 1, pad = '  '.repeat(lvl);
+    const body = adds.map(([k, v]) => pad + JSON.stringify(k) + ': ' + pyJson(v, lvl)).join(',\n');
+    if (last) edits.push([last.value.end, last.value.end, ',\n' + body]);
+    else edits.push([obj.start + 1, obj.end - 1, '\n' + body + '\n' + '  '.repeat(Math.max(0, lvl - 1))]);
+  }
+  edits.sort((a, b) => b[0] - a[0]);
+  for (const [a, b, t] of edits) text = text.slice(0, a) + t + text.slice(b);
+  return text;
+}
 // One picture's rule in data/backdrops.json, rewritten in the file's own style
 // (a zone a line, floats keep their ".0", the other rules untouched); a key it
 // does not have yet goes at the top of "rooms". rule = {family, flame?, flame_floor?, zones}.
@@ -825,5 +904,5 @@ function mergeOverrides(text, entries) {
   return JSON.stringify(sorted, null, 2) + '\n';
 }
 
-Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, alignEdit, warpEdit, matchColours, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

@@ -203,6 +203,27 @@ test('an image model\'s drifted edit is put back onto its base by the parts mean
   assert.ok(e / n < 5, `the side should match its base, off by ${(e / n).toFixed(1)}`);
 });
 
+test('an enemy or a gift is edited in place, written the way Python writes the rest', () => {
+  const files = [...fs.readdirSync(path.join(ROOT, 'data/enemies')).map(f => 'data/enemies/' + f), ...fs.readdirSync(path.join(ROOT, 'data/abilities')).map(f => 'data/abilities/' + f)].filter(f => f.endsWith('.json'));
+  for (const f of files) {
+    const t = fs.readFileSync(path.join(ROOT, f), 'utf8'), d = JSON.parse(t);
+    const places = Array.isArray(d) ? [] : [...(d.attacks || []).map((a, i) => [['attacks', i], a]), ...(d.attack ? [[['attack'], d.attack]] : [])];
+    for (const [where, a] of places) {
+      assert.equal(L.patchJson(t, where, { ...a }), t, f + ': nothing changed, nothing written');
+      const u = L.patchJson(t, where, { damage: 33, volley: 2, volley_gap: 0.3, windup: undefined });
+      const want = structuredClone(d), at = where.reduce((o, k) => o[k], want);
+      Object.assign(at, { damage: 33, volley: 2, volley_gap: 0.3 }); delete at.windup;
+      assert.deepEqual(JSON.parse(u), want, f);
+      assert.equal(L.patchJson(u, where, { damage: a.damage, volley: undefined, volley_gap: undefined, windup: a.windup }).length > 0, true);
+    }
+  }
+  // a float stays a float, the last two keys can go together, an integer float keeps its ".0"
+  const t = '{\n  "a": {\n    "x": 6.0,\n    "y": 1,\n    "z": 2\n  }\n}\n';
+  assert.equal(L.patchJson(t, ['a'], { x: 7 }), t.replace('6.0', '7.0'));
+  assert.equal(L.patchJson(t, ['a'], { y: undefined, z: undefined }), '{\n  "a": {\n    "x": 6.0\n  }\n}\n');
+  assert.equal(L.patchJson(t, ['a'], { w: [1, 2] }), t.replace('"z": 2\n', '"z": 2,\n    "w": [\n      1,\n      2\n    ]\n'));
+});
+
 test('a living-backdrop rule rewrites only itself, in the file\'s own style', () => {
   const t = fs.readFileSync(path.join(ROOT, 'data/backdrops.json'), 'utf8');
   const rooms = JSON.parse(t).rooms;

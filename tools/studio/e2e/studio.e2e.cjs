@@ -389,6 +389,25 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('a ranged attack flies in the preview, and a slider changes one line of its enemy', async () => {
+      const flown = await page.evaluate(async () => {
+        const d = document.querySelector('#dlg'); if (d.open) d.close(); d.replaceChildren(); localStorage.removeItem('ss_shots');
+        setMode('shots'); await new Promise(r => setTimeout(r, 800));
+        SHOTS.user = SHOTS.data.users.findIndex(u => u.id === 'cult_caller'); renderShots(); SHOTS.next = SHOTS.clock;
+        await new Promise(r => setTimeout(r, 700));
+        const n = SHOTS.bolts.length;
+        const slider = document.querySelector('[data-shot="a.volley"]'); slider.value = 3;
+        slider.dispatchEvent(new Event('input', { bubbles: true })); slider.dispatchEvent(new Event('change', { bubbles: true }));
+        document.querySelector('#shotSend').click();
+        return n;
+      });
+      assert.ok(flown > 0, 'the preview should fly the cultist\'s hexes');
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
+      const diff = git('diff', '-U0', '--', 'data/enemies/cult_caller.json', 'data/projectiles.json').split('\n').filter(l => /^[-+] /.test(l));
+      assert.deepEqual(diff, ['-      "volley": 2,', '+      "volley": 3,'], diff.join(' | '));
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {
