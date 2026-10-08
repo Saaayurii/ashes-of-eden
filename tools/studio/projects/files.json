@@ -1,0 +1,30 @@
+{
+  "assets/sprites/ash_archer_attack.png": {
+    "by": "local",
+    "at": "2026-10-07"
+  },
+  "assets/sprites/ash_archer_attack_alt.png": {
+    "by": "local",
+    "at": "2026-10-07"
+  },
+  "assets/sprites/ash_archer_death.png": {
+    "by": "local",
+    "at": "2026-10-07"
+  },
+  "assets/sprites/ash_archer_hurt.png": {
+    "by": "local",
+    "at": "2026-10-07"
+  },
+  "assets/sprites/ash_archer_idle.png": {
+    "by": "local",
+    "at": "2026-10-07"
+  },
+  "assets/sprites/ash_archer_special.png": {
+    "by": "local",
+    "at": "2026-10-07"
+  },
+  "assets/sprites/ash_archer_walk.png": {
+    "by": "local",
+    "at": "2026-10-07"
+  }
+}
