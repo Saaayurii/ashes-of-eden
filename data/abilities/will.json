@@ -260,7 +260,11 @@
           "cooldown": 6,
           "damage": 26,
           "speed": 320,
-          "color": "#d8d0c8"
+          "color": "#d8d0c8",
+          "style": "will",
+          "motion": "accelerate",
+          "motion_amount": 0.6,
+          "projectile_scale": 1.1
         }
       }
     ]

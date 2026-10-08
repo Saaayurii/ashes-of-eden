@@ -182,6 +182,65 @@ test('an edited dialogue in a multi-dialogue file touches only itself', () => {
   assert.equal(y[1].nodes[d.start].speaker, 'SPEAKER_ELIAN');
 });
 
+test('an image model\'s drifted edit is put back onto its base by the parts meant to stay', () => {
+  const w = 320, h = 200, base = { w, h, data: new Uint8ClampedArray(w * h * 4) }, edit = { w, h, data: new Uint8ClampedArray(w * h * 4) };
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, v = 128 + 60 * Math.sin(x * 0.13) + 50 * Math.cos(y * 0.21 + x * 0.02) + ((x * 7 + y * 13) % 17);
+    base.data.set([v, v * 0.8, v * 0.6, 255], i);
+  }
+  // the edit: 5 px right, 3 px up, 2 % bigger, warmer, and its middle repainted
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const sx = Math.round((x - 5 - w / 2) / 1.02 + w / 2), sy = Math.round((y + 3 - h / 2) / 1.02 + h / 2);
+    const j = (Math.min(h - 1, Math.max(0, sy)) * w + Math.min(w - 1, Math.max(0, sx))) * 4, i = (y * w + x) * 4;
+    edit.data.set(x > 90 && x < 230 ? [40, 90, 40, 255] : [base.data[j] * 1.1 + 12, base.data[j + 1], base.data[j + 2] * 0.9, 255], i);
+  }
+  const keep = (x, y) => x < 80 || x >= 240;
+  const a = L.alignEdit(base, edit, keep);
+  assert.deepEqual([a.sc, a.dx, a.dy], [0.98, -5, 3]);
+  const fixed = L.matchColours(base, L.warpEdit(edit, a), keep);
+  let e = 0, n = 0;
+  for (let y = 10; y < h - 10; y++) for (let x = 10; x < 70; x++) { e += Math.abs(fixed.data[(y * w + x) * 4] - base.data[(y * w + x) * 4]); n++; }
+  assert.ok(e / n < 5, `the side should match its base, off by ${(e / n).toFixed(1)}`);
+});
+
+test('an enemy or a gift is edited in place, written the way Python writes the rest', () => {
+  const files = [...fs.readdirSync(path.join(ROOT, 'data/enemies')).map(f => 'data/enemies/' + f), ...fs.readdirSync(path.join(ROOT, 'data/abilities')).map(f => 'data/abilities/' + f)].filter(f => f.endsWith('.json'));
+  for (const f of files) {
+    const t = fs.readFileSync(path.join(ROOT, f), 'utf8'), d = JSON.parse(t);
+    const places = Array.isArray(d) ? [] : [...(d.attacks || []).map((a, i) => [['attacks', i], a]), ...(d.attack ? [[['attack'], d.attack]] : [])];
+    for (const [where, a] of places) {
+      assert.equal(L.patchJson(t, where, { ...a }), t, f + ': nothing changed, nothing written');
+      const u = L.patchJson(t, where, { damage: 33, volley: 2, volley_gap: 0.3, windup: undefined });
+      const want = structuredClone(d), at = where.reduce((o, k) => o[k], want);
+      Object.assign(at, { damage: 33, volley: 2, volley_gap: 0.3 }); delete at.windup;
+      assert.deepEqual(JSON.parse(u), want, f);
+      assert.equal(L.patchJson(u, where, { damage: a.damage, volley: undefined, volley_gap: undefined, windup: a.windup }).length > 0, true);
+    }
+  }
+  // a float stays a float, the last two keys can go together, an integer float keeps its ".0"
+  const t = '{\n  "a": {\n    "x": 6.0,\n    "y": 1,\n    "z": 2\n  }\n}\n';
+  assert.equal(L.patchJson(t, ['a'], { x: 7 }), t.replace('6.0', '7.0'));
+  assert.equal(L.patchJson(t, ['a'], { y: undefined, z: undefined }), '{\n  "a": {\n    "x": 6.0\n  }\n}\n');
+  assert.equal(L.patchJson(t, ['a'], { w: [1, 2] }), t.replace('"z": 2\n', '"z": 2,\n    "w": [\n      1,\n      2\n    ]\n'));
+});
+
+test('a living-backdrop rule rewrites only itself, in the file\'s own style', () => {
+  const t = fs.readFileSync(path.join(ROOT, 'data/backdrops.json'), 'utf8');
+  const rooms = JSON.parse(t).rooms;
+  for (const [key, rule] of Object.entries(rooms)) assert.equal(L.setBackdropRule(t, key, rule), t, key);
+  const zones = [{ kind: 'sway', rect: [10, 20, 30, 40], strength: 2, anchor: 'stands' }];
+  const u = L.setBackdropRule(t, 'church', { family: 'church', zones });   // "church" is a family too
+  assert.deepEqual(JSON.parse(u).rooms.church.zones, zones);
+  assert.deepEqual(JSON.parse(u).families, JSON.parse(t).families);
+  assert.match(u, /"strength": 2\.0, "anchor": "stands"\}/);
+  const at = t.indexOf('\n    "church": {', t.indexOf('"rooms"')), after = t.indexOf('\n    "ashes_threshold": {');
+  assert.ok(u.startsWith(t.slice(0, at)) && u.endsWith(t.slice(after)));
+  const last = Object.keys(rooms).at(-1), v = L.setBackdropRule(t, last, { family: 'hell', zones: [] });
+  assert.deepEqual(JSON.parse(v).rooms[last], { family: 'hell', zones: [] });
+  const w = L.setBackdropRule(t, 'studio_new', { family: 'dusk', flame: 0.4, zones });
+  assert.deepEqual(JSON.parse(w).rooms.studio_new, { family: 'dusk', flame: 0.4, zones });
+});
+
 test('a new cutscene picture gets a still rule; existing rules keep their layout', () => {
   const t = fs.readFileSync(path.join(ROOT, 'data/backdrops.json'), 'utf8');
   const u = L.insertBackdropRules(t, { studio_panel_1: 'dusk', elian_gallows_drop: 'dusk' });

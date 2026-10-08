@@ -55,6 +55,11 @@ static func attach(room: Node2D) -> void:
 			painting.scale = Vector2(float(room.width) / texture.get_width(), float(room.height) / texture.get_height())
 			masonry.add_child(painting)
 			has_painting = true
+			# the painting has its own side walls: the outdoor mossy column the
+			# generator stands at each edge of a room would sit on top of them
+			for piece in room.get_node("Terrain").get_children():
+				if str(piece.name).begins_with("WallL_") or str(piece.name).begins_with("WallR_"):
+					piece.visible = false
 		else:
 			push_warning("[Interior] %s painting missing; using masonry fallback" % key)
 	# Use the unbroken brick portion of the existing wall sheet, not its cap
