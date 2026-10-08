@@ -323,7 +323,7 @@ async function lifeSend() {
   await sendToGame(lifeFiles, null);
   // what was sent is now the game's own (locally) or waits in a pull request
   const sent = [...LIFE.edits.keys()];
-  if (Writer.mode === 'local') { for (const k of sent) LIFE.rules[k] = LIFE.edits.get(k); LIFE.edits.clear(); try { localStorage.removeItem('ss_life'); } catch {} }
+  if (sendToGame.last?.local) { for (const k of sent) LIFE.rules[k] = LIFE.edits.get(k); LIFE.edits.clear(); try { localStorage.removeItem('ss_life'); } catch {} }
   renderLifeList(); renderLifeSide();
 }
 

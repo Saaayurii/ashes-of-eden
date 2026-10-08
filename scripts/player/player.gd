@@ -2036,16 +2036,24 @@ func _cast_skill() -> void:
 					body_hit.take_damage(damage, self, {"knockback": 1.6})
 			heal(float(skill.get("heal", 0.0)))
 		"bolt":
-			var bolt := WAVE_SCENE.instantiate()
-			bolt.damage = damage
-			bolt.speed = float(skill.get("speed", 300.0))
-			bolt.direction = Vector2(facing, 0.0)
-			bolt.tint = Color(skill.get("color", "#ffffff"))
-			bolt.visual_style = "sacred"
-			bolt.friendly = true
-			bolt.scale = Vector2.ONE * 1.6
-			get_parent().add_child(bolt)
-			bolt.global_position = global_position + Vector2(facing * 14.0, -12.0)
+			# the gift says how it looks and flies (data/projectiles.json, the studio's «Снаряды»)
+			var count := maxi(1, int(skill.get("projectiles", 1)))
+			var spread := deg_to_rad(float(skill.get("spread", 0.0)))
+			for i in count:
+				var offset := 0.0 if count == 1 else lerpf(-spread * 0.5, spread * 0.5, float(i) / float(count - 1))
+				var bolt := WAVE_SCENE.instantiate()
+				bolt.damage = damage / float(count)
+				bolt.speed = float(skill.get("speed", 300.0))
+				bolt.direction = Vector2(facing, 0.0).rotated(offset * facing)
+				bolt.tint = Color(skill.get("color", "#ffffff"))
+				bolt.visual_style = str(skill.get("style", "sacred"))
+				bolt.size = float(skill.get("projectile_scale", 1.0))
+				bolt.motion = str(skill.get("motion", "straight"))
+				bolt.motion_amount = float(skill.get("motion_amount", 0.0))
+				bolt.friendly = true
+				bolt.scale = Vector2.ONE * 1.6
+				get_parent().add_child(bolt)
+				bolt.global_position = global_position + Vector2(facing * 14.0, -12.0)
 		"drain":
 			var target := _skill_target(float(skill.get("range", 110.0)))
 			if target != null:
