@@ -579,6 +579,35 @@ def projectiles(root: Path, strings):
         if size:
             sheets[res] = {"url": asset_url(res), "w": size[0], "h": size[1]}
     name = lambda key: {k: strings.get(key, {}).get(k, "") or key for k in ("ru", "en")}
+    # every enemy as the game builds it (data_loader.gd): extends first, then the archetype overlay
+    raw = {}
+    for f in sorted((root / "data/enemies").glob("*.json")):
+        e = json.loads(f.read_text(encoding="utf-8"))
+        raw[e.get("id", f.stem)] = e
+    resolved = {}
+    for eid, e in raw.items():
+        merged = json.loads(json.dumps(raw.get(e.get("extends"), {}))) if e.get("extends") else {}
+        for k, v in e.items():
+            merged[k] = {**merged[k], **v} if isinstance(merged.get(k), dict) and isinstance(v, dict) else v
+        resolved[eid] = merged
+    tree = root / "data/enemy_archetypes/tree.json"
+    for over in (json.loads(tree.read_text(encoding="utf-8")) if tree.exists() else []):
+        if over.get("id") in resolved and "sprite" in over:
+            resolved[over["id"]]["sprite"] = {**resolved[over["id"]].get("sprite", {}), **over["sprite"]}
+
+    def body(sprite):
+        """What the preview needs to draw a body: its strips, cell, fps, scale (Enemy._setup_sprite).
+        "like" borrows another creature's strips, its own keys laid over them."""
+        if "like" in sprite:
+            sprite = {**resolved.get(sprite["like"], {}).get("sprite", {}), **{k: v for k, v in sprite.items() if k != "like"}}
+        anims = {a: asset_url(res) for a, res in sprite.get("animations", {}).items() if _size(root, res)}
+        if not anims or "cell" not in sprite:
+            return None
+        return {"cell": sprite["cell"], "fps": sprite.get("fps", 6), "scale": sprite.get("scale", 1.0),
+                "pad_y": sprite.get("pad_y", 0), "tint": sprite.get("tint"), "anims": anims}
+    hero = {"cell": [128, 64], "fps": 10, "scale": 1.0, "hero": True,
+            "anims": {a: f"assets/sprites/elian_{a}.png" for a in ("idle", "attack") if (root / f"assets/sprites/elian_{a}.png").exists()}}
+    dummy = body(resolved.get("training_dummy", {}).get("sprite", {}))
     users = []
     for f in sorted((root / "data/enemies").glob("*.json")):
         e = json.loads(f.read_text(encoding="utf-8"))
@@ -588,15 +617,16 @@ def projectiles(root: Path, strings):
         for path, a in places:
             if a.get("type") == "ranged":
                 users.append({"kind": "enemy", "id": e.get("id", f.stem), "name": name(e.get("name", "")),
-                              "file": f"data/enemies/{f.name}", "path": path, "attack": a,
-                              "boss": bool(e.get("boss")), "sprite": e.get("sprite", {}).get("animations", {}).get("idle")})
+                              "file": f"data/enemies/{f.name}", "path": path, "attack": a, "boss": bool(e.get("boss")),
+                              "body": body(resolved.get(e.get("id", f.stem), {}).get("sprite", {}))})
     for f in sorted((root / "data/abilities").glob("*.json")):
         for gi, g in enumerate(json.loads(f.read_text(encoding="utf-8"))):
             for ei, eff in enumerate(g.get("effects", [])):
                 if eff.get("type") == "skill" and eff.get("skill", {}).get("kind") == "bolt":
                     users.append({"kind": "gift", "id": g.get("id", ""), "name": name(g.get("name", "")),
-                                  "file": f"data/abilities/{f.name}", "path": [gi, "effects", ei, "skill"], "attack": eff["skill"]})
-    return {"styles": doc["styles"], "sheets": sheets, "users": users}
+                                  "file": f"data/abilities/{f.name}", "path": [gi, "effects", ei, "skill"], "attack": eff["skill"],
+                                  "body": hero})
+    return {"styles": doc["styles"], "sheets": sheets, "users": users, "hero": hero, "dummy": dummy}
 
 
 def write(out: Path, rel: str, data):

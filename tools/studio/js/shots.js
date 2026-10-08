@@ -54,10 +54,54 @@ function shotSheet(res) {
 }
 const shotsDirty = () => SHOTS.edits.size || SHOTS.newSheets.size || JSON.stringify(SHOTS.styles) !== JSON.stringify(SHOTS.data.styles);
 
+/* ---------- the stage: who shoots, who is shot at ---------- */
+// The ground, the shooter's origin (its collision centre, 11 px above the ground as in the game),
+// where a bolt leaves it (Enemy._fire_round: 12 px ahead, 14 up; the hero's bolt 14 ahead, 12 up)
+// and where it is aimed: the target's chest.
+function shotStage(W, H) {
+  const ground = Math.round(H * 0.62), gift = shotUser().kind === 'gift';
+  const shooter = [100, ground - 11], target = [W - 120, ground - 22];
+  const from = gift ? [shooter[0] + 14, shooter[1] - 12] : [shooter[0] + 12, shooter[1] - 14];
+  return { ground, shooter, target, from };
+}
+const shotShowBodies = () => $('#shotBodies')?.checked !== false;
+// a strip read once per url
+function shotStrip(url) {
+  if (!url) return null;
+  if (!SHOTS.sheets.has(url)) { SHOTS.sheets.set(url, null); loadImage(A(url)).then(im => SHOTS.sheets.set(url, im)).catch(() => {}); }
+  return SHOTS.sheets.get(url);
+}
+// A body drawn as Enemy._setup_sprite places it: the cell centred on the origin, its sole 12 px under it;
+// the hero's strips have his feet at x 68 of 128, 4 px above the collision's bottom (CLAUDE.md).
+function drawBody(x, body, origin, ground, faceLeft, anim, t, hurt) {
+  if (!body) return false;
+  const name = body.anims[anim] ? anim : 'idle', im = shotStrip(body.anims[name]); if (!im) return false;
+  const [cw, ch] = body.cell, frames = Math.max(1, Math.floor(im.width / cw)), s = +body.scale || 1;
+  const loop = ['idle', 'walk', 'special'].includes(name), fi = loop ? Math.floor(t * body.fps) % frames : Math.min(frames - 1, Math.floor(t * body.fps));
+  const w = cw * s, h = ch * s;
+  let left, top;
+  if (body.hero) { const feet = faceLeft ? cw - 68 : 68; left = origin[0] - feet * s; top = ground - 4 - h; }
+  else { left = origin[0] - w / 2; top = origin[1] + 12 - h + (+body.pad_y || 0) * s; }
+  x.save(); x.imageSmoothingEnabled = false;
+  if (faceLeft) { x.translate(left + w, top); x.scale(-1, 1); } else x.translate(left, top);
+  const src = body.tint ? shotTinted(im, body.anims[name], body.tint) : im;
+  x.drawImage(src, fi * cw, 0, cw, ch, 0, 0, w, h);
+  if (hurt > 0) { x.globalCompositeOperation = 'source-atop'; x.globalAlpha = hurt; x.drawImage(shotWhite(src), fi * cw, 0, cw, ch, 0, 0, w, h); }
+  x.restore();
+  return true;
+}
+// the frame in white, for the flash of a blow landing
+const shotWhites = new Map();
+function shotWhite(im) {
+  if (!shotWhites.has(im)) { const c = mk(im.width, im.height), x = c.getContext('2d'); x.drawImage(im, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); shotWhites.set(im, c); }
+  return shotWhites.get(im);
+}
+
 /* ---------- flight: scripts/fx/projectile.gd in the browser ---------- */
 function shotFire() {
   const a = shotAttack(), W = $('#shotCanvas').width, H = $('#shotCanvas').height;
-  const from = [90, H * 0.55], to = [W - 110, H * 0.55 - 6];
+  const { from, target: to } = shotStage(W, H);
+  SHOTS.castAt = SHOTS.clock;   // the shooter plays its attack from here
   const rounds = Math.max(1, +a.volley || 1), gap = +a.volley_gap || 0.25;
   for (let r = 0; r < rounds; r++) setTimeout(() => {
     if (mode !== 'shots') return;
@@ -69,7 +113,7 @@ function shotFire() {
         speed: (+a.projectile_speed || 170) * (1 + (Math.random() * 2 - 1) * jitter), motion: a.projectile_motion || 'straight',
         amount: +a.motion_amount || 0, style: a.projectile_style || 'sacred', size: +a.projectile_scale || 1, tint: a.color || '#ffd27a', trail: [] });
     }
-    SHOTS.parts.push({ x: from[0] + 12, y: from[1], t: 0, life: 0.18, flash: a.color || '#ffd27a', r: 26 });
+    SHOTS.parts.push({ x: from[0], y: from[1], t: 0, life: 0.18, flash: a.color || '#ffd27a', r: 26 });
   }, r * gap * 1000);
 }
 function shotStep(b, dt, target) {
@@ -142,20 +186,31 @@ function shotFrame(now) {
   SHOTS.raf = 0; if (mode !== 'shots') return;
   if (!SHOTS.data) { SHOTS.raf = requestAnimationFrame(shotFrame); return; }   // reloading after a write
   const c = $('#shotCanvas'), x = c.getContext('2d'), dt = Math.min(0.05, (now - (SHOTS.last || now)) / 1000) * (+$('#shotSlow').value || 1); SHOTS.last = now;
-  const W = c.width, H = c.height, target = [W - 110, H * 0.55 - 6], a = shotAttack();
+  const W = c.width, H = c.height, a = shotAttack(), u = shotUser(), st = shotStage(W, H), target = st.target;
   SHOTS.clock += dt;
   if (SHOTS.clock >= SHOTS.next) { shotFire(); SHOTS.next = SHOTS.clock + (+a.windup || 0.8) + (+a.cooldown || 2); }
   x.fillStyle = '#0f0d14'; x.fillRect(0, 0, W, H);
-  x.fillStyle = '#1d1a24'; x.fillRect(0, H * 0.55 + 22, W, H);
-  // the shooter and the hero, as markers
+  x.fillStyle = '#1d1a24'; x.fillRect(0, st.ground, W, H);
   const wind = Math.max(0, 1 - (SHOTS.next - SHOTS.clock) / (+a.windup || 0.8));
-  x.fillStyle = '#3a3346'; x.fillRect(78, H * 0.55 - 14, 24, 36);
-  if (wind > 0 && wind < 1) { x.globalCompositeOperation = 'lighter'; x.fillStyle = shotRgba(a.color || '#ffd27a', 0.5 * wind); x.beginPath(); x.arc(102, H * 0.55, 6 + 10 * wind, 0, 7); x.fill(); x.globalCompositeOperation = 'source-over'; }
-  x.fillStyle = '#5b6b7a'; x.fillRect(target[0] - 8, target[1] - 16, 16, 44);
-  x.fillStyle = '#cfd8e3'; x.font = '12px system-ui'; x.fillText(shotUser().kind === 'gift' ? 'враг' : 'герой', target[0] - 16, target[1] + 46);
+  const castT = SHOTS.clock - (SHOTS.castAt ?? -9), anim = castT >= 0 && castT < 0.9 ? (u.kind === 'gift' ? 'attack' : a.animation || 'attack') : 'idle';
+  const hurt = Math.max(0, 1 - (SHOTS.clock - (SHOTS.hitAt ?? -9)) / 0.15) * 0.8;
+  const shown = shotShowBodies();
+  if (!(shown && drawBody(x, u.body, st.shooter, st.ground, false, anim, anim === 'idle' ? SHOTS.clock : castT, 0))) {
+    x.fillStyle = '#3a3346'; x.fillRect(st.shooter[0] - 12, st.shooter[1] - 25, 24, 36);
+  }
+  if (wind > 0 && wind < 1) { x.globalCompositeOperation = 'lighter'; x.fillStyle = shotRgba(a.color || '#ffd27a', 0.5 * wind); x.beginPath(); x.arc(st.from[0], st.from[1], 6 + 10 * wind, 0, 7); x.fill(); x.globalCompositeOperation = 'source-over'; }
+  const foe = u.kind === 'gift' ? SHOTS.data.dummy : SHOTS.data.hero;
+  if (!(shown && drawBody(x, foe, [target[0], st.ground - 11], st.ground, u.kind !== 'gift', 'idle', SHOTS.clock, hurt))) {
+    x.fillStyle = hurt > 0 ? '#ffffff' : '#5b6b7a'; x.fillRect(target[0] - 8, st.ground - 44, 16, 44);
+  }
+  x.fillStyle = '#cfd8e3'; x.font = '12px system-ui';
+  x.fillText(u.name.ru || u.id, st.shooter[0] - 30, st.ground + 18);
+  x.fillText(u.kind === 'gift' ? 'чучело' : 'герой', target[0] - 18, st.ground + 18);
   for (const b of SHOTS.bolts) {
     shotStep(b, dt, target); b.trail.push([b.x, b.y]); if (b.trail.length > (shotLook(b.style).trail || 8)) b.trail.shift();
-    if (b.life <= 0 || b.x > W - 20 || b.x < 10 || b.y > H * 0.55 + 22 || b.y < 0 || Math.hypot(b.x - target[0], b.y - target[1]) < 12) { b.dead = true; shotBurst(b); }
+    const hit = Math.abs(b.x - target[0]) < 10 && b.y > st.ground - 46 && b.y < st.ground;
+    if (hit) SHOTS.hitAt = SHOTS.clock;
+    if (hit || b.life <= 0 || b.x > W - 20 || b.x < 10 || b.y > st.ground || b.y < 0) { b.dead = true; shotBurst(b); }
     else drawBolt(x, b);
   }
   SHOTS.bolts = SHOTS.bolts.filter(b => !b.dead);
@@ -288,6 +343,9 @@ function shotsInit() {
     if (e.type === 'change') renderShots();
   };
   $('#shotSide').addEventListener('input', onInput); $('#shotSide').addEventListener('change', onInput);
+  const bodies = $('#shotBodies');
+  try { bodies.checked = localStorage.getItem('ss_shotbodies') !== '0'; } catch {}
+  bodies.addEventListener('change', () => { try { localStorage.setItem('ss_shotbodies', bodies.checked ? '1' : '0'); } catch {} });
   document.addEventListener('click', async e => {
     const b = e.target.closest('[data-act^="shot-"]'); if (!b) return;
     const act = b.dataset.act;

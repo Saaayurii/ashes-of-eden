@@ -43,6 +43,11 @@ class LivingBackdrops(unittest.TestCase):
             style = u["attack"].get("projectile_style", u["attack"].get("style", "sacred"))
             self.assertIn(style, shots["styles"], u["id"])
             self.assertIn(shots["styles"][style]["sheet"], shots["sheets"])
+            # «Показать персонажей»: every shooter is drawn as the game draws it, borrowed strips ("like") included
+            self.assertTrue(u["body"] and u["body"]["anims"].get("idle"), f"{u['id']} has no body to show")
+            self.assertTrue((ROOT / u["body"]["anims"]["idle"]).exists(), u["id"])
+        self.assertEqual(next(u for u in shots["users"] if u["id"] == "cult_caller")["body"]["tint"], "#c8b4ff")
+        self.assertTrue(shots["hero"]["hero"] and shots["dummy"]["anims"]["idle"])
 
     def test_seams_are_where_the_generator_inserts_them(self):
         seams = build_data.seams(ROOT)

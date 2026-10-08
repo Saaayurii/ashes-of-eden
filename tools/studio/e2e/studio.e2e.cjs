@@ -438,6 +438,10 @@ async function step(name, fn) {
         SHOTS.user = SHOTS.data.users.findIndex(u => u.id === 'cult_caller'); renderShots(); SHOTS.next = SHOTS.clock;
         await new Promise(r => setTimeout(r, 700));
         const n = SHOTS.bolts.length;
+        // the cultist and the hero stand there, drawn from their strips
+        const c = $('#shotCanvas'), px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        let lit = 0; for (let i = 0; i < px.length; i += 4) if (px[i] + px[i + 1] + px[i + 2] > 120) lit++;
+        if (!$('#shotBodies').checked || lit < 200) return -1;
         const slider = document.querySelector('[data-shot="a.volley"]'); slider.value = 3;
         slider.dispatchEvent(new Event('input', { bubbles: true })); slider.dispatchEvent(new Event('change', { bubbles: true }));
         document.querySelector('#shotSend').click();
