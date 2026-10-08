@@ -94,6 +94,20 @@ process.stdout.write(JSON.stringify(out));
         self.assertNotIn("data/enemy_archetypes/tree.json", files)
         self.assertEqual(serve.safe_path("data/enemy_archetypes/tree.json"), (ROOT / "data/enemy_archetypes/tree.json").resolve())
 
+    def test_every_body_can_be_dressed_in_particles(self):
+        shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
+        pfx = build_data.action_fx(ROOT, build_data.load_strings(ROOT), shots)
+        self.assertEqual(set(pfx["kinds"]), {"dust", "puff", "sparkle", "ash", "debris", "ring", "flash"})
+        elian = pfx["bodies"][0]
+        self.assertEqual(elian["key"], "elian")
+        self.assertIn("step", elian["events"])
+        for anim in ("idle", "run", "attack", "roll", "jump", "land"):
+            self.assertIn(anim, elian["body"]["anims"])
+        self.assertIn("step", pfx["rules"]["elian"])   # his footfall dust is data, not code
+        for b in pfx["bodies"]:
+            for url in b["body"]["anims"].values():
+                self.assertTrue((ROOT / url).exists(), url)
+
     def test_platform_pieces_know_where_they_lie(self):
         tiles = build_data.tiles(ROOT)
         pieces = {p["name"]: p for p in tiles["pieces"]}
@@ -195,7 +209,7 @@ class PreviewPage(unittest.TestCase):
 
 class ServeGuard(unittest.TestCase):
     def test_allowed(self):
-        for ok in ("assets/sprites/archer_idle.png", "data/cutscenes/x.json", "data/enemies/archer.json", "data/abilities/will.json", "data/projectiles.json", "localization/strings.csv",
+        for ok in ("assets/sprites/archer_idle.png", "data/cutscenes/x.json", "data/enemies/archer.json", "data/abilities/will.json", "data/projectiles.json", "data/action_fx.json", "localization/strings.csv",
                    "tools/studio/projects/chars/archer.json"):
             self.assertEqual(serve.safe_path(ok), (ROOT / ok).resolve())
 
