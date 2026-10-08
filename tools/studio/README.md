@@ -84,6 +84,14 @@ attacks rewrite that list through `lib.js setJsonList`, every attack kept as its
 own text; a copied attack takes only how it shoots (`SHOT_COPY`). A new strip goes in as
 `assets/sprites/projectiles/<style>_studio.png`.
 
+**Particles on actions** (`js/particles.js`, «Частицы»). `data/action_fx.json` is
+read by `scripts/fx/action_fx.gd`, an `ActionFx` node on the hero's and every
+creature's sprite: an animation's start, chosen frames or a timer, plus the events
+the game names (`ActionFx.EVENTS`). `build_data.py` writes `import/action_fx.json`:
+the rules, `KINDS` / `ANCHORS` / `EVENTS` read from the script, and every body with
+its strips (the hero's per-animation fps). The preview draws a likeness of `Fx`;
+keep the kinds in step with `ActionFx.emit`.
+
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
 practice yard and the rooms' paintings are generator-owned, and an edit of one
@@ -328,3 +336,12 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     такая» — копия выбранной. «🗑 Убрать атаку» — персонаж больше так не
     стреляет (одна атака у него должна остаться). «Показать персонажей» —
     кто стреляет и в кого, их спрайты из игры.
+20. **Частицы** — дым из-под ног, искры, пепел, вспышки на любое действие
+    любого персонажа. Слева: кто (Элиан или любой враг) и когда — анимация
+    (бег, удар, прыжок…) или событие (шаг, прыжок, приземление, перекат,
+    пробуждение). «＋ Частицы»: что вылетает (пыль, облачко, искры, пепел,
+    осколки, кольцо, вспышка), откуда (ноги, тело, голова, рука, спина),
+    когда (в начале, на выбранных кадрах, всё время каждые … секунд), сколько,
+    цвет и прозрачность, куда летит, сдвиг. «точки» — показать, где на теле
+    ноги, рука, голова. Дым под ногами Элиана теперь тоже здесь: шаг,
+    приземление, перекат.

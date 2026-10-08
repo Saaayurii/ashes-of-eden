@@ -481,6 +481,27 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('sparks from the hand on a frame of an attack go into data/action_fx.json', async () => {
+      git('checkout', '--', 'data/action_fx.json');
+      const thrown = await page.evaluate(async () => {
+        const d = document.querySelector('#dlg'); if (d.open) d.close(); d.replaceChildren(); localStorage.removeItem('ss_pfx');
+        setMode('pfx'); await new Promise(r => setTimeout(r, 800));
+        PFX.body = PFX.data.bodies.findIndex(b => b.key === 'possessed_villager'); PFX.trigger = 'walk'; renderPfx();
+        document.querySelector('[data-act="pfx-add"]').click();
+        const set = (f, v) => { const el = document.querySelector(`[data-pfx="${f}"]`); el.value = v; el.dispatchEvent(new Event('change', { bubbles: true })); };
+        set('0.fx', 'ash'); set('0.when', 'every'); set('0.every', 0.1);
+        let most = 0; for (let i = 0; i < 20; i++) { await new Promise(r => setTimeout(r, 50)); most = Math.max(most, PFX.parts.length); }
+        document.querySelector('#pfxSend').click();
+        return most;
+      });
+      assert.ok(thrown > 0, 'the preview should throw the ash');
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
+      const doc = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/action_fx.json'), 'utf8'));
+      assert.deepEqual(doc.bodies.possessed_villager.walk, [{ fx: 'ash', at: 'feet', when: 'every', count: 6, every: 0.1 }]);
+      assert.ok(doc.bodies.elian.step, 'the hero\'s own dust stays');
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {

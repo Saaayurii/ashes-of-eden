@@ -378,6 +378,11 @@ func _setup_sprite(spec: Dictionary) -> void:
 		sprite.self_modulate = Color(str(spec.tint))
 	sprite.play("idle")
 	sprite.frame = randi() % maxi(1, frames.get_frame_count("idle"))  # desync the crowd
+	# particles on its actions (data/action_fx.json): anchors measured on this body —
+	# the sole 11 px under the origin, the head near the top of the drawn cell
+	var top := 12.0 - cell.y * art_scale + float(spec.get("pad_y", 0)) * art_scale
+	ActionFx.attach(self, sprite, enemy_id, {"feet": Vector2(0, 11), "body": Vector2(0, (top + 11.0) * 0.5),
+		"head": Vector2(0, top + 6.0), "hand": Vector2(12, -14), "back": Vector2(-6, 4)})
 	sprite.visible = true
 	body.visible = false
 	visual = sprite

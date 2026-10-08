@@ -347,6 +347,7 @@ func _ready() -> void:
 	_emit_hp()
 	hitbox_collision.shape = hitbox_collision.shape.duplicate()  # per-player reach, not shared scene data
 	slash.animation_finished.connect(func() -> void: slash.visible = false)
+	ActionFx.attach(self, body, "elian")   # particles on his actions, as data (data/action_fx.json)
 	EventBus.boss_died.connect(func() -> void: heal_charges = int(stats.heal_charges); _emit_hp())
 	EventBus.enemy_died.connect(_on_enemy_died)
 	EventBus.room_cleared.connect(_on_room_cleared)
@@ -572,7 +573,7 @@ func _physics_process(delta: float) -> void:
 				_land_slam()
 			else:
 				Audio.play(&"land", -12.0)
-				Fx.dust(global_position + Vector2(0, 14), Vector2.UP, 8)
+				ActionFx.event(self, "land")
 				var landing_strength := clampf(_fall_speed / maxf(HARD_LANDING, 1.0), 0.25, 1.35)
 				EventBus.world_impulse.emit(global_position, Vector2(0, 1), landing_strength, &"land")
 				if _fall_speed > HARD_LANDING and _attack_anim_left <= 0.0:
@@ -616,6 +617,7 @@ func _physics_process(delta: float) -> void:
 			velocity.y = -stats.jump_velocity
 			Audio.play(&"jump", -8.0)
 			EventBus.world_impulse.emit(global_position, Vector2(0, -1), 0.45, &"jump")
+			ActionFx.event(self, "jump")
 			if _attack_anim_left <= 0.0:
 				_one_shot("jump", 0.3)  # restarts on the air jump too
 			_jumps_left -= 1
@@ -811,7 +813,7 @@ func _footsteps(on_floor: bool, delta: float) -> void:
 	if _step_left <= 0.0:
 		_step_left = STEP_DISTANCE
 		Audio.play(&"step", -4.0)
-		Fx.dust(global_position + Vector2(-facing * 4.0, 14), Vector2(-facing, -0.6), 3, Color(0.6, 0.55, 0.5, 0.5))
+		ActionFx.event(self, "step")   # data/action_fx.json
 
 
 func _animate(on_floor: bool) -> void:
@@ -1254,7 +1256,7 @@ func wake_up() -> void:
 	if body.sprite_frames.has_animation("wake"):
 		_play("wake")
 		body.frame = 0
-		Fx.dust(global_position + Vector2(0, 14), Vector2.UP, 12, Color(0.38, 0.3, 0.26, 0.8))
+		ActionFx.event(self, "wake")
 		if _is_mine():
 			var frames: float = body.sprite_frames.get_frame_count("wake")
 			EventBus.player_waking.emit(frames / body.sprite_frames.get_animation_speed("wake") + 0.3)
@@ -1308,8 +1310,7 @@ func _roll() -> void:
 	_dash_cd = stats.dash_cooldown
 	# Enemy body collision is always non-solid; the roll still grants i-frames and
 	# can cut through enemies when a gift grants dash damage.
-	Fx.puff(global_position + Vector2(-facing * 6.0, 6.0), 0.5, Color(1, 1, 1, 0.7))
-	Fx.dust(global_position + Vector2(-facing * 6.0, 14), Vector2(-facing, -0.4), 6)
+	ActionFx.event(self, "roll")
 	EventBus.world_impulse.emit(global_position, Vector2(facing, -0.15), 1.0, &"dash")
 	body.modulate.a = 0.6
 	get_tree().create_timer(stats.dash_time).timeout.connect(func() -> void: body.modulate.a = 1.0)

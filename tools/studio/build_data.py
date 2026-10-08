@@ -662,6 +662,28 @@ def attack_source(eid, raw, tree_entries):
     return None
 
 
+# ---------------------------------------------------------- action particles
+# data/action_fx.json: particles on any action of any body (scripts/fx/action_fx.gd).
+# The studio's «Частицы» needs every body it can dress — Elian and each creature, drawn
+# as in «Снаряды» — with its animations, and the events the game names.
+def action_fx(root: Path, strings, shots):
+    doc = json.loads((root / "data/action_fx.json").read_text(encoding="utf-8"))
+    src = (root / "scripts/fx/action_fx.gd").read_text(encoding="utf-8")
+    consts = {k: re.findall(r'"(\w+)"', re.search(rf"const {k} := \[(.*?)\]", src)[1]) for k in ("KINDS", "ANCHORS", "EVENTS")}
+    hero_anims, hero_fps = {}, {}
+    for a in hero(root)["animations"]:
+        res = a.get("file", "")
+        if res and _size(root, res) and _size(root, res)[1] == 64:
+            hero_anims[a["name"]] = asset_url(res)
+            hero_fps[a["name"]] = a.get("fps", 10)
+    bodies = [{"key": "elian", "name": {"ru": "Элиан", "en": "Elian"}, "hero": True, "events": consts["EVENTS"],
+               "body": {"cell": [128, 64], "fps": 10, "fps_of": hero_fps, "scale": 1.0, "hero": True, "anims": hero_anims}}]
+    for r in shots["roster"]:
+        if r.get("body"):
+            bodies.append({"key": r["id"], "name": r["name"], "boss": r["boss"], "events": [], "body": r["body"]})
+    return {"rules": doc.get("bodies", {}), "kinds": consts["KINDS"], "anchors": consts["ANCHORS"], "bodies": bodies}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -687,7 +709,9 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "life.json", life(root))
     write(out, "tiles.json", tiles(root))
     write(out, "seams.json", seams(root))
-    write(out, "projectiles.json", projectiles(root, strings))
+    shots = projectiles(root, strings)
+    write(out, "projectiles.json", shots)
+    write(out, "action_fx.json", action_fx(root, strings, shots))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])
