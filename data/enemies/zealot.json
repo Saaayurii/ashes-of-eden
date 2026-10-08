@@ -37,9 +37,8 @@
     "projectile_speed": 160,
     "projectile_motion": "accelerate",
     "motion_amount": 0.55,
-    "projectile_style": "lance",
-    "color": "#ffd27a",
-    "speed_jitter": 0.12
+    "projectile_style": "zealot",
+    "color": "#ffd27a"
   },
   "essence": 15,
   "light": {

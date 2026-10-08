@@ -75,7 +75,13 @@ with its place in its file. The preview flies them as `scripts/fx/projectile.gd`
 does — keep the two in step. Styles go back as the whole file; an attack goes
 back through `lib.js patchJson`, which rewrites only the values she touched and
 writes a new key the way Python's `json.dumps(indent=2)` would (both checked
-against every enemy file, `tests/`). A new strip goes in as
+against every enemy file, `tests/`). An attack is edited where the game reads it
+(`build_data.attack_source`, as `data_loader.gd` merges): the archetype overlay
+`data/enemy_archetypes/tree.json` when it lists the creature's attacks (its
+generator writes only `sprite.cell` / `pad_y` there — `GENERATOR_INPUTS`), else the
+creature's own list, its single `attack`, or the list it inherits. Given or taken
+attacks rewrite that list through `lib.js setJsonList`, every attack kept as its
+own text; a copied attack takes only how it shoots (`SHOT_COPY`). A new strip goes in as
 `assets/sprites/projectiles/<style>_studio.png`.
 
 **Old content too: edits of what a generator draws are overrides.** The
@@ -316,3 +322,9 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     размер, вращение, пульс, дрожь, виляние, отражение позади, чем
     разбивается. «⧉ Новый» — свой стиль из этого. Стиль меняется у всех, кто
     им стреляет. → В игру меняет только то, что ты тронула.
+    «＋ Дать дальнюю атаку» — любому персонажу, даже тому, кто бил только
+    вблизи: новую с нуля или «на основе» любой дальней атаки из игры (берётся
+    только то, как она стреляет). Можно дать вторую, третью. «⧉ Ещё одна
+    такая» — копия выбранной. «🗑 Убрать атаку» — персонаж больше так не
+    стреляет (одна атака у него должна остаться). «Показать персонажей» —
+    кто стреляет и в кого, их спрайты из игры.

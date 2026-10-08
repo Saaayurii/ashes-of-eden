@@ -438,6 +438,10 @@ async function step(name, fn) {
         SHOTS.user = SHOTS.data.users.findIndex(u => u.id === 'cult_caller'); renderShots(); SHOTS.next = SHOTS.clock;
         await new Promise(r => setTimeout(r, 700));
         const n = SHOTS.bolts.length;
+        // the cultist and the hero stand there, drawn from their strips
+        const c = $('#shotCanvas'), px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        let lit = 0; for (let i = 0; i < px.length; i += 4) if (px[i] + px[i + 1] + px[i + 2] > 120) lit++;
+        if (!$('#shotBodies').checked || lit < 200) return -1;
         const slider = document.querySelector('[data-shot="a.volley"]'); slider.value = 3;
         slider.dispatchEvent(new Event('input', { bubbles: true })); slider.dispatchEvent(new Event('change', { bubbles: true }));
         document.querySelector('#shotSend').click();
@@ -447,6 +451,33 @@ async function step(name, fn) {
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
       const diff = git('diff', '-U0', '--', 'data/enemies/cult_caller.json', 'data/projectiles.json').split('\n').filter(l => /^[-+] /.test(l));
       assert.deepEqual(diff, ['-      "volley": 2,', '+      "volley": 3,'], diff.join(' | '));
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
+    await step('a creature that only fought up close gets a ranged attack, another loses one', async () => {
+      const before = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8'));
+      await page.evaluate(async () => {
+        const d = document.querySelector('#dlg'); if (d.open) d.close(); d.replaceChildren(); localStorage.removeItem('ss_shots');
+        SHOTS.data = null; SHOTS.edits.clear(); SHOTS.adds = []; SHOTS.removed.clear(); await shotsEnter();
+        // a copy of the ophanim's wheels for the possessed villager: how it shoots, never the boss's seal phase
+        shotGive('possessed_villager', shotAttack(SHOTS.data.users.findIndex(q => q.id === 'ophanim')));
+        SHOTS.user = SHOTS.data.users.findIndex(q => q.id === 'wraith' && q.index === 1); renderShots();
+        document.querySelector('[data-act="shot-remove"]').click();
+        document.querySelector('#shotSend').click();
+      });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
+      // the game's own validator has the last word (it knows a ranged attack needs an animated look)
+      await page.waitForFunction(() => !/Проверяю данные/.test(document.querySelector('#dlg')?.innerText || ''), null, { timeout: 180000 });
+      const text = await page.textContent('#dlg');
+      // earlier steps leave their own test enemy behind; only this step's creatures are its business
+      const errors = text.split('\n').filter(l => /^ERROR/.test(l.trim()));
+      assert.deepEqual(errors.filter(l => /possessed_villager|wraith|projectile|archetypes/i.test(l)), [], errors.join('\n'));
+      const after = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8'));
+      const of = (t, id) => t.find(e => e.id === id).attacks;
+      const given = of(after, 'possessed_villager').at(-1);
+      assert.equal(of(after, 'possessed_villager').length, of(before, 'possessed_villager').length + 1);
+      assert.equal(given.type, 'ranged'); assert.equal(given.projectile_style, 'ophanim'); assert.equal(given.sealed_only, undefined);
+      assert.deepEqual(of(after, 'wraith'), of(before, 'wraith').filter((a, i) => i !== 1));
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 

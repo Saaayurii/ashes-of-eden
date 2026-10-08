@@ -112,6 +112,14 @@ body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=
 body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=shots]) .shotlayout{display:none!important}
 .shotlayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
 #shotList{max-height:30vh;overflow:auto;flex:none}
+.shotgive{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;max-height:50vh;overflow:auto;margin-top:8px}
+.shotgive button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px}
+.shotthumb{display:block;min-width:24px;min-height:24px;background-repeat:no-repeat;background-position:0 0;image-rendering:pixelated}
+.lifeside,#shotList,#lifeList{scrollbar-width:thin;scrollbar-color:transparent transparent}
+.lifeside:hover,#shotList:hover,#lifeList:hover{scrollbar-color:#ffffff33 transparent}
+.lifeside::-webkit-scrollbar,#shotList::-webkit-scrollbar,#lifeList::-webkit-scrollbar{width:6px}
+.lifeside::-webkit-scrollbar-thumb,#shotList::-webkit-scrollbar-thumb,#lifeList::-webkit-scrollbar-thumb{background:transparent;border-radius:3px}
+.lifeside:hover::-webkit-scrollbar-thumb,#shotList:hover::-webkit-scrollbar-thumb,#lifeList:hover::-webkit-scrollbar-thumb{background:#ffffff33}
 #shotStage{flex:1;min-height:0;border-radius:6px;overflow:hidden}
 #shotCanvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;background:#0f0d14}
 .lifelayout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - var(--hdr, 50px))}
@@ -510,8 +518,9 @@ a{color:var(--sel)}
   <main class="lifemain">
     <div class="lifebar">
       <button class="sm" data-act="shot-fire" title="Выстрелить сейчас, не дожидаясь паузы">▶ Выстрел</button>
+      <label title="Кто стреляет и в кого — их спрайты из игры, со своей анимацией атаки"><input type="checkbox" id="shotBodies" checked> Показать персонажей</label>
       <label>Скорость показа <select id="shotSlow"><option value="1">как в игре</option><option value="0.5">в 2 раза медленнее</option><option value="0.25">в 4 раза медленнее</option></select></label>
-      <span class="grow muted">Слева — кто стреляет, справа — цель. Стрельба идёт по кругу: замах → залп → пауза.</span>
+      <span class="grow muted">Слева — кто стреляет, справа — в кого. По кругу: замах → залп → пауза.</span>
       <button class="primary" id="shotSend" data-act="shot-send" disabled>→ В игру</button>
     </div>
     <div id="shotStage"><canvas id="shotCanvas"></canvas></div>

@@ -525,6 +525,7 @@ function jsonSpans(text) {
 }
 // a value written the way Python's json.dumps(indent=2, ensure_ascii=False) writes it, at depth `level`
 function pyJson(v, level = 0, float = false) {
+  if (v && v.__raw !== undefined) return v.__raw;   // text already written for this place (setJsonList)
   const pad = n => '  '.repeat(n);
   if (Array.isArray(v)) return v.length ? '[\n' + v.map(x => pad(level + 1) + pyJson(x, level + 1)).join(',\n') + '\n' + pad(level) + ']' : '[]';
   if (v && typeof v === 'object') { const e = Object.entries(v).filter(([, x]) => x !== undefined); return e.length ? '{\n' + e.map(([k, x]) => pad(level + 1) + JSON.stringify(k) + ': ' + pyJson(x, level + 1)).join(',\n') + '\n' + pad(level) + '}' : '{}'; }
@@ -570,6 +571,30 @@ function patchJsonOnce(text, path, changes) {
   }
   edits.sort((a, b) => b[0] - a[0]);
   for (const [a, b, t] of edits) text = text.slice(0, a) + t + text.slice(b);
+  return text;
+}
+// A list rewritten whole, but each item it keeps as the very text it was (a "6.0" stays a "6.0"):
+// items are {raw, level} taken from some file by jsonItems, or plain values written anew.
+// drop: keys of the same object to remove (an enemy's single "attack" that became a list).
+function jsonItems(text, path) {
+  const node = jsonAt(jsonSpans(text), path);
+  if (!node) return [];
+  const one = n => { const raw = text.slice(n.start, n.end), last = raw.lastIndexOf('\n');
+    return { raw, level: last < 0 ? 0 : Math.round((raw.length - last - 2) / 2) }; };   // the closing bracket's indent
+  return node.type === 'array' ? node.items.map(one) : [one(node)];
+}
+function reindent(raw, from, to) {
+  const d = to - from; if (!d) return raw;
+  return raw.split('\n').map((l, i) => i === 0 ? l : d > 0 ? '  '.repeat(d) + l : l.slice(-2 * d)).join('\n');
+}
+function setJsonList(text, path, key, items, drop = []) {
+  const obj = jsonAt(jsonSpans(text), path);
+  if (!obj || obj.type !== 'object') throw new Error('no object at ' + JSON.stringify(path));
+  const lineStart = at => text.lastIndexOf('\n', at - 1) + 1, m = obj.members.find(x => x.key === key) || obj.members.at(-1);
+  const lvl = m ? Math.round((m.keyStart - lineStart(m.keyStart)) / 2) : path.length + 1, pad = n => '  '.repeat(n);
+  const body = items.map(it => pad(lvl + 1) + (it && it.raw !== undefined ? reindent(it.raw, it.level, lvl + 1) : pyJson(it, lvl + 1))).join(',\n');
+  text = patchJsonOnce(text, path, { [key]: { __raw: items.length ? '[\n' + body + '\n' + pad(lvl) + ']' : '[]' } });
+  for (const k of drop) text = patchJson(text, path, { [k]: undefined });
   return text;
 }
 // One picture's rule in data/backdrops.json, rewritten in the file's own style
@@ -919,5 +944,5 @@ async function filesFingerprint(entries) {
 }
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

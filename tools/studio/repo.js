@@ -101,7 +101,8 @@ async function commitFiles(files, del, title, body, intoPr = null) {
     throw new Error(`Эти файлы собирает генератор (${why.join(', ') || 'tools/check_generators.py'}), и CI не примет их правку руками:\n${blocked.slice(0, 8).join('\n')}\nСохрани работу как нового персонажа/звук или поправь исходники генератора.`);
   }
   // remember the files the studio adds inside a generator's folder, so the next edit is allowed
-  const mine = paths.filter(p => ownerOf(p));
+  // a generator's input file (META.generatorInputs) is the game's own, not one the studio made
+  const mine = paths.filter(p => ownerOf(p) && !(META.generatorInputs || []).includes(p));
   if (mine.length) {
     const reg = JSON.parse((await repoText('tools/studio/projects/files.json')) || '{}');
     for (const p of mine) reg[p] = { by: Writer.mode === 'github' ? gh.login : 'local', at: new Date().toISOString().slice(0, 10) };

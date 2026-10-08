@@ -43,6 +43,11 @@ class LivingBackdrops(unittest.TestCase):
             style = u["attack"].get("projectile_style", u["attack"].get("style", "sacred"))
             self.assertIn(style, shots["styles"], u["id"])
             self.assertIn(shots["styles"][style]["sheet"], shots["sheets"])
+            # «Показать персонажей»: every shooter is drawn as the game draws it, borrowed strips ("like") included
+            self.assertTrue(u["body"] and u["body"]["anims"].get("idle"), f"{u['id']} has no body to show")
+            self.assertTrue((ROOT / u["body"]["anims"]["idle"]).exists(), u["id"])
+        self.assertEqual(next(u for u in shots["users"] if u["id"] == "cult_caller")["body"]["tint"], "#c8b4ff")
+        self.assertTrue(shots["hero"]["hero"] and shots["dummy"]["anims"]["idle"])
 
     def test_seams_are_where_the_generator_inserts_them(self):
         seams = build_data.seams(ROOT)
@@ -76,6 +81,18 @@ process.stdout.write(JSON.stringify(out));
         for f, texts in json.loads(r.stdout).items():
             for text in texts:
                 self.assertEqual(json.dumps(json.loads(text), indent=2, ensure_ascii=False) + "\n", text, f)
+
+    def test_the_bestiary_generator_keeps_the_attacks_the_studio_writes(self):
+        # tree.json is generator-owned, but write_cells only sets sprite.cell / pad_y: the rest is its input
+        import importlib.util, ast
+        src = (ROOT / "tools/art/build_bestiary_assets.py").read_text(encoding="utf-8")
+        fn = next(n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef) and n.name == "write_cells")
+        body = ast.get_source_segment(src, fn)
+        touched = set(__import__("re").findall(r'entry\["sprite"\](?:\["(\w+)"\]|\.pop\("(\w+)")', body))
+        self.assertEqual({a or b for a, b in touched}, {"cell", "pad_y"}, "the generator now writes more of tree.json: the studio must not edit it")
+        files, _ = build_data.generated(ROOT)
+        self.assertNotIn("data/enemy_archetypes/tree.json", files)
+        self.assertEqual(serve.safe_path("data/enemy_archetypes/tree.json"), (ROOT / "data/enemy_archetypes/tree.json").resolve())
 
     def test_platform_pieces_know_where_they_lie(self):
         tiles = build_data.tiles(ROOT)
