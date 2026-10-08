@@ -32,11 +32,12 @@
       "damage": 12,
       "cooldown": 2.2,
       "projectile_speed": 160,
-      "projectile_motion": "wave",
-      "motion_amount": 14,
+      "projectile_motion": "home",
+      "motion_amount": 1.1,
       "projectile_style": "wraith",
       "color": "#8fd0ff",
-      "weight": 3
+      "weight": 3,
+      "projectile_scale": 1.25
     },
     {
       "name": "Lament",
