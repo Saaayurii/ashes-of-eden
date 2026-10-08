@@ -66,6 +66,13 @@ async function seamTake(bx, file) {
   const { c: orig, x0 } = seamCrop(b, false), im = await loadImage(await blobToDataURL(file));
   if (Math.abs(im.width / im.height - orig.width / orig.height) > 0.04) return toast(`Пропорции не те: кусок ${orig.width}×${orig.height}, а картинка ${im.width}×${im.height}. Попроси ChatGPT не обрезать и не менять размер.`, 'err');
   const fit = mk(orig.width, orig.height), fx = fit.getContext('2d'); fx.imageSmoothingQuality = 'high'; fx.drawImage(im, 0, 0, fit.width, fit.height);
+  // an image model's edit drifts a little (ref2game variantfix): put it back by the sides, which were to stay as they are
+  const L = b.x - x0, R = L + b.w, keep = x => x < L - 4 || x >= R + 4;
+  const base = { data: orig.getContext('2d').getImageData(0, 0, orig.width, orig.height).data, w: orig.width, h: orig.height };
+  const edit = { data: fx.getImageData(0, 0, fit.width, fit.height).data, w: fit.width, h: fit.height };
+  const a = alignEdit(base, edit, keep), fixed = matchColours(base, warpEdit(edit, a), keep);
+  fx.putImageData(new ImageData(fixed.data, fixed.w, fixed.h), 0, 0);
+  if (a.dx || a.dy || a.sc !== 1) toast(`Заплатка выровнена по краям: сдвиг ${-a.dx}, ${-a.dy} px${a.sc !== 1 ? `, масштаб ${Math.round((1 / a.sc - 1) * 100)} %` : ''}; цвет подогнан.`);
   const w = b.w + SEAM_FEATHER * 2, band = mk(w, s.h), bx2 = band.getContext('2d');
   bx2.drawImage(fit, b.x - x0 - SEAM_FEATHER, 0, w, s.h, 0, 0, w, s.h);
   // fade the first and last SEAM_FEATHER columns, so the painting either side keeps its edge

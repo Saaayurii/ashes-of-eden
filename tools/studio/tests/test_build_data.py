@@ -32,6 +32,18 @@ class LivingBackdrops(unittest.TestCase):
         self.assertEqual(life["kinds"]["glow"], {"index": 3, "strength": 0.12, "speed": 0.8})
         self.assertEqual(life["max_zones"], 24)
 
+    def test_ranged_attacks_are_found_where_they_are(self):
+        shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
+        self.assertIn("ophanim", shots["styles"])
+        for u in shots["users"]:
+            node = json.loads((ROOT / u["file"]).read_text(encoding="utf-8"))
+            for key in u["path"]:
+                node = node[key]
+            self.assertEqual(node, u["attack"], u["id"])
+            style = u["attack"].get("projectile_style", u["attack"].get("style", "sacred"))
+            self.assertIn(style, shots["styles"], u["id"])
+            self.assertIn(shots["styles"][style]["sheet"], shots["sheets"])
+
     def test_seams_are_where_the_generator_inserts_them(self):
         seams = build_data.seams(ROOT)
         cross = seams["res://assets/levels/graveyard_cross_wide.png"]
@@ -43,6 +55,27 @@ class LivingBackdrops(unittest.TestCase):
             for b in s["bands"]:
                 self.assertLessEqual(b["x"] + b["w"], s["w"])
                 self.assertGreater(b["score"], 0)
+
+    def test_studio_edits_of_enemies_are_what_python_writes(self):
+        import shutil
+        import subprocess
+        if not shutil.which("node"):
+            self.skipTest("node is not installed")
+        script = """
+const L = require(process.argv[1]), fs = require('fs');
+const out = {};
+for (const f of process.argv.slice(2)) {
+  const t = fs.readFileSync(f, 'utf8'), d = JSON.parse(t), places = (d.attacks || []).map((a, i) => ['attacks', i]);
+  if (d.attack) places.push(['attack']);
+  out[f] = places.map(p => L.patchJson(t, p, { damage: 7, projectile_scale: 1.25, volley: 2, windup: undefined }));
+}
+process.stdout.write(JSON.stringify(out));
+"""
+        files = [str(p) for p in sorted((ROOT / "data/enemies").glob("*.json"))]
+        r = subprocess.run(["node", "-e", script, str(STUDIO / "lib.js"), *files], capture_output=True, text=True, check=True)
+        for f, texts in json.loads(r.stdout).items():
+            for text in texts:
+                self.assertEqual(json.dumps(json.loads(text), indent=2, ensure_ascii=False) + "\n", text, f)
 
     def test_platform_pieces_know_where_they_lie(self):
         tiles = build_data.tiles(ROOT)
@@ -145,7 +178,7 @@ class PreviewPage(unittest.TestCase):
 
 class ServeGuard(unittest.TestCase):
     def test_allowed(self):
-        for ok in ("assets/sprites/archer_idle.png", "data/cutscenes/x.json", "data/enemies/archer.json", "localization/strings.csv",
+        for ok in ("assets/sprites/archer_idle.png", "data/cutscenes/x.json", "data/enemies/archer.json", "data/abilities/will.json", "data/projectiles.json", "localization/strings.csv",
                    "tools/studio/projects/chars/archer.json"):
             self.assertEqual(serve.safe_path(ok), (ROOT / ok).resolve())
 

@@ -34,6 +34,9 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/seal_phase_test.gd
         godot --headless -s scripts/tools/rest_items_test.gd
         godot --headless -s scripts/tools/skins_test.gd
+        godot --headless -s scripts/tools/projectile_fx_test.gd
+        godot --headless -s scripts/tools/projectile_motion_test.gd
+        godot --headless -s scripts/tools/volley_test.gd
         godot --headless --fixed-fps 60 -s scripts/tools/enemy_spacing_test.gd
         godot --headless -s scripts/tools/unscathed_test.gd
         godot --headless -s scripts/tools/practice_test.gd

@@ -29,8 +29,11 @@ const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh
 const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
-## The animated bolts (Projectile.FLIGHT_FPS); a ranged enemy attack names one.
-const FLIGHT_STYLES := ["wraith", "zealot", "acolyte", "preacher", "cult", "ash", "ophanim"]
+## How a bolt may fly (scripts/fx/projectile.gd _advance_motion).
+const PROJECTILE_MOTIONS := ["straight", "wave", "accelerate", "arc", "surge", "return", "home"]
+const BURST_FX := ["sparkle", "ash", "debris", "spark"]
+## The looks of data/projectiles.json, read in _check_projectiles: style -> frames.
+var _flight_styles := {}
 const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
 const PROP_KINDS := ["destructible", "chest"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
@@ -107,6 +110,7 @@ func _init() -> void:
 		_chapter_ids[id.get("id", "")] = true
 	for gift in _load_entries("res://data/abilities"):
 		_ability_paths[gift.get("id", "")] = str(gift.get("path", ""))
+	_check_projectiles()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	for collection in REQUIRED:
@@ -177,6 +181,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 							_error("%s: skill.%s must be positive" % [where, field])
 					if not Color.html_is_valid(str(spec.get("color", ""))):
 						_error("%s: skill.color must be #rrggbb" % where)
+					if spec.get("kind") == "bolt":
+						_check_volley(spec, where + ": skill", str(spec.get("style", "sacred")), str(spec.get("motion", "straight")))
 			_check_effect(entry.get("alignment", {}), where)
 			if entry.has("icon") and not FileAccess.file_exists(str(entry.icon)) and not ResourceLoader.exists(str(entry.icon)):
 				_error("%s: icon not found: %s" % [where, entry.icon])
@@ -683,17 +689,67 @@ func _check_enemy_strips() -> void:
 		if enemies[id].has("attack"):
 			attacks = attacks + [enemies[id].attack]
 		for attack in attacks:
-			if attack.get("type") == "ranged" and not FLIGHT_STYLES.has(str(attack.get("projectile_style", ""))):
-				_error("enemies/%s: a ranged attack needs a projectile_style from %s" % [id, FLIGHT_STYLES])
 			if attack.get("type") == "ranged":
-				var motion := str(attack.get("projectile_motion", "straight"))
-				var amount := float(attack.get("motion_amount", 0.0))
-				if not motion in ["straight", "wave", "accelerate", "arc", "surge", "return"]:
-					_error("enemies/%s: unknown projectile_motion %s" % [id, motion])
-				elif motion != "straight" and amount <= 0.0:
-					_error("enemies/%s: %s needs positive motion_amount" % [id, motion])
-				elif motion == "return" and amount >= 4.0:
-					_error("enemies/%s: return must turn before the projectile expires" % id)
+				var style := str(attack.get("projectile_style", ""))
+				if int(_flight_styles.get(style, 0)) < 2:
+					_error("enemies/%s: a ranged attack needs an animated projectile_style from data/projectiles.json (%s)"
+						% [id, ", ".join(_flight_styles.keys().filter(func(k): return int(_flight_styles[k]) > 1))])
+				_check_volley(attack, "enemies/" + id, style, str(attack.get("projectile_motion", "straight")))
+
+
+## data/projectiles.json: every look a bolt can take, its strip whole frames.
+func _check_projectiles() -> void:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/projectiles.json"))
+	if not parsed is Dictionary or not parsed.get("styles") is Dictionary:
+		_error("data/projectiles.json: needs a \"styles\" object")
+		return
+	for key in parsed.styles:
+		var look: Dictionary = parsed.styles[key]
+		var where := "projectiles/%s" % key
+		var frames := int(look.get("frames", 1))
+		_flight_styles[key] = frames
+		var texture = load(str(look.get("sheet", ""))) if ResourceLoader.exists(str(look.get("sheet", ""))) else null
+		if texture == null:
+			_error("%s: sheet not found: %s" % [where, look.get("sheet", "")])
+		elif frames < 1 or texture.get_width() % frames != 0:
+			_error("%s: %s is %d px wide, not %d whole frames" % [where, look.sheet, texture.get_width(), frames])
+		if frames > 1 and float(look.get("fps", 10)) <= 0.0:
+			_error("%s: an animated strip needs a positive fps" % where)
+		if not float(look.get("scale", 0.62)) > 0.0:
+			_error("%s: scale must be positive" % where)
+		for part in look.get("burst", []):
+			if not BURST_FX.has(str(part.get("fx", ""))):
+				_error("%s: burst fx must be one of %s" % [where, BURST_FX])
+	for needed in ["blade", "sacred"]:   # the player's swing wave and a parried bolt
+		if not _flight_styles.has(needed):
+			_error("data/projectiles.json: the %s style is needed by the game itself" % needed)
+
+
+## A ranged attack or a bolt skill: a known style and motion, and a volley that stays readable.
+func _check_volley(attack: Dictionary, where: String, style: String, motion: String) -> void:
+	if not _flight_styles.has(style):
+		_error("%s: projectile style %s is not in data/projectiles.json" % [where, style])
+	var amount := float(attack.get("motion_amount", 0.0))
+	if not PROJECTILE_MOTIONS.has(motion):
+		_error("%s: unknown projectile motion %s" % [where, motion])
+	elif motion != "straight" and amount <= 0.0:
+		_error("%s: %s needs positive motion_amount" % [where, motion])
+	elif motion == "return" and amount >= 4.0:
+		_error("%s: return must turn before the projectile expires" % where)
+	elif motion == "home" and amount > 4.0:
+		_error("%s: a bolt that turns faster than 4 rad/s cannot be dodged" % where)
+	var volley := int(attack.get("volley", 1))
+	if volley < 1 or volley > 5:
+		_error("%s: volley must be 1..5 rounds" % where)
+	if volley > 1 and not (float(attack.get("volley_gap", 0.25)) >= 0.08 and float(attack.get("volley_gap", 0.25)) <= 1.5):
+		_error("%s: volley_gap must be 0.08..1.5 s" % where)
+	if float(attack.get("speed_jitter", 0.0)) < 0.0 or float(attack.get("speed_jitter", 0.0)) > 0.5:
+		_error("%s: speed_jitter must be 0..0.5" % where)
+	var size := float(attack.get("projectile_scale", 1.0))
+	if size < 0.4 or size > 2.5:
+		_error("%s: projectile_scale must be 0.4..2.5" % where)
+	if int(attack.get("projectiles", 1)) < 1 or int(attack.get("projectiles", 1)) > 9:
+		_error("%s: projectiles must be 1..9" % where)
 
 
 ## A deed (data/achievements, scripts/meta/achievements.gd): every condition is

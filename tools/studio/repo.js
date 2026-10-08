@@ -148,6 +148,7 @@ async function projectFile(kind, obj) {
   return [projectPath(kind, obj), JSON.stringify(copy) + '\n'];
 }
 async function sendToGame(build, tab) {
+  sendToGame.last = null;   // what the last send wrote, for a tab that clears its edits only when they went in
   if (!Writer.mode) { await authDialog(); if (!Writer.mode) return; }
   let r;
   const obj = tab && undoTarget(tab), kind = PROJECT_KIND[tab];
@@ -164,6 +165,7 @@ async function sendToGame(build, tab) {
     if (obj && kind && !files[projectPath(kind, obj)]) { const [p, txt] = await projectFile(kind, obj); files[p] = txt; }
     toast('Отправляю…');
     r = await commitFiles(files, del, title, [body, ...notes].filter(Boolean).join('\n\n'), intoPr);
+    sendToGame.last = r;
     if (obj) { obj.dirty = false; if (r.url) obj.pendingPr = r.number; storeOf(tab)?.(obj); }
     if (!r.updated) rememberSend({ kind: tab, objId: obj?.id, title, url: r.url, number: r.number, local: !!r.local }); else refreshSent();
     if (r.updated) return dialog(`<h3>Исправления добавлены</h3><p>Они в той же отправке <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. CI проверит их заново, превью пересоберётся.</p>`);

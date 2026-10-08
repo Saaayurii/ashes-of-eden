@@ -132,7 +132,7 @@ document.addEventListener('click', async e => {
   }
   if (act === 'tiles-send') {
     await sendToGame(tilesFiles, null);
-    if (Writer.mode === 'local') { TILES.mine.clear(); tilesSave(); }
+    if (sendToGame.last?.local) { TILES.mine.clear(); tilesSave(); }
     return renderTiles();
   }
 });

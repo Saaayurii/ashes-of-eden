@@ -109,7 +109,11 @@ main{padding:12px 16px;min-width:0}
 .modes button.on{background:var(--panel2);color:var(--accent)}
 .hdr-chars,.hdr-bg,.hdr-cut,.hdr-snd{display:contents}
 body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
-body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout{display:none!important}
+body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=shots]) .shotlayout{display:none!important}
+.shotlayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
+#shotList{max-height:30vh;overflow:auto;flex:none}
+#shotStage{flex:1;min-height:0;border-radius:6px;overflow:hidden}
+#shotCanvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;background:#0f0d14}
 .lifelayout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - var(--hdr, 50px))}
 .lifeside{position:static;max-height:none;overflow:auto;display:flex;flex-direction:column;gap:8px}
 #lifeList{max-height:32vh;overflow:auto;flex:none}
@@ -235,7 +239,7 @@ a{color:var(--sel)}
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -496,6 +500,22 @@ a{color:var(--sel)}
   </main>
 </div>
 
+<div id="shotLayout" class="shotlayout">
+  <aside class="side lifeside" id="shotSide">
+    <div id="shotList" class="ilist"></div>
+    <div id="shotProps"></div>
+  </aside>
+  <main class="lifemain">
+    <div class="lifebar">
+      <button class="sm" data-act="shot-fire" title="Выстрелить сейчас, не дожидаясь паузы">▶ Выстрел</button>
+      <label>Скорость показа <select id="shotSlow"><option value="1">как в игре</option><option value="0.5">в 2 раза медленнее</option><option value="0.25">в 4 раза медленнее</option></select></label>
+      <span class="grow muted">Слева — кто стреляет, справа — цель. Стрельба идёт по кругу: замах → залп → пауза.</span>
+      <button class="primary" id="shotSend" data-act="shot-send" disabled>→ В игру</button>
+    </div>
+    <div id="shotStage"><canvas id="shotCanvas"></canvas></div>
+  </main>
+</div>
+
 <div id="lifeLayout" class="lifelayout">
   <aside class="side lifeside" id="lifeSide">
     <input id="lifeSearch" placeholder="поиск картины">
@@ -614,6 +634,7 @@ a{color:var(--sel)}
 <script src="js/life.js"></script>
 <script src="js/tiles.js"></script>
 <script src="js/seams.js"></script>
+<script src="js/shots.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>
 </body>

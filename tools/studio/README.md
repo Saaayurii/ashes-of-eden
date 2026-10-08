@@ -61,6 +61,22 @@ the painting as a whole, a rough "how visible is the twin"). The studio cuts a
 band out with 80 px either side and the room's floors drawn on it, takes her
 repaint back, keeps only the band (feathered into its sides) and sends the wide
 painting through the override path, so only the band goes in.
+Before the band is cut out, her repaint is put back onto the crop the way
+ref2game's `variantfix.py` does (`lib.js alignEdit` / `warpEdit` /
+`matchColours`): an image model's edit drifts a few pixels, a percent or two in
+size and a shade in colour, so the offset and scale are searched against the
+80 px sides (which were to stay) and each channel's mean and spread brought to
+theirs.
+
+**Ranged attacks** (`js/shots.js`, the «Снаряды» tab). `build_data.py` writes
+`import/projectiles.json`: the looks of `data/projectiles.json`, their strips,
+and every ranged attack in `data/enemies` and bolt gift in `data/abilities`
+with its place in its file. The preview flies them as `scripts/fx/projectile.gd`
+does — keep the two in step. Styles go back as the whole file; an attack goes
+back through `lib.js patchJson`, which rewrites only the values she touched and
+writes a new key the way Python's `json.dumps(indent=2)` would (both checked
+against every enemy file, `tests/`). A new strip goes in as
+`assets/sprites/projectiles/<style>_studio.png`.
 
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
@@ -290,3 +306,12 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     с 📋 Промптом → ⬆ Заплатка (или Cmd/Ctrl+V). Меняется только полоса между
     фиолетовыми рисками, края плавно сходятся; зелёные линии — пол, он должен
     остаться на месте. «◐ Было» — сравнить. Уходит правкой поверх генератора.
+19. **Снаряды** — все дальние атаки: враги (культист, офаним, ревнитель,
+    рыцарь пепла…) и дары героя. Справа превью: замах → залп → пауза, как в
+    игре. Слева: как выглядит (стиль), как летит (прямо, волной, разгоняется,
+    дугой, зависает, возвращается, наводится), скорость, сколько снарядов и
+    веер, залпов подряд и пауза, разброс скорости, размер, урон, замах, цвет.
+    Ниже — сам стиль: ⬆ свой спрайт (лента кадров слева направо), кадры,
+    размер, вращение, пульс, дрожь, виляние, отражение позади, чем
+    разбивается. «⧉ Новый» — свой стиль из этого. Стиль меняется у всех, кто
+    им стреляет. → В игру меняет только то, что ты тронула.

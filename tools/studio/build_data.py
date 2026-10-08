@@ -566,6 +566,39 @@ def seams(root: Path):
     return out
 
 
+# ---------------------------------------------------------- ranged attacks
+# data/projectiles.json is how every bolt looks; the attacks that loose them are
+# the ranged ones in data/enemies and the bolt skills in data/abilities. The
+# studio's «Снаряды» edits all three, so it needs each attack's place in its file.
+def projectiles(root: Path, strings):
+    doc = json.loads((root / "data/projectiles.json").read_text(encoding="utf-8"))
+    sheets = {}
+    for look in doc["styles"].values():
+        res = look.get("sheet", "")
+        size = _size(root, res)
+        if size:
+            sheets[res] = {"url": asset_url(res), "w": size[0], "h": size[1]}
+    name = lambda key: {k: strings.get(key, {}).get(k, "") or key for k in ("ru", "en")}
+    users = []
+    for f in sorted((root / "data/enemies").glob("*.json")):
+        e = json.loads(f.read_text(encoding="utf-8"))
+        places = [(["attacks", i], a) for i, a in enumerate(e.get("attacks", []))]
+        if "attack" in e:
+            places.append((["attack"], e["attack"]))
+        for path, a in places:
+            if a.get("type") == "ranged":
+                users.append({"kind": "enemy", "id": e.get("id", f.stem), "name": name(e.get("name", "")),
+                              "file": f"data/enemies/{f.name}", "path": path, "attack": a,
+                              "boss": bool(e.get("boss")), "sprite": e.get("sprite", {}).get("animations", {}).get("idle")})
+    for f in sorted((root / "data/abilities").glob("*.json")):
+        for gi, g in enumerate(json.loads(f.read_text(encoding="utf-8"))):
+            for ei, eff in enumerate(g.get("effects", [])):
+                if eff.get("type") == "skill" and eff.get("skill", {}).get("kind") == "bolt":
+                    users.append({"kind": "gift", "id": g.get("id", ""), "name": name(g.get("name", "")),
+                                  "file": f"data/abilities/{f.name}", "path": [gi, "effects", ei, "skill"], "attack": eff["skill"]})
+    return {"styles": doc["styles"], "sheets": sheets, "users": users}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -591,6 +624,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "life.json", life(root))
     write(out, "tiles.json", tiles(root))
     write(out, "seams.json", seams(root))
+    write(out, "projectiles.json", projectiles(root, strings))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])

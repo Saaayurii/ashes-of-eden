@@ -25,14 +25,16 @@
       "type": "ranged",
       "range": 300,
       "windup": 0.8,
-      "damage": 7,
+      "damage": 4,
       "cooldown": 2.0,
       "projectile_speed": 190,
       "projectiles": 3,
       "spread": 24,
-      "projectile_style": "acolyte",
+      "projectile_style": "halo",
       "color": "#fff1c2",
-      "weight": 1
+      "weight": 1,
+      "volley": 2,
+      "volley_gap": 0.35
     }
   ]
 }
