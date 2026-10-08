@@ -1,0 +1,65 @@
+{
+  "assets/sprites/cultist_v2_attack.png": {
+    "size": [
+      812,
+      70
+    ],
+    "base": "3ecbd14e81cb8621",
+    "by": "Saaayurii",
+    "at": "2026-10-08"
+  },
+  "assets/sprites/cultist_v2_attack_alt.png": {
+    "size": [
+      812,
+      70
+    ],
+    "base": "7a0a50e7c9e127a4",
+    "by": "Saaayurii",
+    "at": "2026-10-08"
+  },
+  "assets/sprites/cultist_v2_death.png": {
+    "size": [
+      812,
+      70
+    ],
+    "base": "e87e77c4f9194d80",
+    "by": "Saaayurii",
+    "at": "2026-10-08"
+  },
+  "assets/sprites/cultist_v2_hurt.png": {
+    "size": [
+      812,
+      70
+    ],
+    "base": "c782fe40f232f527",
+    "by": "Saaayurii",
+    "at": "2026-10-08"
+  },
+  "assets/sprites/cultist_v2_idle.png": {
+    "size": [
+      812,
+      70
+    ],
+    "base": "afecef268fd5d6f9",
+    "by": "Saaayurii",
+    "at": "2026-10-08"
+  },
+  "assets/sprites/cultist_v2_special.png": {
+    "size": [
+      812,
+      70
+    ],
+    "base": "bcb08966cde84f58",
+    "by": "Saaayurii",
+    "at": "2026-10-08"
+  },
+  "assets/sprites/cultist_v2_walk.png": {
+    "size": [
+      812,
+      70
+    ],
+    "base": "387cba2a839546a2",
+    "by": "Saaayurii",
+    "at": "2026-10-08"
+  }
+}
