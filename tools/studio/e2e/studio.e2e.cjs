@@ -466,16 +466,16 @@ async function step(name, fn) {
         document.querySelector('#shotSend').click();
       });
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
+      // the game's own validator has the last word (it knows a ranged attack needs an animated look)
+      await page.waitForFunction(() => !/Проверяю данные/.test(document.querySelector('#dlg')?.innerText || ''), null, { timeout: 180000 });
       const text = await page.textContent('#dlg');
-      assert.match(text, /Проверка данных пройдена|CI/, text);
+      assert.match(text, /Проверка данных пройдена|Проверку данных сделает CI/, text);
       const after = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8'));
       const of = (t, id) => t.find(e => e.id === id).attacks;
       const given = of(after, 'possessed_villager').at(-1);
       assert.equal(of(after, 'possessed_villager').length, of(before, 'possessed_villager').length + 1);
       assert.equal(given.type, 'ranged'); assert.equal(given.projectile_style, 'ophanim'); assert.equal(given.sealed_only, undefined);
       assert.deepEqual(of(after, 'wraith'), of(before, 'wraith').filter((a, i) => i !== 1));
-      const t = fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8');
-      assert.equal(JSON.stringify(JSON.parse(t), null, 2).length > 0, true);
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
