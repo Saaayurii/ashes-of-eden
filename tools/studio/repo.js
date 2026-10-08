@@ -158,6 +158,7 @@ async function projectFile(kind, obj) {
 // A send already in flight: a second press (a double click, an impatient one) is not a second pull request.
 let sending = false;
 async function sendToGame(build, tab) {
+  sendToGame.last = null;   // what the last send wrote, for a tab that clears its edits only when they went in
   if (sending) return toast('Уже отправляю — подожди немного', 'err');
   sending = true;
   try { await sendToGameOnce(build, tab); } finally { sending = false; }
@@ -190,6 +191,7 @@ async function sendToGameOnce(build, tab) {
     if (obj && kind && !files[projectPath(kind, obj)]) { const [p, txt] = await projectFile(kind, obj); files[p] = txt; }
     toast('Отправляю…');
     r = await commitFiles(files, del, title, [body, ...notes].filter(Boolean).join('\n\n'), intoPr);
+    sendToGame.last = r;
     if (obj) { obj.dirty = false; if (r.url) obj.pendingPr = r.number; storeOf(tab)?.(obj); }
     if (!r.updated && !r.duplicate) rememberSend({ kind: tab, objId: obj?.id, title, url: r.url, number: r.number, local: !!r.local }); else refreshSent();
     if (r.duplicate) return void dialog(`<h3>Это уже отправлено</h3><p>Точно такие же изменения уже ждут проверки в <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. Вторая отправка не создана.</p>`);

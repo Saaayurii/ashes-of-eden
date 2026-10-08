@@ -448,6 +448,157 @@ def overrides(root: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+# ----------------------------------------------------------- living backdrops
+# data/backdrops.json keys a rule by room scene name or by picture file name;
+# the studio's zone editor needs the picture each key lights.
+LIFE_NODES = ["Painting", "Parallax/Backdrop", "Interior/AuthoredMasonry/ChurchPainting",
+              "Interior/AuthoredMasonry/PreacherPainting"]   # BackdropLife.painting_of
+LIFE_SCENES = {"main_menu": ("scenes/ui/main_menu.tscn", "Layers/Background"),
+               "arena": ("scenes/pvp/arena.tscn", "Parallax/Backdrop")}
+# the church and the nave paint their wall in code (scripts/rooms/interior_architecture.gd PAINTINGS)
+LIFE_INTERIORS = r'const PAINTINGS := \{(.*?)\}'
+LIFE_DIRS = ["assets/cutscenes", "assets/ui/transitions"]   # cutscene panels, passage cards
+
+
+def _scene_texture(root: Path, scene: Path, paths):
+    ext, nodes = parse_tscn(scene.read_text(encoding="utf-8"))
+    by_path = {}
+    for n in nodes[1:]:
+        parent = n["parent"] or "."
+        by_path[n["name"] if parent == "." else f"{parent}/{n['name']}"] = n
+    for want in paths:
+        n = by_path.get(want)
+        m = n and re.match(r'ExtResource\("([^"]+)"\)', n["props"].get("texture", ""))
+        if m and m[1] in ext:
+            return ext[m[1]]
+    return None
+
+
+def life(root: Path):
+    rules = json.loads((root / "data/backdrops.json").read_text(encoding="utf-8"))
+    src = (root / "scripts/rooms/backdrop_life.gd").read_text(encoding="utf-8")
+    block = re.search(r"const KINDS := \{(.*?)\n\}", src, re.S)[1]
+    kinds = {k: {"index": int(i), "strength": float(st), "speed": float(sp)}
+             for k, i, st, sp in re.findall(r'"(\w+)": \[(\d+), ([\d.]+), ([\d.]+)\]', block)}
+    pictures = {}
+    for scene in sorted((root / "scenes/rooms").glob("*.tscn")):
+        res = _scene_texture(root, scene, LIFE_NODES)
+        if res:
+            pictures[scene.stem] = {"res": res, "kind": "room"}
+    inner = re.search(LIFE_INTERIORS, (root / "scripts/rooms/interior_architecture.gd").read_text(encoding="utf-8"), re.S)
+    for key, res in re.findall(r'"(\w+)": "(res://[^"]+)"', inner[1] if inner else ""):
+        pictures[key] = {"res": res, "kind": "room"}
+    for key, (scene, node) in LIFE_SCENES.items():
+        res = (root / scene).exists() and _scene_texture(root, root / scene, [node])
+        if res:
+            pictures[key] = {"res": res, "kind": "scene"}
+    for d in LIFE_DIRS:
+        for p in sorted((root / d).glob("*.png")):
+            pictures.setdefault(p.stem, {"res": "res://" + p.relative_to(root).as_posix(), "kind": "picture"})
+    out = []
+    for key, pic in pictures.items():
+        size = _size(root, pic["res"])
+        if not size:
+            continue
+        rule = rules.get("rooms", {}).get(key)
+        out.append({"key": key, "kind": pic["kind"], "res": pic["res"], "url": asset_url(pic["res"]),
+                    "w": size[0], "h": size[1], "has_rule": rule is not None})
+    return {"kinds": kinds, "families": rules.get("families", {}), "lean": rules.get("lean", {}),
+            "max_zones": int(re.search(r"const MAX_ZONES := (\d+)", src)[1]), "pictures": out}
+
+
+# ------------------------------------------------------- platform pieces
+# assets/decor/platforms: the pieces tools/rooms/generate_rooms.py lays over a
+# room's colliders (terrain_nodes). A piece she redraws at the same size goes
+# straight in: the scenes name the file, the manifest keeps its size and top.
+def tiles(root: Path):
+    manifest = json.loads((root / "assets/decor/platforms/manifest.json").read_text(encoding="utf-8"))
+    uses = {name: {} for name in manifest}
+    for scene in sorted((root / "scenes/rooms").glob("*.tscn")):
+        text = scene.read_text(encoding="utf-8")
+        for name in manifest:
+            n = text.count(f'ExtResource("piece_{name}")')
+            if n:
+                uses[name][scene.stem] = n
+    src = (root / "tools/rooms/generate_rooms.py").read_text(encoding="utf-8")
+    overlap = int(re.search(r"^OVERLAP = (\d+)", src, re.M)[1])
+    run = (root / "scripts/run/run.gd").read_text(encoding="utf-8")
+    played = re.findall(r'"res://scenes/rooms/(\w+)\.tscn"', re.search(r"const ROOMS := \[(.*?)\]", run, re.S)[1])
+    played += re.findall(r'PRACTICE_ROOM := "res://scenes/rooms/(\w+)\.tscn"', run)
+    return {"overlap": overlap, "played": played, "pieces": [dict(name=name, res=f"res://assets/decor/platforms/{name}.png",
+                                                url=f"assets/decor/platforms/{name}.png", uses=uses[name], **info)
+                                           for name, info in manifest.items()]}
+
+
+# ------------------------------------------------- seams of widened panels
+# A painted room is wider than its panel: generate_rooms.py inserts a band at
+# each ROOM_EXPANSION_CUTS cut, quilted from the painting either side of it.
+# Every pixel of a band is a copy of one 160 px away, so a banner or a window
+# near a cut stands there twice. The studio shows the bands, worst first, and
+# lets her repaint one; it goes in as an override of the wide painting.
+def seams(root: Path):
+    import ast
+    from PIL import ImageFilter, ImageStat
+    src = (root / "tools/rooms/generate_rooms.py").read_text(encoding="utf-8")
+    start = src.index("ROOM_EXPANSION_CUTS = {")
+    cuts = ast.literal_eval(src[src.index("{", start):src.index("\n}\n", start) + 2])
+    sys.path.insert(0, str(root / "tools/rooms"))
+    from painted_rooms import PAINTED
+    out = {}
+    for room, points in cuts.items():
+        r = PAINTED.get(room, {})
+        if "painting" not in r:
+            continue
+        res = f"res://assets/levels/{r['painting']}_wide.png"
+        path = res_to_path(root, res)
+        if not path.exists():
+            continue
+        amount = 120 if r.get("interior") else 160
+        im = Image.open(path).convert("L")
+        detail = lambda box: ImageStat.Stat(im.crop(box).filter(ImageFilter.FIND_EDGES)).mean[0]
+        whole = max(1.0, detail((0, 0, im.width, im.height)))
+        bands = []
+        for i, cut in enumerate(points):
+            x0 = cut + i * amount
+            # how busy the band is against the painting as a whole: fog and dark stone hide a twin, banners do not
+            bands.append({"x": x0, "w": amount, "cut": cut, "score": round(detail((x0, 0, x0 + amount, im.height)) / whole, 2)})
+        out[res] = {"room": room, "w": im.width, "h": im.height, "bands": bands}
+    return out
+
+
+# ---------------------------------------------------------- ranged attacks
+# data/projectiles.json is how every bolt looks; the attacks that loose them are
+# the ranged ones in data/enemies and the bolt skills in data/abilities. The
+# studio's «Снаряды» edits all three, so it needs each attack's place in its file.
+def projectiles(root: Path, strings):
+    doc = json.loads((root / "data/projectiles.json").read_text(encoding="utf-8"))
+    sheets = {}
+    for look in doc["styles"].values():
+        res = look.get("sheet", "")
+        size = _size(root, res)
+        if size:
+            sheets[res] = {"url": asset_url(res), "w": size[0], "h": size[1]}
+    name = lambda key: {k: strings.get(key, {}).get(k, "") or key for k in ("ru", "en")}
+    users = []
+    for f in sorted((root / "data/enemies").glob("*.json")):
+        e = json.loads(f.read_text(encoding="utf-8"))
+        places = [(["attacks", i], a) for i, a in enumerate(e.get("attacks", []))]
+        if "attack" in e:
+            places.append((["attack"], e["attack"]))
+        for path, a in places:
+            if a.get("type") == "ranged":
+                users.append({"kind": "enemy", "id": e.get("id", f.stem), "name": name(e.get("name", "")),
+                              "file": f"data/enemies/{f.name}", "path": path, "attack": a,
+                              "boss": bool(e.get("boss")), "sprite": e.get("sprite", {}).get("animations", {}).get("idle")})
+    for f in sorted((root / "data/abilities").glob("*.json")):
+        for gi, g in enumerate(json.loads(f.read_text(encoding="utf-8"))):
+            for ei, eff in enumerate(g.get("effects", [])):
+                if eff.get("type") == "skill" and eff.get("skill", {}).get("kind") == "bolt":
+                    users.append({"kind": "gift", "id": g.get("id", ""), "name": name(g.get("name", "")),
+                                  "file": f"data/abilities/{f.name}", "path": [gi, "effects", ei, "skill"], "attack": eff["skill"]})
+    return {"styles": doc["styles"], "sheets": sheets, "users": users}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -470,6 +621,10 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     rooms += shared("bgs", {r["id"] for r in rooms})
     write(out, "rooms_list.json", [write(out, f"rooms/{r['id']}.bg.json", r) for r in rooms])
     write(out, "library.json", library(root))
+    write(out, "life.json", life(root))
+    write(out, "tiles.json", tiles(root))
+    write(out, "seams.json", seams(root))
+    write(out, "projectiles.json", projectiles(root, strings))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])

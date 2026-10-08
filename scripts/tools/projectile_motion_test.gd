@@ -46,5 +46,21 @@ func _run() -> void:
 		"preacher's psalm pauses, then surges")
 	_check(wheel_out.x > 190.0 and wheel_back.x < wheel_out.x - 40.0,
 		"ophanim wheel doubles back after a missed pass")
+	# a homing bolt bends toward the body it hunts, a straight one does not
+	var quarry := Node2D.new()
+	quarry.add_to_group("player")
+	root.add_child(quarry)
+	quarry.global_position = Vector2(200, 120)
+	var seeker = load("res://scenes/fx/projectile.tscn").instantiate()
+	seeker.speed = 100.0
+	seeker.motion = "home"
+	seeker.motion_amount = 2.0
+	root.add_child(seeker)
+	for i in 20:
+		seeker._advance_motion(0.1)
+	_check(seeker.position.y > 40.0, "a homing bolt turns toward its quarry")
+	_check(seeker.direction.length() > 0.99, "it keeps its speed while turning")
+	seeker.free()
+	quarry.free()
 	print("PROJECTILE MOTION TEST %s" % ("FAILED" if _failed else "PASSED"))
 	quit(1 if _failed else 0)

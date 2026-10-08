@@ -109,7 +109,25 @@ main{padding:12px 16px;min-width:0}
 .modes button.on{background:var(--panel2);color:var(--accent)}
 .hdr-chars,.hdr-bg,.hdr-cut,.hdr-snd{display:contents}
 body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
-body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout{display:none!important}
+body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=shots]) .shotlayout{display:none!important}
+.shotlayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
+#shotList{max-height:30vh;overflow:auto;flex:none}
+#shotStage{flex:1;min-height:0;border-radius:6px;overflow:hidden}
+#shotCanvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;background:#0f0d14}
+.lifelayout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - var(--hdr, 50px))}
+.lifeside{position:static;max-height:none;overflow:auto;display:flex;flex-direction:column;gap:8px}
+#lifeList{max-height:32vh;overflow:auto;flex:none}
+.lifenum{display:block}
+.lifenum input{width:100%}
+.lifemain{min-width:0;display:flex;flex-direction:column;padding:10px;gap:8px}
+.lifebar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lifebar label{display:flex;gap:6px;align-items:center;margin:0}
+.lifebar input[type=range]{width:90px}
+.lifebar button.on{color:var(--accent);border-color:var(--accent)}
+#lifeStage{flex:1;min-height:0;position:relative;display:grid;place-items:center;background:#000;border-radius:6px;overflow:hidden}
+#lifeCanvas,#lifeOver{grid-area:1/1;image-rendering:pixelated}
+#lifeOver{touch-action:none;cursor:crosshair}
+#lifeTip{min-height:1.2em}
 .riglayout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - var(--hdr, 50px))}
 .rigside{position:static;max-height:none;overflow:auto}
 .rigmain{min-width:0;display:flex;flex-direction:column;padding:10px;gap:8px}
@@ -177,6 +195,15 @@ body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not(
 .libgrid span{font-size:11px;color:var(--muted);word-break:break-all}
 dialog#dlg{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;max-width:640px;width:calc(100% - 32px);padding:18px}
 dialog#dlg::backdrop{background:#0009}
+dialog#dlg.wide{max-width:960px}
+.seamlist{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.seam{flex:none;display:flex;flex-direction:column;gap:6px}
+.seamcv{display:block;border-radius:4px}
+.tilegrid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:40vh;overflow:auto}
+.tilegrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px}
+.tilegrid button.on{outline:2px solid var(--accent)}
+.tilegrid img{image-rendering:pixelated}
+.btnlike{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer;margin:0}
 #sandbox{position:fixed;right:12px;bottom:12px;z-index:50;width:min(640px,calc(100vw - 24px));height:min(420px,calc(100vh - 24px));min-width:320px;min-height:240px;resize:both;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 30px #000a}
 #sandbox[hidden]{display:none}
 #sandbox.full{inset:0;width:auto;height:auto;min-width:0;min-height:0;border-radius:0;border:0;resize:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -214,7 +241,7 @@ a{color:var(--sel)}
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -235,6 +262,7 @@ a{color:var(--sel)}
     <button data-act="bg-del" class="ghost danger">Удалить</button>
     <span class="grow"></span>
     <button data-act="bg-rooms" class="ghost" title="Загрузить все комнаты игры со слоями">Комнаты из игры</button>
+    <button data-act="tiles-open" class="ghost" title="Куски, из которых генератор складывает пол, полки и края комнат">🧱 Плитки</button>
     <button data-act="bg-import" class="ghost">Открыть…</button>
     <button data-act="bg-save" class="ghost">Сохранить (.json)</button>
     <button data-act="bg-export" class="ghost" title="Скачать zip">⬇ zip</button>
@@ -474,6 +502,48 @@ a{color:var(--sel)}
   </main>
 </div>
 
+<div id="shotLayout" class="shotlayout">
+  <aside class="side lifeside" id="shotSide">
+    <div id="shotList" class="ilist"></div>
+    <div id="shotProps"></div>
+  </aside>
+  <main class="lifemain">
+    <div class="lifebar">
+      <button class="sm" data-act="shot-fire" title="Выстрелить сейчас, не дожидаясь паузы">▶ Выстрел</button>
+      <label>Скорость показа <select id="shotSlow"><option value="1">как в игре</option><option value="0.5">в 2 раза медленнее</option><option value="0.25">в 4 раза медленнее</option></select></label>
+      <span class="grow muted">Слева — кто стреляет, справа — цель. Стрельба идёт по кругу: замах → залп → пауза.</span>
+      <button class="primary" id="shotSend" data-act="shot-send" disabled>→ В игру</button>
+    </div>
+    <div id="shotStage"><canvas id="shotCanvas"></canvas></div>
+  </main>
+</div>
+
+<div id="lifeLayout" class="lifelayout">
+  <aside class="side lifeside" id="lifeSide">
+    <input id="lifeSearch" placeholder="поиск картины">
+    <div id="lifeList" class="ilist"></div>
+    <div id="lifeProps"></div>
+  </aside>
+  <main class="lifemain">
+    <div class="lifebar">
+      <label>Новая зона <select id="lifeNewKind"></select></label><button class="sm" id="lifeDraw" data-act="life-draw" title="Следующая протяжка рисует новую зону, даже поверх другой">＋ Нарисовать</button>
+      <button class="sm on" data-act="life-zones" title="Показать или скрыть рамки зон">▢ Зоны</button>
+      <button class="sm" data-act="life-still" title="Картина как нарисована — сравнить">◐ Без жизни</button>
+      <span class="muted">Проверить:</span>
+      <button class="sm" data-act="life-gust" title="Порыв от рывка героя (или Shift+клик по картине)">💨 Порыв</button>
+      <button class="sm" data-act="life-flash" title="Молния или вспышка катсцены">⚡ Молния</button>
+      <button class="sm" data-act="life-exhale" title="Комната зачищена: свет на миг разгорается">✦ Зачистка</button>
+      <label title="Бой с боссом: чем слабее босс, тем жарче">Босс <input type="range" id="lifeRage" min="0" max="1" step="0.05" value="0"></label>
+      <label title="Герой почти мёртв: вены бьются чаще">Раны <input type="range" id="lifeDread" min="0" max="1" step="0.05" value="0"></label>
+      <label title="Путь героя красит нарисованные огни">Путь <select id="lifeLean"><option value="">—</option><option value="grace">благодать</option><option value="temptation">искушение</option><option value="will">воля</option></select></label>
+      <span class="grow"></span>
+      <button class="primary" id="lifeSend" data-act="life-send" disabled>→ В игру</button>
+    </div>
+    <div id="lifeStage"><canvas id="lifeCanvas"></canvas><canvas id="lifeOver"></canvas></div>
+    <div class="muted" id="lifeTip"></div>
+  </main>
+</div>
+
 <div id="rigLayout" class="riglayout">
   <aside class="side rigside" id="rigSide"></aside>
   <main class="rigmain">
@@ -563,6 +633,10 @@ a{color:var(--sel)}
 <script src="js/sandbox.js"></script>
 <script src="js/rig-core.js"></script>
 <script src="js/rig.js"></script>
+<script src="js/life.js"></script>
+<script src="js/tiles.js"></script>
+<script src="js/seams.js"></script>
+<script src="js/shots.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>
 </body>
