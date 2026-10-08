@@ -368,9 +368,13 @@ function shotDefault(id) {
     projectile_style: animated.includes('zealot') ? 'zealot' : animated[0], color: '#ffd27a',
     animation: ['special', 'attack_alt', 'attack'].find(a => anims.includes(a)) || 'attack', weight: 1 };
 }
+// what a copy takes from the attack it copies: how it shoots, never whose it was (a boss's seal
+// phase, its name, an animation the new body may not have)
+const SHOT_COPY = ['range', 'windup', 'damage', 'cooldown', 'recover', 'projectile_speed', 'projectile_style', 'projectile_motion', 'motion_amount',
+  'projectiles', 'spread', 'color', 'volley', 'volley_gap', 'speed_jitter', 'projectile_scale'];
 function shotGive(id, base) {
-  const attack = base ? { ...structuredClone(base), type: 'ranged', weight: base.weight ?? 1 } : shotDefault(id);
-  for (const k of ['name']) delete attack[k];
+  const attack = shotDefault(id);
+  if (base) for (const k of SHOT_COPY) if (base[k] !== undefined) attack[k] = structuredClone(base[k]);
   const add = { uid: uid(), id, attack };
   const u = shotUserFor(add); if (!u) return toast('Нет такого персонажа: ' + id, 'err');
   SHOTS.adds.push(add); SHOTS.user = SHOTS.data.users.indexOf(u); SHOTS.style = null; SHOTS.bolts = []; SHOTS.next = 0;

@@ -698,7 +698,8 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "meta.json", {"repo": REPO, "branch": branch, "assetBase": asset_base, "sha": sha or head_sha(root),
                              "site": f"https://{owner.lower()}.github.io/{name}/",
                              "generated": files, "generators": owners,
-                             "overridable": overridable(files, owners), "overrides": overrides(root)})
+                             "overridable": overridable(files, owners), "overrides": overrides(root),
+                             "generatorInputs": sorted(GENERATOR_INPUTS)})
     return {"chars": len(chars), "rooms": len(rooms), "cutscenes": len(st["cutscenes"])}
 
 

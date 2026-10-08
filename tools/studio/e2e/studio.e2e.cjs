@@ -454,6 +454,31 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('a creature that only fought up close gets a ranged attack, another loses one', async () => {
+      const before = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8'));
+      await page.evaluate(async () => {
+        const d = document.querySelector('#dlg'); if (d.open) d.close(); d.replaceChildren(); localStorage.removeItem('ss_shots');
+        SHOTS.data = null; SHOTS.edits.clear(); SHOTS.adds = []; SHOTS.removed.clear(); await shotsEnter();
+        // a copy of the ophanim's wheels for the possessed villager: how it shoots, never the boss's seal phase
+        shotGive('possessed_villager', shotAttack(SHOTS.data.users.findIndex(q => q.id === 'ophanim')));
+        SHOTS.user = SHOTS.data.users.findIndex(q => q.id === 'wraith' && q.index === 1); renderShots();
+        document.querySelector('[data-act="shot-remove"]').click();
+        document.querySelector('#shotSend').click();
+      });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
+      const text = await page.textContent('#dlg');
+      assert.match(text, /Проверка данных пройдена|CI/, text);
+      const after = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8'));
+      const of = (t, id) => t.find(e => e.id === id).attacks;
+      const given = of(after, 'possessed_villager').at(-1);
+      assert.equal(of(after, 'possessed_villager').length, of(before, 'possessed_villager').length + 1);
+      assert.equal(given.type, 'ranged'); assert.equal(given.projectile_style, 'ophanim'); assert.equal(given.sealed_only, undefined);
+      assert.deepEqual(of(after, 'wraith'), of(before, 'wraith').filter((a, i) => i !== 1));
+      const t = fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8');
+      assert.equal(JSON.stringify(JSON.parse(t), null, 2).length > 0, true);
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {
