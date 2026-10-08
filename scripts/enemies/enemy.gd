@@ -145,6 +145,8 @@ var _home := Vector2.ZERO  # where it was spawned; the patrol is around this
 var _patrol_goal := Vector2.ZERO
 var _patrol_wait := 0.0
 var _has_anim := {}
+## An animation the studio's sandbox asks it to show instead of fighting ("" = fight).
+var showcase := ""
 ## What the body's scale springs back to after a hit punch.
 var _visual_scale := Vector2.ONE
 var _simulated := true  # false on a client: the host drives this body
@@ -391,6 +393,18 @@ func _physics_process(delta: float) -> void:
 		if Net.active:
 			_net_die.rpc()
 		_die()
+		return
+	if showcase != "":
+		# the studio's sandbox shows one animation (StudioLive): it stands and plays it
+		# over and over, the death included, so the artist can look at every frame
+		if _is_flying():
+			velocity = Vector2.ZERO
+		else:
+			_hold(delta)
+			move_and_slide()
+		if _has_anim.has(showcase) and (sprite.animation != showcase or not sprite.is_playing()):
+			sprite.play(showcase)
+			sprite.frame = 0
 		return
 	if stats.get("behaviour", "walker") == "seal":
 		# it hangs where it was set; a blow only plays its crack

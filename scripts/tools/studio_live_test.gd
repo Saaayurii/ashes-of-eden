@@ -83,6 +83,25 @@ func _run() -> void:
 	_check(live_script.build_spec({"extends": "ophanim", "cell": [32, 40], "strips": {"idle": _strip(cell, 1)}}).get("hp") == data.enemies.cultist.get("hp"),
 		"a boss is no base: it falls back to the cultist")
 
+	# how the sandbox shows it: one animation on the spot, slowed down, three of them
+	run.studio_live.apply({"type": "ashes-live", "extends": "cultist", "cell": [cell.x, cell.y],
+		"strips": {"idle": _strip(cell, 2), "walk": _strip(cell, 3)}})
+	await _settle(0.3)
+	run.studio_live.set_view({"anim": "walk", "speed": 0.5, "count": 3})
+	await _settle(0.4)
+	foes = _foes()
+	_check(foes.size() == 3 and foes.all(func(e) -> bool: return e.enemy_id == live_script.ID), "three of them side by side")
+	_check(foes.all(func(e) -> bool: return e.showcase == "walk" and e.sprite.animation == "walk"), "each standing and playing its walk")
+	_check(is_equal_approx(root.get_node("Juice").base_scale, 0.5), "the game at half speed")
+	var at: float = foes[0].global_position.x if foes.size() > 0 else 0.0
+	await _settle(0.5)
+	_check(foes.size() > 0 and absf(foes[0].global_position.x - at) < 1.0, "on the spot, not walking off")
+	run.studio_live.set_view({"anim": "", "speed": 9, "count": 0})
+	await _settle(0.4)
+	foes = _foes()
+	_check(foes.size() == 1 and foes[0].showcase == "", "back to one, fighting")
+	_check(is_equal_approx(root.get_node("Juice").base_scale, 1.0), "at full speed (speed is clamped)")
+
 	game.practice = ""
 	print("studio_live_test: %s" % ("OK" if failures == 0 else "%d FAILED" % failures))
 	quit(1 if failures else 0)

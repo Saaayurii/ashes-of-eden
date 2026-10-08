@@ -40,6 +40,11 @@ func _go() -> void:
 	# "the last one" far more often than it means a typo worth stopping for.
 	_check(Run.room_from_args(PackedStringArray(["room=99"])) == names.size() - 1,
 		"past the end is the last room")
+	_check(Run.asks_for_a_place(PackedStringArray(["--studio-preview", "practice=ash_archer"])),
+		"a preview asked for an enemy skips the menu")
+	_check(Run.asks_for_a_place(PackedStringArray(["--studio-preview", "room=hell_gate"])), "and one asked for a room")
+	_check(not Run.asks_for_a_place(PackedStringArray(["--studio-preview"])), "a plain preview shows the menu")
+	_check(not Run.asks_for_a_place(PackedStringArray(["practice=cultist"])), "and nothing without the preview flag")
 	_check(Run.room_from_args(PackedStringArray(["room=-3"])) == 0, "before the start is the first")
 	_check(Run.room_from_args(PackedStringArray(["room=nowhere"])) == -1,
 		"a name that is not a room falls back to the beginning")

@@ -140,6 +140,7 @@ function shotTinted(im, res, color) {
 function shotRgba(h, a) { const n = parseInt(String(h).replace('#', '').slice(0, 6), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${Math.max(0, Math.min(1, a))})`; }
 function shotFrame(now) {
   SHOTS.raf = 0; if (mode !== 'shots') return;
+  if (!SHOTS.data) { SHOTS.raf = requestAnimationFrame(shotFrame); return; }   // reloading after a write
   const c = $('#shotCanvas'), x = c.getContext('2d'), dt = Math.min(0.05, (now - (SHOTS.last || now)) / 1000) * (+$('#shotSlow').value || 1); SHOTS.last = now;
   const W = c.width, H = c.height, target = [W - 110, H * 0.55 - 6], a = shotAttack();
   SHOTS.clock += dt;
@@ -172,6 +173,7 @@ function shotFrame(now) {
 
 /* ---------- panels ---------- */
 function renderShots() {
+  if (!SHOTS.data) return;
   const users = SHOTS.data.users, list = $('#shotList');
   list.innerHTML = '<div class="muted">Враги</div>' + users.map((u, i) => u.kind === 'enemy' ? shotRow(u, i) : '').join('') +
     '<div class="muted" style="margin-top:6px">Дары героя</div>' + users.map((u, i) => u.kind === 'gift' ? shotRow(u, i) : '').join('') +

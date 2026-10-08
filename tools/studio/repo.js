@@ -116,6 +116,14 @@ async function commitFiles(files, del, title, body, intoPr = null) {
   }
   if (Writer.mode !== 'github') throw new Error('Сначала войди через GitHub (кнопка справа вверху).');
   const R = `/repos/${META.repo}`;
+  // the same work already waiting in an open pull request: say so instead of opening a second one
+  const fp = await filesFingerprint(await Promise.all(Object.entries(files).map(async ([p, b]) =>
+    [p, typeof b === 'string' ? new TextEncoder().encode(b) : new Uint8Array(await b.arrayBuffer())])));
+  if (!intoPr) {
+    const open = await ghApi(`${R}/pulls?state=open&per_page=50`).catch(() => []);
+    const twin = open.find(pr => pr.head.ref.startsWith('studio/') && (pr.body || '').includes(fingerprintMark(fp)));
+    if (twin) return { url: twin.html_url, number: twin.number, duplicate: true };
+  }
   const onto = intoPr ? intoPr.head.ref : META.branch;  // a fix goes on top of its own pull request
   const base = await ghApi(`${R}/git/ref/heads/${onto}`), head = await ghApi(`${R}/git/commits/${base.object.sha}`);
   const tree = [];
@@ -134,7 +142,7 @@ async function commitFiles(files, del, title, body, intoPr = null) {
   }
   const branch = `studio/${gh.login}-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12)}`;
   await ghApi(`${R}/git/refs`, { method: 'POST', body: JSON.stringify({ ref: 'refs/heads/' + branch, sha: c.sha }) });
-  const pr = await ghApi(`${R}/pulls`, { method: 'POST', body: JSON.stringify({ title, head: branch, base: META.branch, body: body + '\n\n— отправлено из Sprite Studio (tools/studio)' }) });
+  const pr = await ghApi(`${R}/pulls`, { method: 'POST', body: JSON.stringify({ title, head: branch, base: META.branch, body: body + '\n\n— отправлено из Sprite Studio (tools/studio)\n' + fingerprintMark(fp) }) });
   return { url: pr.html_url, number: pr.number };
 }
 // Which project a send belongs to, so the same pull request carries it and the
@@ -147,17 +155,35 @@ async function projectFile(kind, obj) {
   if (kind === 'chars') { copy.reference = await shrinkSrc(copy.reference); for (const a of copy.animations) for (const f of a.frames) f.src = await shrinkSrc(f.src); }
   return [projectPath(kind, obj), JSON.stringify(copy) + '\n'];
 }
+// A send already in flight: a second press (a double click, an impatient one) is not a second pull request.
+let sending = false;
 async function sendToGame(build, tab) {
   sendToGame.last = null;   // what the last send wrote, for a tab that clears its edits only when they went in
+  if (sending) return toast('Уже отправляю — подожди немного', 'err');
+  sending = true;
+  try { await sendToGameOnce(build, tab); } finally { sending = false; }
+}
+// An open pull request that already carries this project: the one she sent from this browser, or —
+// sent from another computer or before a reload — any open studio pull request with the same project file.
+async function openPrOf(obj, kind) {
+  const R = `/repos/${META.repo}`;
+  if (obj?.pendingPr) { try { const pr = await ghApi(`${R}/pulls/${obj.pendingPr}`); if (pr.state === 'open') return pr; } catch {} }
+  if (!obj || !kind) return null;
+  const want = projectPath(kind, obj);
+  for (const pr of (await ghApi(`${R}/pulls?state=open&per_page=50`).catch(() => [])).filter(p => p.head.ref.startsWith('studio/'))) {
+    const files = await ghApi(`${R}/pulls/${pr.number}/files?per_page=100`).catch(() => []);
+    if (files.some(f => f.filename === want)) return pr;
+  }
+  return null;
+}
+async function sendToGameOnce(build, tab) {
   if (!Writer.mode) { await authDialog(); if (!Writer.mode) return; }
   let r;
   const obj = tab && undoTarget(tab), kind = PROJECT_KIND[tab];
   let intoPr = null;
-  if (Writer.mode === 'github' && obj?.pendingPr) {
-    try {
-      const pr = await ghApi(`/repos/${META.repo}/pulls/${obj.pendingPr}`);
-      if (pr.state === 'open' && confirm(`Это уже отправлено (#${pr.number}). Добавить изменения в ту же отправку?\n\nOK — в ту же (например, исправления по замечаниям)\nОтмена — новой отправкой`)) intoPr = pr;
-    } catch {}
+  if (Writer.mode === 'github') {
+    const pr = await openPrOf(obj, kind);
+    if (pr && confirm(`«${obj.name || obj.id}» уже отправлен (#${pr.number}) и ждёт проверки. Добавить изменения в ту же отправку?\n\nOK — в ту же (так и нужно, если это исправления)\nОтмена — новой отправкой`)) intoPr = pr;
   }
   readRef = intoPr ? intoPr.head.ref : null;
   try {
@@ -167,9 +193,10 @@ async function sendToGame(build, tab) {
     r = await commitFiles(files, del, title, [body, ...notes].filter(Boolean).join('\n\n'), intoPr);
     sendToGame.last = r;
     if (obj) { obj.dirty = false; if (r.url) obj.pendingPr = r.number; storeOf(tab)?.(obj); }
-    if (!r.updated) rememberSend({ kind: tab, objId: obj?.id, title, url: r.url, number: r.number, local: !!r.local }); else refreshSent();
-    if (r.updated) return dialog(`<h3>Исправления добавлены</h3><p>Они в той же отправке <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. CI проверит их заново, превью пересоберётся.</p>`);
-    if (r.url) return dialog(`<h3>Отправлено</h3><p>Создан pull request: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></p><p>CI проверит данные; когда владелец его вольёт, изменения появятся в игре и в студии.</p>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}`);
+    if (!r.updated && !r.duplicate) rememberSend({ kind: tab, objId: obj?.id, title, url: r.url, number: r.number, local: !!r.local }); else refreshSent();
+    if (r.duplicate) return void dialog(`<h3>Это уже отправлено</h3><p>Точно такие же изменения уже ждут проверки в <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. Вторая отправка не создана.</p>`);
+    if (r.updated) return void dialog(`<h3>Исправления добавлены</h3><p>Они в той же отправке <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. CI проверит их заново, превью пересоберётся.</p>`);
+    if (r.url) return void dialog(`<h3>Отправлено</h3><p>Создан pull request: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></p><p>CI проверит данные; когда владелец его вольёт, изменения появятся в игре и в студии.</p>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}`);
     const box = `<h3>Записано в игру</h3><p>${r.written.length} файл(ов)${r.deleted.length ? `, удалено ${r.deleted.length}` : ''}:</p><pre class="log">${esc([...r.written, ...r.deleted.map(d => '− ' + d)].join('\n'))}</pre>${notes.length ? `<div class="note">${notes.map(esc).join('<br>')}</div>` : ''}<div id="valOut" class="note">Проверяю данные игры (validate_data.gd)…</div>`;
     dialog(box);
     validate().then(v => { const el = document.getElementById('valOut'); if (el) el.outerHTML = v; });
@@ -226,12 +253,21 @@ async function gameCharOverrides() {
   const orig = await (await fetch(`import/chars/${encodeURIComponent(P.id)}.sprite.json`, { cache: 'no-store' })).json();
   const edits = frameEdits(P.animations, orig.animations), pics = {}, direct = {};
   if (!edits.length) throw new Error('Нечего отправлять: ни один кадр не отличается от игры. Поправь кадр (✎) или замени картинку.');
+  // the studio's cell must be the game's, or every frame lands shifted and cut (the first cultist edit did)
+  const cell = edits.find(e => e.w !== +P.settings.cellW || e.h !== +P.settings.cellH);
+  if (cell) throw new Error(`Кадр в студии ${P.settings.cellW}×${P.settings.cellH}, а в игре у ${P.name} ${cell.w}×${cell.h}. Верни «Ширину» и «Высоту кадра» как в игре (или «Из игры» заново) и отправь ещё раз.`);
+  const opaque = (d, n = 0) => { for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; };
+  const thinner = [];
   for (const e of edits) {
     const path = e.res.replace('res://', '');
     let t = pics[path] || direct[path];
     if (!t) { t = await pictureData(A(path)); t.mask = await oldMask(path, t.w, t.h); (overridableSet().has(path) || generatedSet().has(path) ? pics : direct)[path] = t; }
     const proc = processed.get(e.frame); if (!proc) continue;
     if (e.whole) {
+      // a frame replaced whole that keeps much less of the figure than the game has: moved off, cut or emptied
+      const was = opaque(t.x.getImageData(e.x, e.y, e.w, e.h).data), now = opaque(proc.getContext('2d').getImageData(0, 0, e.w, e.h).data);
+      const an = P.animations.find(a => a.frames.some(f => f.id === e.frame));
+      if (was > 50 && now < was * 0.65) thinner.push(`${an?.name} #${an ? an.frames.findIndex(f => f.id === e.frame) + 1 : '?'}: было ${was} px, станет ${now}`);
       t.x.clearRect(e.x, e.y, e.w, e.h); t.x.drawImage(proc, 0, 0, e.w, e.h, e.x, e.y, e.w, e.h);
       for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) t.mask[y * t.w + x] = 1;
     } else {
@@ -243,6 +279,8 @@ async function gameCharOverrides() {
       }
     }
   }
+  if (thinner.length && !confirm(`В игре от персонажа останется заметно меньше:\n${thinner.slice(0, 8).join('\n')}\n\nОбычно это значит, что кадр сдвинут за край или пустой. Проверь кадры (⟲ возвращает сдвиг). Всё равно отправить?`))
+    throw new Error('Не отправлено: кадры почти пустые в игре. Поправь сдвиг (⟲) и отправь ещё раз.');
   const files = {};
   for (const [path, t] of Object.entries(direct)) files[path] = await canvasBlob(t.c);
   const done = await addOverrides(files, pics);

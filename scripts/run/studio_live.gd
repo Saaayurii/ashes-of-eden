@@ -25,6 +25,13 @@ const WAITING_FOR := "training_dummy"
 
 ## Emitted after a post was laid into Data; Run swaps the foe.
 signal applied(spec: Dictionary)
+## Emitted when the studio changes how the sandbox shows the creature; Run applies `view`.
+signal view_changed
+
+## How the sandbox shows it (studio → game {type: "ashes-live-view", anim, speed, count}):
+## anim "" fights, or the name of an animation it stands and plays; speed 1 / 0.5 / 0.25
+## slows the whole game to see each frame; count 1–3 of them, to see a crowd.
+var view := {"anim": "", "speed": 1.0, "count": 1}
 
 var _callback: JavaScriptObject  # held, or the browser's handle to it dies
 
@@ -43,7 +50,7 @@ func _ready() -> void:
 	# page holding this iframe sent it, and only ours.
 	JavaScriptBridge.eval("""
 		window.addEventListener('message', e => {
-			if (e.source !== window.parent || window.parent === window || !e.data || e.data.type !== 'ashes-live') return;
+			if (e.source !== window.parent || window.parent === window || !e.data || !/^ashes-live(-view)?$/.test(e.data.type)) return;
 			window.__ashesLive(JSON.stringify(e.data));
 		});
 		if (window.parent !== window) window.parent.postMessage({type: 'ashes-live-ready'}, '*');
@@ -54,11 +61,24 @@ func _on_js_message(args: Array) -> void:
 	var msg = JSON.parse_string(str(args[0])) if not args.is_empty() else null
 	if not msg is Dictionary:
 		return
+	if msg.get("type") == "ashes-live-view":
+		set_view(msg)
+		return
 	var spec := apply(msg)
 	if spec.is_empty():
 		return
 	JavaScriptBridge.eval("window.parent.postMessage({type: 'ashes-live-applied', animations: %s}, '*')"
 		% JSON.stringify(spec.sprite.animations.keys()), true)
+
+
+## Takes the studio's choice of how to show the creature, clamped to what the sandbox offers.
+func set_view(msg: Dictionary) -> void:
+	view = {
+		"anim": str(msg.get("anim", "")),
+		"speed": clampf(float(msg.get("speed", 1.0)), 0.25, 1.0),
+		"count": clampi(int(msg.get("count", 1)), 1, 3),
+	}
+	view_changed.emit()
 
 
 ## Lays a post into the game: textures into Fx.runtime_strips, the creature

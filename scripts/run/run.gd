@@ -356,6 +356,19 @@ func _requested_room() -> int:
 const PRACTICE_ARG := "practice="
 
 
+## Whether the command line asks for a place (a room or the practice yard) the
+## main menu should open at once: a studio preview page without this lands on
+## the menu, and its `?practice=` only works after Play there — which nobody
+## looking at a new enemy would guess.
+static func asks_for_a_place(args := OS.get_cmdline_user_args()) -> bool:
+	if not args.has(PREVIEW_ARG):
+		return false
+	for arg in args:
+		if arg.begins_with(ROOM_ARG) or arg.begins_with(PRACTICE_ARG):
+			return true
+	return false
+
+
 func _requested_practice() -> String:
 	var args := OS.get_cmdline_user_args()
 	if not OS.is_debug_build() and not args.has(PREVIEW_ARG):
@@ -1236,6 +1249,10 @@ func _practice_again() -> void:
 			node.queue_free()
 	room.door.open = false
 	_practice_spawn()
+	if studio_live != null:
+		for node in get_tree().get_nodes_in_group("enemies"):
+			if node is Enemy:
+				(node as Enemy).showcase = str(studio_live.view.anim)
 
 
 ## Practice has no death: the hero is back on his feet at the yard's gate.
@@ -1259,18 +1276,35 @@ func _start_studio_live() -> void:
 	studio_live = StudioLive.new()
 	studio_live.name = "StudioLive"
 	studio_live.applied.connect(func(_spec: Dictionary) -> void: _studio_live_swap())
+	studio_live.view_changed.connect(_studio_live_swap)
 	add_child(studio_live)
 
 
 func _studio_live_swap() -> void:
-	Game.practice = StudioLive.ID
+	if Data.enemies.has(StudioLive.ID):
+		Game.practice = StudioLive.ID
+	var view: Dictionary = studio_live.view
+	# slow motion to see each frame — through Juice, which owns Engine.time_scale
+	Juice.set_base_scale(float(view.speed))
 	if room == null or room_index != PRACTICE_INDEX:
 		return  # the yard spawns it itself when it comes up
 	for node in get_tree().get_nodes_in_group("enemies"):
 		node.queue_free()
 	await get_tree().process_frame
-	if is_inside_tree() and room_index == PRACTICE_INDEX:
-		_practice_spawn()
+	if not is_inside_tree() or room_index != PRACTICE_INDEX:
+		return
+	_practice_spawn()
+	# more of them, side by side, to see a crowd of one kind
+	var first: Node = null
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is Enemy and not (node as Enemy).is_dead():
+			first = node
+	if first != null and Game.practice == StudioLive.ID:
+		for i in range(1, int(view.count)):
+			room.spawn_enemy(StudioLive.ID, first.global_position + Vector2(40.0 * i, 0.0), true)
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is Enemy:
+			(node as Enemy).showcase = str(view.anim)
 
 
 ## From the night's end straight into the yard against what killed him: the

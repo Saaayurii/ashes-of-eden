@@ -466,3 +466,15 @@ test('an override is her picture, its mask and a manifest line the Python side r
   assert.equal(kept['assets/props/altar_book.png'].base, 'abc', 'not stale: the base she first drew on is kept');
   assert.equal(out['assets/levels/a.png'].base, null, 'the generator records a new one');
 });
+
+// --- one send, one pull request ---
+
+test('the same files sent twice have the same fingerprint, whatever the project file says', async () => {
+  const e = s => new TextEncoder().encode(s);
+  const a = await L.filesFingerprint([['assets/sprites/x.png', e('pixels')], ['tools/studio/projects/chars/x.json', e('{"updated":1}')]]);
+  const b = await L.filesFingerprint([['tools/studio/projects/chars/x.json', e('{"updated":2}')], ['assets/sprites/x.png', e('pixels')]]);
+  const c = await L.filesFingerprint([['assets/sprites/x.png', e('other pixels')]]);
+  assert.equal(a, b, 'order and the project file do not matter');
+  assert.notEqual(a, c, 'different pixels are a different send');
+  assert.match(L.fingerprintMark(a), /^<!-- studio-files:[0-9a-f]{24} -->$/);
+});
