@@ -244,7 +244,8 @@
         "weight": 4,
         "animation": "attack",
         "color": "#ffd27a",
-        "projectile_style": "zealot"
+        "projectile_style": "lance",
+        "speed_jitter": 0.12
       },
       {
         "name": "Threefold Gospel",
@@ -890,7 +891,9 @@
         "animation": "special",
         "color": "#fff3c4",
         "sealed": true,
-        "sealed_only": true
+        "sealed_only": true,
+        "projectile_scale": 1.2,
+        "speed_jitter": 0.1
       }
     ],
     "sprite": {
