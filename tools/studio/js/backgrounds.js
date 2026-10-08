@@ -54,9 +54,11 @@ function setMode(m) {
   if (m === 'snd' || m === 'cut') enterStoryMode(m);
   if (m === 'rig' && typeof renderRig === 'function') renderRig();
   if (m === 'life' && typeof lifeEnter === 'function') lifeEnter();
+  if (m === 'shots' && typeof shotsEnter === 'function') shotsEnter();
   $$('.modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
   try { localStorage.setItem('ss_mode', m); } catch {}
   if (m === 'bg') {
+    if (typeof seamsLoad === 'function') seamsLoad().then(() => renderItemPanel()).catch(() => {});
     renderBgAll(); layoutBg();
     // первый вход: если задников нет, сами подтягиваем комнаты из игры (если они доступны)
     if (!bgs.length && !setMode.tried) {
@@ -210,6 +212,7 @@ function renderItemPanel() {
       ${meta ? `<img class="ithumb checker" src="${meta.src || A(meta.url)}" alt="">
       <div class="note">${esc(meta.res || 'своя картинка')} · ${meta.w}×${meta.h}</div>
       ${repaintable(meta) ? `<button class="sm" data-act="bg-repaint" title="Картинка того же размера (например, исправленная в ChatGPT или Procreate) ляжет правкой поверх генератора — тем, чем отличается">🖌 Перерисовать картину</button>
+        ${typeof SEAMS !== 'undefined' && SEAMS.data?.[meta.res] ? `<button class="sm" data-act="seam-open" data-res="${esc(meta.res)}" title="Полосы, которые генератор вставил, чтобы расширить картину: в них повторяется то, что стоит рядом">🩹 Швы (${SEAMS.data[meta.res].bands.length})</button>` : ''}
         ${META.overrides?.[repaintable(meta)]?.stale ? '<div class="warn">⚠ База изменилась — проверь: генератор перерисовал картину под твоей правкой.</div>' : META.overrides?.[repaintable(meta)] ? '<div class="note">Есть твоя правка этой картины.</div>' : ''}` : ''}` : `<div class="note">Прямоугольник цвета</div>`}
       <div class="grid2">
         <div><label>X</label><input type="number" data-it="x" value="${+it.x.toFixed(1)}"></div>

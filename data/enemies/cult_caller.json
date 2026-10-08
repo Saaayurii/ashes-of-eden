@@ -46,15 +46,18 @@
       "type": "ranged",
       "range": 260,
       "windup": 0.8,
-      "damage": 9,
+      "damage": 6,
       "cooldown": 2.4,
       "projectile_speed": 150,
       "projectile_motion": "wave",
       "motion_amount": 8,
-      "projectile_style": "cult",
+      "projectile_style": "hex",
       "color": "#b07cff",
       "animation": "special",
-      "weight": 1
+      "weight": 1,
+      "volley": 2,
+      "volley_gap": 0.3,
+      "projectile_scale": 1.1
     }
   ],
   "essence": 22

@@ -44,6 +44,40 @@ path's colour). Change the shader there, change `LIFE_FS` here.
 `lib.js setBackdropRule` rewrites one rule in the file's own style; every rule
 of the real file must round-trip byte for byte (`tests/lib.test.js`).
 
+**Platform pieces** (`js/tiles.js`, «🧱 Плитки» in the backgrounds tab).
+`build_data.py` writes `import/tiles.json`: `assets/decor/platforms/manifest.json`,
+which scenes lay each piece, which rooms are played. A piece she redraws is
+fitted to its manifest size and its alpha hardened as `slice_batch9.py` does;
+at the same size the scenes need no change, so only the PNG is written. The
+row preview is `generate_rooms.lay()` in miniature: no twins side by side,
+`OVERLAP` between pieces, each in its own shade (`_piece_shade`).
+
+**Seams of widened paintings** (`js/seams.js`, «🩹 Швы» on a room's painting).
+`generate_rooms.py` widens each painted panel by quilting a band at every
+`ROOM_EXPANSION_CUTS` cut out of the painting either side, so anything that
+stands near a cut stands there twice. `build_data.py` writes `import/seams.json`
+(the bands in wide-painting pixels, and how busy each is — fine detail against
+the painting as a whole, a rough "how visible is the twin"). The studio cuts a
+band out with 80 px either side and the room's floors drawn on it, takes her
+repaint back, keeps only the band (feathered into its sides) and sends the wide
+painting through the override path, so only the band goes in.
+Before the band is cut out, her repaint is put back onto the crop the way
+ref2game's `variantfix.py` does (`lib.js alignEdit` / `warpEdit` /
+`matchColours`): an image model's edit drifts a few pixels, a percent or two in
+size and a shade in colour, so the offset and scale are searched against the
+80 px sides (which were to stay) and each channel's mean and spread brought to
+theirs.
+
+**Ranged attacks** (`js/shots.js`, the «Снаряды» tab). `build_data.py` writes
+`import/projectiles.json`: the looks of `data/projectiles.json`, their strips,
+and every ranged attack in `data/enemies` and bolt gift in `data/abilities`
+with its place in its file. The preview flies them as `scripts/fx/projectile.gd`
+does — keep the two in step. Styles go back as the whole file; an attack goes
+back through `lib.js patchJson`, which rewrites only the values she touched and
+writes a new key the way Python's `json.dumps(indent=2)` would (both checked
+against every enemy file, `tests/`). A new strip goes in as
+`assets/sprites/projectiles/<style>_studio.png`.
+
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
 practice yard and the rooms' paintings are generator-owned, and an edit of one
@@ -261,3 +295,23 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     «Зачистка», ползунки «Босс» и «Раны», «Путь» — как место отвечает герою.
     «◐ Без жизни» — сравнить с нарисованным. → В игру меняет только твои
     правила в `data/backdrops.json` (не больше 24 зон на картину).
+17. **🧱 Плитки** (во вкладке «Задники») — куски, из которых генератор
+    складывает пол, полки и края комнат там, где их не нарисовала картина
+    (тренировочный двор, пол церкви и нефа). Видно, где каждый лежит и как
+    генератор кладёт ряд. ⬇ Скачать → перерисуй (📋 Промпт — для ChatGPT,
+    приложи скачанный кусок образцом) → ⬆ Своя картинка или Cmd/Ctrl+V:
+    студия подгонит к размеру куска. → В игру — кусок встанет во все комнаты.
+18. **🩹 Швы** (Задники → комната → картина) — расширенная картина комнаты:
+    полосы, которые вставил генератор, заметные первыми. ⬇ Кусок → в ChatGPT
+    с 📋 Промптом → ⬆ Заплатка (или Cmd/Ctrl+V). Меняется только полоса между
+    фиолетовыми рисками, края плавно сходятся; зелёные линии — пол, он должен
+    остаться на месте. «◐ Было» — сравнить. Уходит правкой поверх генератора.
+19. **Снаряды** — все дальние атаки: враги (культист, офаним, ревнитель,
+    рыцарь пепла…) и дары героя. Справа превью: замах → залп → пауза, как в
+    игре. Слева: как выглядит (стиль), как летит (прямо, волной, разгоняется,
+    дугой, зависает, возвращается, наводится), скорость, сколько снарядов и
+    веер, залпов подряд и пауза, разброс скорости, размер, урон, замах, цвет.
+    Ниже — сам стиль: ⬆ свой спрайт (лента кадров слева направо), кадры,
+    размер, вращение, пульс, дрожь, виляние, отражение позади, чем
+    разбивается. «⧉ Новый» — свой стиль из этого. Стиль меняется у всех, кто
+    им стреляет. → В игру меняет только то, что ты тронула.

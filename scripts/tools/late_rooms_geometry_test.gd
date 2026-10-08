@@ -41,6 +41,10 @@ func _run() -> void:
 			var decor: Parallax2D = room.get_node("DecorBack")
 			_check(decor.scroll_scale == Vector2.ONE,
 				"%s interior masonry drifts away from its footing" % key)
+		if key in ["church", "preacher_nave"]:
+			for piece in room.get_node("Terrain").get_children():
+				if str(piece.name).begins_with("WallL_") or str(piece.name).begins_with("WallR_"):
+					_check(not piece.visible, "%s mossy edge column %s covers the painted wall" % [key, piece.name])
 		if key == "church":
 			for index in [3, 4]:
 				var footing: CollisionShape2D = room.get_node("Ledges/Platform%dShape" % index)
