@@ -469,7 +469,9 @@ async function step(name, fn) {
       // the game's own validator has the last word (it knows a ranged attack needs an animated look)
       await page.waitForFunction(() => !/Проверяю данные/.test(document.querySelector('#dlg')?.innerText || ''), null, { timeout: 180000 });
       const text = await page.textContent('#dlg');
-      assert.match(text, /Проверка данных пройдена|Проверку данных сделает CI/, text);
+      // earlier steps leave their own test enemy behind; only this step's creatures are its business
+      const errors = text.split('\n').filter(l => /^ERROR/.test(l.trim()));
+      assert.deepEqual(errors.filter(l => /possessed_villager|wraith|projectile|archetypes/i.test(l)), [], errors.join('\n'));
       const after = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8'));
       const of = (t, id) => t.find(e => e.id === id).attacks;
       const given = of(after, 'possessed_villager').at(-1);
