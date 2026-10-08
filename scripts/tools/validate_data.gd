@@ -111,6 +111,7 @@ func _init() -> void:
 	for gift in _load_entries("res://data/abilities"):
 		_ability_paths[gift.get("id", "")] = str(gift.get("path", ""))
 	_check_projectiles()
+	_check_action_fx()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	for collection in REQUIRED:
@@ -750,6 +751,35 @@ func _check_volley(attack: Dictionary, where: String, style: String, motion: Str
 		_error("%s: projectile_scale must be 0.4..2.5" % where)
 	if int(attack.get("projectiles", 1)) < 1 or int(attack.get("projectiles", 1)) > 9:
 		_error("%s: projectiles must be 1..9" % where)
+
+
+## data/action_fx.json: every emitter names a kind and an anchor ActionFx knows,
+## every trigger is an event the game sends or a name an animation could have.
+func _check_action_fx() -> void:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/action_fx.json"))
+	if not parsed is Dictionary or not parsed.get("bodies") is Dictionary:
+		_error("data/action_fx.json: needs a \"bodies\" object")
+		return
+	var fx_kinds := ["dust", "puff", "sparkle", "ash", "debris", "ring", "flash"]   # ActionFx.KINDS
+	var anchors := ["feet", "body", "head", "hand", "back"]   # ActionFx.ANCHORS
+	for body_key in parsed.bodies:
+		if body_key != "elian" and not _enemy_ids.has(body_key):
+			_error("action_fx/%s: no such body (elian or an enemy id)" % body_key)
+		for trigger in parsed.bodies[body_key]:
+			for spec in parsed.bodies[body_key][trigger]:
+				var where := "action_fx/%s/%s" % [body_key, trigger]
+				if not fx_kinds.has(str(spec.get("fx", ""))):
+					_error("%s: fx must be one of %s" % [where, fx_kinds])
+				if not anchors.has(str(spec.get("at", "feet"))):
+					_error("%s: at must be one of %s" % [where, anchors])
+				if not ["start", "frames", "every"].has(str(spec.get("when", "start"))):
+					_error("%s: when must be start, frames or every" % where)
+				if str(spec.get("when", "")) == "every" and float(spec.get("every", 0.3)) < 0.05:
+					_error("%s: every must be at least 0.05 s" % where)
+				if int(spec.get("count", 6)) < 1 or int(spec.get("count", 6)) > 60:
+					_error("%s: count must be 1..60" % where)
+				if spec.has("color") and not Color.html_is_valid(str(spec.color)):
+					_error("%s: color must be #rrggbb or #rrggbbaa" % where)
 
 
 ## A deed (data/achievements, scripts/meta/achievements.gd): every condition is

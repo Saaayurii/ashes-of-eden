@@ -1,0 +1,67 @@
+{
+  "_comment": "Particles on any action of any body (scripts/fx/action_fx.gd). bodies.<elian | enemy id>.<trigger>: a list of emitters. A trigger is an animation the body plays (idle, run, attack, hurt…) — an emitter fires at its start (when \"start\"), on some of its frames (when \"frames\", frames: [i…]) or every `every` seconds while it plays (when \"every\") — or an event the game names: step (a footfall), jump, land, roll, wake. An emitter: fx dust | puff | sparkle | ash | debris | ring | flash; at feet | body | head | hand | back, offset [x, y] (x turns with the body); dir [x, y] for dust; count; color #rrggbb or #rrggbbaa; size (puff scale, sparkle width, ash spread, ring and flash radius); rise (ash); chance 0..1. Edited in the art studio, tab «Частицы».",
+  "bodies": {
+    "elian": {
+      "step": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "offset": [
+            -4,
+            0
+          ],
+          "dir": [
+            -1,
+            -0.6
+          ],
+          "count": 3,
+          "color": "#998c8080"
+        }
+      ],
+      "land": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "dir": [
+            0,
+            -1
+          ],
+          "count": 8
+        }
+      ],
+      "roll": [
+        {
+          "fx": "puff",
+          "at": "back",
+          "size": 0.5,
+          "color": "#ffffffb2"
+        },
+        {
+          "fx": "dust",
+          "at": "feet",
+          "offset": [
+            -6,
+            0
+          ],
+          "dir": [
+            -1,
+            -0.4
+          ],
+          "count": 6
+        }
+      ],
+      "wake": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "dir": [
+            0,
+            -1
+          ],
+          "count": 12,
+          "color": "#614c42cc"
+        }
+      ]
+    }
+  }
+}
