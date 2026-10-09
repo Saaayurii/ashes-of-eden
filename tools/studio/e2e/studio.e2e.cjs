@@ -56,7 +56,7 @@ async function step(name, fn) {
     // Before any other tab has loaded: the wizard is reached from the
     // characters tab straight away, and its room list used to come up empty.
     await step('the enemy wizard lists the rooms on a fresh page', async () => {
-      await page.waitForFunction(() => P);  // the wizard does nothing until the current character is loaded
+      await page.waitForFunction(() => P && window.SS, null, { timeout: 60000 });  // the wizard does nothing until the current character is loaded
       assert.equal(await page.evaluate(() => roomNames().length), 0, 'no tab has loaded the rooms yet');
       await page.evaluate(() => { enemyWizard(); });
       await page.waitForFunction(() => document.querySelectorAll('#dlg[open] .rp-room option').length > 10, null, { timeout: 15000 });
@@ -314,7 +314,8 @@ async function step(name, fn) {
       const ctx = await browser.newContext({ viewport: { width: 820, height: 1180 }, hasTouch: true, deviceScaleFactor: 2 });
       const tab = await ctx.newPage(); tab.on('pageerror', e => errors.push('tablet: ' + e + ' ' + (e.stack || '').split('\n').slice(0, 3).join(' ')));
       tab.on('dialog', d => d.accept(d.type() === 'prompt' ? 'e2e_tablet' : undefined));
-      await tab.goto(URL); await tab.waitForFunction(() => typeof Writer !== 'undefined' && Writer.mode === 'local' && typeof P !== 'undefined' && !!P);
+      await tab.goto(URL); // window.SS is set last in init: a first visit imports the game's characters first, and P moves meanwhile
+      await tab.waitForFunction(() => typeof Writer !== 'undefined' && Writer.mode === 'local' && typeof P !== 'undefined' && !!P && !!window.SS, null, { timeout: 60000 });
       const cdp = await ctx.newCDPSession(tab);
       const pen = (type, x, y, buttons = 1) => cdp.send('Input.dispatchMouseEvent', { type, x, y, button: type === 'mouseMoved' && !buttons ? 'none' : 'left', buttons, clickCount: 1, pointerType: 'pen' });
       const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], id) => ({ x, y, id })) });
