@@ -137,6 +137,22 @@ class SpriteFrames(unittest.TestCase):
         self.assertTrue(all(a["file"].startswith("res://assets/sprites/") for a in hero["animations"]))
 
 
+    def test_every_body_the_game_draws_from_strips_is_in_the_studio(self):
+        """Not only the archetype tree: an enemy with strips of its own (the seals, the straw man)
+        and every NPC, each knowing which generator draws it, so an edit goes the right way."""
+        chars = {c["id"]: c for c in build_data.bestiary(ROOT)}
+        want = set()
+        for d in ("data/enemies", "data/npcs"):
+            for f in (ROOT / d).glob("*.json"):
+                sp = json.loads(f.read_text(encoding="utf-8")).get("sprite") or {}
+                if sp.get("animations"):
+                    want.add(f.stem)
+        self.assertEqual(want - set(chars), set())
+        self.assertEqual(chars["ophanim_seal"]["origin"]["generator"], "tools/art/make_ophanim_seals.py")
+        self.assertEqual(chars["training_dummy"]["origin"]["generator"], "tools/art/make_practice_yard.py")
+        self.assertEqual(chars["mara"]["origin"]["generator"], build_data.BESTIARY_GENERATOR)
+        self.assertNotIn("generator", chars["ash_archer"]["origin"])  # the studio drew it: plain files
+
 class Rooms(unittest.TestCase):
     def test_graveyard_layers(self):
         room = build_data.room_project(ROOT, ROOT / "scenes/rooms/graveyard.tscn")

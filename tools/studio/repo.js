@@ -248,8 +248,8 @@ async function addOverrides(files, pics) {
   if (Object.keys(entries).length) files[OVERRIDE_DIR + 'overrides.json'] = mergeOverrides(await repoText(OVERRIDE_DIR + 'overrides.json'), entries);
   return Object.keys(entries);
 }
-// A character the game draws with a generator (the bestiary, the hero): only the frames she changed,
-// laid into the game's own pictures where they lie (build_data's regions), as overrides.
+// A character from the game (the hero, an enemy, an NPC): only the frames she changed, laid into the
+// game's own pictures where they lie (build_data's regions) — as overrides where a generator draws them.
 async function gameCharOverrides() {
   const orig = await (await fetch(`import/chars/${encodeURIComponent(P.id)}.sprite.json`, { cache: 'no-store' })).json();
   const edits = frameEdits(P.animations, orig.animations), pics = {}, direct = {};
@@ -311,7 +311,7 @@ const artOk = () => { const bad = (typeof artReport !== 'undefined' ? artReport 
 // zip: the strips as they are, for her own use; into the game: a generated character goes as overrides
 async function charFiles(zip = false) {
   await build();
-  if (!zip && P.origin?.kind === 'game' && P.origin.generator) return gameCharOverrides();
+  if (!zip && P.origin?.kind === 'game' && P.animations.some(a => a.regions?.length)) return gameCharOverrides();
   const S = P.settings, W = +S.cellW, H = +S.cellH, name = slug(P.name), origin = P.origin || {};
   const base = String(S.resPath || 'res://assets/sprites/').replace(/\/*$/, '/'), used = new Set(), files = {}, anims = [], manifest = [], sheets = {};
   for (const a of P.animations) {

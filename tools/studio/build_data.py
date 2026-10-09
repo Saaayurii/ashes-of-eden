@@ -5,8 +5,8 @@ The studio is a static page: it cannot list res:// or parse a .tscn, so this
 script turns the game into JSON once, into tools/studio/import/ (not tracked;
 pages.yml runs it for the hosted copy):
 
-    list.json, chars/*.sprite.json   characters: the hero's SpriteFrames and every
-                                     bestiary strip, cut into frames
+    list.json, chars/*.sprite.json   characters: the hero's SpriteFrames, every
+                                     enemy's and NPC's strips, cut into frames
     rooms_list.json, rooms/*.bg.json each room's Parallax2D layers and decor
     library.json                     every picture a background can use
     audio.json                       sfx (grouped into takes), music, spoken lines
@@ -153,26 +153,73 @@ def hero(root: Path):
     return c
 
 
+def _sprite_character(root: Path, cid, sp, description, generator):
+    """A character drawn from a "sprite" block of the game's data (cell, fps, animations: strips)."""
+    cw, ch = sp["cell"]
+    anims = []
+    for name, res in sp["animations"].items():
+        path = res_to_path(root, res)
+        if path.exists():
+            imgs = slice_strip(path, cw, ch)
+            if imgs:
+                anims.append(_anim(cid, name, float(sp.get("fps", 8)), name in ("idle", "walk"), imgs, res,
+                                   regions=[[res, i * cw, 0, cw, ch] for i in range(len(imgs))]))
+    if not anims:
+        return None
+    origin = {"kind": "game", "generator": generator}
+    if not generator:
+        origin.pop("generator")
+    c = _character(cid, (cw, ch), anims, description, origin)
+    c["rev"] = rev(root, *sorted(a["file"] for a in anims))
+    return c
+
+
+def _owner(root: Path, files):
+    """The generator in tools/check_generators.py that writes these files, the most specific
+    of its paths deciding (the bestiary owns assets/sprites, the seals' generator its three strips),
+    or None when no generator does (a character the studio itself made)."""
+    spec = importlib.util.spec_from_file_location("check_generators", root / "tools/check_generators.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    registry = STUDIO / "projects" / "files.json"
+    mine = set(json.loads(registry.read_text(encoding="utf-8"))) if registry.exists() else set()
+    best, depth = None, -1
+    for f in files:
+        if f in mine:
+            continue
+        for _name, argv, paths, _slow in mod.GENERATORS:
+            for p in paths:
+                if (f == p or f.startswith(p.rstrip("/") + "/")) and len(p) > depth:
+                    best, depth = argv[0], len(p)
+    return best
+
+
 def bestiary(root: Path):
-    out = []
+    """Every creature and person the game draws from strips: the archetype tree, then the
+    enemies with a sprite of their own outside it (a "like" is another one's strips tinted,
+    nothing to draw), then the NPCs."""
+    out, seen = [], set()
     for e in json.loads((root / "data/enemy_archetypes/tree.json").read_text(encoding="utf-8")):
         sp = e.get("sprite")
-        if not sp:
+        if sp:
+            c = _sprite_character(root, e["id"], sp, f"{e.get('family', 'enemy')} enemy, imported from the game",
+                                  BESTIARY_GENERATOR)
+            if c:
+                out.append(c)
+                seen.add(e["id"])
+    sources = [(f, "enemy") for f in sorted((root / "data/enemies").glob("*.json"))]
+    sources += [(f, "npc") for f in sorted((root / "data/npcs").glob("*.json"))]
+    for f, kind in sources:
+        e = json.loads(f.read_text(encoding="utf-8"))
+        cid, sp = e.get("id", f.stem), e.get("sprite") or {}
+        if cid in seen or not sp.get("animations") or not sp.get("cell"):
             continue
-        cw, ch = sp["cell"]
-        anims = []
-        for name, res in sp["animations"].items():
-            path = res_to_path(root, res)
-            if path.exists():
-                imgs = slice_strip(path, cw, ch)
-                if imgs:
-                    anims.append(_anim(e["id"], name, float(sp.get("fps", 8)), name in ("idle", "walk"), imgs, res,
-                                       regions=[[res, i * cw, 0, cw, ch] for i in range(len(imgs))]))
-        if anims:
-            c = _character(e["id"], (cw, ch), anims, f"{e.get('family', 'enemy')} enemy, imported from the game",
-                           {"kind": "game", "generator": BESTIARY_GENERATOR})
-            c["rev"] = rev(root, *sorted(a["file"] for a in anims))
+        files = [res.replace("res://", "") for res in sp["animations"].values()]
+        what = "NPC" if kind == "npc" else f"{e.get('family', 'enemy')} enemy"
+        c = _sprite_character(root, cid, sp, f"{what}, imported from the game", _owner(root, files))
+        if c:
             out.append(c)
+            seen.add(cid)
     return out
 
 
