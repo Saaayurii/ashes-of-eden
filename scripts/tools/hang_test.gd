@@ -71,6 +71,7 @@ func _run() -> void:
 	villager.take_damage(500.0, player, {"sneak": 3.0})
 	_check(villager.hp == hp and villager._hanging, "a blow on the noose does nothing")
 	_check(villager.impact_sound() == &"block", "and sounds like a glance")
+	_check(villager.collision_layer == 0, "no sword or bolt finds it up there")
 
 	# far off: it waits
 	player.set_physics_process(false)
@@ -83,6 +84,7 @@ func _run() -> void:
 	await _settle(0.1)
 	_check(not villager._hanging and villager._dropping, "a player under it snaps the rope")
 	_check(not villager.is_unaware(), "it is awake on the way down (no backstab)")
+	_check(villager.collision_layer != 0, "and can be struck again")
 	var fell := false
 	for i in 120:
 		await physics_frame

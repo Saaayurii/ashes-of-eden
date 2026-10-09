@@ -124,7 +124,7 @@ func _run() -> void:
 	# grave salt: a blow in the back gives the roll back
 	var sleeper = null
 	for body in _enemies(run):
-		if body != foe:
+		if body != foe and not body._hanging:
 			sleeper = body
 	if sleeper != null:
 		sleeper.aware = false

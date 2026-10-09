@@ -172,6 +172,7 @@ var _land_left := -1.0
 var _rope: Line2D
 var _sway_t := 0.0
 var _sway_push := 0.0
+var _hang_layer := 0
 ## The top of the drawn body in local pixels (the rope's knot), from _setup_sprite.
 var _head_y := -16.0
 ## The seal phase (see "seal_phase" above): eyes closed, warded, waiting on its seals.
@@ -725,6 +726,10 @@ func _voice(kind: String, fallback: StringName, volume_db := 0.0) -> void:
 func _hang() -> void:
 	var spec := _hang_spec()
 	_hanging = true
+	# out of reach means out of reach: no sword, bolt or body finds it up there
+	# (a swing that found it would still pay its on-hit gifts)
+	_hang_layer = collision_layer
+	collision_layer = 0
 	global_position.y += 1.0 - spec.lift
 	_home = global_position
 	if _shadow != null:
@@ -816,6 +821,7 @@ func _snap_fx() -> void:
 	if not _hanging:
 		return
 	_hanging = false
+	collision_layer = _hang_layer
 	set_process(false)
 	sprite.position.x = 0.0
 	var knot := global_position + Vector2(0, _head_y)
