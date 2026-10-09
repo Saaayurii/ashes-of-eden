@@ -159,6 +159,8 @@ func _coop() -> void:
 		for sweep in 20:
 			for enemy in get_nodes_in_group("enemies"):
 				if enemy.has_method("take_damage"):
+					if enemy.get("_hanging"):  # on a noose nothing lands (Enemy._hang): cut it down first
+						enemy._snap(get_first_node_in_group("player"))
 					enemy.take_damage(9999.0, run.player)
 			await _tick(0.4)
 			if run.room != null and run.room.door.open:

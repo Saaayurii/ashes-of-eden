@@ -65,6 +65,8 @@ func _run() -> void:
 			# them from there); a room played straight from the editor keeps its own.
 			for enemy in run.entities.get_children() + room.get_children():
 				if enemy.has_method("take_damage"):
+					if enemy.get("_hanging"):  # on a noose nothing lands (Enemy._hang): cut it down first
+						enemy._snap(get_first_node_in_group("player"))
 					enemy.take_damage(9999.0, run.player)
 			await _settle(0.5)
 			if room.alive == 0:

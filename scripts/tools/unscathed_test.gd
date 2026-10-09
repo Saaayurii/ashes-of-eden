@@ -45,6 +45,8 @@ func _load(run, name: String) -> void:
 func _clear_room() -> void:
 	for body in get_nodes_in_group("enemies"):
 		if not body.is_dead():
+			if body.get("_hanging"):  # on a noose nothing lands (Enemy._hang): cut it down first
+				body._snap(get_first_node_in_group("player"))
 			body.take_damage(99999.0)
 	await _frames(6)
 

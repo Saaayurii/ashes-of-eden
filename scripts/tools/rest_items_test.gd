@@ -212,6 +212,8 @@ func _run() -> void:
 	if point != null:
 		var commons := 0
 		for body in _enemies(run):
+			if body.get("_hanging"):  # on a noose nothing lands (Enemy._hang): cut it down first
+				body._snap(get_first_node_in_group("player"))
 			body.take_damage(99999.0)
 			commons += 1
 		await _frames(4)
@@ -230,6 +232,8 @@ func _run() -> void:
 			"the autosave remembers the rest")
 		_check(not point.rest(player), "once a night")
 		for body in _enemies(run):
+			if body.get("_hanging"):  # on a noose nothing lands (Enemy._hang): cut it down first
+				body._snap(get_first_node_in_group("player"))
 			body.take_damage(99999.0)
 		await _frames(4)
 		_check(run.room.door.open, "down again: the door opens again")
@@ -240,6 +244,8 @@ func _run() -> void:
 	for body in _enemies(run):
 		if body.enemy_id == "elite_possessed":
 			elites += 1
+		if body.get("_hanging"):  # on a noose nothing lands (Enemy._hang): cut it down first
+			body._snap(get_first_node_in_group("player"))
 		body.take_damage(99999.0)
 	await _frames(4)
 	run.room.respawn_commons()
