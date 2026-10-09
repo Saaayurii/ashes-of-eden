@@ -159,7 +159,7 @@ func map_rects() -> Array[Rect2]:
 func populate() -> void:
 	for spawn in $Spawns.get_children():
 		if spawn is EnemySpawn:
-			_from_markers.append([spawn, spawn_enemy(spawn.enemy_id, spawn.global_position)])
+			_from_markers.append([spawn, spawn_enemy(spawn.enemy_id, spawn.global_position, false, spawn.hanging)])
 	if alive == 0:
 		door.open = true
 
@@ -177,7 +177,7 @@ func respawn_commons() -> int:
 		var data: Dictionary = Data.enemies.get(spawn.enemy_id, {})
 		if data.get("boss", false) or data.get("tags", []).has("elite"):
 			continue
-		pair[1] = spawn_enemy(spawn.enemy_id, spawn.global_position)
+		pair[1] = spawn_enemy(spawn.enemy_id, spawn.global_position, false, spawn.hanging)
 		risen += 1
 	if risen > 0:
 		door.open = false
@@ -186,13 +186,15 @@ func respawn_commons() -> int:
 
 ## Also used by bosses that summon: everything spawned here must die before the door opens.
 ## [param aware] skips the patrol: reinforcements arrive already fighting.
-func spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
+## [param hanging]: it waits on a noose over [param at] (EnemySpawn.hanging).
+func spawn_enemy(enemy_id: String, at: Vector2, aware := false, hanging := false) -> Enemy:
 	alive += 1
 	if spawn_hook.is_valid():
-		return spawn_hook.call(enemy_id, at, aware)
+		return spawn_hook.call(enemy_id, at, aware, hanging)
 	var enemy: Enemy = ENEMY_SCENE.instantiate()
 	enemy.enemy_id = enemy_id
 	enemy.start_aware = aware
+	enemy.start_hanging = hanging and not aware
 	enemy.global_position = at
 	add_child(enemy)
 	return enemy

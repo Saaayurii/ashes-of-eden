@@ -721,11 +721,17 @@ function snapToSurface(surfaces, x, y) {
   for (const [sx, sy, sw] of surfaces || []) if (sx - 8 <= x && x <= sx + sw + 8 && sy >= y + 12 - 4 && (!best || sy < best[1])) best = [sx, sy, sw];
   return best ? { x: Math.round(x), y: Math.round(best[1] - 12) } : null;
 }
-// change: {room, spawn: [id, x, y]} or {room, intro_cutscene | outro_cutscene: id}.
-// An enemy is placed once per room (placing it again moves it).
+// change: {room, spawn: [id, x, y]}, {room, hanger: [id, x, y]} or {room, intro_cutscene | outro_cutscene: id}.
+// An enemy is placed once per room (placing it again moves it); hangers are as
+// many as she hangs, one per spot (a noose over a floor: Enemy._hang).
 function mergeStudioRooms(text, change) {
   const all = text ? JSON.parse(text) : {}, r = all[change.room] ||= {};
   if (change.spawn) { r.spawns = (r.spawns || []).filter(s => s[0] !== change.spawn[0]); r.spawns.push(change.spawn); }
+  if (change.hanger) {
+    const [, hx, hy] = change.hanger;
+    r.hangers = (r.hangers || []).filter(s => Math.abs(s[1] - hx) > 24 || Math.abs(s[2] - hy) > 24);
+    r.hangers.push(change.hanger);
+  }
   for (const k of ['intro_cutscene', 'outro_cutscene']) if (change[k] !== undefined) r[k] = change[k];
   const sorted = Object.fromEntries(Object.keys(all).sort().map(k => [k, all[k]]));
   return JSON.stringify(sorted, null, 2).replace(/\[\n\s+("[^"]*"),\n\s+(-?[\d.]+),\n\s+(-?[\d.]+)\n\s+\]/g, '[$1, $2, $3]') + '\n';

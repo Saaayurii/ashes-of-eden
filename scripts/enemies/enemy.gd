@@ -24,6 +24,9 @@ class_name Enemy
 ##   patrol     {"radius", "speed", "pause"}: how it idles around its spawn until
 ##              it notices somebody.
 ##   aware      true = awake from frame one (bosses always are).
+##   hang       {"lift", "range", "rope", "land"}: a walker that may wait on a noose
+##              (a spawn marked "hanging"): untouchable up there, it drops when a
+##              player comes within "range" and lies "land" seconds before it hunts.
 ## The telegraph is the whole point: a wind-up the player can read and roll through.
 ##
 ## Nobody is born hostile: an enemy patrols its patch until it sees a player
@@ -81,6 +84,9 @@ const FLOCK_SPACE := 30.0
 var affix := ""
 ## Set by the spawner for reinforcements: they arrive already fighting.
 @export var start_aware := false
+## Set by the spawn (EnemySpawn.hanging): it waits on a noose until a player
+## comes near. Only a walker whose data has "hang" does; see _hang.
+@export var start_hanging := false
 
 var stats: Dictionary = {}
 var hp: float
@@ -153,6 +159,21 @@ var _simulated := true  # false on a client: the host drives this body
 ## Optional glow from data ("light": colour, radius, energy): spirits, relics, the boss.
 var _light: GlowLight
 var _shadow: Sprite2D
+## Hanging ("hang" in the data: lift, range, rope, land). On the noose it is
+## out of reach of every blow; a player within "range" (or a neighbour's shout)
+## snaps the rope, it drops, and lies "land" seconds before it hunts — the
+## beat to read, as any wind-up is.
+const HANG_DEFAULTS := {"lift": 26.0, "range": 64.0, "rope": 150.0, "land": 0.6}
+## How far up a rope looks for something to be tied to.
+const HANG_TIE_REACH := 320.0
+var _hanging := false
+var _dropping := false
+var _land_left := -1.0
+var _rope: Line2D
+var _sway_t := 0.0
+var _sway_push := 0.0
+## The top of the drawn body in local pixels (the rope's knot), from _setup_sprite.
+var _head_y := -16.0
 ## The seal phase (see "seal_phase" above): eyes closed, warded, waiting on its seals.
 var _sealed := false
 var _seal_done := false
@@ -240,9 +261,12 @@ func _ready() -> void:
 	_patrol_wait = randf_range(0.2, 1.2)
 	aware = start_aware or bool(stats.get("aware", false)) or bool(stats.get("boss", false))
 	state = State.CHASE if aware else State.PATROL
+	set_process(false)  # only a client watching a hanging body needs it (_process)
 	if Net.active:
 		_simulated = multiplayer.is_server()
 		set_physics_process(_simulated)
+	if start_hanging and not aware and stats.has("hang") and not _is_flying():
+		_hang()
 	if _simulated and stats.get("boss", false):
 		EventBus.boss_hp_changed.emit(stats.get("name", ""), hp, _max_hp)
 
@@ -356,7 +380,7 @@ func _setup_sprite(spec: Dictionary) -> void:
 	var fps := float(spec.get("fps", 6))
 	if spec.has("animations"):
 		for anim in spec.animations:
-			var loop: bool = anim in ["idle", "walk", "special"]
+			var loop: bool = anim in ["idle", "walk", "special", "hang"]
 			if Fx.add_strip(frames, spec.animations[anim], cell, fps, anim, loop):
 				_has_anim[anim] = true
 	elif spec.has("path"):
@@ -381,6 +405,7 @@ func _setup_sprite(spec: Dictionary) -> void:
 	# particles on its actions (data/action_fx.json): anchors measured on this body —
 	# the sole 11 px under the origin, the head near the top of the drawn cell
 	var top := 12.0 - cell.y * art_scale + float(spec.get("pad_y", 0)) * art_scale
+	_head_y = top + 3.0 * art_scale  # the strips keep a little air over the head
 	ActionFx.attach(self, sprite, enemy_id, {"feet": Vector2(0, 11), "body": Vector2(0, (top + 11.0) * 0.5),
 		"head": Vector2(0, top + 6.0), "hand": Vector2(12, -14), "back": Vector2(-6, 4)})
 	sprite.visible = true
@@ -410,6 +435,12 @@ func _physics_process(delta: float) -> void:
 		if _has_anim.has(showcase) and (sprite.animation != showcase or not sprite.is_playing()):
 			sprite.play(showcase)
 			sprite.frame = 0
+		return
+	if _hanging:
+		_hang_tick(delta)
+		return
+	if _dropping:
+		_drop_tick(delta)
 		return
 	if stats.get("behaviour", "walker") == "seal":
 		# it hangs where it was set; a blow only plays its crack
@@ -640,6 +671,9 @@ func _can_see(who: Player) -> bool:
 
 ## "!" — one readable beat, then the hunt. Sleepers nearby wake with us.
 func _notice(who: Player, shout := true) -> void:
+	if _hanging:
+		_snap(who)  # a shout, a touch: the rope goes
+		return
 	if not is_unaware():
 		return
 	_target = who
@@ -665,6 +699,8 @@ func _notice(who: Player, shout := true) -> void:
 ## feather, spirit, gold), otherwise the generic blow. Asked for by whoever
 ## swung, so the hit is heard the moment it lands and not a round trip later.
 func impact_sound() -> StringName:
+	if _hanging:
+		return &"block"  # the blade glances off a body swinging out of reach
 	var own := StringName("%s_impact" % str(stats.get("voice", enemy_id)))
 	if Audio.has_clip(own):
 		return own
@@ -681,6 +717,153 @@ func _voice(kind: String, fallback: StringName, volume_db := 0.0) -> void:
 		Audio.play_at(own, global_position, volume_db)
 	elif fallback != &"":
 		Audio.play_at(fallback, global_position, volume_db)
+
+
+## On the noose over its spawn: the sole "lift" above the floor (a spawn
+## stands 12 px over its floor, the sole is 11 under the origin), a rope from
+## the knot up "rope" px, fading into the dark it is tied to.
+func _hang() -> void:
+	var spec := _hang_spec()
+	_hanging = true
+	global_position.y += 1.0 - spec.lift
+	_home = global_position
+	if _shadow != null:
+		_shadow.position.y = 11.0 + spec.lift
+	_rope = Line2D.new()
+	_rope.name = "Rope"
+	_rope.width = 2.0
+	_rope.default_color = Color("#6b5434")
+	_rope.texture_mode = Line2D.LINE_TEXTURE_NONE
+	_rope.points = PackedVector2Array([Vector2(0, _head_y), Vector2(0, _head_y - spec.rope)])
+	var fade := Gradient.new()
+	fade.set_color(0, Color.WHITE)
+	fade.set_color(1, Color(1, 1, 1, 0))
+	fade.add_point(0.55, Color.WHITE)
+	_rope.gradient = fade
+	_rope.z_index = -1
+	add_child(_rope)
+	_tie_rope.call_deferred()
+	_play("hang" if _has_anim.has("hang") else "idle")
+	if not _simulated:
+		set_process(true)  # a client watches for the host's snap (aware), late peers too
+
+
+## Tied to whatever stone or ledge is above it, if any is near enough; otherwise
+## the rope fades into the dark (a painted branch, a beam we have no collider for).
+func _tie_rope() -> void:
+	if _rope == null or not is_inside_tree():
+		return
+	var knot := global_position + Vector2(0, _head_y)
+	var query := PhysicsRayQueryParameters2D.create(knot, knot + Vector2(0, -HANG_TIE_REACH), SOLID_MASK)
+	query.exclude = [get_rid()]
+	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	_rope.set_point_position(1, Vector2(0, to_local(hit.position).y))
+	_rope.gradient = null  # tied: drawn all the way up
+
+
+func _hang_spec() -> Dictionary:
+	var spec: Dictionary = HANG_DEFAULTS.duplicate()
+	for key in stats.get("hang", {}):
+		spec[key] = float(stats.hang[key])
+	return spec
+
+
+## On the host: it sways, untouchable, until somebody walks under it.
+func _hang_tick(delta: float) -> void:
+	velocity = Vector2.ZERO
+	_sway_t += delta
+	_sway_push = move_toward(_sway_push, 0.0, delta * 1.5)
+	var sway := roundf(sin(_sway_t * 1.7) * (0.6 + _sway_push * 2.5))
+	sprite.position.x = sway
+	_rope.set_point_position(0, Vector2(sway, _head_y))
+	if Game.cutscene:
+		return
+	var spec := _hang_spec()
+	for node in get_tree().get_nodes_in_group("player"):
+		var who := node as Player
+		if who == null or who.is_dead():
+			continue
+		var d := who.global_position - global_position
+		if absf(d.x) <= spec.range and d.y > -40.0 and d.y < spec.lift + 60.0:
+			_snap(who)
+			return
+	for touched in contact_area.get_overlapping_bodies():
+		if touched is Player and not touched.is_dead():
+			_snap(touched)
+			return
+
+
+## The rope gives: it drops, awake, facing whoever came.
+func _snap(who: Player) -> void:
+	if not _hanging:
+		return
+	_target = who
+	var d := who.global_position.x - global_position.x
+	if absf(d) > 4.0:
+		facing = 1 if d > 0.0 else -1
+	aware = true
+	_dropping = true
+	_land_left = -1.0
+	_set_state(State.RECOVER, 0.0)  # not unaware any more: no backstab on the way down
+	_snap_fx()
+	if Net.active:
+		_net_snap.rpc(facing)
+
+
+func _snap_fx() -> void:
+	if not _hanging:
+		return
+	_hanging = false
+	set_process(false)
+	sprite.position.x = 0.0
+	var knot := global_position + Vector2(0, _head_y)
+	Audio.play_at(&"prop_break", knot, -8.0)
+	_voice("alert", &"", -6.0)
+	Fx.debris(knot, Color("#6b5434"), 5)
+	_play("fall" if _has_anim.has("fall") else "hurt")
+	if _shadow != null:
+		create_tween().tween_property(_shadow, "position:y", 11.0, 0.35)
+	if _rope != null:
+		# the cut end whips up into the dark it hung from
+		var rope := _rope
+		_rope = null
+		var tween := rope.create_tween().set_parallel()
+		tween.tween_property(rope, "position:y", -24.0, 0.4)
+		tween.tween_property(rope, "modulate:a", 0.0, 0.4)
+		tween.chain().tween_callback(rope.queue_free)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_snap(new_facing: int) -> void:
+	facing = new_facing
+	_snap_fx()
+
+
+## A client: the snap arrives as an rpc, or — a peer let in after it — as the
+## replicated `aware` of a body that is still drawn on its rope.
+func _process(_delta: float) -> void:
+	if _hanging and aware and not _simulated:
+		_snap_fx()
+
+
+## Falling, then a beat on the ground before the hunt.
+func _drop_tick(delta: float) -> void:
+	_hold(delta)
+	_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
+	move_and_slide()
+	if not is_on_floor():
+		return
+	if _land_left < 0.0:
+		_land_left = _hang_spec().land
+		Audio.play_at(&"land", global_position)
+		Fx.dust(global_position + Vector2(0, 11), Vector2.UP, 9)
+		_play("land" if _has_anim.has("land") else "idle")
+	_land_left -= delta
+	if _land_left <= 0.0:
+		_dropping = false
+		_set_state(State.CHASE, 0.0)
 
 
 func _alert_fx() -> void:
@@ -1357,6 +1540,9 @@ func _net_hit(amount: float, from: Vector2, crit: bool, knockback: float, sneak:
 func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knockback: float, sneak := 1.0,
 		execute := 0.0) -> void:
 	if state == State.DEAD:
+		return
+	if _hanging:
+		_sway_push = 1.0  # out of reach: the blow only sets it swinging
 		return
 	if _sealed:
 		# warded: the blade rings off, nothing gets through

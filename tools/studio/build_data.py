@@ -314,7 +314,9 @@ def room_project(root: Path, path: Path):
     if loose:
         layer("Sprites", [1, 1], loose)
     layers.sort(key=lambda l: l["z"])
+    # a hanger (EnemySpawn.hanging) carries a fourth field, "hang"
     spawns = [[c["props"].get("enemy_id", '""').strip('"'), *_vec(c["props"].get("position"))]
+              + (["hang"] if c["props"].get("hanging") == "true" else [])
               for c in nodes if c["parent"] == "Spawns" and c["type"] == "Marker2D"]
     # the tops of the room's colliders: where an enemy placed in the studio can stand
     rects = {m[0]: (float(m[1]), float(m[2])) for m in re.findall(
@@ -427,6 +429,19 @@ def story(root: Path, strings, rooms):
             "families": sorted(backdrops.get("families", {}).keys()), "pictures": sorted(backdrops.get("rooms", {}).keys())}
 
 
+def _hangs(root: Path, eid):
+    """Whether an enemy (or what it extends) can wait on a noose ("hang", Enemy._hang)."""
+    while eid:
+        f = root / "data/enemies" / f"{eid}.json"
+        if not f.exists():
+            return False
+        e = json.loads(f.read_text(encoding="utf-8"))
+        if "hang" in e:
+            return True
+        eid = e.get("extends")
+    return False
+
+
 def enemies(root: Path, strings):
     """What the enemy wizard offers to inherit from: every enemy with its fight in short."""
     out = []
@@ -439,7 +454,8 @@ def enemies(root: Path, strings):
                     "boss": bool(e.get("boss")), "tags": e.get("tags", []), "hp": e.get("hp"), "speed": e.get("speed"),
                     "material": e.get("material"), "attacks": sorted({a.get("type", "?") for a in attacks}),
                     "name": {"ru": name.get("ru", ""), "en": name.get("en", "")},
-                    "sprite": e.get("sprite", {}).get("cell"), "bestiary": e.get("bestiary", True)})
+                    "sprite": e.get("sprite", {}).get("cell"), "bestiary": e.get("bestiary", True),
+                    "hang": _hangs(root, e.get("id", f.stem))})
     return out
 
 

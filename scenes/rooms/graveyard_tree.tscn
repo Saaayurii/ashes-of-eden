@@ -504,44 +504,45 @@ script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
 [node name="Spawn2" type="Marker2D" parent="Spawns"]
-position = Vector2(810, 407)
-script = ExtResource("5_spawn")
-enemy_id = "possessed_villager"
-
-[node name="Spawn3" type="Marker2D" parent="Spawns"]
 position = Vector2(1040, 368)
 script = ExtResource("5_spawn")
 enemy_id = "cultist"
 
-[node name="Spawn4" type="Marker2D" parent="Spawns"]
+[node name="Spawn3" type="Marker2D" parent="Spawns"]
 position = Vector2(1520, 433)
 script = ExtResource("5_spawn")
 enemy_id = "fallen_guard"
 
-[node name="Spawn5" type="Marker2D" parent="Spawns"]
+[node name="Spawn4" type="Marker2D" parent="Spawns"]
 position = Vector2(760, 603)
 script = ExtResource("5_spawn")
 enemy_id = "possessed_villager"
 
-[node name="Spawn6" type="Marker2D" parent="Spawns"]
+[node name="Spawn5" type="Marker2D" parent="Spawns"]
 position = Vector2(460, 300)
 script = ExtResource("5_spawn")
 enemy_id = "zealot"
 
-[node name="Spawn7" type="Marker2D" parent="Spawns"]
+[node name="Spawn6" type="Marker2D" parent="Spawns"]
 position = Vector2(860, 250)
 script = ExtResource("5_spawn")
 enemy_id = "shade"
 
-[node name="Spawn8" type="Marker2D" parent="Spawns"]
+[node name="Spawn7" type="Marker2D" parent="Spawns"]
 position = Vector2(1110, 600)
 script = ExtResource("5_spawn")
 enemy_id = "wraith"
 
-[node name="Spawn9" type="Marker2D" parent="Spawns"]
+[node name="Spawn8" type="Marker2D" parent="Spawns"]
 position = Vector2(660, 150)
 script = ExtResource("5_spawn")
 enemy_id = "raven"
+
+[node name="Spawn9" type="Marker2D" parent="Spawns"]
+position = Vector2(810, 407)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+hanging = true
 
 [node name="PlayerSpawn" type="Marker2D" parent="."]
 position = Vector2(60, 245)

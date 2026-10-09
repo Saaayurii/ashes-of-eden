@@ -112,7 +112,8 @@ def check_reach(name, room):
     if lost:
         print(f"  .. {name}: unreachable surfaces: {lost}")
     # a walker the player cannot get to keeps the door shut forever
-    for enemy_id, x, y in room["spawns"]:
+    # a hanger drops onto the floor under it: that floor must be reachable too
+    for enemy_id, x, y in room["spawns"] + room.get("hangers", []):
         if enemy_id in FLYERS:
             continue
         stand = under(x, y + 12)
@@ -180,9 +181,11 @@ PAINTED = {
         # The upper bridge breaks at the stair. The loose stone is visible,
         # holds long enough to react, then drops away and returns.
         crumbling_platforms=[(328, 217, 68)],
-        spawns=[("possessed_villager", 470, 515), ("possessed_villager", 760, 548), ("possessed_villager", 1150, 508),
+        spawns=[("possessed_villager", 760, 548), ("possessed_villager", 1150, 508),
                 ("possessed_villager", 1050, 248), ("possessed_villager", 330, 333),
                 ("shade", 500, 300), ("shade", 900, 200), ("raven", 700, 120)],
+        # on a noose under the broken cross pillar's top, until he walks under it
+        hangers=[("possessed_villager", 470, 515)],
         props=[("pot", 280, 195), ("rubble", 370, 345), ("barrel_apples", 330, 527), ("box_goods", 365, 527), ("rubble", 500, 527),
                ("pot", 700, 560), ("rubble", 1000, 625), ("chest_wooden", 1200, 655),
                ("secret_wall_village", 1110, 655)],  # Gate log at the crypt's painted floor, not an invisible shelf
@@ -214,8 +217,9 @@ PAINTED = {
         platforms=[(1120, 262, 56, 10)],  # one exit foothold; the bone mound is not a stepping-stone course
         crumbling_platforms=[(301, 264, 80)],
         spawns=[("possessed_villager", 400, 506), ("possessed_villager", 650, 506), ("cultist", 880, 533),
-                ("possessed_villager", 900, 373), ("zealot", 1180, 376), ("shade", 600, 300), ("raven", 800, 150),
+                ("zealot", 1180, 376), ("shade", 600, 300), ("raven", 800, 150),
                 ("wraith", 300, 600)],
+        hangers=[("possessed_villager", 860, 373)],  # from the dead tree over the arch
         props=[("pot", 200, 254), ("barrel", 300, 348), ("crate", 700, 518), ("sack", 860, 545),
                ("chest_wooden", 70, 655), ("barrel_apples", 940, 385)],
         decor=[], npcs=[("nun", 122, 655), ("stranger", 252, 254)], ambient="#c0bccc", lights="auto",
@@ -255,9 +259,10 @@ PAINTED = {
         ramps=[],
         stone_steps=True,
         platforms=[(1150, 300, 56, 10)],  # the only added step needed to return to the gate
-        spawns=[("possessed_villager", 400, 407), ("possessed_villager", 650, 407), ("cultist", 880, 368),
+        spawns=[("possessed_villager", 400, 407), ("cultist", 880, 368),
                 ("fallen_guard", 1200, 433), ("possessed_villager", 600, 603), ("zealot", 300, 300),
                 ("shade", 700, 250), ("wraith", 950, 600), ("raven", 500, 150)],
+        hangers=[("possessed_villager", 650, 407)],  # from the bare tree over the bridge
         props=[("pot", 110, 289), ("barrel", 350, 312), ("crate", 500, 419), ("rubble", 720, 419), ("blood_altar", 1000, 365),
                ("chest_wooden", 760, 635), ("pot", 250, 563), ("crate", 1250, 445)],
         decor=[], npcs=[("mara", 955, 380)], ambient="#bcb8cc", lights="auto",

@@ -473,13 +473,14 @@ func _on_spawn_requested(enemy_id: String, at: Vector2) -> void:
 	room.spawn_enemy(enemy_id, at, true)
 
 
-func _spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
+func _spawn_enemy(enemy_id: String, at: Vector2, aware := false, hanging := false) -> Enemy:
 	# under a vial of wrath a common one may rise as its elite (data/vials)
 	var promote: Dictionary = Vials.rule("promote") if not Net.active else {}
 	if promote.has(enemy_id) and randf() < float(Vials.rule("promote_chance")):
 		enemy_id = str(promote[enemy_id])
 	_enemy_counter += 1
-	var data := {"n": _enemy_counter, "id": enemy_id, "pos": at, "aware": aware, "affix": roll_affix(enemy_id)}
+	var data := {"n": _enemy_counter, "id": enemy_id, "pos": at, "aware": aware, "affix": roll_affix(enemy_id),
+		"hang": hanging and not aware}
 	if Net.active:
 		return enemy_spawner.spawn(data) as Enemy
 	var enemy := _make_enemy(data)
@@ -504,6 +505,7 @@ func _make_enemy(data: Dictionary) -> Node:
 	enemy.enemy_id = str(data.id)
 	enemy.position = data.pos
 	enemy.start_aware = bool(data.get("aware", false))
+	enemy.start_hanging = bool(data.get("hang", false))
 	enemy.affix = str(data.get("affix", ""))
 	enemy.attach_net_sync()
 	return enemy

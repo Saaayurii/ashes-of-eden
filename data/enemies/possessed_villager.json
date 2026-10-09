@@ -39,5 +39,11 @@
     "cooldown": 1.7,
     "recover": 0.3
   },
+  "hang": {
+    "lift": 26,
+    "range": 64,
+    "rope": 150,
+    "land": 0.7
+  },
   "essence": 12
 }

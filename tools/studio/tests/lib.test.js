@@ -341,6 +341,15 @@ test('studio_rooms.json: one spot per enemy per room, cutscenes per room, stable
   assert.match(t, /\["archer", 720, 508\]/);
 });
 
+test('studio_rooms.json: hangers, as many as she hangs, one per spot', () => {
+  let t = L.mergeStudioRooms('', { room: 'village_night', hanger: ['possessed_villager', 470, 515] });
+  t = L.mergeStudioRooms(t, { room: 'village_night', hanger: ['possessed_villager', 900, 508] });
+  t = L.mergeStudioRooms(t, { room: 'village_night', hanger: ['possessed_villager', 480, 515] });  // the same spot, moved
+  const j = JSON.parse(t);
+  assert.deepEqual(j.village_night.hangers, [['possessed_villager', 900, 508], ['possessed_villager', 480, 515]]);
+  assert.match(t, /\["possessed_villager", 480, 515\]/);
+});
+
 // --- prompts: no exact size, every image named by its role, later frames are edits ---
 
 test('sprite prompts name each attached image by role and never ask for a pixel count', () => {

@@ -227,6 +227,16 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 						_error("%s: attack.%s must be positive" % [where, field])
 			if entry.has("summons") and not entry.summons.has("id"):
 				_error("%s: summons.id missing" % where)
+			if entry.has("hang"):
+				# a noose ambush (Enemy._hang): a walker, and a beat on the ground to read
+				var hang: Dictionary = entry.hang
+				for key in hang:
+					if not ["lift", "range", "rope", "land"].has(key) or float(hang[key]) <= 0.0:
+						_error("%s: hang.%s — one of lift, range, rope, land, and positive" % [where, key])
+				if float(hang.get("land", 0.6)) < 0.3:
+					_error("%s: hang.land under 0.3 s — the drop must leave a beat to read" % where)
+				if ["flyer", "boss_ophanim", "seal"].has(entry.get("behaviour", "walker")):
+					_error("%s: only a walker hangs" % where)
 			if entry.has("seal_phase"):
 				var phase: Dictionary = entry.seal_phase
 				if not _enemy_ids.has(str(phase.get("seal", ""))):

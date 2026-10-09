@@ -449,7 +449,7 @@ def expand_painted_room(name, room):
                     for x0, y0, x1, y1 in room.get("ramps", [])]
     # ("rubble", 1130, 583, "wide") is already in the widened room: the only
     # way to stand something inside an inserted seam, which no panel x maps to.
-    for key in ("spawns", "props", "npcs"):
+    for key in ("spawns", "hangers", "props", "npcs"):
         out[key] = [(item[0], item[1] if item[3:] == ("wide",) else _map_x(item[1], inserts), item[2])
                     for item in room.get(key, [])]
     out["npc_paths"] = []
@@ -1024,6 +1024,17 @@ def ramp_nodes(ramps, parent, authored_treads=None):
     return "".join(out)
 
 
+def _hangs(enemy_id):
+    """Whether an enemy's data (or what it extends) has a "hang" block."""
+    while enemy_id:
+        with open(os.path.join(ROOT, "data", "enemies", enemy_id + ".json")) as source:
+            data = json.load(source)
+        if "hang" in data:
+            return True
+        enemy_id = data.get("extends")
+    return False
+
+
 def family(name):
     return [piece for piece in sorted(PIECES) if PIECES[piece]["family"] == name]
 
@@ -1503,6 +1514,13 @@ def build(name, r):
     text += '[node name="Spawns" type="Node2D" parent="."]\n\n'
     for i, (eid, x, y) in enumerate(r["spawns"], 1):
         text += f'[node name="Spawn{i}" type="Marker2D" parent="Spawns"]\nposition = Vector2({x}, {y})\nscript = ExtResource("5_spawn")\nenemy_id = "{eid}"\n\n'
+    # "hangers": walkers on a noose over that floor spot until a player comes
+    # near (EnemySpawn.hanging, Enemy._hang); only an enemy whose data hangs
+    for i, (eid, x, y) in enumerate(r.get("hangers", []), len(r["spawns"]) + 1):
+        if not _hangs(eid):
+            raise SystemExit(f"{name}: hanger {eid} has no \"hang\" in data/enemies")
+        text += (f'[node name="Spawn{i}" type="Marker2D" parent="Spawns"]\nposition = Vector2({x}, {y})\n'
+                 f'script = ExtResource("5_spawn")\nenemy_id = "{eid}"\nhanging = true\n\n')
     px, py = r["player"]
     dx, dy = r["door"]
     motes = MOTES.format(cx=width / 2, cy=height / 2, ex=width / 2, ey=height / 2, amount=int(36 * area))
@@ -1573,7 +1591,8 @@ if os.path.exists(STUDIO_ROOMS):
         for _name, _extra in json.load(_f).items():
             if _name not in ROOMS:
                 raise SystemExit(f"tools/rooms/studio_rooms.json names no room: {_name}")
-            ROOMS[_name]["spawns"] = list(ROOMS[_name].get("spawns", [])) + [tuple(s) for s in _extra.get("spawns", [])]
+            for _key in ("spawns", "hangers"):
+                ROOMS[_name][_key] = list(ROOMS[_name].get(_key, [])) + [tuple(s) for s in _extra.get(_key, [])]
             for _key in ("intro_cutscene", "outro_cutscene"):
                 if _key in _extra:
                     ROOMS[_name][_key] = _extra[_key]
