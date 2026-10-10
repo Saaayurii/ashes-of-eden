@@ -62,6 +62,254 @@
           "color": "#614c42cc"
         }
       ]
+    },
+    "possessed_villager": {
+      "walk": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            2,
+            5
+          ],
+          "count": 3,
+          "dir": [
+            -1,
+            -0.5
+          ],
+          "offset": [
+            -3,
+            0
+          ],
+          "color": "#8a745880"
+        }
+      ],
+      "attack": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            2
+          ],
+          "count": 4,
+          "dir": [
+            -1,
+            -0.4
+          ],
+          "offset": [
+            -4,
+            0
+          ],
+          "color": "#8a745899"
+        }
+      ],
+      "attack_alt": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            1
+          ],
+          "count": 6,
+          "dir": [
+            0,
+            -1
+          ],
+          "color": "#8a745899"
+        },
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            5
+          ],
+          "count": 7,
+          "dir": [
+            -1,
+            -0.3
+          ],
+          "color": "#8a745899"
+        },
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            5
+          ],
+          "count": 7,
+          "dir": [
+            1,
+            -0.3
+          ],
+          "color": "#8a745899"
+        },
+        {
+          "fx": "puff",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            5
+          ],
+          "size": 0.8,
+          "color": "#8a745880"
+        }
+      ],
+      "special": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            1
+          ],
+          "count": 14,
+          "dir": [
+            -1,
+            -0.25
+          ],
+          "color": "#8a745899"
+        },
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            1
+          ],
+          "count": 14,
+          "dir": [
+            1,
+            -0.25
+          ],
+          "color": "#8a745899"
+        },
+        {
+          "fx": "puff",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            1
+          ],
+          "size": 1.4,
+          "color": "#8a7458aa"
+        },
+        {
+          "fx": "debris",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            1
+          ],
+          "count": 6,
+          "color": "#6e5d47cc"
+        },
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            2
+          ],
+          "count": 8,
+          "dir": [
+            0,
+            -0.6
+          ],
+          "color": "#8a745870"
+        }
+      ],
+      "hurt": [
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            1
+          ],
+          "count": 3,
+          "dir": [
+            0,
+            -1
+          ],
+          "color": "#8a745880"
+        },
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            4
+          ],
+          "count": 4,
+          "dir": [
+            0,
+            -0.8
+          ],
+          "color": "#8a745880"
+        }
+      ],
+      "death": [
+        {
+          "fx": "dust",
+          "at": "body",
+          "when": "frames",
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "count": 8,
+          "dir": [
+            0,
+            1
+          ],
+          "color": "#8f8678cc"
+        },
+        {
+          "fx": "dust",
+          "at": "head",
+          "when": "frames",
+          "frames": [
+            2
+          ],
+          "count": 6,
+          "dir": [
+            0,
+            1
+          ],
+          "color": "#8f8678cc"
+        },
+        {
+          "fx": "dust",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            4,
+            5
+          ],
+          "count": 8,
+          "dir": [
+            0,
+            -0.5
+          ],
+          "color": "#8f8678cc"
+        },
+        {
+          "fx": "puff",
+          "at": "feet",
+          "when": "frames",
+          "frames": [
+            5
+          ],
+          "size": 0.9,
+          "color": "#8f867880"
+        }
+      ]
     }
   }
 }
