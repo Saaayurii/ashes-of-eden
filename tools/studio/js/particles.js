@@ -17,10 +17,11 @@ const PFX_EVENT_ANIM = { step: 'run', jump: 'jump', land: 'land', roll: 'roll', 
 async function pfxLoad() {
   if (PFX.data) return;
   PFX.data = await (await fetch('import/action_fx.json')).json();
+  draftBase('pfx', PFX.data.rules, !!localStorage.getItem('ss_pfx'));
   PFX.rules = structuredClone(PFX.data.rules);
   try { const saved = JSON.parse(localStorage.getItem('ss_pfx') || 'null'); if (saved) PFX.rules = saved; } catch {}
 }
-const pfxSave = () => { try { localStorage.setItem('ss_pfx', JSON.stringify(PFX.rules)); } catch {} };
+const pfxSave = () => { draftHistory('pfx'); try { localStorage.setItem('ss_pfx', JSON.stringify(PFX.rules)); } catch {} };
 const pfxDirty = () => JSON.stringify(PFX.rules) !== JSON.stringify(PFX.data.rules);
 const pfxBody = () => PFX.data.bodies[PFX.body];
 const pfxList = () => (PFX.rules[pfxBody().key] || {})[PFX.trigger] || [];
@@ -164,7 +165,7 @@ function pfxInput(e) {
 }
 async function pfxFiles() {
   const doc = JSON.parse(await repoText('data/action_fx.json'));
-  doc.bodies = PFX.rules;
+  doc.bodies = await resolveDraft(draftBase('pfx', PFX.data.rules), PFX.rules, doc.bodies, 'Частицы', BASES.pfx.uncertain);
   const names = Object.keys(PFX.rules).filter(k => JSON.stringify(PFX.rules[k]) !== JSON.stringify(PFX.data.rules[k]))
     .concat(Object.keys(PFX.data.rules).filter(k => !(k in PFX.rules)));
   return { files: { 'data/action_fx.json': JSON.stringify(doc, null, 2) + '\n' }, title: `Studio: particles — ${names.join(', ') || 'actions'}`,
@@ -173,7 +174,7 @@ async function pfxFiles() {
 async function pfxEnter() {
   try { await pfxLoad(); } catch (e) { $('#pfxProps').innerHTML = `<div class="warn">Нет данных (import/action_fx.json): ${esc(e.message)}</div>`; return; }
   const c = $('#pfxCanvas'), r = $('#pfxStage').getBoundingClientRect(); c.width = 360; c.height = Math.round(360 * Math.max(0.4, Math.min(0.75, r.height / Math.max(1, r.width))));
-  renderPfx(); if (!PFX.raf) PFX.raf = requestAnimationFrame(pfxFrame);
+  trackChange('pfx'); renderPfx(); if (!PFX.raf) PFX.raf = requestAnimationFrame(pfxFrame);
 }
 function pfxInit() {
   if (!$('#pfxLayout')) return;

@@ -20,6 +20,7 @@ async function dlgLoad() {
   if (DLG.data) return;
   DLG.data = await loadCutData();
   try { const s = JSON.parse(localStorage.getItem('ss_dlg') || 'null'); if (s) { DLG.work = s.work || {}; DLG.strings = s.strings || {}; DLG.sel = s.sel || null; } } catch {}
+  draftBase('dlg', { dialogues: DLG.data.dialogues, strings: DLG.data.strings }, Object.keys(DLG.work).length > 0);
   if (!library) { try { library = await (await fetch('import/library.json')).json(); } catch {} }
   DLG.zh = new Set([...Object.values(DLG.data.strings)].flatMap(v => [...(v.zh_CN || '')]));
   dlgFonts();
@@ -31,7 +32,7 @@ async function dlgFonts() {
   }
   DLG.fonts = true;
 }
-const dlgSave = () => { try { localStorage.setItem('ss_dlg', JSON.stringify({ work: DLG.work, strings: DLG.strings, sel: DLG.sel })); } catch {} };
+const dlgSave = () => { draftHistory('dlg'); try { localStorage.setItem('ss_dlg', JSON.stringify({ work: DLG.work, strings: DLG.strings, sel: DLG.sel })); } catch {} };
 const dlgOrig = id => DLG.data.dialogues[id] || null;
 const dlgGet = id => DLG.work[id] || dlgOrig(id);
 const dlgCur = () => dlgGet(DLG.sel);
@@ -402,10 +403,17 @@ async function dlgFiles() {
   const files = {}, ids = Object.keys(DLG.work).filter(dlgChanged), keys = Object.keys(DLG.strings).filter(dlgStrChanged), notes = [];
   for (const id of ids) {
     const d = DLG.work[id], path = `data/dialogues/${d._file || id + '.json'}`;
-    files[path] = mergeDialogueFile(files[path] ?? await repoText(path), d);
+    const original = files[path] ?? await repoText(path).catch(() => '[]');
+    const doc = JSON.parse(original), latest = Array.isArray(doc) ? doc.find(v => v.id === id) : doc.id === id ? doc : undefined;
+    const base = draftBase('dlg', { dialogues: DLG.data.dialogues, strings: DLG.data.strings }).dialogues[id];
+    const merged = await resolveDraft(base && dlgClean(base), dlgClean(d), latest, id, BASES.dlg.uncertain);
+    if (merged) { const { err } = dlgProblems(merged); if (err.length) throw new Error(id + ': ' + err.join(' ')); files[path] = mergeDialogueFile(original, merged); }
   }
   if (keys.length) {
-    files['localization/strings.csv'] = mergeStrings(await repoText('localization/strings.csv'), Object.fromEntries(keys.map(k => [k, DLG.strings[k]])));
+    const original = await repoText('localization/strings.csv'), rows = csvParse(original), head = rows[0];
+    const latest = Object.fromEntries(rows.slice(1).map(row => [row[0], Object.fromEntries(head.slice(1).map((loc, i) => [loc, row[i + 1] || '']))]));
+    const merged = {}; for (const k of keys) merged[k] = await resolveDraft(BASES.dlg.value.strings[k], DLG.strings[k], latest[k], k, BASES.dlg.uncertain);
+    files['localization/strings.csv'] = mergeStrings(original, merged);
     const missing = keys.filter(k => DLG_LOCALES.some(([l]) => !DLG.strings[k][l]));
     if (missing.length) notes.push(`Где нет перевода (${missing.length} строк), пока стоит английский или русский текст — их стоит перевести.`);
   }
@@ -423,7 +431,7 @@ async function dlgEnter() {
   try { const bg = localStorage.getItem('ss_dlgbg'); if (bg && !DLG.bg) { sel.value = bg; if (sel.value) loadImg(bg).then(im => { DLG.bg = im; dlgPaint(); }); } } catch {}
   if (!DLG.sel) DLG.sel = 'npc_matthew' in DLG.data.dialogues ? 'npc_matthew' : Object.keys(DLG.data.dialogues)[0] || null;
   const c = $('#dlgCanvas'); c.width = 1280; c.height = 720;
-  renderDlg();
+  trackChange('dlg'); renderDlg();
   document.fonts?.ready.then(dlgPaint);
 }
 function dlgInit() {

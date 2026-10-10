@@ -81,3 +81,4 @@ jobs:
           node studio.e2e.cjs
           node studio.github.e2e.cjs
           node attacks.e2e.cjs
+          node workspace.e2e.cjs

@@ -700,6 +700,13 @@ def action_fx(root: Path, strings, shots):
     return {"rules": doc.get("bodies", {}), "kinds": consts["KINDS"], "anchors": consts["ANCHORS"], "bodies": bodies}
 
 
+def world(root, rooms):
+    files = {p.relative_to(root).as_posix(): json.loads(p.read_text(encoding="utf-8"))
+             for p in sorted((root / "data").rglob("*.json"))}
+    files["tools/rooms/studio_rooms.json"] = json.loads((root / "tools/rooms/studio_rooms.json").read_text())
+    return {"files": files, "enemies": sorted(p.stem for p in (root / "data/enemies").glob("*.json"))}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -721,6 +728,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     rooms = [r for r in rooms if r["layers"]]
     rooms += shared("bgs", {r["id"] for r in rooms})
     write(out, "rooms_list.json", [write(out, f"rooms/{r['id']}.bg.json", r) for r in rooms])
+    write(out, "world.json", world(root, rooms))
     write(out, "library.json", library(root))
     write(out, "life.json", life(root))
     write(out, "tiles.json", tiles(root))

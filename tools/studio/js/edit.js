@@ -79,10 +79,17 @@ window.addEventListener('resize', drawPaint);
 
 /* ---------- undo / redo (per tab; pictures are shared between snapshots, see lib.js) ---------- */
 const undoTable = { ids: new Map(), list: [] };
-const history = { chars: { u: [], r: [] }, bg: { u: [], r: [] }, cut: { u: [], r: [] }, snd: { u: [], r: [] } };
+const history = { chars: { u: [], r: [] }, bg: { u: [], r: [] }, cut: { u: [], r: [] }, snd: { u: [], r: [] }, attacks: { u: [], r: [] }, shots: { u: [], r: [] }, pfx: { u: [], r: [] }, life: { u: [], r: [] }, dlg: { u: [], r: [] }, world: { u: [], r: [] }, rig: { u: [], r: [] } };
+history.rig = history.chars;
 const undoTarget = m => m === 'chars' ? P : m === 'bg' ? BG : m === 'cut' ? CUT
-  : m === 'snd' ? { id: 'snd', mods: [...sndMods.values()].sort((a, b) => a.id.localeCompare(b.id)) } : null;
+  : m === 'snd' ? { id: 'snd', mods: [...sndMods.values()].sort((a, b) => a.id.localeCompare(b.id)) } : m === 'rig' ? P : m === 'attacks' ? { id: 'attacks', work: ATTACKS.work, shotsEdits: [...SHOTS.edits] }
+  : m === 'shots' ? { id: 'shots', styles: SHOTS.styles, edits: [...SHOTS.edits], adds: SHOTS.adds, removed: [...SHOTS.removed], sheets: [...SHOTS.newSheets] }
+  : m === 'pfx' ? { id: 'pfx', rules: PFX.rules } : m === 'life' ? { id: 'life', edits: [...LIFE.edits] }
+  : m === 'dlg' ? { id: 'dlg', work: DLG.work, strings: DLG.strings } : m === 'world' ? { id: 'world', work: WORLD.work }
+  : m === 'workspace' ? WORKSPACE : null;
+let historyRestoring = false;
 function trackChange(m) {
+  if (historyRestoring) return;
   const h = history[m], o = undoTarget(m); if (!h || !o) return;
   const snap = snapshot(o, undoTable);
   if (h.id !== o.id) { Object.assign(h, { id: o.id, u: [], r: [], last: snap, t: 0 }); return; }
@@ -93,13 +100,20 @@ function trackChange(m) {
 }
 function undoRedo(redo) {
   const h = history[mode];
-  if (!h) return toast('Здесь отмена не работает', 'err');
+  if (!h) return toast('Открой редактор для отмены изменений');
   const from = redo ? h.r : h.u; if (!from.length) return toast(redo ? 'Нечего возвращать' : 'Нечего отменять');
   (redo ? h.u : h.r).push(h.last); h.last = from.pop(); h.t = 0;
   const obj = unsnapshot(h.last, undoTable);
+  historyRestoring = true;
   // what is restored is the new baseline, so re-rendering does not count as a change
   const settle = o => { h.last = snapshot(o, undoTable); return o; };
-  if (mode === 'chars') { const i = projects.indexOf(P); P = settle(migrate(obj)); if (i >= 0) projects[i] = P; persist(); renderAll(); build().then(() => { if (!$('#paintModal').hidden) drawPaint(); }); }
+  if (mode === 'attacks') { ATTACKS.work = obj.work; SHOTS.edits = new Map(obj.shotsEdits || []); shotsSave(); attacksSave(); renderAttacks(); }
+  else if (mode === 'shots') { SHOTS.styles = obj.styles; SHOTS.edits = new Map(obj.edits); SHOTS.adds = obj.adds; SHOTS.removed = new Set(obj.removed); SHOTS.newSheets = new Map(obj.sheets); SHOTS.sheets.clear(); SHOTS.data.users = SHOTS.data.users.filter(u => !u.added); for (const a of SHOTS.adds) shotUserFor(a); SHOTS.user = Math.min(SHOTS.user, SHOTS.data.users.length - 1); shotsSave(); renderShots(); }
+  else if (mode === 'pfx') { PFX.rules = obj.rules; pfxSave(); renderPfx(); }
+  else if (mode === 'life') { LIFE.edits = new Map(obj.edits); localStorage.setItem('ss_life', JSON.stringify(Object.fromEntries(LIFE.edits))); lifeUpload(); renderLifeSide(); renderLifeList(); drawLifeZones(); }
+  else if (mode === 'dlg') { DLG.work = obj.work; DLG.strings = obj.strings; dlgSave(); renderDlg(); }
+  else if (mode === 'world') { WORLD.work = obj.work; worldSave(); renderWorld(); worldRoomOpen(); }
+  else if (mode === 'chars' || mode === 'rig') { const i = projects.indexOf(P); P = settle(migrate(obj)); if (i >= 0) projects[i] = P; persist(); renderAll(); build().then(() => { if (!$('#paintModal').hidden) drawPaint(); }); }
   else if (mode === 'bg') { const i = bgs.indexOf(BG); BG = settle(migrateBg(obj)); if (i >= 0) bgs[i] = BG; persistBg(); renderBgAll(); }
   else if (mode === 'snd') {
     settle(obj);
@@ -109,6 +123,7 @@ function undoRedo(redo) {
     renderSndList(); renderSndMain();
   }
   else { const i = cuts.indexOf(CUT); CUT = settle(migrateCut(obj)); if (i >= 0) cuts[i] = CUT; if (dbOk) DB.put(CUT, 'cutscenes').catch(() => {}); renderCutAll(); }
+  h.last = snapshot(undoTarget(mode), undoTable); historyRestoring = false; workspaceStatus();
   toast(redo ? 'Возвращено' : 'Отменено');
 }
 document.addEventListener('keydown', e => {

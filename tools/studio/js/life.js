@@ -20,6 +20,7 @@ async function lifeLoad() {
   if (LIFE.data) return;
   LIFE.data = await (await fetch('import/life.json')).json();
   LIFE.rules = JSON.parse(await repoText('data/backdrops.json')).rooms || {};
+  draftBase('life', LIFE.rules, !!localStorage.getItem('ss_life'));
   // an edit the game now has (her pull request was merged) is no longer hers to send
   try { for (const [k, v] of Object.entries(JSON.parse(localStorage.getItem('ss_life') || '{}'))) if (JSON.stringify(v) !== JSON.stringify(LIFE.rules[k])) LIFE.edits.set(k, v); } catch {}
 }
@@ -30,7 +31,7 @@ function lifeEdit(fn) {
   const rule = structuredClone(lifeRule(LIFE.key)); fn(rule);
   if (JSON.stringify(rule) === JSON.stringify(LIFE.rules[LIFE.key])) LIFE.edits.delete(LIFE.key); else LIFE.edits.set(LIFE.key, rule);
   try { localStorage.setItem('ss_life', JSON.stringify(Object.fromEntries(LIFE.edits))); } catch {}
-  lifeUpload(); renderLifeSide(); renderLifeList(); drawLifeZones();
+  draftHistory('life'); lifeUpload(); renderLifeSide(); renderLifeList(); drawLifeZones();
 }
 // what the game would use: a family's flame unless the rule sets its own
 function lifeFlame(rule) { const f = LIFE.data.families[rule.family] || {}; return [rule.flame ?? f.flame ?? 0.5, rule.flame_floor ?? f.flame_floor ?? 0.55]; }
@@ -312,7 +313,7 @@ function lifeInput(e) {
 async function lifeFiles() {
   let text = await repoText('data/backdrops.json');
   const keys = [...LIFE.edits.keys()];
-  for (const k of keys) text = setBackdropRule(text, k, LIFE.edits.get(k));
+  for (const k of keys) { const latest = JSON.parse(text).rooms?.[k]; const merged = await resolveDraft(draftBase('life', LIFE.rules)[k], LIFE.edits.get(k), latest, k, BASES.life.uncertain); text = setBackdropRule(text, k, merged); }
   JSON.parse(text);   // never send a broken file
   const big = keys.filter(k => LIFE.edits.get(k).zones.length > LIFE.data.max_zones);
   if (big.length) throw new Error(`Больше ${LIFE.data.max_zones} зон: ${big.join(', ')} — шейдер оживит только первые ${LIFE.data.max_zones}.`);
@@ -330,7 +331,7 @@ async function lifeSend() {
 async function lifeEnter() {
   try { await lifeLoad(); }
   catch (e) { $('#lifeTip').textContent = 'Нет данных оживления (import/life.json): ' + e.message; return; }
-  renderLifeList();
+  trackChange('life'); renderLifeList();
   let key = LIFE.key; try { key = key || localStorage.getItem('ss_lifekey'); } catch {}
   await lifeOpen(lifePic(key) ? key : LIFE.data.pictures[0]?.key);
 }

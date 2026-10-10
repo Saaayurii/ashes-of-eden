@@ -14,13 +14,15 @@ const SHOT_LOOK = { frames: 1, fps: 10, scale: 0.62, light: 20, trail: 8, shader
 const SHOT_ECHO = { offset: 9, sway: [3, 15], scale: 0.45, spin: 0, color: '#ffffff', alpha: -1 };
 const SHOT_MOTIONS = { straight: 'Прямо', wave: 'Волной', accelerate: 'Разгоняется', arc: 'Падает дугой', surge: 'Зависает, потом рывок', return: 'Возвращается', home: 'Наводится' };
 const SHOT_FX = { sparkle: 'Искры', ash: 'Пепел', debris: 'Осколки', spark: 'Вспышка клинка' };
-const SHOT_KEYS = ['projectile_style', 'projectile_speed', 'projectile_motion', 'motion_amount', 'projectiles', 'spread', 'color', 'damage', 'range', 'windup', 'cooldown', 'volley', 'volley_gap', 'speed_jitter', 'projectile_scale'];
+const SHOT_KEYS = ['projectile_style', 'projectile_speed', 'projectile_range', 'projectile_motion', 'motion_amount', 'projectiles', 'spread', 'color', 'damage', 'range', 'windup', 'cooldown', 'volley', 'volley_gap', 'speed_jitter', 'projectile_scale'];
 // a gift's bolt names the same things otherwise (Player._cast_skill)
 const GIFT_KEY = { projectile_style: 'style', projectile_speed: 'speed', projectile_motion: 'motion' };
 
 async function shotsLoad() {
   if (SHOTS.data) return;
   SHOTS.data = await (await fetch('import/projectiles.json')).json();
+  draftBase('shots', SHOTS.data, !!localStorage.getItem('ss_shots'));
+  if (localStorage.getItem('ss_shots') && !BASES.shots.uncertain) SHOTS.data = draftClone(BASES.shots.value);
   SHOTS.styles = structuredClone(SHOTS.data.styles);
   try {
     const saved = JSON.parse(localStorage.getItem('ss_shots') || '{}');
@@ -40,13 +42,15 @@ function shotUserFor(add) {
 const shotKey = u => u.added ? 'new:' + u.uid : `${u.kind}:${u.id}:${u.kind === 'gift' ? u.path.join('.') : u.index}`;
 const editOf = i => SHOTS.edits.get(shotKey(SHOTS.data.users[i]));
 function shotsSave() {
+  if (!SHOTS.data) return;
+  draftHistory('shots');
   try { localStorage.setItem('ss_shots', JSON.stringify({ styles: SHOTS.styles, edits: Object.fromEntries(SHOTS.edits), sheets: Object.fromEntries(SHOTS.newSheets), adds: SHOTS.adds, removed: [...SHOTS.removed] })); }
   catch (e) { toast('Не поместилось в память браузера: ' + e.message, 'err'); }
 }
 const shotUser = () => SHOTS.data.users[SHOTS.user];
 // an attack as the game reads it, with her edits on top, in the enemy's own key names
 function shotAttack(i = SHOTS.user) {
-  const u = SHOTS.data.users[i], raw = { ...u.attack, ...(editOf(i) || {}) }, a = { ...raw };
+  const u = SHOTS.data.users[i], raw = u.kind === 'enemy' && !u.added ? sharedAttack(u.id, u.index, u.attack) : { ...u.attack, ...(editOf(i) || {}) }, a = { ...raw };
   if (u.kind === 'gift') for (const [k, g] of Object.entries(GIFT_KEY)) if (g in raw) a[k] = raw[g];
   return a;
 }
@@ -122,7 +126,7 @@ function shotFire() {
     const dir = Math.atan2(to[1] - from[1], to[0] - from[0]);
     for (let i = 0; i < count; i++) {
       const off = count === 1 ? 0 : -spread / 2 + spread * i / (count - 1), ang = dir + off;
-      SHOTS.bolts.push({ x: from[0], y: from[1], dx: Math.cos(ang), dy: Math.sin(ang), t: 0, life: 4, lateral: 0, turned: false,
+      SHOTS.bolts.push({ x: from[0], y: from[1], dx: Math.cos(ang), dy: Math.sin(ang), t: 0, life: 4, range: +a.projectile_range || 0, travelled: 0, lateral: 0, turned: false,
         speed: (+a.projectile_speed || 170) * (1 + (Math.random() * 2 - 1) * jitter), motion: a.projectile_motion || 'straight',
         amount: +a.motion_amount || 0, style: a.projectile_style || 'sacred', size: +a.projectile_scale || 1, tint: a.color || '#ffd27a', trail: [] });
     }
@@ -130,7 +134,7 @@ function shotFire() {
   }, r * gap * 1000);
 }
 function shotStep(b, dt, target) {
-  b.t += dt; let travel = b.speed * dt;
+  const fromX = b.x, fromY = b.y; b.t += dt; let travel = b.speed * dt;
   switch (b.motion) {
     case 'accelerate': travel *= 1 + Math.min(b.t, 2) * b.amount; break;
     case 'surge': travel *= 0.2 + 1.5 * Math.min(1, Math.max(0, (b.t - b.amount) / 0.45)); break;
@@ -144,6 +148,10 @@ function shotStep(b, dt, target) {
     case 'return': if (!b.turned && b.t >= b.amount) { b.turned = true; b.dx = -b.dx; b.dy = -b.dy; b.speed *= 1.2; travel = b.speed * dt; } break;
   }
   b.x += b.dx * travel; b.y += b.dy * travel; b.life -= dt;
+  const length = Math.hypot(b.x - fromX, b.y - fromY), remaining = b.range > 0 ? Math.max(0, b.range - b.travelled) : Infinity;
+  if (length > remaining) { const k = remaining / length; b.x = fromX + (b.x - fromX) * k; b.y = fromY + (b.y - fromY) * k; }
+  b.travelled = (b.travelled || 0) + Math.min(length, remaining);
+  if (b.range > 0 && b.travelled >= b.range) b.life = 0;
 }
 function shotBurst(b) {
   const look = shotLook(b.style);
@@ -265,6 +273,7 @@ function renderShotProps() {
     <label>Полёт<select data-shot="a.projectile_motion">${Object.entries(SHOT_MOTIONS).map(([k, v]) => `<option value="${k}"${k === (a.projectile_motion || 'straight') ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
     ${(a.projectile_motion || 'straight') !== 'straight' ? shotNum('a.motion_amount', a.motion_amount ?? 1, 0.05, { wave: 30, arc: 120, return: 3.9, surge: 2, accelerate: 2, home: 4 }[a.projectile_motion] || 4, 0.05, { wave: 'Размах волны, px', arc: 'Сила падения', return: 'Через сколько секунд разворот', surge: 'Сколько висит, с', accelerate: 'Разгон', home: 'Поворот, рад/с' }[a.projectile_motion] || 'Сила') : ''}
     ${gift ? '' : shotNum('a.range', a.range ?? 260, 1, Math.max(1200, a.range || 0), 1, 'Дальность атаки, px', 'На каком расстоянии от цели враг может начать эту атаку')}
+    ${shotNum('a.projectile_range', a.projectile_range ?? 0, 0, Math.max(1600, a.projectile_range || 0), 10, 'Дальность полёта, px', 'Снаряд исчезнет, пройдя этот путь. 0 — прежний предел в 4 секунды.')}
     ${shotNum('a.projectile_speed', a.projectile_speed ?? (gift ? 300 : 170), 60, 480, 5, 'Скорость, px/с')}
     ${shotNum('a.projectiles', a.projectiles ?? 1, 1, 9, 1, 'Снарядов за раз')}
     ${(+a.projectiles || 1) > 1 ? shotNum('a.spread', a.spread ?? 0, 0, 90, 1, 'Веер, °') : ''}
@@ -323,8 +332,9 @@ async function shotTakeSheet(key, file) {
 async function shotsFiles() {
   const files = {}, touched = new Set(), texts = {};
   const doc = JSON.parse(await repoText('data/projectiles.json'));
-  doc.styles = SHOTS.styles;
-  files['data/projectiles.json'] = JSON.stringify(doc, null, 2) + '\n';
+  const beforeStyles = structuredClone(doc.styles);
+  doc.styles = await resolveDraft(draftBase('shots', SHOTS.data).styles, SHOTS.styles, doc.styles, 'Стили снарядов', BASES.shots.uncertain);
+  if (!sameDraft(beforeStyles, doc.styles)) files['data/projectiles.json'] = JSON.stringify(doc, null, 2) + '\n';
   for (const [res, url] of SHOTS.newSheets) if (Object.values(SHOTS.styles).some(s => s.sheet === res)) files[res.replace('res://', '')] = dataURLtoBlob(url);
   const text = async f => texts[f] ??= await repoText(f);
   const users = SHOTS.data.users, label = u => u.name.ru || u.id;
@@ -334,22 +344,44 @@ async function shotsFiles() {
   // the rest: each edited attack changed where it stands, in place
   for (const [i, u] of users.entries()) {
     const edit = editOf(i); if (!edit || u.added || (u.kind === 'enemy' && reshaped.has(u.id))) continue;
-    texts[u.file] = patchJson(await text(u.file), u.path, edit); touched.add(label(u));
+    const original = await text(u.file);
+    const baseUser = draftBase('shots', SHOTS.data).users.find(q => shotKey(q) === shotKey(u)) || u;
+    let path = [...u.path], currentDoc = JSON.parse(original);
+    if (u.kind === 'enemy') {
+      const r = SHOTS.data.roster.find(r => r.id === u.id), src = r.source;
+      if (src.path.length && Array.isArray(currentDoc)) path[0] = currentDoc.findIndex(x => x.id === u.id);
+      const listPath = path.slice(0, -1), list = listPath.reduce((o, k) => o[k], currentDoc);
+      path[path.length - 1] = locateAction(list, baseUser.attack, u.index, draftBase('shots', SHOTS.data).roster.find(r => r.id === u.id).source.items);
+    }
+    const latest = path.reduce((o, k) => o[k], currentDoc);
+    const merged = await resolveDraft(baseUser.attack, { ...baseUser.attack, ...edit }, latest, label(u));
+    texts[u.file] = patchJson(original, path, attackDiff(latest, merged)); touched.add(label(u));
   }
   for (const id of reshaped) {
     const r = SHOTS.data.roster.find(x => x.id === id), src = r.source;
-    // the attacks as they are written now — inherited ones from the base's file, each kept as its own text
-    const from = src.inherited ? src.from : src.file, items = jsonItems(await text(from), src.inherited ? [src.from_key] : [...src.path, src.key]);
-    const plan = [];
-    for (const [k, item] of items.entries()) {
-      const u = users.find(q => q.kind === 'enemy' && q.id === id && !q.added && q.index === k);
-      if (u && SHOTS.removed.has(shotKey(u))) continue;
-      const edit = u && editOf(users.indexOf(u));
-      plan.push(edit ? { raw: patchJson(item.raw, [], edit), level: item.level } : item);
+    const original = await text(src.file), doc = JSON.parse(original);
+    const path = src.path.length && Array.isArray(doc) ? [doc.findIndex(x => x.id === id)] : src.path;
+    const own = path.reduce((o, k) => o[k], doc);
+    const from = src.inherited && !own.attacks ? src.from : src.file;
+    const items = jsonItems(await text(from), from !== src.file ? [src.from_key] : [...path, src.key]);
+    const current = items.map(i => JSON.parse(i.raw)), changes = new Map();
+    const old = draftBase('shots', SHOTS.data).roster.find(r => r.id === id).source.items;
+    for (const u of users.filter(u => u.kind === 'enemy' && u.id === id && !u.added)) {
+      const edit = SHOTS.edits.get(shotKey(u)), removed = SHOTS.removed.has(shotKey(u));
+      if (!edit && !removed) continue;
+      const at = locateAction(current, old[u.index], u.index, old);
+      if (removed) {
+        const decision = await resolveDraft(old[u.index], undefined, current[at], `Удаление: ${label(u)}`);
+        if (decision === undefined) changes.set(at, null);
+      } else {
+        const merged = await resolveDraft(old[u.index], { ...old[u.index], ...edit }, current[at], label(u));
+        changes.set(at, { raw: patchJson(items[at].raw, [], attackDiff(current[at], merged)), level: items[at].level });
+      }
     }
+    const plan = items.flatMap((item, i) => changes.has(i) ? changes.get(i) ? [changes.get(i)] : [] : [item]);
     for (const add of SHOTS.adds.filter(a => a.id === id)) plan.push(add.attack);
     if (!plan.length) throw new Error(`У «${r.name.ru || id}» не осталось ни одной атаки.`);
-    texts[src.file] = setJsonList(await text(src.file), src.path, 'attacks', plan, src.single ? ['attack'] : []);
+    texts[src.file] = setJsonList(await text(src.file), path, 'attacks', plan, src.single ? ['attack'] : []);
     touched.add(r.name.ru || id);
   }
   Object.assign(files, texts);
@@ -371,7 +403,7 @@ function shotDefault(id) {
 }
 // what a copy takes from the attack it copies: how it shoots, never whose it was (a boss's seal
 // phase, its name, an animation the new body may not have)
-const SHOT_COPY = ['range', 'windup', 'damage', 'cooldown', 'recover', 'projectile_speed', 'projectile_style', 'projectile_motion', 'motion_amount',
+const SHOT_COPY = ['range', 'windup', 'damage', 'cooldown', 'recover', 'projectile_speed', 'projectile_range', 'projectile_style', 'projectile_motion', 'motion_amount',
   'projectiles', 'spread', 'color', 'volley', 'volley_gap', 'speed_jitter', 'projectile_scale'];
 function shotGive(id, base) {
   const attack = shotDefault(id);
@@ -393,14 +425,14 @@ function shotGiveDialog() {
 async function shotsSend() {
   await sendToGame(shotsFiles, null);
   // written: the local server rebuilt import/, so read the game's own values again
-  if (sendToGame.last?.local) { SHOTS.data = null; SHOTS.edits.clear(); SHOTS.adds = []; SHOTS.removed.clear(); SHOTS.newSheets.clear(); SHOTS.sheets.clear(); SHOTS.user = 0; try { localStorage.removeItem('ss_shots'); } catch {} await shotsEnter(); }
+  if (sendToGame.last?.local) { delete BASES.shots; draftBasesSave(); SHOTS.data = null; SHOTS.edits.clear(); SHOTS.adds = []; SHOTS.removed.clear(); SHOTS.newSheets.clear(); SHOTS.sheets.clear(); SHOTS.user = 0; try { localStorage.removeItem('ss_shots'); } catch {} await shotsEnter(); }
 }
 
 async function shotsEnter() {
   try { await shotsLoad(); } catch (e) { $('#shotProps').innerHTML = `<div class="warn">Нет данных о снарядах (import/projectiles.json): ${esc(e.message)}</div>`; return; }
   // world pixels, as the game's 640 px wide view sees them, stretched to the stage
   const c = $('#shotCanvas'), r = $('#shotStage').getBoundingClientRect(); c.width = 640; c.height = Math.round(640 * Math.max(0.35, Math.min(0.75, r.height / Math.max(1, r.width))));
-  renderShots(); SHOTS.next = 0;
+  trackChange('shots'); renderShots(); SHOTS.next = 0;
   if (!SHOTS.raf) SHOTS.raf = requestAnimationFrame(shotFrame);
 }
 function shotsInit() {

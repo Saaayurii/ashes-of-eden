@@ -1,6 +1,6 @@
 # Art studio (`tools/studio`)
 
-A browser tool for the game's art, sound and story, for people who do not open
+A browser tool for the game's art, actions, behavior, sound and story, for people who do not open
 Godot: characters frame by frame (cleaned up from image-model output), parallax
 backgrounds, cutscenes with their dialogue lines, and sound effects, music and
 spoken lines. It reads the game itself and writes back into it.
@@ -20,7 +20,7 @@ spoken lines. It reads the game itself and writes back into it.
 | `lib.js` | the pure half: background removal, pixel-grid recovery, palette, file formats; tested in Node |
 | `repo.js` | sign-in, writing (local server or GitHub pull request), what each tab sends |
 | `build_data.py` | turns the game into `import/*.json` for the page (not tracked) |
-| `serve.py` | the local server; writes only under `assets/`, `data/cutscenes`, `data/dialogues`, `data/backdrops.json`, `localization/strings.csv`, `tools/studio/projects/` |
+| `serve.py` | the local server; writes only under `assets/`, `data/`, `localization/strings.csv`, `tools/studio/projects/` |
 | `projects/` | studio projects people shared, and `files.json`: files the studio created |
 | `refs/` | style references to attach in an image model (the hero at 16×) |
 
@@ -373,3 +373,45 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     цвет и прозрачность, куда летит, сдвиг. «точки» — показать, где на теле
     ноги, рука, голова. Дым под ногами Элиана теперь тоже здесь: шаг,
     приземление, перекат.
+
+## Actions and shared workspace
+
+«Снаряды» distinguishes the distance at which an enemy starts firing from the
+projectile’s traveled distance cap (including curved paths). Zero keeps the
+existing four-second flight; hostile, gift and cosmetic network bolts use the
+same cap.
+
+«Атаки» and «Снаряды» edit the same enemy action values. The timeline shows
+windup, animation, impact frame, particles, sound and recovery; pause and seek
+inspect the drawing. «В игре» sends drafts to the real sandbox without writing
+files. It includes action/stat, particle, projectile, sound, gift and hero action
+data. Sandbox controls pause, advance physics, force the selected enemy attack
+at a chosen distance and show its zones. The engine requires the newly deployed
+Web build for these controls.
+
+«Поведение» exposes existing JSON game data, including enemy AI parameters,
+abilities, rewards and `data/player_actions.json`. Common numbers have controls;
+advanced conditions and structures use the JSON editor. Hero swings and special
+moves read damage multipliers, recovery, hitboxes and impact frames from that
+file. Input handling, movement algorithms and new AI implementations still need
+engine code. Room placements can be moved on the map; extra waves spawn after
+the previous enemies die, and the door opens after the last wave. Rest raises
+original common placements, rather than replaying reinforcement waves.
+
+All editor tabs support undo/redo. The workspace bar exports/imports one portable
+JSON project with source images, sounds and drafts; credentials are excluded.
+«Проверить всё» previews the combined changed files, and «Отправить всё» reviews
+and sends them together. Hosted sends include the portable project, which can
+be reopened from the PR and continued in the same branch.
+
+Drafts keep their original baseline. Sending performs a three-way merge against
+the current repository: unrelated fresh fields survive, and conflicting values
+require a choice. Reordered actions are matched by identity; ambiguous mappings
+are rejected. Legacy drafts without a baseline require explicit review.
+
+The local server validates all submitted bytes and paths before writing. A
+serialized transaction restores modified/deleted files and generated outputs if
+regeneration or Godot validation fails. Regenerating one artwork retains only
+submitted changes and leaves unrelated art/audio bytes intact. Validation uses
+the same transaction lock. Run browser mutation tests sequentially because
+their fixtures temporarily edit and restore the real checkout.

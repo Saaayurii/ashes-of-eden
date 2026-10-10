@@ -112,6 +112,7 @@ func _init() -> void:
 		_ability_paths[gift.get("id", "")] = str(gift.get("path", ""))
 	_check_projectiles()
 	_check_action_fx()
+	_check_player_actions()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	for collection in REQUIRED:
@@ -740,6 +741,8 @@ func _check_projectiles() -> void:
 func _check_volley(attack: Dictionary, where: String, style: String, motion: String) -> void:
 	if not _flight_styles.has(style):
 		_error("%s: projectile style %s is not in data/projectiles.json" % [where, style])
+	if attack.has("projectile_range") and (not (attack.projectile_range is float or attack.projectile_range is int) or not is_finite(float(attack.projectile_range)) or float(attack.projectile_range) < 0):
+		_error("%s: projectile_range needs a finite nonnegative distance" % where)
 	var amount := float(attack.get("motion_amount", 0.0))
 	if not PROJECTILE_MOTIONS.has(motion):
 		_error("%s: unknown projectile motion %s" % [where, motion])
@@ -1315,3 +1318,31 @@ func _error(message: String) -> void:
 
 func _warn(message: String) -> void:
 	warnings.append(message)
+
+
+func _check_player_actions() -> void:
+	var doc = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_actions.json"))
+	if not doc is Dictionary or not doc.get("actions") is Dictionary:
+		_error("player_actions.json needs an actions object")
+		return
+	for id: String in doc.actions:
+		var action = doc.actions[id]
+		if not action is Dictionary:
+			_error("player action %s must be an object" % id)
+			continue
+		for key in ["multiplier", "knockback", "recovery", "animation_time", "stagger", "radius"]:
+			if action.has(key) and (not action[key] is float and not action[key] is int or float(action[key]) < 0 or not is_finite(float(action[key]))):
+				_error("player action %s.%s needs a finite nonnegative number" % [id, key])
+		for key in ["hitbox", "offset"]:
+			if action.has(key):
+				var pair = action[key]
+				if not pair is Array or pair.size() != 2:
+					_error("player action %s.%s needs two numbers" % [id, key])
+				else:
+					for v in pair:
+						if not (v is int or v is float) or not is_finite(float(v)) or (key == "hitbox" and float(v) <= 0):
+							_error("invalid player action %s.%s" % [id, key])
+		if action.has("hit_frame") and (not (action.hit_frame is int or action.hit_frame is float) or int(action.hit_frame) != action.hit_frame or action.hit_frame < 0):
+			_error("player action %s.hit_frame needs a nonnegative integer" % id)
+		if action.has("sfx") and not action.sfx is String:
+			_error("player action %s.sfx needs a sound name" % id)

@@ -19,11 +19,10 @@ async function sandboxUrl() {
 }
 
 async function sandboxOpen() {
-  if (!P) return;
   // closed: the game was unloaded with the panel (its music must not play on behind the studio)
   if (sandbox.el) { sandbox.el.hidden = false; sandboxAnims(); sandboxState('загружаю игру…'); sandbox.frame.src = await sandboxUrl(); return; }
   try { enemyList ||= await (await fetch('import/enemies.json')).json(); } catch { enemyList = []; }
-  const bases = (enemyList || []).filter(e => !e.boss && !e.extends && BEHAVIOUR_RU[e.behaviour] && e.bestiary !== false);
+  const bases = (enemyList || []).filter(e => sandbox.actionMode || (!e.boss && BEHAVIOUR_RU[e.behaviour] && e.bestiary !== false));
   const el = sandbox.el = document.createElement('div');
   el.id = 'sandbox';
   el.innerHTML = `<div class="sb-head"><b>Песочница</b>
@@ -31,7 +30,7 @@ async function sandboxOpen() {
       <select id="sbAnim" title="Драться или показать одну анимацию на месте"></select>
       <select id="sbSpeed" title="Замедлить игру, чтобы рассмотреть кадры"><option value="1">100 %</option><option value="0.5">50 %</option><option value="0.25">25 %</option></select>
       <select id="sbCount" title="Сколько их на дворе"><option value="1">×1</option><option value="2">×2</option><option value="3">×3</option></select>
-      <span class="grow muted" id="sbState">загружаю игру…</span>
+      <button class="sm" data-sb="pause">⏸</button><button class="sm" data-sb="step">Кадр →</button><button class="sm" data-sb="force">⚔ Атака</button><label>Расстояние<input id="sbDistance" type="number" value="50" min="1" max="1200" style="width:65px"></label><label><input type="checkbox" id="sbZones" checked> Зоны</label><span class="grow muted" id="sbState">загружаю игру…</span>
       <button class="sm" data-sb="send" title="Отправить кадры в игру сейчас">⟳</button>
       <button class="sm ghost" data-sb="reload" title="Перезапустить игру">↺</button>
       <button class="sm ghost" data-sb="size" id="sbSize"></button>
@@ -46,9 +45,11 @@ async function sandboxOpen() {
     sandbox.view = { anim: $('#sbAnim').value, speed: +$('#sbSpeed').value, count: +$('#sbCount').value }; sandboxView();
   });
   sandboxAnims();
+  $('#sbZones').onchange = () => sandboxCommand('debug');
   el.querySelector('#sbBase').addEventListener('change', e => { sandbox.base = e.target.value; try { localStorage.setItem('ss_live_base', sandbox.base); } catch {} sandboxPost(true); });
   el.addEventListener('click', e => {
     const b = e.target.closest('[data-sb]'); if (!b) return;
+    if (['pause','step','force'].includes(b.dataset.sb)) { if (b.dataset.sb === 'pause') { sandbox.paused = !sandbox.paused; b.textContent = sandbox.paused ? '▶' : '⏸'; } sandboxCommand(b.dataset.sb); }
     if (b.dataset.sb === 'send') sandboxPost(true);
     if (b.dataset.sb === 'size') { sandbox.full = !sandbox.full; try { localStorage.setItem('ss_live_full', sandbox.full ? '1' : '0'); } catch {} sandboxSize(); }
     if (b.dataset.sb === 'screen') { const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) Promise.resolve(f.call(el)).catch(() => toast('Браузер не дал открыть на весь экран', 'err')); sandbox.full = true; sandboxSize(); }
@@ -60,7 +61,7 @@ async function sandboxOpen() {
 const SLOT_RU = { idle: 'покой', walk: 'ходьба', attack: 'атака', attack_alt: 'вторая атака', special: 'особое', hurt: 'боль', death: 'смерть' };
 function sandboxAnims() {
   const sel = sandbox.el?.querySelector('#sbAnim'); if (!sel || !P) return;
-  const have = ENEMY_SLOTS.map(([slot]) => slot).filter(slot => enemySlotFor(P.animations, slot));
+  const have = sandbox.actionMode && ATTACKS.data ? Object.keys(ATTACKS.data.roster.find(r => r.id === sandbox.base)?.body?.anims || {}) : ENEMY_SLOTS.map(([slot]) => slot).filter(slot => enemySlotFor(P.animations, slot));
   if (sandbox.view.anim && !have.includes(sandbox.view.anim)) sandbox.view.anim = '';
   sel.innerHTML = '<option value="">⚔ дерётся</option>' + have.map(slot => `<option value="${slot}" ${slot === sandbox.view.anim ? 'selected' : ''}>▶ ${SLOT_RU[slot] || slot}</option>`).join('');
 }
@@ -94,10 +95,12 @@ async function sandboxStrips(rebuild) {
 }
 
 async function sandboxPost(force) {
-  if (!sandbox.ready || sandbox.el?.hidden || !P) return;
+  if (!sandbox.ready || sandbox.el?.hidden) return;
+  if (sandbox.actionMode) { await sandboxDataPost(); return; }
+  if (!P) return;
   const { strips, cell, fps } = await sandboxStrips(force);
   if (!strips.idle) return sandboxState('нужна анимация «idle» с готовыми кадрами');
-  const msg = liveMessage({ name: P.name, base: sandbox.base, cell, fps, strips }), key = JSON.stringify(msg);
+  const msg = { ...liveMessage({ name: P.name, base: sandbox.base, cell, fps, strips }), ...await sandboxDraftData(sandbox.base) }, key = JSON.stringify(msg);
   if (!force && key === sandbox.sent) return;
   sandbox.sent = key;
   sandbox.frame.contentWindow.postMessage(msg, '*');
@@ -109,6 +112,49 @@ function sandboxChanged() { clearTimeout(sandbox.timer); sandbox.timer = setTime
 window.addEventListener('message', e => {
   if (!sandbox.frame || e.source !== sandbox.frame.contentWindow || !e.data?.type) return;
   if (e.data.type === 'ashes-live-ready') { sandbox.ready = true; sandbox.sent = ''; sandboxState('игра готова'); sandboxPost(true).then(sandboxView); }
-  if (e.data.type === 'ashes-live-applied') sandboxState(`в игре: ${(e.data.animations || []).join(', ')} · ${new Date().toLocaleTimeString().slice(0, 5)}`);
+  if (e.data.type === 'ashes-live-event') sandboxState(`${e.data.event} · кадр ${e.data.frame + 1} · урон ${e.data.damage}`);
+  if (e.data.type === 'ashes-live-applied') { sandboxCommand('debug'); sandboxState(`в игре: ${(e.data.animations || []).join(', ')} · ${new Date().toLocaleTimeString().slice(0, 5)}`); }
 });
 document.addEventListener('click', e => { if (e.target.closest('[data-act="chars-sandbox"]')) sandboxOpen(); });
+
+async function sandboxDraftData(id) {
+  await worldLoad(); await attacksEnterData(); await shotsLoad(); await pfxLoad(); await loadSndLib();
+  const docs = { ...WORLD.data.files, ...WORLD.work }, raw = docs[`data/enemies/${id}.json`];
+  const spec = { ...(raw?.extends ? docs[`data/enemies/${raw.extends}.json`] : {}), ...raw };
+  const over = docs['data/enemy_archetypes/tree.json']?.find(x => x.id === id);
+  if (over) Object.assign(spec, over);
+  const r = ATTACKS.data.roster.find(r => r.id === id);
+  if (r) { spec.attacks = r.source.items.map((a, i) => sharedAttack(id, i, a)).filter((a, i) => !SHOTS.removed.has(`enemy:${id}:${i}`)); spec.attacks.push(...SHOTS.adds.filter(a => a.id === id).map(a => a.attack)); delete spec.attack; }
+  const bodies = structuredClone(PFX.rules); bodies.studio_live = structuredClone(bodies[id] || {});
+  const sounds = {};
+  if (sndLib) for (const m of sndMods.values()) for (const t of sndEntry(m.id)?.takes || []) if (takeChanged(t) && !t.deleted) {
+    const buf = await renderEdits(await takeBuffer(t), t.mod?.edits || EDIT_DEFAULT); sounds[t.stem] = await blobToDataURL(encodeWav(buf));
+  }
+  return { spec, bodies, styles: SHOTS.styles, sheets: Object.fromEntries(SHOTS.newSheets), sounds,
+    player_actions: docs['data/player_actions.json']?.actions || {},
+    abilities: Object.fromEntries(Object.entries(docs).filter(([p]) => p.startsWith('data/abilities/')).flatMap(([, a]) => a.map(v => [v.id, v]))) };
+}
+async function attacksEnterData() {
+  if (!ATTACKS.data) {
+    ATTACKS.data = await (await fetch('import/attacks.json')).json();
+    ATTACKS.work = JSON.parse(localStorage.getItem('ss_attacks') || '{}');
+    draftBase('attacks', ATTACKS.data, Object.keys(ATTACKS.work).length > 0);
+    if (Object.keys(ATTACKS.work).length && !BASES.attacks.uncertain) ATTACKS.data = draftClone(BASES.attacks.value);
+    const i = ATTACKS.data.roster.findIndex(r => r.id === 'possessed_villager'); ATTACKS.enemy = Math.max(0, i); ATTACKS.index = i >= 0 ? 2 : 0;
+  }
+}
+async function sandboxActionOpen() {
+  await attacksEnterData(); sandbox.actionMode = true; sandbox.base = attackRoster().id; sandbox.view.anim = '';
+  await sandboxOpen(); $('#sbBase').value = sandbox.base;
+  if (sandbox.ready) await sandboxDataPost();
+}
+async function sandboxDataPost() {
+  const data = await sandboxDraftData(sandbox.base);
+  sandbox.frame.contentWindow.postMessage({ type: 'ashes-live', mode: 'data', extends: sandbox.base, ...data }, '*');
+  sandboxState('применяю действия и эффекты…');
+}
+function sandboxCommand(command) {
+  if (!sandbox.ready) return toast('Сначала нажми Play в игре и дождись загрузки');
+  sandbox.frame.contentWindow.postMessage({ type: 'ashes-live-control', command, paused: !!sandbox.paused, attack: ATTACKS.index, debug: $('#sbZones')?.checked !== false, distance: +$('#sbDistance')?.value || 50 }, '*');
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-act="chars-sandbox"]')) sandbox.actionMode = false; });

@@ -35,6 +35,9 @@ var cosmetic := false
 ## Thrown by the player rather than at them: it bites enemies and breakables,
 ## and the walls still stop it.
 var friendly := false
+## Optional traveled distance cap; zero keeps the existing four-second flight.
+var max_distance := 0.0
+var _travelled := 0.0
 var _life := 4.0
 var _reflected := false
 var _flight_clock := 0.0
@@ -62,11 +65,12 @@ func _physics_process(delta: float) -> void:
 	_advance_motion(delta)
 	_life -= delta
 	_animate_art()
-	if _life <= 0.0:
+	if _life <= 0.0 or (max_distance > 0.0 and _travelled >= max_distance):
 		_burst()
 
 
 func _advance_motion(delta: float) -> void:
+	var start := position
 	_flight_clock += delta
 	var travel := speed * delta
 	match motion:
@@ -95,6 +99,14 @@ func _advance_motion(delta: float) -> void:
 				speed *= 1.2
 				travel = speed * delta
 	position += direction * travel
+	var movement := position - start
+	var distance := movement.length()
+	if max_distance > 0.0:
+		var remaining := maxf(0.0, max_distance - _travelled)
+		if distance > remaining:
+			position = start + movement.normalized() * remaining
+			distance = remaining
+	_travelled += distance
 
 
 func _quarry() -> Node2D:
@@ -137,6 +149,7 @@ func reflect(_by: Node2D) -> void:
 	speed *= 1.35
 	damage *= 1.5
 	_life = 4.0
+	_travelled = 0.0
 	collision_mask = 1 | 4  # walls and enemies (layer 3)
 	tint = Color(0.8, 0.92, 1.0)
 	visual_style = "sacred"

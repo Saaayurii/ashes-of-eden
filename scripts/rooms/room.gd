@@ -33,6 +33,9 @@ const ROOM_LAYERS := preload("res://scripts/rooms/room_layers.gd")
 ## Pixel offset of the inpainted far plate per pixel of horizontal camera travel.
 @export var depth_parallax := 0.0
 
+@export var waves_json := "[]"
+var _waves: Array = []
+var _wave_index := 0
 var alive := 0
 ## The run hands us a spawner when it has one (a session replicates its enemies
 ## instead of each peer making its own). Empty = we spawn them ourselves, which
@@ -157,10 +160,13 @@ func map_rects() -> Array[Rect2]:
 
 
 func populate() -> void:
+	var parsed = JSON.parse_string(waves_json)
+	_waves = parsed if parsed is Array else []
+	_wave_index = 0
 	for spawn in $Spawns.get_children():
 		if spawn is EnemySpawn:
 			_from_markers.append([spawn, spawn_enemy(spawn.enemy_id, spawn.global_position)])
-	if alive == 0:
+	if alive == 0 and not _next_wave():
 		door.open = true
 
 
@@ -203,9 +209,27 @@ func _on_enemy_died(_id: StringName, _position: Vector2) -> void:
 		return
 	alive -= 1
 	if alive == 0 and not door.open:
+		if _next_wave():
+			return
 		door.open = true
 		if _cleared_once:
 			reopened.emit()  # cleared again after a rest: the door, not the rewards
 		else:
 			_cleared_once = true
 			cleared.emit()
+
+
+func _next_wave() -> bool:
+	if not authoritative:
+		return false
+	while _wave_index < _waves.size():
+		var wave = _waves[_wave_index]
+		_wave_index += 1
+		if not wave is Array:
+			continue
+		for row in wave:
+			if row is Array and row.size() == 3 and Data.enemies.has(str(row[0])):
+				spawn_enemy(str(row[0]), global_position + Vector2(float(row[1]), float(row[2])), true)
+		if alive > 0:
+			return true
+	return false

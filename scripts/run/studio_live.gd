@@ -26,6 +26,7 @@ const WAITING_FOR := "training_dummy"
 ## Emitted after a post was laid into Data; Run swaps the foe.
 signal applied(spec: Dictionary)
 ## Emitted when the studio changes how the sandbox shows the creature; Run applies `view`.
+signal control_requested(msg: Dictionary)
 signal view_changed
 
 ## How the sandbox shows it (studio → game {type: "ashes-live-view", anim, speed, count}):
@@ -41,6 +42,7 @@ static func requested(args := OS.get_cmdline_user_args()) -> bool:
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	if not OS.has_feature("web"):
 		return
 	_callback = JavaScriptBridge.create_callback(_on_js_message)
@@ -50,7 +52,7 @@ func _ready() -> void:
 	# page holding this iframe sent it, and only ours.
 	JavaScriptBridge.eval("""
 		window.addEventListener('message', e => {
-			if (e.source !== window.parent || window.parent === window || !e.data || !/^ashes-live(-view)?$/.test(e.data.type)) return;
+			if (e.source !== window.parent || window.parent === window || !e.data || !/^ashes-live(-view|-control)?$/.test(e.data.type)) return;
 			window.__ashesLive(JSON.stringify(e.data));
 		});
 		if (window.parent !== window) window.parent.postMessage({type: 'ashes-live-ready'}, '*');
@@ -60,6 +62,9 @@ func _ready() -> void:
 func _on_js_message(args: Array) -> void:
 	var msg = JSON.parse_string(str(args[0])) if not args.is_empty() else null
 	if not msg is Dictionary:
+		return
+	if msg.get("type") == "ashes-live-control":
+		control_requested.emit(msg)
 		return
 	if msg.get("type") == "ashes-live-view":
 		set_view(msg)
@@ -88,6 +93,24 @@ func apply(msg: Dictionary) -> Dictionary:
 	var spec := build_spec(msg)
 	if spec.is_empty():
 		return {}
+	if msg.get("bodies") is Dictionary:
+		ActionFx.use(msg.bodies)
+	if msg.get("styles") is Dictionary:
+		Projectile._styles = msg.styles.duplicate(true)
+		for path: String in msg.get("sheets", {}):
+			var texture := texture_from_base64(str(msg.sheets[path]))
+			if texture != null:
+				Projectile._sheets[path] = texture
+	if msg.get("player_actions") is Dictionary:
+		Player.studio_actions = msg.player_actions
+		Player._actions_loaded = true
+	if msg.get("abilities") is Dictionary:
+		Data.abilities.merge(msg.abilities, true)
+	for key: String in msg.get("sounds", {}):
+		var encoded := str(msg.sounds[key])
+		var stream := AudioStreamWAV.load_from_buffer(Marshalls.base64_to_raw(encoded.substr(encoded.find(",") + 1)))
+		if stream != null:
+			Audio.studio_clips[key] = stream
 	Data.enemies[ID] = spec
 	applied.emit(spec)
 	return spec
@@ -96,6 +119,15 @@ func apply(msg: Dictionary) -> Dictionary:
 ## The creature a post describes, on the enemy it fights like; textures are
 ## registered on the way. Static and engine-only, for the test.
 static func build_spec(msg: Dictionary) -> Dictionary:
+	if msg.get("mode") == "data":
+		var base_id := str(msg.get("extends", "cultist"))
+		if not Data.enemies.has(base_id):
+			return {}
+		var draft: Dictionary = Data.enemies[base_id].duplicate(true)
+		_merge_data(draft, msg.get("spec", {}))
+		draft.id = ID
+		draft.erase("_source")
+		return draft
 	var cell := Vector2i(int(msg.get("cell", [0, 0])[0]), int(msg.get("cell", [0, 0])[1]))
 	if cell.x <= 0 or cell.y <= 0:
 		push_warning("[StudioLive] no cell in the post")
@@ -117,6 +149,7 @@ static func build_spec(msg: Dictionary) -> Dictionary:
 	if not Data.enemies.has(base_id) or Data.enemies[base_id].get("boss", false):
 		base_id = "cultist"
 	var spec: Dictionary = Data.enemies[base_id].duplicate(true)
+	spec.merge(msg.get("spec", {}), true)
 	spec.id = ID
 	spec.erase("_source")
 	spec.tags = (spec.get("tags", []) as Array).filter(func(t) -> bool: return t != "elite")
@@ -136,3 +169,17 @@ static func texture_from_base64(data: String) -> Texture2D:
 	if raw.is_empty() or picture.load_png_from_buffer(raw) != OK:
 		return null
 	return ImageTexture.create_from_image(picture)
+
+static func report(event: String, enemy: Enemy) -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.parent.postMessage(%s, '*')" % JSON.stringify({
+			"type": "ashes-live-event", "event": event, "frame": enemy.sprite.frame,
+			"damage": enemy._attack.get("damage", 0), "attack": enemy._attack.get("name", "")}), true)
+
+
+static func _merge_data(target: Dictionary, overlay: Dictionary) -> void:
+	for key in overlay:
+		if target.get(key) is Dictionary and overlay[key] is Dictionary:
+			_merge_data(target[key], overlay[key])
+		else:
+			target[key] = overlay[key]
