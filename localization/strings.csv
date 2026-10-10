@@ -1009,3 +1009,5 @@ DRILL_STREAK,"Parries in a row %d · best %d","Парирований подря
 ENEMY_ASH_ARCHER,"Пепельная лучница","Пепельная лучница","Пепельная лучница","Пепельная лучница"
 ENEMY_ASH_ARCHER_LORE,"…","…","…","…"
 TIP_ASH_ARCHER,"Keep your distance: she shoots across the whole room.","Держи дистанцию: стреляет через всю комнату.","Keep your distance: she shoots across the whole room.","Keep your distance: she shoots across the whole room."
+DLG_PROLOG_3_WHISPER_1,"The bell never tolled for you. And why should it toll for one who never died? Or did you never live at all?","Колокол по тебе так и не ударил. Да и с чего бы ему звонить по тому, кто не умер? Или ты вовсе никогда не жил?","The bell never tolled for you. And why should it toll for one who never died? Or did you never live at all?","The bell never tolled for you. And why should it toll for one who never died? Or did you never live at all?"
+DLG_PROLOG_3_DEATH_1,"I cannot say how, but I know who that was. Death.","Не знаю откуда, но я знаю, что это была она - Смерть.","I cannot say how, but I know who that was. Death.","I cannot say how, but I know who that was. Death."
