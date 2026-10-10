@@ -30,6 +30,7 @@ func _run() -> void:
 	_check(enemy._telegraph_tween == null, "dust windup creates no glow tween")
 	enemy._strike(Vector2.RIGHT)
 	enemy.sprite.pause()
+	_check(not enemy.sprite.sprite_frames.get_animation_loop("special"), "timed special does not loop and emit another impact")
 	_check(player.hp == before and enemy._strike_wait, "no early damage at animation start")
 	await create_timer(0.15).timeout
 	_check(player.hp == before, "waiting on a paused sprite does not cause timer damage")
