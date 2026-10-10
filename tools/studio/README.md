@@ -84,6 +84,20 @@ attacks rewrite that list through `lib.js setJsonList`, every attack kept as its
 own text; a copied attack takes only how it shoots (`SHOT_COPY`). A new strip goes in as
 `assets/sprites/projectiles/<style>_studio.png`.
 
+**Dialogues** (`js/dialogues.js`, «Диалоги»). Every dialogue in `data/dialogues`, not only
+the ones a cutscene step reaches: the people on E, the notes, the forks' questions at a door
+(`build_data.py` lists who plays each as `used_by` in `import/cutscenes.json`, from every data file
+naming it as `"dialogue"`). Lines (speaker, text in all four locales), answers (id, the paths they
+weigh on, the flags they set, where they lead), routers (flag / path / habit / vial / omen) and the
+window: the panel at the bottom, or captions at the top (`"blocking": false`, no answers). An NPC's
+blocking dialogue is drawn as bubbles instead (`DialogueBox.play_bubble`). The preview draws each of
+the three as `dialogue_box.tscn` and `_build_bubbles` / `_place_bubbles` lay them out, in the game's
+fonts — change the box, change `dlgDrawPanel` / `dlgDrawCaption` / `dlgDrawBubble`. What the
+validator would refuse is listed in red before sending (`dlgProblems`), including Chinese outside
+the font subset. A changed dialogue is written back by `lib.js mergeDialogueFile`: every node still
+as it was keeps its bytes, a changed one keeps its own layout (one line or expanded), so a
+hand-laid file stays hand-laid (`tests/lib.test.js` rebuilds every dialogue of the game).
+
 **Particles on actions** (`js/particles.js`, «Частицы»). `data/action_fx.json` is
 read by `scripts/fx/action_fx.gd`, an `ActionFx` node on the hero's and every
 creature's sprite: an animation's start, chosen frames or a timer, plus the events

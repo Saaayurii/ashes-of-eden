@@ -367,6 +367,21 @@ def story(root: Path, strings, rooms):
         for one in (d if isinstance(d, list) else [d]):  # a file may hold several dialogues
             one["_file"] = f.name
             dialogues[one.get("id", f.stem)] = one
+    # who plays each dialogue besides a cutscene: an NPC talked to on E (bubbles), a note
+    # read as a caption, a fork's question at a door — any data file naming it as "dialogue"
+    used_by = {}
+    def users(node, kind, name):
+        if isinstance(node, dict):
+            if isinstance(node.get("dialogue"), str):
+                used_by.setdefault(node["dialogue"], []).append({"kind": kind, "name": node.get("name") or node.get("id") or name})
+            for v in node.values():
+                users(v, kind, name)
+        elif isinstance(node, list):
+            for v in node:
+                users(v, kind, name)
+    for sub in ("npcs", "notes", "forks", "props", "rest_points"):
+        for f in sorted((root / "data" / sub).glob("*.json")):
+            users(json.loads(f.read_text(encoding="utf-8")), sub, f.stem)
     played_in = {}
     for r in rooms:
         for k in ("intro_cutscene", "outro_cutscene"):
@@ -376,7 +391,7 @@ def story(root: Path, strings, rooms):
     return {"cutscenes": scenes, "dialogues": dialogues, "strings": strings,
             "speakers": sorted(k for k in strings if k.startswith("SPEAKER_")),
             "playlists": json.loads((root / "data/music/playlists.json").read_text(encoding="utf-8")),
-            "played_in": played_in, "room_order": room_order(root),
+            "played_in": played_in, "used_by": used_by, "room_order": room_order(root),
             "families": sorted(backdrops.get("families", {}).keys()), "pictures": sorted(backdrops.get("rooms", {}).keys())}
 
 

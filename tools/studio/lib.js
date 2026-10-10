@@ -411,6 +411,34 @@ function fmtDialogue(d, compact, indent) {
     : `${pad}  "nodes": {\n${Object.entries(d.nodes).map(([n, v]) => `${pad}    ${JSON.stringify(n)}: ${fmtJson(v)}`).join(',\n')}\n${pad}  }`);
   return `{\n${lines.join(',\n')}\n${pad}}`;
 }
+// The entries of the JSON object whose '{' is at `open`: each key with the span of its value.
+function objectEntries(text, open) {
+  const out = []; let i = open + 1;
+  const strEnd = at => { for (let j = at + 1; j < text.length; j++) { if (text[j] === '\\') j++; else if (text[j] === '"') return j + 1; } return text.length; };
+  for (;;) {
+    while (/[\s,]/.test(text[i])) i++;
+    if (i >= text.length || text[i] === '}') return out;
+    const ke = strEnd(i), key = JSON.parse(text.slice(i, ke));
+    i = ke; while (text[i] !== ':') i++; i++; while (/\s/.test(text[i])) i++;
+    const vs = i, ve = text[i] === '{' || text[i] === '[' ? jsonSpan(text, i)[1] : text[i] === '"' ? strEnd(i) : i + /^[^,}\]\s]*/.exec(text.slice(i))[0].length;
+    out.push({ key, vs, ve }); i = ve;
+  }
+}
+// One dialogue's text rebuilt around what changed: every top-level value and every node that
+// is still what it was keeps its own bytes, a changed node keeps its own layout (one line or
+// expanded), and a new node takes the layout most of its neighbours have.
+function rebuildDialogue(old, clean, indent) {
+  const pad = ' '.repeat(indent), same = (e, v) => e && JSON.stringify(JSON.parse(old.slice(e.vs, e.ve))) === JSON.stringify(v);
+  const oneLine = e => !old.slice(e.vs, e.ve).includes('\n'), top = objectEntries(old, 0), at = Object.fromEntries(top.map(e => [e.key, e]));
+  const nodesE = at.nodes, entries = nodesE ? objectEntries(old, nodesE.vs) : [], was = Object.fromEntries(entries.map(e => [e.key, e]));
+  const compactMost = entries.filter(oneLine).length * 2 >= entries.length;
+  const layout = (v, compact, depth) => compact ? fmtJson(v) : JSON.stringify(v, null, 2).split('\n').join('\n' + pad + ' '.repeat(depth));
+  const nodeText = (k, v) => same(was[k], v) ? old.slice(was[k].vs, was[k].ve) : layout(v, was[k] ? oneLine(was[k]) : compactMost, 4);
+  const value = (k, v) => k === 'nodes'
+    ? (same(nodesE, v) ? old.slice(nodesE.vs, nodesE.ve) : `{\n${Object.entries(v).map(([n, x]) => `${pad}    ${JSON.stringify(n)}: ${nodeText(n, x)}`).join(',\n')}\n${pad}  }`)
+    : same(at[k], v) ? old.slice(at[k].vs, at[k].ve) : layout(v, at[k] ? oneLine(at[k]) : true, 2);
+  return `{\n${Object.entries(clean).map(([k, v]) => `${pad}  ${JSON.stringify(k)}: ${value(k, v)}`).join(',\n')}\n${pad}}`;
+}
 function mergeDialogueFile(text, dialogue) {
   const clean = JSON.parse(JSON.stringify(dialogue)); delete clean._file;
   if (!text) return fmtDialogue(clean, true, 0) + '\n';
@@ -420,8 +448,8 @@ function mergeDialogueFile(text, dialogue) {
     return JSON.stringify([...list, clean], null, 2) + '\n';
   }
   const old = text.slice(span[0], span[1]), lineStart = text.lastIndexOf('\n', span[0]) + 1;
-  const compact = /\n\s+"[^"]+": \{"[^\n]*\},?\n/.test(old);
-  return text.slice(0, span[0]) + fmtDialogue(clean, compact, span[0] - lineStart) + text.slice(span[1]);
+  if (JSON.stringify(JSON.parse(old)) === JSON.stringify(clean)) return text;
+  return text.slice(0, span[0]) + rebuildDialogue(old, clean, span[0] - lineStart) + text.slice(span[1]);
 }
 // data/backdrops.json: a still rule for each new picture, written in by text so
 // the hand-laid zones of every other picture keep their layout.
@@ -944,5 +972,5 @@ async function filesFingerprint(entries) {
 }
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

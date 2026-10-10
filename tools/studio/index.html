@@ -109,7 +109,18 @@ main{padding:12px 16px;min-width:0}
 .modes button.on{background:var(--panel2);color:var(--accent)}
 .hdr-chars,.hdr-bg,.hdr-cut,.hdr-snd{display:contents}
 body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
-body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout{display:none!important}
+body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout,body:not([data-mode=dlg]) .dlglayout{display:none!important}
+.dlglayout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - var(--hdr, 50px))}
+.dlgmain{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,520px);gap:10px;min-height:0}
+.dlgmain>div{min-height:0;display:flex;flex-direction:column;gap:8px}
+#dlgStage{flex:none;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#0f0d14}
+#dlgCanvas{display:block;width:100%;height:100%;object-fit:contain;cursor:pointer}
+#dlgNodes{padding-bottom:40px}
+#dlgNodes .row select,#dlgNodes .row input:not([type=checkbox]){width:auto;min-width:0}
+#dlgNodes .row select{max-width:220px}
+#dlgNodes textarea{width:100%;resize:vertical}
+#dlgList{max-height:none;flex:1}
+@media (max-width:1100px){.dlgmain{grid-template-columns:1fr;overflow:auto}}
 .pfxlayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
 #pfxTriggers{max-height:36vh;overflow:auto;flex:none;scrollbar-width:thin}
 #pfxStage{flex:1;min-height:0;border-radius:6px;overflow:hidden}
@@ -253,7 +264,7 @@ a{color:var(--sel)}
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -514,6 +525,29 @@ a{color:var(--sel)}
   </main>
 </div>
 
+<div id="dlgLayout" class="dlglayout">
+  <aside class="side lifeside" id="dlgSide">
+    <div class="row" style="margin:0"><input id="dlgSearch" placeholder="поиск: имя или текст реплики" style="flex:1"><button class="sm" data-act="dg-new" title="Новый диалог">＋</button></div>
+    <div id="dlgList" class="ilist"></div>
+  </aside>
+  <main class="lifemain">
+    <div class="lifebar">
+      <label title="Как окно выглядит в игре: так, как сам диалог показывается, или посмотреть в другом виде">Окно <select id="dlgLook"><option value="auto">как в игре</option><option value="panel">панель внизу</option><option value="caption">субтитры сверху</option><option value="bubble">пузыри (NPC)</option></select></label>
+      <label>Язык <select id="dlgLocale"><option value="ru">Русский</option><option value="en">English</option><option value="uk">Українська</option><option value="zh_CN">中文</option></select></label>
+      <label>Фон <select id="dlgBg" style="width:180px"><option value="">— без фона —</option></select></label>
+      <span class="grow muted">Щёлкни по окну или пробел — дальше, 1–9 — ответ, Home — сначала.</span>
+      <button class="sm" data-act="dg-revert-all" title="Сбросить все несохранённые правки диалогов">↺ Всё как в игре</button>
+      <button class="primary" id="dlgSend" data-act="dg-send" disabled>→ В игру</button>
+    </div>
+    <div class="dlgmain">
+      <div><div id="dlgStage"><canvas id="dlgCanvas"></canvas></div>
+        <div class="note">Окно нарисовано по разметке игры (dialogue_box.tscn): панель внизу, субтитры сверху, пузыри над головами для разговоров с NPC на E. Шрифты те же — EB Garamond и Forum.</div></div>
+      <div style="overflow:auto;scrollbar-width:thin"><div id="dlgHead" class="card"></div><div id="dlgNodes"></div></div>
+    </div>
+  </main>
+</div>
+<datalist id="dlgSpeakers"></datalist><datalist id="dlgFlags"></datalist>
+
 <div id="pfxLayout" class="pfxlayout">
   <aside class="side lifeside" id="pfxSide">
     <label>Кто<select id="pfxBodies"></select></label>
@@ -670,6 +704,7 @@ a{color:var(--sel)}
 <script src="js/seams.js"></script>
 <script src="js/shots.js"></script>
 <script src="js/particles.js"></script>
+<script src="js/dialogues.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>
 </body>
