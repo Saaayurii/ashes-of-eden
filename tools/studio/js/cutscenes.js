@@ -147,7 +147,7 @@ function renderDialogueEditor(id) {
         ${n.choices ? `<div class="muted">Выбор: ${n.choices.map(c => esc(str(c.text)) + ' → ' + esc(c.next || 'конец')).join(' · ')}</div>` : ''}
       </div>`;
     }).join('')}
-    <div class="row"><button class="sm" data-act="dlg-add">+ Реплика в конец</button></div>`;
+    <div class="row"><button class="sm" data-act="dlg-add">+ Реплика в конец</button>${cutData?.dialogues[d.id] ? `<button class="sm" data-act="dg-open" data-id="${esc(d.id)}" title="Ответы, развилки, окно, все четыре языка">Открыть во вкладке «Диалоги»</button>` : ''}</div>`;
 }
 function ownDialogue(id) {
   if (!CUT.dialogues[id]) { const src = getDialogue(id); if (!src) return null; CUT.dialogues[id] = JSON.parse(JSON.stringify(src)); }

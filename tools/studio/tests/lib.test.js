@@ -170,7 +170,19 @@ test('rewriting an unchanged dialogue leaves its file alone', () => {
       if (y === x) identical++;
     }
   }
-  assert.ok(identical / total > 0.75, `${identical}/${total} byte-identical`);
+  assert.equal(identical, total, `${identical}/${total} byte-identical`);
+});
+
+test('an edited node rewrites only its own lines, in its own layout', () => {
+  const f = path.join(ROOT, 'data/dialogues/npc_matthew.json'), x = fs.readFileSync(f, 'utf8'), d = JSON.parse(x);  // one-line and expanded nodes side by side
+  const oneLine = Object.keys(d.nodes).find(k => new RegExp(`\n {4}${JSON.stringify(k)}: \\{[^\n]*\\},?\n`).test(x));
+  d.nodes[oneLine].speaker = 'SPEAKER_ELIAN';
+  const y = L.mergeDialogueFile(x, d), a = x.split('\n'), b = y.split('\n');
+  assert.deepEqual(JSON.parse(y), d);
+  assert.equal(a.length, b.length);
+  assert.equal(a.filter((l, i) => l !== b[i]).length, 1);
+  d.nodes.added = { speaker: 'SPEAKER_ELIAN', text: 'K' };
+  assert.deepEqual(JSON.parse(L.mergeDialogueFile(x, d)), d);
 });
 
 test('an edited dialogue in a multi-dialogue file touches only itself', () => {
