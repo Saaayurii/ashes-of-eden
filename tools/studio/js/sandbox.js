@@ -124,7 +124,22 @@ async function sandboxDraftData(id) {
   const over = docs['data/enemy_archetypes/tree.json']?.find(x => x.id === id);
   if (over) Object.assign(spec, over);
   const r = ATTACKS.data.roster.find(r => r.id === id);
-  if (r) { spec.attacks = r.source.items.map((a, i) => sharedAttack(id, i, a)).filter((a, i) => !SHOTS.removed.has(`enemy:${id}:${i}`)); spec.attacks.push(...SHOTS.adds.filter(a => a.id === id).map(a => a.attack)); delete spec.attack; }
+  if (r) {
+    const src = r.source, changed = WORLD.work[src.file];
+    const node = changed && (Array.isArray(changed) ? changed.find(v => v.id === id) : src.path.reduce((o, k) => o?.[k], changed));
+    const configured = node && (src.single ? [node[src.key]] : node[src.key]);
+    const actions = structuredClone(configured || src.items), deleted = new Set();
+    for (const [i, base] of src.items.entries()) {
+      const shared = sharedAttack(id, i, base), removed = SHOTS.removed.has(`enemy:${id}:${i}`);
+      if (sameDraft(shared, base) && !removed) continue;
+      const at = locateAction(actions, base, i, src.items);
+      if (removed) { deleted.add(at); continue; }
+      for (const key of new Set([...Object.keys(base), ...Object.keys(shared)])) if (!sameDraft(base[key], shared[key])) {
+        if (shared[key] === undefined) delete actions[at][key]; else actions[at][key] = shared[key];
+      }
+    }
+    spec.attacks = actions.filter((a, i) => !deleted.has(i)); spec.attacks.push(...SHOTS.adds.filter(a => a.id === id).map(a => a.attack)); delete spec.attack;
+  }
   const bodies = structuredClone(PFX.rules); bodies.studio_live = structuredClone(bodies[id] || {});
   const sounds = {};
   if (sndLib) for (const m of sndMods.values()) for (const t of sndEntry(m.id)?.takes || []) if (takeChanged(t) && !t.deleted) {
