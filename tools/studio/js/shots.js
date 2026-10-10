@@ -14,7 +14,7 @@ const SHOT_LOOK = { frames: 1, fps: 10, scale: 0.62, light: 20, trail: 8, shader
 const SHOT_ECHO = { offset: 9, sway: [3, 15], scale: 0.45, spin: 0, color: '#ffffff', alpha: -1 };
 const SHOT_MOTIONS = { straight: 'Прямо', wave: 'Волной', accelerate: 'Разгоняется', arc: 'Падает дугой', surge: 'Зависает, потом рывок', return: 'Возвращается', home: 'Наводится' };
 const SHOT_FX = { sparkle: 'Искры', ash: 'Пепел', debris: 'Осколки', spark: 'Вспышка клинка' };
-const SHOT_KEYS = ['projectile_style', 'projectile_speed', 'projectile_motion', 'motion_amount', 'projectiles', 'spread', 'color', 'damage', 'windup', 'cooldown', 'volley', 'volley_gap', 'speed_jitter', 'projectile_scale'];
+const SHOT_KEYS = ['projectile_style', 'projectile_speed', 'projectile_motion', 'motion_amount', 'projectiles', 'spread', 'color', 'damage', 'range', 'windup', 'cooldown', 'volley', 'volley_gap', 'speed_jitter', 'projectile_scale'];
 // a gift's bolt names the same things otherwise (Player._cast_skill)
 const GIFT_KEY = { projectile_style: 'style', projectile_speed: 'speed', projectile_motion: 'motion' };
 
@@ -264,6 +264,7 @@ function renderShotProps() {
     <label>Как выглядит<select data-shot="a.projectile_style">${Object.keys(SHOTS.styles).filter(k => gift || (SHOTS.styles[k].frames || 1) > 1).map(k => `<option${k === (a.projectile_style || 'sacred') ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select></label>
     <label>Полёт<select data-shot="a.projectile_motion">${Object.entries(SHOT_MOTIONS).map(([k, v]) => `<option value="${k}"${k === (a.projectile_motion || 'straight') ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
     ${(a.projectile_motion || 'straight') !== 'straight' ? shotNum('a.motion_amount', a.motion_amount ?? 1, 0.05, { wave: 30, arc: 120, return: 3.9, surge: 2, accelerate: 2, home: 4 }[a.projectile_motion] || 4, 0.05, { wave: 'Размах волны, px', arc: 'Сила падения', return: 'Через сколько секунд разворот', surge: 'Сколько висит, с', accelerate: 'Разгон', home: 'Поворот, рад/с' }[a.projectile_motion] || 'Сила') : ''}
+    ${gift ? '' : shotNum('a.range', a.range ?? 260, 1, Math.max(1200, a.range || 0), 1, 'Дальность атаки, px', 'На каком расстоянии от цели враг может начать эту атаку')}
     ${shotNum('a.projectile_speed', a.projectile_speed ?? (gift ? 300 : 170), 60, 480, 5, 'Скорость, px/с')}
     ${shotNum('a.projectiles', a.projectiles ?? 1, 1, 9, 1, 'Снарядов за раз')}
     ${(+a.projectiles || 1) > 1 ? shotNum('a.spread', a.spread ?? 0, 0, 90, 1, 'Веер, °') : ''}
