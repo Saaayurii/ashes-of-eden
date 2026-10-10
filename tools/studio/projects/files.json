@@ -26,5 +26,13 @@
   "assets/sprites/ash_archer_walk.png": {
     "by": "local",
     "at": "2026-10-07"
+  },
+  "assets/sprites/projectiles/cult_flame_studio.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/projectiles/cult_page_studio.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-10"
   }
 }

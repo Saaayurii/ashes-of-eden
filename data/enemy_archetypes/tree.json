@@ -174,12 +174,13 @@
         "damage": 9,
         "cooldown": 2.4,
         "projectile_speed": 175,
-        "projectile_motion": "wave",
+        "projectile_motion": "straight",
         "motion_amount": 8,
         "weight": 3,
         "animation": "attack_alt",
-        "color": "#b45a82",
-        "projectile_style": "cult"
+        "color": "#ff8a3c",
+        "projectile_style": "cult_page",
+        "speed_jitter": 0.02
       },
       {
         "name": "Profane Chorus",
@@ -189,15 +190,15 @@
         "damage": 6,
         "cooldown": 4.2,
         "projectile_speed": 145,
-        "projectile_motion": "wave",
+        "projectile_motion": "straight",
         "motion_amount": 6,
         "projectiles": 3,
         "spread": 28,
         "weight": 1,
         "animation": "special",
-        "color": "#8d4aae",
+        "color": "#ff9a3c",
         "sfx": "cultist_special",
-        "projectile_style": "cult"
+        "projectile_style": "cult_flame"
       }
     ],
     "sprite": {
