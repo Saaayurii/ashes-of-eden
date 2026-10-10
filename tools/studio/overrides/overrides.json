@@ -61,5 +61,68 @@
     "base": "387cba2a839546a2",
     "by": "Saaayurii",
     "at": "2026-10-08"
+  },
+  "assets/sprites/possessed_villager_v2_attack.png": {
+    "size": [
+      672,
+      68
+    ],
+    "base": null,
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/possessed_villager_v2_attack_alt.png": {
+    "size": [
+      672,
+      68
+    ],
+    "base": null,
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/possessed_villager_v2_death.png": {
+    "size": [
+      672,
+      68
+    ],
+    "base": null,
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/possessed_villager_v2_hurt.png": {
+    "size": [
+      672,
+      68
+    ],
+    "base": null,
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/possessed_villager_v2_idle.png": {
+    "size": [
+      672,
+      68
+    ],
+    "base": null,
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/possessed_villager_v2_special.png": {
+    "size": [
+      672,
+      68
+    ],
+    "base": null,
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/possessed_villager_v2_walk.png": {
+    "size": [
+      672,
+      68
+    ],
+    "base": null,
+    "by": "Saaayurii",
+    "at": "2026-10-10"
   }
 }
