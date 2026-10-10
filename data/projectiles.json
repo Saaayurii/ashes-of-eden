@@ -392,6 +392,86 @@
           "count": 8
         }
       ]
+    },
+    "cult_page": {
+      "sheet": "res://assets/sprites/projectiles/cult_page_studio.png",
+      "frames": 4,
+      "fps": 11,
+      "shader": 3,
+      "scale": 0.46,
+      "trail": 11,
+      "light": 16,
+      "bob": [
+        1.6,
+        31
+      ],
+      "wiggle": [
+        0.12,
+        16
+      ],
+      "echo": {
+        "offset": 15,
+        "sway": [
+          3,
+          24
+        ],
+        "color": "#ff7a1a",
+        "alpha": 0.4,
+        "scale": 0.6
+      },
+      "burst": [
+        {
+          "fx": "ash",
+          "color": "#ff8a2a",
+          "count": 10,
+          "spread": 30
+        },
+        {
+          "fx": "debris",
+          "color": "#3a2a22",
+          "count": 6
+        }
+      ]
+    },
+    "cult_flame": {
+      "sheet": "res://assets/sprites/projectiles/cult_flame_studio.png",
+      "frames": 4,
+      "fps": 14,
+      "shader": 3,
+      "scale": 0.46,
+      "trail": 11,
+      "light": 16,
+      "bob": [
+        1.6,
+        31
+      ],
+      "wiggle": [
+        0.06,
+        20
+      ],
+      "echo": {
+        "offset": 15,
+        "sway": [
+          3,
+          24
+        ],
+        "color": "#ff7a1a",
+        "alpha": 0.4,
+        "scale": 0.6
+      },
+      "burst": [
+        {
+          "fx": "ash",
+          "color": "#ff8a2a",
+          "count": 7,
+          "spread": 24
+        },
+        {
+          "fx": "sparkle",
+          "color": "#ffc66b",
+          "count": 6
+        }
+      ]
     }
   }
 }
