@@ -54,6 +54,7 @@ function setMode(m) {
   if (m === 'snd' || m === 'cut') enterStoryMode(m);
   if (m === 'rig' && typeof renderRig === 'function') renderRig();
   if (m === 'life' && typeof lifeEnter === 'function') lifeEnter();
+  if (m === 'attacks' && typeof attacksEnter === 'function') attacksEnter();
   if (m === 'shots' && typeof shotsEnter === 'function') shotsEnter();
   if (m === 'pfx' && typeof pfxEnter === 'function') pfxEnter();
   if (m === 'dlg' && typeof dlgEnter === 'function') dlgEnter();

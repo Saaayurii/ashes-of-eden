@@ -109,7 +109,7 @@ main{padding:12px 16px;min-width:0}
 .modes button.on{background:var(--panel2);color:var(--accent)}
 .hdr-chars,.hdr-bg,.hdr-cut,.hdr-snd{display:contents}
 body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
-body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout,body:not([data-mode=dlg]) .dlglayout{display:none!important}
+body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=attacks]) .attacklayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout,body:not([data-mode=dlg]) .dlglayout{display:none!important}
 .dlglayout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - var(--hdr, 50px))}
 .dlgmain{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,520px);gap:10px;min-height:0}
 .dlgmain>div{min-height:0;display:flex;flex-direction:column;gap:8px}
@@ -264,7 +264,7 @@ a{color:var(--sel)}
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="attacks">Атаки</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -499,6 +499,16 @@ a{color:var(--sel)}
   <aside class="side bgright" id="itemPanel"></aside>
 </div>
 
+<div id="attackLayout" class="attacklayout" style="height:calc(100vh - 70px);overflow:auto;padding:16px">
+  <div class="row"><label>Персонаж<select id="attackEnemy"></select></label><label>Действие<select id="attackChoice"></select></label><button id="attackSend">→ В игру</button><button id="attackReset">Сбросить изменения</button></div>
+  <div class="note">Все атаки врагов: удар, рывок, снаряды, луч, удар по площади и призыв. Частицы на любое действие героя и врагов — во вкладке «Частицы»; вид снарядов — в «Снаряды».</div>
+  <canvas id="attackCanvas" width="640" height="220" class="pixel" style="width:min(100%,960px);background:#17171c"></canvas>
+  <div class="row"><button id="attackPlay">▶ Повторить</button><label>Кадр анимации<input id="attackFrame" type="range" min="1" max="7" value="1"></label><span id="attackTiming"></span></div>
+  <div id="attackProps" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+  <details><summary>Все параметры действия (JSON)</summary><p class="note">Здесь можно изменить любой параметр атаки, включая параметры снарядов и призыва. Сохраняются только изменённые поля.</p><textarea id="attackJson" style="width:100%;height:240px"></textarea><button id="attackApply">Применить JSON</button></details>
+  <p id="attackStatus" class="note"></p>
+</div>
+
 <div id="cutLayout" class="cutlayout">
   <aside class="side cutside">
     <h3>Шаги</h3>
@@ -703,6 +713,7 @@ a{color:var(--sel)}
 <script src="js/tiles.js"></script>
 <script src="js/seams.js"></script>
 <script src="js/shots.js"></script>
+<script src="js/attacks.js"></script>
 <script src="js/particles.js"></script>
 <script src="js/dialogues.js"></script>
 <script src="js/edit.js"></script>

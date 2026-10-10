@@ -38,6 +38,9 @@
       },
       {
         "name": "Ruptured Cry",
+        "hit_frame": 1,
+        "telegraph_fx": "none",
+        "impact_fx": "dust",
         "type": "nova",
         "range": 95,
         "trigger_range": 80,

@@ -625,7 +625,8 @@ def projectiles(root: Path, strings):
         if not anims or "cell" not in sprite:
             return None
         return {"cell": sprite["cell"], "fps": sprite.get("fps", 6), "scale": sprite.get("scale", 1.0),
-                "pad_y": sprite.get("pad_y", 0), "tint": sprite.get("tint"), "anims": anims}
+                "pad_y": sprite.get("pad_y", 0), "tint": sprite.get("tint"), "anims": anims,
+                "frames": {a: _size(root, res)[0] // sprite["cell"][0] for a, res in sprite.get("animations", {}).items() if a in anims}}
     hero = {"cell": [128, 64], "fps": 10, "scale": 1.0, "hero": True,
             "anims": {a: f"assets/sprites/elian_{a}.png" for a in ("idle", "attack") if (root / f"assets/sprites/elian_{a}.png").exists()}}
     dummy = body(resolved.get("training_dummy", {}).get("sprite", {}))
@@ -726,6 +727,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "seams.json", seams(root))
     shots = projectiles(root, strings)
     write(out, "projectiles.json", shots)
+    write(out, "attacks.json", {"roster": shots["roster"]})
     write(out, "action_fx.json", action_fx(root, strings, shots))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))

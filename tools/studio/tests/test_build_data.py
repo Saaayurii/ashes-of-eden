@@ -49,6 +49,16 @@ class LivingBackdrops(unittest.TestCase):
         self.assertEqual(next(u for u in shots["users"] if u["id"] == "cult_caller")["body"]["tint"], "#c8b4ff")
         self.assertTrue(shots["hero"]["hero"] and shots["dummy"]["anims"]["idle"])
 
+    def test_all_attack_types_and_frame_counts_are_available_to_the_actions_editor(self):
+        shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
+        types = {a["type"] for r in shots["roster"] for a in r["source"]["items"]}
+        self.assertEqual(types, {"melee", "lunge", "ranged", "beam", "nova", "summon"})
+        villager = next(r for r in shots["roster"] if r["id"] == "possessed_villager")
+        self.assertEqual(villager["source"]["file"], "data/enemy_archetypes/tree.json")
+        cry = villager["source"]["items"][2]
+        self.assertEqual((cry["hit_frame"], cry["impact_fx"], cry["telegraph_fx"]), (1, "dust", "none"))
+        self.assertGreater(villager["body"]["frames"]["special"], cry["hit_frame"])
+
     def test_seams_are_where_the_generator_inserts_them(self):
         seams = build_data.seams(ROOT)
         cross = seams["res://assets/levels/graveyard_cross_wide.png"]
