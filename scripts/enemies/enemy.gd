@@ -1035,6 +1035,8 @@ func _strike(to_target: Vector2) -> void:
 		_strike_aim = to_target
 		_set_state(State.STRIKE, 0.0)
 		_strike_wait = true
+		# A timed attack is one impact, even when special is also an idle loop.
+		sprite.sprite_frames.set_animation_loop(animation, false)
 		_play(animation, true)
 		sprite.play(animation)
 		if Net.active:
@@ -1053,6 +1055,8 @@ func _attack_frame_changed() -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func _net_attack_start(animation: String) -> void:
+	if _has_anim.has(animation):
+		sprite.sprite_frames.set_animation_loop(animation, false)
 	_play(animation, true)
 	sprite.play(animation)
 
