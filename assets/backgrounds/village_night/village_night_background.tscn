@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/levels/graveyard_moon_wide.png" id="tex_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/wilds/brush_2.png" id="tex_2"]
+
+[node name="village_night_background" type="Node2D"]
+
+[node name="Painting" type="Node2D" parent="."]
+
+[node name="Painting" type="Sprite2D" parent="Painting"]
+texture_filter = 2
+position = Vector2(687, 2)
+texture = ExtResource("tex_1")
+centered = false
+
+[node name="DecorFront" type="Node2D" parent="."]
+z_index = 1
+
+[node name="wilds_brush_2_1" type="Sprite2D" parent="DecorFront"]
+modulate = Color(0.783, 0.767, 0.832, 1)
+position = Vector2(679.5, 508)
+texture = ExtResource("tex_2")
+centered = false
