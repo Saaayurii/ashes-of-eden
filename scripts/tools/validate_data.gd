@@ -690,6 +690,16 @@ func _check_enemy_strips() -> void:
 		if enemies[id].has("attack"):
 			attacks = attacks + [enemies[id].attack]
 		for attack in attacks:
+			if attack.has("telegraph_fx") and not attack.telegraph_fx in ["glow", "none"]:
+				_error("enemies/%s: telegraph_fx must be glow or none" % id)
+			if attack.has("impact_fx") and (attack.get("type") != "nova" or not attack.impact_fx in ["magic", "dust", "none"]):
+				_error("enemies/%s: impact_fx must be magic, dust or none on a nova" % id)
+			if attack.has("hit_frame"):
+				var frame := float(attack.hit_frame)
+				var animation := str(attack.get("animation", "attack"))
+				var texture = load(str(spec.get("animations", {}).get(animation, "")))
+				if texture == null or frame < 0 or frame != floorf(frame) or frame >= texture.get_width() / int(spec.get("cell", [24, 28])[0]):
+					_error("enemies/%s: hit_frame must name an existing zero-based animation frame" % id)
 			if attack.get("type") == "ranged":
 				var style := str(attack.get("projectile_style", ""))
 				if int(_flight_styles.get(style, 0)) < 2:

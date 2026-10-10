@@ -107,6 +107,9 @@ var _repeats := 0
 ## Its own dice for the choice, so a test can seed it.
 var attack_rng := RandomNumberGenerator.new()
 var _telegraph_tween: Tween
+var _strike_wait := false
+var _strike_frame := 0
+var _strike_aim := Vector2.ZERO
 var _beam_lines: Array[Line2D] = []
 var _beam_hit := {}  # player -> already burned this beam
 var _contact_cd := 0.0
@@ -184,6 +187,7 @@ func attach_net_sync() -> void:
 
 
 func _ready() -> void:
+	sprite.frame_changed.connect(_attack_frame_changed)
 	stats = Data.enemies.get(enemy_id, {}).duplicate(true)  # scaled per instance below
 	if stats.is_empty():
 		push_error("Unknown enemy id: %s" % enemy_id)
@@ -484,6 +488,10 @@ func _physics_process(delta: float) -> void:
 			if _state_left <= 0.0:
 				_strike(to_target)
 		State.STRIKE:
+			if _strike_wait:
+				_hold(delta)
+				move_and_slide()
+				return
 			if _attack.get("type") == "lunge":
 				velocity = _lunge_dir * float(_attack.get("lunge_speed", 400))
 			else:
@@ -962,17 +970,23 @@ func _begin_windup(to_target: Vector2) -> void:
 	var length := float(_attack.get("length", 420))
 	var thickness := float(_attack.get("thickness", 26))
 	var color := str(_attack.get("color", "#ffe9a8"))
-	_telegraph(_state_left, beam, length, thickness, color)
+	_telegraph(_state_left, beam, length, thickness, color, str(_attack.get("animation", "attack")), str(_attack.get("telegraph_fx", "glow")))
 	if Net.active:
-		_net_telegraph.rpc(facing, _state_left, beam, length, thickness, color)
+		_net_telegraph.rpc(facing, _state_left, beam, length, thickness, color, str(_attack.get("animation", "attack")), str(_attack.get("telegraph_fx", "glow")))
 
 
 ## The telegraph: a bright pulse the player can read from across the room, and
 ## the breath before the swing for anyone looking the other way. Runs on every
 ## peer already, so the sound rides along without an RPC of its own.
-func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26.0, color := "#ffe9a8") -> void:
+func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26.0, color := "#ffe9a8", animation := "attack", effect := "glow") -> void:
 	_voice("attack", &"enemy_windup", -11.0)
-	_play(str(_attack.get("animation", "attack")), true)
+	_play(animation, true)
+	if effect == "none":
+		if _telegraph_tween != null:
+			_telegraph_tween.kill()
+			_telegraph_tween = null
+		visual.modulate = Color.WHITE
+		return
 	visual.modulate = Color(1.0, 0.85, 0.7)
 	if _telegraph_tween != null:
 		_telegraph_tween.kill()
@@ -986,9 +1000,9 @@ func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26
 
 
 @rpc("authority", "call_remote", "reliable")
-func _net_telegraph(new_facing: int, duration: float, beam: bool, length: float, thickness: float, color: String) -> void:
+func _net_telegraph(new_facing: int, duration: float, beam: bool, length: float, thickness: float, color: String, animation := "attack", effect := "glow") -> void:
 	facing = new_facing
-	_telegraph(duration, beam, length, thickness, color)
+	_telegraph(duration, beam, length, thickness, color, animation, effect)
 
 
 ## A wind-up that will not land (staggered, parried) stops looking like one:
@@ -1009,7 +1023,41 @@ func _net_cancel_telegraph() -> void:
 	_cancel_telegraph()
 
 
+## hit_frame is zero-based in data; the studio shows human frame numbers.
+## Wait for the actual sprite frame, so speed changes and hit stop stay in sync.
 func _strike(to_target: Vector2) -> void:
+	var animation := str(_attack.get("animation", "attack"))
+	_strike_frame = 0
+	if _has_anim.has(animation):
+		# Live sprite replacements can have fewer frames than the saved attack.
+		_strike_frame = clampi(int(_attack.get("hit_frame", 0)), 0, sprite.sprite_frames.get_frame_count(animation) - 1)
+	if _strike_frame > 0:
+		_strike_aim = to_target
+		_set_state(State.STRIKE, 0.0)
+		_strike_wait = true
+		_play(animation, true)
+		sprite.play(animation)
+		if Net.active:
+			_net_attack_start.rpc(animation)
+		return
+	_resolve_strike(to_target)
+
+
+func _attack_frame_changed() -> void:
+	if Net.active and not multiplayer.is_server():
+		return
+	if _strike_wait and state == State.STRIKE and sprite.frame >= _strike_frame:
+		_strike_wait = false
+		_resolve_strike(_strike_aim)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_attack_start(animation: String) -> void:
+	_play(animation, true)
+	sprite.play(animation)
+
+
+func _resolve_strike(to_target: Vector2) -> void:
 	_attack_cd = float(_attack.get("cooldown", 1.5))
 	if _sealed:
 		_attack_cd *= float(stats.get("seal_phase", {}).get("sealed_cooldown", 1.6))
@@ -1066,22 +1114,22 @@ func _strike(to_target: Vector2) -> void:
 		"nova":
 			_set_state(State.STRIKE, float(_attack.get("duration", 0.3)))
 			_play(animation)
-			_nova_fx(float(_attack.get("radius", 90)), str(_attack.get("color", "#b86cff")))
+			_nova_fx(float(_attack.get("radius", 90)), str(_attack.get("color", "#b86cff")), str(_attack.get("impact_fx", "magic")))
 			_nova_hit()
 			if Net.active:
-				_net_nova.rpc(float(_attack.get("radius", 90)), str(_attack.get("color", "#b86cff")))
+				_net_nova.rpc(float(_attack.get("radius", 90)), str(_attack.get("color", "#b86cff")), str(_attack.get("impact_fx", "magic")), animation)
 
 
 func _lunge_fx() -> void:
 	var animation := str(_attack.get("animation", "attack"))
-	if _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
+	if not _attack.has("hit_frame") and _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
 		sprite.frame = 1
 	Juice.shake(3.0)
 
 
 func _beam_fx(length: float, thickness: float, color: String) -> void:
 	var animation := str(_attack.get("animation", "attack"))
-	if _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
+	if not _attack.has("hit_frame") and _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
 		sprite.frame = 1
 	_show_beam(false, 0.0, length, thickness, color)
 	Fx.flash(global_position, Color(color), 180.0, 0.5, 1.3)
@@ -1111,7 +1159,20 @@ func _net_clear_beam() -> void:
 	_play("idle")
 
 
-func _nova_fx(radius: float, color: String) -> void:
+func _nova_fx(radius: float, color: String, effect := "magic") -> void:
+	if effect == "dust":
+		# The shock travels along the floor; no light or circular magic field.
+		var ground := global_position + Vector2(0, 11)
+		var tint := Color(color)
+		tint.a = 0.65
+		for i in range(7):
+			var at := ground + Vector2(lerpf(-radius, radius, float(i) / 6.0), -2)
+			Fx.puff(at, 0.45, tint)
+			Fx.dust(at, Vector2.UP, 4, tint)
+		Juice.shake(4.0)
+		return
+	if effect == "none":
+		return
 	Fx.flash(global_position + Vector2(0, -8), Color(color), radius, 0.45, 1.2)
 	# the ring runs out to exactly where the blast hurts; the smoke stays small
 	Fx.ring(global_position + Vector2(0, -8), radius, Color(color), 0.35)
@@ -1128,8 +1189,9 @@ func _nova_hit() -> void:
 
 
 @rpc("authority", "call_remote", "reliable")
-func _net_nova(radius: float, color: String) -> void:
-	_nova_fx(radius, color)
+func _net_nova(radius: float, color: String, effect := "magic", animation := "special") -> void:
+	_play(animation)
+	_nova_fx(radius, color, effect)
 
 
 ## One round of a ranged attack: projectiles fanned over spread, each at its
@@ -1302,11 +1364,13 @@ func _melee_hit() -> void:
 ## The second frame of the swing, for the enemies that have one drawn.
 func _hold_attack_frame() -> void:
 	var animation := str(_attack.get("animation", "attack"))
-	if _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
+	if not _attack.has("hit_frame") and _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:
 		sprite.frame = 1
 
 
 func _set_state(new_state: State, duration: float) -> void:
+	if new_state != State.STRIKE:
+		_strike_wait = false
 	state = new_state
 	_state_left = duration
 

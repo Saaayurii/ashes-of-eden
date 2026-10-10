@@ -68,6 +68,20 @@ size and a shade in colour, so the offset and scale are searched against the
 80 px sides (which were to stay) and each channel's mean and spread brought to
 theirs.
 
+**Enemy actions** (`js/attacks.js`, «Атаки»). All six attack types of every enemy,
+read from `import/attacks.json` at the same source as «Снаряды». The editor exposes
+animation, damage, preparation/recovery, cooldown, choice weight, sound, colour,
+nova radius and effect (`impact_fx`: magic/dust/none), and windup glow
+(`telegraph_fx`: glow/none). The JSON panel edits every other attack parameter.
+`hit_frame` is zero-based in data and one-based in the UI. After the windup holds
+frame zero, `Enemy` starts the animation and resolves the strike on the actual
+`frame_changed` signal; interruption cancels it. Missing `hit_frame` keeps legacy
+timing. The preview scrubs the strip or plays preparation and hit timing, and
+sending validates frame bounds. Inherited attacks become a local list; other
+changes use `patchJson`, preserving unrelated text. For particles on every hero
+or enemy animation/event, use «Частицы»; projectile appearance uses «Снаряды».
+Ruptured Cry uses frame 1 (the second frame), ground dust and no windup glow.
+
 **Ranged attacks** (`js/shots.js`, the «Снаряды» tab). `build_data.py` writes
 `import/projectiles.json`: the looks of `data/projectiles.json`, their strips,
 and every ranged attack in `data/enemies` and bolt gift in `data/abilities`

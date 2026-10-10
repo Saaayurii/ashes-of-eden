@@ -80,3 +80,4 @@ jobs:
           npx playwright install --with-deps chromium >/dev/null
           node studio.e2e.cjs
           node studio.github.e2e.cjs
+          node attacks.e2e.cjs
