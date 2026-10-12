@@ -92,11 +92,14 @@ def apply_changes(files, delete):
 
 
 def restore_files(before):
+    # Touch only what changed: a rollback that rewrites every snapshotted file
+    # fails on one it may read but not write (CI's .import files belong to the
+    # Docker image's root) and hides the error that caused it.
     for path, raw in before.items():
         if raw is None:
             if path.is_file():
                 path.unlink()
-        else:
+        elif not path.is_file() or path.read_bytes() != raw:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(raw)
 

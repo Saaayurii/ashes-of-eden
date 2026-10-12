@@ -11,7 +11,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '../../..');
-const PORT = 8799;
+const PORT = Number(process.env.STUDIO_E2E_PORT) || 8799;
 const URL = `http://127.0.0.1:${PORT}/tools/studio/`;
 const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' });
 const before = new Set(git('status', '--porcelain', '--untracked-files=all').split('\n').filter(Boolean));
