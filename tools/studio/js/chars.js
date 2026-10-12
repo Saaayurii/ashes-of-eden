@@ -90,7 +90,7 @@ async function doBuild() {
         s.ox = s.oy = 0; smalls.push(s); out.push({ s, f: it.f, a, i: it.i });
       });
       if (S.scaleMode === 'grid' && Math.abs(nH - CH) > CH * 0.12)
-        warn.push(`FIX${a.name}: ChatGPT нарисовал персонажа ростом ${nH} px, а в игре рост ${CH} px — поэтому он ${nH > CH ? 'крупнее' : 'мельче'} Элиана.`);
+        warn.push(`FIX${a.name}: ChatGPT нарисовал персонажа ростом ${nH} px, а в игре рост ${CH} px — поэтому он ${nH > CH ? 'крупнее' : 'мельче'} Элиана. Если так и задумано — оставь «1:1».`);
       continue;
     }
     for (const it of items) {
@@ -136,7 +136,7 @@ async function doBuild() {
   const keyOf = new Map(); for (const it of out) keyOf.set(it.f.id, cutCache.get(it.f.id + '|' + fingerprint(it.f.src) + '|' + S.tolerance + '|' + S.bgMode)?.key || null);
   artReport = artChecks(P.animations.map(a => ({ name: a.name, loop: a.loop,
     frames: a.frames.filter(f => !f.off && processed.has(f.id)).map(f => { const c = processed.get(f.id); return { data: c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height, key: keyOf.get(f.id) }; }) })),
-  { contentH: S.contentH, palette: S.palette, fit: S.scaleMode !== 'none', flyer: studioFlyer() });
+  { contentH: S.contentH, palette: S.palette, fit: !['none', 'grid'].includes(S.scaleMode), flyer: studioFlyer() });
   // a frame cut by the cell's edge loses what sticks out — in the game too: red, not a footnote
   if (clipped.length) artReport.unshift({ id: 'clip', bad: true, anim: '', msg: `Персонаж вылезает за кадр: ${clipped.slice(0, 6).join(', ')}${clipped.length > 6 ? '…' : ''} — сдвинь кадр стрелками, уменьши (−) или ⟲` });
   // a character from the game drawn in another cell than the game's own: every frame would land shifted

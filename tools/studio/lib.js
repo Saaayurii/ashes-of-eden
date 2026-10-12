@@ -862,7 +862,7 @@ function frameStats(fr) {
   return { height: bottom - top + 1, top, bottom, cx: lx / ln, cy: ly / ln, n, soft, halo, colours };
 }
 // anims: [{name, loop, frames: [{data, w, h, key}]}]; o: {contentH, palette (the limit she set, 0 = none),
-// fit (false: the studio does not scale this one, its height is the game's), flyer (no ground under it)}.
+// fit (false: the studio does not scale this one — «1:1» as it is, or as drawn — so its height is hers), flyer (no ground under it)}.
 // → [{id, bad, anim, msg}] — bad ones turn the badge red, the rest are said for information.
 function artChecks(anims, o = {}) {
   const out = [], CH = +o.contentH || HERO_H, all = new Set();
