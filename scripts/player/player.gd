@@ -1143,6 +1143,7 @@ func _go_down() -> void:
 	_wall_side = 0
 	Audio.play(&"player_death", 0.0, 0.0)
 	_play("death")
+	Gore.death(self, "elian", "flesh", null, Vector2(-facing, -0.2))
 	body.modulate = Color(0.6, 0.55, 0.55)
 	if _light != null:
 		create_tween().tween_method(_light.set_base_energy, 0.55, 0.12, 1.2)
@@ -1164,6 +1165,9 @@ func _net_up() -> void:
 
 func _hit_fx(amount: float) -> void:
 	Fx.damage_number(global_position, amount, Color(1.0, 0.45, 0.4))
+	# blood thrown out behind him (data/gore.json, "elian")
+	Gore.hit(self, "elian", "flesh", global_position + Vector2(0, -12), Vector2(-facing, -0.3),
+		1.0 + 3.0 * amount / maxf(stats.max_hp, 1.0))
 	_flash(Color(1.0, 0.35, 0.35))
 	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.4, 0.35), 70.0, 0.2)
 	if _is_mine():

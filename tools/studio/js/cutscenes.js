@@ -147,7 +147,9 @@ function renderDialogueEditor(id) {
         ${n.choices ? `<div class="muted">Выбор: ${n.choices.map(c => esc(str(c.text)) + ' → ' + esc(c.next || 'конец')).join(' · ')}</div>` : ''}
       </div>`;
     }).join('')}
-    <div class="row"><button class="sm" data-act="dlg-add">+ Реплика в конец</button>${cutData?.dialogues[d.id] ? `<button class="sm" data-act="dg-open" data-id="${esc(d.id)}" title="Ответы, развилки, окно, все четыре языка">Открыть во вкладке «Диалоги»</button>` : ''}</div>`;
+    ${cutData?.dialogues[d.id] ? '' : `<div class="row"><label style="margin:0">Стиль окна <select data-dlook="style">${Object.entries((DLG.looks || cutData?.looks)?.styles || { default: {} }).map(([k, v]) => `<option value="${esc(k)}"${k === (d.look?.style || 'default') ? ' selected' : ''}>${esc(v.name || (k === 'default' ? 'как в игре' : k))}</option>`).join('')}</select></label>
+      <label style="margin:0"><input type="checkbox" data-dlook="portrait"${Array.isArray(d.look?.portrait) ? ' checked' : ''}> окно портрета</label></div>`}
+    <div class="row"><button class="sm" data-act="dlg-add">+ Реплика в конец</button>${cutData?.dialogues[d.id] ? `<button class="sm" data-act="dg-open" data-id="${esc(d.id)}" title="Ответы, развилки, все четыре языка; окна перетаскиваются, стиль и портреты">Открыть во вкладке «Диалоги» (окна, стиль, портрет)</button>` : ''}</div>`;
 }
 function ownDialogue(id) {
   if (!CUT.dialogues[id]) { const src = getDialogue(id); if (!src) return null; CUT.dialogues[id] = JSON.parse(JSON.stringify(src)); }
@@ -201,12 +203,8 @@ function drawCutFrame() {
     x.fillStyle = '#c9a85a'; x.fillRect(CW / 2 - 90, y + 9, 180, 1);
     if (cs.title.sub) { x.font = 'italic 13px Georgia, serif'; x.fillStyle = '#d8ccb0'; x.fillText(cs.title.sub, CW / 2, y + 28); }
   }
-  if (cs.line) {
-    const pad = 14, top = CH2 - bh - 74; x.fillStyle = 'rgba(8,8,12,.82)'; x.fillRect(20, top, CW - 40, 66);
-    x.textAlign = 'left'; x.fillStyle = '#e0b04a'; x.font = '600 12px system-ui'; x.fillText(cs.line.speaker, 20 + pad, top + 18);
-    x.fillStyle = '#eee'; x.font = '13px system-ui'; wrap(x, cs.line.text, CW - 40 - pad * 2).slice(0, 3).forEach((l, i) => x.fillText(l, 20 + pad, top + 36 + i * 15));
-  }
-  if (cs.choices) { x.textAlign = 'left'; x.font = '13px system-ui'; cs.choices.forEach((t, i) => { x.fillStyle = i ? '#aaa' : '#7cc36b'; x.fillText((i ? '  ' : '▸ ') + t, 40, CH2 * 0.35 + i * 20); }); }
+  // the line in the game's own window, with the dialogue's look (style, windows, portrait): the «Диалоги» tab draws it
+  if (cs.line) { x.textAlign = 'left'; dlgDrawLine(x, cs.line.d, cs.line.nid, cs.line.d.blocking === false ? 'caption' : 'panel', { S: str }); }
   if (cs.label) { x.textAlign = 'left'; x.font = '11px system-ui'; x.fillStyle = 'rgba(0,0,0,.6)'; const w = x.measureText(cs.label).width; x.fillRect(6, 6, w + 12, 18); x.fillStyle = '#9fd4ff'; x.fillText(cs.label, 12, 19); }
   x.restore();
 }
@@ -235,17 +233,19 @@ async function voiceFor(key) {
   try { const t = e.takes[0]; return renderEdits(await takeBuffer(t), t.mod?.edits || {}); } catch { return null; }
 }
 async function playDialogue(id, tok) {
-  const d = getDialogue(id); if (!d) { cs.label = `диалог «${id}» не найден`; await sleepTok(1, tok); return; }
+  await dlgLoad().catch(() => {});   // the windows' looks, the portraits and the game's fonts
+  // what the «Диалоги» tab has changed and not sent yet is what the scene shows
+  const d = CUT?.dialogues[id] || DLG.work?.[id] || getDialogue(id); if (!d) { cs.label = `диалог «${id}» не найден`; await sleepTok(1, tok); return; }
   let nid = d.start, guard = 0;
   while (nid && !tok.stop && guard++ < 200) {
     const n = d.nodes[nid]; if (!n) break;
     if (n.branches) { nid = n.next; continue; }
-    cs.line = { speaker: str(n.speaker), text: str(n.text) };
+    cs.line = { d, nid, speaker: str(n.speaker), text: str(n.text) };
     const vb = await voiceFor(n.text);
     let dur = Math.max(1.6, cs.line.text.length * 0.05);
     if (vb) { playBuf(vb, 0, true); dur = vb.duration + 0.3; }
     await sleepTok(dur, tok);
-    if (n.choices?.length) { cs.choices = n.choices.map(c => str(c.text)); await sleepTok(1.8, tok); cs.choices = null; nid = n.choices[0].next; }
+    if (n.choices?.length) { await sleepTok(1.8, tok); nid = n.choices[0].next; }
     else nid = n.next;
   }
   cs.line = null;
@@ -453,6 +453,13 @@ document.addEventListener('input', e => {
     const js = $('#stepJson'); if (js) js.value = JSON.stringify(s);
     if (k === 'id' && s.do === 'dialogue') renderDialogueEditor(s.id);
     return;
+  }
+  if (t.dataset.dlook && s?.do === 'dialogue') {   // a scene's own dialogue: its window's style and portrait
+    const d = ownDialogue(s.id); d.look ||= {};
+    if (t.dataset.dlook === 'style') { if (t.value === 'default') delete d.look.style; else d.look.style = t.value; }
+    else if (t.checked) d.look.portrait = [...LOOK_HOME.portrait]; else delete d.look.portrait;
+    if (!Object.keys(d.look).length) delete d.look;
+    saveCut(); return;
   }
   if (t.dataset.dl && s?.do === 'dialogue') {
     const nid = t.closest('[data-nid]').dataset.nid, d = ownDialogue(s.id), n = d.nodes[nid];

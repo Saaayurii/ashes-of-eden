@@ -34,6 +34,12 @@ const PROJECTILE_MOTIONS := ["straight", "wave", "accelerate", "arc", "surge", "
 const BURST_FX := ["sparkle", "ash", "debris", "spark"]
 ## The looks of data/projectiles.json, read in _check_projectiles: style -> frames.
 var _flight_styles := {}
+## The dialogue windows' styles, read in _check_dialogue_looks (DialogueLook).
+var _look_styles := {}
+const LOOK_COLORS := ["bg", "border", "speaker", "text", "caption", "portrait_bg", "portrait_border"]  # DialogueLook.COLORS
+const LOOK_NUMBERS := {"border_width": [0, 4], "radius": [0, 12], "speaker_size": [8, 24],
+	"text_size": [10, 28], "caption_size": [9, 24]}  # DialogueLook.NUMBERS
+const LOOK_KEYS := ["style", "panel", "caption", "portrait", "face"]
 const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
 const PROP_KINDS := ["destructible", "chest"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
@@ -111,7 +117,9 @@ func _init() -> void:
 	for gift in _load_entries("res://data/abilities"):
 		_ability_paths[gift.get("id", "")] = str(gift.get("path", ""))
 	_check_projectiles()
+	_check_dialogue_looks()
 	_check_action_fx()
+	_check_gore()
 	_check_player_actions()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
@@ -413,9 +421,13 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			var blocking: bool = entry.get("blocking", true)
 			if not nodes.has(entry.get("start", "")):
 				_error("%s: start node \"%s\" not found" % [where, entry.get("start", "")])
+			if entry.has("look"):
+				_check_look(entry.look, where)
 			for node_id in nodes:
 				var node: Dictionary = nodes[node_id]
 				var node_where := "%s#%s" % [where, node_id]
+				if node.has("look"):
+					_check_look(node.look, node_where)
 				if node.has("branches"):  # a router node: flags -> next, no text
 					for branch in node.branches:
 						if branch.has("flag"):
@@ -710,6 +722,75 @@ func _check_enemy_strips() -> void:
 
 
 ## data/projectiles.json: every look a bolt can take, its strip whole frames.
+## data/dialogue_looks.json: the windows' styles and the speakers' portraits
+## (scripts/ui/dialogue_look.gd, docs/DIALOGUE_LOOKS.md).
+func _check_dialogue_looks() -> void:
+	var path := "res://data/dialogue_looks.json"
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not parsed is Dictionary or not parsed.get("styles") is Dictionary:
+		_error("data/dialogue_looks.json: needs a \"styles\" object")
+		return
+	if not parsed.styles.has("default"):
+		_error("data/dialogue_looks.json: the default style is the game's own look and must stay")
+	for id in parsed.styles:
+		var style = parsed.styles[id]
+		var where := "dialogue_looks/%s" % id
+		if not style is Dictionary:
+			_error("%s: a style is an object" % where)
+			continue
+		_look_styles[id] = true
+		for key in style:
+			if LOOK_COLORS.has(key):
+				if not Color.html_is_valid(str(style[key])):
+					_error("%s: %s is not a colour (#rrggbb or #rrggbbaa): %s" % [where, key, style[key]])
+			elif LOOK_NUMBERS.has(key):
+				var bounds: Array = LOOK_NUMBERS[key]
+				if not (style[key] is float or style[key] is int) or float(style[key]) < bounds[0] or float(style[key]) > bounds[1]:
+					_error("%s: %s must be %d..%d" % [where, key, bounds[0], bounds[1]])
+			elif key != "name":
+				_error("%s: unknown key %s" % [where, key])
+	var speakers = parsed.get("speakers", {})
+	if not speakers is Dictionary:
+		_error("data/dialogue_looks.json: \"speakers\" maps a speaker key to a portrait")
+		return
+	for speaker in speakers:
+		_use_key(str(speaker), "dialogue_looks/speakers")
+		var picture := str(speakers[speaker])
+		if picture != "" and not ResourceLoader.exists(picture):
+			_error("dialogue_looks/speakers/%s: portrait not found: %s" % [speaker, picture])
+
+
+## A dialogue's or a line's "look": a known style, windows inside the screen.
+func _check_look(look, where: String) -> void:
+	if not look is Dictionary:
+		_error("%s: look is an object" % where)
+		return
+	for key in look:
+		if not LOOK_KEYS.has(key):
+			_error("%s: look has an unknown key %s" % [where, key])
+	if look.has("style") and not _look_styles.has(str(look.style)):
+		_error("%s: look style \"%s\" is not in data/dialogue_looks.json" % [where, look.style])
+	if look.has("face") and not ResourceLoader.exists(str(look.face)):
+		_error("%s: look face not found: %s" % [where, look.face])
+	for window in [["panel", 4], ["caption", 3], ["portrait", 3]]:
+		var spot = look.get(window[0])
+		if spot == null or (window[0] == "portrait" and spot is bool and spot == false):
+			continue
+		if not spot is Array or spot.size() != window[1] or spot.any(func(v) -> bool: return not (v is float or v is int)):
+			_error("%s: look %s is %d numbers" % [where, window[0], window[1]])
+			continue
+		var w: float = spot[2]
+		var h: float = spot[3] if window[1] == 4 else (36.0 if window[0] == "caption" else w)
+		if spot[0] < 0 or spot[1] < 0 or spot[0] + w > 640 or spot[1] + h > 360:
+			_error("%s: look %s %s leaves the 640x360 screen" % [where, window[0], spot])
+		if window[0] == "panel" and (w < 120 or h < 48):
+			_error("%s: look panel is at least 120x48" % where)
+		if window[0] == "caption" and w < 80:
+			_error("%s: look caption is at least 80 wide" % where)
+		if window[0] == "portrait" and (w < 24 or w > 160):
+			_error("%s: look portrait is 24..160 px" % where)
+
+
 func _check_projectiles() -> void:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/projectiles.json"))
 	if not parsed is Dictionary or not parsed.get("styles") is Dictionary:
@@ -793,6 +874,51 @@ func _check_action_fx() -> void:
 					_error("%s: count must be 1..60" % where)
 				if spec.has("color") and not Color.html_is_valid(str(spec.color)):
 					_error("%s: color must be #rrggbb or #rrggbbaa" % where)
+
+
+## data/gore.json (scripts/fx/gore.gd): every material is one the enemies use,
+## every body is Elian or an enemy, every key one Gore reads, within bounds the
+## room can stand (drops are simulated one by one; a body tears into 2–6 pieces).
+const GORE_BOUNDS := {"drops": [0, 40], "spray": [0, 400], "stain": [0, 3], "stain_life": [0, 120],
+	"gush": [0, 80], "pool": [0, 60], "bleed": [0, 5], "limbs": [0, 6], "chance": [0, 1], "fling": [0, 400]}
+
+
+func _check_gore() -> void:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/gore.json"))
+	if not parsed is Dictionary or not parsed.get("materials") is Dictionary or not parsed.get("bodies") is Dictionary:
+		_error("data/gore.json: needs \"materials\" and \"bodies\" objects")
+		return
+	var tables := {}
+	for material in parsed.materials:
+		if not MATERIALS.has(material):
+			_error("gore/materials/%s: not a material (%s)" % [material, MATERIALS])
+		tables["materials/" + material] = parsed.materials[material]
+	if not parsed.materials.has("flesh"):
+		_error("gore/materials: needs flesh — it is what an unknown material bleeds")
+	for body_key in parsed.bodies:
+		if body_key != "elian" and not _enemy_ids.has(body_key):
+			_error("gore/bodies/%s: no such body (elian or an enemy id)" % body_key)
+		tables["bodies/" + body_key] = parsed.bodies[body_key]
+		var own: Dictionary = parsed.bodies[body_key]
+		if own.has("material") and not parsed.materials.has(str(own.material)):
+			_error("gore/bodies/%s: material %s has no table" % [body_key, own.material])
+	for where in tables:
+		var table: Dictionary = tables[where]
+		for key in table:
+			if key == "material" and where.begins_with("bodies/"):
+				continue
+			if key == "blood":
+				if not Color.html_is_valid(str(table.blood)):
+					_error("gore/%s: blood must be #rrggbb or #rrggbbaa" % where)
+				continue
+			if not GORE_BOUNDS.has(key):
+				_error("gore/%s: unknown key %s" % [where, key])
+				continue
+			var v := float(table[key])
+			if v < GORE_BOUNDS[key][0] or v > GORE_BOUNDS[key][1]:
+				_error("gore/%s: %s must be %s..%s" % [where, key, GORE_BOUNDS[key][0], GORE_BOUNDS[key][1]])
+		if int(table.get("limbs", 0)) == 1:
+			_error("gore/%s: limbs is 0 (never torn) or 2..6" % where)
 
 
 ## A deed (data/achievements, scripts/meta/achievements.gd): every condition is

@@ -464,6 +464,17 @@ test('frameEdits keeps untouched frames out and finds a replaced frame and a tou
   assert.throws(() => L.frameEdits([{ id: 'cultist_fly', name: 'fly', frames: [] }], orig), /новым персонажем/);
 });
 
+test('frameEdits hands a bestiary animation of another length over whole, longer or shorter', () => {
+  const orig = [{ id: 'cultist_idle', name: 'idle', frames: [0, 1, 2].map(i => ({ id: `cultist_idle_${i}`, src: `s${i}` })),
+    regions: [0, 1, 2].map(i => ['res://assets/sprites/cultist_v2_idle.png', i * 32, 0, 32, 40]) }];
+  const frames = n => [...Array(n)].map((_, i) => ({ id: `f${i}`, src: `n${i}` }));
+  for (const n of [5, 2]) {
+    const e = L.frameEdits([{ id: 'cultist_idle', name: 'idle', frames: frames(n) }], orig, true);
+    assert.deepEqual(e, [{ resize: true, anim: 'cultist_idle', name: 'idle', res: 'res://assets/sprites/cultist_v2_idle.png', w: 32, h: 40 }], `${n} frames`);
+  }
+  assert.equal(L.frameEdits([{ id: 'cultist_idle', name: 'idle', frames: frames(3) }], orig, true).some(e => e.resize), false, 'the same length stays an override');
+});
+
 test('an override is her picture, its mask and a manifest line the Python side reads', () => {
   assert.deepEqual(L.overrideFiles('assets/levels/graveyard_cross_wide.png'),
     { edit: 'tools/studio/overrides/assets/levels/graveyard_cross_wide.png', mask: 'tools/studio/overrides/assets/levels/graveyard_cross_wide.mask.png' });
@@ -489,4 +500,35 @@ test('the same files sent twice have the same fingerprint, whatever the project 
   assert.equal(a, b, 'order and the project file do not matter');
   assert.notEqual(a, c, 'different pixels are a different send');
   assert.match(L.fingerprintMark(a), /^<!-- studio-files:[0-9a-f]{24} -->$/);
+});
+
+// --- the dialogue windows' look (scripts/ui/dialogue_look.gd, data/dialogue_looks.json) ---
+
+test('data/dialogue_looks.json comes back byte for byte when nothing changed', () => {
+  const text = fs.readFileSync(path.join(ROOT, 'data/dialogue_looks.json'), 'utf8');
+  assert.equal(L.fmtLooks(JSON.parse(text)), text);
+});
+
+test('a window with no place of its own stands where dialogue_box.tscn has it', () => {
+  assert.deepEqual(L.lookRect({}, 'panel'), [16, 232, 608, 116]);   // Panel 16..−16 × −128..−12 of 640×360
+  assert.deepEqual(L.lookRect({}, 'caption'), [170, 24, 322, 36]);  // Caption 170..−148 × 24..60
+  assert.deepEqual(L.lookRect({ portrait: [10, 20, 64] }, 'portrait'), [10, 20, 64, 64]);
+  assert.deepEqual(L.mergeLook({ style: 'a', panel: [1, 2, 3, 4] }, { style: 'b' }), { style: 'b', panel: [1, 2, 3, 4] });
+});
+
+test('a dragged window stays whole on the screen and no smaller than the game takes', () => {
+  assert.deepEqual(L.clampLook('panel', [-30, 330.4, 50, 20]), [0, 312, 120, 48]);
+  assert.deepEqual(L.clampLook('panel', [600, 10, 700, 100]), [0, 10, 640, 100]);
+  assert.deepEqual(L.clampLook('caption', [590, 400, 30, 99]), [560, 324, 80]);
+  assert.deepEqual(L.clampLook('portrait', [630, -5, 300, 10]), [480, 0, 160]);
+  assert.deepEqual(L.clampLook('portrait', [5, 5, 4, 4]), [5, 5, 24]);
+});
+
+test('her style and portrait edits go in over whatever the file has become', () => {
+  const base = { styles: { default: {}, a: { bg: '#000000ff' } }, speakers: { X: 'res://x.png' } };
+  const latest = { styles: { default: {}, a: { bg: '#000000ff' }, c: { text: '#ffffffff' } }, speakers: { X: 'res://x.png', Y: 'res://y.png' } };
+  const mine = { styles: { default: {}, a: { bg: '#112233ff' }, b: { radius: 4 } }, speakers: {} };
+  assert.deepEqual(L.mergeLooks(latest, base, mine), {
+    styles: { default: {}, a: { bg: '#112233ff' }, c: { text: '#ffffffff' }, b: { radius: 4 } },
+    speakers: { Y: 'res://y.png' } });
 });

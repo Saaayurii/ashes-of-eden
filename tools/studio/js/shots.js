@@ -451,7 +451,8 @@ function shotsInit() {
   document.addEventListener('click', async e => {
     const b = e.target.closest('[data-act^="shot-"]'); if (!b) return;
     const act = b.dataset.act;
-    if (act === 'shot-user') { SHOTS.user = +b.dataset.i; SHOTS.style = null; SHOTS.bolts = []; SHOTS.next = 0; return renderShots(); }
+    if (act === 'shot-user') { SHOTS.user = +b.dataset.i; SHOTS.style = null; SHOTS.bolts = []; SHOTS.next = 0; renderShots(); return sandboxShotPicked(); }
+    if (act === 'shot-live') return sandboxShotOpen();
     if (act === 'shot-style') { SHOTS.style = b.dataset.k; return renderShots(); }
     if (act === 'shot-revert') { SHOTS.edits.delete(shotKey(shotUser())); shotsSave(); return renderShots(); }
     if (act === 'shot-give') return shotGiveDialog();

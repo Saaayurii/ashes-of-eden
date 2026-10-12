@@ -96,6 +96,9 @@ var facing := 1:
 			attack_area.scale.x = value
 
 var _max_hp: float
+## The last blow's side and weight, for the way a death bleeds (Gore.death).
+var _last_away := 1.0
+var _last_violent := false
 var _attacks: Array = []
 var _attack: Dictionary = {}  # the one being performed
 ## Index in _attacks of the last wind-up begun. Repeats are less likely when
@@ -1685,6 +1688,12 @@ func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := 
 	Fx.impact(global_position + Vector2(away * -7.0, -10.0), Vector2(away, -0.35),
 		Color(1.0, 0.75, 0.35) if crit else Color(1, 0.9, 0.7), 13 if crit else 9)
 	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.8, 0.5), 50.0 if crit else 36.0, 0.18, 0.9)
+	# blood thrown the way the blade went, by what it is made of (data/gore.json)
+	_last_away = away
+	_last_violent = crit or backstab
+	var share := amount / maxf(_max_hp, 1.0)
+	Gore.hit(self, enemy_id, str(stats.get("material", "cloth")), global_position + Vector2(away * -4.0, -10.0),
+		Vector2(away, -0.3), 1.0 + (0.6 if crit else 0.0) + (1.0 if backstab else 0.0) + share * 2.0)
 	if stats.get("boss", false):
 		EventBus.boss_hp_changed.emit(stats.get("name", ""), maxf(new_hp, 0.0), _max_hp)
 
@@ -1932,6 +1941,10 @@ func _die() -> void:
 	var own := Color(stats.get("light", {}).get("color", stats.get("color", "#b0a0a0"))) \
 		if material in ["spirit", "gold"] else Color(stats.get("color", "#b0a0a0"))
 	Fx.remains(global_position + Vector2(0, -10), material, own, 2.5 if is_boss else 1.0)
+	# blood, a pool under it, and — when data/gore.json allows — its own drawing
+	# torn into pieces; a boss lingers whole for its last words
+	var torn := Gore.death(self, enemy_id, material, null if is_boss else sprite,
+		Vector2(_last_away, -0.2), _last_violent)
 	# Cosmetic essence has its own readable allegiance; the numeric reward above
 	# is unchanged. Possession and undeath override a human origin.
 	var dark := _soul_affinity() == "dark"
@@ -1949,6 +1962,12 @@ func _die() -> void:
 		if _has_anim.has("death"):
 			sprite.play("death")
 		create_tween().tween_property(visual, "modulate:a", 0.35, 1.2)
+		return
+	if torn:
+		visual.visible = false
+		await get_tree().create_timer(0.4).timeout
+		if is_inside_tree():
+			_leave()
 		return
 	if _has_anim.has("death"):
 		sprite.play("death")

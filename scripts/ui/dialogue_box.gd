@@ -46,6 +46,15 @@ var _answer_list: VBoxContainer
 var _bubble_anchor: Node2D
 var _typing: Tween
 
+## The windows' own layout and colours from the scene, to go back to when a
+## line asks for no look of its own (DialogueLook, data/dialogue_looks.json).
+var _home := {}
+var _home_paint := {}
+## Who is speaking, as a picture in a window of its own; shown only where a
+## look places it ("portrait": [x, y, size]).
+var _portrait: PanelContainer
+var _portrait_image: TextureRect
+
 @onready var panel: Control = %Panel
 @onready var caption: Label = %Caption
 @onready var speaker_label: Label = %Speaker
@@ -75,6 +84,8 @@ func _ready() -> void:
 		for label in [caption, speaker_label, text_label]:
 			var size: int = label.get_theme_font_size("font_size")
 			label.add_theme_font_size_override("font_size", int(round(size * Settings.text_scale())))
+	_remember_home()
+	_build_portrait()
 	visible = false
 	panel.visible = false
 	caption.visible = false
@@ -91,6 +102,14 @@ const PLAYER_HEAD := 34.0
 ## Characters typed per second; a line never takes longer than TYPE_MAX.
 const TYPE_RATE := 55.0
 const TYPE_MAX := 1.4
+## A bubble's colours when the look keeps the game's own.
+const BUBBLE_BG := Color(0.06, 0.05, 0.07, 0.93)
+const BUBBLE_BORDER := Color(0.62, 0.53, 0.4, 1.0)
+const BUBBLE_NAME := Color(0.95, 0.8, 0.5)
+const BUBBLE_TEXT := Color(0.95, 0.93, 0.88)
+## The portrait window's frame when the style says nothing of it.
+const PORTRAIT_BG := Color(0.06, 0.05, 0.07, 0.93)
+const PORTRAIT_BORDER := Color(0.62, 0.53, 0.4, 1.0)
 
 
 func _process(_delta: float) -> void:
@@ -136,6 +155,7 @@ func play(dialogue_id: String) -> void:
 	EventBus.dialogue_started.emit(dialogue_id)
 
 	var nodes: Dictionary = dialogue.get("nodes", {})
+	var look: Dictionary = dialogue.get("look", {})
 	var node_id: String = dialogue.get("start", "")
 	while node_id != "" and not _skipped:
 		var node: Dictionary = nodes.get(node_id, {})
@@ -157,6 +177,7 @@ func play(dialogue_id: String) -> void:
 		# times itself the way it did before there was any voice at all.
 		var spoken := Audio.speak(str(node.get("text", "")))
 		line_shown.emit(str(node.get("speaker", "")))
+		_dress(node, DialogueLook.merged(look, node.get("look", {})))
 		if blocking and _in_bubbles():
 			_show_bubble(node)
 			choice = await _answered
@@ -188,6 +209,7 @@ func play(dialogue_id: String) -> void:
 	Audio.stop_speech()
 	visible = false
 	_hide_bubbles()
+	_portrait.visible = false
 	if blocking:
 		Net.set_paused(false)
 	_busy = false
@@ -240,8 +262,8 @@ func _build_bubbles() -> void:
 	if _bubble != null:
 		return
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.05, 0.07, 0.93)
-	style.border_color = Color(0.62, 0.53, 0.4, 1.0)
+	style.bg_color = BUBBLE_BG
+	style.border_color = BUBBLE_BORDER
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(3)
 	style.content_margin_left = 6
@@ -255,9 +277,9 @@ func _build_bubbles() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 1)
 	_bubble.add_child(column)
-	_bubble_name = _small_label(7, Color(0.95, 0.8, 0.5))
+	_bubble_name = _small_label(7, BUBBLE_NAME)
 	column.add_child(_bubble_name)
-	_bubble_text = _small_label(8, Color(0.95, 0.93, 0.88))
+	_bubble_text = _small_label(8, BUBBLE_TEXT)
 	_bubble_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_bubble_text)
 	_bubble_hint = _small_label(7, Color(0.8, 0.75, 0.65, 0.8))
@@ -277,6 +299,115 @@ func _build_bubbles() -> void:
 	_answers.add_child(_answer_list)
 	add_child(_answers)
 	_hide_bubbles()
+
+
+# ------------------------------------------------------------------- look ---
+
+func _remember_home() -> void:
+	for control: Control in [panel, caption]:
+		var sides := []
+		for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+			sides.append(Vector2(control.get_anchor(side), control.get_offset(side)))
+		_home[control] = sides
+	for label: Label in [speaker_label, text_label, caption]:
+		_home_paint[label] = [label.get_theme_color("font_color"), label.get_theme_font_size("font_size")]
+
+
+func _build_portrait() -> void:
+	_portrait = PanelContainer.new()
+	_portrait.name = "Portrait"
+	_portrait.mouse_filter = MOUSE_FILTER_IGNORE
+	_portrait_image = TextureRect.new()
+	_portrait_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_portrait_image.mouse_filter = MOUSE_FILTER_IGNORE
+	_portrait.add_child(_portrait_image)
+	add_child(_portrait)
+	_portrait.visible = false
+
+
+## One line's look: where the windows stand, their colours, and the portrait.
+## An empty look puts everything back as the scene has it.
+func _dress(node: Dictionary, look: Dictionary) -> void:
+	var screen := size if size.x > 0.0 and size.y > 0.0 else DialogueLook.BASE
+	var style := DialogueLook.style(str(look.get("style", "default")))
+	_place(panel, look.get("panel"), screen)
+	_place(caption, look.get("caption"), screen)
+	panel.remove_theme_stylebox_override("panel")
+	if ["bg", "border", "border_width", "radius"].any(func(key: String) -> bool: return style.has(key)):
+		var box := panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+		if box == null:
+			box = StyleBoxFlat.new()
+			box.bg_color = Color(0.1, 0.1, 0.1, 0.6)
+			box.set_corner_radius_all(3)
+		_frame(box, style, "bg", "border", box.bg_color, box.border_color)
+		panel.add_theme_stylebox_override("panel", box)
+	_paint(speaker_label, style, "speaker", "speaker_size")
+	_paint(text_label, style, "text", "text_size")
+	_paint(caption, style, "caption", "caption_size")
+	if _bubble != null:
+		var bubble_box := _bubble.get_theme_stylebox("panel") as StyleBoxFlat
+		bubble_box.bg_color = DialogueLook.color(style, "bg", BUBBLE_BG)
+		bubble_box.border_color = DialogueLook.color(style, "border", BUBBLE_BORDER)
+		_bubble_tail.color = bubble_box.bg_color
+		(_answers.get_theme_stylebox("panel") as StyleBoxFlat).bg_color = bubble_box.bg_color
+		_bubble_name.add_theme_color_override("font_color", DialogueLook.color(style, "speaker", BUBBLE_NAME))
+		_bubble_text.add_theme_color_override("font_color", DialogueLook.color(style, "text", BUBBLE_TEXT))
+	var picture := str(look.get("face", DialogueLook.portrait_of(str(node.get("speaker", "")))))
+	var spot = look.get("portrait")
+	var shown: bool = spot is Array and spot.size() == 3 and picture != "" \
+		and ResourceLoader.exists(picture) and not _in_bubbles()
+	_portrait.visible = shown
+	if not shown:
+		return
+	_portrait_image.texture = load(picture)
+	var frame := StyleBoxFlat.new()
+	frame.set_content_margin_all(2)
+	_frame(frame, style, "portrait_bg", "portrait_border", PORTRAIT_BG, PORTRAIT_BORDER)
+	if not style.has("border_width"):
+		frame.set_border_width_all(1)
+	_portrait.add_theme_stylebox_override("panel", frame)
+	var rect := DialogueLook.on_screen(spot, screen)
+	_portrait.position = rect.position
+	_portrait.size = rect.size
+
+
+func _frame(box: StyleBoxFlat, style: Dictionary, bg_key: String, border_key: String, bg: Color, border: Color) -> void:
+	box.bg_color = DialogueLook.color(style, bg_key, bg)
+	box.border_color = DialogueLook.color(style, border_key, border)
+	if style.has("border_width"):
+		box.set_border_width_all(int(style.border_width))
+	if style.has("radius"):
+		box.set_corner_radius_all(int(style.radius))
+
+
+## A window where the look puts it, or where the scene has it.
+func _place(control: Control, spot, screen: Vector2) -> void:
+	var count: int = DialogueLook.RECTS["panel" if control == panel else "caption"]
+	if spot is Array and spot.size() == count:
+		for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+			control.set_anchor(side, 0.0)
+		var k := screen / DialogueLook.BASE
+		var at := Vector2(float(spot[0]), float(spot[1])) * k
+		var home_height: float = _home[control][3].y - _home[control][1].y
+		var extent := Vector2(float(spot[2]) * k.x, float(spot[3]) * k.y if count == 4 else home_height)
+		control.position = at
+		control.size = extent
+		return
+	var sides: Array = _home[control]
+	for side in 4:
+		control.set_anchor(side, sides[side].x)
+		control.set_offset(side, sides[side].y)
+
+
+func _paint(label: Label, style: Dictionary, color_key: String, size_key: String) -> void:
+	var home: Array = _home_paint[label]
+	label.add_theme_color_override("font_color", DialogueLook.color(style, color_key, home[0]))
+	var font_size: int = home[1]
+	if style.has(size_key):
+		font_size = int(round(float(style[size_key]) * Settings.text_scale()))
+	label.add_theme_font_size_override("font_size", font_size)
 
 
 func _small_label(font_size: int, color: Color) -> Label:
@@ -501,6 +632,7 @@ func announce(text: String) -> void:
 	visible = true
 	panel.visible = false
 	caption.visible = true
+	_dress({}, {})
 	caption.text = text
 	EventBus.dialogue_started.emit("")
 	var remaining := _caption_seconds(text)

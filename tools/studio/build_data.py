@@ -388,7 +388,19 @@ def story(root: Path, strings, rooms):
             if r.get(k):
                 played_in.setdefault(r[k], []).append(r["name"])
     backdrops = json.loads((root / "data/backdrops.json").read_text(encoding="utf-8"))
+    # the dialogue windows' styles and the speakers' portraits (scripts/ui/dialogue_look.gd):
+    # a speaker without one of its own shows the avatar of the person bearing its name
+    looks_file = root / "data/dialogue_looks.json"
+    looks = json.loads(looks_file.read_text(encoding="utf-8")) if looks_file.exists() else {"styles": {"default": {}}, "speakers": {}}
+    faces = {}
+    for f in sorted((root / "data/npcs").glob("*.json")):
+        npc = json.loads(f.read_text(encoding="utf-8"))
+        if npc.get("name") and npc.get("avatar"):
+            faces[npc["name"]] = npc["avatar"]
+    portraits = sorted("res://" + f.relative_to(root).as_posix() for f in (root / "assets/portraits").glob("*.png")
+                       if "atlas" not in f.stem)
     return {"cutscenes": scenes, "dialogues": dialogues, "strings": strings,
+            "looks": looks, "faces": faces, "portraits": portraits,
             "speakers": sorted(k for k in strings if k.startswith("SPEAKER_")),
             "playlists": json.loads((root / "data/music/playlists.json").read_text(encoding="utf-8")),
             "played_in": played_in, "used_by": used_by, "room_order": room_order(root),
@@ -638,6 +650,7 @@ def projectiles(root: Path, strings):
             continue
         b = body(resolved.get(eid, {}).get("sprite", {}))
         roster.append({"id": eid, "name": name(e.get("name", "")), "body": b, "boss": bool(resolved[eid].get("boss")),
+                       "material": resolved[eid].get("material", "cloth"),
                        "behaviour": resolved[eid].get("behaviour", "walker"), "source": at,
                        "attacks": [{"type": a.get("type"), "animation": a.get("animation")} for a in at["items"]]})
         for i, a in enumerate(at["items"]):
@@ -700,6 +713,20 @@ def action_fx(root: Path, strings, shots):
     return {"rules": doc.get("bodies", {}), "kinds": consts["KINDS"], "anchors": consts["ANCHORS"], "bodies": bodies}
 
 
+# ---------------------------------------------------------- blood and torn limbs
+# data/gore.json (scripts/fx/gore.gd): what each material bleeds, and a body's own keys over it.
+# The studio's «Кровь» shows it on the same bodies «Частицы» dresses, each with its material.
+def gore(root: Path, pfx, shots):
+    doc = json.loads((root / "data/gore.json").read_text(encoding="utf-8"))
+    src = (root / "scripts/fx/gore.gd").read_text(encoding="utf-8")
+    keys = re.findall(r'"(\w+)"', re.search(r"const KEYS := \[(.*?)\]", src)[1])
+    defaults = json.loads("{" + re.search(r"const DEFAULTS := \{(.*?)\}", src, re.S)[1].replace("\n", " ").replace("\t", "") + "}")
+    material = {r["id"]: r.get("material", "cloth") for r in shots["roster"]}
+    bodies = [{**b, "material": "flesh" if b["key"] == "elian" else material.get(b["key"], "cloth")} for b in pfx["bodies"]]
+    return {"materials": doc.get("materials", {}), "bodies_rules": doc.get("bodies", {}), "keys": keys,
+            "defaults": defaults, "bodies": bodies}
+
+
 def world(root, rooms):
     files = {p.relative_to(root).as_posix(): json.loads(p.read_text(encoding="utf-8"))
              for p in sorted((root / "data").rglob("*.json"))}
@@ -736,7 +763,9 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     shots = projectiles(root, strings)
     write(out, "projectiles.json", shots)
     write(out, "attacks.json", {"roster": shots["roster"]})
-    write(out, "action_fx.json", action_fx(root, strings, shots))
+    pfx = action_fx(root, strings, shots)
+    write(out, "action_fx.json", pfx)
+    write(out, "gore.json", gore(root, pfx, shots))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])

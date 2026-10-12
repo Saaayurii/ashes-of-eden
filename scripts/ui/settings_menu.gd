@@ -77,6 +77,7 @@ func _refresh() -> void:
 	if _text_size:
 		_text_size.select(Settings.TEXT_SIZES.keys().find(Settings.text_size))
 		_flashes.select(Settings.FLASHES.find(Settings.flashes))
+		_gore.select(Settings.GORE_MODES.keys().find(Settings.gore))
 		_backdrop_motion.set_pressed_no_signal(Settings.backdrop_motion)
 		_auto_attack.set_pressed_no_signal(Settings.auto_attack)
 		_damage_numbers.set_pressed_no_signal(Settings.damage_numbers)
@@ -127,6 +128,7 @@ func _build_speech() -> void:
 ## text is, and whether flashes are dimmed (Settings.text_size / flashes).
 var _text_size: OptionButton
 var _flashes: OptionButton
+var _gore: OptionButton
 var _backdrop_motion: CheckButton
 var _auto_attack: CheckButton
 var _damage_numbers: CheckButton
@@ -145,6 +147,10 @@ func _build_access() -> void:
 	for mode in Settings.FLASHES:
 		_flashes.add_item("FLASHES_" + mode.to_upper())
 	_flashes.item_selected.connect(func(index: int) -> void: Settings.set_flashes(Settings.FLASHES[index]))
+	_gore = OptionButton.new()
+	for mode in Settings.GORE_MODES:
+		_gore.add_item("GORE_" + mode.to_upper())
+	_gore.item_selected.connect(func(index: int) -> void: Settings.set_gore(Settings.GORE_MODES.keys()[index]))
 	var at := anchor.get_index() + 1
 	_backdrop_motion = CheckButton.new()
 	_backdrop_motion.toggled.connect(Settings.set_backdrop_motion)
@@ -160,6 +166,7 @@ func _build_access() -> void:
 	_block_toggle = CheckButton.new()
 	_block_toggle.toggled.connect(Settings.set_block_toggle)
 	for pair in [["SETTINGS_TEXT_SIZE", _text_size, "TextSizeRow"], ["SETTINGS_FLASHES", _flashes, "FlashesRow"],
+			["SETTINGS_GORE", _gore, "GoreRow"],
 			["SETTINGS_BACKDROP_MOTION", _backdrop_motion, "BackdropMotionRow"],
 			["SETTINGS_AUTO_ATTACK", _auto_attack, "AutoAttackRow"],
 			["SETTINGS_DAMAGE_NUMBERS", _damage_numbers, "DamageNumbersRow"],

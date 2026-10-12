@@ -1,0 +1,39 @@
+{
+  "styles": {
+    "default": {},
+    "parchment": {
+      "bg": "#e8d9b5f0",
+      "border": "#7a5c34ff",
+      "border_width": 2,
+      "radius": 2,
+      "speaker": "#6b2f1aff",
+      "text": "#2b2116ff",
+      "caption": "#f2e6bfff",
+      "portrait_bg": "#e8d9b5f0",
+      "portrait_border": "#7a5c34ff"
+    },
+    "ember": {
+      "bg": "#1a0d0ae6",
+      "border": "#c2562aff",
+      "border_width": 1,
+      "radius": 4,
+      "speaker": "#ff9a4dff",
+      "text": "#f2ddd0ff",
+      "caption": "#ffcf9eff",
+      "portrait_bg": "#1a0d0ae6",
+      "portrait_border": "#c2562aff"
+    },
+    "spectral": {
+      "bg": "#0c1420cc",
+      "border": "#8fb8e0aa",
+      "border_width": 1,
+      "radius": 6,
+      "speaker": "#bfe0ffff",
+      "text": "#dde8f2ff",
+      "caption": "#d6ecffff",
+      "portrait_bg": "#0c1420cc",
+      "portrait_border": "#8fb8e0aa"
+    }
+  },
+  "speakers": {}
+}

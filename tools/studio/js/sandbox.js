@@ -107,13 +107,14 @@ async function sandboxPost(force) {
   sandboxState('отправляю…');
 }
 // Called after every rebuild of the frames (chars.js build()), so it never builds itself.
-function sandboxChanged() { clearTimeout(sandbox.timer); sandbox.timer = setTimeout(() => { sandboxAnims(); sandboxPost(false); }, 600); }
+function sandboxChanged() { clearTimeout(sandbox.timer); if (sandbox.from === 'shots') sandbox.forceNext = true; sandbox.timer = setTimeout(() => { sandboxAnims(); sandboxPost(false); }, 600); }
 
 window.addEventListener('message', e => {
   if (!sandbox.frame || e.source !== sandbox.frame.contentWindow || !e.data?.type) return;
   if (e.data.type === 'ashes-live-ready') { sandbox.ready = true; sandbox.sent = ''; sandboxState('игра готова'); sandboxPost(true).then(sandboxView); }
   if (e.data.type === 'ashes-live-event') sandboxState(`${e.data.event} · кадр ${e.data.frame + 1} · урон ${e.data.damage}`);
-  if (e.data.type === 'ashes-live-applied') { sandboxCommand('debug'); sandboxState(`в игре: ${(e.data.animations || []).join(', ')} · ${new Date().toLocaleTimeString().slice(0, 5)}`); }
+  // the yard swaps the foe a frame after it says so: give the new one a moment to stand before it shoots
+  if (e.data.type === 'ashes-live-applied') { sandboxCommand('debug'); if (sandbox.forceNext) setTimeout(() => sandboxCommand('force'), 400); sandbox.forceNext = false; sandboxState(`в игре: ${(e.data.animations || []).join(', ')} · ${new Date().toLocaleTimeString().slice(0, 5)}`); }
 });
 document.addEventListener('click', e => { if (e.target.closest('[data-act="chars-sandbox"]')) sandboxOpen(); });
 
@@ -128,8 +129,10 @@ async function sandboxDraftData(id) {
     const src = r.source, changed = WORLD.work[src.file];
     const node = changed && (Array.isArray(changed) ? changed.find(v => v.id === id) : src.path.reduce((o, k) => o?.[k], changed));
     const configured = node && (src.single ? [node[src.key]] : node[src.key]);
-    const actions = structuredClone(configured || src.items), deleted = new Set();
+    const actions = structuredClone(configured || src.items), deleted = new Set(), keys = actions.map(() => '');
     for (const [i, base] of src.items.entries()) {
+      // where each of the game's attacks ended up, so «⚔ Атака» fires the one she has open
+      try { keys[configured ? locateAction(actions, base, i, src.items) : i] = `enemy:${id}:${i}`; } catch {}
       const shared = sharedAttack(id, i, base), removed = SHOTS.removed.has(`enemy:${id}:${i}`);
       if (sameDraft(shared, base) && !removed) continue;
       const at = locateAction(actions, base, i, src.items);
@@ -138,7 +141,9 @@ async function sandboxDraftData(id) {
         if (shared[key] === undefined) delete actions[at][key]; else actions[at][key] = shared[key];
       }
     }
-    spec.attacks = actions.filter((a, i) => !deleted.has(i)); spec.attacks.push(...SHOTS.adds.filter(a => a.id === id).map(a => a.attack)); delete spec.attack;
+    const adds = SHOTS.adds.filter(a => a.id === id);
+    spec.attacks = actions.filter((a, i) => !deleted.has(i)); spec.attacks.push(...adds.map(a => a.attack)); delete spec.attack;
+    sandbox.keys = [...keys.filter((k, i) => !deleted.has(i)), ...adds.map(a => 'new:' + a.uid)];
   }
   const bodies = structuredClone(PFX.rules); bodies.studio_live = structuredClone(bodies[id] || {});
   const sounds = {};
@@ -159,8 +164,8 @@ async function attacksEnterData() {
   }
 }
 async function sandboxActionOpen() {
-  await attacksEnterData(); sandbox.actionMode = true; sandbox.base = attackRoster().id; sandbox.view.anim = '';
-  await sandboxOpen(); $('#sbBase').value = sandbox.base;
+  await attacksEnterData(); sandbox.actionMode = true; sandbox.from = 'attacks'; sandbox.base = attackRoster().id; sandbox.view.anim = '';
+  await sandboxOpen(); sandboxBaseSelect();
   if (sandbox.ready) await sandboxDataPost();
 }
 async function sandboxDataPost() {
@@ -168,8 +173,42 @@ async function sandboxDataPost() {
   sandbox.frame.contentWindow.postMessage({ type: 'ashes-live', mode: 'data', extends: sandbox.base, ...data }, '*');
   sandboxState('применяю действия и эффекты…');
 }
+// The attack «⚔ Атака» fires: the ranged one open in «Снаряды» when the sandbox came from
+// there, else the one open in «Атаки» — by its place in the list the game was sent.
+function sandboxAttack() {
+  const u = sandbox.from === 'shots' && SHOTS.data && shotUser();
+  const key = u && u.kind === 'enemy' && u.id === sandbox.base ? shotKey(u) : `enemy:${sandbox.base}:${ATTACKS.index}`;
+  const at = (sandbox.keys || []).indexOf(key);
+  return at >= 0 ? at : ATTACKS.index;
+}
+// «🎮 В игре» in «Снаряды»: the creature that shoots it, in the yard, made to shoot it once it stands.
+async function sandboxShotOpen() {
+  const u = shotUser();
+  if (u.kind !== 'enemy') return toast('Дар героя в песочнице не показать — там стреляют враги. Смотри его здесь, в превью.', 'err');
+  if (SHOTS.removed.has(shotKey(u))) return toast('Эта атака убрана — сначала верни её.', 'err');
+  await attacksEnterData(); sandbox.actionMode = true; sandbox.from = 'shots'; sandbox.base = u.id; sandbox.view.anim = ''; sandbox.forceNext = true;
+  await sandboxOpen(); sandboxBaseSelect();
+  if (sandbox.ready) await sandboxDataPost();
+}
+// The creature list was made when the panel first opened (from «Персонажи» it is shorter): add it if missing.
+function sandboxBaseSelect() {
+  const sel = $('#sbBase'); if (!sel) return;
+  if (![...sel.options].some(o => o.value === sandbox.base)) {
+    const r = ATTACKS.data?.roster.find(r => r.id === sandbox.base), o = document.createElement('option');
+    o.value = sandbox.base; o.textContent = 'как ' + (r?.name?.ru || sandbox.base); sel.appendChild(o);
+  }
+  sel.value = sandbox.base;
+}
+// Another attack picked in «Снаряды» while the sandbox stands open: its creature, then its shot.
+function sandboxShotPicked() {
+  if (sandbox.from !== 'shots' || !sandbox.el || sandbox.el.hidden) return;
+  const u = shotUser(); if (u.kind !== 'enemy' || SHOTS.removed.has(shotKey(u))) return;
+  sandbox.forceNext = true;
+  if (u.id !== sandbox.base) { sandbox.base = u.id; sandboxBaseSelect(); sandboxAnims(); }
+  sandboxPost(true);
+}
 function sandboxCommand(command) {
   if (!sandbox.ready) return toast('Сначала нажми Play в игре и дождись загрузки');
-  sandbox.frame.contentWindow.postMessage({ type: 'ashes-live-control', command, paused: !!sandbox.paused, attack: ATTACKS.index, debug: $('#sbZones')?.checked !== false, distance: +$('#sbDistance')?.value || 50 }, '*');
+  sandbox.frame.contentWindow.postMessage({ type: 'ashes-live-control', command, paused: !!sandbox.paused, attack: sandboxAttack(), debug: $('#sbZones')?.checked !== false, distance: +$('#sbDistance')?.value || 50 }, '*');
 }
-document.addEventListener('click', e => { if (e.target.closest('[data-act="chars-sandbox"]')) sandbox.actionMode = false; });
+document.addEventListener('click', e => { if (e.target.closest('[data-act="chars-sandbox"]')) { sandbox.actionMode = false; sandbox.from = 'chars'; } });

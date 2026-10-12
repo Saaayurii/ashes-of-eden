@@ -79,12 +79,12 @@ window.addEventListener('resize', drawPaint);
 
 /* ---------- undo / redo (per tab; pictures are shared between snapshots, see lib.js) ---------- */
 const undoTable = { ids: new Map(), list: [] };
-const history = { chars: { u: [], r: [] }, bg: { u: [], r: [] }, cut: { u: [], r: [] }, snd: { u: [], r: [] }, attacks: { u: [], r: [] }, shots: { u: [], r: [] }, pfx: { u: [], r: [] }, life: { u: [], r: [] }, dlg: { u: [], r: [] }, world: { u: [], r: [] }, rig: { u: [], r: [] } };
+const history = { chars: { u: [], r: [] }, bg: { u: [], r: [] }, cut: { u: [], r: [] }, snd: { u: [], r: [] }, attacks: { u: [], r: [] }, shots: { u: [], r: [] }, pfx: { u: [], r: [] }, gore: { u: [], r: [] }, life: { u: [], r: [] }, dlg: { u: [], r: [] }, world: { u: [], r: [] }, rig: { u: [], r: [] } };
 history.rig = history.chars;
 const undoTarget = m => m === 'chars' ? P : m === 'bg' ? BG : m === 'cut' ? CUT
   : m === 'snd' ? { id: 'snd', mods: [...sndMods.values()].sort((a, b) => a.id.localeCompare(b.id)) } : m === 'rig' ? P : m === 'attacks' ? { id: 'attacks', work: ATTACKS.work, shotsEdits: [...SHOTS.edits] }
   : m === 'shots' ? { id: 'shots', styles: SHOTS.styles, edits: [...SHOTS.edits], adds: SHOTS.adds, removed: [...SHOTS.removed], sheets: [...SHOTS.newSheets] }
-  : m === 'pfx' ? { id: 'pfx', rules: PFX.rules } : m === 'life' ? { id: 'life', edits: [...LIFE.edits] }
+  : m === 'pfx' ? { id: 'pfx', rules: PFX.rules } : m === 'gore' ? { id: 'gore', work: GORE.work } : m === 'life' ? { id: 'life', edits: [...LIFE.edits] }
   : m === 'dlg' ? { id: 'dlg', work: DLG.work, strings: DLG.strings } : m === 'world' ? { id: 'world', work: WORLD.work }
   : m === 'workspace' ? WORKSPACE : null;
 let historyRestoring = false;
@@ -110,6 +110,7 @@ function undoRedo(redo) {
   if (mode === 'attacks') { ATTACKS.work = obj.work; SHOTS.edits = new Map(obj.shotsEdits || []); shotsSave(); attacksSave(); renderAttacks(); }
   else if (mode === 'shots') { SHOTS.styles = obj.styles; SHOTS.edits = new Map(obj.edits); SHOTS.adds = obj.adds; SHOTS.removed = new Set(obj.removed); SHOTS.newSheets = new Map(obj.sheets); SHOTS.sheets.clear(); SHOTS.data.users = SHOTS.data.users.filter(u => !u.added); for (const a of SHOTS.adds) shotUserFor(a); SHOTS.user = Math.min(SHOTS.user, SHOTS.data.users.length - 1); shotsSave(); renderShots(); }
   else if (mode === 'pfx') { PFX.rules = obj.rules; pfxSave(); renderPfx(); }
+  else if (mode === 'gore') { GORE.work = obj.work; goreSave(); renderGore(); }
   else if (mode === 'life') { LIFE.edits = new Map(obj.edits); localStorage.setItem('ss_life', JSON.stringify(Object.fromEntries(LIFE.edits))); lifeUpload(); renderLifeSide(); renderLifeList(); drawLifeZones(); }
   else if (mode === 'dlg') { DLG.work = obj.work; DLG.strings = obj.strings; dlgSave(); renderDlg(); }
   else if (mode === 'world') { WORLD.work = obj.work; worldSave(); renderWorld(); worldRoomOpen(); }

@@ -111,6 +111,12 @@ validator would refuse is listed in red before sending (`dlgProblems`), includin
 the font subset. A changed dialogue is written back by `lib.js mergeDialogueFile`: every node still
 as it was keeps its bytes, a changed one keeps its own layout (one line or expanded), so a
 hand-laid file stays hand-laid (`tests/lib.test.js` rebuilds every dialogue of the game).
+The windows can be dragged and sized on the preview (the panel, the captions and a portrait
+window), for the whole dialogue or one line, and dressed in a named style — colours, border,
+corner, text sizes — made and edited in the same tab; each speaker's portrait is picked from
+`assets/portraits` or uploaded. All of it is `data/dialogue_looks.json` plus `"look"` on the
+dialogue and its nodes (docs/DIALOGUE_LOOKS.md), merged on sending by `lib.js mergeLooks`; the
+preview (`dlgDrawLine`, shared with «Катсцены») follows `DialogueBox._dress`.
 
 **Particles on actions** (`js/particles.js`, «Частицы»). `data/action_fx.json` is
 read by `scripts/fx/action_fx.gd`, an `ActionFx` node on the hero's and every
@@ -119,6 +125,14 @@ the game names (`ActionFx.EVENTS`). `build_data.py` writes `import/action_fx.jso
 the rules, `KINDS` / `ANCHORS` / `EVENTS` read from the script, and every body with
 its strips (the hero's per-animation fps). The preview draws a likeness of `Fx`;
 keep the kinds in step with `ActionFx.emit`.
+
+**Blood and torn limbs** (`js/gore.js`, «Кровь»). `data/gore.json` is read by
+`scripts/fx/gore.gd`: a table per material, a body's own keys laid over it.
+`build_data.py` writes `import/gore.json` (the tables, `Gore.KEYS` / `DEFAULTS`
+read from the script, the bodies of «Частицы» with their material). The preview
+is a port of `gore.gd` — drops, marks, the pool, `Gore.cut` on the frame the body
+died in, `GorePiece`'s bounce: change one, change the other. `goreText` writes the
+file one line per table, byte-identical when nothing changed (`tests/gore.test.js`).
 
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
@@ -152,8 +166,12 @@ same and keeps only the overridden pictures of what the generators rewrite.
 If a generator later draws something else under an edit of the same size, the
 edit still applies, the entry is marked `stale`, and the studio says «База
 изменилась — проверь». If the size changed, the generator fails, naming the
-override. A frame cannot be added to a generated strip (make a new character),
-and the hero's `.tres` stays the generator's.
+override. A bestiary enemy's animation may change its length: with more or
+fewer frames than the game's it is not an override but a strip of the studio's
+own (`assets/sprites/<id>_studio_<anim>.png`, in `projects/files.json`), and
+the animation's path in `data/enemy_archetypes/tree.json` is pointed at it
+(`resizedStrips` in `repo.js`). The hero's strips cannot grow (his `.tres`
+stays the generator's).
 
 **It keeps the repository's formatting.** `strings.csv`, dialogue files and
 cutscenes are rewritten byte-identically when unchanged (tests check this
@@ -316,7 +334,8 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     картину», тот же размер) → «→ В игру». Правка ляжет поверх того, что
     рисует генератор; робот пересоберёт картинки в той же отправке. «База
     изменилась — проверь» — генератор перерисовал картинку под правкой:
-    посмотри и отправь ещё раз.
+    посмотри и отправь ещё раз. Кадров у анимации врага можно сделать
+    больше или меньше (＋ / − / ✕): такая анимация уходит своей лентой.
 11. **🎮 Песочница** — открывается на всё окно (▣ — уменьшить в угол рядом с
     кадрами, ⛶ — весь экран компьютера): твой персонаж на тренировочном
    дворе, дерётся как выбранный враг и обновляется сам через пару секунд после
@@ -373,6 +392,15 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     цвет и прозрачность, куда летит, сдвиг. «точки» — показать, где на теле
     ноги, рука, голова. Дым под ногами Элиана теперь тоже здесь: шаг,
     приземление, перекат.
+21. **Кровь** — брызги от ударов, пятна на полу и стенах, лужа под телом и
+    расчленение. Слева: кто, и что править — материал (плоть, ткань,
+    кольчуга, латы, перья, дух, золото: для всех, кто из него) или только
+    это тело («своё» поверх материала, ↺ — вернуть к материалу). Удар: цвет,
+    сколько капель, как быстро летят, размер пятен, сколько держатся, сколько
+    кровоточит рана. Смерть: фонтан, лужа, на сколько кусков рвётся (их режет
+    из самого рисунка — кадра, в котором умер), шанс и сила разлёта.
+    «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу».
+    Игрок может убавить или выключить кровь: Настройки → Кровь.
 
 ## Actions and shared workspace
 
