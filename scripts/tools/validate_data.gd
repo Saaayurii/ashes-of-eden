@@ -886,7 +886,8 @@ func _check_action_fx() -> void:
 ## every body is Elian or an enemy, every key one Gore reads, within bounds the
 ## room can stand (drops are simulated one by one; a body tears into 2–6 pieces).
 const GORE_BOUNDS := {"shade": [0, 0.5], "spurt": [0, 4], "drops": [0, 40], "spray": [0, 400], "stain": [0, 3], "stain_life": [0, 120],
-	"gush": [0, 80], "pool": [0, 60], "bleed": [0, 5], "limbs": [0, 6], "chance": [0, 1], "fling": [0, 400]}
+	"gush": [0, 80], "pool": [0, 60], "bleed": [0, 5], "limbs": [0, 6], "chance": [0, 1], "fling": [0, 400],
+	"mist": [0, 20], "soak": [0, 1], "splash": [0, 6], "run": [0, 40], "drip": [0, 1], "back": [0, 0.6]}
 
 
 func _check_gore() -> void:

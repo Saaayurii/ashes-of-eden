@@ -215,6 +215,7 @@ class PreviewPage(unittest.TestCase):
         self.assertNotIn('"index.pck"', page)
         self.assertIn("'--studio-preview'", page)
         self.assertIn("'practice'", page)
+        self.assertIn("['--composed']", page)   # ?composed=1: the room's composed draft
         self.assertIn("Превью отправки #7", page)
 
     def test_live_page_is_the_main_pack_in_studio_live(self):

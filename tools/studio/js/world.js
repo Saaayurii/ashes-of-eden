@@ -28,9 +28,9 @@ function renderWorld() {
 async function worldFiles() {
   const files = {};
   for (const [path, mine] of Object.entries(WORLD.work)) {
-    const latest = JSON.parse(await repoText(path)), base = draftBase('world', WORLD.data.files)[path];
+    const text = await repoText(path), latest = JSON.parse(text), base = draftBase('world', WORLD.data.files)[path];
     const merged = await resolveDraft(base, mine, latest, path, BASES.world.uncertain);
-    if (!sameDraft(merged, latest)) files[path] = JSON.stringify(merged, null, 2) + '\n';
+    if (!sameDraft(merged, latest)) files[path] = gdText(text, merged);
   }
   if (!Object.keys(files).length) throw new Error('Нет изменений поведения.');
   return { files, title: 'Studio: game behavior and encounters', body: 'Game data edited in «Поведение»: ' + Object.keys(files).join(', ') };

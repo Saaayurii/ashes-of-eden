@@ -132,7 +132,10 @@ keep the kinds in step with `ActionFx.emit`.
 read from the script, the bodies of «Частицы» with their material). The preview
 is a port of `gore.gd` — drops, marks, the pool, `Gore.cut` on the frame the body
 died in (every way of `cuts`, ragged lines, `Gore.pick_cut`), `GorePiece`'s bounce,
-stand-and-topple and stump jets, shaded drops, clots and the three kinds of mark:
+stand-and-topple and stump jets, shaded drops, clots and the three kinds of mark,
+and where blood lands (`goreHitStage`: a ledge, a wall ending in the air, the sky's
+opening in a brick backdrop — splash, edge drips, wall runs, back splats, mist,
+and `soak` drawn with `multiply` as the `Soak` node does):
 change one, change the other. `goreText` writes the
 file one line per table, byte-identical when nothing changed (`tests/gore.test.js`).
 
@@ -405,8 +408,43 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     обрубок. «Как рвётся» — веса способов: на куски, голова прочь, пополам,
     рука прочь; линии разреза рваные, что осталось стоять — стоит миг и
     валится по удару. «В превью» показывает один способ, не по весам.
+    «Где ложится»: впитывание в текстуру (сквозь пятно видна кладка), брызги
+    от упавшей капли, потёки по стене, как стекает с края уступа и капает с
+    потолка, доля капель, что летят «на фон» и липнут к нарисованной стене
+    (не к небу и не к проёмам); морось — в «Ударе». Пятно не заходит за
+    край того, на чём лежит. Сцена превью — кирпичная стена с проёмом неба,
+    висячий уступ и стена, обрывающаяся в воздухе.
     «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу».
     Игрок может убавить или выключить кровь: Настройки → Кровь.
+22. **Конструктор** — большая комната из нескольких картин 1280×720 сеткой
+    (до 6×4): выбери комнату, «+» в сетке — добавить картину (из игры или
+    свою: подгонится под 1280×720). Картина другой комнаты может принести её
+    уступы и врагов. «✨ Найти уступы» показывает жёлтые рамки там, где на
+    картине есть уступ, — щёлкни нужные. Всё правится руками: тяни, растягивай
+    за край, рисуй инструментами «+ Уступ» и другими, Delete — убрать.
+    Справа внизу видно, дойдёт ли герой до двери и до каждого врага. Пока не
+    стоит галочка «В игре», это черновик: «▶ В Godot» открывает его, игра идёт
+    по старой комнате. Швы между картинами генератор сошьёт сам.
+
+    Вид «▤ Сшитый» показывает картину так, как её нарисует генератор.
+    Оранжевые полосы — швы; карточка «Швы» перечисляет, что стоит в них.
+
+    Вид «◫ Объём» показывает комнату камерой игры, и камера — это мышь. В нём
+    три плана:
+    - дальний: в окнах, он отстаёт от камеры;
+    - картина;
+    - передний: тёмные мягкие куски перед героем, они бегут быстрее камеры.
+
+    Инструменты этого вида:
+    - «+ Окно», «+ Передний план» (протяни рамку по картине), «+ Свеча»;
+    - «✨ Найти передний план» — голубые рамки, щёлкни нужные;
+    - «🖼 Своя спереди» — свой PNG с прозрачностью.
+
+    «✓ Проверить в Godot» (локально) запускает бота, лестницы и падения за
+    край на черновике.
+
+    Подробно: [docs/ROOM_COMPOSER.md](../../docs/ROOM_COMPOSER.md),
+    [docs/DEPTH.md](../../docs/DEPTH.md).
 
 ## Other games on the engine
 
@@ -459,6 +497,30 @@ its line). «▶ Песочница» posts the whole hero as `hero` with the da
 the roll and the parry window can be felt before anything is written. A game
 built on this engine without a `hero.json` of its own fights like Ashes; one
 with a partial file overrides only the keys it names (docs/GAME_PACKS.md).
+
+**The game's own tables** (`js/gamedata.js`, «Облик», «Тексты», «Музыка», «Забег»,
+«Сюжет», «Места»). `build_data.py` writes `import/gamedata.json`: every string,
+`STATS` / `ITEM_STATS` / `TECHNIQUES` and the flag lists from the validator,
+`AbilitySystem.CAPS`, `Achievements.COUNTERS`, `EXISTING` and the manifest of
+`fetch_music.py`, the music files on disk and each room's mood. The data files are
+drafts in `WORLD.work`, the same drafts «Поведение» keeps, and any list is written
+back entry by entry in the file's own style (`gdText`: an untouched entry is the very
+text it was). «Облик» edits `data/skins` and draws the hero through a port of the
+skin in `alignment_marks.gdshader`; «Тексты» edits `strings.csv` in four languages
+and warns of Chinese characters outside the font subset; «Музыка» moves tracks
+between moods in `tools/audio/music_manifest.json` and rewrites
+`data/music/playlists.json` exactly as `fetch_music.py` would, edits
+`data/ambience.json` and a room's mood (`music` in `studio_rooms.json`); «Забег»
+edits items, relics, resonances, omens, vials, affixes and deeds (a deed's id is a
+store name and is never renamed or removed); «Сюжет» is the chapter, its forks and
+notes and every flag both ways; «Места» puts the rest point and studio props
+(`props` in `studio_rooms.json`, in the finished room's pixels) on the room map.
+Each check mirrors `validate_data.gd` (`gdProblems`, `gdFlags`), and a send the
+validator would refuse is refused here: change one, change the other
+(`tests/gamedata.test.js`). After a playlist change, run
+`python3 tools/export/music_filters.py`. In the sandbox, «✚ Дар» sends
+`{command: "gift"}`: `Run._studio_gift` hands the hero a skill and casts it at the
+nearest foe, or takes any other gift once (`studio_live_test.gd`).
 
 All editor tabs support undo/redo. The workspace bar exports/imports one portable
 JSON project with source images, sounds and drafts; credentials are excluded.

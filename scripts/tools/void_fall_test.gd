@@ -6,6 +6,7 @@ extends SceneTree
 ## nothing solid stands between the body and the edge of the map, a body that
 ## falls there dies the moment it crosses the room's death line — with an
 ## extra life in hand, and without first landing on anything it cannot see.
+## `-- --composed [room]` checks only the studio's composed drafts.
 
 
 func _init() -> void:
@@ -14,6 +15,15 @@ func _init() -> void:
 
 func _run() -> void:
 	await process_frame
+	if OS.get_cmdline_user_args().has("--composed"):
+		# a composed draft: only its own bottom edge (the checks above are of painted rooms' spots)
+		var drafts := _composed_rooms()
+		var ok: bool = drafts.is_empty() or await _every_open_column(drafts)
+		if drafts.is_empty():
+			print("  no composed draft to check")
+		print("VOID FALL TEST %s" % ("PASSED" if ok else "FAILED"))
+		quit(0 if ok else 1)
+		return
 	var room = load("res://scenes/rooms/village_night.tscn").instantiate()
 	root.add_child(room)
 	current_scene = room
@@ -81,9 +91,9 @@ func _run() -> void:
 	quit(0 if passed else 1)
 
 
-func _every_open_column() -> bool:
+func _every_open_column(only: Array = []) -> bool:
 	var ok := true
-	var rooms: Array = root.get_node("Data").rooms
+	var rooms: Array = only if not only.is_empty() else root.get_node("Data").rooms
 	for path in rooms:
 		var room = load(path).instantiate()
 		root.add_child(room)
@@ -97,6 +107,8 @@ func _every_open_column() -> bool:
 			# open: nothing solid or one-way from well above the line to past it
 			var ray := PhysicsRayQueryParameters2D.create(room.to_global(Vector2(x, limit - 70.0)),
 				room.to_global(Vector2(x, limit + 60.0)), 17)
+			# a floor that runs down past the line is no opening either
+			ray.hit_from_inside = true
 			if not space.intersect_ray(ray).is_empty():
 				continue
 			# lava is not the edge of the map: it burns and puts the body back
@@ -134,3 +146,16 @@ func _every_open_column() -> bool:
 		room.queue_free()
 		await process_frame
 	return ok
+
+
+## `-- --composed [room]`: the studio's composed drafts (scenes/rooms/composed)
+## instead of the run's rooms, those named, or all of them.
+func _composed_rooms() -> Array:
+	var args := OS.get_cmdline_user_args()
+	var out: Array = []
+	if DirAccess.dir_exists_absolute("res://scenes/rooms/composed"):
+		for file in ResourceLoader.list_directory("res://scenes/rooms/composed"):
+			var name: String = file.get_basename()
+			if file.ends_with(".tscn") and (args.size() < 2 or args.has(name)):
+				out.append("res://scenes/rooms/composed/" + file)
+	return out

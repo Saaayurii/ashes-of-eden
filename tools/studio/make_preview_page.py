@@ -39,12 +39,14 @@ def preview_page(html: str, number: int, pack_size: int) -> str:
     sizes.pop(f"{cfg.get('executable', 'index')}.pck", None)
     sizes[pack] = pack_size
     cfg["fileSizes"] = sizes
+    # ?room=… opens a room, ?practice=… the yard, and ?composed=1 the room's composed draft (Run, --composed)
     args = ("['--', '--studio-preview'].concat(['room', 'practice'].filter(k => new URLSearchParams(location.search).get(k))"
-            ".map(k => k + '=' + new URLSearchParams(location.search).get(k)))")
+            ".map(k => k + '=' + new URLSearchParams(location.search).get(k)))"
+            ".concat(new URLSearchParams(location.search).has('composed') ? ['--composed'] : [])")
     page = html[:m.start()] + f"new Engine(Object.assign({json.dumps(cfg)}, {{args: {args}}}))" + html[m.end():]
     banner = (f'<div style="position:fixed;top:0;left:0;right:0;z-index:99;padding:4px 10px;background:#5a4a1a;'
               f'color:#f0d68a;font:13px system-ui;text-align:center">Превью отправки #{number} из студии — '
-              f'игра ничего не сохраняет. Сразу в комнату: <code>?room=hell_gate</code>, на тренировку с врагом: <code>?practice=cultist</code></div>')
+              f'игра ничего не сохраняет. Сразу в комнату: <code>?room=hell_gate</code>, в собранную в конструкторе: <code>&amp;composed=1</code>, на тренировку с врагом: <code>?practice=cultist</code></div>')
     return page.replace("</body>", banner + "</body>", 1)
 
 

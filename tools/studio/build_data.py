@@ -26,6 +26,7 @@ in tools/studio/projects/files.json and stay editable.
     python3 tools/studio/build_data.py
     python3 tools/studio/build_data.py --asset-base https://raw.githubusercontent.com/OWNER/REPO/main/
 """
+import ast
 import argparse
 import base64
 import csv
@@ -549,6 +550,10 @@ def life(root: Path):
         res = (root / scene).exists() and _scene_texture(root, root / scene, [node])
         if res:
             pictures[key] = {"res": res, "kind": "scene"}
+    # a room the studio composed has a picture of its own, keyed as BackdropLife.room_key keys it
+    for p in sorted((root / "assets/levels/composed").glob("*.png")):
+        if not p.stem.endswith("_backfill"):
+            pictures["composed/" + p.stem] = {"res": "res://" + p.relative_to(root).as_posix(), "kind": "room"}
     for d in LIFE_DIRS:
         for p in sorted((root / d).glob("*.png")):
             pictures.setdefault(p.stem, {"res": "res://" + p.relative_to(root).as_posix(), "kind": "picture"})
@@ -762,6 +767,105 @@ def world(root, rooms):
     return {"files": files, "enemies": sorted(p.stem for p in (root / "data/enemies").glob("*.json"))}
 
 
+def composer(root: Path):
+    """The «Конструктор» (js/composer.js, tools/rooms/compose.py): the panels a room may be put
+    together from, every painted room's own geometry in its panel's pixels, what is composed
+    already, and the numbers its preview needs (the grid, the hero's reach for check_reach)."""
+    sys.path.insert(0, str(root / "tools/rooms"))
+    import compose
+    import front
+    import generate_rooms
+    import painted_rooms
+    owned = compose.owners(painted_rooms.PAINTED, generate_rooms.DEPTH_WINDOWS)
+    by_painting = {}
+    rooms = {}
+    for name, room in painted_rooms.PAINTED.items():
+        if "painting" not in room:
+            continue
+        by_painting.setdefault(room["painting"], name)
+        rooms[name] = {"painting": room["painting"],
+                       # a thing standing in a seam ("wide") has no place in the bare panel
+                       **{k: [list(v) for v in room.get(k, []) if "wide" not in v] for k in ("ground", "ledges", "platforms", "ramps", "hazards", "spawns", "props", "npcs")},
+                       "player": list(room["player"]), "door": list(room["door"])}
+    panels = []
+    for path in sorted((root / "assets/levels").glob("*.png")) + sorted((root / "assets/levels/panels").glob("*.png")):
+        stem = path.relative_to(root / "assets/levels").with_suffix("").as_posix()
+        if stem.endswith("_wide"):
+            continue
+        with Image.open(path) as im:
+            if im.size != compose.CELL:
+                continue
+        plate = compose.plate_path(stem)
+        lights = compose.auto_lights({"cells": [{"painting": stem, "col": 0, "row": 0}]})
+        panels.append({"stem": stem, "url": f"assets/levels/{stem}.png", "room": by_painting.get(stem, ""),
+                       # what a cell of it brings: the far openings of its room, the plate behind them, its candles
+                       "windows": [{"index": i, "points": [list(p) for p in polygon]} for i, polygon in owned.get(stem, (0, []))[1]],
+                       "strength": owned[stem][0] if stem in owned else None,
+                       "plate": Path(plate).relative_to(compose.ROOT).as_posix(),
+                       "lights": [list(light) for light in lights]})
+    reach = {k: getattr(painted_rooms, k) for k in ("JUMP_UP", "JUMP_ACROSS", "DROP_ACROSS", "RUN_SPEED", "JUMP_VELOCITY", "GRAVITY", "BODY_WIDTH", "REACH_MARGIN")}
+    reach["FLYERS"] = sorted(painted_rooms.FLYERS)
+    ids = lambda folder: sorted(p.stem for p in (root / "data" / folder).glob("*.json"))
+    return {"cell": list(compose.CELL), "max": [compose.MAX_COLS, compose.MAX_ROWS], "seam": compose.SEAM,
+            "panels": panels, "rooms": rooms, "composed": compose.load(), "reach": reach,
+            "enemies": ids("enemies"), "props": ids("props"), "npcs": ids("npcs"),
+            "front": {"depth": list(front.DEPTH), "max": front.MAX_PIECES}, "window_depth": list(compose.WINDOW_DEPTH)}
+
+
+def write(out: Path, rel: str, data):
+    path = out / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    return rel
+
+
+def head_sha(root: Path):
+    r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True)
+    return r.stdout.strip()
+
+
+def _gd_list(source: str, name: str):
+    """A const list of strings from a GDScript source (`const NAME := [...]`)."""
+    m = re.search(r"const %s := \[(.*?)\]" % name, source, re.S)
+    return re.findall(r'"([^"]+)"', m.group(1)) if m else []
+
+
+def gamedata(root: Path, strings):
+    """What the studio's later editors read beside world.json (js/gamedata.js): every line of
+    strings.csv, the lists the validator checks against (so a draft is refused in the browser
+    before CI refuses it), the music library and each room's mood and size, and the
+    flags GDScript itself reads or writes (the story map)."""
+    validator = (root / "scripts/tools/validate_data.gd").read_text(encoding="utf-8")
+    caps_src = (root / "scripts/combat/ability_system.gd").read_text(encoding="utf-8")
+    caps = {k: [float(a), float(b)] for k, a, b in re.findall(r'"(\w+)": \[(-?[\d.]+), (-?[\d.]+)\]', caps_src.split("const CAPS := {", 1)[1].split("\n}", 1)[0])}
+    deeds = (root / "scripts/meta/achievements.gd").read_text(encoding="utf-8")
+    fetch = (root / "tools/audio/fetch_music.py").read_text(encoding="utf-8")
+    existing = ast.literal_eval(re.search(r"EXISTING = (\{.*?\n\})", fetch, re.S).group(1))
+    manifest = json.loads((root / "tools/audio/music_manifest.json").read_text(encoding="utf-8"))
+    music = root / "assets/audio/music"
+    rooms = {}
+    for path in sorted((root / "scenes/rooms").glob("*.tscn")):
+        whole = path.read_text(encoding="utf-8")
+        m = re.search(r'^music = "([^"]*)"', whole, re.M)  # on the room's Ambient
+        text = whole[whole.find('[node name="Room"'):]  # the room's own size, not a sub-resource's
+        text = text[:text.find("\n[", 1)]
+        w = re.search(r"^width = (\d+)", text, re.M)
+        h = re.search(r"^height = (\d+)", text, re.M)
+        rooms[path.stem] = {"music": m.group(1) if m else "", "width": int(w.group(1)) if w else 0, "height": int(h.group(1)) if h else 0}
+    return {
+        "strings": strings,
+        "stats": _gd_list(validator, "STATS"), "item_stats": _gd_list(validator, "ITEM_STATS"),
+        "techniques": _gd_list(validator, "TECHNIQUES"), "caps": caps,
+        "counters": _gd_list(deeds, "COUNTERS"),
+        "flags_read_in_code": _gd_list(validator, "FLAGS_READ_IN_CODE"),
+        "flags_set_in_code": _gd_list(validator, "FLAGS_SET_IN_CODE"),
+        "flags_for_tests": _gd_list(validator, "FLAGS_FOR_TESTS"),
+        "music": {"existing": existing, "tracks": [{k: t[k] for k in ("slug", "title", "author", "license", "playlists")} for t in manifest["tracks"]],
+                  "files": {p.stem: p.name for p in sorted(music.iterdir()) if p.suffix in (".mp3", ".ogg", ".wav")}},
+        "rooms": rooms,
+    }
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -791,6 +895,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "life.json", life(root))
     write(out, "tiles.json", tiles(root))
     write(out, "seams.json", seams(root))
+    write(out, "composer.json", composer(root))
     shots = projectiles(root, strings)
     write(out, "projectiles.json", shots)
     write(out, "attacks.json", {"roster": shots["roster"]})
@@ -799,6 +904,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "gore.json", gore(root, pfx, shots))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
+    write(out, "gamedata.json", gamedata(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])
     st["cutscenes"] += shared("cuts", {c["id"] for c in st["cutscenes"]})
     write(out, "cutscenes.json", st)

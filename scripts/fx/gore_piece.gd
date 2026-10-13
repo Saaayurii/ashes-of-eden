@@ -20,7 +20,9 @@ var spin := 0.0
 var _layer: Gore
 var _blood := Color.RED
 var _stain := 1.0
-var _stain_life := 20.0
+var _ink := {}
+var _drip_ink := {}
+var _spurt_ink := {}
 var _shade := 0.0
 var _bleed := 1.0
 var _half := Vector2(2, 2)
@@ -49,7 +51,9 @@ func setup(layer: Gore, launch: Vector2, turn: float, s: Dictionary, bleed: floa
 	spin = turn
 	_blood = Color(str(s.blood))
 	_stain = float(s.stain)
-	_stain_life = float(s.stain_life)
+	_ink = Gore.ink(s)
+	_drip_ink = Gore.ink(s, 0.8)
+	_spurt_ink = Gore.ink(s, 0.9)
 	_shade = float(s.get("shade", 0.0))
 	_bleed = bleed
 	_half = half.max(Vector2(1.0, 1.0))
@@ -124,7 +128,9 @@ func _physics_process(delta: float) -> void:
 	var wall := absf(normal.x) > 0.6
 	global_position = hit.position + normal * (reach.x if wall else reach.y)
 	if is_instance_valid(_layer):
-		_layer.mark(hit.position, randf_range(2.0, 4.5) * _stain, wall, _layer.shaded(_blood, _shade), _stain_life)
+		var face := 1 if wall else (2 if normal.y > 0.6 else 0)
+		_layer.mark(hit.position, randf_range(2.0, 4.5) * _stain, face, _layer.shaded(_blood, _shade), _ink, 0.25, -1,
+			_layer.surface(hit))
 	if normal.y < -0.6:  # a floor
 		velocity = Vector2(velocity.x * randf_range(0.4, 0.65), -absf(velocity.y) * BOUNCE * randf_range(0.7, 1.2))
 		spin *= randf_range(0.3, 0.6)
@@ -152,7 +158,7 @@ func _bleed_and_spurt(delta: float) -> void:
 		if _drip <= 0.0:
 			_drip = (0.05 if not _resting else 0.22) * randf_range(0.6, 1.5)
 			_layer.drop(root, Vector2(randf_range(-20, 20), randf_range(-30, 10)) - velocity * 0.1,
-				_layer.shaded(_blood, _shade), _stain * 0.8, _stain_life)
+				_layer.shaded(_blood, _shade), _drip_ink)
 	if _spurt <= 0.0:
 		return
 	_spurt -= delta
@@ -165,4 +171,4 @@ func _bleed_and_spurt(delta: float) -> void:
 	var dir := _stump_dir.rotated(rotation)
 	for i in randi_range(2, 4):
 		var v := dir.rotated(randf_range(-0.25, 0.25)) * randf_range(80.0, 170.0) * strength
-		_layer.drop(root, v + velocity * 0.5, _layer.shaded(_blood, _shade), _stain * 0.9, _stain_life)
+		_layer.drop(root, v + velocity * 0.5, _layer.shaded(_blood, _shade), _spurt_ink)

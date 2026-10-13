@@ -54,7 +54,11 @@ static func arrange(room: Node2D) -> void:
 
 
 ## How far a window's plate may travel with the camera: 0 keeps it still.
+## A composed room lists only openings that look out, each with its depth.
 static func window_factor(room: Node2D, index: int, factor: float) -> float:
+	var depths: PackedFloat32Array = room.get("window_depths") if room.get("window_depths") != null else PackedFloat32Array()
+	if not depths.is_empty():
+		return depths[index - 1] if index <= depths.size() else 0.0
 	var key := room.scene_file_path.get_file().get_basename()
 	if not FAR_WINDOWS.has(key):
 		return factor
@@ -81,7 +85,8 @@ static func window_outline(room: Node2D, index: int) -> PackedVector2Array:
 ## Clouds belong to the sky. Unclipped, a translucent bank drifting at a fifth
 ## of the camera's speed slides across towers, trees and bridges. Inside the
 ## sky's opening (window 1, the one every outdoor panel cuts along its
-## skyline) they pass behind all of it.
+## skyline) they pass behind all of it. A composed room has a sky per panel
+## (`sky_windows`): one clip draws them all, as separate polygons.
 static func _clip_clouds(room: Node2D) -> void:
 	var layers: Array[Node] = []
 	for name in ["CloudsFar", "CloudsNear"]:
@@ -90,14 +95,27 @@ static func _clip_clouds(room: Node2D) -> void:
 			layers.append(layer)
 	if layers.is_empty():
 		return
-	var outline := window_outline(room, 1)
-	if outline.size() < 3:
+	var skies: PackedInt32Array = room.get("sky_windows") if room.get("sky_windows") != null else PackedInt32Array([1])
+	var outline := PackedVector2Array()
+	var parts: Array = []
+	for index in skies:
+		var one := window_outline(room, index)
+		if one.size() < 3:
+			continue
+		var part := PackedInt32Array()
+		for point in one:
+			part.append(outline.size())
+			outline.append(point)
+		parts.append(part)
+	if parts.is_empty():
 		for layer in layers:
 			(layer as CanvasItem).visible = false
 		return
 	var sky := Polygon2D.new()
 	sky.name = "SkyClip"
 	sky.polygon = outline
+	if parts.size() > 1:
+		sky.polygons = parts
 	sky.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	sky.z_index = -28
 	room.add_child(sky)

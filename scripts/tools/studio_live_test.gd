@@ -138,6 +138,17 @@ func _run() -> void:
 	run._studio_live_control({"command": "pause", "paused": false})
 	await _settle(0.6)
 	_check(foes[0].state != enemy_script.State.WINDUP and not foes[0]._strike_wait, "the selected sprite frame resolves the live impact")
+	# a gift from the studio: a skill goes into his hands and is cast at once, any other gift is taken once
+	var hero = run.player
+	run._studio_live_control({"command": "gift", "gift": "radiance", "debug": true})
+	_check(hero.skill.get("kind", "") == "nova" and hero._skill_cd > 0.0, "a gift's skill is handed over and cast")
+	data.abilities["studio_stat"] = {"id": "studio_stat", "name": "ABILITY_RADIANCE_NAME", "description": "ABILITY_RADIANCE_DESC", "path": "grace", "rarity": "common", "effects": [{"type": "stat", "stat": "max_hp", "op": "add", "value": 10}]}
+	var max_hp: float = hero.stats.max_hp
+	run._studio_live_control({"command": "gift", "gift": "studio_stat", "debug": true})
+	run._studio_live_control({"command": "gift", "gift": "studio_stat", "debug": true})
+	_check(is_equal_approx(hero.stats.max_hp, max_hp + 10.0), "a gift pressed twice is taken once")
+	run._studio_live_control({"command": "gift", "gift": "no_such_gift", "debug": true})
+	_check(hero.skill.get("kind", "") == "nova", "an unknown gift changes nothing")
 	game.practice = ""
 	print("studio_live_test: %s" % ("OK" if failures == 0 else "%d FAILED" % failures))
 	quit(1 if failures else 0)
