@@ -221,6 +221,17 @@ async function runInGodot(room, composed = false) {
   toast(r.ok ? `Godot открывает ${composed ? 'черновик' : 'комнату'} ${room}…` : 'Не запустилось: ' + r.error, r.ok ? '' : 'err');
 }
 
+// The engine's own checks of a composed draft (serve.py /api/check): the bot walks it, stairs both
+// ways, falls out of the map. Minutes, so the button says so; only from the game's folder.
+async function checkInGodot(room) {
+  if (Writer.mode !== 'local') return dialog('<h3>Проверка в Godot</h3><p>Настоящие проверки (бот проходит комнату, лестницы в обе стороны, падения за край) работают, когда студия открыта из папки игры: <code>python3 tools/studio/serve.py</code>. В отправке их проверяет CI.</p>');
+  toast('Godot проверяет черновик: бот проходит комнату… это несколько минут');
+  const r = await (await fetch('/api/check', { method: 'POST', body: JSON.stringify({ room }) })).json();
+  if (r.error) return toast('Не проверилось: ' + r.error, 'err');
+  const names = { reach_test: 'Бот прошёл до двери и обратно', stairs_test: 'Лестницы в обе стороны', void_fall_test: 'Падение за край — смерть' };
+  dialog(`<h3>Проверка черновика ${esc(room)}</h3>` + r.results.map(t => `<details ${t.ok ? '' : 'open'}><summary class="${t.ok ? 'ok' : 'warn'}">${t.ok ? '✓' : '✗'} ${esc(names[t.test] || t.test)}</summary><pre class="log">${esc(t.log)}</pre></details>`).join(''));
+}
+
 /* ---------- edits of what a generator draws: overrides (lib.js frameEdits, tools/art/studio_overrides.py) ---------- */
 const overridableSet = () => new Set(META.overridable || []);
 async function pictureData(url) {
@@ -545,7 +556,7 @@ async function fetchSent() {
 // The playable preview pages.yml builds for an open studio pull request.
 async function previewOf(p) {
   if (!META.site) return null;
-  let room = null, practice = null;
+  let room = null, practice = null, composed = false;
   try {
     const files = (await ghApi(`/repos/${META.repo}/pulls/${p.number}/files?per_page=100`)).map(f => f.filename);
     const scene = files.map(f => f.match(/^data\/cutscenes\/(.+)\.json$/)?.[1]).find(Boolean);
@@ -555,12 +566,20 @@ async function previewOf(p) {
       room = Object.keys(table).find(r => [table[r].intro_cutscene, table[r].outro_cutscene].includes(scene)) || room;
     }
     practice = files.map(f => f.match(/^data\/enemies\/(.+)\.json$/)?.[1]).find(Boolean) || null;
+    // a room the «Конструктор» put together opens as its draft (run.gd, --composed) unless it went live
+    if (!room && !practice && files.includes('tools/rooms/composed_rooms.json')) {
+      const read = ref => ghApi(`/repos/${META.repo}/contents/tools/rooms/composed_rooms.json?ref=${ref}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }).then(JSON.parse).catch(() => ({}));
+      const [table, before] = await Promise.all([read(p.head.sha), read(p.base.sha)]);
+      // the room this sending changed
+      const name = Object.keys(table).find(n => JSON.stringify(table[n]) !== JSON.stringify(before[n])) || Object.keys(table)[0];
+      if (name) { room = name; composed = !table[name].live; }
+    }
   } catch {}
-  const q = practice ? '?practice=' + practice : room ? '?room=' + room : '';
+  const q = practice ? '?practice=' + practice : room ? '?room=' + room + (composed ? '&composed=1' : '') : '';
   try {
     const j = await (await fetch(`${META.site}preview/${p.number}.json`, { cache: 'no-store' })).json();
-    return { ready: j.sha === p.head.sha, url: `${META.site}preview-${p.number}.html${q}`, room, practice };
-  } catch { return { ready: false, room, practice }; }
+    return { ready: j.sha === p.head.sha, url: `${META.site}preview-${p.number}.html${q}`, room, practice, composed };
+  } catch { return { ready: false, room, practice, composed }; }
 }
 // A sent project stays hers until the game has it: then the game's copy is hers too.
 function settlePending(list) {
@@ -586,7 +605,7 @@ async function sentDialog() {
       <span class="${toneClass(e.status?.tone)}">${esc(e.status?.label || '')}</span>
       ${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">PR ↗</a>` : ''}
       ${e.number ? `<button class="sm" data-open-pr="${e.number}">Открыть в студии</button>` : ''}
-      ${e.preview ? `<div class="wide">${e.preview.ready ? `<a href="${esc(e.preview.url)}" target="_blank" rel="noopener"><b>▶ Играть с моими правками</b></a>${e.preview.practice ? ` <span class="muted">(сразу на тренировку с ${esc(e.preview.practice)})</span>` : e.preview.room ? ` <span class="muted">(сразу в комнату ${esc(e.preview.room)})</span>` : ''}` : '<span class="muted">превью игры собирается… (несколько минут после отправки)</span>'}</div>` : ''}
+      ${e.preview ? `<div class="wide">${e.preview.ready ? `<a href="${esc(e.preview.url)}" target="_blank" rel="noopener"><b>▶ Играть с моими правками</b></a>${e.preview.practice ? ` <span class="muted">(сразу на тренировку с ${esc(e.preview.practice)})</span>` : e.preview.room ? ` <span class="muted">(сразу в ${e.preview.composed ? 'собранную комнату' : 'комнату'} ${esc(e.preview.room)})</span>` : ''}` : '<span class="muted">превью игры собирается… (несколько минут после отправки)</span>'}</div>` : ''}
       ${e.notes?.length || e.status?.key === 'changes' || e.preview ? `<details class="wide" ${e.status?.key === 'changes' ? 'open' : ''}><summary>Замечания${e.notes?.length ? ` (${e.notes.length})` : ''}</summary>
         ${(e.notes || []).map(n => `<div class="note-item ${n.mine ? 'mine' : ''}"><b>${esc(n.who)}</b>${n.tag ? ` <span class="badge">${esc(n.tag)}</span>` : ''} <span class="muted">${new Date(n.at).toLocaleString('ru')}</span><div>${esc(n.text)}</div></div>`).join('') || '<div class="muted">Замечаний нет.</div>'}
         ${e.status?.key === 'changes' ? '<div class="note">Открой отправку в студии, поправь и нажми «→ В игру» — исправления лягут в эту же отправку.</div>' : ''}

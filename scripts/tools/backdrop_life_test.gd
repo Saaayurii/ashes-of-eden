@@ -30,11 +30,16 @@ func _run() -> void:
 	for found in RegEx.create_from_string("res://scenes/rooms/\\w+\\.tscn").search_all(listed):
 		rooms.append(found.get_string())
 	_check(rooms.size() > 10, "run.gd lists %d rooms — does it compile?" % rooms.size())
+	# and what the studio composed: keyed composed/<room>, its zones on its own picture
+	if DirAccess.dir_exists_absolute("res://scenes/rooms/composed"):
+		for file in ResourceLoader.list_directory("res://scenes/rooms/composed"):
+			if file.ends_with(".tscn"):
+				rooms.append("res://scenes/rooms/composed/" + file)
 	for path in rooms:
-		var name: String = path.get_file().get_basename()
+		var room = load(path).instantiate()
+		var name: String = life.room_key(room)
 		var found: Dictionary = life.rule(name)
 		_check(not found.is_empty(), "%s: no rule in data/backdrops.json" % name)
-		var room = load(path).instantiate()
 		root.add_child(room)
 		await process_frame
 		var painting = life.painting_of(room)

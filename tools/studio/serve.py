@@ -12,6 +12,7 @@ working tree, runs the data validator and opens Godot in a room:
     POST /api/validate                  scripts/tools/validate_data.gd, headless
     POST /api/run     {"room": name}    make room ROOM=name, without make
                       {"composed": true}  ... its composed draft (tools/rooms/compose.py)
+    POST /api/check   {"room": name}    the engine's reach, stairs and void-fall tests on its draft
 
 It binds to 127.0.0.1 only and writes only under WRITABLE: the studio's
 outputs never touch scripts, scenes or the tools themselves.
@@ -31,12 +32,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WRITABLE = ("assets/", "data/", "data/cutscenes/", "data/dialogues/", "data/enemies/", "data/abilities/", "data/projectiles.json", "data/action_fx.json", "data/enemy_archetypes/tree.json", "data/backdrops.json",
             "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json",
-            "tools/studio/overrides/")
+            "tools/rooms/front_layers.json", "tools/studio/overrides/")
 ## Tables the rooms generator reads: writing one regenerates the rooms.
-ROOM_TABLES = ("tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json")
+ROOM_TABLES = ("tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json", "tools/rooms/front_layers.json")
 ## What the generator writes into assets/levels that a send means to change: a composed room's
-## picture. The panels it re-saves there otherwise only drift by a pixel on another zlib.
-COMPOSED_OUT = ("assets/levels/composed/", "assets/levels/panels/")
+## picture and plate, the pieces in front of the hero and what they were cut from. The panels it
+## re-saves there otherwise only drift by a pixel on another zlib.
+COMPOSED_OUT = ("assets/levels/composed/", "assets/levels/panels/", "assets/levels/front/", "assets/levels/pieces/")
+## The engine's own checks of a composed draft (`/api/check`): the bot walks it, every stair both
+## ways, every open column of its bottom edge is a fall out of the map.
+CHECKS = (("reach_test", ["--fixed-fps", "60"], ["{room}", "--composed"]),
+          ("stairs_test", ["--fixed-fps", "60"], ["--composed", "{room}"]),
+          ("void_fall_test", ["--fixed-fps", "60"], ["--composed", "{room}"]))
 WRITE_LOCK = threading.RLock()
 PORT = int(os.environ.get("STUDIO_PORT", "8765"))
 
@@ -236,7 +243,7 @@ class Handler(SimpleHTTPRequestHandler):
             if self.path == "/api/image":
                 return self._json(200, image(data))
             g = godot()
-            if self.path in ("/api/validate", "/api/run") and not g:
+            if self.path in ("/api/validate", "/api/run", "/api/check") and not g:
                 return self._json(500, {"ok": False, "error": "Godot not found: set GODOT=/path/to/godot"})
             if self.path == "/api/validate":
                 with WRITE_LOCK:
@@ -252,6 +259,20 @@ class Handler(SimpleHTTPRequestHandler):
                 extra = ["--composed"] if data.get("composed") else []
                 subprocess.Popen([g, "--path", str(ROOT), "scenes/run/run.tscn", "--", f"room={room}"] + extra, cwd=ROOT)
                 return self._json(200, {"ok": True})
+            if self.path == "/api/check":
+                room = str(data.get("room", ""))
+                if not room.replace("_", "").isalnum():
+                    raise ValueError("bad room name")
+                if not (ROOT / "scenes/rooms/composed" / (room + ".tscn")).exists():
+                    raise ValueError("у комнаты нет черновика: сначала «→ В игру»")
+                results = []
+                with WRITE_LOCK:
+                    run([g, "--headless", "--path", str(ROOT), "--import"])
+                    for name, flags, args in CHECKS:
+                        code, out = run([g, "--headless", *flags, "--path", str(ROOT), "-s", f"scripts/tools/{name}.gd", "--",
+                                         *[a.format(room=room) for a in args]], timeout=1800)
+                        results.append({"test": name, "ok": code == 0, "log": out[-3000:]})
+                return self._json(200, {"ok": all(r["ok"] for r in results), "results": results})
             return self._json(404, {"ok": False, "error": "no such endpoint"})
         except ValueError as e:
             print(str(e), file=sys.stderr, flush=True)

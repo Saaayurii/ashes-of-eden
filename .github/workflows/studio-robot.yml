@@ -17,6 +17,8 @@ on:
       # rooms put together from several paintings (tools/rooms/compose.py) and the new paintings
       - "tools/rooms/composed_rooms.json"
       - "assets/levels/panels/**"
+      - "tools/rooms/front_layers.json"
+      - "assets/levels/pieces/**"
       # her edits of pictures a generator owns (tools/art/studio_overrides.py)
       - "tools/studio/overrides/**"
 

@@ -18,16 +18,22 @@ stitching every seam.
     "ground": [[x, y, w, h]], "ledges": [...], "platforms": [...],
     "ramps": [[x0, y0, x1, y1]], "hazards": [[x, y, w, h]],
     "player": [x, y], "door": [x, y],
-    "spawns": [[id, x, y]], "props": [[id, x, y]], "npcs": [[id, x, y]]}}
+    "spawns": [[id, x, y]], "props": [[id, x, y]], "npcs": [[id, x, y]],
+    "windows": [{"points": [[x, y], ...], "depth": 0.84, "sky": false}],
+    "lights": [[x, y, "#ffb060", radius, energy, flicker]],
+    "front": [{"from": "graveyard_cross", "crop": [x, y, w, h], "at": [x, y], "depth": 1.35}]}}
 ```
 
 - **Cells.** A grid of at most 6×4. Cell (col, row) starts at (col·1280, row·720).
   Every painting must be 1280×720. A painting is either one the game already has
   (`assets/levels/<stem>.png`) or a new one the studio uploads
   (`assets/levels/panels/<stem>.png`, fitted to the cell, cropped from the
-  centre). A hole in the grid is filled with night: the darkest tenth of the
-  paintings, stitched like any other neighbour. Fill it, or keep the walk away
-  from it.
+  centre). A hole in the grid is filled from its first neighbour (left, right,
+  above, below), mirrored, which fades over `HOLE_FADE` px into night: the darkest
+  tenth of the paintings. The picture then runs on into the dark instead of
+  stopping at a black wall. Fill the hole, or keep the walk away from it.
+- **Layers** (`windows`, `lights`, `front`): when left out, the room uses its
+  cells' own. Written, they are the studio's. See [DEPTH.md](DEPTH.md).
 - **Coordinates** are in the finished room's pixels, not panel pixels.
 - **The key** names the painted room the composition is made for. The composed
   room keeps that room's ambient light, fog, music, weather, intro caption and
@@ -63,12 +69,25 @@ exact beyond the band and a change of light is spread across it rather than
 drawn as a line. A row of cells is joined first, then the rows are joined
 top to bottom the same way (transposed).
 
-Candles come from each panel's own `.lights.json`, or from the tracer for a new
-painting, moved into their cell. A composed room has no depth windows and no
-parallax plates: its picture is drawn whole. Its backdrop life is its room's
-flames with no zones (`BackdropLife.rule("composed/<name>")`), because the
-zones were drawn on another picture. Give it zones of its own in
-`data/backdrops.json` under that key.
+Unless the studio placed them, candles come from each panel's own `.lights.json`,
+or from the tracer for a new painting, moved into their cell.
+
+**The far plane.** Unless the studio drew its own openings, a cell brings its
+room's far openings (`FAR_WINDOWS`), moved into the cell. Each opening keeps its
+room's depth for its number, and the first one is sky. The plate behind them is
+stitched like the picture, from each cell's inpainted plate
+(`assets/levels/depth/<room>_backfill.png`; for a new painting, the painting
+itself). It is written to `assets/levels/composed/<name>_backfill.png`. The
+travel per pixel of camera (`depth_parallax`) is the mean of the cells' rooms.
+
+**The front plane** is the entry's `front`, baked by `tools/rooms/front.py`. A
+composed room has no void kill line: a floor may run down to the edge of the map,
+and falling out of the room is what kills.
+
+Its backdrop life is its room's flames with no zones
+(`BackdropLife.rule("composed/<name>")`), because the zones were drawn on another
+picture. Give it zones of its own in `data/backdrops.json` under that key; the
+studio's «Оживление» lists the composed pictures.
 
 ## The studio tab
 
@@ -87,6 +106,16 @@ zones were drawn on another picture. Give it zones of its own in
   - Place enemies and things, and change their kind in the side panel.
   - Delete removes the selection, Ctrl+Z undoes, the wheel zooms, and the right
     button or Space pans.
+- **Views:**
+  - «▦ Клетки» shows the pictures side by side. The orange bands are the seams.
+  - «▤ Сшитый» shows the picture the generator will paint (`composeTiles`, a port
+    of `compose.compose_tiles`; the stitch is the same to the value for whole
+    pixels).
+  - «◫ Объём» shows the three planes through the game's camera, and its tools
+    edit the layers (see [DEPTH.md](DEPTH.md)).
+
+  The «Швы» card lists every ledge edge and thing standing in a seam, because
+  the picture there is the stitch's.
 - **The hero's route** is checked as you edit (`composeReach`, a port of
   `painted_rooms.check_reach`). The panel lists what cannot be reached, marks it
   on the picture, and greys out surfaces off the route.
@@ -96,13 +125,26 @@ zones were drawn on another picture. Give it zones of its own in
     on it.
 
   A live room whose route does not hold is refused.
+- **«✓ Проверить в Godot»** (local) runs the engine's own checks on the draft
+  (serve.py `/api/check`): `reach_test`, `stairs_test` and `void_fall_test`, each
+  with `--composed <name>`. It takes minutes.
+- **Playing it from Pages.** The pull request's preview link carries
+  `&composed=1` for a draft (`make_preview_page.py`), so «▶ Играть с моими
+  правками» opens the composed room, not the old one.
 
 ## Tests
 
-- `tools/studio/tests/test_compose.py`: the stitch keeps both pictures exact
-  away from the seam, bad entries are refused, and the room table is the grid.
-- `tools/studio/tests/lib.test.js`: reach, tracer, shifting, clipping and the
-  file format.
+- `tools/studio/tests/test_compose.py` covers:
+  - the stitch keeps both pictures exact away from the seam;
+  - a hole runs its neighbour on into the night;
+  - openings and front pieces;
+  - bad entries are refused;
+  - the room table is the grid.
+- The engine tests take a draft with `-- --composed [room]`: `reach_test.gd`,
+  `stairs_test.gd`, `void_fall_test.gd`.
+- `tools/studio/tests/lib.test.js` covers:
+  - reach, tracer, shifting, clipping and the file format;
+  - the JS stitch against `compose.py` itself.
 - `scripts/tools/room_jump_test.gd`: where a draft lies, and its backdrop rule.
 - `tools/studio/e2e/studio.e2e.cjs`: the tab opens, traces, takes a ledge and
   undoes it.

@@ -596,3 +596,76 @@ test('fmtComposed: one line per thing, and it reads back the same', () => {
   assert.match(text, /\n {6}\["cultist", 5, 6\]/);
   assert.equal(L.fmtComposed({}), '{}\n');
 });
+
+// The studio's seam preview is a port of compose.py: the same picture, checked on small random tiles.
+const COMPOSE_PY = (tiles, cols, rows, cell, seam) => JSON.parse(require('node:child_process').execFileSync('python3', ['-c', `
+import json, sys
+import numpy as np
+sys.path.insert(0, "tools/rooms")
+import compose
+spec = json.load(sys.stdin)
+compose.CELL = tuple(spec["cell"])
+compose.SEAM = spec["seam"]
+w, h = spec["cell"]
+tiles = {tuple(map(int, k.split(","))): np.array(v, dtype=np.float32).reshape(h, w, 4) for k, v in spec["tiles"].items()}
+_join = compose._join
+compose._join = lambda a, b, seam=None: _join(a, b, spec["seam"])
+compose.HOLE_FADE = spec["fade"]
+out = compose.compose_tiles(tiles, spec["cols"], spec["rows"])
+print(json.dumps([float(v) for v in out.ravel()]))
+`], { cwd: ROOT, input: JSON.stringify({ tiles: Object.fromEntries([...tiles].map(([k, t]) => [k, Array.from(t.d)])), cols, rows, cell, seam, fade: 10 }), maxBuffer: 1 << 28 }));
+
+test('composeTiles stitches the seams and fills a hole as compose.py does', () => {
+  let seed = 7;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const tile = () => { const t = L.composeImage(40, 24); for (let i = 0; i < t.d.length; i++) t.d[i] = Math.floor(rnd() * 256); return t; };
+  const tiles = new Map([['0,0', tile()], ['1,0', tile()], ['0,1', tile()]]);   // 1,1 is a hole
+  // the JS hole fade is a parameter; compose.HOLE_FADE is set to the same above
+  const holeFade = 10;
+  const dark = L.composeNight([...tiles.values()]);
+  const hole = L.composeHole(tiles, 1, 1, dark, [40, 24], holeFade);
+  const all = new Map([...tiles, ['1,1', hole]]);
+  const js = L.composeTiles(all, 2, 2, [40, 24], 8);
+  const py = COMPOSE_PY(tiles, 2, 2, [40, 24], 8);
+  assert.equal(js.d.length, py.length);
+  // Exact where the inputs are whole numbers (a row of paintings); once a seam has made fractions,
+  // float32 rounding may tip a near-tie in the next seam's path a column aside, so: nearly all.
+  let off = 0;
+  for (let i = 0; i < py.length; i++) if (Math.abs(js.d[i] - py[i]) > 0.05) off++;
+  assert.ok(off / py.length < 0.06, `${off} of ${py.length} values differ`);
+  const row = L.composeJoin(tiles.get('0,0'), tiles.get('1,0'), 8), pyRow = COMPOSE_PY(new Map([['0,0', tiles.get('0,0')], ['1,0', tiles.get('1,0')]]), 2, 1, [40, 24], 8);
+  assert.ok(pyRow.every((v, i) => Math.abs(v - row.d[i]) < 0.01), 'a row of paintings is stitched exactly as compose.py does');
+});
+
+test('composeWindows moves each cell room\'s far openings into its cell, the studio\'s own win', () => {
+  const panels = [{ stem: 'a', windows: [{ index: 1, points: [[0, 8], [10, 8], [10, 20]] }, { index: 3, points: [[1, 1], [2, 2], [3, 1]] }] }];
+  const w = L.composeWindows({ cells: [{ painting: 'a', col: 1, row: 1 }, { painting: 'b', col: 0, row: 0 }] }, panels);
+  assert.deepEqual(w, [{ points: [[1280, 728], [1290, 728], [1290, 740]], depth: 0.68, sky: true },
+                       { points: [[1281, 721], [1282, 722], [1283, 721]], depth: 1, sky: false }]);
+  const own = [{ points: [[0, 0], [1, 0], [1, 1]], depth: 0.9, sky: false }];
+  assert.equal(L.composeWindows({ cells: [], windows: own }, panels), own);
+});
+
+test('frontAt: a front piece stands at rest at its focus and runs ahead of the camera elsewhere', () => {
+  assert.deepEqual(L.frontAt([500, 300], [500, 300], 1.4), [500, 300]);
+  const [x] = L.frontAt([500, 300], [600, 300], 1.5);
+  assert.equal(x, 450);   // the camera went right 100, the piece went left 50 against the world
+  assert.deepEqual(L.frontBox({ crop: [0, 0, 100, 50], at: [10, 20], depth: 2 }), { x: 10, y: 20, w: 200, h: 100, cx: 110, cy: 70 });
+});
+
+test('frontEdgeFade is front.edge_fade, value for value', () => {
+  const py = JSON.parse(require('node:child_process').execFileSync('python3', ['-c', `
+import sys, json; sys.path.insert(0, 'tools/rooms'); import front
+print(json.dumps(front.edge_fade(23, 11, 0.3).round(5).tolist()))`], { cwd: path.join(__dirname, '../../..') }).toString());
+  const js = L.frontEdgeFade(23, 11, 0.3);
+  for (let y = 0; y < 11; y++) for (let x = 0; x < 23; x++) assert.ok(Math.abs(js[y * 23 + x] - py[y][x]) < 1e-4, `${x},${y}`);
+  assert.ok(L.frontEdgeFade(5, 5, 0).every(v => v === 1));
+});
+
+test('frontCandidates finds a dark mass along the bottom edge, not scattered dark', () => {
+  const w = 300, h = 200, lum = new Uint8Array(w * h).fill(150);
+  for (let y = 120; y < 200; y++) for (let x = 40; x < 160; x++) lum[y * w + x] = 20;
+  for (let y = 0; y < h; y += 9) lum[y * w + 250] = 10;
+  const found = L.frontCandidates(lum, w, h, { band: 100 });
+  assert.deepEqual(found, [[40, 120, 120, 80]]);
+});

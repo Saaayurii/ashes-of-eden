@@ -2,7 +2,7 @@ extends SceneTree
 ## Walk every painted stair of every room of the run, up and back down,
 ## on foot — no jump — without enemies or input UI. A stair you can climb
 ## but not come back down (or the reverse) turns a room into a one-way trip.
-## godot --headless --fixed-fps 60 --path . -s scripts/tools/stairs_test.gd
+## godot --headless --fixed-fps 60 --path . -s scripts/tools/stairs_test.gd [-- --composed [room]]
 
 
 func _init() -> void:
@@ -36,6 +36,8 @@ func _walk(hero: CharacterBody2D, from: Vector2, to: Vector2) -> Variant:
 func _run() -> void:
 	var failures: Array[String] = []
 	var rooms: Array = load("res://scripts/run/run.gd").get_script_constant_map()["ROOMS"]
+	if OS.get_cmdline_user_args().has("--composed"):
+		rooms = _composed_rooms()
 	for path in rooms:
 		var name: String = path.get_file().get_basename()
 		var room: Node2D = load(path).instantiate()
@@ -106,3 +108,16 @@ func _run() -> void:
 	await physics_frame
 	print("STAIRS_TEST_PASSED" if failures.is_empty() else "STAIRS_TEST_FAILED " + str(failures))
 	quit(0 if failures.is_empty() else 1)
+
+
+## `-- --composed [room]`: the studio's composed drafts (scenes/rooms/composed)
+## instead of the run's rooms, those named, or all of them.
+func _composed_rooms() -> Array:
+	var args := OS.get_cmdline_user_args()
+	var out: Array = []
+	if DirAccess.dir_exists_absolute("res://scenes/rooms/composed"):
+		for file in ResourceLoader.list_directory("res://scenes/rooms/composed"):
+			var name: String = file.get_basename()
+			if file.ends_with(".tscn") and (args.size() < 2 or args.has(name)):
+				out.append("res://scenes/rooms/composed/" + file)
+	return out

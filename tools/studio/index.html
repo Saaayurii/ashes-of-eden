@@ -633,8 +633,21 @@ a{color:var(--sel)}
       <button class="sm" data-act="comp-run" title="Открыть собранную комнату в Godot (локальный режим)">▶ В Godot</button>
       <button class="primary" id="compSend" data-act="comp-send" disabled>→ В игру</button>
     </div>
+    <div class="lifebar">
+      <button class="sm" data-compview="cells" title="Картины рядом, как есть; оранжевые полосы — швы">▦ Клетки</button>
+      <button class="sm" data-compview="stitched" title="Картина, какую нарисует генератор: швы сшиты, дыры залиты ночью">▤ Сшитый</button>
+      <button class="sm" data-compview="depth" title="Как видит камера игры: мышь — камера; дальний план в окнах отстаёт, передний бежит навстречу">◫ Объём</button>
+      <span class="muted">│</span>
+      <button class="sm" data-comptool="windows" title="Протянуть окно вдаль: сквозь него виден дальний план, он сдвигается медленнее картины">+ Окно</button>
+      <button class="sm" data-comptool="front" title="Протянуть рамку по картине: этот кусок встанет перед героем — тёмный, мягкий и быстрее камеры">+ Передний план</button>
+      <button class="sm" data-act="comp-findfront" title="Найти тёмные массы по краям картин: голубые рамки, щёлкни нужные">✨ Найти передний план</button>
+      <button class="sm" data-act="comp-frontfile" title="Своя картинка перед героем: PNG с прозрачностью">🖼 Своя спереди</button>
+      <button class="sm" data-comptool="lights" title="Поставить свечу (свет в комнате)">+ Свеча</button>
+      <span class="grow"></span>
+      <button class="sm" data-act="comp-check" title="Настоящие проверки в Godot: бот проходит комнату, лестницы, падения за край (локальный режим, несколько минут)">✓ Проверить в Godot</button>
+    </div>
     <div id="compStage"><canvas id="compCanvas"></canvas></div>
-    <div class="note">Колесо — масштаб, правая кнопка или пробел — сдвинуть вид. Delete убирает выбранное, Ctrl+Z отменяет. Цветная полоса — верх, по которому ходят; серые площадки герою не достать. Швы между картинами сшиваются при сборке, здесь картины просто стоят рядом.</div>
+    <div class="note">Колесо — масштаб, правая кнопка или пробел — сдвинуть вид. Delete убирает выбранное, Ctrl+Z отменяет. Цветная полоса — верх, по которому ходят; серые площадки герою не достать. Оранжевое — швы: там картину рисует сшивка («Сшитый» покажет как). В «Объёме» три плана, как в игре: дальний в окнах, картина, передний перед героем.</div>
   </main>
 </div>
 
