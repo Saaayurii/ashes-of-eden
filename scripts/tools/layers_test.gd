@@ -20,7 +20,7 @@ func _check(ok: bool, message: String) -> void:
 
 
 func _run() -> void:
-	var rooms: Array = load("res://scripts/run/run.gd").get_script_constant_map()["ROOMS"]
+	var rooms: Array = root.get_node("Data").rooms
 	for path in rooms:
 		var name: String = path.get_file().get_basename()
 		var room = load(path).instantiate()

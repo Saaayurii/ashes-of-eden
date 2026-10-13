@@ -5,17 +5,7 @@ class_name AbilityPicker
 
 signal chosen(ability: Dictionary)
 
-## One icon per path: Grace = sun, Temptation = blood, Will = crossed swords.
-const PATH_ICONS := {
-	"grace": preload("res://assets/ui/icons/sun.png"),
-	"temptation": preload("res://assets/ui/icons/drop.png"),
-	"will": preload("res://assets/ui/icons/swords.png"),
-}
-const PATH_COLORS := {
-	"grace": Color(0.95, 0.85, 0.5),
-	"temptation": Color(0.85, 0.3, 0.4),
-	"will": Color(0.75, 0.8, 0.9),
-}
+## A path's icon and colour are the game's (data/game.json "paths"): Data.path_icon, Data.path_color.
 
 ## Legendary cards should be readable as "this one is different" before the
 ## text is. Applied to the card itself, so the path colour still owns the text.
@@ -125,12 +115,12 @@ func _make_card(ability: Dictionary) -> Button:
 		button.text += "\n◆ " + tr(str(Resonances.spec(id).get("name", id)))
 	button.custom_minimum_size = Vector2(170, 120)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.add_theme_color_override("font_color", PATH_COLORS.get(path, Color.WHITE))
+	button.add_theme_color_override("font_color", Data.path_color(path))
 	# The rarer the gift, the warmer the card reads at a glance.
 	button.self_modulate = RARITY_TINTS.get(rarity, Color.WHITE)
 	# A gift may carry its own icon (data/abilities: "icon"); the path's is the fallback.
 	var own: Texture2D = load(ability.icon) if ability.has("icon") else null
-	button.icon = own if own != null else PATH_ICONS.get(path)
+	button.icon = own if own != null else Data.path_icon(path)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	button.add_theme_constant_override("h_separation", 6)

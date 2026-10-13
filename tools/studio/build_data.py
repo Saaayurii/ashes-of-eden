@@ -345,11 +345,18 @@ def audio(root: Path, strings):
     return list(entries.values())
 
 
+def game_doc(root: Path) -> dict:
+    """data/game.json (docs/GAME_PACKS.md): the game's rooms in play order, its practice yard, its paths."""
+    path = root / "data/game.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
 def room_order(root: Path):
-    run = (root / "scripts/run/run.gd").read_text(encoding="utf-8")
+    game = game_doc(root)
     seen = []
-    for name in re.findall(r"scenes/rooms/([a-z0-9_]+)\.tscn", run):
-        if name not in seen:
+    for path in game.get("rooms", []) + [game.get("practice_room", "")]:
+        name = Path(path).stem
+        if name and name not in seen:
             seen.append(name)
     return seen
 
@@ -555,9 +562,7 @@ def tiles(root: Path):
                 uses[name][scene.stem] = n
     src = (root / "tools/rooms/generate_rooms.py").read_text(encoding="utf-8")
     overlap = int(re.search(r"^OVERLAP = (\d+)", src, re.M)[1])
-    run = (root / "scripts/run/run.gd").read_text(encoding="utf-8")
-    played = re.findall(r'"res://scenes/rooms/(\w+)\.tscn"', re.search(r"const ROOMS := \[(.*?)\]", run, re.S)[1])
-    played += re.findall(r'PRACTICE_ROOM := "res://scenes/rooms/(\w+)\.tscn"', run)
+    played = room_order(root)
     return {"overlap": overlap, "played": played, "pieces": [dict(name=name, res=f"res://assets/decor/platforms/{name}.png",
                                                 url=f"assets/decor/platforms/{name}.png", uses=uses[name], **info)
                                            for name, info in manifest.items()]}

@@ -83,7 +83,7 @@ func _run() -> void:
 
 func _every_open_column() -> bool:
 	var ok := true
-	var rooms: Array = load("res://scripts/run/run.gd").get_script_constant_map()["ROOMS"]
+	var rooms: Array = root.get_node("Data").rooms
 	for path in rooms:
 		var room = load(path).instantiate()
 		root.add_child(room)

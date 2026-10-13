@@ -243,11 +243,6 @@ var _light: GlowLight
 ## The path the soul leans towards shows on the body (never as numbers): motes
 ## of its colour and a tint on the carried light. See _update_aura.
 const LIGHT_COLOR := Color(1.0, 0.93, 0.8)
-const AURA := {
-	"grace": [Color(1.0, 0.88, 0.5), Vector2(0, -26)],       # gold, rising
-	"temptation": [Color(0.85, 0.12, 0.15), Vector2(0, 14)],  # embers of blood, sinking
-	"will": [Color(0.72, 0.7, 0.68), Vector2(8, -6)],         # ash, drifting
-}
 ## The three marks, in the order assets/shaders/alignment_marks.gdshader
 ## expects them.
 const MARK_MODE := {"grace": 0, "temptation": 1, "will": 2}
@@ -2063,7 +2058,8 @@ func _update_aura() -> void:
 	Audio.alignment_layer(path, strength)
 	# ...and on the body itself, under whatever frame is showing.
 	_mark_body(path, strength)
-	var look: Array = AURA[path]
+	# the path's colour and drift are the game's (data/game.json "paths")
+	var look := [Data.path_color(path, "aura"), Data.path_drift(path)]
 	if _aura == null:
 		_aura = Fx.trail(self, look[0], 16, 1.4)
 		_aura.position = Vector2(0, -14)
@@ -2092,7 +2088,7 @@ func _mark_body(path: String, strength: float) -> void:
 	var shader_material := _marks_material()
 	shader_material.set_shader_parameter("mode", MARK_MODE.get(path, 2))
 	shader_material.set_shader_parameter("strength", strength)
-	shader_material.set_shader_parameter("tint", (AURA[path] as Array)[0])
+	shader_material.set_shader_parameter("tint", Data.path_color(path, "aura"))
 
 
 func _marks_material() -> ShaderMaterial:

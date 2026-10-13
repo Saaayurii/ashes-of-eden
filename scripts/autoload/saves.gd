@@ -22,7 +22,6 @@ const MANUAL := ["1", "2", "3"]
 ## Export code prefix: tells a pasted code from any other text on the clipboard.
 const CODE_PREFIX := "AOE1:"
 const EXTENSION := "aoesave"
-const RUN_SCRIPT := "res://scripts/run/run.gd"
 
 signal changed
 
@@ -193,8 +192,7 @@ func validate(raw: Variant) -> Dictionary:
 
 ## Rooms are saved by scene path, so reordering the chain does not break saves.
 func room_index(path: String) -> int:
-	var run: GDScript = load(RUN_SCRIPT)
-	return (run.get_script_constant_map().get("ROOMS", []) as Array).find(path)
+	return Data.rooms.find(path)
 
 
 # ---------------------------------------------------------------- capture ---

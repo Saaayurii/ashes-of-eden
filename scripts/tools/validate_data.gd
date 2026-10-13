@@ -122,6 +122,7 @@ func _init() -> void:
 	_check_gore()
 	_check_player_actions()
 	_check_hero()
+	_check_game()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	for collection in REQUIRED:
@@ -1339,14 +1340,9 @@ func _check_backdrops() -> void:
 		if not lean.has(path) or not Color.html_is_valid(str(lean[path])):
 			_error("data/backdrops.json: lean needs a colour for %s" % path)
 	var rooms: Dictionary = parsed.get("rooms", {})
-	# run.gd needs the autoloads to compile; its ROOMS are read as text
-	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")
-	var listed := run.substr(run.find("const ROOMS := ["))
-	listed = listed.substr(0, listed.find("]"))
-	var scene := RegEx.create_from_string("rooms/(\\w+)\\.tscn")
-	for found in scene.search_all(listed):
-		if not rooms.has(found.get_string(1)):
-			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % found.get_string(1))
+	for path in _doc("game.json").get("rooms", []):
+		if not rooms.has(str(path).get_file().get_basename()):
+			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % str(path).get_file().get_basename())
 	# every picture a scene shows or a passage card carries breathes too
 	for picture in backdrop_pictures():
 		if not rooms.has(picture.get_file().get_basename()):
@@ -1492,6 +1488,44 @@ func _merge_into(base: Dictionary, overlay: Dictionary) -> void:
 
 ## data/hero.json (Player.apply_hero): the engine's copy names every key there
 ## is; a game pack may change any of them and add none.
+## data/game.json (docs/GAME_PACKS.md): what the engine asks of the game — its
+## rooms, its yard, its menu, the three paths' looks — and every file it names.
+func _check_game() -> void:
+	var game := _doc("game.json")
+	if game.is_empty():
+		_error("data/game.json: missing — the engine has no rooms to run")
+		return
+	if not game.get("engine") is float or int(game.engine) < 1:
+		_error("data/game.json: \"engine\" must name the engine version it was made for (a whole number)")
+	var rooms: Array = game.get("rooms", [])
+	if rooms.is_empty():
+		_error("data/game.json: \"rooms\" is empty")
+	var seen := {}
+	for path in rooms + [game.get("practice_room", "")]:
+		if seen.has(path):
+			_error("data/game.json: %s is listed twice" % path)
+		seen[path] = true
+		if not ResourceLoader.exists(str(path)):
+			_error("data/game.json: no scene %s" % path)
+	var menu: Dictionary = game.get("menu", {})
+	if menu.has("background") and not ResourceLoader.exists(str(menu.background)):
+		_error("data/game.json: menu background %s does not exist" % menu.background)
+	var paths: Dictionary = game.get("paths", {})
+	for path in ["grace", "temptation", "will"]:
+		var look: Dictionary = paths.get(path, {})
+		for key in ["color", "aura"]:
+			if not Color.html_is_valid(str(look.get(key, ""))):
+				_error("data/game.json: paths.%s.%s must be a colour (#rrggbb)" % [path, key])
+		if not ResourceLoader.exists(str(look.get("icon", ""))):
+			_error("data/game.json: paths.%s.icon %s does not exist" % [path, look.get("icon", "")])
+		var drift = look.get("drift", [])
+		if not drift is Array or drift.size() != 2:
+			_error("data/game.json: paths.%s.drift must be [x, y]" % path)
+	for key in paths:
+		if not key in ["grace", "temptation", "will"]:
+			_error("data/game.json: unknown path \"%s\" — the engine counts grace, temptation and will" % key)
+
+
 func _check_hero() -> void:
 	var known = JSON.parse_string(FileAccess.get_file_as_string("res://data/hero.json"))
 	if not known is Dictionary or not known.get("stats") is Dictionary or not known.get("feel") is Dictionary:

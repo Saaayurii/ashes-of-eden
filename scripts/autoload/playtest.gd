@@ -102,7 +102,7 @@ func _end(won: bool) -> void:
 
 func _on_room_started(index: int) -> void:
 	var run := _run_scene()
-	var rooms = run.get("ROOMS") if run else null
+	var rooms = Data.rooms
 	_room = str(rooms[index - 1]).get_file().get_basename() if rooms is Array and index - 1 < rooms.size() else str(index)
 	_room_start = _clock
 	_room_damage = 0.0
@@ -145,7 +145,7 @@ func _on_boss_died() -> void:
 	_write("boss", {"room": _room, "seconds": snappedf(seconds, 0.1)})
 	_boss_start = -1.0
 	var run := _run_scene()
-	if run and run.get("room_index") != null and run.get("ROOMS") is Array and int(run.room_index) + 1 >= run.ROOMS.size():
+	if run and run.get("room_index") != null and int(run.room_index) + 1 >= Data.rooms.size():
 		_end(true)
 
 

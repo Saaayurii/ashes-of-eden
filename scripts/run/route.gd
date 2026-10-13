@@ -8,7 +8,7 @@ class_name Route
 
 ## The Run's ROOMS, for callers without a Run (the HUD, a save's summary).
 static func rooms() -> Array:
-	return (load("res://scripts/run/run.gd") as GDScript).get_script_constant_map().get("ROOMS", [])
+	return Data.rooms
 
 
 ## The fork whose question is asked leaving [param path], or {}.

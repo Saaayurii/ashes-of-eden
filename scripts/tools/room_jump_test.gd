@@ -21,7 +21,7 @@ func _go() -> void:
 	await process_frame
 	var Run: GDScript = load("res://scripts/run/run.gd")
 	var names: PackedStringArray = Run.room_names()
-	_check(names.size() == int(Run.get_script_constant_map()["ROOMS"].size()), "every room has a name")
+	_check(names.size() == int(Run.ROOMS.size()), "every room has a name")
 	_check(names[0] == "village_night", "the first is the village")
 	_check(names[names.size() - 1] == "hell_gate", "the last is the gate")
 
