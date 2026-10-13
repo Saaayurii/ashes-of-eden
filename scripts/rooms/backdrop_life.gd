@@ -260,8 +260,8 @@ static func configure(material: ShaderMaterial, found: Dictionary) -> void:
 static func _load() -> Dictionary:
 	if not _rules.is_empty():
 		return _rules
-	if FileAccess.file_exists(RULES_PATH):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(RULES_PATH))
+	if DataDoc.exists(RULES_PATH):
+		var parsed = DataDoc.doc(RULES_PATH)
 		if parsed is Dictionary:
 			_rules = parsed
 	return _rules

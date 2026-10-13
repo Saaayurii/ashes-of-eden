@@ -125,8 +125,23 @@ func _init() -> void:
 	_check_game()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
+	var game := _doc("game.json")
 	for collection in REQUIRED:
-		var entries := _load_entries("res://data".path_join(collection))
+		# the game as it plays: the engine's entries under the pack's, by id (Data._load_collection)
+		var entries := []
+		var at := {}
+		for data_root in DATA_DOC.collection_roots(collection, _validated_roots(), game):
+			var mine := {}
+			for entry in _load_entries(data_root.path_join(collection), data_root != DATA_ROOTS[0]):
+				if entry.has("id") and at.has(entry.id) and not mine.has(entry.id):
+					entries[at[entry.id]] = entry  # the pack's own replaces the engine's
+					mine[entry.id] = true
+					continue
+				if entry.has("id"):
+					mine[entry.id] = true
+					if not at.has(entry.id):
+						at[entry.id] = entries.size()
+				entries.append(entry)  # a second one in the same root is caught as a duplicate below
 		counts[collection] = entries.size()
 		var ids := {}
 		for entry in entries:
@@ -727,8 +742,7 @@ func _check_enemy_strips() -> void:
 ## data/dialogue_looks.json: the windows' styles and the speakers' portraits
 ## (scripts/ui/dialogue_look.gd, docs/DIALOGUE_LOOKS.md).
 func _check_dialogue_looks() -> void:
-	var path := "res://data/dialogue_looks.json"
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var parsed = _doc("dialogue_looks.json")
 	if not parsed is Dictionary or not parsed.get("styles") is Dictionary:
 		_error("data/dialogue_looks.json: needs a \"styles\" object")
 		return
@@ -794,7 +808,7 @@ func _check_look(look, where: String) -> void:
 
 
 func _check_projectiles() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/projectiles.json"))
+	var parsed = _doc("projectiles.json")
 	if not parsed is Dictionary or not parsed.get("styles") is Dictionary:
 		_error("data/projectiles.json: needs a \"styles\" object")
 		return
@@ -852,7 +866,7 @@ func _check_volley(attack: Dictionary, where: String, style: String, motion: Str
 ## data/action_fx.json: every emitter names a kind and an anchor ActionFx knows,
 ## every trigger is an event the game sends or a name an animation could have.
 func _check_action_fx() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/action_fx.json"))
+	var parsed = _doc("action_fx.json")
 	if not parsed is Dictionary or not parsed.get("bodies") is Dictionary:
 		_error("data/action_fx.json: needs a \"bodies\" object")
 		return
@@ -886,7 +900,7 @@ const GORE_BOUNDS := {"shade": [0, 0.5], "spurt": [0, 4], "drops": [0, 40], "spr
 
 
 func _check_gore() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/gore.json"))
+	var parsed = _doc("gore.json")
 	if not parsed is Dictionary or not parsed.get("materials") is Dictionary or not parsed.get("bodies") is Dictionary:
 		_error("data/gore.json: needs \"materials\" and \"bodies\" objects")
 		return
@@ -1329,7 +1343,7 @@ func backdrop_pictures() -> Array:
 
 
 func _check_backdrops() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/backdrops.json"))
+	var parsed = _doc("backdrops.json")
 	if not parsed is Dictionary:
 		_error("data/backdrops.json: not a JSON object")
 		return
@@ -1403,11 +1417,12 @@ func _use_key(key: String, where: String) -> void:
 	used_keys[key] = where
 
 
-func _load_entries(dir_path: String) -> Array:
+func _load_entries(dir_path: String, optional := false) -> Array:
 	var result := []
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
-		_error("missing folder %s" % dir_path)
+		if not optional:
+			_error("missing folder %s" % dir_path)
 		return result
 	for file_name in dir.get_files():
 		if not file_name.ends_with(".json"):
@@ -1460,30 +1475,23 @@ func _warn(message: String) -> void:
 
 ## Where data lives, in the order the game lays it (Data.ROOTS): the engine's
 ## own, then a game pack checked out into ./content (docs/GAME_PACKS.md).
+const DATA_DOC := preload("res://scripts/data/data_doc.gd")
 const DATA_ROOTS := ["res://data", "res://content/data"]
+
+
+## The engine's data and the game pack's, if one is checked out; never a player's mods.
+func _validated_roots() -> Array[String]:
+	var out: Array[String] = []
+	for data_root in DATA_ROOTS:
+		if DirAccess.dir_exists_absolute(data_root):
+			out.append(data_root)
+	return out
 
 
 ## A single-document file merged the way Data.load_doc merges it.
 func _doc(file_name: String) -> Dictionary:
-	var out := {}
-	for root in DATA_ROOTS:
-		var path: String = root.path_join(file_name)
-		if not FileAccess.file_exists(path):
-			continue
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if parsed is Dictionary:
-			_merge_into(out, parsed)
-		else:
-			_error("%s is not a JSON object" % path)
-	return out
+	return DATA_DOC.doc(file_name, _validated_roots())
 
-
-func _merge_into(base: Dictionary, overlay: Dictionary) -> void:
-	for key in overlay:
-		if base.get(key) is Dictionary and overlay[key] is Dictionary:
-			_merge_into(base[key], overlay[key])
-		else:
-			base[key] = overlay[key]
 
 
 ## data/hero.json (Player.apply_hero): the engine's copy names every key there
@@ -1574,7 +1582,7 @@ func _check_hero() -> void:
 
 
 func _check_player_actions() -> void:
-	var doc = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_actions.json"))
+	var doc = _doc("player_actions.json")
 	if not doc is Dictionary or not doc.get("actions") is Dictionary:
 		_error("player_actions.json needs an actions object")
 		return

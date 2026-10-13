@@ -8,8 +8,8 @@ extends Node
 ##                         into ./content at build time (git-ignored here)
 ##   user://mods/<x>/data  player-installed mods
 
-const ROOTS := ["res://data", "res://content/data"]
-const MODS_ROOT := "user://mods"
+const ROOTS := DataDoc.ROOTS
+const MODS_ROOT := DataDoc.MODS_ROOT
 
 var abilities: Dictionary = {}
 var enemies: Dictionary = {}
@@ -150,49 +150,23 @@ func _apply_enemy_archetypes(roots: Array[String]) -> void:
 
 
 func _deep_merge(base: Dictionary, overlay: Dictionary) -> void:
-	for key in overlay:
-		if key in ["id", "_source"]:
-			continue
-		if base.get(key) is Dictionary and overlay[key] is Dictionary:
-			_deep_merge(base[key], overlay[key])
-		else:
-			base[key] = overlay[key].duplicate(true) if overlay[key] is Array or overlay[key] is Dictionary else overlay[key]
+	DataDoc.merge(base, overlay)
 
 
 func _roots() -> Array[String]:
-	var roots: Array[String] = []
-	for root in ROOTS:
-		if DirAccess.dir_exists_absolute(root):
-			roots.append(root)
-	var mods := DirAccess.open(MODS_ROOT)
-	if mods:
-		for mod in mods.get_directories():
-			roots.append(MODS_ROOT.path_join(mod).path_join("data"))
-	return roots
+	return DataDoc.roots()
 
 
 ## A single-document data file (hero.json, projectiles.json, …): every root's
 ## copy deep-merged over the one before, so a game pack or a mod changes only
 ## the keys it names. {} when no root has it.
 func load_doc(file_name: String, roots: Array[String] = []) -> Dictionary:
-	if roots.is_empty():
-		roots = _roots()
-	var out := {}
-	for root in roots:
-		var path := root.path_join(file_name)
-		if not FileAccess.file_exists(path):
-			continue
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if parsed is Dictionary:
-			_deep_merge(out, parsed)
-		else:
-			push_error("[Data] invalid JSON: %s" % path)
-	return out
+	return DataDoc.doc(file_name, roots)
 
 
 func _load_collection(folder: String, roots: Array[String]) -> Dictionary:
 	var result := {}
-	for root in roots:
+	for root in DataDoc.collection_roots(folder, roots, game):
 		var dir_path := root.path_join(folder)
 		var dir := DirAccess.open(dir_path)
 		if dir == null:

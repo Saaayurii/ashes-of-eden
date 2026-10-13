@@ -33,8 +33,8 @@ static var _doc: Dictionary = {}
 
 
 static func doc() -> Dictionary:
-	if _doc.is_empty() and FileAccess.file_exists(PATH):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	if _doc.is_empty() and DataDoc.exists(PATH):
+		var parsed = DataDoc.doc(PATH)
 		if parsed is Dictionary:
 			_doc = parsed
 	return _doc

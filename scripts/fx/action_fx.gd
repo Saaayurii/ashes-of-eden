@@ -32,8 +32,8 @@ var _last_frame := -1
 static func rules(body_key: String) -> Dictionary:
 	if not _loaded:
 		_loaded = true
-		if FileAccess.file_exists(PATH):
-			var parsed = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+		if DataDoc.exists(PATH):
+			var parsed = DataDoc.doc(PATH)
 			if parsed is Dictionary:
 				_bodies = parsed.get("bodies", {})
 	return _bodies.get(body_key, {})

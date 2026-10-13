@@ -31,12 +31,7 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "/tmp"
 	var only: Array = Array(args[1].split("|")) if args.size() > 1 and args[1] != "" else []
-	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")
-	var listed := run.substr(run.find("const ROOMS := ["))
-	listed = listed.substr(0, listed.find("]"))
-	var rooms: Array = []
-	for found in RegEx.create_from_string("res://scenes/rooms/\\w+\\.tscn").search_all(listed):
-		rooms.append(found.get_string())
+	var rooms: Array = load("res://scripts/data/data_doc.gd").doc("game.json").get("rooms", []).duplicate()
 	for key in EXTRA:
 		if only.has(key):
 			rooms.append(EXTRA[key][0])

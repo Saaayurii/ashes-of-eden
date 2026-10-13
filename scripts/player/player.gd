@@ -1687,7 +1687,7 @@ static var _actions_loaded := false
 static func action_spec(id: String) -> Dictionary:
 	if not _actions_loaded:
 		_actions_loaded = true
-		var doc = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_actions.json"))
+		var doc = DataDoc.doc("player_actions.json")
 		if doc is Dictionary:
 			studio_actions = doc.get("actions", {})
 	return studio_actions.get(id, {})
