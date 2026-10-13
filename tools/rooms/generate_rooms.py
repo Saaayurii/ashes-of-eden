@@ -12,6 +12,7 @@ import json
 import os
 import random
 import filecmp
+import glob
 import sys
 from copy import deepcopy
 
@@ -28,6 +29,8 @@ with open(os.path.join(PLATFORM_DIR, "manifest.json")) as _f:
     PIECES = json.load(_f)
 
 from painted_rooms import PAINTED, check_reach  # noqa: E402  (rooms drawn as one panel each)
+import compose  # noqa: E402  (rooms put together from several panels, the studio's «Конструктор»)
+import front  # noqa: E402  (the plane in front of the hero, docs/DEPTH.md)
 
 # Each room gets two expansion seams in different places. Unlike global x
 # scaling, seams add real traversal space without fattening characters,
@@ -1328,14 +1331,15 @@ def dress(name, r):
     return out
 
 
-def build(name, r):
+def build(name, r, scene=None):
     r = deepcopy(r)
     r["props"] = contextual_props(name, r.get("props", []))
     width, height = r["width"], r.get("height", 360)
     # Walls on both sides and a lid over the top: the player has a double jump
     # and the camera stops at y = 0.
     walls = [(-16, -16, 16, height + 16), (width, -16, 16, height + 16), (0, -16, width, 16)]
-    painted = "painting" in r
+    composed = r.get("composed", False)
+    painted = "painting" in r or composed
     ledges = r.get("ledges", [])
     shape_text = (shapes(r["ground"], "Ground") + shapes(r["platforms"], "Platform", r.get("platform_names")) + shapes(ledges, "Ledge")
                   + shapes(walls, "Wall"))
@@ -1399,11 +1403,22 @@ def build(name, r):
         # non-uniformly stretched source, so stone and figures keep their scale.
         text = text.replace('[ext_resource type="Texture2D" path="res://assets/backgrounds/.png" id="2_backdrop"]',
                             f'[ext_resource type="Texture2D" path="res://assets/levels/{r["painting_wide"]}.png" id="2_backdrop"]')
-        text = text.replace('[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]',
-                            '[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]\n'
-                            '[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]\n'
-                            f'[ext_resource type="Texture2D" path="res://assets/levels/depth/{r["painting"]}_backfill_wide.png" id="depth_plate"]')
-        if name in SEAM_SILHOUETTES:
+        # The openings onto the far plate: a painted room's own (DEPTH_WINDOWS,
+        # through its widening), a composed room's from its cells or the studio.
+        if composed:
+            openings = [(w["points"], w["depth"], w["sky"]) for w in r.get("windows", [])]
+            plate = f"composed/{os.path.basename(r['painting_wide'])}_backfill"
+            strength = r.get("depth_parallax", 0.025)
+        else:
+            strength, polygons = DEPTH_WINDOWS[name]
+            openings = [([(_map_x(x, r["_x_inserts"]), y) for x, y in points], None, None) for points in polygons]
+            plate = f"depth/{r['painting']}_backfill_wide"
+        if openings:
+            text = text.replace('[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]',
+                                '[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]\n'
+                                '[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]\n'
+                                f'[ext_resource type="Texture2D" path="res://assets/levels/{plate}.png" id="depth_plate"]')
+        if name in SEAM_SILHOUETTES and not composed:
             art, _, _, _, _ = SEAM_SILHOUETTES[name]
             text = text.replace('[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]',
                                 '[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]\n'
@@ -1412,43 +1427,51 @@ def build(name, r):
         b = text.index('[node name="FogFar" type="Parallax2D" parent="."]')
         text = text[:a] + (f'[node name="Painting" type="Sprite2D" parent="."]\n'
                           'texture_filter = 2\ntexture = ExtResource("2_backdrop")\ncentered = false\n\n') + text[b:]
-        depth_materials = (f'[sub_resource type="ShaderMaterial" id="depth_window_mat"]\n'
-                           f'shader = ExtResource("depth_shader")\n'
-                           f'shader_parameter/plate_width = {width}.0\n\n')
-        text = text.replace('[sub_resource type="Gradient" id="glow_grad"]',
-                            depth_materials + '[sub_resource type="Gradient" id="glow_grad"]', 1)
-        strength, windows = DEPTH_WINDOWS[name]
-        text = text.replace('painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n',
-                            'painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n'
-                            + f'depth_parallax = {strength}\n', 1)
-        masks = '[node name="DepthWindows" type="Node2D" parent="."]\n\n'
-        for i, points in enumerate(windows, 1):
-            mapped = [(_map_x(x, r["_x_inserts"]), y) for x, y in points]
-            center = (round(sum(x for x, _ in mapped) / len(mapped)),
-                      round(sum(y for _, y in mapped) / len(mapped)))
-            for edge in range(len(mapped)):
-                triangle = [center, mapped[edge], mapped[(edge + 1) % len(mapped)]]
-                vertices = ", ".join(str(v) for point in triangle for v in point)
-                masks += (f'[node name="Window{i}Feather{edge + 1}" type="Polygon2D" parent="DepthWindows"]\n'
-                          f'texture_filter = 2\ntexture = ExtResource("depth_plate")\n'
-                          f'material = SubResource("depth_window_mat")\n'
-                          f'polygon = PackedVector2Array({vertices})\n'
-                          f'uv = PackedVector2Array({vertices})\n'
-                          f'vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)\n'
-                          f'antialiased = true\n\n')
-        text = text.replace('[node name="FogFar" type="Parallax2D" parent="."]',
-                            masks + '[node name="FogFar" type="Parallax2D" parent="."]', 1)
-        if name in SEAM_SILHOUETTES:
-            _, x, baseline, art_scale, tint = SEAM_SILHOUETTES[name]
-            art_path = os.path.join(DECOR_DIR, SEAM_SILHOUETTES[name][0] + ".png")
-            art_height = Image.open(art_path).height
-            silhouette = (f'[node name="SeamSilhouette" type="Sprite2D" parent="."]\n'
-                          f'position = Vector2({x}, {round(baseline - art_height * art_scale / 2, 2)})\n'
-                          f'scale = Vector2({art_scale}, {art_scale})\n'
-                          f'modulate = {tint}\ntexture_filter = 2\n'
-                          'texture = ExtResource("seam_silhouette")\n\n')
+        # A composed room with no openings is drawn whole, and with no sky
+        # window the clouds stay away.
+        if openings:
+            depth_materials = (f'[sub_resource type="ShaderMaterial" id="depth_window_mat"]\n'
+                               f'shader = ExtResource("depth_shader")\n'
+                               f'shader_parameter/plate_width = {width}.0\n\n')
+            text = text.replace('[sub_resource type="Gradient" id="glow_grad"]',
+                                depth_materials + '[sub_resource type="Gradient" id="glow_grad"]', 1)
+            own = ""
+            if composed:
+                # every opening of a composed room looks out; how far each lies
+                # and which are sky are its own (RoomLayers reads them)
+                own = ("window_depths = PackedFloat32Array(" + ", ".join(str(d) for _, d, _ in openings) + ")\n"
+                       + "sky_windows = PackedInt32Array(" + ", ".join(str(i) for i, (_, _, sky) in enumerate(openings, 1) if sky) + ")\n")
+            text = text.replace('painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n',
+                                'painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n'
+                                + f'depth_parallax = {strength}\n' + own, 1)
+            masks = '[node name="DepthWindows" type="Node2D" parent="."]\n\n'
+            for i, (mapped, _, _) in enumerate(openings, 1):
+                mapped = [(round(x), round(y)) for x, y in mapped]
+                center = (round(sum(x for x, _ in mapped) / len(mapped)),
+                          round(sum(y for _, y in mapped) / len(mapped)))
+                for edge in range(len(mapped)):
+                    triangle = [center, mapped[edge], mapped[(edge + 1) % len(mapped)]]
+                    vertices = ", ".join(str(v) for point in triangle for v in point)
+                    masks += (f'[node name="Window{i}Feather{edge + 1}" type="Polygon2D" parent="DepthWindows"]\n'
+                              f'texture_filter = 2\ntexture = ExtResource("depth_plate")\n'
+                              f'material = SubResource("depth_window_mat")\n'
+                              f'polygon = PackedVector2Array({vertices})\n'
+                              f'uv = PackedVector2Array({vertices})\n'
+                              f'vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)\n'
+                              f'antialiased = true\n\n')
             text = text.replace('[node name="FogFar" type="Parallax2D" parent="."]',
-                                silhouette + '[node name="FogFar" type="Parallax2D" parent="."]', 1)
+                                masks + '[node name="FogFar" type="Parallax2D" parent="."]', 1)
+            if name in SEAM_SILHOUETTES and not composed:
+                _, x, baseline, art_scale, tint = SEAM_SILHOUETTES[name]
+                art_path = os.path.join(DECOR_DIR, SEAM_SILHOUETTES[name][0] + ".png")
+                art_height = Image.open(art_path).height
+                silhouette = (f'[node name="SeamSilhouette" type="Sprite2D" parent="."]\n'
+                              f'position = Vector2({x}, {round(baseline - art_height * art_scale / 2, 2)})\n'
+                              f'scale = Vector2({art_scale}, {art_scale})\n'
+                              f'modulate = {tint}\ntexture_filter = 2\n'
+                              'texture = ExtResource("seam_silhouette")\n\n')
+                text = text.replace('[node name="FogFar" type="Parallax2D" parent="."]',
+                                    silhouette + '[node name="FogFar" type="Parallax2D" parent="."]', 1)
     # Outdoor silhouettes can drift for depth. Interior arches are part of the
     # same masonry as their platforms; parallax made the apparent supports
     # slide away from the collision geometry when the camera followed a jump.
@@ -1516,7 +1539,7 @@ def build(name, r):
         inserts = r.get("_x_inserts", [])
         room_lights = [(_map_x(x, inserts), y, tint, radius, energy, flicker)
                        for x, y, tint, radius, energy, flicker in room_lights]
-    lights = light_nodes(thin_lights(room_lights), "Lights", "Light")
+    lights = light_nodes(thin_lights(room_lights, r.get("light_cap", 26)), "Lights", "Light")
     text += f'''[node name="PlayerSpawn" type="Marker2D" parent="."]
 position = Vector2({px}, {py})
 
@@ -1544,6 +1567,11 @@ texture = SubResource("glow_tex")
 {motes}[node name="Lights" type="Node2D" parent="."]
 
 {lights}'''
+    if r.get("front"):
+        ext, nodes = front_nodes("composed_" + name if scene else name, r["front"])
+        text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
+                            '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n' + ext)
+        text = text.rstrip() + "\n\n" + nodes
     if r.get("hell_cornice_art"):
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
@@ -1557,10 +1585,41 @@ texture = SubResource("glow_tex")
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
                             '[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]')
     text = text.replace("load_steps=0", "load_steps=%d" % (text.count("[ext_resource") + text.count("[sub_resource")))
-    path = os.path.join(ROOT, "scenes", "rooms", f"{name}.tscn")
+    path = scene or os.path.join(ROOT, "scenes", "rooms", f"{name}.tscn")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         f.write(text.rstrip() + "\n")
     print("wrote", os.path.relpath(path, ROOT))
+
+
+## Every front piece written this run, so a full run can sweep the rest away.
+FRONT_WRITTEN = set()
+
+
+def front_nodes(key, pieces):
+    """The plane in front of the hero (tools/rooms/front.py): each piece baked
+    to assets/levels/front/<key>_<i>.png and stood at its focus under a
+    FrontLayer, which slides it by its depth."""
+    os.makedirs(front.OUT, exist_ok=True)
+    ext = '[ext_resource type="Script" path="res://scripts/rooms/front_layer.gd" id="front_layer"]\n'
+    nodes = ('[node name="Front" type="Node2D" parent="."]\nz_index = 3\nscript = ExtResource("front_layer")\n'
+             + "depths = PackedFloat32Array(" + ", ".join(str(float(p.get("depth", 1.35))) for p in pieces) + ")\n\n")
+    for i, piece in enumerate(pieces, 1):
+        path = os.path.join(front.OUT, f"{key}_{i}.png")
+        image = patched(path, front.bake(piece))
+        pending = path + ".pending.png"
+        image.save(pending)
+        if os.path.exists(path) and filecmp.cmp(pending, path, shallow=False):
+            os.unlink(pending)
+        else:
+            os.replace(pending, path)
+        FRONT_WRITTEN.add(os.path.basename(path))
+        ext += f'[ext_resource type="Texture2D" path="res://assets/levels/front/{key}_{i}.png" id="front_{i}"]\n'
+        cx, cy = front.placed(piece)
+        nodes += (f'[node name="Piece{i}" type="Sprite2D" parent="Front"]\n'
+                  f'light_mask = 0\ntexture_filter = 2\ntexture = ExtResource("front_{i}")\n'
+                  f'position = Vector2({cx}, {cy})\n\n')
+    return ext, nodes
 
 
 ROOMS.update({name: expand_painted_room(name, room) if name in ROOM_EXPANSION_CUTS else deepcopy(room)
@@ -1588,6 +1647,56 @@ if os.path.exists(STUDIO_ROOMS):
                 if _key in _extra:
                     ROOMS[_name][_key] = _extra[_key]
 
+# What stands in front of the hero in a painted room (tools/rooms/front.py),
+# in the finished room's pixels; a composed room carries its own.
+FRONT_LAYERS = os.path.join(ROOT, "tools", "rooms", "front_layers.json")
+if os.path.exists(FRONT_LAYERS):
+    with open(FRONT_LAYERS, encoding="utf-8") as _f:
+        for _name, _pieces in json.load(_f).items():
+            if _name not in ROOMS or "painting" not in ROOMS[_name]:
+                raise SystemExit(f"tools/rooms/front_layers.json: {_name} is not a painted room")
+            front.validate(f"tools/rooms/front_layers.json: {_name}", _pieces, ROOMS[_name]["width"], ROOMS[_name].get("height", 360))
+            ROOMS[_name]["front"] = _pieces
+
+# What the art studio's «Конструктор» puts together (tools/rooms/compose.py):
+# a room made of several panels. A draft is built beside the room it is made
+# for; a live one is that room.
+COMPOSED = compose.load()
+for _name, _entry in COMPOSED.items():
+    if _name not in PAINTED or "painting" not in PAINTED[_name]:
+        raise SystemExit(f"tools/rooms/composed_rooms.json: {_name} is not a painted room")
+    compose.validate(_name, _entry)
+
+
+def compose_room(name, entry):
+    """Paint and build one composed room; False when its route does not hold."""
+    room = compose.room_table(name, entry, ROOMS[name], compose.owners(PAINTED, DEPTH_WINDOWS))
+    if entry.get("live"):
+        ROOMS[name] = room
+    picture = os.path.join(ROOT, "assets", "levels", "composed", name + ".png")
+    os.makedirs(os.path.dirname(picture), exist_ok=True)
+    image = patched(picture, compose.compose_picture(entry))
+    pending = picture + ".pending.png"
+    image.save(pending)
+    if os.path.exists(picture) and filecmp.cmp(pending, picture, shallow=False):
+        os.unlink(pending)
+    else:
+        os.replace(pending, picture)
+    if room["windows"]:
+        plate = os.path.join(ROOT, "assets", "levels", "composed", name + "_backfill.png")
+        image = patched(plate, compose.compose_plate(entry))
+        image.save(plate + ".pending.png")
+        if os.path.exists(plate) and filecmp.cmp(plate + ".pending.png", plate, shallow=False):
+            os.unlink(plate + ".pending.png")
+        else:
+            os.replace(plate + ".pending.png", plate)
+    reached = check_reach(name, room)
+    build(name, room, None if entry.get("live") else os.path.join(ROOT, "scenes", "rooms", "composed", name + ".tscn"))
+    if not reached and not entry.get("live"):
+        print(f"{name}: the composed draft's route does not hold yet (above); it is a draft, so it is written anyway")
+    return reached or not entry.get("live")
+
+
 if __name__ == "__main__":
     selected = set(sys.argv[1:])
     unknown = selected - ROOMS.keys()
@@ -1597,6 +1706,12 @@ if __name__ == "__main__":
     for name, room in ROOMS.items():
         if selected and name not in selected:
             continue
+        if name in COMPOSED:
+            if not compose_room(name, COMPOSED[name]):
+                failed.append(name)
+            if COMPOSED[name].get("live"):
+                continue
+            room = ROOMS[name]
         if "painting" in room:
             _validate_depth_windows(name)
             if not check_reach(name, {**room, "spawns": room.get("spawns", []) + [tuple(spawn) for wave in room.get("waves", []) for spawn in wave]}):
@@ -1604,5 +1719,23 @@ if __name__ == "__main__":
             _expand_panel(room["painting"], room["_x_inserts"], FOCAL_RANGES.get(name, ()), _painted_floors(room))
             _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"], FOCAL_RANGES.get(name, ()))
         build(name, room)
+    if not selected:
+        # a composed room taken out of the table, or gone live, leaves no draft behind
+        for folder, ext, keep in (("scenes/rooms/composed", ".tscn", lambda n: not COMPOSED[n].get("live")),
+                                  ("assets/levels/composed", ".png", lambda n: True),
+                                  ("assets/levels/composed", "_backfill.png", lambda n: compose.windows(COMPOSED[n], compose.owners(PAINTED, DEPTH_WINDOWS)))):
+            for file in sorted(glob.glob(os.path.join(ROOT, folder, "*" + ext))):
+                stem = os.path.basename(file)[:-len(ext)]
+                if ext == ".png" and stem.endswith("_backfill"):
+                    continue
+                if stem not in COMPOSED or not keep(stem):
+                    for stale in (file, file + ".import"):
+                        if os.path.exists(stale):
+                            os.unlink(stale)
+        for file in sorted(glob.glob(os.path.join(front.OUT, "*.png"))):
+            if os.path.basename(file) not in FRONT_WRITTEN:
+                for stale in (file, file + ".import"):
+                    if os.path.exists(stale):
+                        os.unlink(stale)
     if failed:
         raise SystemExit("unreachable mandatory route in: " + ", ".join(failed))

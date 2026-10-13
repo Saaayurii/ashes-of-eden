@@ -15,6 +15,8 @@ extends SceneTree
 ## lead to the entrance again (a climb onto a ledge counts, the hero has one).
 ## A place you can get to but never leave is a trap, not a route. Add
 ## `one_way` after the room filter to report those without failing.
+## `--composed` plays the studio's composed drafts (scenes/rooms/composed)
+## instead of the rooms they are made for; rooms with no draft are skipped.
 ## Exit code 1 when a room fails.
 
 const FEET := 15.0          # body origin to the soles
@@ -57,6 +59,11 @@ func _main() -> void:
 		var path: String = run.ROOMS[index]
 		if only != "" and not Array(only.split("|")).any(func(part: String) -> bool: return path.contains(part)):
 			continue
+		if args.has("--composed"):
+			if not ResourceLoader.exists(run.composed_path(index)):
+				continue
+			run._draft_index = index
+			print("  the composed draft of %s" % path.get_file().get_basename())
 		if not await _test_room(index, path):
 			# The body carries state from the rooms before (an animation, a
 			# lock); a room that failed gets one clean second look.
@@ -73,7 +80,7 @@ func _main() -> void:
 			"crypt_lava": Vector2(660, 655),
 			"crypt_skulls": Vector2(300, 646),
 		}
-		if args.has("reverse") and return_starts.has(path.get_file().get_basename()):
+		if args.has("reverse") and not args.has("--composed") and return_starts.has(path.get_file().get_basename()):
 			var crypt_start: Vector2 = return_starts[path.get_file().get_basename()]
 			if not await _test_room(index, path, crypt_start):
 				failures += 1

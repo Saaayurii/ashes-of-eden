@@ -113,7 +113,7 @@ body:not([data-mode=world]) .worldlayout{display:none!important}
 .modes button.on{background:var(--panel2);color:var(--accent)}
 .hdr-chars,.hdr-bg,.hdr-cut,.hdr-snd{display:contents}
 body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
-body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=attacks]) .attacklayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout,body:not([data-mode=gore]) .gorelayout,body:not([data-mode=dlg]) .dlglayout{display:none!important}
+body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=attacks]) .attacklayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout,body:not([data-mode=gore]) .gorelayout,body:not([data-mode=dlg]) .dlglayout,body:not([data-mode=comp]) .complayout{display:none!important}
 .dlglayout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - var(--hdr, 50px))}
 .dlgmain{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,520px);gap:10px;min-height:0}
 .dlgmain>div{min-height:0;display:flex;flex-direction:column;gap:8px}
@@ -128,6 +128,13 @@ body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not(
 @media (max-width:1100px){.dlgmain{grid-template-columns:1fr;overflow:auto}}
 .pfxlayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
 .gorelayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
+.complayout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - var(--hdr, 50px))}
+#compStage{flex:1;min-height:0;border-radius:6px;overflow:hidden;background:#111}#compCanvas{display:block;touch-action:none;cursor:crosshair}
+.compgrid{display:grid;gap:4px;margin:6px 0}.compcell{aspect-ratio:16/9;padding:0;border-radius:4px;overflow:hidden;min-width:0}
+.compcell img{width:100%;height:100%;object-fit:cover;display:block}.compcell.empty{font-size:20px;opacity:.6;border-style:dashed}.compcell.on{outline:2px solid #ffd75f}
+.compfields{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;margin-top:6px}.compfields input,.compfields select{width:100%}
+.comppanels{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:60vh;overflow:auto;margin-top:8px}
+.comppanel{padding:0;display:flex;flex-direction:column;border-radius:4px;overflow:hidden}.comppanel img{width:100%;aspect-ratio:16/9;object-fit:cover}.comppanel span{font-size:11px;padding:2px 4px;text-align:left}
 #goreProps{overflow:auto;scrollbar-width:thin}#goreStage{flex:1;min-height:0;border-radius:6px;overflow:hidden}
 #goreCanvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;background:#0f0d14}
 #pfxTriggers{max-height:36vh;overflow:auto;flex:none;scrollbar-width:thin}
@@ -267,7 +274,7 @@ a{color:var(--sel)}
 @media (max-width:1100px){.work{grid-template-columns:1fr}.pcol{position:static}}
 @media (max-width:760px){.layout{grid-template-columns:1fr}.side{position:static;max-height:none}}
 @media(max-width:600px){
-  .layout,.bglayout,.cutlayout,.sndlayout,.riglayout,.lifelayout,.shotlayout,.pfxlayout,.gorelayout,.dlglayout{grid-template-columns:minmax(0,1fr);height:auto;overflow:visible}
+  .layout,.bglayout,.cutlayout,.sndlayout,.riglayout,.lifelayout,.shotlayout,.pfxlayout,.gorelayout,.dlglayout,.complayout{grid-template-columns:minmax(0,1fr);height:auto;overflow:visible}
   .layout>*,.bglayout>*,.cutlayout>*,.sndlayout>*,.riglayout>*,.lifelayout>*,.shotlayout>*,.pfxlayout>*,.gorelayout>*,.dlglayout>*{min-width:0;max-width:100%}
   .dlgmain{grid-template-columns:minmax(0,1fr)}.side{max-height:none}.row{flex-wrap:wrap}.row>*{min-width:0;max-width:100%}
   #shotStage,#pfxStage,#goreStage,#lifeStage,#rigCanvas{min-height:260px;height:260px;flex:none}.lifemain,.rigmain{min-height:320px}
@@ -279,7 +286,7 @@ a{color:var(--sel)}
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="attacks">Атаки</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="gore">Кровь</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button><button data-act="mode" data-m="world">Поведение</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="comp" title="Собрать большую комнату из нескольких картин">Конструктор</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="attacks">Атаки</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="gore">Кровь</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button><button data-act="mode" data-m="world">Поведение</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -603,6 +610,47 @@ a{color:var(--sel)}
   </main>
 </div>
 
+<div id="compLayout" class="complayout">
+  <aside class="side lifeside" id="compSide">
+    <label>Комната<select id="compRooms"></select></label>
+    <div id="compBody"></div>
+  </aside>
+  <main class="lifemain">
+    <div class="lifebar">
+      <button class="sm" data-comptool="select" title="Выбрать, двигать, тянуть за край (Esc)">↖ Выбор</button>
+      <button class="sm" data-comptool="ledges" title="Протянуть мышью новый уступ">+ Уступ</button>
+      <button class="sm" data-comptool="platforms" title="Протянуть платформу (сквозь неё можно спрыгнуть)">+ Платформа</button>
+      <button class="sm" data-comptool="ground" title="Протянуть сплошную землю">+ Земля</button>
+      <button class="sm" data-comptool="ramps" title="Протянуть наклон от одного конца к другому">+ Наклон</button>
+      <button class="sm" data-comptool="hazards" title="Протянуть лаву или другую жгучую землю">+ Опасность</button>
+      <button class="sm" data-comptool="spawns" title="Поставить врага">+ Враг</button>
+      <button class="sm" data-comptool="props" title="Поставить предмет (бочку, сундук)">+ Предмет</button>
+      <button class="sm" data-act="comp-trace" title="Найти уступы на картинах: жёлтые рамки, щёлкни нужные">✨ Найти уступы</button>
+      <button class="sm" data-act="comp-untrace" title="Убрать жёлтые рамки">✕</button>
+      <button class="sm" data-act="comp-fit" title="Показать всю комнату">⤢</button>
+      <span class="grow muted" id="compVerdict"></span>
+      <button class="sm" data-act="comp-revert" title="Выбросить правки этой комнаты">↺ Как в игре</button>
+      <button class="sm" data-act="comp-run" title="Открыть собранную комнату в Godot (локальный режим)">▶ В Godot</button>
+      <button class="primary" id="compSend" data-act="comp-send" disabled>→ В игру</button>
+    </div>
+    <div class="lifebar">
+      <button class="sm" data-compview="cells" title="Картины рядом, как есть; оранжевые полосы — швы">▦ Клетки</button>
+      <button class="sm" data-compview="stitched" title="Картина, какую нарисует генератор: швы сшиты, дыры залиты ночью">▤ Сшитый</button>
+      <button class="sm" data-compview="depth" title="Как видит камера игры: мышь — камера; дальний план в окнах отстаёт, передний бежит навстречу">◫ Объём</button>
+      <span class="muted">│</span>
+      <button class="sm" data-comptool="windows" title="Протянуть окно вдаль: сквозь него виден дальний план, он сдвигается медленнее картины">+ Окно</button>
+      <button class="sm" data-comptool="front" title="Протянуть рамку по картине: этот кусок встанет перед героем — тёмный, мягкий и быстрее камеры">+ Передний план</button>
+      <button class="sm" data-act="comp-findfront" title="Найти тёмные массы по краям картин: голубые рамки, щёлкни нужные">✨ Найти передний план</button>
+      <button class="sm" data-act="comp-frontfile" title="Своя картинка перед героем: PNG с прозрачностью">🖼 Своя спереди</button>
+      <button class="sm" data-comptool="lights" title="Поставить свечу (свет в комнате)">+ Свеча</button>
+      <span class="grow"></span>
+      <button class="sm" data-act="comp-check" title="Настоящие проверки в Godot: бот проходит комнату, лестницы, падения за край (локальный режим, несколько минут)">✓ Проверить в Godot</button>
+    </div>
+    <div id="compStage"><canvas id="compCanvas"></canvas></div>
+    <div class="note">Колесо — масштаб, правая кнопка или пробел — сдвинуть вид. Delete убирает выбранное, Ctrl+Z отменяет. Цветная полоса — верх, по которому ходят; серые площадки герою не достать. Оранжевое — швы: там картину рисует сшивка («Сшитый» покажет как). В «Объёме» три плана, как в игре: дальний в окнах, картина, передний перед героем.</div>
+  </main>
+</div>
+
 <div id="goreLayout" class="gorelayout">
   <aside class="side lifeside" id="goreSide">
     <label>Кто<select id="goreBodies"></select></label>
@@ -768,6 +816,7 @@ a{color:var(--sel)}
 <script src="js/attacks.js"></script>
 <script src="js/particles.js"></script>
 <script src="js/gore.js"></script>
+<script src="js/composer.js"></script>
 <script src="js/dialogues.js"></script>
 <script src="js/world.js"></script>
 <script src="js/workspace.js"></script>

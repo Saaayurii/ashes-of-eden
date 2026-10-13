@@ -1020,7 +1020,334 @@ async function filesFingerprint(entries) {
   for (const p of parts) { all.set(p, o); o += p.length; }
   return [...new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', all))].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+// ---- the room composer: tools/rooms/composed_rooms.json (tools/rooms/compose.py, js/composer.js) ----
+
+// Walkable surfaces [x, top, w] of a room and the pairs a ramp joins (painted_rooms._surfaces).
+function composeSurfaces(room) {
+  const out = [], links = [];
+  for (const k of ['ground', 'ledges', 'platforms']) for (const [x, y, w] of room[k] || []) out.push([x, y, w]);
+  for (const [x0, y0, x1, y1] of room.ramps || []) {
+    const base = out.length;
+    out.push([Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0)], [x0, y0, 4], [x1, y1, 4]);
+    links.push([base, base + 1], [base, base + 2], [base + 1, base + 2]);
+  }
+  return { surfaces: out, links };
+}
+// painted_rooms._climb_reach / _can_jump, with the hero's numbers R (import/composer.json "reach")
+function composeClimbReach(rise, R) {
+  const peak = R.JUMP_VELOCITY ** 2 / R.GRAVITY;
+  const airtime = 2 * R.JUMP_VELOCITY / R.GRAVITY + Math.sqrt(Math.max(0, 2 * (peak - rise) / R.GRAVITY));
+  return R.RUN_SPEED * airtime * R.REACH_MARGIN + R.BODY_WIDTH;
+}
+function composeCanJump(a, b, R) {
+  const [ax, ay, aw] = a, [bx, by, bw] = b;
+  const gap = Math.max(0, bx - (ax + aw), ax - (bx + bw)), rise = ay - by;
+  if (rise > 0) return rise <= R.JUMP_UP && gap <= Math.max(R.JUMP_ACROSS - rise * 0.9, composeClimbReach(rise, R));
+  return gap <= Math.max(R.JUMP_ACROSS, R.DROP_ACROSS + Math.min(120, -rise * 0.5));
+}
+// painted_rooms.check_reach: can the hero get from the entrance to the door, to every walker
+// and every prop? {ok, problems: [{fatal, text, at}], seen: Set of surface indices, surfaces}.
+// A person's round (data/npcs path) is the generator's to check; here only where they stand.
+function composeReach(room, R) {
+  const { surfaces, links } = composeSurfaces(room), joined = new Map(), problems = [];
+  for (const [a, b] of links) { (joined.get(a) || joined.set(a, new Set()).get(a)).add(b); (joined.get(b) || joined.set(b, new Set()).get(b)).add(a); }
+  const under = (x, y) => { let best = null; surfaces.forEach(([sx, sy, sw], i) => { if (sx - 8 <= x && x <= sx + sw + 8 && sy >= y - 4 && (best === null || sy < surfaces[best][1])) best = i; }); return best; };
+  const fail = (text, at) => problems.push({ fatal: true, text, at });
+  const seen = new Set();
+  if (!room.player || !room.door) { fail('нет входа или двери'); return { ok: false, problems, seen, surfaces }; }
+  const start = under(...room.player), goal = under(...room.door);
+  if (start === null) fail('вход стоит ни на чём', room.player);
+  if (goal === null) fail('дверь стоит ни на чём', room.door);
+  if (start !== null) {
+    seen.add(start); const frontier = [start];
+    while (frontier.length) {
+      const i = frontier.pop();
+      surfaces.forEach((s, j) => { if (!seen.has(j) && ((joined.get(i) && joined.get(i).has(j)) || composeCanJump(surfaces[i], s, R))) { seen.add(j); frontier.push(j); } });
+    }
+    if (goal !== null && !seen.has(goal)) fail('до двери не дойти от входа', room.door);
+  }
+  for (const [id, x, y] of room.spawns || []) {
+    if ((R.FLYERS || []).includes(id)) continue;
+    const s = under(x, y + 12);
+    if (s === null) fail(`${id}: стоит ни на чём`, [x, y]); else if (!seen.has(s)) fail(`${id}: к нему не добраться`, [x, y]);
+  }
+  for (const [id, x, y] of room.props || []) {
+    const s = under(x, y);
+    if (s === null) fail(`${id}: стоит ни на чём`, [x, y]);
+    else if (!seen.has(s)) fail(`${id}: к нему не добраться`, [x, y]);
+    else if (Math.abs(surfaces[s][1] - y) > 2) fail(`${id}: висит над полом`, [x, y]);
+  }
+  for (const [id, x, y] of room.npcs || []) if (under(x, y) === null) fail(`${id}: стоит ни на чём`, [x, y]);
+  surfaces.forEach((s, i) => { if (!seen.has(i) && s[2] > 8 && start !== null) problems.push({ fatal: false, text: 'сюда не попасть', at: [s[0] + s[2] / 2, s[1]] }); });
+  return { ok: !problems.some(p => p.fatal), problems, seen, surfaces };
+}
+// trace_panel.ledges: runs where a lit top sits over darker stone, [x, y, w] — candidates the eye picks from.
+// lum: luminance per pixel (PIL "L": (299 R + 587 G + 114 B) / 1000), w × h.
+function traceLedges(lum, w, h, minLen = 44, gap = 6) {
+  const below = new Float32Array(w * h), above = new Float32Array(w * h), runs = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let b = 0; for (let dy = 3; dy < 11; dy++) if (y + dy < h) b += lum[(y + dy) * w + x];
+    let a = 0; for (let dy = 2; dy < 6; dy++) if (y - dy >= 0) a += lum[(y - dy) * w + x];
+    below[y * w + x] = b / 8; above[y * w + x] = a / 4;
+  }
+  const edge = i => lum[i] - below[i] > 34 && lum[i] > 70 && lum[i] - above[i] > -12;
+  for (let y = 0; y < h; y++) {
+    let x = 0;
+    while (x < w) {
+      if (!edge(y * w + x)) { x++; continue; }
+      const start = x; let last = x;
+      while (x < w && (edge(y * w + x) || x - last <= gap)) { if (edge(y * w + x)) last = x; x++; }
+      if (last - start + 1 >= minLen) runs.push([start, y, last - start + 1]);
+    }
+  }
+  runs.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+  const merged = [];
+  for (const r of runs) {
+    const m = merged.find(m => Math.abs(m[1] - r[1]) <= 3 && r[0] < m[0] + m[2] && m[0] < r[0] + r[2]);
+    if (m) { const x0 = Math.min(m[0], r[0]), x1 = Math.max(m[0] + m[2], r[0] + r[2]); m[0] = x0; m[2] = x1 - x0; m[1] = Math.min(m[1], r[1]); }
+    else merged.push([...r]);
+  }
+  return merged.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+}
+// A painted room's own geometry (panel pixels) moved into cell (col, row) of a composed room.
+const COMPOSE_LISTS = ['ground', 'ledges', 'platforms', 'ramps', 'hazards', 'spawns', 'props', 'npcs'];
+function composeShift(geom, dx, dy) {
+  const out = {};
+  for (const k of COMPOSE_LISTS) out[k] = (geom[k] || []).map(v => k === 'ramps' ? [v[0] + dx, v[1] + dy, v[2] + dx, v[3] + dy]
+    : typeof v[0] === 'string' ? [v[0], v[1] + dx, v[2] + dy] : [v[0] + dx, v[1] + dy, v[2], v[3]]);
+  for (const k of ['player', 'door']) if (geom[k]) out[k] = [geom[k][0] + dx, geom[k][1] + dy];
+  return out;
+}
+// The grid's size in cells, and the room's in pixels.
+function composeGrid(entry, cell) {
+  const cols = Math.max(1, ...(entry.cells || []).map(c => c.col + 1)), rows = Math.max(1, ...(entry.cells || []).map(c => c.row + 1));
+  return { cols, rows, width: cols * cell[0], height: rows * cell[1] };
+}
+// What still lies inside a w × h room once a cell is gone: rectangles cut to it, the rest dropped
+// (compose.validate refuses anything outside).
+function composeClip(entry, w, h) {
+  const out = structuredClone(entry);
+  for (const k of ['ground', 'ledges', 'platforms', 'hazards']) out[k] = (out[k] || []).map(([x, y, rw, rh]) => {
+    const x0 = Math.max(0, x), y0 = Math.max(0, y), x1 = Math.min(w, x + rw), y1 = Math.min(h, y + rh);
+    return [x0, y0, x1 - x0, y1 - y0];
+  }).filter(r => r[2] > 0 && r[3] > 0);
+  out.ramps = (out.ramps || []).filter(r => r.every((v, i) => v >= 0 && v <= (i % 2 ? h : w)));
+  for (const k of ['spawns', 'props', 'npcs']) out[k] = (out[k] || []).filter(([, x, y]) => x >= 0 && x <= w && y >= 0 && y <= h);
+  for (const k of ['player', 'door']) if (out[k]) out[k] = [Math.min(w, Math.max(0, out[k][0])), Math.min(h, Math.max(0, out[k][1]))];
+  if (out.windows) out.windows = out.windows.filter(win => win.points.every(([x, y]) => x >= 0 && x <= w && y >= 0 && y <= h));
+  if (out.lights) out.lights = out.lights.filter(([x, y]) => x >= 0 && x <= w && y >= 0 && y <= h);
+  if (out.front) out.front = out.front.filter(p => p.at[0] < w && p.at[1] < h);
+  return out;
+}
+// ---- the seams, as tools/rooms/compose.py stitches them (a port, the same picture) ----
+// A picture here is {w, h, d: Float32Array of RGBA}; compose.py's arrays are (h, w, 4) float32, and
+// every running total below is kept in a Float32Array so the cheapest path comes out the same.
+function composeImage(w, h, d) { return { w, h, d: d || new Float32Array(w * h * 4) }; }
+function composeCols(img, x0, x1, mirror = false) {
+  const w = x1 - x0, out = composeImage(w, img.h);
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < w; x++) {
+    const sx = mirror ? x1 - 1 - x : x0 + x, si = (y * img.w + sx) * 4, di = (y * w + x) * 4;
+    for (let c = 0; c < 4; c++) out.d[di + c] = img.d[si + c];
+  }
+  return out;
+}
+function composeBeside(...parts) {
+  const h = parts[0].h, w = parts.reduce((s, p) => s + p.w, 0), out = composeImage(w, h);
+  let x0 = 0;
+  for (const p of parts) {
+    for (let y = 0; y < h; y++) out.d.set(p.d.subarray(y * p.w * 4, (y + 1) * p.w * 4), (y * w + x0) * 4);
+    x0 += p.w;
+  }
+  return out;
+}
+function composeTranspose(img) {
+  const out = composeImage(img.h, img.w);
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
+    const si = (y * img.w + x) * 4, di = (x * img.h + y) * 4;
+    for (let c = 0; c < 4; c++) out.d[di + c] = img.d[si + c];
+  }
+  return out;
+}
+// compose._stitch: `first` holds at the left edge, `second` at the right, handing over along the
+// cheapest vertical path between columns lo and hi, each side's light bent halfway to the other's.
+function composeStitch(first, second, lo, hi, feather = 8) {
+  const h = first.h, n = first.w, F = first.d, S = second.d;
+  const cost = new Float32Array(h * n);
+  const f = Math.fround;   // float32 at every step, as numpy adds them
+  for (let i = 0; i < h * n; i++) cost[i] = f(f(Math.abs(f(F[i * 4] - S[i * 4])) + Math.abs(f(F[i * 4 + 1] - S[i * 4 + 1]))) + Math.abs(f(F[i * 4 + 2] - S[i * 4 + 2])));
+  const at = (y, x) => cost[Math.min(h - 1, Math.max(0, y - 3)) * n + Math.min(n - 1, Math.max(0, x - 3))];
+  const total = new Float32Array(h * n);
+  for (let y = 0; y < h; y++) for (let x = 0; x < n; x++) {
+    let sum = 0;
+    for (let dy = 0; dy < 7; dy++) for (let dx = 0; dx < 7; dx++) sum = Math.fround(sum + at(y + dy, x + dx));
+    total[y * n + x] = x < lo || x >= hi ? Infinity : sum;
+  }
+  const step = new Int32Array(h * n);
+  for (let y = 1; y < h; y++) for (let x = 0; x < n; x++) {
+    const up = (y - 1) * n;
+    const a = x > 0 ? total[up + x - 1] : Infinity, b = total[up + x], c = x < n - 1 ? total[up + x + 1] : Infinity;
+    let choice = 0, best = a;
+    if (b < best) { choice = 1; best = b; }
+    if (c < best) { choice = 2; best = c; }
+    total[y * n + x] = Math.fround(total[y * n + x] + best);
+    step[y * n + x] = x + choice - 1;
+  }
+  const path = new Int32Array(h);
+  let best = Infinity;
+  for (let x = 0; x < n; x++) if (total[(h - 1) * n + x] < best) { best = total[(h - 1) * n + x]; path[h - 1] = x; }
+  for (let y = h - 1; y > 0; y--) path[y - 1] = step[y * n + path[y]];
+  const gap = new Float64Array(h * 4);
+  for (let y = 0; y < h; y++) for (let c = 0; c < 4; c++) {
+    let sum = 0;
+    for (let k = -2; k <= 2; k++) { const x = Math.min(n - 1, Math.max(0, path[y] + k)), i = (y * n + x) * 4 + c; sum += F[i] - S[i]; }
+    gap[y * 4 + c] = sum / 5;
+  }
+  const smooth = new Float64Array(h * 4);
+  for (let y = 0; y < h; y++) for (let c = 0; c < 3; c++) {
+    let sum = 0;
+    for (let k = -15; k <= 15; k++) sum += gap[Math.min(h - 1, Math.max(0, y + k)) * 4 + c];
+    smooth[y * 4 + c] = sum / 31;
+  }
+  const out = composeImage(n, h);
+  for (let y = 0; y < h; y++) {
+    const p = path[y];
+    for (let x = 0; x < n; x++) {
+      const tl = Math.min(1, Math.max(0, x / Math.max(p, 1))), tr = Math.min(1, Math.max(0, (n - 1 - x) / Math.max(n - 1 - p, 1)));
+      const w = Math.min(1, Math.max(0, (x - p + feather) / (2 * feather)));
+      for (let c = 0; c < 4; c++) {
+        const i = (y * n + x) * 4 + c, g = smooth[y * 4 + c];
+        out.d[i] = (F[i] - 0.5 * g * tl) * (1 - w) + (S[i] + 0.5 * g * tr) * w;
+      }
+    }
+  }
+  return out;
+}
+// compose._join: `left` and `right` side by side, each carried past the seam by its own mirror.
+function composeJoin(left, right, seam = 96) {
+  const a = composeCols(left, left.w - seam, left.w), b = composeCols(right, 0, seam);
+  const first = composeBeside(a, composeCols(a, 0, seam, true)), second = composeBeside(composeCols(b, 0, seam, true), b);
+  const band = composeStitch(first, second, seam >> 1, seam + (seam >> 1));
+  return composeBeside(composeCols(left, 0, left.w - seam), band, composeCols(right, seam, right.w));
+}
+function composeJoinBelow(top, bottom, seam = 96) {
+  return composeTranspose(composeJoin(composeTranspose(top), composeTranspose(bottom), seam));
+}
+// compose.night: the darkest tenth of the paintings (counted on r+g+b), averaged.
+function composeNight(tiles) {
+  const counts = new Float64Array(766);
+  let n = 0;
+  for (const t of tiles) for (let i = 0; i < t.w * t.h; i++) { counts[t.d[i * 4] + t.d[i * 4 + 1] + t.d[i * 4 + 2]]++; n++; }
+  let edge = 0, run = 0;
+  for (; edge < 766; edge++) { run += counts[edge]; if (run >= 0.1 * n) break; }
+  const sum = [0, 0, 0, 0];
+  let m = 0;
+  for (const t of tiles) for (let i = 0; i < t.w * t.h; i++) if (t.d[i * 4] + t.d[i * 4 + 1] + t.d[i * 4 + 2] <= edge) {
+    for (let c = 0; c < 4; c++) sum[c] += t.d[i * 4 + c];
+    m++;
+  }
+  return sum.map(v => Math.fround(v / Math.max(1, m)));
+}
+// compose.hole: the first neighbour's mirror (left, right, above, below) fading into the night.
+function composeHole(tiles, col, row, dark, cell, fade = 360) {
+  const [w, h] = cell, out = composeImage(w, h);
+  for (const [dc, dr] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+    const near = tiles.get(`${col + dc},${row + dr}`);
+    if (!near) continue;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const sx = dc ? w - 1 - x : x, sy = dr ? h - 1 - y : y;
+      const dist = dc < 0 ? x : dc > 0 ? w - 1 - x : dr < 0 ? y : h - 1 - y;
+      let k = Math.min(1, Math.max(0, dist / fade));
+      k = k * k * (3 - 2 * k);
+      const si = (sy * w + sx) * 4, di = (y * w + x) * 4;
+      for (let c = 0; c < 4; c++) out.d[di + c] = near.d[si + c] * (1 - k) + dark[c] * k;
+    }
+    return out;
+  }
+  for (let i = 0; i < w * h; i++) out.d.set(dark, i * 4);
+  return out;
+}
+// compose.compose_tiles: `tiles` Map "col,row" → picture, as one picture with every seam stitched.
+function composeTiles(tiles, cols, rows, cell = [1280, 720], seam = 96) {
+  const dark = composeNight([...tiles.values()]);
+  let picture = null;
+  for (let row = 0; row < rows; row++) {
+    let strip = null;
+    for (let col = 0; col < cols; col++) {
+      const t = tiles.get(`${col},${row}`) || composeHole(tiles, col, row, dark, cell);
+      strip = strip ? composeJoin(strip, t, seam) : t;
+    }
+    picture = picture ? composeJoinBelow(picture, strip, seam) : strip;
+  }
+  return picture;
+}
+// compose.window_depth: how far an opening of a painted room lies, by its number (RoomLayers' clamp).
+const composeWindowDepth = index => Math.round(Math.min(1.16, Math.max(0.68, 0.68 + 0.16 * (index - 1))) * 100) / 100;
+// compose.windows: the studio's own, or every far opening of each cell's room moved into its cell.
+function composeWindows(entry, panels, cell = [1280, 720]) {
+  if (entry.windows) return entry.windows;
+  const out = [];
+  for (const c of entry.cells || []) {
+    const own = (panels.find(p => p.stem === c.painting) || {}).windows || [];
+    for (const w of own) out.push({ points: w.points.map(([x, y]) => [x + c.col * cell[0], y + c.row * cell[1]]), depth: composeWindowDepth(w.index), sky: w.index === 1 });
+  }
+  return out;
+}
+// FrontLayer.at: where a front piece (centre `rest`, depth d) stands while the camera looks at `focus`.
+const frontAt = (rest, focus, d) => [rest[0] + (rest[0] - focus[0]) * (d - 1), rest[1] + (rest[1] - focus[1]) * (d - 1)];
+// front.placed: a piece's centre at its focus; its drawn size is the crop's times its depth.
+function frontBox(piece) {
+  const d = piece.depth ?? 1.35, w = piece.crop[2] * d, h = piece.crop[3] * d;
+  return { x: piece.at[0], y: piece.at[1], w, h, cx: piece.at[0] + w / 2, cy: piece.at[1] + h / 2 };
+}
+// front.edge_fade: 1 inside a crop, smoothly 0 at its border over `share` of its shorter side.
+function frontEdgeFade(w, h, share) {
+  const out = new Float32Array(w * h).fill(1);
+  if (share <= 0) return out;
+  const band = Math.max(1, share * Math.min(w, h));
+  for (let y = 0; y < h; y++) {
+    const fy = Math.min(1, (Math.min(y, h - 1 - y) + 0.5) / band);
+    for (let x = 0; x < w; x++) {
+      const f = Math.min(fy, Math.min(1, (Math.min(x, w - 1 - x) + 0.5) / band));
+      out[y * w + x] = f * f * (3 - 2 * f);
+    }
+  }
+  return out;
+}
+// Dark masses along the bottom (and top) of a picture: what could stand in front of the hero, cut
+// from the painting itself. `lum` is h × w luminance; returns crops [x, y, w, h] in picture pixels.
+function frontCandidates(lum, w, h, { band = 170, cut = 60, share = 0.45, minLen = 70 } = {}) {
+  const out = [];
+  for (const [y0, y1] of [[h - band, h], [0, Math.round(band * 0.7)]]) {
+    const dark = new Uint8Array(w);
+    for (let x = 0; x < w; x++) {
+      let n = 0;
+      for (let y = y0; y < y1; y++) if (lum[y * w + x] < cut) n++;
+      dark[x] = n >= share * (y1 - y0) ? 1 : 0;
+    }
+    for (let x = 0; x < w;) {
+      if (!dark[x]) { x++; continue; }
+      let e = x;
+      while (e < w && (dark[e] || (e + 6 < w && dark[e + 6]))) e++;
+      if (e - x >= minLen) {
+        let top = y1, bottom = y0;
+        for (let y = y0; y < y1; y++) for (let xx = x; xx < e; xx += 2) if (lum[y * w + xx] < cut) { top = Math.min(top, y); bottom = Math.max(bottom, y + 1); }
+        if (bottom > top) out.push([x, top, Math.min(e - x, 420), bottom - top]);
+      }
+      x = e;
+    }
+  }
+  return out;
+}
+// tools/rooms/composed_rooms.json as the studio writes it: two spaces, one line per cell, rectangle and thing.
+function fmtComposed(doc) {
+  const room = r => '{\n' + Object.entries(r).map(([k, v]) => `    ${JSON.stringify(k)}: ` + (Array.isArray(v) && v.length && typeof v[0] === 'object'
+    ? '[\n' + v.map(x => '      ' + JSON.stringify(x).replace(/,(?=["\d-\[{tf])/g, ', ').replace(/":/g, '": ')).join(',\n') + '\n    ]'
+    : JSON.stringify(v).replace(/,(?=["\d-])/g, ', '))).join(',\n') + '\n  }';
+  const names = Object.keys(doc).sort();
+  return names.length ? '{\n' + names.map(n => `  ${JSON.stringify(n)}: ${room(doc[n])}`).join(',\n') + '\n}\n' : '{}\n';
+}
+
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

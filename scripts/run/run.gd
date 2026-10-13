@@ -342,13 +342,38 @@ const ROOM_ARG := "room="
 ## so the release Web build takes `room=` too: whoever changed a room's scene or
 ## art walks straight into it. The page keeps nothing (persistentPaths = []).
 const PREVIEW_ARG := "--studio-preview"
+## With `room=`, the room's composed draft instead (tools/rooms/compose.py, the
+## studio's «Конструктор»): `room=graveyard_cross --composed`. Nothing of a
+## draft is saved — it is not the room the night walks through yet.
+const COMPOSED_ARG := "--composed"
+const COMPOSED_DIR := "res://scenes/rooms/composed/"
+## The index whose draft stands in for it, or -1.
+var _draft_index := -1
 
 
 func _requested_room() -> int:
 	var args := OS.get_cmdline_user_args()
 	if not OS.is_debug_build() and not args.has(PREVIEW_ARG):
 		return -1
-	return room_from_args(args)
+	var index := room_from_args(args)
+	if index >= 0 and args.has(COMPOSED_ARG):
+		var draft := composed_path(index)
+		if ResourceLoader.exists(draft):
+			_draft_index = index
+			print("run: the composed draft %s" % draft)
+		else:
+			push_warning("run: no composed draft at %s" % draft)
+	return index
+
+
+## The scene a chapter lists for an index: a draft belongs to its room's place.
+func _chapter_path(index: int) -> String:
+	return ROOMS[index] if index >= 0 and index == _draft_index else _room_path(index)
+
+
+## Where the composed draft of a room is written.
+static func composed_path(index: int) -> String:
+	return COMPOSED_DIR + String(ROOMS[index]).get_file()
 
 
 ## A preview page may ask for the practice yard against one enemy instead
@@ -539,11 +564,13 @@ func _net_cover(index: int) -> void:
 
 ## The scene a room index stands for: one of ROOMS, or the practice yard.
 func _room_path(index: int) -> String:
+	if index >= 0 and index == _draft_index:
+		return composed_path(index)
 	return PRACTICE_ROOM if index == PRACTICE_INDEX else ROOMS[index]
 
 
 func _draw_curtain(index: int) -> void:
-	var chapter := Data.chapter_for(_room_path(index))
+	var chapter := Data.chapter_for(_chapter_path(index))
 	# A place we have not been in gets the full page; another room of the same
 	# place gets the curtain and its name, and we walk on.
 	_pending_grand = not chapter.is_empty() and str(chapter.id) != _chapter_id
@@ -562,7 +589,7 @@ func _load_room(index: int) -> void:
 	var token := _load_token
 	transition.snap_closed()
 	_build_room(index)
-	var chapter := Data.chapter_for(_room_path(index))
+	var chapter := Data.chapter_for(_chapter_path(index))
 	_chapter_id = str(chapter.get("id", ""))
 	Game.place = _chapter_id
 	_open_curtain(chapter, _pending_grand, token)
@@ -614,7 +641,7 @@ func _build_room(index: int) -> void:
 	room.reopened.connect(_on_room_reopened)
 	room.exited.connect(_on_room_exited)
 	_place_local_player()
-	if not Net.active and player != null and index != PRACTICE_INDEX and Game.daily == "":
+	if not Net.active and player != null and index != PRACTICE_INDEX and Game.daily == "" and (index < 0 or index != _draft_index):
 		checkpoint = Saves.capture(ROOMS[index], kills, elapsed, player)
 		Saves.write(Saves.AUTO, checkpoint)
 	if _is_server():

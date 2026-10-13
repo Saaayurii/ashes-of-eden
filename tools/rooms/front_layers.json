@@ -1,0 +1,6 @@
+{
+  "graveyard_cross": [
+    {"from": "graveyard_cross_wide", "crop": [945, 185, 165, 205], "at": [300, 272], "depth": 1.6, "dark": 0.9, "cut": 40, "flip": true},
+    {"from": "graveyard_cross_wide", "crop": [465, 195, 95, 330], "at": [905, 200], "depth": 1.6, "dark": 0.92, "cut": 60, "feather": 0.25}
+  ]
+}

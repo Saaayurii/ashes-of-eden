@@ -525,6 +525,10 @@ def life(root: Path):
         res = (root / scene).exists() and _scene_texture(root, root / scene, [node])
         if res:
             pictures[key] = {"res": res, "kind": "scene"}
+    # a room the studio composed has a picture of its own, keyed as BackdropLife.room_key keys it
+    for p in sorted((root / "assets/levels/composed").glob("*.png")):
+        if not p.stem.endswith("_backfill"):
+            pictures["composed/" + p.stem] = {"res": "res://" + p.relative_to(root).as_posix(), "kind": "room"}
     for d in LIFE_DIRS:
         for p in sorted((root / d).glob("*.png")):
             pictures.setdefault(p.stem, {"res": "res://" + p.relative_to(root).as_posix(), "kind": "picture"})
@@ -740,6 +744,51 @@ def world(root, rooms):
     return {"files": files, "enemies": sorted(p.stem for p in (root / "data/enemies").glob("*.json"))}
 
 
+def composer(root: Path):
+    """The «Конструктор» (js/composer.js, tools/rooms/compose.py): the panels a room may be put
+    together from, every painted room's own geometry in its panel's pixels, what is composed
+    already, and the numbers its preview needs (the grid, the hero's reach for check_reach)."""
+    sys.path.insert(0, str(root / "tools/rooms"))
+    import compose
+    import front
+    import generate_rooms
+    import painted_rooms
+    owned = compose.owners(painted_rooms.PAINTED, generate_rooms.DEPTH_WINDOWS)
+    by_painting = {}
+    rooms = {}
+    for name, room in painted_rooms.PAINTED.items():
+        if "painting" not in room:
+            continue
+        by_painting.setdefault(room["painting"], name)
+        rooms[name] = {"painting": room["painting"],
+                       # a thing standing in a seam ("wide") has no place in the bare panel
+                       **{k: [list(v) for v in room.get(k, []) if "wide" not in v] for k in ("ground", "ledges", "platforms", "ramps", "hazards", "spawns", "props", "npcs")},
+                       "player": list(room["player"]), "door": list(room["door"])}
+    panels = []
+    for path in sorted((root / "assets/levels").glob("*.png")) + sorted((root / "assets/levels/panels").glob("*.png")):
+        stem = path.relative_to(root / "assets/levels").with_suffix("").as_posix()
+        if stem.endswith("_wide"):
+            continue
+        with Image.open(path) as im:
+            if im.size != compose.CELL:
+                continue
+        plate = compose.plate_path(stem)
+        lights = compose.auto_lights({"cells": [{"painting": stem, "col": 0, "row": 0}]})
+        panels.append({"stem": stem, "url": f"assets/levels/{stem}.png", "room": by_painting.get(stem, ""),
+                       # what a cell of it brings: the far openings of its room, the plate behind them, its candles
+                       "windows": [{"index": i, "points": [list(p) for p in polygon]} for i, polygon in owned.get(stem, (0, []))[1]],
+                       "strength": owned[stem][0] if stem in owned else None,
+                       "plate": Path(plate).relative_to(compose.ROOT).as_posix(),
+                       "lights": [list(light) for light in lights]})
+    reach = {k: getattr(painted_rooms, k) for k in ("JUMP_UP", "JUMP_ACROSS", "DROP_ACROSS", "RUN_SPEED", "JUMP_VELOCITY", "GRAVITY", "BODY_WIDTH", "REACH_MARGIN")}
+    reach["FLYERS"] = sorted(painted_rooms.FLYERS)
+    ids = lambda folder: sorted(p.stem for p in (root / "data" / folder).glob("*.json"))
+    return {"cell": list(compose.CELL), "max": [compose.MAX_COLS, compose.MAX_ROWS], "seam": compose.SEAM,
+            "panels": panels, "rooms": rooms, "composed": compose.load(), "reach": reach,
+            "enemies": ids("enemies"), "props": ids("props"), "npcs": ids("npcs"),
+            "front": {"depth": list(front.DEPTH), "max": front.MAX_PIECES}, "window_depth": list(compose.WINDOW_DEPTH)}
+
+
 def write(out: Path, rel: str, data):
     path = out / rel
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -766,6 +815,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "life.json", life(root))
     write(out, "tiles.json", tiles(root))
     write(out, "seams.json", seams(root))
+    write(out, "composer.json", composer(root))
     shots = projectiles(root, strings)
     write(out, "projectiles.json", shots)
     write(out, "attacks.json", {"roster": shots["roster"]})

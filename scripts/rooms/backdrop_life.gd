@@ -28,6 +28,8 @@ const KINDS := {
 	"pulse": [7, 0.8, 0.9],
 }
 const META := &"backdrop_life"
+## The rule key of a composed room's picture (room_key).
+const COMPOSED := "composed/"
 ## A wounded hero hears the walls: below this share of health the veins beat
 ## harder and faster, fully so at DREAD_FULL.
 const DREAD_FROM := 0.4
@@ -50,6 +52,13 @@ static var _noise: ImageTexture
 static func rule(key: String) -> Dictionary:
 	var rules := _load()
 	var rooms: Dictionary = rules.get("rooms", {})
+	if not rooms.has(key) and key.begins_with(COMPOSED):
+		# a composed picture (tools/rooms/compose.py) with no zones of its own
+		# yet: its room's flames, none of its zones — they were drawn on another picture
+		var base := rule(key.trim_prefix(COMPOSED))
+		if not base.is_empty():
+			base.zones = []
+		return base
 	if not rooms.has(key):
 		return {}
 	var room: Dictionary = rooms[key]
@@ -61,14 +70,21 @@ static func rule(key: String) -> Dictionary:
 	}
 
 
+## The key of a room's rule: its scene's name, or "composed/<name>" for a
+## room put together from several panels, whose picture is another one.
+static func room_key(room: Node2D) -> String:
+	var key := room.scene_file_path.get_file().get_basename()
+	return COMPOSED + key if str(room.get("painting_source")).contains("/levels/composed/") else key
+
+
 static func attach(room: Node2D) -> void:
 	var painting := painting_of(room)
 	if painting == null:
 		return
-	var materials := attach_picture(painting, room.scene_file_path.get_file().get_basename())
+	var materials := attach_picture(painting, room_key(room))
 	if materials.is_empty():
 		return
-	var found := rule(room.scene_file_path.get_file().get_basename())
+	var found := rule(room_key(room))
 	var windows := room.get_node_or_null("DepthWindows")
 	if windows != null:
 		for child in windows.get_children():

@@ -99,6 +99,7 @@ function trackChange(m) {
   h.r = []; h.last = snap; h.t = now;
 }
 function undoRedo(redo) {
+  if (mode === 'comp' && typeof compUndo === 'function') return compUndo(redo);  // the composer keeps its own steps
   const h = history[mode];
   if (!h) return toast('Открой редактор для отмены изменений');
   const from = redo ? h.r : h.u; if (!from.length) return toast(redo ? 'Нечего возвращать' : 'Нечего отменять');

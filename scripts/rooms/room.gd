@@ -32,6 +32,10 @@ const ROOM_LAYERS := preload("res://scripts/rooms/room_layers.gd")
 @export var painting_source := ""
 ## Pixel offset of the inpainted far plate per pixel of horizontal camera travel.
 @export var depth_parallax := 0.0
+## A composed room's openings say themselves how far each lies (empty: the
+## painted room's, by number, in RoomLayers) and which of them are sky.
+@export var window_depths := PackedFloat32Array()
+@export var sky_windows := PackedInt32Array([1])
 
 @export var waves_json := "[]"
 var _waves: Array = []
