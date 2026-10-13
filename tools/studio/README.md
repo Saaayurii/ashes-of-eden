@@ -132,7 +132,10 @@ keep the kinds in step with `ActionFx.emit`.
 read from the script, the bodies of «Частицы» with their material). The preview
 is a port of `gore.gd` — drops, marks, the pool, `Gore.cut` on the frame the body
 died in (every way of `cuts`, ragged lines, `Gore.pick_cut`), `GorePiece`'s bounce,
-stand-and-topple and stump jets, shaded drops, clots and the three kinds of mark:
+stand-and-topple and stump jets, shaded drops, clots and the three kinds of mark,
+and where blood lands (`goreHitStage`: a ledge, a wall ending in the air, the sky's
+opening in a brick backdrop — splash, edge drips, wall runs, back splats, mist,
+and `soak` drawn with `multiply` as the `Soak` node does):
 change one, change the other. `goreText` writes the
 file one line per table, byte-identical when nothing changed (`tests/gore.test.js`).
 
@@ -405,6 +408,12 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     обрубок. «Как рвётся» — веса способов: на куски, голова прочь, пополам,
     рука прочь; линии разреза рваные, что осталось стоять — стоит миг и
     валится по удару. «В превью» показывает один способ, не по весам.
+    «Где ложится»: впитывание в текстуру (сквозь пятно видна кладка), брызги
+    от упавшей капли, потёки по стене, как стекает с края уступа и капает с
+    потолка, доля капель, что летят «на фон» и липнут к нарисованной стене
+    (не к небу и не к проёмам); морось — в «Ударе». Пятно не заходит за
+    край того, на чём лежит. Сцена превью — кирпичная стена с проёмом неба,
+    висячий уступ и стена, обрывающаяся в воздухе.
     «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу».
     Игрок может убавить или выключить кровь: Настройки → Кровь.
 22. **Конструктор** — большая комната из нескольких картин 1280×720 сеткой

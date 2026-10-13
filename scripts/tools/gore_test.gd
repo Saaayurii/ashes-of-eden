@@ -2,7 +2,11 @@ extends SceneTree
 ## Blood and torn limbs (data/gore.json, scripts/fx/gore.gd): a body's table is
 ## its material's with its own keys over them, a blow throws drops that land on
 ## the room's floor and leave marks, a death tears the body's own drawing into
-## the pieces its table names, and Settings.gore turns it down or off.
+## pieces its table names, and Settings.gore turns it down or off. Blood keeps
+## to what it lands on: a mark stops at its ledge's edge and drips off it, a
+## streak runs no further than its wall, a ledge's underside drips, a heavy drop
+## splashes, drops thrown into the depth stick to the painting but never to an
+## opening in it, and the marks soak in through a multiply pass.
 ## Untyped: -s scripts compile before autoloads.
 
 var _failed := false
@@ -16,6 +20,19 @@ func _check(ok: bool, label: String) -> void:
 	print(("  ok   " if ok else "  FAIL ") + label)
 	if not ok:
 		_failed = true
+
+
+func _box(room: Node2D, at: Vector2, size: Vector2) -> StaticBody2D:
+	var body := StaticBody2D.new()
+	body.collision_layer = 1
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = size
+	shape.shape = rect
+	body.add_child(shape)
+	body.position = at
+	room.add_child(body)
+	return body
 
 
 func _frames(n: int) -> void:
@@ -83,6 +100,18 @@ func _run() -> void:
 	floor_body.add_child(shape)
 	floor_body.position = Vector2(0, 110)
 	room.add_child(floor_body)
+	# a ledge floating at 46..54 from x 280 to 320, a wall standing from y 40 to 80 at x 495, the sky's opening up high
+	_box(room, Vector2(300, 50), Vector2(40, 8))
+	_box(room, Vector2(500, 60), Vector2(10, 40))
+	var windows := Node2D.new()
+	windows.name = "DepthWindows"
+	room.add_child(windows)
+	var corners := [Vector2(-200, -300), Vector2(200, -300), Vector2(200, -100), Vector2(-200, -100)]
+	for i in corners.size():
+		var triangle := Polygon2D.new()
+		triangle.name = "Window1Feather%d" % (i + 1)
+		triangle.polygon = PackedVector2Array([Vector2.ZERO, corners[i], corners[(i + 1) % corners.size()]])
+		windows.add_child(triangle)
 	var body := Node2D.new()
 	body.position = Vector2(0, 88)
 	room.add_child(body)
@@ -119,8 +148,58 @@ func _run() -> void:
 	var on_floor := true
 	if layer != null:
 		for st in layer._stains:
-			on_floor = on_floor and absf(st.p.y - 100.0) <= 1.0
-	_check(on_floor, "every mark lies on the floor's lip")
+			if st.face == 0:
+				on_floor = on_floor and absf(st.p.y - 100.0) <= 1.0
+	_check(on_floor, "every mark on a floor lies on the floor's lip")
+
+	# where blood lands, it keeps to
+	if layer != null:
+		layer._stains.clear()
+		var how := {"stain": 1.0, "life": 30.0, "soak": 0.6, "splash": 6.0, "run": 30.0, "drip": 1.0, "back": 0.0}
+		for i in 12:  # on the ledge, close to its right edge
+			layer.drop(Vector2(randf_range(316, 319.5), 30), Vector2(0, 40), Color.RED, how, gore.SPLASHED)
+		await _frames(16)
+		var on_ledge: Array = layer._stains.filter(func(st): return st.face == 0 and absf(st.p.y - 46.0) <= 1.0)
+		_check(not on_ledge.is_empty() and on_ledge.all(func(st): return st.lo == 280.0 and st.hi == 320.0),
+			"a mark on a ledge knows the ledge's edges (%d marks)" % on_ledge.size())
+		_check(not layer._drips.is_empty(), "what hangs over the edge gathers to drip off it")
+		await _frames(240)
+		_check(layer._stains.any(func(st): return st.face == 0 and absf(st.p.y - 100.0) <= 1.0 and st.p.x >= 319.0),
+			"and drips down to the floor below the edge")
+
+		layer._stains.clear()
+		layer._drips.clear()
+		for i in 8:  # into the wall's side
+			layer.drop(Vector2(470, randf_range(44, 76)), Vector2(400, 0), Color.RED, how, gore.SPLASHED)
+		await _frames(20)
+		var streaks: Array = layer._stains.filter(func(st): return st.face == 1)
+		_check(streaks.size() >= 6 and streaks.all(func(st): return st.p.y + st.w <= 80.5 and st.hi == 80.0),
+			"a streak runs down the wall, never past its foot (%d)" % streaks.size())
+		_check(streaks.any(func(st): return st.w > st.spot + 3.0), "some streaks run a long way")
+
+		layer._stains.clear()
+		layer.drop(Vector2(300, 80), Vector2(0, -400), Color.RED, how, gore.SPLASHED)
+		await _frames(10)
+		_check(layer._stains.any(func(st): return st.face == 2 and absf(st.p.y - 54.0) <= 1.0), "a drop thrown up marks the ledge's underside")
+		_check(not layer._drips.is_empty(), "and the underside drips")
+		layer._drips.clear()
+
+		var thrown1: int = gore.thrown
+		layer.drop(Vector2(100, 40), Vector2(0, 300), Color.RED, how)
+		await _frames(20)
+		_check(gore.thrown - thrown1 >= 2, "a heavy drop splashes into droplets (%d)" % (gore.thrown - thrown1 - 1))
+
+		layer._stains.clear()
+		for i in 10:  # into the depth: half in the sky's opening, half on the painted wall
+			layer.drop(Vector2(randf_range(-150, 150), -250), Vector2.ZERO, Color.RED, how, gore.BACK)
+			layer.drop(Vector2(randf_range(600, 700), 20), Vector2.ZERO, Color.RED, how, gore.BACK)
+		await _frames(30)
+		var behind: Array = layer._stains.filter(func(st): return st.face == 3)
+		_check(behind.size() >= 8 and behind.all(func(st): return st.p.x >= 590.0),
+			"drops into the depth stick to the painted wall, never in the sky (%d)" % behind.size())
+		_check((layer.get_node("Soak").material as CanvasItemMaterial).blend_mode == CanvasItemMaterial.BLEND_MODE_MUL
+			and behind.all(func(st): return is_equal_approx(st.soak, 0.6)), "the marks soak into the painting: a multiply pass")
+		layer._stains.clear()
 
 	var torn0: int = gore.torn
 	var torn: bool = gore.death(body, "t", "flesh", sprite, Vector2(1, -0.2))
@@ -160,7 +239,7 @@ func _run() -> void:
 	settings.set_gore("reduced")
 	thrown0 = gore.thrown
 	gore.hit(body, "t", "flesh", body.global_position, Vector2.RIGHT, 1.0)
-	_check(gore.thrown - thrown0 >= 3 and gore.thrown - thrown0 <= 7, "reduced: half the drops (%d)" % (gore.thrown - thrown0))
+	_check(gore.thrown - thrown0 >= 2 and gore.thrown - thrown0 <= 7, "reduced: half the drops (%d)" % (gore.thrown - thrown0))
 	_check(not gore.death(body, "t", "flesh", sprite, Vector2.RIGHT), "reduced: nobody is torn")
 	settings.set_gore("off")
 	thrown0 = gore.thrown

@@ -5,7 +5,12 @@
  * wound drips, a death throws a gush and grows a pool, and a body that can be torn is cut
  * into pieces of its own drawing — to pieces, the head off, in half or an arm off, the line ragged, what is
  * left standing a beat before it topples, a stump jetting in pulses. Drops and marks each take their own
- * shade; marks are smears, splats or broken trails. Change one, change the other. */
+ * shade; marks are smears, splats or broken trails. Blood keeps to what it lands on: a mark stops at its
+ * ledge's edge and what hangs over drips off, a streak runs down a wall no further than the wall goes, a
+ * ledge's underside drips, a heavy drop splashes, some drops fly into the depth and stick to the painted wall
+ * behind (never in the sky's opening), a mist hangs a moment, and the marks soak into the picture under them
+ * (a multiply pass, as the Soak node does). The stage has all of it: a brick wall with an opening, a ledge,
+ * a wall that ends in the air. Change one, change the other. */
 'use strict';
 
 const GORE_KEYS = {
@@ -15,6 +20,12 @@ const GORE_KEYS = {
   spray: ['Скорость брызг, px/с', 0, 400, 5],
   stain: ['Размер пятен (0 — без пятен)', 0, 3, 0.05],
   stain_life: ['Пятна держатся, с', 0, 120, 1],
+  mist: ['Морось от удара (без пятен)', 0, 20, 1],
+  soak: ['Впитывается в текстуру (0 — лежит сверху)', 0, 1, 0.05],
+  splash: ['Брызги от упавшей капли', 0, 6, 1],
+  run: ['Потёки по стене, px', 0, 40, 1],
+  drip: ['Стекает с края, капает с потолка', 0, 1, 0.05],
+  back: ['Доля капель на фон (не в небо и проёмы)', 0, 0.6, 0.01],
   bleed: ['Рана кровоточит, с', 0, 5, 0.1],
   gush: ['Капель при смерти', 0, 80, 1],
   pool: ['Лужа под телом, px (0 — нет)', 0, 60, 1],
@@ -29,7 +40,9 @@ const GORE_RAGGED = 0.07;
 const GORE_MATERIAL = { flesh: 'плоть', cloth: 'ткань', mail: 'кольчуга', plate: 'латы', bone: 'кость', feather: 'перья', spirit: 'дух', gold: 'золото' };
 const GORE_CUT = { 2: 'верх и низ', 3: 'голова, тело, ноги', 4: 'голова, тело, две ноги', 5: 'голова, тело, руки, ноги', 6: 'голова, тело, руки, две ноги' };
 const GORE_G = 560, PIECE_G = 620, BOUNCE = 0.32, LIE = 14, FADE = 1.2, TOPPLE = 22;
-const GORE = { data: null, work: null, body: 0, scope: 'mat', drops: [], stains: [], pieces: [], wound: 0, drip: 0, clock: 0, last: 0, raf: 0,
+/* Gore's drop flags: thrown off another (no splash again), a speck of mist (no mark), bound for the wall behind */
+const SPLASHED = 1, MISTY = 2, BACK = 4, SPLASH_SPEED = 120;
+const GORE = { data: null, work: null, body: 0, scope: 'mat', drops: [], stains: [], drips: [], pieces: [], wound: 0, drip: 0, clock: 0, last: 0, raf: 0,
   state: 'idle', stateT: 0, way: 'any', hidden: false, auto: 0, step: 0, bounds: new Map() };
 
 /* ---------- the table: a material's keys, then the body's own ---------- */
@@ -97,7 +110,7 @@ function goreProblems(work, keys) {
   }
   return out;
 }
-if (typeof module !== 'undefined') module.exports = { goreSpec, goreText, goreCut, gorePickCut, goreProblems };
+if (typeof module !== 'undefined') module.exports = { goreSpec, goreText, goreCut, gorePickCut, goreProblems, goreStage, goreInk, goreDrop, goreMark, goreStep, GORE, SPLASHED, MISTY, BACK };
 
 /* ---------- the studio ---------- */
 async function goreLoad() {
@@ -119,7 +132,14 @@ const goreRgba = (c, a = 1, dark = 0) => `rgba(${Math.round(c[0] * (1 - dark))},
 const rnd = (lo, hi) => lo + Math.random() * (hi - lo);
 
 /* where the body stands and what it draws (shots.js drawBody) */
-function goreStage(W, H) { const ground = Math.round(H * 0.72); return { ground, wall: W - 26, origin: [Math.round(W * 0.38), ground - 11] }; }
+/* the floor; a ledge floating over it (top and underside, x from–to); a wall on the right whose foot ends in
+ * the air; the sky's opening in the painted wall behind, where nothing sticks */
+function goreStage(W, H) {
+  const ground = Math.round(H * 0.72), wall = W - 26;
+  return { ground, wall, foot: ground - 22, origin: [Math.round(W * 0.38), ground - 11],
+    ledge: { x0: Math.round(W * 0.56), x1: Math.round(W * 0.72), top: ground - 36, bottom: ground - 30 },
+    opening: [Math.round(W * 0.05), Math.round(H * 0.08), Math.round(W * 0.24), Math.round(H * 0.3)] };
+}
 function goreFrame(b, anim) {
   const name = b.body.anims[anim] ? anim : 'idle', url = b.body.anims[name], im = shotStrip(url); if (!im) return null;
   const [cw, ch] = b.body.cell, frames = Math.max(1, Math.floor(im.width / cw)), fps = b.body.fps_of?.[name] || b.body.fps || 8;
@@ -146,27 +166,62 @@ function goreShaded(c, amount) {
   const k = rnd(-amount, amount);
   return k < 0 ? [c[0] * (1 + k), c[1] * (1 + k), c[2] * (1 + k), c[3]] : [c[0] + (255 - c[0]) * k * 0.6, c[1] + (255 - c[1]) * k * 0.6, c[2] + (255 - c[2]) * k * 0.6, c[3]];
 }
-function goreDrop(x, y, vx, vy, c, stain, life) { if (GORE.drops.length > 260) GORE.drops.shift(); GORE.drops.push({ x, y, vx, vy, c, stain, life, age: 0, px: Math.random() < 0.18 ? 2 : 1 }); }
-/* every blow its own tilt; now and then the spray breaks into a jet and a mist */
+/* Gore.ink: what a drop carries of its body's table */
+function goreInk(s, size = 1) {
+  return { stain: (+s.stain || 0) * size, life: +s.stain_life || 0, soak: +s.soak || 0, splash: +s.splash || 0, run: +s.run || 0, drip: +s.drip || 0, back: +s.back || 0 };
+}
+function goreDrop(x, y, vx, vy, c, ink, flags = 0) {
+  if (GORE.drops.length > 260) GORE.drops.shift();
+  if (!flags && Math.random() < ink.back) flags = BACK;
+  GORE.drops.push({ x, y, vx, vy, c, ink, age: 0, px: !(flags & (SPLASHED | MISTY)) && Math.random() < 0.18 ? 2 : 1, flags, lands: rnd(0.06, 0.32), fade: rnd(0.25, 0.7) });
+}
+/* every blow its own tilt; now and then the spray breaks into a jet; a fine mist hangs round it */
 function goreSpray(x, y, dir, count, s, spread) {
-  const len = Math.hypot(dir[0], dir[1]) || 1, a0 = Math.atan2(dir[1] / len, dir[0] / len) + rnd(-0.22, 0.22), speed = +s.spray * rnd(0.85, 1.15), jet = Math.random() < 0.35, c = goreColor(s.blood);
+  const len = Math.hypot(dir[0], dir[1]) || 1, a0 = Math.atan2(dir[1] / len, dir[0] / len) + rnd(-0.22, 0.22), speed = +s.spray * rnd(0.85, 1.15), jet = Math.random() < 0.35, c = goreColor(s.blood), ink = goreInk(s);
   for (let i = 0; i < count; i++) {
-    const inJet = jet && i < count / 3, fan = spread * (inJet ? 0.25 : 1), a = a0 + rnd(-fan, fan) * Math.PI / 180, v = speed * (inJet ? rnd(0.9, 1.35) : rnd(0.3, 1.15));
-    goreDrop(x + rnd(-3, 3), y + rnd(-3, 3), Math.cos(a) * v, Math.sin(a) * v - rnd(10, 60), goreShaded(c, +s.shade || 0), +s.stain, +s.stain_life);
+    const inJet = jet && i < count / 3, fan = spread * (inJet ? 0.25 : 1), a = a0 + rnd(-fan, fan) * Math.PI / 180, v = speed * (inJet ? rnd(0.9, 1.35) : rnd(0.3, 1.1));
+    goreDrop(x + rnd(-3, 3), y + rnd(-3, 3), Math.cos(a) * v, Math.sin(a) * v - rnd(10, 60), goreShaded(c, +s.shade || 0), ink);
+  }
+  const faint = [c[0], c[1], c[2], c[3] * 0.45];
+  for (let i = 0, n = Math.round((+s.mist || 0) * Math.min(2, Math.max(0.5, count / Math.max(+s.drops, 1)))); i < n; i++) {
+    const a = a0 + rnd(-spread, spread) * 1.4 * Math.PI / 180, v = speed * rnd(0.1, 0.45);
+    goreDrop(x + rnd(-4, 4), y + rnd(-4, 4), Math.cos(a) * v, Math.sin(a) * v, goreShaded(faint, +s.shade || 0), ink, MISTY);
   }
 }
-/* kind: 0 a smear, 1 a splat with spatter, 2 a broken trail (-1 picks); a wall streak runs on slowly, some further */
-function goreMark(x, y, w, wall, c, life, grow = 0.25, kind = -1) {
-  if (w < 0.5 || life <= 0) return; if (GORE.stains.length > 520) GORE.stains.shift();
+/* Gore.mark. face: 0 a floor, 1 a wall (runs down by the ink's `run`, never past the wall's foot), 2 under a
+ * ledge (drips), 3 the painted wall behind. kind: 0 a smear, 1 a splat, 2 a broken trail (-1 picks).
+ * span: the surface it lies on — not drawn past it; what a floor mark reaches over the edge with drips off */
+function goreMark(x, y, w, face, c, ink, grow = 0.25, kind = -1, span = [-Infinity, Infinity]) {
+  const life = ink.life; if (w < 0.5 || life <= 0) return; if (GORE.stains.length > 520) GORE.stains.shift();
   if (kind < 0) kind = [0, 0, 1, 2][Math.floor(Math.random() * 4)];
-  if (wall) { w *= rnd(0.7, 1.8); grow = Math.max(grow, rnd(0.3, 1.8)); }
-  GORE.stains.push({ x: Math.round(x), y: Math.round(y), w, wall, c, born: GORE.clock, grow, life: life * rnd(0.8, 1.2), seed: Math.random(), kind });
+  x = Math.round(x); y = Math.round(y);
+  let length = w;
+  if (face === 1 || face === 3) {
+    length = w * rnd(0.7, 1.4) + ink.run * rnd(0.2, 1.2) * (face === 3 ? 0.4 : 1);
+    if (face === 1) length = Math.min(length, span[1] - y);
+    grow = Math.max(grow, length / rnd(6, 16));
+  } else if (face === 0 && isFinite(span[0])) {
+    for (const edge of span) if (Math.abs(x - edge) < Math.max(w * 0.6, 2) && Math.random() < 0.35 + ink.drip) goreDripFrom(edge + (edge === span[0] ? -0.5 : 0.5), y, c, ink, 1 + Math.floor(Math.random() * 3));
+  } else if (face === 2 && Math.random() < ink.drip * 2) goreDripFrom(x, y + 1, c, ink, 1 + Math.floor(Math.random() * 4));
+  GORE.stains.push({ x, y, w: length, spot: w, face, c, born: GORE.clock, grow, life: life * rnd(0.8, 1.2), seed: Math.random(), kind, soak: ink.soak, lo: span[0], hi: span[1] });
 }
-function gorePool(x, y, s) {
-  const c = goreColor(s.blood).map((v, i) => i < 3 ? v * 0.85 : v), shade = (+s.shade || 0) * 0.5, w = +s.pool;
-  goreMark(x, y, w * rnd(0.8, 1.2), false, goreShaded(c, shade), +s.stain_life * 1.4, rnd(1.2, 2.2), 0);
-  for (let i = 0, n = 1 + Math.floor(Math.random() * 3); i < n; i++) goreMark(x + rnd(-w, w) * 0.6, y, w * rnd(0.25, 0.5), false, goreShaded(c, shade), +s.stain_life, rnd(0.8, 2.6), 0);
+function goreDripFrom(x, y, c, ink, left) { if (GORE.drips.length >= 40) GORE.drips.shift(); GORE.drips.push({ x, y, c, ink, left, tick: rnd(0.2, 0.9) }); }
+function gorePool(x, y, s, st) {
+  const c = goreColor(s.blood).map((v, i) => i < 3 ? v * 0.85 : v), shade = (+s.shade || 0) * 0.5, w = +s.pool, span = [-Infinity, Infinity], ink = goreInk(s);
+  goreMark(x, y, w * rnd(0.8, 1.2), 0, goreShaded(c, shade), { ...ink, life: +s.stain_life * 1.4 }, rnd(1.2, 2.2), 0, span);
+  for (let i = 0, n = 1 + Math.floor(Math.random() * 3); i < n; i++) goreMark(x + rnd(-w, w) * 0.6, y, w * rnd(0.25, 0.5), 0, goreShaded(c, shade), ink, rnd(0.8, 2.6), 0, span);
 }
+/* where a drop going from (x, y) to (nx, ny) meets the stage: [x, y, face (0 floor / 1 wall / 2 underside), span] */
+function goreHitStage(x, y, nx, ny, st) {
+  const L = st.ledge;
+  if (nx >= st.wall && x < st.wall) { const at = y + (ny - y) * (st.wall - x) / ((nx - x) || 1); if (at < st.foot) return [st.wall, at, 1, [0, st.foot]]; }
+  if (ny < y && y >= st.foot && ny < st.foot && nx >= st.wall) return [nx, st.foot, 2, [st.wall, Infinity]];
+  if (ny > y && y <= L.top && ny >= L.top && nx >= L.x0 && nx <= L.x1) return [nx, L.top, 0, [L.x0, L.x1]];
+  if (ny < y && y >= L.bottom && ny <= L.bottom && nx >= L.x0 && nx <= L.x1) return [nx, L.bottom, 2, [L.x0, L.x1]];
+  if (ny > y && ny >= st.ground) return [nx, st.ground, 0, [-Infinity, Infinity]];
+  return null;
+}
+const goreInOpening = (x, y, st) => x >= st.opening[0] && x <= st.opening[0] + st.opening[2] && y >= st.opening[1] && y <= st.opening[1] + st.opening[3];
 function goreHit(crit) {
   const s = goreNow(), st = goreStage(GORE.W, GORE.H), back = $('#goreBack').checked;
   const weight = 1 + (crit ? 0.6 : 0) + (back ? 1 : 0) + 0.3;
@@ -177,7 +232,7 @@ function goreHit(crit) {
 function goreDeath() {
   const s = goreNow(), st = goreStage(GORE.W, GORE.H), b = goreBody(), violent = $('#goreBack').checked, away = [1, -0.2];
   goreSpray(st.origin[0], st.origin[1] - 10, [away[0], away[1] + rnd(-0.9, -0.3)], Math.round(+s.gush * rnd(0.75, 1.25)), s, rnd(55, 90));
-  if (+s.pool > 0) gorePool(st.origin[0], st.ground, s);
+  if (+s.pool > 0) gorePool(st.origin[0], st.ground, s, st);
   const f = goreFrame(b, GORE.state === 'hurt' ? 'hurt' : 'idle'), limbs = +s.limbs;
   const torn = !b.boss && f && limbs >= 2 && ($('#goreAlways').checked || Math.random() < +s.chance * (violent ? 2 : 1));
   const way = torn ? (GORE.way && GORE.way !== 'any' ? (GORE.way === 'limb' && limbs < 5 ? 'head' : GORE.way) : gorePickCut(s.cuts, limbs)) : '';
@@ -217,7 +272,7 @@ const goreReach = p => { const c = Math.abs(Math.cos(p.rot)), s = Math.abs(Math.
 const goreTurn = (p, v) => [(v[0] * Math.cos(p.rot) - v[1] * Math.sin(p.rot)), (v[0] * Math.sin(p.rot) + v[1] * Math.cos(p.rot))];
 function gorePieceBleed(p, dt) {
   const s = p.s, shade = +s.shade || 0, root = p.stump ? goreTurn(p, [p.stump.at[0] * p.sc, p.stump.at[1] * p.sc]).map((v, i) => v + (i ? p.y : p.x)) : [p.x, p.y];
-  if (p.bleed > 0) { p.bleed -= dt; p.drip -= dt; if (p.drip <= 0) { p.drip = (p.rest ? 0.22 : 0.05) * rnd(0.6, 1.5); goreDrop(root[0], root[1], rnd(-20, 20) - p.vx * 0.1, rnd(-30, 10) - p.vy * 0.1, goreShaded(p.c, shade), +s.stain * 0.8, +s.stain_life); } }
+  if (p.bleed > 0) { p.bleed -= dt; p.drip -= dt; if (p.drip <= 0) { p.drip = (p.rest ? 0.22 : 0.05) * rnd(0.6, 1.5); goreDrop(root[0], root[1], rnd(-20, 20) - p.vx * 0.1, rnd(-30, 10) - p.vy * 0.1, goreShaded(p.c, shade), goreInk(s, 0.8)); } }
   if (p.spurt <= 0) return;
   p.spurt -= dt; p.pulse -= dt; if (p.pulse > 0) return;
   // a heartbeat that weakens: each pulse a jet of a few drops out of the stump
@@ -225,7 +280,7 @@ function gorePieceBleed(p, dt) {
   p.pulse = rnd(0.14, 0.26) / (0.6 + strength * 0.4);
   for (let i = 0, n = 2 + Math.floor(Math.random() * 3); i < n; i++) {
     const a = rnd(-0.25, 0.25), v = rnd(80, 170) * strength;
-    goreDrop(root[0], root[1], (dir[0] * Math.cos(a) - dir[1] * Math.sin(a)) * v + p.vx * 0.5, (dir[0] * Math.sin(a) + dir[1] * Math.cos(a)) * v + p.vy * 0.5, goreShaded(p.c, shade), +s.stain * 0.9, +s.stain_life);
+    goreDrop(root[0], root[1], (dir[0] * Math.cos(a) - dir[1] * Math.sin(a)) * v + p.vx * 0.5, (dir[0] * Math.sin(a) + dir[1] * Math.cos(a)) * v + p.vy * 0.5, goreShaded(p.c, shade), goreInk(s, 0.9));
   }
 }
 function gorePieceStep(p, dt, st) {
@@ -237,52 +292,87 @@ function gorePieceStep(p, dt, st) {
   if (p.target === null || p.spin !== 0) p.rot += p.spin * dt;
   p.x += p.vx * dt; p.y += p.vy * dt;
   const [rx, ry] = goreReach(p), shade = +p.s.shade || 0;
-  if (p.x + rx >= st.wall && p.vx > 0) { p.x = st.wall - rx; goreMark(st.wall, p.y, rnd(2, 4.5) * +p.s.stain, true, goreShaded(p.c, shade), +p.s.stain_life); p.vx = -p.vx * BOUNCE; p.spin = -p.spin; }
+  if (p.x + rx >= st.wall && p.vx > 0) { p.x = st.wall - rx; goreMark(st.wall, p.y, rnd(2, 4.5) * +p.s.stain, p.y < st.foot ? 1 : 3, goreShaded(p.c, shade), goreInk(p.s), 0.25, -1, [0, st.foot]); p.vx = -p.vx * BOUNCE; p.spin = -p.spin; }
   if (p.y + ry >= st.ground && p.vy > 0) {
-    p.y = st.ground - ry; goreMark(p.x, st.ground, rnd(2, 4.5) * +p.s.stain, false, goreShaded(p.c, shade), +p.s.stain_life);
+    p.y = st.ground - ry; goreMark(p.x, st.ground, rnd(2, 4.5) * +p.s.stain, 0, goreShaded(p.c, shade), goreInk(p.s));
     p.vx *= rnd(0.4, 0.65); p.vy = -Math.abs(p.vy) * BOUNCE * rnd(0.7, 1.2); p.spin *= rnd(0.3, 0.6);
     if (Math.abs(p.vy) < 40) { p.vx = p.vy = 0; p.rest = true; p.floor = st.ground; if (p.target === null) p.target = Math.round(p.rot / (Math.PI / 2)) * Math.PI / 2; p.spin = 0; }
   }
 }
 function goreStep(dt, st) {
+  for (const dr of GORE.drips) { dr.tick -= dt; if (dr.tick <= 0) { goreDrop(dr.x, dr.y, rnd(-3, 3), rnd(0, 20), dr.c, dr.ink, SPLASHED); dr.left--; dr.tick = rnd(0.35, 1.4); } }
+  GORE.drips = GORE.drips.filter(dr => dr.left > 0);
+  const born = [];
   GORE.drops = GORE.drops.filter(d => {
-    d.vy += GORE_G * dt; d.vx *= 1 - 0.6 * dt; d.age += dt;
+    const misty = d.flags & MISTY;
+    d.vy += GORE_G * dt * (misty ? 0.35 : 1); d.vx *= 1 - (misty ? 3 : 0.6) * dt; d.age += dt;
     const nx = d.x + d.vx * dt, ny = d.y + d.vy * dt;
-    if (nx >= st.wall && d.x < st.wall) { goreMark(st.wall, d.y, rnd(2, 5) * d.stain * d.px, true, d.c, d.life); return false; }
-    if (d.vy > 0 && ny >= st.ground && nx < st.wall) { goreMark(nx, st.ground, rnd(1, 3.5) * d.stain * d.px, false, d.c, d.life); return false; }
+    if (misty) { d.x = nx; d.y = ny; return d.age < d.fade; }
+    if (d.flags & BACK && d.age >= d.lands) {   // flew into the depth and met the painted wall behind
+      if (!goreInOpening(d.x, d.y, st)) goreMark(d.x, d.y, rnd(1, 2.5) * d.ink.stain * d.px, 3, d.c, d.ink, 0.25, [1, 1, 0][Math.floor(Math.random() * 3)]);
+      return false;
+    }
+    const hit = d.flags & BACK ? null : goreHitStage(d.x, d.y, nx, ny, st);
+    if (hit) {
+      const [hx, hy, face, span] = hit, size = d.ink.stain * d.px * (d.flags & SPLASHED ? 0.5 : 1);
+      goreMark(hx, hy, (face === 1 ? rnd(1, 2.5) : face === 2 ? rnd(1, 2) : rnd(1, 3.5)) * size, face, d.c, d.ink, 0.25, face === 2 ? 0 : -1, span);
+      const speed = Math.hypot(d.vx, d.vy);
+      if (face === 0 && !(d.flags & SPLASHED) && speed > SPLASH_SPEED) {   // a heavy drop splashes back up
+        const force = Math.min(1, Math.max(0.3, speed / 320));
+        for (let i = 0, n = Math.round(d.ink.splash * rnd(0.3, 1.3) * force); i < n; i++) born.push([hx, hy - 1, rnd(-55, 55) + d.vx * 0.2, -rnd(35, 95) * force, d.c, d.ink]);
+      }
+      return false;
+    }
     d.x = nx; d.y = ny; return d.age < 4;
   });
-  if (GORE.wound > 0) { GORE.wound -= dt; GORE.drip -= dt; if (GORE.drip <= 0 && !GORE.hidden) { GORE.drip = rnd(0.07, 0.16); const s = goreNow(); goreDrop(st.origin[0] - 4 + rnd(-3, 3), st.origin[1] - 10, rnd(-15, 15), rnd(-10, 20), goreShaded(goreColor(s.blood), +s.shade || 0), +s.stain * 0.7, +s.stain_life); } }
+  for (const b of born) goreDrop(b[0], b[1], b[2], b[3], b[4], b[5], SPLASHED);
+  if (GORE.wound > 0) { GORE.wound -= dt; GORE.drip -= dt; if (GORE.drip <= 0 && !GORE.hidden) { GORE.drip = rnd(0.07, 0.16); const s = goreNow(); goreDrop(st.origin[0] - 4 + rnd(-3, 3), st.origin[1] - 10, rnd(-15, 15), rnd(-10, 20), goreShaded(goreColor(s.blood), +s.shade || 0), goreInk(s, 0.7)); } }
   for (const p of GORE.pieces) gorePieceStep(p, dt, st);
   GORE.pieces = GORE.pieces.filter(p => p.lain < LIE + FADE && p.air < 5);
   GORE.stains = GORE.stains.filter(s => GORE.clock - s.born < s.life);
 }
-function goreDraw(x, st) {
+/* Gore._paint: every mark as it lies (less what soaked in), or soaked — the share that sank in, multiplied
+ * into the picture under it (white changes nothing) */
+function gorePaint(x, soaked) {
+  if (soaked) x.globalCompositeOperation = 'multiply';
   for (const s of GORE.stains) {
-    const age = GORE.clock - s.born, g = Math.min(1, age / Math.max(s.grow, 0.01)), grown = 1 - (1 - g) * (1 - g), a = Math.min(1, Math.max(0, (s.life - age) / 3)), w = Math.max(1, Math.round(s.w * grown));
+    const age = GORE.clock - s.born, g = Math.min(1, age / Math.max(s.grow, 0.01)), grown = 1 - (1 - g) * (1 - g), fade = Math.min(1, Math.max(0, (s.life - age) / 3)), w = Math.max(1, Math.round(s.w * grown));
+    if (soaked && !(s.soak > 0)) continue;
+    const k = soaked ? s.soak * s.c[3] * fade : 0, a = soaked ? 1 : fade * (1 - s.soak * 0.85);
+    if (!soaked && a <= 0.01) continue;
+    const col = soaked ? [255 + (s.c[0] - 255) * k, 255 + (s.c[1] - 255) * k, 255 + (s.c[2] - 255) * k, 1] : s.c;
     let seed = Math.floor(s.seed * 1e4); const r = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-    const dot = (px, py, pw, ph, dark = 0) => { x.fillStyle = goreRgba(s.c, a, dark); x.fillRect(px, py, pw, ph); };
-    if (s.wall) {   // a streak running down, a drop gathering at its end; some fork
+    const dot = (px, py, pw, ph, dark = 0) => { x.fillStyle = goreRgba(col, a, dark); x.fillRect(px, py, pw, ph); };
+    const span = (px, py, pw, ph, dark = 0) => { const l = Math.max(px, s.lo), rr = Math.min(px + pw, s.hi); if (rr > l) dot(l, py, rr - l, ph, dark); };
+    if (s.face === 1) {   // a streak running down, a drop gathering at its end; some fork
       dot(s.x - 1, s.y - 1, 1, w); if (w > 3) dot(s.x - 1, s.y + w - 1, 1, 1, 0.3);
       if (s.kind === 1 && w > 4) dot(s.x - 1 + (s.seed < 0.5 ? 1 : -1), s.y + Math.floor(w / 3), 1, Math.floor(w / 2), 0.1);
-      continue;
-    }
-    if (s.kind === 1) {   // a splat: a blot two rows deep and spatter round it
-      const rr = Math.max(1, Math.floor(w / 3)); dot(s.x - rr, s.y - 1, rr * 2, 1); dot(s.x - Math.floor(rr / 2), s.y - 2, Math.max(1, rr), 1, 0.15);
-      for (let k = 0; k < Math.max(2, Math.floor(w / 2)); k++) dot(Math.round(s.x + (r() * 2 - 1) * w), s.y - 1 - Math.round(r()), 1, 1);
+    } else if (s.face === 2) {   // under a ledge: a blot clinging on, a bead hanging off it
+      const rr = Math.max(1, Math.round(s.spot * grown)); span(s.x - Math.floor(rr / 2), s.y, rr, 1); if (rr >= 2) dot(s.x - Math.round(r()), s.y + 1, 1, 1, 0.25);
+    } else if (s.face === 3) {   // on the painted wall behind: a splat, its spatter, what runs down from it
+      const rr = Math.max(1, Math.floor(s.spot * 0.6)); dot(s.x - Math.floor(rr / 2), s.y - Math.floor(rr / 2), rr, rr);
+      for (let q = 0, n = 1 + Math.floor(r() * 3); q < n; q++) dot(s.x + Math.round(r() * 6 - 3), s.y + Math.round(r() * 5 - 3), 1, 1);
+      if (w > rr) { dot(s.x - Math.round(r() * Math.floor(rr / 2)), s.y, 1, w, 0.1); dot(s.x, s.y + w, 1, 1, 0.3); }
+    } else if (s.kind === 1) {   // a splat: a blot two rows deep and spatter round it
+      const rr = Math.max(1, Math.floor(w / 3)); span(s.x - rr, s.y - 1, rr * 2, 1); span(s.x - Math.floor(rr / 2), s.y - 2, Math.max(1, rr), 1, 0.15);
+      for (let q = 0; q < Math.max(2, Math.floor(w / 2)); q++) span(Math.round(s.x + (r() * 2 - 1) * w), s.y - 1 - Math.round(r()), 1, 1);
     } else if (s.kind === 2) {   // a broken trail: dashes along the lip
-      for (let at = s.x - Math.floor(w / 2); at < s.x + w / 2;) { const dash = 1 + Math.floor(r() * 3); dot(at, s.y - 1, dash, 1); at += dash + 1 + Math.floor(r() * 2); }
+      for (let at = s.x - Math.floor(w / 2); at < s.x + w / 2;) { const dash = 1 + Math.floor(r() * 3); span(at, s.y - 1, dash, 1); at += dash + 1 + Math.floor(r() * 2); }
     } else {   // a smear, thicker in the middle, a few spatters beside
-      dot(s.x - Math.floor(w / 2), s.y - 1, w, 1);
-      if (w >= 4) dot(s.x - Math.floor(w / 4), s.y - 2, Math.max(1, Math.floor(w / 2)), 1, 0.2);
-      if (w >= 7) for (let k = 0; k < Math.floor(w / 5); k++) dot(Math.round(s.x + (r() * 1.6 - 0.8) * w), s.y - 1 - Math.round(r()), 1, 1);
+      span(s.x - Math.floor(w / 2), s.y - 1, w, 1);
+      if (w >= 4) span(s.x - Math.floor(w / 4), s.y - 2, Math.max(1, Math.floor(w / 2)), 1, 0.2);
+      if (w >= 7) for (let q = 0; q < Math.floor(w / 5); q++) span(Math.round(s.x + (r() * 1.6 - 0.8) * w), s.y - 1 - Math.round(r()), 1, 1);
     }
   }
+  x.globalCompositeOperation = 'source-over';
+}
+function goreDraw(x, st) {
+  gorePaint(x, true); gorePaint(x, false);
   for (const p of GORE.pieces) {
     x.save(); x.globalAlpha = p.lain > LIE ? Math.max(0, 1 - (p.lain - LIE) / FADE) : 1; x.translate(Math.round(p.x), Math.round(p.y)); x.rotate(p.rot); x.scale(-1, 1);
     x.imageSmoothingEnabled = false; x.drawImage(p.im, p.sx, p.sy, p.sw, p.sh, -p.sw * p.sc / 2, -p.sh * p.sc / 2, p.sw * p.sc, p.sh * p.sc); x.restore();
   }
-  for (const d of GORE.drops) { x.fillStyle = goreRgba(d.c); x.fillRect(Math.round(d.x), Math.round(d.y), d.px, (Math.abs(d.vy) > 120 ? 2 : 1) + d.px - 1); }
+  for (const d of GORE.drops) { x.fillStyle = goreRgba(d.c, d.flags & BACK ? 1 - 0.5 * Math.min(1, d.age / d.lands) : 1); x.fillRect(Math.round(d.x), Math.round(d.y), d.px, (Math.abs(d.vy) > 120 ? 2 : 1) + d.px - 1); }
 }
 
 /* ---------- the stage ---------- */
@@ -295,8 +385,7 @@ function goreFrameLoop(now) {
   if ($('#goreAuto').checked) { GORE.auto -= dt; if (GORE.auto <= 0) { const beat = GORE.step++ % 6; if (beat < 2) goreHit(false); else if (beat === 2) goreHit(true); else if (beat === 3) goreDeath(); else if (beat === 5) goreRise(); GORE.auto = beat === 3 ? 2.6 : beat === 4 ? 0.6 : 0.7; } }
   if (GORE.state === 'hurt' && GORE.clock - GORE.stateT > 0.3) { GORE.state = 'idle'; GORE.stateT = GORE.clock; }
   goreStep(dt, st);
-  x.fillStyle = '#0f0d14'; x.fillRect(0, 0, W, H); x.fillStyle = '#1d1a24'; x.fillRect(0, st.ground, W, H); x.fillRect(st.wall, 0, W, st.ground);
-  x.fillStyle = '#2a2633'; x.fillRect(0, st.ground, st.wall, 1); x.fillRect(st.wall, 0, 1, st.ground);
+  goreBackdrop(x, W, H, st);
   if (!GORE.hidden) {
     const anim = GORE.state === 'death' ? (b.body.anims.death ? 'death' : 'hurt') : GORE.state === 'hurt' && b.body.anims.hurt ? 'hurt' : 'idle';
     const f = goreFrame(b, anim);
@@ -309,6 +398,25 @@ function goreFrameLoop(now) {
   x.fillStyle = '#cfd8e3'; x.font = '8px system-ui';
   x.fillText(`${b.name.ru || b.key} · ${GORE_MATERIAL[goreMat()] || goreMat()} · капель в воздухе ${GORE.drops.length}, пятен ${GORE.stains.length}, кусков ${GORE.pieces.length}`, 8, 14);
   GORE.raf = requestAnimationFrame(goreFrameLoop);
+}
+/* the painted wall behind (bricks, so a soaked mark shows the texture through it), the sky's opening, the
+ * ledge, the wall on the right ending in the air above the floor */
+function goreBackdrop(x, W, H, st) {
+  if (!GORE.wallArt || GORE.wallArt.width !== W || GORE.wallArt.height !== H) {
+    const c = GORE.wallArt = mk(W, H), b = c.getContext('2d'); let seed = 7; const r = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    b.fillStyle = '#4a4250'; b.fillRect(0, 0, W, H);
+    for (let row = 0, y = 0; y < st.ground; row++, y += 7) for (let xx = row % 2 ? -8 : 0; xx < W; xx += 16) {
+      const v = 70 + Math.floor(r() * 26); b.fillStyle = `rgb(${v},${v - 8},${v + 4})`; b.fillRect(xx + 1, y + 1, 15, 6);
+      if (r() < 0.25) { b.fillStyle = `rgb(${v - 18},${v - 24},${v - 14})`; b.fillRect(xx + 2 + Math.floor(r() * 12), y + 2 + Math.floor(r() * 3), 2, 1); }
+    }
+    const [ox, oy, ow, oh] = st.opening, sky = b.createLinearGradient(0, oy, 0, oy + oh); sky.addColorStop(0, '#1b2440'); sky.addColorStop(1, '#4a3f5e');
+    b.fillStyle = sky; b.fillRect(ox, oy, ow, oh); b.fillStyle = '#e8e2c8'; b.fillRect(ox + ow - 14, oy + 6, 3, 3);
+    b.fillStyle = '#2d2733'; b.fillRect(ox - 2, oy + oh, ow + 4, 2);
+  }
+  x.drawImage(GORE.wallArt, 0, 0);
+  x.fillStyle = '#26212c'; x.fillRect(0, st.ground, W, H - st.ground); x.fillRect(st.wall, 0, W - st.wall, st.foot);
+  x.fillRect(st.ledge.x0, st.ledge.top, st.ledge.x1 - st.ledge.x0, st.ledge.bottom - st.ledge.top);
+  x.fillStyle = '#5a5163'; x.fillRect(0, st.ground, W, 1); x.fillRect(st.wall, 0, 1, st.foot); x.fillRect(st.ledge.x0, st.ledge.top, st.ledge.x1 - st.ledge.x0, 1);
 }
 function goreRise() { GORE.hidden = false; GORE.state = 'idle'; GORE.stateT = GORE.clock; GORE.wound = 0; GORE.verdict = ''; renderGoreVerdict(); }
 
@@ -330,7 +438,9 @@ function renderGore() {
     <div style="margin:6px 0;display:grid;gap:4px"><label style="display:flex;gap:6px;align-items:center"><input type="radio" style="width:auto;flex:none;margin:0" name="goreScope" value="mat"${scope === 'mat' ? ' checked' : ''}> Править материал «${esc(GORE_MATERIAL[mat] || mat)}» — для всех из него</label>
     <label style="display:flex;gap:6px;align-items:center"><input type="radio" style="width:auto;flex:none;margin:0" name="goreScope" value="body"${scope === 'body' ? ' checked' : ''}> Только «${esc(b.name.ru || b.key)}»</label></div>
     ${scope === 'body' ? `<label>Материал крови<select data-gore="material">${Object.keys(GORE.work.materials).map(m => `<option value="${m}"${m === mat ? ' selected' : ''}>${esc(GORE_MATERIAL[m] || m)}${m === b.material ? ' (как в бестиарии)' : ''}</option>`).join('')}</select></label>` : ''}
-    <div class="card"><b>Удар</b>${['blood', 'shade', 'drops', 'spray', 'stain', 'stain_life', 'bleed'].map(k => field(k, shown[k], k in own)).join('')}</div>
+    <div class="card"><b>Удар</b>${['blood', 'shade', 'drops', 'spray', 'mist', 'stain', 'stain_life', 'bleed'].map(k => field(k, shown[k], k in own)).join('')}</div>
+    <div class="card"><b>Где ложится</b>${['soak', 'splash', 'run', 'drip', 'back'].map(k => field(k, shown[k], k in own)).join('')}
+      <div class="muted">Пятно не заходит за край того, на чём лежит: что свисает с уступа — капает вниз, потёк по стене кончается там, где кончается стена, с нижней стороны уступа капает. Капли «на фон» липнут к нарисованной стене позади, но не к небу и не к дальним проёмам. «Впитывается» — пятно умножается на картинку под ним, и сквозь кровь видна кладка.</div></div>
     <div class="card"><b>Смерть</b>${['gush', 'pool', 'limbs', 'chance', 'fling', 'spurt'].map(k => field(k, shown[k], k in own)).join('')}
       <div class="muted">${+shown.limbs >= 2 ? 'Режется сам рисунок — кадр, в котором умер; линии разреза рваные, каждый раз другие.' : 'Тело не рвётся — играет своя анимация смерти.'}${b.boss ? ' Боссы не рвутся никогда.' : ''}</div></div>
     ${+shown.limbs >= 2 ? `<div class="card"><b>Как рвётся</b> ${scope === 'body' ? ('cuts' in own ? '<span class="badge new">своё</span> <button class="sm" data-act="gore-unset" data-k="cuts" title="Убрать своё — брать из материала">↺</button>' : '<span class="muted">от материала</span>') : ''}

@@ -13,14 +13,22 @@ class_name Gore
 ## the cuts are ragged, a stump jets in pulses (`spurt`), every drop and mark
 ## takes its own shade of the blood (`shade`) and lands as a smear, a splat or
 ## a broken trail.
+## Blood keeps to what it lands on: a mark stops at the edge of the floor it lies
+## on and what hangs over drips off it (`drip`), a streak runs down a wall only
+## as far as the wall goes (`run`), drops gather under a ledge and fall from
+## it, a heavy drop splashes into droplets (`splash`), some fly into the depth
+## and stick to the painted wall behind — never to the sky or a far opening
+## (`back`) — a fine mist hangs a moment (`mist`), and every mark soaks into
+## the painting under it rather than lying on top (`soak`, a multiply pass).
 ## Pixels drawn 1:1 like Fx.PIXELS, never a soft dot scaled up. All of it is
 ## cosmetic and local: every peer throws its own, and Settings.gore (full,
 ## reduced, off) decides how much.
 
 const PATH := "res://data/gore.json"
-const KEYS := ["blood", "shade", "drops", "spray", "stain", "stain_life", "gush", "pool", "bleed", "spurt",
-	"limbs", "chance", "fling", "cuts"]
-const DEFAULTS := {"blood": "#7a0c10", "shade": 0.15, "drops": 6, "spray": 140.0, "stain": 1.0, "stain_life": 25.0,
+const KEYS := ["blood", "shade", "drops", "spray", "mist", "stain", "stain_life", "soak", "splash", "run", "drip",
+	"back", "gush", "pool", "bleed", "spurt", "limbs", "chance", "fling", "cuts"]
+const DEFAULTS := {"blood": "#7a0c10", "shade": 0.15, "drops": 6, "spray": 140.0, "mist": 0, "stain": 1.0,
+	"stain_life": 25.0, "soak": 0.5, "splash": 1.0, "run": 10.0, "drip": 0.3, "back": 0.1,
 	"gush": 12, "pool": 10.0, "bleed": 0.6, "spurt": 1.2, "limbs": 0, "chance": 0.0, "fling": 150.0,
 	"cuts": {"all": 3, "head": 2, "half": 1, "limb": 1}}
 ## The ways a body tears (`cuts` weighs them): to pieces; the head off; in half
@@ -35,6 +43,14 @@ const GRAVITY := 560.0
 const MAX_DROPS := 260
 const MAX_STAINS := 520
 const MAX_PIECES := 28
+const MAX_DRIPS := 40
+## A drop's flags: thrown off another (it does not splash again), a speck of
+## mist (no mark), bound for the painted wall behind.
+const SPLASHED := 1
+const MISTY := 2
+const BACK := 4
+## A drop lands harder than this and splashes, px/s.
+const SPLASH_SPEED := 120.0
 const NODE_NAME := "Gore"
 
 static var _materials: Dictionary = {}
@@ -47,9 +63,13 @@ static var thrown := 0
 static var torn := 0
 static var marked := 0
 
-var _drops: Array = []  # [position, velocity, colour, stain size, stain life, age, pixels]
-var _stains: Array = []  # {p, w, wall, c, born, grow, life, seed, kind}
+var _drops: Array = []  # [position, velocity, colour, ink, age, pixels, flags, lands (BACK: the age it sticks at)]
+var _stains: Array = []  # {p, w, spot, face, c, born, grow, life, seed, kind, soak, lo, hi}
+var _drips: Array = []  # {p, left, tick, c, ink}: blood gathering under a ledge or off an edge, falling a drop at a time
+var _openings: Array = []  # the painting's openings (sky, far windows), global polygons: nothing sticks there
+var _openings_read := false
 var _air: Node2D
+var _soak: Node2D
 var _clock := 0.0
 var _busy := false
 
@@ -174,6 +194,15 @@ func _ready() -> void:
 	_air.z_index = 5
 	_air.draw.connect(_draw_air)
 	add_child(_air)
+	# the same marks again, multiplied into whatever is painted under them: blood
+	# that soaks into the stone instead of lying on it
+	_soak = Node2D.new()
+	_soak.name = "Soak"
+	var multiply := CanvasItemMaterial.new()
+	multiply.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
+	_soak.material = multiply
+	_soak.draw.connect(_paint.bind(_soak, true))
+	add_child(_soak)
 
 
 ## Throws [param count] drops out of [param at] along [param direction], fanned
@@ -185,12 +214,19 @@ func spray(at: Vector2, direction: Vector2, count: int, s: Dictionary, spread :=
 	var dir := (direction.normalized() if direction.length() > 0.01 else Vector2.UP).rotated(randf_range(-0.22, 0.22))
 	var speed := float(s.spray) * randf_range(0.85, 1.15)
 	var jet := randf() < 0.35
+	var how := ink(s)
 	for i in count:
 		var in_jet := jet and i < count / 3.0
 		var fan := spread * (0.25 if in_jet else 1.0)
 		var v := dir.rotated(deg_to_rad(randf_range(-fan, fan))) * speed * (randf_range(0.9, 1.35) if in_jet else randf_range(0.3, 1.1))
 		v.y -= randf_range(10.0, 60.0)  # a blow lifts the drops before they fall
-		drop(at + Vector2(randf_range(-3, 3), randf_range(-3, 3)), v, shaded(colour, shade), float(s.stain), float(s.stain_life))
+		drop(at + Vector2(randf_range(-3, 3), randf_range(-3, 3)), v, shaded(colour, shade), how)
+	# a fine mist: faint specks, slow, gone before they land
+	var faint := colour
+	faint.a *= 0.45
+	for i in int(round(float(s.get("mist", 0)) * clampf(count / maxf(float(s.drops), 1.0), 0.5, 2.0))):
+		drop(at + Vector2(randf_range(-4, 4), randf_range(-4, 4)),
+			dir.rotated(deg_to_rad(randf_range(-spread, spread) * 1.4)) * speed * randf_range(0.1, 0.45), shaded(faint, shade), how, MISTY)
 
 
 ## [param colour] a shade darker or lighter, by up to [param amount]: no two drops the same red.
@@ -201,11 +237,22 @@ func shaded(colour: Color, amount: float) -> Color:
 	return colour.darkened(-k) if k < 0.0 else colour.lightened(k * 0.6)
 
 
-func drop(at: Vector2, velocity: Vector2, colour: Color, stain: float, life: float) -> void:
+## What a drop carries of its body's table: how its marks look and behave.
+## [param size] scales the marks (a drip leaves smaller ones than a gush).
+static func ink(s: Dictionary, size := 1.0) -> Dictionary:
+	return {"stain": float(s.get("stain", 1.0)) * size, "life": float(s.get("stain_life", 25.0)),
+		"soak": float(s.get("soak", 0.0)), "splash": float(s.get("splash", 0.0)), "run": float(s.get("run", 0.0)),
+		"drip": float(s.get("drip", 0.0)), "back": float(s.get("back", 0.0))}
+
+
+func drop(at: Vector2, velocity: Vector2, colour: Color, how: Dictionary, flags := 0) -> void:
 	if _drops.size() >= MAX_DROPS:
 		_drops.pop_front()
-	# most drops a pixel, some a clot of two
-	_drops.append([at, velocity, colour, stain, life, 0.0, 2 if randf() < 0.18 else 1])
+	if flags == 0 and randf() < float(how.get("back", 0.0)):
+		flags = BACK
+	# most drops a pixel, some a clot of two; mist and splashes a pixel
+	var pixels := 2 if flags & (SPLASHED | MISTY) == 0 and randf() < 0.18 else 1
+	_drops.append([at, velocity, colour, how, 0.0, pixels, flags, randf_range(0.06, 0.32)])
 	Gore.thrown += 1
 	_busy = true
 
@@ -218,31 +265,98 @@ func pool(at: Vector2, width: float, s: Dictionary) -> void:
 	var colour := Color(str(s.blood)).darkened(0.15)
 	var shade := float(s.get("shade", 0.0)) * 0.5
 	var floor_at: Vector2 = hit.position
-	# one pool, never the same: a main spread and a few runs off it, each at its own pace
-	mark(floor_at, width * randf_range(0.8, 1.2), false, shaded(colour, shade), float(s.stain_life) * 1.4, randf_range(1.2, 2.2), 0)
+	var span := surface(hit)
+	var how := ink(s)
+	how.life = float(s.stain_life) * 1.4
+	# one pool, never the same: a main spread and a few runs off it, each at its own pace;
+	# it stops at the floor's edge and what reaches over it runs off in drips
+	mark(floor_at, width * randf_range(0.8, 1.2), 0, shaded(colour, shade), how, randf_range(1.2, 2.2), 0, span)
+	how = ink(s)
 	for i in randi_range(1, 3):
-		mark(floor_at + Vector2(randf_range(-width, width) * 0.6, 0), width * randf_range(0.25, 0.5), false,
-			shaded(colour, shade), float(s.stain_life), randf_range(0.8, 2.6), 0)
+		mark(floor_at + Vector2(randf_range(-width, width) * 0.6, 0), width * randf_range(0.25, 0.5), 0,
+			shaded(colour, shade), how, randf_range(0.8, 2.6), 0, span)
 
 
-## A mark where a drop or a piece landed. [param wall] streaks down instead of
-## smearing along.
-## [param kind] -1 picks one: 0 a smear, 1 a splat with spatter round it, 2 a broken trail.
-## A streak down a wall runs on slowly, some further than others.
-func mark(at: Vector2, width: float, wall: bool, colour: Color, life: float, grow := 0.25, kind := -1) -> void:
+## Where on its surface a ray's [param hit] can be marked: the x range of a
+## floor's or a ceiling's face, the y range of a wall's, from the shape it hit.
+## A shape that is not a box is unbounded.
+func surface(hit: Dictionary) -> Vector2:
+	var any := Vector2(-INF, INF)
+	var body := hit.get("collider") as CollisionObject2D
+	if body == null:
+		return any
+	var owner_id := body.shape_find_owner(int(hit.get("shape", 0)))
+	var node := body.shape_owner_get_owner(owner_id) as CollisionShape2D
+	if node == null or not node.shape is RectangleShape2D:
+		return any
+	var size: Vector2 = (node.shape as RectangleShape2D).size
+	var box := node.global_transform * Rect2(-size / 2.0, size)
+	var normal: Vector2 = hit.get("normal", Vector2.UP)
+	return Vector2(box.position.y, box.end.y) if absf(normal.x) > 0.6 else Vector2(box.position.x, box.end.x)
+
+
+## A mark where a drop or a piece landed. [param face]: 0 a floor (smears
+## along), 1 a wall (streaks down, further with the ink's `run`), 2 the
+## underside of a ledge, 3 the painted wall behind. [param kind] -1 picks one:
+## 0 a smear, 1 a splat with spatter round it, 2 a broken trail. [param span]
+## is the surface it lies on (`surface`): it is not drawn past it, and what a
+## floor mark reaches over the edge with drips off.
+func mark(at: Vector2, width: float, face: int, colour: Color, how: Dictionary, grow := 0.25, kind := -1,
+		span := Vector2(-INF, INF)) -> void:
+	var life := float(how.get("life", 20.0))
 	if width < 0.5 or life <= 0.0:
 		return
 	if _stains.size() >= MAX_STAINS:
 		_stains.pop_front()
 	if kind < 0:
 		kind = [0, 0, 1, 2].pick_random()
-	if wall:
-		width *= randf_range(0.7, 1.8)
-		grow = maxf(grow, randf_range(0.3, 1.8))
-	_stains.append({"p": at.round(), "w": width, "wall": wall, "c": colour, "born": _clock, "grow": grow,
-		"life": life * randf_range(0.8, 1.2), "seed": randi(), "kind": kind})
+	at = at.round()
+	var length := width
+	if face == 1 or face == 3:
+		# blood runs down a wall: some streaks a pixel, some a long way, never past the wall's foot
+		length = width * randf_range(0.7, 1.4) + float(how.get("run", 0.0)) * randf_range(0.2, 1.2) * (0.4 if face == 3 else 1.0)
+		if face == 1:
+			length = minf(length, span.y - at.y)
+		grow = maxf(grow, length / randf_range(6.0, 16.0))
+	elif face == 0 and is_finite(span.x):
+		# what reaches over the edge of a ledge runs off it
+		for edge in [span.x, span.y]:
+			if absf(at.x - edge) < maxf(width * 0.6, 2.0) and randf() < 0.35 + float(how.get("drip", 0.0)):
+				var at_edge := Vector2(edge + (-0.5 if edge == span.x else 0.5), at.y)
+				_drip_from(at_edge, colour, how, randi_range(1, 3))
+	elif face == 2 and randf() < float(how.get("drip", 0.0)) * 2.0:
+		_drip_from(at + Vector2(0, 1), colour, how, randi_range(1, 4))
+	_stains.append({"p": at, "w": length, "spot": width, "face": face, "c": colour, "born": _clock, "grow": grow,
+		"life": life * randf_range(0.8, 1.2), "seed": randi(), "kind": kind, "soak": float(how.get("soak", 0.0)),
+		"lo": span.x, "hi": span.y})
 	Gore.marked += 1
 	_busy = true
+
+
+func _drip_from(at: Vector2, colour: Color, how: Dictionary, count: int) -> void:
+	if _drips.size() >= MAX_DRIPS:
+		_drips.pop_front()
+	_drips.append({"p": at, "left": count, "tick": randf_range(0.2, 0.9), "c": colour, "ink": how})
+	_busy = true
+
+
+## The painting's openings — the sky, a far window — where nothing can stick.
+func _in_opening(at: Vector2) -> bool:
+	if not _openings_read:
+		_openings_read = true
+		var room := get_parent() as Node2D
+		var windows := room.get_node_or_null("DepthWindows") as Node2D if room else null
+		if windows != null:
+			for i in range(1, 32):
+				var outline := RoomLayers.window_outline(room, i)
+				if outline.size() < 3:
+					break
+				var feather := windows.get_node_or_null("Window%dFeather1" % i) as Node2D
+				_openings.append((feather.global_transform if feather else windows.global_transform) * outline)
+	for polygon in _openings:
+		if Geometry2D.is_point_in_polygon(at, polygon):
+			return true
+	return false
 
 
 ## Cuts the frame [param sprite] shows into pieces, [param way] (one of CUTS),
@@ -386,31 +500,73 @@ static func _opaque(atlas: Texture2D, cell: Rect2) -> Rect2:
 
 
 func _physics_process(delta: float) -> void:
+	_tick_drips(delta)
 	if _drops.is_empty():
 		return
 	var keep: Array = []
+	var born: Array = []
 	for d in _drops:
 		var v: Vector2 = d[1]
-		v.y += GRAVITY * delta
-		v.x *= 1.0 - 0.6 * delta
+		var flags: int = d[6]
+		var how: Dictionary = d[3]
+		v.y += GRAVITY * delta * (0.35 if flags & MISTY else 1.0)
+		v.x *= 1.0 - (3.0 if flags & MISTY else 0.6) * delta
 		var from: Vector2 = d[0]
 		var to: Vector2 = from + v * delta
-		d[5] += delta
+		d[4] += delta
+		if flags & MISTY:
+			if d[4] < randf_range(0.25, 0.7):
+				d[0] = to
+				d[1] = v
+				keep.append(d)
+			continue
+		if flags & BACK and d[4] >= d[7]:
+			# it flew into the depth and met the painted wall behind
+			if not _in_opening(from):
+				mark(from, randf_range(1.0, 2.5) * float(how.stain) * float(d[5]), 3, d[2], how, 0.25, [1, 1, 0].pick_random())
+			continue
 		var hit := _ray(from, to, WORLD_MASK | (LEDGE_MASK if v.y > 0.0 else 0))
 		if not hit.is_empty():
 			var normal: Vector2 = hit.normal
-			var wall := absf(normal.x) > 0.6
-			if normal.y < 0.6:  # not a ceiling: a ceiling just takes the drop
-				mark(hit.position, (randf_range(1.0, 3.5) if not wall else randf_range(2.0, 5.0)) * float(d[3]) * float(d[6]),
-					wall, d[2], float(d[4]))
+			var size := float(how.stain) * float(d[5]) * (0.5 if flags & SPLASHED else 1.0)
+			if absf(normal.x) > 0.6:
+				mark(hit.position, randf_range(1.0, 2.5) * size, 1, d[2], how, 0.25, -1, surface(hit))
+			elif normal.y > 0.6:
+				mark(hit.position, randf_range(1.0, 2.0) * size, 2, d[2], how, 0.25, 0, surface(hit))
+			else:
+				mark(hit.position, randf_range(1.0, 3.5) * size, 0, d[2], how, 0.25, -1, surface(hit))
+				# a heavy drop splashes: a few droplets thrown back up off the floor
+				if flags & SPLASHED == 0 and v.length() > SPLASH_SPEED:
+					var force := clampf(v.length() / 320.0, 0.3, 1.0)
+					for i in int(round(float(how.splash) * randf_range(0.3, 1.3) * force)):
+						born.append([hit.position + Vector2(0, -1), Vector2(randf_range(-55.0, 55.0) + v.x * 0.2,
+							-randf_range(35.0, 95.0) * force), d[2], how])
 			continue
-		if d[5] > 4.0:  # fell out of the room
+		if d[4] > 4.0:  # fell out of the room
 			continue
 		d[0] = to
 		d[1] = v
 		keep.append(d)
 	_drops = keep
+	for b in born:
+		drop(b[0], b[1], b[2], b[3], SPLASHED)
 	_air.queue_redraw()
+
+
+## Drops gathered under a ledge or at a floor's edge fall one at a time.
+func _tick_drips(delta: float) -> void:
+	if _drips.is_empty():
+		return
+	var left: Array = []
+	for dr in _drips:
+		dr.tick -= delta
+		if dr.tick <= 0.0:
+			drop(dr.p, Vector2(randf_range(-3, 3), randf_range(0, 20)), dr.c, dr.ink, SPLASHED)
+			dr.left -= 1
+			dr.tick = randf_range(0.35, 1.4)
+		if dr.left > 0:
+			left.append(dr)
+	_drips = left
 
 
 func _process(delta: float) -> void:
@@ -431,65 +587,115 @@ func _process(delta: float) -> void:
 	_stains = living
 	if redraw:
 		queue_redraw()
+		_soak.queue_redraw()
 	_busy = not _stains.is_empty()
 
 
 func _draw() -> void:
+	_paint(self, false)
+
+
+## Every mark, on [param canvas]: as it lies (its alpha less what soaked in),
+## or [param soaked] — the share that soaked in, as a tint the multiply pass
+## lays into the painting (white changes nothing).
+func _paint(canvas: CanvasItem, soaked: bool) -> void:
 	for st in _stains:
 		var age: float = _clock - st.born
 		var grown := clampf(age / maxf(st.grow, 0.01), 0.0, 1.0)
 		grown = 1.0 - (1.0 - grown) * (1.0 - grown)
 		var c: Color = st.c
-		c.a *= clampf((st.life - age) / 3.0, 0.0, 1.0)
+		var fade := clampf((st.life - age) / 3.0, 0.0, 1.0)
+		var soak: float = st.get("soak", 0.0)
+		if soaked:
+			if soak <= 0.0:
+				continue
+			var tint := Color(c.r, c.g, c.b)
+			c = Color.WHITE.lerp(tint, soak * c.a * fade)
+		else:
+			c.a *= fade * (1.0 - soak * 0.85)
+			if c.a <= 0.01:
+				continue
 		var p: Vector2 = to_local(st.p)
+		var lo: float = st.get("lo", -INF)
+		var hi: float = st.get("hi", INF)
+		if is_finite(lo):
+			lo = to_local(Vector2(lo, 0)).x
+			hi = to_local(Vector2(hi, 0)).x
 		var w: float = maxf(1.0, round(st.w * grown))
 		var kind: int = st.get("kind", 0)
-		if st.wall:
-			# a streak running down, a drop gathering at its end; some streaks fork
-			draw_rect(Rect2(p.x, p.y - 1, 1, w), c)
-			if w > 3.0:
-				draw_rect(Rect2(p.x, p.y + w - 1, 1, 1), c.darkened(0.3))
-			if kind == 1 and w > 4.0:
-				draw_rect(Rect2(p.x + (1 if st.seed % 2 == 0 else -1), p.y + floorf(w / 3.0), 1, floorf(w / 2.0)), c.darkened(0.1))
-			continue
-		match kind:
+		var face: int = st.get("face", 0)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = st.seed
+		match face:
 			1:
-				# a splat: a blot two rows deep and spatter thrown round it
-				var r := maxf(1.0, floorf(w / 3.0))
-				draw_rect(Rect2(p.x - r, p.y - 1, r * 2.0, 1), c)
-				draw_rect(Rect2(p.x - floorf(r / 2.0), p.y - 2, maxf(1.0, r), 1), c.darkened(0.15))
-				var rng := RandomNumberGenerator.new()
-				rng.seed = st.seed
-				for k in maxi(2, int(w / 2.0)):
-					draw_rect(Rect2(p.x + rng.randf_range(-w, w), p.y - 1 - rng.randi_range(0, 1), 1, 1), c)
+				# a streak running down, a drop gathering at its end; some streaks fork
+				canvas.draw_rect(Rect2(p.x, p.y - 1, 1, w), c)
+				if w > 3.0:
+					canvas.draw_rect(Rect2(p.x, p.y + w - 1, 1, 1), c.darkened(0.3))
+				if kind == 1 and w > 4.0:
+					canvas.draw_rect(Rect2(p.x + (1 if st.seed % 2 == 0 else -1), p.y + floorf(w / 3.0), 1, floorf(w / 2.0)), c.darkened(0.1))
 			2:
-				# a broken trail: dashes along the lip
-				var rng := RandomNumberGenerator.new()
-				rng.seed = st.seed
-				var at := p.x - floorf(w / 2.0)
-				while at < p.x + w / 2.0:
-					var dash := float(rng.randi_range(1, 3))
-					draw_rect(Rect2(at, p.y - 1, dash, 1), c)
-					at += dash + float(rng.randi_range(1, 2))
+				# under a ledge: a blot clinging to the underside, a bead hanging off it
+				var r := maxf(1.0, round(float(st.spot) * grown))
+				_span(canvas, Rect2(p.x - floorf(r / 2.0), p.y, r, 1), c, lo, hi)
+				if r >= 2.0:
+					canvas.draw_rect(Rect2(p.x + rng.randi_range(-1, 0), p.y + 1, 1, 1), c.darkened(0.25))
+			3:
+				# on the painted wall behind: a splat, its spatter, and what runs down from it
+				var r := maxf(1.0, floorf(float(st.spot) * 0.6))
+				canvas.draw_rect(Rect2(p.x - floorf(r / 2.0), p.y - floorf(r / 2.0), r, r), c)
+				for k in rng.randi_range(1, 3):
+					canvas.draw_rect(Rect2(p.x + rng.randi_range(-3, 3), p.y + rng.randi_range(-3, 2), 1, 1), c)
+				if w > r:
+					canvas.draw_rect(Rect2(p.x + rng.randi_range(-floori(r / 2.0), 0), p.y, 1, w), c.darkened(0.1))
+					canvas.draw_rect(Rect2(p.x, p.y + w, 1, 1), c.darkened(0.3))
 			_:
-				# a smear along the floor's lip, thicker in the middle, a few spatters beside
-				draw_rect(Rect2(p.x - floorf(w / 2.0), p.y - 1, w, 1), c)
-				if w >= 4.0:
-					draw_rect(Rect2(p.x - floorf(w / 4.0), p.y - 2, maxf(1.0, floorf(w / 2.0)), 1), c.darkened(0.2))
-				if w >= 7.0:
-					var rng := RandomNumberGenerator.new()
-					rng.seed = st.seed
-					for k in int(w / 5.0):
-						draw_rect(Rect2(p.x + rng.randf_range(-w * 0.8, w * 0.8), p.y - 1 - rng.randi_range(0, 1), 1, 1), c)
+				match kind:
+					1:
+						# a splat: a blot two rows deep and spatter thrown round it
+						var r := maxf(1.0, floorf(w / 3.0))
+						_span(canvas, Rect2(p.x - r, p.y - 1, r * 2.0, 1), c, lo, hi)
+						_span(canvas, Rect2(p.x - floorf(r / 2.0), p.y - 2, maxf(1.0, r), 1), c.darkened(0.15), lo, hi)
+						for k in maxi(2, int(w / 2.0)):
+							_span(canvas, Rect2(p.x + rng.randf_range(-w, w), p.y - 1 - rng.randi_range(0, 1), 1, 1), c, lo, hi)
+					2:
+						# a broken trail: dashes along the lip
+						var at := p.x - floorf(w / 2.0)
+						while at < p.x + w / 2.0:
+							var dash := float(rng.randi_range(1, 3))
+							_span(canvas, Rect2(at, p.y - 1, dash, 1), c, lo, hi)
+							at += dash + float(rng.randi_range(1, 2))
+					_:
+						# a smear along the floor's lip, thicker in the middle, a few spatters beside
+						_span(canvas, Rect2(p.x - floorf(w / 2.0), p.y - 1, w, 1), c, lo, hi)
+						if w >= 4.0:
+							_span(canvas, Rect2(p.x - floorf(w / 4.0), p.y - 2, maxf(1.0, floorf(w / 2.0)), 1), c.darkened(0.2), lo, hi)
+						if w >= 7.0:
+							for k in int(w / 5.0):
+								_span(canvas, Rect2(p.x + rng.randf_range(-w * 0.8, w * 0.8), p.y - 1 - rng.randi_range(0, 1), 1, 1), c, lo, hi)
+
+
+## A row of a mark, cut to the surface it lies on (local x from [param lo] to [param hi]).
+static func _span(canvas: CanvasItem, r: Rect2, c: Color, lo: float, hi: float) -> void:
+	if is_finite(lo):
+		var left := maxf(r.position.x, lo)
+		var right := minf(r.end.x, hi)
+		if right <= left:
+			return
+		r = Rect2(left, r.position.y, right - left, r.size.y)
+	canvas.draw_rect(r, c)
 
 
 func _draw_air() -> void:
 	for d in _drops:
 		var v: Vector2 = d[1]
 		var p: Vector2 = to_local(d[0]).round()
-		# a fast drop is a streak of two
-		var size: int = d[6]
-		_air.draw_rect(Rect2(p, Vector2(size, (2 if absf(v.y) > 120.0 else 1) + size - 1)), d[2])
+		# a fast drop is a streak of two; a drop flying into the depth shrinks as it goes
+		var size: int = d[5]
+		var c: Color = d[2]
+		if d[6] & BACK:
+			c.a *= 1.0 - 0.5 * clampf(d[4] / maxf(d[7], 0.01), 0.0, 1.0)
+		_air.draw_rect(Rect2(p, Vector2(size, (2 if absf(v.y) > 120.0 else 1) + size - 1)), c)
 
 
 func _ray(from: Vector2, to: Vector2, mask: int) -> Dictionary:
@@ -503,9 +709,8 @@ func _ray(from: Vector2, to: Vector2, mask: int) -> Dictionary:
 class Bleed extends Node:
 	var layer: Gore
 	var colour := Color.RED
-	var stain := 1.0
+	var how := {}
 	var shade := 0.0
-	var life := 20.0
 	var left := 0.0
 	var at := Vector2.ZERO
 	var _tick := 0.0
@@ -518,9 +723,8 @@ class Bleed extends Node:
 			body.add_child(b)
 		b.layer = gore
 		b.colour = Color(str(s.blood))
-		b.stain = float(s.stain)
+		b.how = Gore.ink(s, 0.7)
 		b.shade = float(s.get("shade", 0.0))
-		b.life = float(s.stain_life)
 		b.left = maxf(b.left, seconds)
 		b.at = offset
 
@@ -537,4 +741,4 @@ class Bleed extends Node:
 		if body == null:
 			return
 		layer.drop(body.global_position + at + Vector2(randf_range(-3, 3), 0),
-			Vector2(randf_range(-15, 15), randf_range(-10, 20)), layer.shaded(colour, shade), stain * 0.7, life)
+			Vector2(randf_range(-15, 15), randf_range(-10, 20)), layer.shaded(colour, shade), how)
