@@ -346,11 +346,35 @@ def audio(root: Path, strings):
     return list(entries.values())
 
 
+def game_doc(root: Path) -> dict:
+    """data/game.json (docs/GAME_PACKS.md): the game's rooms in play order, its practice yard, its paths."""
+    path = root / "data/game.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def room_scenes(root: Path):
+    """The room scenes the game has: every one in scenes/rooms for Ashes; for a game
+    pack (game.json "inherit") the ones its game.json plays, borrowed or its own,
+    and whatever else it keeps in content/scenes/rooms."""
+    game = game_doc(root)
+    if "inherit" not in game:
+        return sorted((root / "scenes/rooms").glob("*.tscn"))
+    found = {}
+    for res in game.get("rooms", []) + [game.get("practice_room", "")]:
+        path = res_to_path(root, res) if res else None
+        if path and path.exists():
+            found[path.as_posix()] = path
+    for path in sorted((root / "content/scenes/rooms").glob("*.tscn")):
+        found.setdefault(path.as_posix(), path)
+    return list(found.values())
+
+
 def room_order(root: Path):
-    run = (root / "scripts/run/run.gd").read_text(encoding="utf-8")
+    game = game_doc(root)
     seen = []
-    for name in re.findall(r"scenes/rooms/([a-z0-9_]+)\.tscn", run):
-        if name not in seen:
+    for path in game.get("rooms", []) + [game.get("practice_room", "")]:
+        name = Path(path).stem
+        if name and name not in seen:
             seen.append(name)
     return seen
 
@@ -515,7 +539,7 @@ def life(root: Path):
     kinds = {k: {"index": int(i), "strength": float(st), "speed": float(sp)}
              for k, i, st, sp in re.findall(r'"(\w+)": \[(\d+), ([\d.]+), ([\d.]+)\]', block)}
     pictures = {}
-    for scene in sorted((root / "scenes/rooms").glob("*.tscn")):
+    for scene in room_scenes(root):
         res = _scene_texture(root, scene, LIFE_NODES)
         if res:
             pictures[scene.stem] = {"res": res, "kind": "room"}
@@ -552,7 +576,7 @@ def life(root: Path):
 def tiles(root: Path):
     manifest = json.loads((root / "assets/decor/platforms/manifest.json").read_text(encoding="utf-8"))
     uses = {name: {} for name in manifest}
-    for scene in sorted((root / "scenes/rooms").glob("*.tscn")):
+    for scene in room_scenes(root):
         text = scene.read_text(encoding="utf-8")
         for name in manifest:
             n = text.count(f'ExtResource("piece_{name}")')
@@ -560,9 +584,7 @@ def tiles(root: Path):
                 uses[name][scene.stem] = n
     src = (root / "tools/rooms/generate_rooms.py").read_text(encoding="utf-8")
     overlap = int(re.search(r"^OVERLAP = (\d+)", src, re.M)[1])
-    run = (root / "scripts/run/run.gd").read_text(encoding="utf-8")
-    played = re.findall(r'"res://scenes/rooms/(\w+)\.tscn"', re.search(r"const ROOMS := \[(.*?)\]", run, re.S)[1])
-    played += re.findall(r'PRACTICE_ROOM := "res://scenes/rooms/(\w+)\.tscn"', run)
+    played = room_order(root)
     return {"overlap": overlap, "played": played, "pieces": [dict(name=name, res=f"res://assets/decor/platforms/{name}.png",
                                                 url=f"assets/decor/platforms/{name}.png", uses=uses[name], **info)
                                            for name, info in manifest.items()]}
@@ -835,7 +857,8 @@ def gamedata(root: Path, strings):
         "stats": _gd_list(validator, "STATS"), "item_stats": _gd_list(validator, "ITEM_STATS"),
         "techniques": _gd_list(validator, "TECHNIQUES"), "caps": caps,
         "counters": _gd_list(deeds, "COUNTERS"),
-        "flags_read_in_code": _gd_list(validator, "FLAGS_READ_IN_CODE"),
+        # flags something other than a branch reads: the game's own list (data/game.json "flags_read")
+        "flags_read_in_code": json.loads((root / "data" / "game.json").read_text()).get("flags_read", []),
         "flags_set_in_code": _gd_list(validator, "FLAGS_SET_IN_CODE"),
         "flags_for_tests": _gd_list(validator, "FLAGS_FOR_TESTS"),
         "music": {"existing": existing, "tracks": [{k: t[k] for k in ("slug", "title", "author", "license", "playlists")} for t in manifest["tracks"]],
@@ -856,12 +879,15 @@ def head_sha(root: Path):
     return r.stdout.strip()
 
 
-def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str = ""):
+def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str = "", pack: dict | None = None):
+    """`pack` (docs/GAME_PACKS.md): {"repo", "branch", "sha", "content_base", "engine": {"repo", "sha"}} when
+    `root` is a game pack laid over the engine — meta.json then names the pack's repository, which the
+    studio writes to, and the URL its own files (content/…) are read from."""
     strings = load_strings(root)
     chars = [hero(root)] + bestiary(root)
     chars += shared("chars", {c["id"] for c in chars})
     write(out, "list.json", [write(out, f"chars/{c['id']}.sprite.json", c) for c in chars])
-    rooms = [room_project(root, p) for p in sorted((root / "scenes/rooms").glob("*.tscn"))]
+    rooms = [room_project(root, p) for p in room_scenes(root)]
     rooms = [r for r in rooms if r["layers"]]
     rooms += shared("bgs", {r["id"] for r in rooms})
     write(out, "rooms_list.json", [write(out, f"rooms/{r['id']}.bg.json", r) for r in rooms])
@@ -884,9 +910,13 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     st["cutscenes"] += shared("cuts", {c["id"] for c in st["cutscenes"]})
     write(out, "cutscenes.json", st)
     files, owners = generated(root)
-    owner, name = REPO.split("/")
-    write(out, "meta.json", {"repo": REPO, "branch": branch, "assetBase": asset_base, "sha": sha or head_sha(root),
+    repo = (pack or {}).get("repo") or REPO
+    owner, name = repo.split("/")
+    game = game_doc(root)
+    write(out, "meta.json", {"repo": repo, "branch": branch, "assetBase": asset_base, "sha": sha or head_sha(root),
                              "site": f"https://{owner.lower()}.github.io/{name}/",
+                             "game": {"id": game.get("id", ""), "name": game.get("name", "")},
+                             **({"pack": pack, "contentBase": pack.get("content_base", "")} if pack else {}),
                              "generated": files, "generators": owners,
                              "overridable": overridable(files, owners), "overrides": overrides(root),
                              "generatorInputs": sorted(GENERATOR_INPUTS)})
@@ -899,8 +929,23 @@ def main():
     ap.add_argument("--branch", default="main")
     ap.add_argument("--sha", default="", help="the commit the data is built from (default: HEAD)")
     ap.add_argument("--out", default=str(STUDIO / "import"))
+    ap.add_argument("--repo", default="", help="a game pack's repository (owner/name), when content/ holds one")
+    ap.add_argument("--content-base", default="", help="prefix for the pack's own files (content/…): its raw URL, or a local path")
+    ap.add_argument("--content-sha", default="", help="the pack's commit (default: content/'s own git HEAD, when it is a checkout)")
+    ap.add_argument("--engine-repo", default=REPO)
     a = ap.parse_args()
-    print(build(ROOT, Path(a.out), a.asset_base, a.branch, a.sha))
+    root, pack = ROOT, None
+    sys.path.insert(0, str(ROOT / "tools" / "packs"))
+    from game_view import game_view, pack_game
+    if pack_game(ROOT) is not None:
+        # a game pack is laid over the engine: read the game it makes (tools/packs/game_view.py)
+        root = game_view(ROOT)
+        content = (ROOT / "content").resolve()
+        content_sha = a.content_sha or (subprocess.run(["git", "rev-parse", "HEAD"], cwd=content, capture_output=True, text=True).stdout.strip()
+                                        if (content / ".git").exists() else "")
+        pack = {"repo": a.repo, "branch": a.branch, "sha": content_sha, "content_base": a.content_base or a.asset_base + "content/",
+                "engine": {"repo": a.engine_repo, "sha": a.sha or head_sha(ROOT)}}
+    print(build(root, Path(a.out), a.asset_base, a.branch, a.sha or head_sha(ROOT), pack))
 
 
 if __name__ == "__main__":

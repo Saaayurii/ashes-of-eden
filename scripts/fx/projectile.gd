@@ -158,8 +158,8 @@ func reflect(_by: Node2D) -> void:
 
 ## The style's look: data/projectiles.json, read once, every missing key at LOOK's value.
 static func style(key: String) -> Dictionary:
-	if _styles.is_empty() and FileAccess.file_exists(STYLES_PATH):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(STYLES_PATH))
+	if _styles.is_empty() and DataDoc.exists(STYLES_PATH):
+		var parsed = DataDoc.doc(STYLES_PATH)
 		if parsed is Dictionary:
 			_styles = parsed.get("styles", {})
 	var raw: Dictionary = _styles.get(key, _styles.get("sacred", {}))

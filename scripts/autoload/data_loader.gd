@@ -8,8 +8,8 @@ extends Node
 ##                         into ./content at build time (git-ignored here)
 ##   user://mods/<x>/data  player-installed mods
 
-const ROOTS := ["res://data", "res://content/data"]
-const MODS_ROOT := "user://mods"
+const ROOTS := DataDoc.ROOTS
+const MODS_ROOT := DataDoc.MODS_ROOT
 
 var abilities: Dictionary = {}
 var enemies: Dictionary = {}
@@ -46,6 +46,17 @@ var omens: Dictionary = {}
 ## What an elite may rise with (data/affixes, Enemy.affix): a name over its
 ## head and a change to its numbers, never to its wind-ups.
 var affixes: Dictionary = {}
+## How the hero handles (data/hero.json): {"stats", "feel"}, laid on Player by
+## Player.apply_hero. One document, every root's deep-merged over the last.
+var hero: Dictionary = {}
+## What makes this game this game (data/game.json, docs/GAME_PACKS.md): its
+## rooms in play order, the practice yard, the menu's picture and music, and
+## the three paths' colours and icons. The engine's code names none of them.
+## Whole from the last root that has it, never merged (DataDoc.top).
+var game: Dictionary = {}
+## The run's rooms in play order (game.json "rooms"), as Run.ROOMS reads them.
+var rooms: Array[String] = []
+var _path_icons: Dictionary = {}
 
 
 func _ready() -> void:
@@ -54,6 +65,11 @@ func _ready() -> void:
 
 func reload() -> void:
 	var roots := _roots()
+	game = DataDoc.top("game.json", roots)
+	rooms.assign((game.get("rooms", []) as Array).map(func(r) -> String: return str(r)))
+	_path_icons.clear()
+	hero = load_doc("hero.json", roots)
+	Player.apply_hero(hero)
 	abilities = _load_collection("abilities", roots)
 	enemies = _resolve_extends(_load_collection("enemies", roots))
 	_apply_enemy_archetypes(roots)
@@ -76,6 +92,27 @@ func reload() -> void:
 	omens = _load_collection("omens", roots)
 	affixes = _load_collection("affixes", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
+
+
+## A path's colour from game.json: "color" for its text and cards, "aura" for
+## the light round the hero who leans to it. White for a path the game lacks.
+func path_color(path: String, key := "color") -> Color:
+	var value := str(game.get("paths", {}).get(path, {}).get(key, ""))
+	return Color.html(value) if Color.html_is_valid(value) else Color.WHITE
+
+
+## Which way a path's motes drift off the hero (game.json "drift", in pixels).
+func path_drift(path: String) -> Vector2:
+	var drift: Array = game.get("paths", {}).get(path, {}).get("drift", [0, -20])
+	return Vector2(float(drift[0]), float(drift[1])) if drift.size() == 2 else Vector2(0, -20)
+
+
+## A path's icon (game.json "icon"), loaded once; null when it names none.
+func path_icon(path: String) -> Texture2D:
+	if not _path_icons.has(path):
+		var file := str(game.get("paths", {}).get(path, {}).get("icon", ""))
+		_path_icons[path] = load(file) as Texture2D if file != "" and ResourceLoader.exists(file) else null
+	return _path_icons[path]
 
 
 ## Each chapter (data/chapters/*.json) lists the rooms it covers; the run asks
@@ -114,30 +151,23 @@ func _apply_enemy_archetypes(roots: Array[String]) -> void:
 
 
 func _deep_merge(base: Dictionary, overlay: Dictionary) -> void:
-	for key in overlay:
-		if key in ["id", "_source"]:
-			continue
-		if base.get(key) is Dictionary and overlay[key] is Dictionary:
-			_deep_merge(base[key], overlay[key])
-		else:
-			base[key] = overlay[key].duplicate(true) if overlay[key] is Array or overlay[key] is Dictionary else overlay[key]
+	DataDoc.merge(base, overlay)
 
 
 func _roots() -> Array[String]:
-	var roots: Array[String] = []
-	for root in ROOTS:
-		if DirAccess.dir_exists_absolute(root):
-			roots.append(root)
-	var mods := DirAccess.open(MODS_ROOT)
-	if mods:
-		for mod in mods.get_directories():
-			roots.append(MODS_ROOT.path_join(mod).path_join("data"))
-	return roots
+	return DataDoc.roots()
+
+
+## A single-document data file (hero.json, projectiles.json, …): every root's
+## copy deep-merged over the one before, so a game pack or a mod changes only
+## the keys it names. {} when no root has it.
+func load_doc(file_name: String, roots: Array[String] = []) -> Dictionary:
+	return DataDoc.doc(file_name, roots)
 
 
 func _load_collection(folder: String, roots: Array[String]) -> Dictionary:
 	var result := {}
-	for root in roots:
+	for root in DataDoc.collection_roots(folder, roots, game):
 		var dir_path := root.path_join(folder)
 		var dir := DirAccess.open(dir_path)
 		if dir == null:
@@ -145,6 +175,9 @@ func _load_collection(folder: String, roots: Array[String]) -> Dictionary:
 		for file_name in dir.get_files():
 			if file_name.ends_with(".json"):
 				_merge_file(dir_path.path_join(file_name), result)
+	# a pack may leave out an entry it inherits (game.json "exclude": {"props": ["altar_book"]})
+	for id in game.get("exclude", {}).get(folder, []):
+		result.erase(str(id))
 	return result
 
 

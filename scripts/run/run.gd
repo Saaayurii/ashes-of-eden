@@ -7,31 +7,14 @@ extends Node2D
 ## their own body and picks their own gifts. Solo, every "host" branch below is
 ## simply taken by the only peer there is, so the single-player run is unchanged.
 
-## The painted panels of the first location, in order (tools/rooms/painted_rooms.py):
-## the graveyard at night, down through the swamp into the catacombs and the
-## crypts, the Knight of Ash over the lava, the Ophanim at the gate of the pit.
-const ROOMS := [
-	"res://scenes/rooms/village_night.tscn",
-	"res://scenes/rooms/graveyard_cross.tscn",
-	"res://scenes/rooms/graveyard_arches.tscn",
-	"res://scenes/rooms/graveyard_tree.tscn",
-	"res://scenes/rooms/swamp_threshold.tscn",
-	"res://scenes/rooms/swamp_moon.tscn",
-	"res://scenes/rooms/swamp_red.tscn",
-	"res://scenes/rooms/swamp_crypt.tscn",
-	"res://scenes/rooms/catacombs_threshold.tscn",
-	"res://scenes/rooms/catacombs_1.tscn",
-	"res://scenes/rooms/catacombs_2.tscn",
-	"res://scenes/rooms/catacombs_3.tscn",
-	"res://scenes/rooms/crypt_threshold.tscn",
-	"res://scenes/rooms/crypt_skulls.tscn",
-	"res://scenes/rooms/preacher_nave.tscn",
-	"res://scenes/rooms/church.tscn",
-	"res://scenes/rooms/ashes_threshold.tscn",
-	"res://scenes/rooms/crypt_lava.tscn",
-	"res://scenes/rooms/gate_threshold.tscn",
-	"res://scenes/rooms/hell_gate.tscn",
-]
+## The rooms in play order: the game's own (data/game.json "rooms", Data.rooms,
+## docs/GAME_PACKS.md). For Ashes, the painted panels of the first location
+## (tools/rooms/painted_rooms.py): the graveyard at night, down through the
+## swamp into the catacombs and the crypts, the Knight of Ash over the lava, the
+## Ophanim at the gate of the pit.
+static var ROOMS: Array:
+	get:
+		return Data.rooms
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 ## How often each rarity is offered, relative to the others (docs/BALANCE.md).
 const RARITY_WEIGHT := {"common": 55.0, "rare": 30.0, "epic": 12.0, "legendary": 3.0}
@@ -311,11 +294,16 @@ func _begin() -> void:
 	if not heard:
 		Profile.data.prologue_seen = true
 		Profile.save()
-	await cutscene.play("ch1_prologue_short" if heard else "ch1_prologue")
+	# which scene and which words are the game's (data/game.json "opening"); one it lacks is skipped
+	var opening: Dictionary = Data.game.get("opening", {})
+	var prologue := str(opening.get("prologue_short" if heard else "prologue", ""))
+	if Data.cutscenes.has(prologue):
+		await cutscene.play(prologue)
 	if not is_inside_tree() or room != opening_room:
 		return
 	# The angel talks over the fight; hands stay on the controls from second one.
-	dialogue.play("ch1_intro")
+	if Data.dialogues.has(str(opening.get("intro", ""))):
+		dialogue.play(str(opening.intro))
 	# ...except for the first second and a half: Elian rises out of the grave.
 	# The captions run over it (docs/CORE_LOOP.md).
 	if player:
@@ -566,7 +554,7 @@ func _net_cover(index: int) -> void:
 func _room_path(index: int) -> String:
 	if index >= 0 and index == _draft_index:
 		return composed_path(index)
-	return PRACTICE_ROOM if index == PRACTICE_INDEX else ROOMS[index]
+	return str(Data.game.get("practice_room", PRACTICE_ROOM)) if index == PRACTICE_INDEX else ROOMS[index]
 
 
 func _draw_curtain(index: int) -> void:

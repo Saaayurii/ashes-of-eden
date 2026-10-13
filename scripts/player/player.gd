@@ -12,7 +12,7 @@ class_name Player
 ## it takes; everyone else receives its pose. A hit from anywhere therefore
 ## travels to the owner through [method take_damage].
 
-const BASE_STATS := {
+static var BASE_STATS := {
 	"max_hp": 100.0,
 	"speed": 150.0,
 	"acceleration": 1800.0,
@@ -62,20 +62,20 @@ const BASE_STATS := {
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
 }
 ## Where the item mechanics above reach.
-const HEAL_BURST_RADIUS := 72.0
-const PARRY_STUN_RADIUS := 90.0
-const WRATH_TIME := 2.0
-const DESPERATE_SHARE := 0.33
-const COMBO_MULTIPLIERS := [1.0, 1.1, 1.6]  # 10 · 11 · 16
+static var HEAL_BURST_RADIUS := 72.0
+static var PARRY_STUN_RADIUS := 90.0
+static var WRATH_TIME := 2.0
+static var DESPERATE_SHARE := 0.33
+static var COMBO_MULTIPLIERS := [1.0, 1.1, 1.6]  # 10 · 11 · 16
 ## A chain is meant to be chainable: the first two swings recover in a fraction
 ## of [code]attack_cooldown[/code], only the finisher costs the full swing. With
 ## one flat cooldown the window below was never actually reachable.
-const COMBO_RECOVERY := [0.45, 0.45, 1.0]
+static var COMBO_RECOVERY := [0.45, 0.45, 1.0]
 ## How long the chain stays open after a swing. Comfortably longer than the
 ## fast recovery, so a chain is a rhythm and not a frame-perfect input.
-const COMBO_WINDOW := 1.0
+static var COMBO_WINDOW := 1.0
 ## How long each swing owns the body (frames / fps of the strip), by animation.
-const SWING_TIME := {"attack": 0.25, "attack2": 0.27, "attack3": 0.31, "thrust": 0.25, "rising": 0.25, "dash_strike": 0.25}
+static var SWING_TIME := {"attack": 0.25, "attack2": 0.27, "attack3": 0.31, "thrust": 0.25, "rising": 0.25, "dash_strike": 0.25}
 ## The chain's three swings, in order.
 const SWING_ANIMATIONS := ["attack", "attack2", "attack3"]
 ## The special moves (docs/TECHNIQUES.md). Lunge: back, then forward, then
@@ -84,108 +84,108 @@ const SWING_ANIMATIONS := ["attack", "attack2", "attack3"]
 ## a charge (slow feet, the blade drawn back); let go after CHARGE_FULL and it
 ## comes down hard and stops what it lands on. Sweep: down + attack on the
 ## ground, a low cut that takes the legs from under a walker.
-const LUNGE_WINDOW := 0.3
-const LUNGE_SPEED := 360.0
-const LUNGE_TIME := 0.18
-const LUNGE_MULTIPLIER := 1.6
-const CHARGE_AFTER := 0.3
-const CHARGE_FULL := 0.6
-const CHARGE_SPEED := 0.35
+static var LUNGE_WINDOW := 0.3
+static var LUNGE_SPEED := 360.0
+static var LUNGE_TIME := 0.18
+static var LUNGE_MULTIPLIER := 1.6
+static var CHARGE_AFTER := 0.3
+static var CHARGE_FULL := 0.6
+static var CHARGE_SPEED := 0.35
 ## ×3 on one blow after ~0.9 s of charge: ~19 damage a second against the
 ## chain's ~22 (docs/BALANCE_PROBE.md, "The moves") — worth the wait, never
 ## worth doing instead of fighting.
-const CLEAVE_MULTIPLIER := 3.0
-const CLEAVE_STAGGER := 0.6
-const SWEEP_MULTIPLIER := 0.8
-const SWEEP_STAGGER := 0.9
-const TECHNIQUE_TIME := {"lunge": 0.3, "cleave": 0.35, "sweep": 0.3}
+static var CLEAVE_MULTIPLIER := 3.0
+static var CLEAVE_STAGGER := 0.6
+static var SWEEP_MULTIPLIER := 0.8
+static var SWEEP_STAGGER := 0.9
+static var TECHNIQUE_TIME := {"lunge": 0.3, "cleave": 0.35, "sweep": 0.3}
 ## Landing faster than this earns the crouch.
-const HARD_LANDING := 300.0
+static var HARD_LANDING := 300.0
 ## A blow worth this much of the bar throws the body off its feet (visually).
-const KNOCKBACK_FRACTION := 0.2
+static var KNOCKBACK_FRACTION := 0.2
 ## Block and parry (docs/BALANCE.md; not the ward gift, which is stats.guard).
 ## Holding the button is the safe, boring answer: a blow from the front still
 ## lands, for a third of what it was worth. The first moments of a *fresh*
 ## block are the parry: nothing lands, the swing is thrown back and the body
 ## that swung is left open. Timing is rewarded, mashing is not — the window only
 ## opens on a new press, and only once the last block has been down a moment.
-const PARRY_WINDOW := 0.22
-const BLOCK_REDUCTION := 0.65
-const BLOCK_SPEED := 0.35
-const BLOCK_RECOVERY := 0.35
-const PARRY_PUSH := 90.0
-const BLOCK_PUSH := 40.0
-const HEAL_AMOUNT := 35.0
-const HEAL_TIME := 1.0
+static var PARRY_WINDOW := 0.22
+static var BLOCK_REDUCTION := 0.65
+static var BLOCK_SPEED := 0.35
+static var BLOCK_RECOVERY := 0.35
+static var PARRY_PUSH := 90.0
+static var BLOCK_PUSH := 40.0
+static var HEAL_AMOUNT := 35.0
+static var HEAL_TIME := 1.0
 ## A short counterattack window after a real wound. Only sword hits against
 ## living enemies reclaim health; potions and passive healing cannot farm it.
-const RALLY_TIME := 2.4
-const RALLY_DAMAGE_SHARE := 0.35
-const RALLY_HIT_SHARE := 0.4
-const RALLY_MAX_HP_SHARE := 0.15
+static var RALLY_TIME := 2.4
+static var RALLY_DAMAGE_SHARE := 0.35
+static var RALLY_HIT_SHARE := 0.4
+static var RALLY_MAX_HP_SHARE := 0.15
 ## A landed blow must not become several wounds just because two attack
 ## hitboxes overlap on the same frame. Hazards and scripted damage bypass it.
-const HURT_GRACE_TIME := 0.24
+static var HURT_GRACE_TIME := 0.24
 ## How much harder a blow lands while a curse is on the body (take_curse).
-const CURSE_DAMAGE := 2.0
+static var CURSE_DAMAGE := 2.0
 ## A gift hand turned down gives back this share of the bar (refuse_gift).
-const REFUSE_HEAL := 0.4
+static var REFUSE_HEAL := 0.4
 ## The riposte the roll earns. A real enemy blow that the i-frames swallowed
 ## leaves the blade hot: the next sword hit that actually lands on something
 ## alive is worth a little more. One charge per roll, one swing to spend it,
 ## and it never stacks — dodging is meant to be answered, not farmed.
-const DODGE_COUNTER_TIME := 2.0
-const DODGE_COUNTER_BONUS := 0.2
+static var DODGE_COUNTER_TIME := 2.0
+static var DODGE_COUNTER_BONUS := 0.2
 ## Cold steel, the colour the ward and the block already use.
 const DODGE_COUNTER_TINT := Color(0.8, 0.9, 1.0)
 ## Ground covered between two footsteps, in pixels.
-const STEP_DISTANCE := 34.0
-const COYOTE_TIME := 0.1
-const JUMP_BUFFER := 0.12
-const JUMP_CUT_VELOCITY := -110.0
+static var STEP_DISTANCE := 34.0
+static var COYOTE_TIME := 0.1
+static var JUMP_BUFFER := 0.12
+static var JUMP_CUT_VELOCITY := -110.0
 ## Down + jump on a ledge: how long the ledge layer (5) is ignored while dropping through.
-const DROP_THROUGH_TIME := 0.18
+static var DROP_THROUGH_TIME := 0.18
 const LEDGE_LAYER := 16
-const STEP_HEIGHT := 12.0
-const MANTLE_RISE := 104.0
-const MANTLE_TIME := 0.22
+static var STEP_HEIGHT := 12.0
+static var MANTLE_RISE := 104.0
+static var MANTLE_TIME := 0.22
 
 ## --- ground slam ---
 ## Down in the air drops him like a stone onto whatever is beneath. It is free
 ## — no cooldown, no gift — because what it costs is height and the moment he
 ## spends planted afterwards, and because a move with a meter on it stops
 ## being one you reach for without thinking.
-const SLAM_SPEED := 760.0
+static var SLAM_SPEED := 760.0
 ## Below this there is no room to build the fall, and slamming out of a hop
 ## would turn a mistimed jump into an attack nobody meant to make.
-const SLAM_MIN_HEIGHT := 26.0
-const SLAM_RADIUS := 38.0
+static var SLAM_MIN_HEIGHT := 26.0
+static var SLAM_RADIUS := 38.0
 ## Of attack_damage. Less than a sword because it lands on everything at once
 ## and costs no swing; the knockdown is the point, not the number.
-const SLAM_DAMAGE_SHARE := 0.9
+static var SLAM_DAMAGE_SHARE := 0.9
 ## He cannot steer while falling, and is briefly planted where he lands.
-const SLAM_RECOVERY := 0.22
+static var SLAM_RECOVERY := 0.22
 
 ## --- wall grab ---
 ## Pressed into a wall in mid-air he catches it and slides instead of falling.
 ## Not a climb: gravity still wins, only slowly, and only while the stick is
 ## held into the wall.
-const WALL_SLIDE_SPEED := 72.0
+static var WALL_SLIDE_SPEED := 72.0
 ## A cursor this close to him, sideways, does not turn him (Settings.mouse_aims).
 const AIM_DEADZONE := 6.0
 ## A push off the wall, away and up. It costs the air jump it hands back, so a
 ## wall is a second chance rather than unlimited height.
-const WALL_JUMP_PUSH := 230.0
-const WALL_JUMP_RISE := 0.92  # of jump_velocity
+static var WALL_JUMP_PUSH := 230.0
+static var WALL_JUMP_RISE := 0.92  # of jump_velocity
 ## Long enough for the push to carry him clear before the stick can steer back
 ## into the wall and stick to it again.
-const WALL_JUMP_TURN_LOCK := 0.16
+static var WALL_JUMP_TURN_LOCK := 0.16
 
 ## An enemy this close to the rolling body is caught by a cutting roll.
-const DASH_REACH := 22.0
+static var DASH_REACH := 22.0
 ## The arc a finisher throws when a gift gives it one.
 const WAVE_SCENE := preload("res://scenes/fx/projectile.tscn")
-const WAVE_SPEED := 260.0
+static var WAVE_SPEED := 260.0
 ## Enemy bodies are not solid to the player. Sword hitboxes and attack/contact
 ## areas remain on their own layers, so a chase cannot shove an idle hero.
 ## Slot 1 wears a colder cloth so the two of you never lose each other.
@@ -243,11 +243,6 @@ var _light: GlowLight
 ## The path the soul leans towards shows on the body (never as numbers): motes
 ## of its colour and a tint on the carried light. See _update_aura.
 const LIGHT_COLOR := Color(1.0, 0.93, 0.8)
-const AURA := {
-	"grace": [Color(1.0, 0.88, 0.5), Vector2(0, -26)],       # gold, rising
-	"temptation": [Color(0.85, 0.12, 0.15), Vector2(0, 14)],  # embers of blood, sinking
-	"will": [Color(0.72, 0.7, 0.68), Vector2(8, -6)],         # ash, drifting
-}
 ## The three marks, in the order assets/shaders/alignment_marks.gdshader
 ## expects them.
 const MARK_MODE := {"grace": 0, "temptation": 1, "will": 2}
@@ -383,8 +378,8 @@ func _ready() -> void:
 ## a swing, and the body turns to it. Never at a sleeper — the backstab stays a
 ## choice — and never during a roll, a block, a charge or a scripted pose.
 ## Returns whether it swung.
-const AUTO_REACH := 46.0
-const AUTO_HEIGHT := 30.0
+static var AUTO_REACH := 46.0
+static var AUTO_HEIGHT := 30.0
 
 
 ## The mouse scheme (Settings.mouse_aims): a swing, a cast and a guard turn
@@ -1628,6 +1623,63 @@ func _start_heal() -> void:
 	body.modulate = Color(0.85, 1.0, 0.8)
 
 
+## How the hero handles is data (data/hero.json, docs/GAME_PACKS.md): "stats" over
+## BASE_STATS, "feel" over the timings and distances below, by their lower-case
+## names. The values written in this script are only what a game without the
+## file gets; Data.reload lays the file on through apply_hero, and the studio's
+## «Боёвка» and the live sandbox go the same way. Each name here is a static var.
+const FEEL_KEYS := ["heal_burst_radius", "parry_stun_radius", "wrath_time", "desperate_share",
+	"combo_multipliers", "combo_recovery", "combo_window", "swing_time",
+	"lunge_window", "lunge_speed", "lunge_time", "lunge_multiplier", "charge_after", "charge_full",
+	"charge_speed", "cleave_multiplier", "cleave_stagger", "sweep_multiplier", "sweep_stagger",
+	"technique_time", "hard_landing", "knockback_fraction", "parry_window", "block_reduction",
+	"block_speed", "block_recovery", "parry_push", "block_push", "heal_amount", "heal_time",
+	"rally_time", "rally_damage_share", "rally_hit_share", "rally_max_hp_share", "hurt_grace_time",
+	"curse_damage", "refuse_heal", "dodge_counter_time", "dodge_counter_bonus", "step_distance",
+	"coyote_time", "jump_buffer", "jump_cut_velocity", "drop_through_time", "step_height",
+	"mantle_rise", "mantle_time", "slam_speed", "slam_min_height", "slam_radius", "slam_damage_share",
+	"slam_recovery", "wall_slide_speed", "wall_jump_push", "wall_jump_rise", "wall_jump_turn_lock",
+	"dash_reach", "wave_speed", "auto_reach", "auto_height"]
+## What the script itself says, taken before the first apply_hero, so a second
+## one (the studio trying a value) starts from the same place.
+static var _hero_defaults: Dictionary = {}
+
+
+## Lays {"stats": {...}, "feel": {...}} over the defaults. A key the hero does not
+## have is skipped (the validator names it); a number keeps the default's type.
+static func apply_hero(doc: Dictionary) -> void:
+	var script: GDScript = load("res://scripts/player/player.gd")
+	if _hero_defaults.is_empty():
+		_hero_defaults = {"stats": BASE_STATS.duplicate(true), "feel": hero_feel()}
+	var stats: Dictionary = _hero_defaults.stats.duplicate(true)
+	var given = doc.get("stats", {})
+	if given is Dictionary:
+		for key: String in given:
+			if stats.has(key) and (given[key] is float or given[key] is int):
+				stats[key] = int(given[key]) if stats[key] is int else float(given[key])
+	BASE_STATS = stats
+	var feel: Dictionary = _hero_defaults.feel.duplicate(true)
+	var asked = doc.get("feel", {})
+	if asked is Dictionary:
+		for key: String in asked:
+			if feel.has(key) and typeof(asked[key]) in [TYPE_FLOAT, TYPE_INT, TYPE_ARRAY, TYPE_DICTIONARY]:
+				feel[key] = asked[key]
+	for key: String in feel:
+		var value = feel[key]
+		if _hero_defaults.feel[key] is float:
+			value = float(value)
+		script.set(key.to_upper(), value)
+
+
+## The hero's feel as it stands, by data name.
+static func hero_feel() -> Dictionary:
+	var script: GDScript = load("res://scripts/player/player.gd")
+	var out := {}
+	for key: String in FEEL_KEYS:
+		out[key] = script.get(key.to_upper())
+	return out
+
+
 static var studio_actions: Dictionary = {}
 static var _actions_loaded := false
 
@@ -1635,7 +1687,7 @@ static var _actions_loaded := false
 static func action_spec(id: String) -> Dictionary:
 	if not _actions_loaded:
 		_actions_loaded = true
-		var doc = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_actions.json"))
+		var doc = DataDoc.doc("player_actions.json")
 		if doc is Dictionary:
 			studio_actions = doc.get("actions", {})
 	return studio_actions.get(id, {})
@@ -2006,7 +2058,8 @@ func _update_aura() -> void:
 	Audio.alignment_layer(path, strength)
 	# ...and on the body itself, under whatever frame is showing.
 	_mark_body(path, strength)
-	var look: Array = AURA[path]
+	# the path's colour and drift are the game's (data/game.json "paths")
+	var look := [Data.path_color(path, "aura"), Data.path_drift(path)]
 	if _aura == null:
 		_aura = Fx.trail(self, look[0], 16, 1.4)
 		_aura.position = Vector2(0, -14)
@@ -2035,7 +2088,7 @@ func _mark_body(path: String, strength: float) -> void:
 	var shader_material := _marks_material()
 	shader_material.set_shader_parameter("mode", MARK_MODE.get(path, 2))
 	shader_material.set_shader_parameter("strength", strength)
-	shader_material.set_shader_parameter("tint", (AURA[path] as Array)[0])
+	shader_material.set_shader_parameter("tint", Data.path_color(path, "aura"))
 
 
 func _marks_material() -> ShaderMaterial:

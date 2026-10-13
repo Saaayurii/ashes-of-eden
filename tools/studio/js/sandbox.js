@@ -11,10 +11,10 @@ try { sandbox.full = localStorage.getItem('ss_live_full') !== '0'; } catch {}
 // The game on the same site when it has one (Pages, a local copy of the site),
 // otherwise the hosted one (the studio from the working tree): what she draws
 // travels in the message, so the main build's engine and data are all the game
-// side needs.
+// side needs. Another game (?game=) plays in its own build, on its own site.
 async function sandboxUrl() {
   const here = new URL('../studio-live.html', location.href).href;
-  try { if ((await fetch(here, { method: 'HEAD', cache: 'no-store' })).ok) return here; } catch {}
+  if (!OPEN_GAME) try { if ((await fetch(here, { method: 'HEAD', cache: 'no-store' })).ok) return here; } catch {}
   return (META.site || 'https://saaayurii.github.io/ashes-of-eden/') + 'studio-live.html';
 }
 
@@ -153,7 +153,8 @@ async function sandboxDraftData(id) {
     const buf = await renderEdits(await takeBuffer(t), t.mod?.edits || EDIT_DEFAULT); sounds[t.stem] = await blobToDataURL(encodeWav(buf));
   }
   return { spec, bodies, styles: SHOTS.styles, sheets: Object.fromEntries(SHOTS.newSheets), sounds,
-    player_actions: docs['data/player_actions.json']?.actions || {},
+    player_actions: typeof COMBAT !== 'undefined' && COMBAT.data ? combatActions() : docs['data/player_actions.json']?.actions || {},
+    hero: typeof COMBAT !== 'undefined' && COMBAT.data ? combatHero() : docs['data/hero.json'],
     abilities: Object.fromEntries(Object.entries(docs).filter(([p]) => p.startsWith('data/abilities/')).flatMap(([, a]) => a.map(v => [v.id, v]))) };
 }
 async function attacksEnterData() {

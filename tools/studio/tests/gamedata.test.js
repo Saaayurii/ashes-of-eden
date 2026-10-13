@@ -82,8 +82,8 @@ test('today\'s data passes the browser\'s copy of the validator, and bad entries
 });
 
 test('every flag is both set and read, as the validator finds them', () => {
-  const src = read('scripts/tools/validate_data.gd');
-  const flags = G.gdFlags(world(), { read: gdConst('FLAGS_READ_IN_CODE'), set: gdConst('FLAGS_SET_IN_CODE'), tests: gdConst('FLAGS_FOR_TESTS') });
-  assert.ok(Object.keys(flags).length > 10 && src.includes('FLAGS_READ_IN_CODE'));
+  const src = read('scripts/tools/validate_data.gd'), inCode = JSON.parse(read('data/game.json')).flags_read;
+  const flags = G.gdFlags(world(), { read: inCode, set: gdConst('FLAGS_SET_IN_CODE'), tests: gdConst('FLAGS_FOR_TESTS') });
+  assert.ok(Object.keys(flags).length > 10 && inCode.length && src.includes('"flags_read"'));
   assert.deepStrictEqual(Object.entries(flags).filter(([, f]) => !f.set.length).map(([k]) => k), [], 'read but never set');
 });

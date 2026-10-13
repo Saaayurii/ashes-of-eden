@@ -61,7 +61,7 @@ static func entries() -> Array[Dictionary]:
 		var path := str(ability.get("path", "will"))
 		result.append({"kind": "gift", "name": str(ability.get("name", "")),
 			"description": str(ability.get("description", "")),
-			"icon": str(ability.get("icon", "")), "color": AbilityPicker.PATH_COLORS.get(path, Color.WHITE),
+			"icon": str(ability.get("icon", "")), "color": Data.path_color(path),
 			"path": path})
 	for id in Game.resonances:
 		var spec: Dictionary = Resonances.spec(id)
@@ -124,7 +124,7 @@ func _row(entry: Dictionary) -> Control:
 	if icon_path != "" and ResourceLoader.exists(icon_path):
 		icon.texture = load(icon_path)
 	elif entry.kind == "gift":
-		icon.texture = AbilityPicker.PATH_ICONS.get(entry.get("path", "will"))
+		icon.texture = Data.path_icon(str(entry.get("path", "will")))
 	row.add_child(icon)
 	var words := VBoxContainer.new()
 	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL

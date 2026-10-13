@@ -60,6 +60,7 @@ function setMode(m) {
   if (m === 'gore' && typeof goreEnter === 'function') goreEnter();
   if (m === 'comp' && typeof composerEnter === 'function') composerEnter();
   if (m === 'world' && typeof worldEnter === 'function') worldEnter();
+  if (m === 'combat' && typeof combatEnter === 'function') combatEnter();
   if (typeof STUDIO_TABS !== 'undefined' && STUDIO_TABS[m]) gdEnter(m);
   if (m === 'dlg' && typeof dlgEnter === 'function') dlgEnter();
   $$('.modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));

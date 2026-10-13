@@ -96,8 +96,8 @@ static func _load() -> void:
 	if _loaded:
 		return
 	_loaded = true
-	if FileAccess.file_exists(PATH):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	if DataDoc.exists(PATH):
+		var parsed = DataDoc.doc(PATH)
 		if parsed is Dictionary:
 			_materials = parsed.get("materials", {})
 			_bodies = parsed.get("bodies", {})

@@ -2,6 +2,7 @@
 # Entry point for the build image. Usage:
 #   entrypoint validate            validate data + localization
 #   entrypoint test                headless end-to-end smoke test of the game loop
+#   entrypoint game-test           validate + play any game on the engine (a game pack's CI)
 #   entrypoint net-test [mode...]  two-process crossplay stand (default: all four)
 #   entrypoint server [--flags]    dedicated headless host for two browsers
 #   entrypoint relay [--flags]     the relay rooms by code go through (docs/RELAY.md)
@@ -22,11 +23,19 @@ case "${1:-validate}" in
         import
         godot --headless -s scripts/tools/validate_data.gd
         ;;
+    game-test)
+        import
+        godot --headless -s scripts/tools/validate_data.gd
+        godot --headless -s scripts/tools/game_smoke_test.gd
+        ;;
     test)
         import
+        godot --headless -s scripts/tools/game_smoke_test.gd
         godot --headless -s scripts/tools/smoke_test.gd
         godot --headless -s scripts/tools/parry_test.gd
         godot --headless -s scripts/tools/gift_test.gd
+        godot --headless -s scripts/tools/hero_data_test.gd
+        godot --headless -s scripts/tools/data_roots_test.gd
         godot --headless -s scripts/tools/traversal_moves_test.gd
         godot --headless -s scripts/tools/alignment_test.gd
         godot --headless -s scripts/tools/layers_test.gd

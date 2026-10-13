@@ -37,7 +37,10 @@ const PAINTING := Vector2(640, 340)
 
 
 func _ready() -> void:
-	# the village at dawn breathes like every room (data/backdrops.json)
+	# the game's own picture (data/game.json "menu"), breathing like every room (data/backdrops.json)
+	var picture := str(Data.game.get("menu", {}).get("background", ""))
+	if picture != "" and ResourceLoader.exists(picture):
+		($Layers/Background as Sprite2D).texture = load(picture)
 	BackdropLife.attach_picture($Layers/Background as Sprite2D, "main_menu")
 	_fit_layers()
 	get_viewport().size_changed.connect(_fit_layers)
@@ -64,7 +67,7 @@ func _ready() -> void:
 		Saves.pending = {}
 		Curtain.change_scene.call_deferred(RUN_SCENE, true)
 		return
-	Audio.music("menu")
+	Audio.music(str(Data.game.get("menu", {}).get("music", "menu")))
 	for i in Settings.LOCALES.size():
 		var code: String = Settings.LOCALES[i]
 		language.add_item(NATIVE_NAMES.get(code, code), i)

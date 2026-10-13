@@ -1,0 +1,35 @@
+{
+  "id": "ashes_of_eden",
+  "engine": 1,
+  "flags_read": ["voice_yes", "matthew_confessed", "matthew_judged", "matthew_released", "matthew_book_revealed", "read_letters"],
+  "rooms": [
+    "res://scenes/rooms/village_night.tscn",
+    "res://scenes/rooms/graveyard_cross.tscn",
+    "res://scenes/rooms/graveyard_arches.tscn",
+    "res://scenes/rooms/graveyard_tree.tscn",
+    "res://scenes/rooms/swamp_threshold.tscn",
+    "res://scenes/rooms/swamp_moon.tscn",
+    "res://scenes/rooms/swamp_red.tscn",
+    "res://scenes/rooms/swamp_crypt.tscn",
+    "res://scenes/rooms/catacombs_threshold.tscn",
+    "res://scenes/rooms/catacombs_1.tscn",
+    "res://scenes/rooms/catacombs_2.tscn",
+    "res://scenes/rooms/catacombs_3.tscn",
+    "res://scenes/rooms/crypt_threshold.tscn",
+    "res://scenes/rooms/crypt_skulls.tscn",
+    "res://scenes/rooms/preacher_nave.tscn",
+    "res://scenes/rooms/church.tscn",
+    "res://scenes/rooms/ashes_threshold.tscn",
+    "res://scenes/rooms/crypt_lava.tscn",
+    "res://scenes/rooms/gate_threshold.tscn",
+    "res://scenes/rooms/hell_gate.tscn"
+  ],
+  "opening": {"prologue": "ch1_prologue", "prologue_short": "ch1_prologue_short", "intro": "ch1_intro", "last_fall": "ch1_last_fall"},
+  "practice_room": "res://scenes/rooms/practice_yard.tscn",
+  "menu": {"background": "res://assets/backgrounds/village_dawn.png", "music": "menu"},
+  "paths": {
+    "grace": {"color": "#f2d980", "aura": "#ffe080", "drift": [0, -26], "icon": "res://assets/ui/icons/sun.png"},
+    "temptation": {"color": "#d94c66", "aura": "#d91f26", "drift": [0, 14], "icon": "res://assets/ui/icons/drop.png"},
+    "will": {"color": "#bfcce6", "aura": "#b8b2ad", "drift": [8, -6], "icon": "res://assets/ui/icons/swords.png"}
+  }
+}

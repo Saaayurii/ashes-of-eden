@@ -101,6 +101,12 @@ func apply(msg: Dictionary) -> Dictionary:
 			var texture := texture_from_base64(str(msg.sheets[path]))
 			if texture != null:
 				Projectile._sheets[path] = texture
+	if msg.get("hero") is Dictionary:
+		Player.apply_hero(msg.hero)
+		for body in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("player"):
+			for key: String in msg.hero.get("stats", {}):
+				if body.stats.has(key) and Player.BASE_STATS.has(key):
+					body.stats[key] = Player.BASE_STATS[key]
 	if msg.get("player_actions") is Dictionary:
 		Player.studio_actions = msg.player_actions
 		Player._actions_loaded = true

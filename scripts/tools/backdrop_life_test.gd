@@ -22,14 +22,9 @@ func _check(ok: bool, message: String) -> void:
 func _run() -> void:
 	var life = load("res://scripts/rooms/backdrop_life.gd")
 	var shader: Shader = load("res://assets/shaders/backdrop_life.gdshader")
-	# ROOMS read as text: the test should not depend on all of run.gd compiling
-	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")
-	var listed := run.substr(run.find("const ROOMS := ["))
-	listed = listed.substr(0, listed.find("]"))
-	var rooms: Array = []
-	for found in RegEx.create_from_string("res://scenes/rooms/\\w+\\.tscn").search_all(listed):
-		rooms.append(found.get_string())
-	_check(rooms.size() > 10, "run.gd lists %d rooms — does it compile?" % rooms.size())
+	# the game's rooms (data/game.json), read as the file: the test should not depend on run.gd compiling
+	var rooms: Array = load("res://scripts/data/data_doc.gd").doc("game.json").get("rooms", []).duplicate()
+	_check(rooms.size() > 10, "game.json lists %d rooms" % rooms.size())
 	# and what the studio composed: keyed composed/<room>, its zones on its own picture
 	if DirAccess.dir_exists_absolute("res://scenes/rooms/composed"):
 		for file in ResourceLoader.list_directory("res://scenes/rooms/composed"):

@@ -113,13 +113,18 @@ func _run() -> void:
 	run.studio_live.apply({"type": "ashes-live", "mode": "data", "extends": "possessed_villager",
 		"spec": {"hp": 123, "attacks": [draft_attack]}, "bodies": {"studio_live": dust},
 		"styles": {"test": {"light": 31}}, "player_actions": {"cleave": {"multiplier": 5}},
-		"abilities": {"studio_test": {"id": "studio_test"}}})
+		"abilities": {"studio_test": {"id": "studio_test"}},
+		"hero": {"stats": {"speed": 222.0}, "feel": {"parry_window": 0.4}}})
 	await _settle(0.4)
 	foes = _foes()
 	_check(foes.size() == 1 and foes[0].stats.hp == 123 and foes[0]._attacks[0].damage == 12, "live drafts replace enemy stats and damage")
 	_check(foes[0].sprite.sprite_frames.has_animation("special"), "data-only posts keep original sprite strips")
 	_check(action_fx.rules("studio_live") == dust and projectile_script.style("test").light == 31, "particle and projectile drafts reach the engine")
 	_check(player_script.action_spec("cleave").multiplier == 5 and data.abilities.has("studio_test"), "hero action and gift drafts reach the engine")
+	var heroes := root.get_tree().get_nodes_in_group("player")
+	_check(is_equal_approx(player_script.PARRY_WINDOW, 0.4) and not heroes.is_empty() and is_equal_approx(float(heroes[0].stats.speed), 222.0),
+		"a hero draft reaches the class and the body in the yard")
+	player_script.apply_hero(data.hero)
 	run._studio_live_control({"command": "force", "attack": 0, "distance": 50, "debug": true})
 	_check(foes[0].state == enemy_script.State.WINDUP and foes[0]._attack.damage == 12, "force uses the selected real attack and its windup")
 	await _settle(0.1)

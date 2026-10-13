@@ -67,9 +67,9 @@ static func attach(room: Node2D, scene_name: String, room_width: float, room_hei
 
 
 static func _effects_for(scene_name: String) -> Array:
-	if not FileAccess.file_exists(RULES_PATH):
+	if not DataDoc.exists(RULES_PATH):
 		return []
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(RULES_PATH))
+	var parsed = DataDoc.doc(RULES_PATH)
 	if not parsed is Dictionary:
 		return []
 	for rule in parsed.get("rules", []):

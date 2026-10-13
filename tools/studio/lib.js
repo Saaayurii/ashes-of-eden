@@ -1007,6 +1007,32 @@ function mergeOverrides(text, entries) {
   return JSON.stringify(sorted, null, 2) + '\n';
 }
 
+// ---- the hero's handling (data/hero.json, data/player_actions.json; Player.apply_hero) ----
+// Only what she changed is written, in place: the rest of each file stays byte for byte, a
+// float keeps its ".0", a list or a table stays on its one line.
+// changes: {stats: {key: value}, feel: {key: value}}
+function heroPatch(text, changes) {
+  // every list and table in hero.json holds seconds or multipliers: floats, written with their ".0"
+  const flt = v => typeof v === 'number' ? (Number.isInteger(v) ? v.toFixed(1) : String(v))
+    : Array.isArray(v) ? '[' + v.map(flt).join(', ') + ']'
+    : '{' + Object.entries(v).map(([k, x]) => JSON.stringify(k) + ': ' + flt(x)).join(', ') + '}';
+  const inline = v => (v && typeof v === 'object') ? { __raw: flt(v) } : v;
+  for (const section of ['stats', 'feel']) {
+    const set = Object.fromEntries(Object.entries(changes?.[section] || {}).map(([k, v]) => [k, inline(v)]));
+    if (Object.keys(set).length) text = patchJson(text, [section], set);
+  }
+  return text;
+}
+// changes: {action id: {key: value}} — keys the action already has (an inline object stays inline)
+function actionsPatch(text, changes) {
+  const inline = v => (v && typeof v === 'object') ? { __raw: fmtJson(v) } : v;
+  for (const [id, keys] of Object.entries(changes || {})) {
+    const set = Object.fromEntries(Object.entries(keys).map(([k, v]) => [k, inline(v)]));
+    if (Object.keys(set).length) text = patchJson(text, ['actions', id], set);
+  }
+  return text;
+}
+
 // ---- one send, one pull request ----
 // A fingerprint of what a send writes (the studio project itself left out: it carries
 // timestamps), so the same work sent twice is found instead of opening a second pull request.
@@ -1349,5 +1375,28 @@ function fmtComposed(doc) {
 
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+/* ---------- another game on the engine (docs/GAME_PACKS.md) ----------
+ * A game pack's repository is what the engine reads as content/: its data/
+ * overlays the engine's, its pictures and scenes are res://content/…. Its CI
+ * publishes the studio's data to the branch `studio-data`, which the page reads
+ * when opened with ?game=owner/name. */
+const GAME_REPO = /^\w[\w.-]*\/\w[\w.-]*$/;
+const gameDataBase = (repo, branch = 'studio-data') => `https://raw.githubusercontent.com/${repo}/${branch}/`;
+// What a send writes, as the pack's repository holds it. data/ and localization/
+// keep their paths (the pack's copy overrides the engine's); content/x is the
+// pack's own x; any other new file (a picture, a .tres) is the pack's too, so a
+// res:// path naming it in the same send becomes res://content/….
+function packFiles(files, del = []) {
+  const own = p => !/^(data|localization|tools)\//.test(p) && !p.startsWith('content/');
+  const moved = Object.keys(files).filter(own).sort((a, b) => b.length - a.length);
+  const out = {};
+  for (const [p, b] of Object.entries(files)) {
+    let v = b;
+    if (typeof v === 'string') for (const m of moved) v = v.split('res://' + m).join('res://content/' + m);
+    out[p.replace(/^content\//, '')] = v;
+  }
+  return { files: out, del: del.map(p => p.replace(/^content\//, '')) };
+}
+
+Object.assign(g, { GAME_REPO, gameDataBase, packFiles, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates });
 })(typeof module !== 'undefined' ? module.exports : window);

@@ -108,6 +108,8 @@ main{padding:12px 16px;min-width:0}
 .modes button{flex-shrink:0;white-space:nowrap}
 .draftcompare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.draftcompare pre{max-height:220px;overflow:auto;white-space:pre-wrap}.workspacebar{display:flex;gap:6px;padding:6px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
 body:not([data-mode=world]) .worldlayout{display:none!important}
+body:not([data-mode=combat]) .combatlayout{display:none!important}
+.cbrow{display:flex;align-items:center;gap:8px;padding:2px 0}.cbrow label{width:290px;flex:none}.cbin{display:flex;gap:4px;align-items:center;flex-wrap:wrap}.cbchanged label{color:#e0b050}.cbgame{font-size:11px}.cbtable td,.cbtable th{padding:2px 4px;font-size:12px;text-align:left}
 @media(max-width:600px){.draftcompare{grid-template-columns:1fr}header.top{flex-wrap:wrap}.modes{width:100%;order:20}.attacklayout .row{flex-wrap:wrap}}
 .modes button{border:0;border-radius:0;background:transparent}
 .modes button.on{background:var(--panel2);color:var(--accent)}
@@ -286,7 +288,7 @@ a{color:var(--sel)}
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="comp" title="Собрать большую комнату из нескольких картин">Конструктор</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="attacks">Атаки</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="gore">Кровь</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button><button data-act="mode" data-m="world">Поведение</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="comp" title="Собрать большую комнату из нескольких картин">Конструктор</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="attacks">Атаки</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="gore">Кровь</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button><button data-act="mode" data-m="world">Поведение</button><button data-act="mode" data-m="combat">Боёвка</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -338,6 +340,7 @@ a{color:var(--sel)}
   <button class="ghost sm" data-act="undo" title="Отменить (Cmd/Ctrl+Z)">↶</button>
   <button class="ghost sm" data-act="redo" title="Вернуть (Cmd/Ctrl+Shift+Z)">↷</button>
   <button id="sentBtn" class="ghost" data-act="sent" title="Что я отправила в игру и что с этим сейчас">Мои отправки</button>
+  <button id="gameBtn" class="ghost" data-act="game" title="Открыть другую игру на этом движке">▣ Ashes of Eden</button>
   <button id="authBtn" class="ghost" data-act="auth">Войти</button>
 </header>
 <div class="workspacebar"><span id="workspaceStatus" class="grow muted">Черновик</span><button id="workspaceExport" class="sm">⬇ Весь проект</button><label class="sm btnlike">⬆ Открыть проект<input id="workspaceImport" type="file" accept=".json" hidden></label><button id="workspacePreview" class="sm">Проверить изменения</button><button id="workspaceSend" class="sm primary">→ Отправить всё</button></div>
@@ -520,6 +523,12 @@ a{color:var(--sel)}
     <div class="note" style="padding:0 12px 8px">Тащи картинку мышкой; тащи пустое место — двигается камера. Стрелки двигают картинку (Shift — на 10 px), Delete удаляет. Ctrl+V или перетаскивание файла — добавить картинку в выбранный слой.</div>
   </main>
   <aside class="side bgright" id="itemPanel"></aside>
+</div>
+
+<div id="combatLayout" class="combatlayout" style="height:calc(100vh - 110px);overflow:auto;padding:12px;max-width:1100px">
+<h3>Боёвка героя</h3><p class="note">Как герой двигается и дерётся: data/hero.json и удары из data/player_actions.json. Меняется во всех играх на этом движке, если игра не задала своё.</p>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button id="combatSandbox">▶ Песочница</button><button id="combatSend" class="primary">→ В игру</button><button id="combatReset" class="ghost">Всё как в игре</button><span id="combatStatus" class="muted" style="align-self:center"></span></div>
+<div id="combatBody"></div>
 </div>
 
 <div id="worldLayout" class="worldlayout" style="height:calc(100vh - 110px);overflow:auto;padding:12px">
@@ -819,6 +828,7 @@ a{color:var(--sel)}
 <script src="js/composer.js"></script>
 <script src="js/dialogues.js"></script>
 <script src="js/world.js"></script>
+<script src="js/combat.js"></script>
 <script src="js/gamedata.js"></script>
 <script src="js/workspace.js"></script>
 <script src="js/edit.js"></script>

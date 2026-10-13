@@ -446,6 +446,21 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     Подробно: [docs/ROOM_COMPOSER.md](../../docs/ROOM_COMPOSER.md),
     [docs/DEPTH.md](../../docs/DEPTH.md).
 
+## Other games on the engine
+
+The studio edits any game made on this engine (docs/GAME_PACKS.md). Hosted,
+**▣ → Открыть игру** takes `owner/name` and reloads with `?game=owner/name`:
+every `import/…` the page asks for is read from that repository's `studio-data`
+branch (published by the engine's `.github/workflows/game.yml`), a pack's own
+picture (`content/…`) from `meta.json`'s `contentBase`, and sends open pull
+requests there. `packFiles` (lib.js) turns a send into the pack's files:
+`data/…` overrides the engine's, a new picture is the pack's and the `res://`
+naming it becomes `res://content/…`. `repoText` reads the pack's copy of a file,
+or the engine's at the commit the data was built from. Locally,
+`serve.py --game ../folder` links the pack in, builds the data through
+`tools/packs/game_view.py` and writes into the pack (`content/…` in the API).
+The sandbox of another game is that game's own build (`META.site`).
+
 ## Actions and shared workspace
 
 «Снаряды» distinguishes the distance at which an enemy starts firing from the
@@ -469,6 +484,19 @@ file. Input handling, movement algorithms and new AI implementations still need
 engine code. Room placements can be moved on the map; extra waves spawn after
 the previous enemies die, and the door opens after the last wave. Rest raises
 original common placements, rather than replaying reinforcement waves.
+
+«Боёвка» is how the hero handles: every number of `data/hero.json` (`stats` —
+the body a night starts with, `BASE_STATS`; `feel` — the timings and reaches
+player.gd used to keep as constants, laid onto the class by `Player.apply_hero`
+when `Data` loads) and the multipliers, recovery, timing and impact frame of
+each swing in `data/player_actions.json`. Her changes are a diff over the
+game's values (`ss_combat`); a send rewrites only those values in place
+(`lib.js` `heroPatch` / `actionsPatch`, floats keep their `.0`, a list stays on
+its line). «▶ Песочница» posts the whole hero as `hero` with the data drafts
+(`StudioLive.apply` re-lays it and refreshes the body in the yard), so the jump,
+the roll and the parry window can be felt before anything is written. A game
+built on this engine without a `hero.json` of its own fights like Ashes; one
+with a partial file overrides only the keys it names (docs/GAME_PACKS.md).
 
 **The game's own tables** (`js/gamedata.js`, «Облик», «Тексты», «Музыка», «Забег»,
 «Сюжет», «Места»). `build_data.py` writes `import/gamedata.json`: every string,

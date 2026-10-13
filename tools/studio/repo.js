@@ -10,10 +10,48 @@
 'use strict';
 
 let META = { repo: 'Saaayurii/ashes-of-eden', branch: 'main', assetBase: '../../', generated: [], generators: [] };
-const A = u => !u || /^(data:|blob:|https?:)/.test(u) ? u : META.assetBase + String(u).replace(/^res:\/\//, '');
+// A picture or sound by its path: the engine's from assetBase, a game pack's own
+// (content/…) from its repository (META.contentBase, docs/GAME_PACKS.md).
+const A = u => {
+  if (!u || /^(data:|blob:|https?:)/.test(u)) return u;
+  const p = String(u).replace(/^res:\/\//, '');
+  return META.contentBase && p.startsWith('content/') ? META.contentBase + p.slice(8) : META.assetBase + p;
+};
+// ?game=owner/name opens another game made on this engine: everything the page
+// reads from import/ comes from that repository's studio-data branch, which its
+// CI publishes (the engine's .github/workflows/game.yml), and sends go there.
+const OPEN_GAME = (() => { const g = new URLSearchParams(location.search).get('game') || ''; return GAME_REPO.test(g) ? g : ''; })();
+if (OPEN_GAME) {
+  const base = gameDataBase(OPEN_GAME), plain = window.fetch.bind(window);
+  window.fetch = (u, o) => plain(typeof u === 'string' && u.startsWith('import/') ? base + u.slice(7) : u, o);
+}
 async function loadMeta() {
-  try { META = { ...META, ...(await (await fetch('import/meta.json', { cache: 'no-store' })).json()) }; } catch {}
+  try { META = { ...META, ...(await (await fetch('import/meta.json', { cache: 'no-store' })).json()) }; }
+  catch { if (OPEN_GAME) setTimeout(() => toast(`Нет данных студии у ${OPEN_GAME} (ветка studio-data): его CI ещё не собирал игру?`, 'err'), 0); }
+  if (OPEN_GAME) META.repo = OPEN_GAME;
   await detectWriter();
+  renderGame();
+}
+function renderGame() {
+  const b = document.getElementById('gameBtn'); if (!b) return;
+  const name = META.game?.name || (META.pack || OPEN_GAME ? META.repo : 'Ashes of Eden');
+  b.textContent = `▣ ${name}`;
+  b.title = META.pack ? `Игра на движке: ${META.repo} (движок ${META.pack.engine?.repo || ''})` : 'Открыть другую игру на этом движке';
+}
+function gameDialog() {
+  if (Writer.mode === 'local') return dialog(`<h3>Игра</h3><p>Студия запущена локально и правит <b>${esc(Writer.info.game?.name || 'Ashes of Eden')}</b>${Writer.info.game?.path ? ` (<code>${esc(Writer.info.game.path)}</code>)` : ''}.</p><p>Другую игру открывает сервер: <code>python3 tools/studio/serve.py --game ../папка-игры</code>.</p>`);
+  const here = location.pathname;
+  return dialog(`<h3>Открыть игру</h3>
+    <p>Игры на этом движке — отдельные репозитории (<code>make new-game</code>). Их CI выкладывает данные для студии в ветку <code>studio-data</code>; отправки отсюда уходят pull request’ом в репозиторий игры. Боёвку, сюжет, задники и звуки игры правишь так же, как у Ashes.</p>
+    <input id="gameRepo" placeholder="владелец/репозиторий" value="${esc(OPEN_GAME)}" autocomplete="off">
+    <div class="warn" id="gameErr"></div>`, [
+    ['Открыть', d => {
+      const v = d.querySelector('#gameRepo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\/$/, '');
+      if (!GAME_REPO.test(v)) { d.querySelector('#gameErr').textContent = 'Нужно «владелец/репозиторий», например Saaayurii/saints-of-rust'; return false; }
+      location.href = `${here}?game=${encodeURIComponent(v)}`; return false;
+    }, 'primary'],
+    ...(OPEN_GAME ? [['Вернуться к Ashes of Eden', () => { location.href = here; }]] : []),
+    ['Отмена']]);
 }
 
 /* ---------- who is writing ---------- */
@@ -80,10 +118,20 @@ function authDialog() {
 const blobB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = () => rej(r.error); r.readAsDataURL(b instanceof Blob ? b : new Blob([b])); });
 // The current text of a repository file, or '' when it does not exist yet.
 let readRef = null;  // a pull request's branch while its fix is being built
+// In a game pack a file is the pack's own copy when it has one, else the engine's
+// (the one the pack inherits): a send then writes the pack's copy.
 async function repoText(path) {
+  const pack = META.pack, own = pack ? path.replace(/^content\//, '') : path;
   if (Writer.mode === 'github') {
-    try { return await ghApi(`/repos/${META.repo}/contents/${path}?ref=${readRef || META.branch}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }); }
-    catch (e) { if (e.status === 404) return ''; throw e; }
+    try { return await ghApi(`/repos/${META.repo}/contents/${own}?ref=${readRef || META.branch}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }); }
+    catch (e) { if (e.status !== 404) throw e; }
+    if (!pack || path.startsWith('content/') || !pack.engine?.repo) return '';
+    const r = await fetch(`https://raw.githubusercontent.com/${pack.engine.repo}/${pack.engine.sha || 'main'}/${path}`, { cache: 'no-store' });
+    return r.ok ? r.text() : '';
+  }
+  if (pack && !path.startsWith('content/')) {
+    const r = await fetch(A('content/' + own), { cache: 'no-store' });
+    if (r.ok) return r.text();
   }
   const r = await fetch(A(path), { cache: 'no-store' });
   return r.ok ? r.text() : '';
@@ -108,6 +156,11 @@ async function commitFiles(files, del, title, body, intoPr = null) {
     for (const p of mine) reg[p] = { by: Writer.mode === 'github' ? gh.login : 'local', at: new Date().toISOString().slice(0, 10) };
     for (const p of del) delete reg[p];
     files['tools/studio/projects/files.json'] = JSON.stringify(Object.fromEntries(Object.entries(reg).sort()), null, 2) + '\n';
+  }
+  if (META.pack) {
+    // another game: every file goes into its repository (content/ when written locally)
+    ({ files, del } = packFiles(files, del));
+    if (Writer.mode === 'local') { files = Object.fromEntries(Object.entries(files).map(([p, b]) => ['content/' + p, b])); del = del.map(p => 'content/' + p); }
   }
   if (Writer.mode === 'local') {
     const payload = { files: await Promise.all(Object.entries(files).map(async ([path, b]) => ({ path, b64: await blobB64(b) }))), delete: del };
@@ -494,6 +547,7 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   switch (b.dataset.act) {
     case 'auth': authDialog(); break;
+    case 'game': gameDialog(); break;
     case 'chars-game': if (artOk()) sendToGame(charFiles, 'chars'); break;
     case 'bg-game': sendToGame(bgFiles, 'bg'); break;
     case 'cut-game-send': sendToGame(cutFiles, 'cut'); break;

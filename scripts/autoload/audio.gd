@@ -333,10 +333,10 @@ func stop_music(fade := MUSIC_FADE) -> void:
 
 
 func _load_playlists() -> void:
-	var path := "res://data/music/playlists.json"
-	if not FileAccess.file_exists(path):
+	var path := "music/playlists.json"
+	if not DataDoc.exists(path):
 		return
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var parsed = DataDoc.doc(path)
 	if parsed is Dictionary and parsed.has("playlists"):
 		# A build may carry only part of the library (the Web one leaves the
 		# mp3s out): a playlist keeps the tracks that are actually there, and one

@@ -84,6 +84,7 @@ var _dialogue_ids := {}
 var _npc_ids := {}
 var _prop_ids := {}
 var _enemy_ids := {}
+var _cutscene_ids := {}
 var _note_ids := {}
 var _chapter_ids := {}
 var _ability_paths := {}  # gift id -> its path
@@ -102,37 +103,43 @@ var flags_read := {}
 func _init() -> void:
 	var strings := _load_csv("res://localization/strings.csv")
 	var counts := {}
-	for id in _load_entries("res://data/dialogues"):
+	for id in _game_entries("dialogues"):
 		_dialogue_ids[id.get("id", "")] = true
-	for id in _load_entries("res://data/npcs"):
+	for id in _game_entries("npcs"):
 		_npc_ids[id.get("id", "")] = true
-	for id in _load_entries("res://data/props"):
+	for id in _game_entries("props"):
 		_prop_ids[id.get("id", "")] = true
-	for id in _load_entries("res://data/enemies"):
+	for id in _game_entries("enemies"):
 		_enemy_ids[id.get("id", "")] = bool(id.get("boss", false))
-	for id in _load_entries("res://data/notes"):
+	for id in _game_entries("notes"):
 		_note_ids[id.get("id", "")] = true
-	for id in _load_entries("res://data/chapters"):
+	for id in _game_entries("chapters"):
 		_chapter_ids[id.get("id", "")] = true
-	for gift in _load_entries("res://data/abilities"):
+	for gift in _game_entries("abilities"):
 		_ability_paths[gift.get("id", "")] = str(gift.get("path", ""))
 	_check_projectiles()
 	_check_dialogue_looks()
 	_check_action_fx()
 	_check_gore()
 	_check_player_actions()
+	_check_hero()
+	_check_game()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
+	var game: Dictionary = _game()
 	for collection in REQUIRED:
-		var entries := _load_entries("res://data".path_join(collection))
+		var entries := _game_entries(collection)
 		counts[collection] = entries.size()
 		var ids := {}
 		for entry in entries:
+			if collection == "cutscenes" and entry.has("id"):
+				_cutscene_ids[entry.id] = true
 			_check_entry(collection, entry)
 			if entry.has("id"):
 				if ids.has(entry.id):
 					_error("%s: duplicate id \"%s\"" % [collection, entry.id])
 				ids[entry.id] = true
+	_check_game_rooms(game)
 	for key in used_keys:
 		if not strings.has(key):
 			_error("missing localization key %s (used in %s)" % [key, used_keys[key]])
@@ -650,7 +657,7 @@ func _check_awareness(entry: Dictionary, where: String) -> void:
 
 
 func _check_enemy_archetypes() -> void:
-	for entry in _load_entries("res://data/enemy_archetypes"):
+	for entry in _game_entries("enemy_archetypes"):
 		var where := "enemy_archetypes/%s" % entry.get("id", "?")
 		if not entry.has("id"):
 			_error("%s: missing id" % where)
@@ -675,9 +682,9 @@ func _check_enemy_archetypes() -> void:
 func _check_enemy_strips() -> void:
 	# merged the way Data merges them (-s runs before the autoloads exist)
 	var enemies := {}
-	for entry in _load_entries("res://data/enemies"):
+	for entry in _game_entries("enemies"):
 		enemies[entry.get("id", "")] = entry.duplicate(true)
-	for overlay in _load_entries("res://data/enemy_archetypes"):
+	for overlay in _game_entries("enemy_archetypes"):
 		var base: Dictionary = enemies.get(overlay.get("id", ""), {})
 		for key in overlay:
 			if key == "sprite" and base.get("sprite") is Dictionary:
@@ -725,8 +732,7 @@ func _check_enemy_strips() -> void:
 ## data/dialogue_looks.json: the windows' styles and the speakers' portraits
 ## (scripts/ui/dialogue_look.gd, docs/DIALOGUE_LOOKS.md).
 func _check_dialogue_looks() -> void:
-	var path := "res://data/dialogue_looks.json"
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var parsed = _doc("dialogue_looks.json")
 	if not parsed is Dictionary or not parsed.get("styles") is Dictionary:
 		_error("data/dialogue_looks.json: needs a \"styles\" object")
 		return
@@ -792,7 +798,7 @@ func _check_look(look, where: String) -> void:
 
 
 func _check_projectiles() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/projectiles.json"))
+	var parsed = _doc("projectiles.json")
 	if not parsed is Dictionary or not parsed.get("styles") is Dictionary:
 		_error("data/projectiles.json: needs a \"styles\" object")
 		return
@@ -850,7 +856,7 @@ func _check_volley(attack: Dictionary, where: String, style: String, motion: Str
 ## data/action_fx.json: every emitter names a kind and an anchor ActionFx knows,
 ## every trigger is an event the game sends or a name an animation could have.
 func _check_action_fx() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/action_fx.json"))
+	var parsed = _doc("action_fx.json")
 	if not parsed is Dictionary or not parsed.get("bodies") is Dictionary:
 		_error("data/action_fx.json: needs a \"bodies\" object")
 		return
@@ -885,7 +891,7 @@ const GORE_BOUNDS := {"shade": [0, 0.5], "spurt": [0, 4], "drops": [0, 40], "spr
 
 
 func _check_gore() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/gore.json"))
+	var parsed = _doc("gore.json")
 	if not parsed is Dictionary or not parsed.get("materials") is Dictionary or not parsed.get("bodies") is Dictionary:
 		_error("data/gore.json: needs \"materials\" and \"bodies\" objects")
 		return
@@ -1147,7 +1153,7 @@ func _check_fork(entry: Dictionary, where: String) -> void:
 	if options.size() < 2:
 		_error("%s: a fork needs two ways at least" % where)
 	var question: Dictionary = {}
-	for dialogue in _load_entries("res://data/dialogues"):
+	for dialogue in _game_entries("dialogues"):
 		if dialogue.get("id", "") == entry.get("dialogue", ""):
 			question = dialogue
 	if question.is_empty():
@@ -1161,7 +1167,7 @@ func _check_fork(entry: Dictionary, where: String) -> void:
 			if not answers.has(key):
 				_error("%s: no answer in %s picks the way \"%s\"" % [where, question.id, key])
 	var rested := {}
-	for point in _load_entries("res://data/rest_points"):
+	for point in _game_entries("rest_points"):
 		rested[str(point.get("id", ""))] = true
 	for key in options:
 		var path := str(options[key])
@@ -1295,10 +1301,6 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 					_error("%s: sprite.%s must be a positive integer" % [where, field])
 
 
-## Flags the engine itself reads. They are named in GDScript rather than in
-## data, so the validator cannot find them by reading data/ alone.
-const FLAGS_READ_IN_CODE := ["voice_yes", "matthew_confessed", "matthew_judged",
-	"matthew_released", "matthew_book_revealed", "read_letters"]
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 const FLAGS_SET_IN_CODE := ["blood_paid"]
@@ -1317,7 +1319,7 @@ const BACKDROP_ZONES := 24  # BackdropLife.MAX_ZONES
 ## card (Curtain.PASSAGE_ART, read as text — curtain.gd needs the autoloads).
 func backdrop_pictures() -> Array:
 	var found := {}
-	for entry in _load_entries("res://data/cutscenes"):
+	for entry in _game_entries("cutscenes"):
 		for step in entry.get("steps", []):
 			if step is Dictionary and str(step.get("do", "")) == "panel" and str(step.get("image", "")) != "":
 				found[str(step.image)] = true
@@ -1328,7 +1330,7 @@ func backdrop_pictures() -> Array:
 
 
 func _check_backdrops() -> void:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/backdrops.json"))
+	var parsed = _doc("backdrops.json")
 	if not parsed is Dictionary:
 		_error("data/backdrops.json: not a JSON object")
 		return
@@ -1339,14 +1341,9 @@ func _check_backdrops() -> void:
 		if not lean.has(path) or not Color.html_is_valid(str(lean[path])):
 			_error("data/backdrops.json: lean needs a colour for %s" % path)
 	var rooms: Dictionary = parsed.get("rooms", {})
-	# run.gd needs the autoloads to compile; its ROOMS are read as text
-	var run := FileAccess.get_file_as_string("res://scripts/run/run.gd")
-	var listed := run.substr(run.find("const ROOMS := ["))
-	listed = listed.substr(0, listed.find("]"))
-	var scene := RegEx.create_from_string("rooms/(\\w+)\\.tscn")
-	for found in scene.search_all(listed):
-		if not rooms.has(found.get_string(1)):
-			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % found.get_string(1))
+	for path in _doc("game.json").get("rooms", []):
+		if not rooms.has(str(path).get_file().get_basename()):
+			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % str(path).get_file().get_basename())
 	# every picture a scene shows or a passage card carries breathes too
 	for picture in backdrop_pictures():
 		if not rooms.has(picture.get_file().get_basename()):
@@ -1367,8 +1364,9 @@ func _check_backdrops() -> void:
 
 
 func _check_story_flags() -> void:
-	for flag in FLAGS_READ_IN_CODE:
-		flags_read[flag] = "scripts/"
+	# a game's own flags that something other than a branch reads (game.json "flags_read")
+	for flag in DATA_DOC.top("game.json", _validated_roots()).get("flags_read", []):
+		flags_read[str(flag)] = "data/game.json"
 	for flag in FLAGS_SET_IN_CODE:
 		flags_set[flag] = "scripts/"
 	for flag in FLAGS_FOR_TESTS:
@@ -1407,11 +1405,40 @@ func _use_key(key: String, where: String) -> void:
 	used_keys[key] = where
 
 
-func _load_entries(dir_path: String) -> Array:
+func _game() -> Dictionary:
+	return DATA_DOC.top("game.json", _validated_roots())
+
+
+## A collection as the game plays it: the engine's entries under the pack's,
+## by id (Data._load_collection), the ones game.json does not inherit or
+## excludes left out. A second entry with one id in the same root is kept, so
+## the duplicate check sees it.
+func _game_entries(collection: String) -> Array:
+	var game := _game()
+	var entries := []
+	var at := {}
+	for data_root in DATA_DOC.collection_roots(collection, _validated_roots(), game):
+		var mine := {}
+		for entry in _load_entries(data_root.path_join(collection), data_root != DATA_ROOTS[0]):
+			if entry.has("id") and at.has(entry.id) and not mine.has(entry.id):
+				entries[at[entry.id]] = entry  # the pack's own replaces the engine's
+				mine[entry.id] = true
+				continue
+			if entry.has("id"):
+				mine[entry.id] = true
+				if not at.has(entry.id):
+					at[entry.id] = entries.size()
+			entries.append(entry)
+	var excluded: Array = game.get("exclude", {}).get(collection, [])
+	return entries.filter(func(e) -> bool: return not excluded.has(e.get("id")))
+
+
+func _load_entries(dir_path: String, optional := false) -> Array:
 	var result := []
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
-		_error("missing folder %s" % dir_path)
+		if not optional:
+			_error("missing folder %s" % dir_path)
 		return result
 	for file_name in dir.get_files():
 		if not file_name.ends_with(".json"):
@@ -1462,8 +1489,155 @@ func _warn(message: String) -> void:
 	warnings.append(message)
 
 
+## Where data lives, in the order the game lays it (Data.ROOTS): the engine's
+## own, then a game pack checked out into ./content (docs/GAME_PACKS.md).
+const DATA_DOC := preload("res://scripts/data/data_doc.gd")
+const DATA_ROOTS := ["res://data", "res://content/data"]
+
+
+## The engine's data and the game pack's, if one is checked out; never a player's mods.
+func _validated_roots() -> Array[String]:
+	var out: Array[String] = []
+	for data_root in DATA_ROOTS:
+		if DirAccess.dir_exists_absolute(data_root):
+			out.append(data_root)
+	return out
+
+
+## A single-document file merged the way Data.load_doc merges it.
+func _doc(file_name: String) -> Dictionary:
+	return DATA_DOC.doc(file_name, _validated_roots())
+
+
+
+## data/hero.json (Player.apply_hero): the engine's copy names every key there
+## is; a game pack may change any of them and add none.
+## data/game.json (docs/GAME_PACKS.md): what the engine asks of the game — its
+## rooms, its yard, its menu, the three paths' looks — and every file it names.
+func _check_game() -> void:
+	var game: Dictionary = DATA_DOC.top("game.json", _validated_roots())
+	if game.is_empty():
+		_error("data/game.json: missing — the engine has no rooms to run")
+		return
+	if not game.get("engine") is float or int(game.engine) < 1:
+		_error("data/game.json: \"engine\" must name the engine version it was made for (a whole number)")
+	elif int(game.engine) > DATA_DOC.ENGINE:
+		_error("data/game.json: made for engine %d, this is engine %d — update the engine checkout" % [int(game.engine), DATA_DOC.ENGINE])
+	for collection in game.get("exclude", {}):
+		if not collection in REQUIRED:
+			_error("data/game.json: exclude names \"%s\", which is not a collection" % collection)
+	for collection in game.get("inherit", []):
+		if not collection in REQUIRED and not collection in ["enemy_archetypes"]:
+			_error("data/game.json: inherit names \"%s\", which is not a collection" % collection)
+	var rooms: Array = game.get("rooms", [])
+	if rooms.is_empty():
+		_error("data/game.json: \"rooms\" is empty")
+	var seen := {}
+	for path in rooms + [game.get("practice_room", "")]:
+		if seen.has(path):
+			_error("data/game.json: %s is listed twice" % path)
+		seen[path] = true
+		if not ResourceLoader.exists(str(path)):
+			_error("data/game.json: no scene %s" % path)
+	var opening: Dictionary = game.get("opening", {})
+	for key in opening:
+		var id := str(opening[key])
+		var folder := "dialogues" if key in ["intro", "last_fall"] else "cutscenes"
+		var found := false
+		for data_root in DATA_DOC.collection_roots(folder, _validated_roots(), game):
+			for entry in _load_entries(data_root.path_join(folder), true):
+				found = found or entry.get("id") == id
+		if not found:
+			_error("data/game.json: opening.%s names %s \"%s\", which does not exist" % [key, folder, id])
+	var menu: Dictionary = game.get("menu", {})
+	if menu.has("background") and not ResourceLoader.exists(str(menu.background)):
+		_error("data/game.json: menu background %s does not exist" % menu.background)
+	var paths: Dictionary = game.get("paths", {})
+	for path in ["grace", "temptation", "will"]:
+		var look: Dictionary = paths.get(path, {})
+		for key in ["color", "aura"]:
+			if not Color.html_is_valid(str(look.get(key, ""))):
+				_error("data/game.json: paths.%s.%s must be a colour (#rrggbb)" % [path, key])
+		if not ResourceLoader.exists(str(look.get("icon", ""))):
+			_error("data/game.json: paths.%s.icon %s does not exist" % [path, look.get("icon", "")])
+		var drift = look.get("drift", [])
+		if not drift is Array or drift.size() != 2:
+			_error("data/game.json: paths.%s.drift must be [x, y]" % path)
+	for key in paths:
+		if not key in ["grace", "temptation", "will"]:
+			_error("data/game.json: unknown path \"%s\" — the engine counts grace, temptation and will" % key)
+
+
+## Every room the game plays names only creatures, people, props and scenes the
+## game has — the room is read as text, so a pack that borrows an engine room
+## learns here which of its story it would need (docs/GAME_PACKS.md).
+func _check_game_rooms(game: Dictionary) -> void:
+	var wants := {"enemy_id": [_enemy_ids, "enemy"], "npc_id": [_npc_ids, "npc"], "prop_id": [_prop_ids, "prop"],
+		"intro_cutscene": [_cutscene_ids, "cutscene"], "outro_cutscene": [_cutscene_ids, "cutscene"],
+		"intro_dialogue": [_dialogue_ids, "dialogue"]}
+	var line := RegEx.create_from_string("^(\\w+) = \"([^\"]+)\"$")
+	for path in game.get("rooms", []) + [game.get("practice_room", "")]:
+		if not ResourceLoader.exists(str(path)):
+			continue
+		var room := str(path).get_file().get_basename()
+		for row in FileAccess.get_file_as_string(str(path)).split("\n"):
+			var hit := line.search(row)
+			if hit == null or not wants.has(hit.get_string(1)):
+				continue
+			var want: Array = wants[hit.get_string(1)]
+			if not (want[0] as Dictionary).has(hit.get_string(2)):
+				_error("%s: the room names %s \"%s\", which this game does not have" % [room, want[1], hit.get_string(2)])
+
+
+func _check_hero() -> void:
+	var known = JSON.parse_string(FileAccess.get_file_as_string("res://data/hero.json"))
+	if not known is Dictionary or not known.get("stats") is Dictionary or not known.get("feel") is Dictionary:
+		_error("data/hero.json needs \"stats\" and \"feel\" objects")
+		return
+	var hero := _doc("hero.json")
+	for key in hero:
+		if not key in ["stats", "feel"]:
+			_error("hero.json: unknown section %s" % key)
+	var unit := ["block_reduction", "knockback_fraction", "desperate_share", "refuse_heal", "dodge_counter_bonus",
+		"rally_damage_share", "rally_hit_share", "rally_max_hp_share", "slam_damage_share", "crit_chance"]
+	for section in ["stats", "feel"]:
+		var given: Dictionary = hero.get(section, {})
+		for key: String in given:
+			var where := "hero.json %s.%s" % [section, key]
+			if not known[section].has(key):
+				_error("%s: the hero has no such value" % where)
+				continue
+			var value = given[key]
+			var want = known[section][key]
+			if want is Array:
+				if not value is Array or value.size() != want.size() or value.any(func(v): return not (v is float or v is int) or v <= 0):
+					_error("%s needs %d positive numbers" % [where, want.size()])
+			elif want is Dictionary:
+				if not value is Dictionary:
+					_error("%s needs an object" % where)
+					continue
+				for k in value:
+					if not want.has(k) or not (value[k] is float or value[k] is int) or value[k] <= 0:
+						_error("%s.%s needs a positive number for a known move" % [where, k])
+			elif not (value is float or value is int) or not is_finite(float(value)):
+				_error("%s needs a number" % where)
+			elif key == "jump_cut_velocity":
+				if value > 0:
+					_error("%s is a speed upwards: zero or less" % where)
+			elif value < 0:
+				_error("%s cannot be negative" % where)
+			elif key in unit and value > 1:
+				_error("%s is a share: 0..1" % where)
+	var stats: Dictionary = hero.get("stats", {})
+	for key in ["max_hp", "speed", "gravity", "jump_velocity", "attack_damage"]:
+		if stats.has(key) and float(stats[key]) <= 0:
+			_error("hero.json stats.%s must be above zero" % key)
+	if stats.has("max_jumps") and (int(stats.max_jumps) != stats.max_jumps or stats.max_jumps < 1):
+		_error("hero.json stats.max_jumps needs a whole number, at least 1")
+
+
 func _check_player_actions() -> void:
-	var doc = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_actions.json"))
+	var doc = _doc("player_actions.json")
 	if not doc is Dictionary or not doc.get("actions") is Dictionary:
 		_error("player_actions.json needs an actions object")
 		return
