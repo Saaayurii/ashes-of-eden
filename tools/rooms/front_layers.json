@@ -2,5 +2,18 @@
   "graveyard_cross": [
     {"from": "graveyard_cross_wide", "crop": [945, 185, 165, 205], "at": [300, 272], "depth": 1.6, "dark": 0.9, "cut": 40, "flip": true},
     {"from": "graveyard_cross_wide", "crop": [465, 195, 95, 330], "at": [905, 200], "depth": 1.6, "dark": 0.92, "cut": 60, "feather": 0.25}
+  ],
+  "graveyard_tree": [
+    {"from": "graveyard_tree_wide", "crop": [782, 178, 142, 178], "at": [406, 192], "depth": 1.6, "dark": 0.9, "cut": 50},
+    {"from": "graveyard_tree_wide", "crop": [907, 142, 142, 90], "at": [714, 188], "depth": 1.5, "dark": 0.9, "cut": 50, "flip": true}
+  ],
+  "graveyard_arches": [
+    {"from": "graveyard_arches_wide", "crop": [924, 249, 160, 249], "at": [704, 184], "depth": 1.45, "dark": 0.9, "cut": 50}
+  ],
+  "swamp_moon": [
+    {"from": "swamp_moon_wide", "crop": [1100, 0, 300, 115], "at": [1055, 140], "depth": 1.3, "dark": 0.9, "cut": 45}
+  ],
+  "swamp_red": [
+    {"from": "swamp_red_wide", "crop": [0, 0, 300, 120], "at": [805, 139], "depth": 1.3, "dark": 0.9, "cut": 45, "flip": true}
   ]
 }
