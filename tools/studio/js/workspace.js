@@ -1,7 +1,7 @@
 /* Portable workspace: all drafts, pictures and audio; no login/API tokens. */
 'use strict';
 const WORKSPACE = { id: 'workspace', name: 'Весь проект', pendingPr: +(localStorage.getItem('ss_workspace_pr') || 0) || undefined };
-const WORKSPACE_KEYS = ['ss_attacks','ss_shots','ss_pfx','ss_life','ss_dlg','ss_world','ss_world_file','ss_bases','ss_last','ss_mode','ss_lifekey','ss_live_base'];
+const WORKSPACE_KEYS = ['ss_attacks','ss_shots','ss_pfx','ss_life','ss_dlg','ss_world','ss_combat','ss_world_file','ss_bases','ss_last','ss_mode','ss_lifekey','ss_live_base'];
 async function packWorkspace(value) {
   if (value instanceof Blob) return { $studioBlob: await blobToDataURL(value) };
   if (Array.isArray(value)) return Promise.all(value.map(packWorkspace));
@@ -38,7 +38,7 @@ async function workspaceRestore(bundle) {
   location.reload();
 }
 function workspaceStatus() {
-  const n = ['ss_attacks','ss_shots','ss_pfx','ss_life','ss_dlg','ss_world'].filter(k => { const v = localStorage.getItem(k); return v && v !== '{}' && v !== 'null'; }).length;
+  const n = ['ss_attacks','ss_shots','ss_pfx','ss_life','ss_dlg','ss_world','ss_combat'].filter(k => { const v = localStorage.getItem(k); return v && v !== '{}' && v !== 'null'; }).length;
   const s = $('#workspaceStatus'); if (s) s.textContent = `Сохранено в браузере · ${n} разделов с черновиками · ${new Date().toLocaleTimeString()}`;
 }
 async function workspaceFiles() {
@@ -53,6 +53,7 @@ async function workspaceFiles() {
   if (LIFE.data && LIFE.edits.size) builders.push(() => lifeFiles());
   if (DLG.data && dlgDirty()) builders.push(() => dlgFiles());
   if (WORLD.data && Object.keys(WORLD.work).length) builders.push(() => worldFiles());
+  if (typeof COMBAT !== 'undefined' && COMBAT.data && combatCount()) builders.push(() => combatFiles());
   for (const build of builders) {
     const reader = repoText; let r;
     try { repoText = async path => typeof files[path] === 'string' ? files[path] : reader(path); r = await build(); } finally { repoText = reader; }
@@ -89,5 +90,5 @@ async function workspaceReview(result, allowSend = true) {
 $('#workspaceExport').onclick = async () => { try { download(new Blob([JSON.stringify(await workspaceBundle())], { type: 'application/json' }), 'ashes-studio-project.json'); } catch (e) { toast(e.message, 'err'); } };
 $('#workspaceImport').onchange = async e => { try { if (e.target.files[0]) await workspaceRestore(JSON.parse(await e.target.files[0].text())); } catch (e) { toast(e.message, 'err'); } };
 $('#workspacePreview').onclick = async () => { try { await workspaceReview(await workspaceFiles(), false); } catch (e) { toast(e.message, 'err'); } };
-$('#workspaceSend').onclick = async () => { await sendToGame(workspaceFiles, 'workspace'); if (sendToGame.last?.local) { for (const k of ['ss_attacks','ss_shots','ss_pfx','ss_life','ss_dlg','ss_world','ss_bases']) localStorage.removeItem(k); for (const [store, rows] of Object.entries({ projects, backgrounds: bgs, cutscenes: cuts })) for (const o of rows) { o.dirty = false; await DB.put(o, store); } for (const id of sndMods.keys()) await DB.del(id, 'sounds'); location.reload(); } };
+$('#workspaceSend').onclick = async () => { await sendToGame(workspaceFiles, 'workspace'); if (sendToGame.last?.local) { for (const k of ['ss_attacks','ss_shots','ss_pfx','ss_life','ss_dlg','ss_world','ss_combat','ss_bases']) localStorage.removeItem(k); for (const [store, rows] of Object.entries({ projects, backgrounds: bgs, cutscenes: cuts })) for (const o of rows) { o.dirty = false; await DB.put(o, store); } for (const id of sndMods.keys()) await DB.del(id, 'sounds'); location.reload(); } };
 workspaceStatus();

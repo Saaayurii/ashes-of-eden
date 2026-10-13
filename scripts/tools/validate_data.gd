@@ -121,6 +121,7 @@ func _init() -> void:
 	_check_action_fx()
 	_check_gore()
 	_check_player_actions()
+	_check_hero()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	for collection in REQUIRED:
@@ -1459,6 +1460,83 @@ func _error(message: String) -> void:
 
 func _warn(message: String) -> void:
 	warnings.append(message)
+
+
+## Where data lives, in the order the game lays it (Data.ROOTS): the engine's
+## own, then a game pack checked out into ./content (docs/GAME_PACKS.md).
+const DATA_ROOTS := ["res://data", "res://content/data"]
+
+
+## A single-document file merged the way Data.load_doc merges it.
+func _doc(file_name: String) -> Dictionary:
+	var out := {}
+	for root in DATA_ROOTS:
+		var path: String = root.path_join(file_name)
+		if not FileAccess.file_exists(path):
+			continue
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if parsed is Dictionary:
+			_merge_into(out, parsed)
+		else:
+			_error("%s is not a JSON object" % path)
+	return out
+
+
+func _merge_into(base: Dictionary, overlay: Dictionary) -> void:
+	for key in overlay:
+		if base.get(key) is Dictionary and overlay[key] is Dictionary:
+			_merge_into(base[key], overlay[key])
+		else:
+			base[key] = overlay[key]
+
+
+## data/hero.json (Player.apply_hero): the engine's copy names every key there
+## is; a game pack may change any of them and add none.
+func _check_hero() -> void:
+	var known = JSON.parse_string(FileAccess.get_file_as_string("res://data/hero.json"))
+	if not known is Dictionary or not known.get("stats") is Dictionary or not known.get("feel") is Dictionary:
+		_error("data/hero.json needs \"stats\" and \"feel\" objects")
+		return
+	var hero := _doc("hero.json")
+	for key in hero:
+		if not key in ["stats", "feel"]:
+			_error("hero.json: unknown section %s" % key)
+	var unit := ["block_reduction", "knockback_fraction", "desperate_share", "refuse_heal", "dodge_counter_bonus",
+		"rally_damage_share", "rally_hit_share", "rally_max_hp_share", "slam_damage_share", "crit_chance"]
+	for section in ["stats", "feel"]:
+		var given: Dictionary = hero.get(section, {})
+		for key: String in given:
+			var where := "hero.json %s.%s" % [section, key]
+			if not known[section].has(key):
+				_error("%s: the hero has no such value" % where)
+				continue
+			var value = given[key]
+			var want = known[section][key]
+			if want is Array:
+				if not value is Array or value.size() != want.size() or value.any(func(v): return not (v is float or v is int) or v <= 0):
+					_error("%s needs %d positive numbers" % [where, want.size()])
+			elif want is Dictionary:
+				if not value is Dictionary:
+					_error("%s needs an object" % where)
+					continue
+				for k in value:
+					if not want.has(k) or not (value[k] is float or value[k] is int) or value[k] <= 0:
+						_error("%s.%s needs a positive number for a known move" % [where, k])
+			elif not (value is float or value is int) or not is_finite(float(value)):
+				_error("%s needs a number" % where)
+			elif key == "jump_cut_velocity":
+				if value > 0:
+					_error("%s is a speed upwards: zero or less" % where)
+			elif value < 0:
+				_error("%s cannot be negative" % where)
+			elif key in unit and value > 1:
+				_error("%s is a share: 0..1" % where)
+	var stats: Dictionary = hero.get("stats", {})
+	for key in ["max_hp", "speed", "gravity", "jump_velocity", "attack_damage"]:
+		if stats.has(key) and float(stats[key]) <= 0:
+			_error("hero.json stats.%s must be above zero" % key)
+	if stats.has("max_jumps") and (int(stats.max_jumps) != stats.max_jumps or stats.max_jumps < 1):
+		_error("hero.json stats.max_jumps needs a whole number, at least 1")
 
 
 func _check_player_actions() -> void:

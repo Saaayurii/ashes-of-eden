@@ -27,6 +27,7 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/smoke_test.gd
         godot --headless -s scripts/tools/parry_test.gd
         godot --headless -s scripts/tools/gift_test.gd
+        godot --headless -s scripts/tools/hero_data_test.gd
         godot --headless -s scripts/tools/traversal_moves_test.gd
         godot --headless -s scripts/tools/alignment_test.gd
         godot --headless -s scripts/tools/layers_test.gd

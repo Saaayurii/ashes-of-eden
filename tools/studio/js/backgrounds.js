@@ -59,6 +59,7 @@ function setMode(m) {
   if (m === 'pfx' && typeof pfxEnter === 'function') pfxEnter();
   if (m === 'gore' && typeof goreEnter === 'function') goreEnter();
   if (m === 'world' && typeof worldEnter === 'function') worldEnter();
+  if (m === 'combat' && typeof combatEnter === 'function') combatEnter();
   if (m === 'dlg' && typeof dlgEnter === 'function') dlgEnter();
   $$('.modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
   try { localStorage.setItem('ss_mode', m); } catch {}

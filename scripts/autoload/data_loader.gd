@@ -46,6 +46,9 @@ var omens: Dictionary = {}
 ## What an elite may rise with (data/affixes, Enemy.affix): a name over its
 ## head and a change to its numbers, never to its wind-ups.
 var affixes: Dictionary = {}
+## How the hero handles (data/hero.json): {"stats", "feel"}, laid on Player by
+## Player.apply_hero. One document, every root's deep-merged over the last.
+var hero: Dictionary = {}
 
 
 func _ready() -> void:
@@ -54,6 +57,8 @@ func _ready() -> void:
 
 func reload() -> void:
 	var roots := _roots()
+	hero = load_doc("hero.json", roots)
+	Player.apply_hero(hero)
 	abilities = _load_collection("abilities", roots)
 	enemies = _resolve_extends(_load_collection("enemies", roots))
 	_apply_enemy_archetypes(roots)
@@ -133,6 +138,25 @@ func _roots() -> Array[String]:
 		for mod in mods.get_directories():
 			roots.append(MODS_ROOT.path_join(mod).path_join("data"))
 	return roots
+
+
+## A single-document data file (hero.json, projectiles.json, …): every root's
+## copy deep-merged over the one before, so a game pack or a mod changes only
+## the keys it names. {} when no root has it.
+func load_doc(file_name: String, roots: Array[String] = []) -> Dictionary:
+	if roots.is_empty():
+		roots = _roots()
+	var out := {}
+	for root in roots:
+		var path := root.path_join(file_name)
+		if not FileAccess.file_exists(path):
+			continue
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if parsed is Dictionary:
+			_deep_merge(out, parsed)
+		else:
+			push_error("[Data] invalid JSON: %s" % path)
+	return out
 
 
 func _load_collection(folder: String, roots: Array[String]) -> Dictionary:

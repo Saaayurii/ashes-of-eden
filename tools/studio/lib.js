@@ -1007,6 +1007,32 @@ function mergeOverrides(text, entries) {
   return JSON.stringify(sorted, null, 2) + '\n';
 }
 
+// ---- the hero's handling (data/hero.json, data/player_actions.json; Player.apply_hero) ----
+// Only what she changed is written, in place: the rest of each file stays byte for byte, a
+// float keeps its ".0", a list or a table stays on its one line.
+// changes: {stats: {key: value}, feel: {key: value}}
+function heroPatch(text, changes) {
+  // every list and table in hero.json holds seconds or multipliers: floats, written with their ".0"
+  const flt = v => typeof v === 'number' ? (Number.isInteger(v) ? v.toFixed(1) : String(v))
+    : Array.isArray(v) ? '[' + v.map(flt).join(', ') + ']'
+    : '{' + Object.entries(v).map(([k, x]) => JSON.stringify(k) + ': ' + flt(x)).join(', ') + '}';
+  const inline = v => (v && typeof v === 'object') ? { __raw: flt(v) } : v;
+  for (const section of ['stats', 'feel']) {
+    const set = Object.fromEntries(Object.entries(changes?.[section] || {}).map(([k, v]) => [k, inline(v)]));
+    if (Object.keys(set).length) text = patchJson(text, [section], set);
+  }
+  return text;
+}
+// changes: {action id: {key: value}} — keys the action already has (an inline object stays inline)
+function actionsPatch(text, changes) {
+  const inline = v => (v && typeof v === 'object') ? { __raw: fmtJson(v) } : v;
+  for (const [id, keys] of Object.entries(changes || {})) {
+    const set = Object.fromEntries(Object.entries(keys).map(([k, v]) => [k, inline(v)]));
+    if (Object.keys(set).length) text = patchJson(text, ['actions', id], set);
+  }
+  return text;
+}
+
 // ---- one send, one pull request ----
 // A fingerprint of what a send writes (the studio project itself left out: it carries
 // timestamps), so the same work sent twice is found instead of opening a second pull request.
@@ -1022,5 +1048,5 @@ async function filesFingerprint(entries) {
 }
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

@@ -151,7 +151,8 @@ async function sandboxDraftData(id) {
     const buf = await renderEdits(await takeBuffer(t), t.mod?.edits || EDIT_DEFAULT); sounds[t.stem] = await blobToDataURL(encodeWav(buf));
   }
   return { spec, bodies, styles: SHOTS.styles, sheets: Object.fromEntries(SHOTS.newSheets), sounds,
-    player_actions: docs['data/player_actions.json']?.actions || {},
+    player_actions: typeof COMBAT !== 'undefined' && COMBAT.data ? combatActions() : docs['data/player_actions.json']?.actions || {},
+    hero: typeof COMBAT !== 'undefined' && COMBAT.data ? combatHero() : docs['data/hero.json'],
     abilities: Object.fromEntries(Object.entries(docs).filter(([p]) => p.startsWith('data/abilities/')).flatMap(([, a]) => a.map(v => [v.id, v]))) };
 }
 async function attacksEnterData() {

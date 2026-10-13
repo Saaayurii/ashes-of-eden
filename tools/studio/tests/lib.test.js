@@ -532,3 +532,27 @@ test('her style and portrait edits go in over whatever the file has become', () 
     styles: { default: {}, a: { bg: '#112233ff' }, c: { text: '#ffffffff' }, b: { radius: 4 } },
     speakers: { Y: 'res://y.png' } });
 });
+
+// --- the hero's handling: only what changed is written, the rest byte for byte ---
+
+test('heroPatch and actionsPatch change one value in the real files and nothing else', () => {
+  const fs = require('fs'), path = require('path'), root = path.join(__dirname, '../../..');
+  const hero = fs.readFileSync(path.join(root, 'data/hero.json'), 'utf8');
+  assert.equal(L.heroPatch(hero, {}), hero, 'no change, no diff');
+  const out = L.heroPatch(hero, { feel: { parry_window: 0.3, combo_multipliers: [1, 1.2, 1.8] }, stats: { max_hp: 120 } });
+  const a = hero.split('\n'), b = out.split('\n');
+  assert.equal(a.length, b.length, 'a list stays on its line');
+  assert.deepEqual(a.map((l, i) => l === b[i] ? null : i).filter(i => i !== null).length, 3, 'three lines changed');
+  assert.match(out, /"max_hp": 120\.0,/, 'a float keeps its .0');
+  assert.match(out, /"combo_multipliers": \[1\.0, 1\.2, 1\.8\],/, 'whole numbers in a list keep their .0 too');
+  const st = L.heroPatch(hero, { feel: { swing_time: { ...JSON.parse(hero).feel.swing_time, attack: 1 } } });
+  assert.equal(st.split('\n').filter((l, i) => l !== a[i]).length, 1); assert.match(st, /"swing_time": \{"attack": 1\.0, "attack2": 0\.27/);
+  const parsed = JSON.parse(out);
+  assert.equal(parsed.feel.parry_window, 0.3); assert.equal(parsed.stats.speed, JSON.parse(hero).stats.speed);
+  const acts = fs.readFileSync(path.join(root, 'data/player_actions.json'), 'utf8');
+  const changed = L.actionsPatch(acts, { attack3: { multiplier: 2.0, hitbox: [40, 30] } });
+  const x = acts.split('\n'), y = changed.split('\n');
+  assert.equal(x.length, y.length, 'an inline action stays inline');
+  assert.equal(x.filter((l, i) => l !== y[i]).length, 1, 'one line changed');
+  assert.equal(JSON.parse(changed).actions.attack3.multiplier, 2); assert.deepEqual(JSON.parse(changed).actions.attack3.hitbox, [40, 30]);
+});

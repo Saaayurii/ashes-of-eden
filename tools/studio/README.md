@@ -432,6 +432,19 @@ engine code. Room placements can be moved on the map; extra waves spawn after
 the previous enemies die, and the door opens after the last wave. Rest raises
 original common placements, rather than replaying reinforcement waves.
 
+«Боёвка» is how the hero handles: every number of `data/hero.json` (`stats` —
+the body a night starts with, `BASE_STATS`; `feel` — the timings and reaches
+player.gd used to keep as constants, laid onto the class by `Player.apply_hero`
+when `Data` loads) and the multipliers, recovery, timing and impact frame of
+each swing in `data/player_actions.json`. Her changes are a diff over the
+game's values (`ss_combat`); a send rewrites only those values in place
+(`lib.js` `heroPatch` / `actionsPatch`, floats keep their `.0`, a list stays on
+its line). «▶ Песочница» posts the whole hero as `hero` with the data drafts
+(`StudioLive.apply` re-lays it and refreshes the body in the yard), so the jump,
+the roll and the parry window can be felt before anything is written. A game
+built on this engine without a `hero.json` of its own fights like Ashes; one
+with a partial file overrides only the keys it names (docs/GAME_PACKS.md).
+
 All editor tabs support undo/redo. The workspace bar exports/imports one portable
 JSON project with source images, sounds and drafts; credentials are excluded.
 «Проверить всё» previews the combined changed files, and «Отправить всё» reviews
