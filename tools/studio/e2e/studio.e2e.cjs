@@ -92,7 +92,8 @@ async function step(name, fn) {
       assert.ok(r.ok, 'a room on its own panel is walked to its door, as the generator walks it: ' + JSON.stringify(r));
       assert.deepEqual([r.size.width, r.size.height], [1280, 720]);
       assert.ok(r.panels > 10, 'every painted panel is offered');
-      await page.evaluate(() => { try { localStorage.removeItem('ss_composer'); } catch {} });
+      // the steps after this one work on characters, where 'every tab loads' left the page
+      await page.evaluate(() => { try { localStorage.removeItem('ss_composer'); } catch {} setMode('chars'); });
     });
 
     await step('a generated-style frame becomes a clean 44 px sprite', async () => {

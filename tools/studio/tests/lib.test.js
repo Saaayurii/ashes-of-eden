@@ -535,7 +535,10 @@ test('her style and portrait edits go in over whatever the file has become', () 
 
 // --- the room composer (js/composer.js): the same reach and tracer as tools/rooms ---
 
-const COMPOSER = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/studio/import/composer.json'), 'utf8'));
+// what build_data.composer hands the studio, asked of it directly: tools/studio/import is not in git
+const COMPOSER = JSON.parse(require('node:child_process').execFileSync('python3', ['-c',
+  'import json, sys; from pathlib import Path; sys.path.insert(0, "tools/studio"); import build_data; print(json.dumps(build_data.composer(Path("."))))'],
+  { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }));
 
 test('composeReach: a floor across reaches the door, a wall of air does not', () => {
   const R = COMPOSER.reach;
