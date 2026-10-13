@@ -14,6 +14,10 @@
     "dusk": {"flame": 0.45, "flame_floor": 0.8}
   },
   "rooms": {
+    "prolog_1_walk_a": {"family": "dusk", "zones": []},
+    "prolog_1_walk_b": {"family": "dusk", "zones": []},
+    "prolog_1_walk_c": {"family": "dusk", "zones": []},
+    "prolog_1_walk_d": {"family": "dusk", "zones": []},
     "elian_gallows_approach": {"family": "graveyard", "zones": [
       {"kind": "glow", "rect": [1195, 65, 110, 100], "tint": "#d6e0ff", "strength": 0.13, "speed": 0.5},
       {"kind": "stars", "rect": [700, 0, 972, 180]},
