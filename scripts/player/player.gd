@@ -1143,6 +1143,7 @@ func _go_down() -> void:
 	_wall_side = 0
 	Audio.play(&"player_death", 0.0, 0.0)
 	_play("death")
+	Gore.death(self, "elian", "flesh", null, Vector2(-facing, -0.2))
 	body.modulate = Color(0.6, 0.55, 0.55)
 	if _light != null:
 		create_tween().tween_method(_light.set_base_energy, 0.55, 0.12, 1.2)
@@ -1164,6 +1165,9 @@ func _net_up() -> void:
 
 func _hit_fx(amount: float) -> void:
 	Fx.damage_number(global_position, amount, Color(1.0, 0.45, 0.4))
+	# blood thrown out behind him (data/gore.json, "elian")
+	Gore.hit(self, "elian", "flesh", global_position + Vector2(0, -12), Vector2(-facing, -0.3),
+		1.0 + 3.0 * amount / maxf(stats.max_hp, 1.0))
 	_flash(Color(1.0, 0.35, 0.35))
 	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.4, 0.35), 70.0, 0.2)
 	if _is_mine():
@@ -1349,27 +1353,28 @@ func _start_slam() -> void:
 ## him, the floor kicks, and he is planted for a beat — the price of a move
 ## that costs nothing else.
 func _land_slam() -> void:
+	var spec := action_spec("slam")
 	_slamming = false
-	_slam_recovery = SLAM_RECOVERY
+	_slam_recovery = float(spec.get("animation_time", SLAM_RECOVERY))
 	velocity = Vector2.ZERO
-	Audio.play(&"land", -2.0, 0.6)
+	Audio.play(StringName(str(spec.get("sfx", "land"))), -2.0, 0.6)
 	Fx.dust(global_position + Vector2(0, 14), Vector2.UP, 22)
 	Fx.puff(global_position + Vector2(0, 10), 1.3, Color(0.95, 0.9, 0.8))
 	Juice.shake(7.0)
 	EventBus.world_impulse.emit(global_position, Vector2(0, 1), 1.6, &"land")
-	_one_shot("land", SLAM_RECOVERY)
+	_one_shot("land", _slam_recovery)
 	if not _is_mine():
 		return  # the hit is the owner's to deal; the rest is for everyone to see
-	var damage: float = stats.attack_damage * SLAM_DAMAGE_SHARE
+	var damage: float = stats.attack_damage * float(spec.get("multiplier", SLAM_DAMAGE_SHARE))
 	for node in get_tree().get_nodes_in_group("enemies"):
 		var enemy := node as Node2D
 		if enemy == null or not enemy.has_method("take_damage"):
 			continue
 		var offset := enemy.global_position - global_position
 		# A flat reach: something directly overhead is not under the landing.
-		if absf(offset.x) > SLAM_RADIUS or offset.y < -24.0 or offset.y > 30.0:
+		if absf(offset.x) > float(spec.get("radius", SLAM_RADIUS)) or offset.y < -24.0 or offset.y > 30.0:
 			continue
-		enemy.take_damage(damage, self, {"knockback": 1.6})
+		enemy.take_damage(damage, self, {"knockback": float(spec.get("knockback", 1.6))})
 		Fx.puff(enemy.global_position + Vector2(0, -8), 0.7, Color(0.95, 0.9, 0.8))
 
 
@@ -1623,6 +1628,30 @@ func _start_heal() -> void:
 	body.modulate = Color(0.85, 1.0, 0.8)
 
 
+static var studio_actions: Dictionary = {}
+static var _actions_loaded := false
+
+
+static func action_spec(id: String) -> Dictionary:
+	if not _actions_loaded:
+		_actions_loaded = true
+		var doc = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_actions.json"))
+		if doc is Dictionary:
+			studio_actions = doc.get("actions", {})
+	return studio_actions.get(id, {})
+
+
+func _action_hit_frame(spec: Dictionary, animation: String) -> bool:
+	if not body.sprite_frames.has_animation(animation):
+		return true
+	var frame := clampi(int(spec.get("hit_frame", 0)), 0, body.sprite_frames.get_frame_count(animation) - 1)
+	while body.frame < frame:
+		await get_tree().process_frame
+		if not is_inside_tree() or _dead or body.animation != animation:
+			return false
+	return true
+
+
 func _attack() -> void:
 	# Up + attack is an intentional anti-air slash. It trades the horizontal
 	# three-hit chain for a taller, narrower hit area above the player's head.
@@ -1647,9 +1676,20 @@ func _attack() -> void:
 		animation = "rising"
 	elif hit_index == 0 and _sneak_target_ahead():
 		animation = "thrust"
+	var spec := (action_spec("rising") if aim_up else action_spec(SWING_ANIMATIONS[hit_index])).duplicate(true)
+	spec.merge(action_spec(animation), true)
+	var hit_size: Array = spec.get("hitbox", [(hitbox_collision.shape as RectangleShape2D).size.x, (hitbox_collision.shape as RectangleShape2D).size.y])
+	var hit_at: Array = spec.get("offset", [hitbox_collision.position.x, hitbox_collision.position.y])
+	# A ground attack's defaults must not flatten the existing anti-air hitbox.
+	if not aim_up or spec.has("hitbox"):
+		(hitbox_collision.shape as RectangleShape2D).size = Vector2(float(hit_size[0]), float(hit_size[1]))
+	if not aim_up or spec.has("offset"):
+		hitbox_collision.position = Vector2(float(hit_at[0]), float(hit_at[1]))
+	_attack_cd = stats.attack_cooldown * float(spec.get("recovery", 0.65 if aim_up else COMBO_RECOVERY[hit_index]))
+	_attack_cd_total = _attack_cd
 	_play(animation)
-	Audio.play(&"swing", -2.0 if hit_index == 2 else -5.0)
-	_attack_anim_left = float(SWING_TIME[animation])
+	Audio.play(StringName(str(spec.get("sfx", "swing"))), -2.0 if hit_index == 2 else -5.0)
+	_attack_anim_left = float(spec.get("animation_time", SWING_TIME[animation]))
 	var arc := "white" if aim_up else _arc_for(hit_index)
 	_swing_fx(hit_index, arc)
 	EventBus.world_impulse.emit(
@@ -1659,7 +1699,8 @@ func _attack() -> void:
 		_net_swing.rpc(hit_index, arc)
 	if animation != SWING_ANIMATIONS[hit_index] and animation != "thrust":
 		EventBus.technique_performed.emit(animation)  # rising, dash_strike
-	await _land_hits(COMBO_MULTIPLIERS[hit_index], 2.0 if hit_index == 2 else 1.0, hit_index == 2)
+	if await _action_hit_frame(spec, animation):
+		await _land_hits(float(spec.get("multiplier", COMBO_MULTIPLIERS[hit_index])), float(spec.get("knockback", 2.0 if hit_index == 2 else 1.0)), bool(spec.get("heavy", hit_index == 2)), float(spec.get("stagger", 0)))
 
 
 ## Everything a swing does once it is in the air: the hitbox (already placed
@@ -1859,17 +1900,28 @@ func _technique(id: String) -> void:
 			knockback = 0.6
 			stagger = SWEEP_STAGGER
 			Fx.dust(global_position + Vector2(facing * 18.0, 12.0), Vector2(facing, -0.2), 8)
+	var spec := action_spec(id)
+	var hit_size: Array = spec.get("hitbox", [reach.x, reach.y])
+	var hit_at: Array = spec.get("offset", [at.x, at.y])
+	reach = Vector2(float(hit_size[0]), float(hit_size[1]))
+	at = Vector2(float(hit_at[0]), float(hit_at[1]))
+	multiplier = float(spec.get("multiplier", multiplier))
+	knockback = float(spec.get("knockback", knockback))
+	stagger = float(spec.get("stagger", stagger))
+	heavy = bool(spec.get("heavy", heavy))
+	_attack_cd = stats.attack_cooldown * float(spec.get("recovery", _attack_cd / stats.attack_cooldown))
 	_attack_cd_total = _attack_cd
 	hitbox_collision.position = at
 	(hitbox_collision.shape as RectangleShape2D).size = reach
 	_play(id)
-	_attack_anim_left = float(TECHNIQUE_TIME[id])
-	Audio.play(&"swing", -2.0 if heavy else -4.0, 0.85 if heavy else 1.0)
+	_attack_anim_left = float(spec.get("animation_time", TECHNIQUE_TIME[id]))
+	Audio.play(StringName(str(spec.get("sfx", "swing"))), -2.0 if heavy else -4.0, 0.85 if heavy else 1.0)
 	EventBus.world_impulse.emit(global_position + Vector2(facing * 14.0, -6.0), Vector2(facing, -0.1),
 		0.9 if heavy else 0.6, &"attack")
 	if _is_mine():
 		EventBus.technique_performed.emit(id)
-	await _land_hits(multiplier, knockback, heavy, stagger, true)
+	if await _action_hit_frame(spec, id):
+		await _land_hits(multiplier, knockback, heavy, stagger, true)
 
 
 ## An enemy in front of the sword that has not noticed us: the first blow of
@@ -2051,6 +2103,7 @@ func _cast_skill() -> void:
 				bolt.size = float(skill.get("projectile_scale", 1.0))
 				bolt.motion = str(skill.get("motion", "straight"))
 				bolt.motion_amount = float(skill.get("motion_amount", 0.0))
+				bolt.max_distance = float(skill.get("projectile_range", 0.0))
 				bolt.friendly = true
 				bolt.scale = Vector2.ONE * 1.6
 				get_parent().add_child(bolt)

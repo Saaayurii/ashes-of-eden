@@ -107,9 +107,6 @@ function newAnim(name, preset) { const p = PRESETS[preset] || PRESETS.custom; re
 function newProject(name) { const a = [newAnim('idle', 'idle'), newAnim('run', 'run')]; return { id: uid(), name, description: '', reference: null, settings: { ...DEFAULT_SETTINGS }, animations: a, current: a[0].id, updated: Date.now() }; }
 function migrate(p) {
   p.settings = { ...DEFAULT_SETTINGS, ...(p.settings || {}) };
-  // «Сетка 1:1» оставляет персонажа в размере ChatGPT (часто крупнее кадра) — переводим один раз на подгонку роста
-  if (p.settings.scaleMode === 'grid' && !p.settings.gridfitMigrated) p.settings.scaleMode = 'gridfit';
-  p.settings.gridfitMigrated = true;
   p.animations = p.animations || [];
   for (const a of p.animations) { a.scale ??= 1; a.frames = (a.frames || []).map(f => ({ ...newFrame(), ...f })); }
   if (!p.animations.find(a => a.id === p.current)) p.current = p.animations[0]?.id || null;

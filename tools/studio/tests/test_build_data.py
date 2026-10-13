@@ -118,6 +118,18 @@ process.stdout.write(JSON.stringify(out));
             for url in b["body"]["anims"].values():
                 self.assertTrue((ROOT / url).exists(), url)
 
+    def test_every_body_can_bleed(self):
+        shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
+        pfx = build_data.action_fx(ROOT, build_data.load_strings(ROOT), shots)
+        g = build_data.gore(ROOT, pfx, shots)
+        self.assertIn("limbs", g["keys"])
+        self.assertEqual(set(g["keys"]), set(g["defaults"]))   # Gore.KEYS and Gore.DEFAULTS name the same things
+        self.assertIn("flesh", g["materials"])
+        self.assertEqual(g["bodies"][0]["key"], "elian")
+        self.assertEqual(g["bodies_rules"]["elian"]["limbs"], 0)   # he bleeds, he is never torn
+        for b in g["bodies"]:
+            self.assertTrue(b["material"], b["key"])
+
     def test_platform_pieces_know_where_they_lie(self):
         tiles = build_data.tiles(ROOT)
         pieces = {p["name"]: p for p in tiles["pieces"]}

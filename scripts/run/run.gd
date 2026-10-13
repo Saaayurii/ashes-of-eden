@@ -1277,6 +1277,7 @@ func _start_studio_live() -> void:
 	studio_live.name = "StudioLive"
 	studio_live.applied.connect(func(_spec: Dictionary) -> void: _studio_live_swap())
 	studio_live.view_changed.connect(_studio_live_swap)
+	studio_live.control_requested.connect(_studio_live_control)
 	add_child(studio_live)
 
 
@@ -1322,3 +1323,23 @@ func _to_menu() -> void:
 	Curtain.change_scene(MENU_SCENE, false, func() -> void:
 		get_tree().paused = false
 		Net.leave())
+
+
+func _studio_live_control(msg: Dictionary) -> void:
+	var command := str(msg.get("command", ""))
+	if command == "pause":
+		get_tree().paused = bool(msg.get("paused", false))
+	elif command == "step":
+		get_tree().paused = false
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		get_tree().paused = true
+	elif command == "force":
+		for node in get_tree().get_nodes_in_group("enemies"):
+			if node is Enemy and node.enemy_id == StudioLive.ID:
+				node.global_position = player.global_position + Vector2(clampf(float(msg.get("distance", 50)), 1, 1200), 0)
+				node.studio_force_attack(int(msg.get("attack", 0)), player)
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is Enemy:
+			node.studio_debug = bool(msg.get("debug", true))
+			node.queue_redraw()

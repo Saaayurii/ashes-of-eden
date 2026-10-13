@@ -1,0 +1,14 @@
+{
+  "actions": {
+    "attack": {"multiplier": 1.0, "recovery": 0.45, "animation_time": 0.25, "hitbox": [30, 30], "offset": [24, -4], "knockback": 1.0, "hit_frame": 0, "sfx": "swing"},
+    "attack2": {"multiplier": 1.1, "recovery": 0.45, "animation_time": 0.27, "hitbox": [30, 30], "offset": [24, -4], "knockback": 1.0, "hit_frame": 0, "sfx": "swing"},
+    "attack3": {"multiplier": 1.6, "recovery": 1.0, "animation_time": 0.31, "hitbox": [30, 30], "offset": [24, -4], "knockback": 2.0, "heavy": true, "hit_frame": 0, "sfx": "swing"},
+    "lunge": {"multiplier": 1.6, "recovery": 0.9, "animation_time": 0.3, "hitbox": [68, 26], "offset": [34, -6], "knockback": 1.6, "hit_frame": 0, "sfx": "swing"},
+    "cleave": {"multiplier": 3.0, "recovery": 1.2, "animation_time": 0.35, "hitbox": [56, 44], "offset": [30, -8], "knockback": 2.6, "stagger": 0.6, "heavy": true, "hit_frame": 0, "sfx": "swing"},
+    "sweep": {"multiplier": 0.8, "recovery": 0.8, "animation_time": 0.3, "hitbox": [48, 14], "offset": [22, 8], "knockback": 0.6, "stagger": 0.9, "hit_frame": 0, "sfx": "swing"},
+    "rising": {"animation_time": 0.25, "hit_frame": 0},
+    "dash_strike": {"animation_time": 0.25, "hit_frame": 0},
+    "thrust": {"animation_time": 0.25, "hit_frame": 0},
+    "slam": {"multiplier": 0.9, "radius": 38, "animation_time": 0.22, "knockback": 1.6, "sfx": "land"}
+  }
+}

@@ -40,6 +40,10 @@ func _strip(cell: Vector2i, frames: int) -> String:
 
 
 func _run() -> void:
+	var action_fx = load("res://scripts/fx/action_fx.gd")
+	var projectile_script = load("res://scripts/fx/projectile.gd")
+	var player_script = load("res://scripts/player/player.gd")
+	var enemy_script = load("res://scripts/enemies/enemy.gd")
 	var game = root.get_node("Game")
 	var data = root.get_node("Data")
 	var live_script = load("res://scripts/run/studio_live.gd")
@@ -102,6 +106,33 @@ func _run() -> void:
 	_check(foes.size() == 1 and foes[0].showcase == "", "back to one, fighting")
 	_check(is_equal_approx(root.get_node("Juice").base_scale, 1.0), "at full speed (speed is clamped)")
 
+	# Data-only posts preserve the real art and apply gameplay/FX immediately.
+	var draft_attack := {"type": "nova", "animation": "special", "range": 95, "radius": 72,
+		"windup": 0.4, "damage": 12, "cooldown": 4, "hit_frame": 1, "telegraph_fx": "none", "impact_fx": "dust"}
+	var dust := {"special": [{"fx": "dust", "at": "feet", "when": "frames", "frames": [1]}]}
+	run.studio_live.apply({"type": "ashes-live", "mode": "data", "extends": "possessed_villager",
+		"spec": {"hp": 123, "attacks": [draft_attack]}, "bodies": {"studio_live": dust},
+		"styles": {"test": {"light": 31}}, "player_actions": {"cleave": {"multiplier": 5}},
+		"abilities": {"studio_test": {"id": "studio_test"}}})
+	await _settle(0.4)
+	foes = _foes()
+	_check(foes.size() == 1 and foes[0].stats.hp == 123 and foes[0]._attacks[0].damage == 12, "live drafts replace enemy stats and damage")
+	_check(foes[0].sprite.sprite_frames.has_animation("special"), "data-only posts keep original sprite strips")
+	_check(action_fx.rules("studio_live") == dust and projectile_script.style("test").light == 31, "particle and projectile drafts reach the engine")
+	_check(player_script.action_spec("cleave").multiplier == 5 and data.abilities.has("studio_test"), "hero action and gift drafts reach the engine")
+	run._studio_live_control({"command": "force", "attack": 0, "distance": 50, "debug": true})
+	_check(foes[0].state == enemy_script.State.WINDUP and foes[0]._attack.damage == 12, "force uses the selected real attack and its windup")
+	await _settle(0.1)
+	var left: float = foes[0]._state_left
+	run._studio_live_control({"command": "pause", "paused": true})
+	await _settle(0.15)
+	_check(is_equal_approx(foes[0]._state_left, left), "pause freezes real attack timing")
+	run._studio_live_control({"command": "step"})
+	await _settle(0.1)
+	_check(paused and foes[0]._state_left < left, "step advances physics and pauses again")
+	run._studio_live_control({"command": "pause", "paused": false})
+	await _settle(0.6)
+	_check(foes[0].state != enemy_script.State.WINDUP and not foes[0]._strike_wait, "the selected sprite frame resolves the live impact")
 	game.practice = ""
 	print("studio_live_test: %s" % ("OK" if failures == 0 else "%d FAILED" % failures))
 	quit(1 if failures else 0)

@@ -46,6 +46,9 @@ const TEXT_SIZES := {"normal": 1.0, "large": 1.25, "largest": 1.5}
 ## "reduced" dims every flash of light, the white of a blow and the red at the
 ## screen's edge when hurt: for eyes that flashing tires or worse.
 const FLASHES := ["full", "reduced"]
+## How much blood (scripts/fx/gore.gd): torn limbs and all, half the drops and
+## nobody torn, or none at all — the remains of Fx.remains stay either way.
+const GORE_MODES := {"full": 1.0, "reduced": 0.5, "off": 0.0}
 ## The whole night slowed (Settings.game_speed, Juice.base_scale): an assist,
 ## like the auto swing — enemies, wind-ups, the hero, all of it at once.
 const GAME_SPEEDS := [1.0, 0.9, 0.8, 0.7, 0.6]
@@ -58,6 +61,7 @@ var screen_shake := true
 var lighting := true
 var text_size := "normal"
 var flashes := "full"
+var gore := "full"
 ## The painted backdrops move (BackdropLife: banners, water, lava, haze). Off
 ## for eyes that tire of a picture that moves; its light still breathes, as
 ## dimmed as `flashes` asks.
@@ -122,6 +126,9 @@ func _ready() -> void:
 	flashes = str(cfg.get_value("access", "flashes", "full"))
 	if not FLASHES.has(flashes):
 		flashes = "full"
+	gore = str(cfg.get_value("access", "gore", "full"))
+	if not GORE_MODES.has(gore):
+		gore = "full"
 	difficulty = cfg.get_value("game", "difficulty", "standard")
 	vial = clampi(int(cfg.get_value("game", "vial", 0)), 0, 5)
 	omens = bool(cfg.get_value("game", "omens", true))
@@ -175,6 +182,7 @@ func save() -> void:
 	cfg.set_value("video", "lighting", lighting)
 	cfg.set_value("access", "text_size", text_size)
 	cfg.set_value("access", "flashes", flashes)
+	cfg.set_value("access", "gore", gore)
 	cfg.set_value("access", "auto_attack", auto_attack)
 	cfg.set_value("access", "damage_numbers", damage_numbers)
 	cfg.set_value("access", "backdrop_motion", backdrop_motion)
@@ -315,6 +323,16 @@ func set_backdrop_motion(enabled: bool) -> void:
 
 func set_flashes(mode: String) -> void:
 	flashes = mode if FLASHES.has(mode) else "full"
+	save()
+	changed.emit()
+
+
+func gore_scale() -> float:
+	return float(GORE_MODES.get(gore, 1.0))
+
+
+func set_gore(mode: String) -> void:
+	gore = mode if GORE_MODES.has(mode) else "full"
 	save()
 	changed.emit()
 

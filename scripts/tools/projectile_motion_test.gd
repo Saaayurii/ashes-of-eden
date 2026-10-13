@@ -27,6 +27,25 @@ func _flight(kind: String, amount: float, steps := 10) -> Vector2:
 
 
 func _run() -> void:
+	for kind in ["straight", "accelerate", "wave", "arc", "return"]:
+		var capped = load("res://scripts/fx/projectile.gd").new()
+		capped.speed = 100.0
+		capped.motion = kind
+		capped.motion_amount = 12.0 if kind == "wave" else 0.5
+		capped.max_distance = 35.0
+		for i in 20:
+			capped._advance_motion(0.1)
+		_check(is_equal_approx(capped._travelled, 35.0) and capped.position.length() <= 35.01, kind + " stops at its traveled distance cap")
+		capped.free()
+	var net_enemy = load("res://scenes/enemies/enemy.tscn").instantiate()
+	net_enemy.enemy_id = "cultist"
+	root.add_child(net_enemy)
+	net_enemy.set_physics_process(false)
+	net_enemy._net_projectile(Vector2.ZERO, Vector2.RIGHT, 100.0, "#ffffff", "sacred", "straight", 0.0, 1.0, 75.0)
+	var copies = root.get_children().filter(func(n): return n.get_script() == load("res://scripts/fx/projectile.gd"))
+	_check(copies.size() == 1 and copies[0].cosmetic and copies[0].max_distance == 75.0, "network copies use the same distance cap")
+	for copy in copies: copy.free()
+	net_enemy.queue_free()
 	var straight := _flight("straight", 0.0)
 	var wave := _flight("wave", 13.0)
 	var faster := _flight("accelerate", 0.55)

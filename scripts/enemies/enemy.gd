@@ -96,6 +96,9 @@ var facing := 1:
 			attack_area.scale.x = value
 
 var _max_hp: float
+## The last blow's side and weight, for the way a death bleeds (Gore.death).
+var _last_away := 1.0
+var _last_violent := false
 var _attacks: Array = []
 var _attack: Dictionary = {}  # the one being performed
 ## Index in _attacks of the last wind-up begun. Repeats are less likely when
@@ -392,7 +395,12 @@ func _setup_sprite(spec: Dictionary) -> void:
 	visual = sprite
 
 
+var studio_debug := false
+
+
 func _physics_process(delta: float) -> void:
+	if studio_debug:
+		queue_redraw()
 	if state == State.DEAD:
 		return
 	_time_fight(delta)
@@ -1062,6 +1070,8 @@ func _net_attack_start(animation: String) -> void:
 
 
 func _resolve_strike(to_target: Vector2) -> void:
+	if enemy_id == StudioLive.ID:
+		StudioLive.report("УДАР", self)
 	_attack_cd = float(_attack.get("cooldown", 1.5))
 	if _sealed:
 		_attack_cd *= float(stats.get("seal_phase", {}).get("sealed_cooldown", 1.6))
@@ -1222,7 +1232,7 @@ func _fire_round(attack: Dictionary, aim: Vector2) -> void:
 		if Net.active:
 			_net_projectile.rpc(origin, shot, speed, str(attack.get("color", "#ffd27a")), _projectile_style(attack),
 				str(attack.get("projectile_motion", "straight")), float(attack.get("motion_amount", 0.0)),
-				float(attack.get("projectile_scale", 1.0)))
+				float(attack.get("projectile_scale", 1.0)), float(attack.get("projectile_range", 0.0)))
 
 
 func _nearest_player() -> Node2D:
@@ -1250,6 +1260,7 @@ func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool, atta
 	projectile.size = float(attack.get("projectile_scale", 1.0))
 	projectile.motion = str(attack.get("projectile_motion", "straight"))
 	projectile.motion_amount = float(attack.get("motion_amount", 0.0))
+	projectile.max_distance = float(attack.get("projectile_range", 0.0))
 	projectile.cosmetic = cosmetic
 	projectile.shooter_id = enemy_id
 	get_parent().add_child(projectile)
@@ -1267,7 +1278,7 @@ func _cast_flare(origin: Vector2, tint: Color) -> void:
 ## Only the host's bolt bites.
 @rpc("authority", "call_remote", "reliable")
 func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: String,
-		style: String, motion: String, motion_amount: float, size: float) -> void:
+		style: String, motion: String, motion_amount: float, size: float, distance := 0.0) -> void:
 	var projectile := PROJECTILE_SCENE.instantiate()
 	projectile.damage = 0.0
 	projectile.speed = speed
@@ -1277,6 +1288,7 @@ func _net_projectile(origin: Vector2, direction: Vector2, speed: float, color: S
 	projectile.size = size
 	projectile.motion = motion
 	projectile.motion_amount = motion_amount
+	projectile.max_distance = distance
 	projectile.cosmetic = true
 	get_parent().add_child(projectile)
 	projectile.global_position = origin
@@ -1676,6 +1688,12 @@ func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := 
 	Fx.impact(global_position + Vector2(away * -7.0, -10.0), Vector2(away, -0.35),
 		Color(1.0, 0.75, 0.35) if crit else Color(1, 0.9, 0.7), 13 if crit else 9)
 	Fx.flash(global_position + Vector2(0, -10), Color(1.0, 0.8, 0.5), 50.0 if crit else 36.0, 0.18, 0.9)
+	# blood thrown the way the blade went, by what it is made of (data/gore.json)
+	_last_away = away
+	_last_violent = crit or backstab
+	var share := amount / maxf(_max_hp, 1.0)
+	Gore.hit(self, enemy_id, str(stats.get("material", "cloth")), global_position + Vector2(away * -4.0, -10.0),
+		Vector2(away, -0.3), 1.0 + (0.6 if crit else 0.0) + (1.0 if backstab else 0.0) + share * 2.0)
 	if stats.get("boss", false):
 		EventBus.boss_hp_changed.emit(stats.get("name", ""), maxf(new_hp, 0.0), _max_hp)
 
@@ -1923,6 +1941,10 @@ func _die() -> void:
 	var own := Color(stats.get("light", {}).get("color", stats.get("color", "#b0a0a0"))) \
 		if material in ["spirit", "gold"] else Color(stats.get("color", "#b0a0a0"))
 	Fx.remains(global_position + Vector2(0, -10), material, own, 2.5 if is_boss else 1.0)
+	# blood, a pool under it, and — when data/gore.json allows — its own drawing
+	# torn into pieces; a boss lingers whole for its last words
+	var torn := Gore.death(self, enemy_id, material, null if is_boss else sprite,
+		Vector2(_last_away, -0.2), _last_violent)
 	# Cosmetic essence has its own readable allegiance; the numeric reward above
 	# is unchanged. Possession and undeath override a human origin.
 	var dark := _soul_affinity() == "dark"
@@ -1940,6 +1962,12 @@ func _die() -> void:
 		if _has_anim.has("death"):
 			sprite.play("death")
 		create_tween().tween_property(visual, "modulate:a", 0.35, 1.2)
+		return
+	if torn:
+		visual.visible = false
+		await get_tree().create_timer(0.4).timeout
+		if is_inside_tree():
+			_leave()
 		return
 	if _has_anim.has("death"):
 		sprite.play("death")
@@ -1978,3 +2006,36 @@ func _explode(spec: Dictionary) -> void:
 		var victim := node as Player
 		if victim != null and not victim.is_dead() and victim.global_position.distance_to(global_position) <= radius:
 			victim.take_damage(damage, self)
+
+
+## The sandbox uses the real windup, sprite frame gate and damage routines.
+func studio_force_attack(index: int, target: Node2D) -> void:
+	if enemy_id != StudioLive.ID or index < 0 or index >= _attacks.size() or target == null:
+		return
+	_cancel_telegraph()
+	_strike_wait = false
+	_clear_beam()
+	showcase = ""
+	_target = target
+	_attack = _attacks[index]
+	_begin_windup(target.global_position - global_position)
+	StudioLive.report("ПОДГОТОВКА", self)
+
+
+func _draw() -> void:
+	if not studio_debug or _attack.is_empty():
+		return
+	var color := Color(1, 0.75, 0.2, 0.7) if state != State.STRIKE else Color(1, 0.2, 0.2, 0.8)
+	draw_arc(Vector2.ZERO, float(_attack.get("range", 30)), 0, TAU, 64, Color(0.4, 0.7, 1, 0.45), 1)
+	match _attack.get("type", "melee"):
+		"nova":
+			draw_arc(Vector2.ZERO, float(_attack.get("radius", 90)), 0, TAU, 64, color, 2)
+		"melee":
+			var shape := attack_shape.shape as RectangleShape2D
+			draw_rect(Rect2(attack_area.position + Vector2(attack_shape.position.x * facing, attack_shape.position.y) - shape.size / 2, shape.size), color, false, 2)
+		"beam":
+			var length := float(_attack.get("length", 420))
+			var thick := float(_attack.get("thickness", 26))
+			var half := thick / 2 + 6
+			draw_rect(Rect2(Vector2(-length, 10 - half), Vector2(length * 2, half * 2)), color, false, 2)
+			draw_rect(Rect2(Vector2(-half, -length), Vector2(half * 2, length * 2)), color, false, 2)

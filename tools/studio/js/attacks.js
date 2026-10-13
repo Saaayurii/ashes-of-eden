@@ -3,7 +3,7 @@
  * Enemy waits for AnimatedSprite2D.frame_changed. Particle rules remain in «Частицы». */
 'use strict';
 const ATTACK_TYPES = { melee: 'Удар', lunge: 'Рывок', ranged: 'Снаряды', beam: 'Луч', nova: 'По площади', summon: 'Призыв' };
-const ATTACKS = { data: null, enemy: 0, index: 0, work: {}, raf: 0, started: 0, playing: false };
+const ATTACKS = { data: null, enemy: 0, index: 0, work: {}, position: 0, raf: 0, started: 0, playing: false };
 function attackDiff(base, changed) {
   return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(changed)])]
     .filter(k => JSON.stringify(base[k]) !== JSON.stringify(changed[k])).map(k => [k, changed[k]]));
@@ -21,14 +21,15 @@ function attackProblems(a, frames) {
 }
 const attackRoster = () => ATTACKS.data.roster[ATTACKS.enemy];
 const attackKey = () => `${attackRoster().id}:${ATTACKS.index}`;
-const attackValue = () => ATTACKS.work[attackKey()] || attackRoster().source.items[ATTACKS.index];
+const attackValue = () => sharedAttack(attackRoster().id, ATTACKS.index, attackRoster().source.items[ATTACKS.index]);
 function attackCount(a = attackValue()) {
   const b = attackRoster().body, im = b && shotStrip(b.anims[a.animation || 'attack']);
   return b?.frames?.[a.animation || 'attack'] || (im ? Math.max(1, Math.floor(im.width / b.cell[0])) : 1);
 }
-function attacksSave() { localStorage.setItem('ss_attacks', JSON.stringify(ATTACKS.work)); }
+function attacksSave() { localStorage.setItem('ss_attacks', JSON.stringify(ATTACKS.work)); draftHistory('attacks'); }
 function attackSet(k, value) {
   const a = structuredClone(attackValue()); a[k] = value;
+  if (SHOTS.data) { const u = SHOTS.data.users.find(u => u.kind === 'enemy' && u.id === attackRoster().id && u.index === ATTACKS.index && !u.added); if (u) { const e = SHOTS.edits.get(shotKey(u)); if (e) { delete e[k]; if (!Object.keys(e).length) SHOTS.edits.delete(shotKey(u)); shotsSave(); } } }
   if (k === "type" && value !== "nova") delete a.impact_fx;
   if (Object.keys(attackDiff(attackRoster().source.items[ATTACKS.index], a)).length) ATTACKS.work[attackKey()] = a;
   else delete ATTACKS.work[attackKey()];
@@ -40,7 +41,7 @@ function renderAttacks() {
   $('#attackChoice').innerHTML = r.source.items.map((a, i) => `<option value="${i}">${esc(a.name || `${i + 1}. ${ATTACK_TYPES[a.type]}`)}</option>`).join(''); $('#attackChoice').value = ATTACKS.index;
   const num = (k, title, fallback, min = 0, step = 0.05) => `<label>${title}<input type="number" data-attack="${k}" min="${min}" step="${step}" value="${a[k] ?? fallback}"></label>`;
   const select = (k, title, values, fallback) => `<label>${title}<select data-attack="${k}">${Object.entries(values).map(([v, label]) => `<option value="${esc(v)}"${v === (a[k] ?? fallback) ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select></label>`;
-  $('#attackProps').innerHTML = select('type', 'Тип действия', ATTACK_TYPES, 'melee') +
+  $('#attackProps').innerHTML = `<label>Название действия<input data-attack="name" value="${esc(a.name || '')}"></label>` + select('type', 'Тип действия', ATTACK_TYPES, 'melee') +
     select('animation', 'Анимация', Object.fromEntries(Object.keys(r.body?.anims || {}).map(x => [x, x])), 'attack') +
     `<label>Кадр удара (с 1)<input type="number" data-attack="hit_frame" min="1" step="1" value="${(a.hit_frame ?? 0) + 1}"></label>` +
     select('telegraph_fx', 'Подсветка перед ударом', { glow: 'Свечение', none: 'Без подсветки' }, 'glow') +
@@ -52,17 +53,19 @@ function renderAttacks() {
     (a.type === 'ranged' ? num('projectile_speed', 'Скорость снаряда, px/с', 170, 1, 5) + num('projectiles', 'Снарядов за раз', 1, 1, 1) + num('spread', 'Разброс, °', 0, 0, 1) + `<label>Стиль снаряда<input data-attack="projectile_style" value="${esc(a.projectile_style || '')}"></label>` : '') +
     `<label>Цвет<input type="color" data-attack="color" value="${esc(a.color || '#b86cff')}"></label>` +
     num('windup', 'Подготовка, с', 0.5, 0.01) + num('damage', 'Урон', 10, 0.01, 1) + num('range', 'Дальность, px', 100, 1, 1) +
+    num('from_hp', 'Использовать ниже доли здоровья (1 = всегда)', 1, 0.01) + (a.type === 'nova' ? num('trigger_range', 'Начинать при расстоянии, px', a.range, 1, 1) : '') +
     num('cooldown', 'Перезарядка, с', 2, 0.01) + num('recover', 'Восстановление, с', 0.35) + num('weight', 'Частота выбора', 1, 0.01, 1) +
     `<label>Звук удара<input data-attack="sfx" value="${esc(a.sfx || '')}"></label>`;
   $('#attackJson').value = JSON.stringify(a, null, 2);
   $('#attackStatus').textContent = `${r.source.file} • ${Object.keys(ATTACKS.work).length} изменённых атак. Подготовка держит первый кадр; затем анимация запускается и урон срабатывает на выбранном кадре.`;
-  ATTACKS.playing = false; $('#attackFrame').value = 1;
+  ATTACKS.playing = false; ATTACKS.position = 0; $('#attackFrame').value = 1; renderActionTimeline();
 }
 function attackDraw(now) {
   ATTACKS.raf = requestAnimationFrame(attackDraw);
   if (mode !== 'attacks' || !ATTACKS.data) return;
   const r = attackRoster(), a = attackValue(), fps = r.body?.fps || 6, count = attackCount();
-  const hit = a.hit_frame ?? 0, elapsed = (now - ATTACKS.started) / 1000;
+  const hit = a.hit_frame ?? 0, elapsed = ATTACKS.playing ? (now - ATTACKS.started) / 1000 : ATTACKS.position;
+  if (ATTACKS.playing) { ATTACKS.position = elapsed; $('#attackSeek').value = elapsed; if (elapsed >= +$('#attackSeek').max) ATTACKS.playing = false; }
   const frame = ATTACKS.playing ? Math.min(count - 1, Math.max(0, Math.floor((elapsed - a.windup) * fps))) : +$('#attackFrame').value - 1;
   if (ATTACKS.playing) $('#attackFrame').value = frame + 1;
   $('#attackFrame').max = count;
@@ -87,36 +90,59 @@ function attackDraw(now) {
 }
 async function attacksFiles() {
   const files = {}, touched = [];
-  for (const r of ATTACKS.data.roster) {
-    const source = r.source, edits = source.items.map((a, i) => ATTACKS.work[`${r.id}:${i}`]);
-    if (!edits.some(Boolean)) continue;
-    for (const a of edits.filter(Boolean)) {
-      const url = r.body?.anims[a.animation || 'attack'];
-      const im = url && await loadImage(A(url));
-      const problems = attackProblems(a, im ? Math.floor(im.width / r.body.cell[0]) : 1);
-      if (a.animation && !r.body?.anims[a.animation]) problems.push('У персонажа нет этой анимации.');
+  const baseline = draftBase('attacks', ATTACKS.data);
+  for (const r of baseline.roster) {
+    const source = r.source, edits = source.items.map((a, i) => sharedAttack(r.id, i, a));
+    if (!edits.some((a, i) => !sameDraft(a, source.items[i]))) continue;
+    const original = files[source.file] ?? await repoText(source.file);
+    const doc = JSON.parse(original);
+    let path = source.path;
+    if (path.length && Array.isArray(doc)) { const i = doc.findIndex(x => x.id === r.id); if (i < 0) throw new Error(`Нет ${r.id} в актуальном файле`); path = [i]; }
+    const node = path.reduce((o, k) => o[k], doc);
+    let current = source.single ? [node[source.key]] : node[source.key];
+    if (!current && source.inherited) {
+      const inherited = JSON.parse(await repoText(source.from)); current = source.from_key === 'attack' ? [inherited.attack] : inherited.attacks;
+    }
+    if (!Array.isArray(current)) throw new Error(`Источник действий ${r.id} изменился.`);
+    const plan = structuredClone(current);
+    for (const [i, a] of edits.entries()) {
+      if (sameDraft(a, source.items[i])) continue;
+      const at = locateAction(current, source.items[i], i, source.items);
+      plan[at] = await resolveDraft(source.items[i], a, current[at], `${r.id}: ${a.name || i + 1}`, BASES.attacks.uncertain);
+      const url = r.body?.anims[plan[at].animation || 'attack'], im = url && await loadImage(A(url));
+      const problems = attackProblems(plan[at], im ? Math.floor(im.width / r.body.cell[0]) : 1);
+      if (plan[at].animation && !r.body?.anims[plan[at].animation]) problems.push('У персонажа нет этой анимации.');
       if (problems.length) throw new Error(`${r.id}: ${problems.join(' ')}`);
     }
-    const original = files[source.file] ?? await repoText(source.file);
-    if (source.inherited) files[source.file] = setJsonList(original, source.path, 'attacks', source.items.map((a, i) => edits[i] || a));
+    if (source.single) files[source.file] = patchJson(original, [...path, source.key], attackDiff(node[source.key], plan[0]));
+    else if (source.inherited) files[source.file] = setJsonList(original, path, 'attacks', plan);
     else {
       files[source.file] = original;
-      for (const [i, a] of edits.entries()) if (a) files[source.file] = patchJson(files[source.file], source.single ? [...source.path, source.key] : [...source.path, source.key, i], attackDiff(source.items[i], a));
+      for (const [i, a] of plan.entries()) if (!sameDraft(current[i], a)) files[source.file] = patchJson(files[source.file], [...path, source.key, i], attackDiff(current[i], a));
     }
     touched.push(r.name.ru || r.id);
   }
   if (!touched.length) throw new Error('Нет изменений.');
-  return { files, title: `Studio: attacks — ${touched.join(', ')}`, body: `Attack parameters, animation hit frames and effects edited in «Атаки»: ${touched.join(', ')}.` };
+  return { files, title: `Studio: actions — ${touched.join(', ')}`, body: `Action parameters, animation hit frames and effects: ${touched.join(', ')}.` };
+}
+// One action across the attack and projectile editors. Projectile-only edits overlay
+// the shared attack; edits made here retire that field in the projectile overlay.
+function sharedAttack(id, index, fallback) {
+  const a = { ...(ATTACKS.work[`${id}:${index}`] || fallback) };
+  if (SHOTS.data) { const u = SHOTS.data.users.find(u => u.kind === 'enemy' && !u.added && u.id === id && u.index === index); if (u) Object.assign(a, SHOTS.edits.get(shotKey(u)) || {}); }
+  return a;
 }
 async function attacksEnter() {
   try {
     if (!ATTACKS.data) {
       ATTACKS.data = await (await fetch('import/attacks.json')).json();
       try { ATTACKS.work = JSON.parse(localStorage.getItem('ss_attacks') || '{}'); } catch {}
+      draftBase('attacks', ATTACKS.data, Object.keys(ATTACKS.work).length > 0);
+      if (Object.keys(ATTACKS.work).length && !BASES.attacks.uncertain) ATTACKS.data = draftClone(BASES.attacks.value);
       const villager = ATTACKS.data.roster.findIndex(r => r.id === 'possessed_villager');
       if (villager >= 0) { ATTACKS.enemy = villager; ATTACKS.index = 2; }
     }
-    renderAttacks(); if (!ATTACKS.raf) ATTACKS.raf = requestAnimationFrame(attackDraw);
+    await pfxLoad(); trackChange('attacks'); renderAttacks(); if (!ATTACKS.raf) ATTACKS.raf = requestAnimationFrame(attackDraw);
   } catch (e) { $('#attackStatus').textContent = e.message; }
 }
 if (typeof document !== 'undefined') {
@@ -128,16 +154,45 @@ if (typeof document !== 'undefined') {
     if (k === 'hit_frame') value -= 1;
     attackSet(k, value);
   });
-  $('#attackFrame').addEventListener('input', () => { ATTACKS.playing = false; });
-  $('#attackPlay').addEventListener('click', () => { ATTACKS.started = performance.now(); ATTACKS.playing = true; });
+  $('#attackFrame').addEventListener('input', () => { ATTACKS.playing = false; ATTACKS.position = attackValue().windup + (+$('#attackFrame').value - 1) / (attackRoster().body?.fps || 6); $('#attackSeek').value = ATTACKS.position; });
+  $('#attackPlay').addEventListener('click', () => { ATTACKS.position = 0; ATTACKS.started = performance.now(); ATTACKS.playing = true; });
+  $('#attackPause').onclick = () => { ATTACKS.playing = !ATTACKS.playing; ATTACKS.started = performance.now() - ATTACKS.position * 1000; };
+  $('#attackStep').onclick = () => { ATTACKS.playing = false; $('#attackFrame').value = Math.min(attackCount(), +$('#attackFrame').value + 1); $('#attackFrame').dispatchEvent(new Event('input')); };
+  $('#attackSeek').oninput = e => { ATTACKS.playing = false; ATTACKS.position = +e.target.value; $('#attackFrame').value = Math.min(attackCount(), Math.max(1, Math.floor((ATTACKS.position - attackValue().windup) * (attackRoster().body?.fps || 6)) + 1)); };
+  $('#attackLive').onclick = sandboxActionOpen;
   $('#attackApply').addEventListener('click', () => {
-    try { const a = JSON.parse($('#attackJson').value), errors = attackProblems(a, attackCount(a)); if (errors.length) throw new Error(errors.join(' ')); ATTACKS.work[attackKey()] = a; attacksSave(); renderAttacks(); }
+    try { const a = JSON.parse($('#attackJson').value), errors = attackProblems(a, attackCount(a)); if (errors.length) throw new Error(errors.join(' ')); const u = SHOTS.data?.users.find(u => u.kind === 'enemy' && u.id === attackRoster().id && u.index === ATTACKS.index && !u.added); if (u) { SHOTS.edits.delete(shotKey(u)); shotsSave(); } ATTACKS.work[attackKey()] = a; attacksSave(); renderAttacks(); }
     catch (e) { toast(e.message, 'err'); }
   });
-  $('#attackReset').addEventListener('click', () => { delete ATTACKS.work[attackKey()]; attacksSave(); renderAttacks(); });
+  $('#attackReset').addEventListener('click', () => { delete ATTACKS.work[attackKey()]; const u = SHOTS.data?.users.find(u => u.id === attackRoster().id && u.index === ATTACKS.index && !u.added); if (u) { SHOTS.edits.delete(shotKey(u)); shotsSave(); } attacksSave(); renderAttacks(); });
   $('#attackSend').addEventListener('click', async () => {
     await sendToGame(attacksFiles, null);
-    if (sendToGame.last?.local) { ATTACKS.data = null; ATTACKS.work = {}; attacksSave(); await attacksEnter(); }
+    if (sendToGame.last?.local) { delete BASES.attacks; draftBasesSave(); ATTACKS.data = null; ATTACKS.work = {}; attacksSave(); await attacksEnter(); }
   });
 }
 if (typeof module !== 'undefined') module.exports = { attackDiff, attackProblems };
+
+function renderActionTimeline() {
+  const a = attackValue(), r = attackRoster(), fps = r.body?.fps || 6;
+  const animEnd = a.windup + attackCount() / fps, hit = a.windup + (a.hit_frame || 0) / fps;
+  const end = Math.max(animEnd, hit + (a.recover ?? .35));
+  $('#attackSeek').max = end; $('#attackSeek').step = 1 / fps;
+  const marks = [{ t: 0, text: 'Подготовка' }, { t: a.windup, text: `Анимация ${a.animation || 'attack'}` }, { t: hit, text: `Удар: ${a.damage}` }, { t: end, text: 'Восстановление завершено' }];
+  if (a.sfx) marks.push({ t: hit, text: `Звук: ${a.sfx}` });
+  for (const fx of PFX.rules?.[r.id]?.[a.animation || 'attack'] || []) {
+    if (fx.when === 'every') marks.push({ t: a.windup, text: `${fx.fx} каждые ${fx.every || .3} с` });
+    else for (const frame of fx.when === 'frames' ? fx.frames || [] : [0]) marks.push({ t: a.windup + frame / fps, text: `${fx.fx} · кадр ${frame + 1}` });
+  }
+  $('#attackTimeline').innerHTML = marks.sort((a, b) => a.t - b.t).map(m => `<button class="sm" data-timeline="${m.t}">${m.t.toFixed(2)} с · ${esc(m.text)}</button>`).join('');
+  $('#attackLinks').innerHTML = '<button class="sm" data-action-link="chars">Рисунок</button><button class="sm" data-action-link="pfx">Частицы этого действия</button>' + (a.type === 'ranged' ? '<button class="sm" data-action-link="shots">Снаряд</button>' : '') + (a.sfx ? '<button class="sm" data-action-link="snd">Звук удара</button>' : '');
+}
+if (typeof document !== 'undefined') document.addEventListener('click', async e => {
+  const mark = e.target.closest('[data-timeline]'); if (mark) { $('#attackSeek').value = mark.dataset.timeline; $('#attackSeek').dispatchEvent(new Event('input')); }
+  const b = e.target.closest('[data-action-link]'); if (!b) return;
+  const r = attackRoster(), a = attackValue(), to = b.dataset.actionLink;
+  if (to === 'pfx') { await pfxLoad(); PFX.body = Math.max(0, PFX.data.bodies.findIndex(b => b.key === r.id)); PFX.trigger = a.animation || 'attack'; }
+  if (to === 'shots') { await shotsLoad(); SHOTS.user = Math.max(0, SHOTS.data.users.findIndex(u => u.id === r.id && u.index === ATTACKS.index)); SHOTS.style = null; }
+  if (to === 'snd') { await loadSndLib(); sndSel = `sfx/${a.sfx}`; sndCat = 'sfx'; }
+  if (to === 'chars') { const list = await (await fetch('import/list.json')).json(); const file = list.find(p => p.endsWith(`/${r.id}.sprite.json`)); if (file) await importFromUrl(file.startsWith('import/') ? file : 'import/' + file); }
+  setMode(to);
+});

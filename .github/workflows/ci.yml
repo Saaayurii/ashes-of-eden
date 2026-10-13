@@ -45,6 +45,12 @@ jobs:
         timeout-minutes: 18
         run: docker compose run --rm net-test
 
+      # The Godot container runs as root: the .import files and .godot/ it left
+      # in the checkout belong to root, and the studio's local server below
+      # (running as the runner) could not roll a write back over them.
+      - name: Hand the checkout back to the runner
+        run: sudo chown -R "$(id -u):$(id -g)" .
+
       # Half the repository is written by scripts that promise byte-identical
       # output. Only the quick ones here: the audio generators take minutes and
       # the font one downloads 25 MB, so those are for `--all` by hand.
@@ -81,3 +87,4 @@ jobs:
           node studio.e2e.cjs
           node studio.github.e2e.cjs
           node attacks.e2e.cjs
+          node workspace.e2e.cjs

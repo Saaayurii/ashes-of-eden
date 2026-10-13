@@ -1380,6 +1380,9 @@ def build(name, r):
                        bscroll_x=bscroll_x, bscroll_y=bscroll_y, shapes=shape_text, decor_ext=decor_ext,
                        piece_ext=piece_ext, ambient=ambient,
                        backdrop_lights=light_nodes(BACKDROP_LIGHTS.get(r.get("backdrop"), []), "Parallax", "Painted", BACKDROP_SCALE))
+    if r.get("waves"):
+        _waves = json.dumps(json.dumps(r["waves"]))
+        text = text.replace(f'height = {height}\n', f'height = {height}\nwaves_json = {_waves}\n', 1)
     if "void_kill_y" in r:
         text = text.replace(f'height = {height}\n', f'height = {height}\nvoid_kill_y = {r["void_kill_y"]}\n', 1)
     if r.get("interior"):
@@ -1573,7 +1576,14 @@ if os.path.exists(STUDIO_ROOMS):
         for _name, _extra in json.load(_f).items():
             if _name not in ROOMS:
                 raise SystemExit(f"tools/rooms/studio_rooms.json names no room: {_name}")
-            ROOMS[_name]["spawns"] = list(ROOMS[_name].get("spawns", [])) + [tuple(s) for s in _extra.get("spawns", [])]
+            ROOMS[_name]["spawns"] = [tuple(s) for s in _extra.get("spawns_override", ROOMS[_name].get("spawns", []))] + [tuple(s) for s in _extra.get("spawns", [])]
+            for _wave in _extra.get("waves", []):
+                if not isinstance(_wave, list) or not _wave:
+                    raise SystemExit("room waves must be non-empty spawn lists")
+                for _spawn in _wave:
+                    if len(_spawn) != 3 or not os.path.exists(os.path.join(ROOT, "data/enemies", _spawn[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _spawn[1:]):
+                        raise SystemExit("invalid wave spawn")
+            ROOMS[_name]["waves"] = _extra.get("waves", [])
             for _key in ("intro_cutscene", "outro_cutscene"):
                 if _key in _extra:
                     ROOMS[_name][_key] = _extra[_key]
@@ -1589,7 +1599,7 @@ if __name__ == "__main__":
             continue
         if "painting" in room:
             _validate_depth_windows(name)
-            if not check_reach(name, room):
+            if not check_reach(name, {**room, "spawns": room.get("spawns", []) + [tuple(spawn) for wave in room.get("waves", []) for spawn in wave]}):
                 failed.append(name)
             _expand_panel(room["painting"], room["_x_inserts"], FOCAL_RANGES.get(name, ()), _painted_floors(room))
             _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"], FOCAL_RANGES.get(name, ()))

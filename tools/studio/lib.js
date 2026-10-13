@@ -451,6 +451,47 @@ function mergeDialogueFile(text, dialogue) {
   if (JSON.stringify(JSON.parse(old)) === JSON.stringify(clean)) return text;
   return text.slice(0, span[0]) + rebuildDialogue(old, clean, span[0] - lineStart) + text.slice(span[1]);
 }
+// The dialogue windows' look (scripts/ui/dialogue_look.gd): where each window stands when a
+// look says nothing of it — dialogue_box.tscn's own layout, in the game's 640×360 — and the
+// limits DialogueLook and the validator hold it to. A line's look is laid over its dialogue's.
+const LOOK_SCREEN = [640, 360];
+const LOOK_HOME = { panel: [16, 232, 608, 116], caption: [170, 24, 322], portrait: [16, 140, 88] };
+const LOOK_CAPTION_H = 36;
+const LOOK_COLORS = ['bg', 'border', 'speaker', 'text', 'caption', 'portrait_bg', 'portrait_border'];
+const LOOK_NUMBERS = { border_width: [0, 4], radius: [0, 12], speaker_size: [8, 24], text_size: [10, 28], caption_size: [9, 24] };
+const mergeLook = (dialogueLook, lineLook) => ({ ...(dialogueLook || {}), ...(lineLook || {}) });
+// a window's rectangle as the look has it, or the scene's when the look says nothing ([x, y, w, h])
+function lookRect(look, kind) {
+  const v = Array.isArray(look?.[kind]) ? look[kind] : LOOK_HOME[kind];
+  return kind === 'panel' ? [...v] : kind === 'caption' ? [v[0], v[1], v[2], LOOK_CAPTION_H] : [v[0], v[1], v[2], v[2]];
+}
+// a dragged window, kept whole on the screen and no smaller than the game allows, in whole pixels;
+// back in the file's own shape (panel 4 numbers, caption and portrait 3)
+function clampLook(kind, r) {
+  const [SW, SH] = LOOK_SCREEN;
+  let [x, y, w, h] = r.map(Math.round);
+  if (kind === 'panel') { w = Math.min(SW, Math.max(120, w)); h = Math.min(SH, Math.max(48, h)); }
+  else if (kind === 'caption') { w = Math.min(SW, Math.max(80, w)); h = LOOK_CAPTION_H; }
+  else { w = h = Math.min(160, Math.max(24, w)); }
+  x = Math.min(SW - w, Math.max(0, x)); y = Math.min(SH - h, Math.max(0, y));
+  return kind === 'panel' ? [x, y, w, h] : [x, y, w];
+}
+// data/dialogue_looks.json as the studio writes it (the file is laid out the same way, so an
+// unchanged file comes back byte for byte)
+const fmtLooks = doc => JSON.stringify(doc, null, 2) + '\n';
+// her edits laid over the file as it is now: only the styles and speakers she touched
+function mergeLooks(latest, base, mine) {
+  const out = JSON.parse(JSON.stringify(latest || { styles: { default: {} }, speakers: {} }));
+  for (const part of ['styles', 'speakers']) {
+    out[part] ||= {};
+    const was = base?.[part] || {}, now = mine?.[part] || {};
+    for (const k of new Set([...Object.keys(was), ...Object.keys(now)])) {
+      if (JSON.stringify(was[k]) === JSON.stringify(now[k])) continue;
+      if (k in now) out[part][k] = now[k]; else delete out[part][k];
+    }
+  }
+  return out;
+}
 // data/backdrops.json: a still rule for each new picture, written in by text so
 // the hand-laid zones of every other picture keep their layout.
 function insertBackdropRules(text, rules) {
@@ -862,7 +903,7 @@ function frameStats(fr) {
   return { height: bottom - top + 1, top, bottom, cx: lx / ln, cy: ly / ln, n, soft, halo, colours };
 }
 // anims: [{name, loop, frames: [{data, w, h, key}]}]; o: {contentH, palette (the limit she set, 0 = none),
-// fit (false: the studio does not scale this one, its height is the game's), flyer (no ground under it)}.
+// fit (false: the studio does not scale this one — «1:1» as it is, or as drawn — so its height is hers), flyer (no ground under it)}.
 // → [{id, bad, anim, msg}] — bad ones turn the badge red, the rest are said for information.
 function artChecks(anims, o = {}) {
   const out = [], CH = +o.contentH || HERO_H, all = new Set();
@@ -920,12 +961,21 @@ const overrideFiles = path => ({ edit: OVERRIDE_DIR + path, mask: OVERRIDE_DIR +
 // anims / orig: [{id, frames: [{id, src, dx, dy, sc, patch, off}], regions: [[res, x, y, w, h]]}]
 // → [{res, x, y, w, h, frame, whole, pixels: [[x, y]]}] (pixels in the frame's own cell); throws on what an
 // override cannot hold (a frame added past the strip, an animation the game does not have).
-function frameEdits(anims, orig) {
+// resizable: the game reads this character's strips from a file the studio may point elsewhere (the
+// archetype tree), so an animation with another number of frames is not an override but a strip of its
+// own — {resize: true, anim, name, res, w, h}, with no frame edits for it.
+function frameEdits(anims, orig, resizable = false) {
   const out = [];
   for (const a of anims) {
     const o = orig.find(x => x.id === a.id);
     if (!o) throw new Error(`Анимации «${a.name}» нет у этого персонажа в игре — новую анимацию добавляют новым персонажем.`);
-    if (a.frames.length > (o.regions || []).length) throw new Error(`В «${a.name}» кадров больше, чем в игре (${o.regions.length}): ленту, которую собирает генератор, можно править, но не удлинять.`);
+    const n = (o.regions || []).length;
+    if (resizable && n && a.frames.length !== n) {
+      const [res, , , w, h] = o.regions[0];
+      out.push({ resize: true, anim: a.id, name: o.name || a.name, res, w, h });
+      continue;
+    }
+    if (a.frames.length > n) throw new Error(`В «${a.name}» кадров больше, чем в игре (${n}): ленту, которую собирает генератор, можно править, но не удлинять.`);
     a.frames.forEach((f, i) => {
       if (f.off) return;
       const of = o.frames[i], [res, x, y, w, h] = o.regions[i];
@@ -972,5 +1022,5 @@ async function filesFingerprint(entries) {
 }
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

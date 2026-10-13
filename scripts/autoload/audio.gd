@@ -133,6 +133,7 @@ const SUFFIX_MIX := {
 	&"special": [0.0, 1.0, 0.06],
 }
 
+var studio_clips: Dictionary = {}
 var _clips := {}
 ## Base name -> the clips that can answer to it, for sounds that come in
 ## several takes (hit_1..hit_3). Asking for "hit" is asking for any of them.
@@ -291,9 +292,12 @@ func _mix_for(name: StringName) -> Array:
 
 ## One clip for a name: the clip itself, or one of its takes at random.
 func _clip(name: StringName) -> AudioStream:
+	if studio_clips.has(str(name)):
+		return studio_clips[str(name)]
 	var takes: Array = _variants.get(name, [])
 	if not takes.is_empty():
-		return _clips.get(takes[randi() % takes.size()])
+		var take: String = takes[randi() % takes.size()]
+		return studio_clips.get(take, _clips.get(take))
 	return _clips.get(name)
 
 

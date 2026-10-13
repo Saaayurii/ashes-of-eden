@@ -7,6 +7,8 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../../..'), tree = path.join(root, 'data/enemy_archetypes/tree.json');
 const original = fs.readFileSync(tree), port = 8797;
+const portable = path.join(root, 'tools/studio/projects/workspaces/workspace.json');
+const oldPortable = fs.existsSync(portable) ? fs.readFileSync(portable) : null;
 const rebuild = () => execFileSync('python3', ['tools/studio/build_data.py'], { cwd: root, stdio: 'ignore' });
 (async () => {
   rebuild();
@@ -45,6 +47,6 @@ const rebuild = () => execFileSync('python3', ['tools/studio/build_data.py'], { 
     assert.deepEqual(errors, []);
     console.log('ATTACKS_E2E PASSED: all attack types, frame controls, persistence, byte-preserving patch and local write');
   } finally {
-    await browser?.close(); server.kill(); fs.writeFileSync(tree, original); rebuild();
+    await browser?.close(); server.kill(); fs.writeFileSync(tree, original); if (oldPortable) fs.writeFileSync(portable, oldPortable); else if (fs.existsSync(portable)) fs.unlinkSync(portable); rebuild();
   }
 })().catch(e => { console.error(e); process.exitCode = 1; });

@@ -148,10 +148,11 @@ async function commitFiles(files, del, title, body, intoPr = null) {
 }
 // Which project a send belongs to, so the same pull request carries it and the
 // studio can open it again from the branch — on this computer or another one.
-const PROJECT_KIND = { chars: 'chars', bg: 'bgs', cut: 'cuts' };
+const PROJECT_KIND = { chars: 'chars', bg: 'bgs', cut: 'cuts', workspace: 'workspaces' };
 // a cutscene is named by its id; a character or background by the name she gave it
-const projectPath = (kind, o) => `tools/studio/projects/${kind}/${slug(kind === 'cuts' ? o.id : (o.name || o.id))}.json`;
+const projectPath = (kind, o) => kind === 'workspaces' ? 'tools/studio/projects/workspaces/workspace.json' : `tools/studio/projects/${kind}/${slug(kind === 'cuts' ? o.id : (o.name || o.id))}.json`;
 async function projectFile(kind, obj) {
+  if (kind === 'workspaces') return ['tools/studio/projects/workspaces/workspace.json', JSON.stringify(await workspaceBundle()) + '\n'];
   const copy = JSON.parse(JSON.stringify(obj)); delete copy.shared; delete copy.pendingPr; delete copy.dirty;
   if (kind === 'chars') { copy.reference = await shrinkSrc(copy.reference); for (const a of copy.animations) for (const f of a.frames) f.src = await shrinkSrc(f.src); }
   return [projectPath(kind, obj), JSON.stringify(copy) + '\n'];
@@ -180,7 +181,8 @@ async function openPrOf(obj, kind) {
 async function sendToGameOnce(build, tab) {
   if (!Writer.mode) { await authDialog(); if (!Writer.mode) return; }
   let r;
-  const obj = tab && undoTarget(tab), kind = PROJECT_KIND[tab];
+  const shared = ['attacksFiles','shotsFiles','pfxFiles','lifeFiles','dlgFiles','soundFiles'].includes(build.name);
+  const obj = shared ? WORKSPACE : tab && undoTarget(tab), kind = shared ? 'workspaces' : PROJECT_KIND[tab];
   let intoPr = null;
   if (Writer.mode === 'github') {
     const pr = await openPrOf(obj, kind);
@@ -190,10 +192,11 @@ async function sendToGameOnce(build, tab) {
   try {
     const { files, del = [], title, body = '', notes = [] } = await build();
     if (obj && kind && !files[projectPath(kind, obj)]) { const [p, txt] = await projectFile(kind, obj); files[p] = txt; }
+    if (tab === 'workspace' && !(await workspaceReview({ files, del }))) return;
     toast('Отправляю…');
     r = await commitFiles(files, del, title, [body, ...notes].filter(Boolean).join('\n\n'), intoPr);
     sendToGame.last = r;
-    if (obj) { obj.dirty = false; if (r.url) obj.pendingPr = r.number; storeOf(tab)?.(obj); }
+    if (obj) { obj.dirty = false; if (r.url) obj.pendingPr = r.number; storeOf(shared ? 'workspace' : tab)?.(obj); }
     if (!r.updated && !r.duplicate) rememberSend({ kind: tab, objId: obj?.id, title, url: r.url, number: r.number, local: !!r.local }); else refreshSent();
     if (r.duplicate) return void dialog(`<h3>Это уже отправлено</h3><p>Точно такие же изменения уже ждут проверки в <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. Вторая отправка не создана.</p>`);
     if (r.updated) return void dialog(`<h3>Исправления добавлены</h3><p>Они в той же отправке <a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a>. CI проверит их заново, превью пересоберётся.</p>`);
@@ -252,10 +255,14 @@ async function addOverrides(files, pics) {
 // laid into the game's own pictures where they lie (build_data's regions), as overrides.
 async function gameCharOverrides() {
   const orig = await (await fetch(`import/chars/${encodeURIComponent(P.id)}.sprite.json`, { cache: 'no-store' })).json();
-  const edits = frameEdits(P.animations, orig.animations), pics = {}, direct = {};
-  if (!edits.length) throw new Error('Нечего отправлять: ни один кадр не отличается от игры. Поправь кадр (✎) или замени картинку.');
+  // a bestiary enemy's strips are named in the archetype tree, which the studio may edit: an animation
+  // with more or fewer frames than the game's becomes a strip of its own (resizedStrips), not an override
+  const tree = P.origin.generator === 'tools/art/build_bestiary_assets.py';
+  const all = frameEdits(P.animations, orig.animations, tree), pics = {}, direct = {};
+  const edits = all.filter(e => !e.resize), resized = all.filter(e => e.resize);
+  if (!all.length) throw new Error('Нечего отправлять: ни один кадр не отличается от игры. Поправь кадр (✎) или замени картинку.');
   // the studio's cell must be the game's, or every frame lands shifted and cut (the first cultist edit did)
-  const cell = edits.find(e => e.w !== +P.settings.cellW || e.h !== +P.settings.cellH);
+  const cell = all.find(e => e.w !== +P.settings.cellW || e.h !== +P.settings.cellH);
   if (cell) throw new Error(`Кадр в студии ${P.settings.cellW}×${P.settings.cellH}, а в игре у ${P.name} ${cell.w}×${cell.h}. Верни «Ширину» и «Высоту кадра» как в игре (или «Из игры» заново) и отправь ещё раз.`);
   const opaque = (d, n = 0) => { for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; };
   const thinner = [];
@@ -285,10 +292,38 @@ async function gameCharOverrides() {
   const files = {};
   for (const [path, t] of Object.entries(direct)) files[path] = await canvasBlob(t.c);
   const done = await addOverrides(files, pics);
+  const strips = await resizedStrips(files, resized, orig.animations);
   const frames = edits.length, name = P.name;
-  return { files, title: `Studio: ${name} — правка ${frames} кадр(ов)`,
-    body: `Правка персонажа игры **${name}**: ${frames} кадр(ов) в ${[...done, ...Object.keys(direct)].map(p => '`' + p + '`').join(', ')}.`,
-    notes: done.length ? [`Картинки ${name} собирает генератор (${P.origin.generator}); правка лежит в tools/studio/overrides/, и генератор кладёт её поверх своей картинки. Робот студии пересоберёт их в этой же отправке.`] : [] };
+  const parts = [frames ? `${frames} кадр(ов) в ${[...done, ...Object.keys(direct)].map(p => '`' + p + '`').join(', ')}` : '',
+    ...strips.map(s => `«${s.name}»: ${s.was} → ${s.now} кадр(ов), лента \`${s.path}\``)].filter(Boolean);
+  return { files, title: `Studio: ${name} — ${[frames ? `правка ${frames} кадр(ов)` : '', ...strips.map(s => `${s.name} ${s.now} кадр(ов)`)].filter(Boolean).join(', ')}`,
+    body: `Правка персонажа игры **${name}**: ${parts.join('; ')}.`,
+    notes: [...done.length ? [`Картинки ${name} собирает генератор (${P.origin.generator}); правка лежит в tools/studio/overrides/, и генератор кладёт её поверх своей картинки. Робот студии пересоберёт их в этой же отправке.`] : [],
+      ...strips.length ? [`Анимации другой длины (${strips.map(s => s.name).join(', ')}) — свои ленты студии; data/enemy_archetypes/tree.json теперь указывает на них. Если у атаки задан hit_frame, проверь, что такой кадр есть (проверка данных скажет).`] : []] };
+}
+// An animation of the bestiary with another number of frames than the game's: the whole strip, written
+// as a file of the studio's own (a generator never writes it), and the archetype tree pointed at it.
+// → [{name, was, now, path}]
+async function resizedStrips(files, resized, origAnims) {
+  if (!resized.length) return [];
+  const TREE = 'data/enemy_archetypes/tree.json';
+  let text = files[TREE] || await repoText(TREE);
+  const at = JSON.parse(text).findIndex(e => e.id === P.id && e.sprite?.animations);
+  if (at < 0) throw new Error(`${P.name} нет в ${TREE} — длину его анимаций студия поменять не может.`);
+  const W = +P.settings.cellW, H = +P.settings.cellH, out = [], gen = generatedSet();
+  for (const r of resized) {
+    const a = P.animations.find(x => x.id === r.anim), fr = a.frames.filter(f => !f.off && processed.has(f.id));
+    if (!fr.length) throw new Error(`В «${a.name}» нет готовых кадров.`);
+    const sheet = mk(W * fr.length, H), sx = sheet.getContext('2d');
+    fr.forEach((f, i) => sx.drawImage(processed.get(f.id), i * W, 0));
+    // a strip the studio already made for it is written again; the generator's own is left alone
+    const was = r.res.replace('res://', ''), path = gen.has(was) ? `assets/sprites/${slug(P.id)}_studio_${slug(r.name)}.png` : was;
+    files[path] = await canvasBlob(sheet);
+    if (path !== was) text = patchJson(text, [at, 'sprite', 'animations'], { [r.name]: 'res://' + path });
+    out.push({ name: r.name, was: origAnims.find(x => x.id === r.anim).regions.length, now: fr.length, path });
+  }
+  files[TREE] = text;
+  return out;
 }
 // Any other generated picture she replaced whole (a room's painting): what differs from the game's is hers.
 async function convertToOverrides(files) {
@@ -472,6 +507,7 @@ function rememberSend(e) {
   refreshSent();
 }
 const storeOf = tab => ({ chars: o => { if (o === P) persist(); else DB.put(o).catch(() => {}); },
+  workspace: o => { if (o.pendingPr) localStorage.setItem('ss_workspace_pr', o.pendingPr); },
   bg: o => DB.put(o, 'backgrounds').catch(() => {}), cut: o => DB.put(o, 'cutscenes').catch(() => {}) })[tab];
 let sentCache = [];
 // Her pull requests (the studio names its branches studio/<login>-…), with checks and whether the site has them.
@@ -565,9 +601,10 @@ async function sentDialog() {
 async function openFromPr(number) {
   try {
     const R = `/repos/${META.repo}`, pr = await ghApi(`${R}/pulls/${number}`), ref = pr.merged_at ? META.branch : pr.head.sha;
-    const files = (await ghApi(`${R}/pulls/${number}/files?per_page=100`)).map(f => f.filename).filter(f => /^tools\/studio\/projects\/(chars|bgs|cuts)\/[^/]+\.json$/.test(f));
+    const files = (await ghApi(`${R}/pulls/${number}/files?per_page=100`)).map(f => f.filename).filter(f => /^tools\/studio\/projects\/(chars|bgs|cuts|workspaces)\/[^/]+\.json$/.test(f));
     if (!files.length) return toast('В этой отправке нет проекта студии (это звуки или старая отправка)', 'err');
     for (const f of files) {
+      if (f.includes('/workspaces/')) { if (!pr.merged_at) localStorage.setItem('ss_workspace_pr', number); await workspaceRestore(JSON.parse(await ghApi(`${R}/contents/${f}?ref=${ref}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }))); return; }
       const obj = JSON.parse(await ghApi(`${R}/contents/${f}?ref=${ref}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }));
       const kind = f.split('/')[3];
       obj.pendingPr = pr.merged_at ? undefined : number; obj.dirty = false;

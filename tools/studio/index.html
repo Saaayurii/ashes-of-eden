@@ -104,12 +104,16 @@ main{padding:12px 16px;min-width:0}
 .fsstrip{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;border-top:1px solid var(--line);background:var(--panel)}
 .fsstrip canvas{height:72px;border-radius:4px;cursor:pointer;border:2px solid transparent}
 .fsstrip canvas.on{border-color:var(--accent)}
-.modes{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.modes{display:flex;max-width:100%;min-width:0;border:1px solid var(--line);border-radius:7px;overflow-x:auto;flex-shrink:1;scrollbar-width:thin}
+.modes button{flex-shrink:0;white-space:nowrap}
+.draftcompare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.draftcompare pre{max-height:220px;overflow:auto;white-space:pre-wrap}.workspacebar{display:flex;gap:6px;padding:6px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+body:not([data-mode=world]) .worldlayout{display:none!important}
+@media(max-width:600px){.draftcompare{grid-template-columns:1fr}header.top{flex-wrap:wrap}.modes{width:100%;order:20}.attacklayout .row{flex-wrap:wrap}}
 .modes button{border:0;border-radius:0;background:transparent}
 .modes button.on{background:var(--panel2);color:var(--accent)}
 .hdr-chars,.hdr-bg,.hdr-cut,.hdr-snd{display:contents}
 body:not([data-mode=chars]):not([data-mode=rig]) .hdr-chars,body:not([data-mode=bg]) .hdr-bg,body:not([data-mode=cut]) .hdr-cut,body:not([data-mode=snd]) .hdr-snd{display:none}
-body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=attacks]) .attacklayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout,body:not([data-mode=dlg]) .dlglayout{display:none!important}
+body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not([data-mode=cut]) .cutlayout,body:not([data-mode=snd]) .sndlayout,body:not([data-mode=rig]) .riglayout,body:not([data-mode=life]) .lifelayout,body:not([data-mode=attacks]) .attacklayout,body:not([data-mode=shots]) .shotlayout,body:not([data-mode=pfx]) .pfxlayout,body:not([data-mode=gore]) .gorelayout,body:not([data-mode=dlg]) .dlglayout{display:none!important}
 .dlglayout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - var(--hdr, 50px))}
 .dlgmain{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,520px);gap:10px;min-height:0}
 .dlgmain>div{min-height:0;display:flex;flex-direction:column;gap:8px}
@@ -119,9 +123,13 @@ body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not(
 #dlgNodes .row select,#dlgNodes .row input:not([type=checkbox]){width:auto;min-width:0}
 #dlgNodes .row select{max-width:220px}
 #dlgNodes textarea{width:100%;resize:vertical}
+.dlglook .row{flex-wrap:wrap;gap:6px 10px}.dlglook label{display:inline-flex;align-items:center;gap:4px}.dlglook input[type=color]{width:38px;height:22px;padding:0;flex:none}.dlglook input[type=range]{width:90px;flex:none}.dlglook input[type=checkbox],.dlglook input[type=radio]{width:auto;flex:none;margin:0}.dlglook input[type=number]{width:64px;flex:none}.dlglook select{width:auto;max-width:220px}
 #dlgList{max-height:none;flex:1}
 @media (max-width:1100px){.dlgmain{grid-template-columns:1fr;overflow:auto}}
 .pfxlayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
+.gorelayout{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - var(--hdr, 50px))}
+#goreProps{overflow:auto;scrollbar-width:thin}#goreStage{flex:1;min-height:0;border-radius:6px;overflow:hidden}
+#goreCanvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;background:#0f0d14}
 #pfxTriggers{max-height:36vh;overflow:auto;flex:none;scrollbar-width:thin}
 #pfxStage{flex:1;min-height:0;border-radius:6px;overflow:hidden}
 #pfxCanvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;background:#0f0d14}
@@ -258,13 +266,20 @@ a{color:var(--sel)}
 .toast.err{border-left-color:var(--err)}
 @media (max-width:1100px){.work{grid-template-columns:1fr}.pcol{position:static}}
 @media (max-width:760px){.layout{grid-template-columns:1fr}.side{position:static;max-height:none}}
+@media(max-width:600px){
+  .layout,.bglayout,.cutlayout,.sndlayout,.riglayout,.lifelayout,.shotlayout,.pfxlayout,.gorelayout,.dlglayout{grid-template-columns:minmax(0,1fr);height:auto;overflow:visible}
+  .layout>*,.bglayout>*,.cutlayout>*,.sndlayout>*,.riglayout>*,.lifelayout>*,.shotlayout>*,.pfxlayout>*,.gorelayout>*,.dlglayout>*{min-width:0;max-width:100%}
+  .dlgmain{grid-template-columns:minmax(0,1fr)}.side{max-height:none}.row{flex-wrap:wrap}.row>*{min-width:0;max-width:100%}
+  #shotStage,#pfxStage,#goreStage,#lifeStage,#rigCanvas{min-height:260px;height:260px;flex:none}.lifemain,.rigmain{min-height:320px}
+  .worldlayout,.attacklayout{height:auto!important}.draftcompare{grid-template-columns:minmax(0,1fr)!important}
+}
 </style>
 </head>
 <body>
 <header class="top">
   <button class="ghost" data-act="side-toggle" title="Скрыть / показать левую панель">☰</button>
   <div class="brand" title="Если версия не меняется после обновления — нажми Ctrl+Shift+R">SPRITE <span>STUDIO</span> <small class="muted" style="font-weight:400;font-size:11px">v6</small></div>
-  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="attacks">Атаки</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button></div>
+  <div class="modes"><button data-act="mode" data-m="chars">Персонажи</button><button data-act="mode" data-m="rig">Риг</button><button data-act="mode" data-m="bg">Задники</button><button data-act="mode" data-m="life">Оживление</button><button data-act="mode" data-m="attacks">Атаки</button><button data-act="mode" data-m="shots">Снаряды</button><button data-act="mode" data-m="pfx">Частицы</button><button data-act="mode" data-m="gore">Кровь</button><button data-act="mode" data-m="dlg">Диалоги</button><button data-act="mode" data-m="cut">Катсцены</button><button data-act="mode" data-m="snd">Звуки</button><button data-act="mode" data-m="world">Поведение</button></div>
   <span class="hdr-chars">
     <select id="projSel" title="Персонаж"></select>
     <button data-act="proj-new">+ Персонаж</button>
@@ -318,6 +333,7 @@ a{color:var(--sel)}
   <button id="sentBtn" class="ghost" data-act="sent" title="Что я отправила в игру и что с этим сейчас">Мои отправки</button>
   <button id="authBtn" class="ghost" data-act="auth">Войти</button>
 </header>
+<div class="workspacebar"><span id="workspaceStatus" class="grow muted">Черновик</span><button id="workspaceExport" class="sm">⬇ Весь проект</button><label class="sm btnlike">⬆ Открыть проект<input id="workspaceImport" type="file" accept=".json" hidden></label><button id="workspacePreview" class="sm">Проверить изменения</button><button id="workspaceSend" class="sm primary">→ Отправить всё</button></div>
 
 <div class="layout">
 <aside class="side">
@@ -499,11 +515,21 @@ a{color:var(--sel)}
   <aside class="side bgright" id="itemPanel"></aside>
 </div>
 
+<div id="worldLayout" class="worldlayout" style="height:calc(100vh - 110px);overflow:auto;padding:12px">
+<h3>Поведение, способности, награды и комнаты</h3><input id="worldSearch" placeholder="Поиск: enemies, abilities, props…"><div id="worldFiles" style="display:flex;gap:6px;flex-wrap:wrap;max-height:150px;overflow:auto"></div>
+<h3 id="worldTitle"></h3><select id="worldItem"></select><div id="worldProps" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+<details><summary>Все параметры файла</summary><textarea id="worldJson" style="width:100%;height:320px"></textarea><button id="worldApply">Применить</button><button id="worldReset">Как в игре</button></details><p id="worldStatus" class="note"></p>
+<h3>Размещения и последовательные волны</h3><select id="worldRoom"></select><canvas id="worldMap" style="width:100%;max-width:1000px;cursor:crosshair"></canvas>
+<label>Номер размещения для переноса кликом (с 1)<input id="worldSpawnIndex" type="number" min="1" value="1"></label>
+<label>Враги при входе: [id, x, y]<textarea id="worldSpawns" style="width:100%;height:150px"></textarea></label>
+<label>Дополнительные волны: список списков [id, x, y]<textarea id="worldWaves" style="width:100%;height:150px"></textarea></label><button id="worldRoomApply">Применить размещения и волны</button><p class="note">Следующая волна появляется после победы над текущей; выход открывается после последней. Награды врагов — essence и ash; содержимое сундуков — в props.</p>
+</div>
 <div id="attackLayout" class="attacklayout" style="height:calc(100vh - 70px);overflow:auto;padding:16px">
   <div class="row"><label>Персонаж<select id="attackEnemy"></select></label><label>Действие<select id="attackChoice"></select></label><button id="attackSend">→ В игру</button><button id="attackReset">Сбросить изменения</button></div>
   <div class="note">Все атаки врагов: удар, рывок, снаряды, луч, удар по площади и призыв. Частицы на любое действие героя и врагов — во вкладке «Частицы»; вид снарядов — в «Снаряды».</div>
   <canvas id="attackCanvas" width="640" height="220" class="pixel" style="width:min(100%,960px);background:#17171c"></canvas>
-  <div class="row"><button id="attackPlay">▶ Повторить</button><label>Кадр анимации<input id="attackFrame" type="range" min="1" max="7" value="1"></label><span id="attackTiming"></span></div>
+  <div class="row"><button id="attackPlay">▶ Повторить</button><button id="attackPause">⏸ Пауза</button><button id="attackStep">Кадр →</button><button id="attackLive">🎮 В игре</button><label>Кадр анимации<input id="attackFrame" type="range" min="1" max="7" value="1"></label><span id="attackTiming"></span></div>
+  <div class="card"><b>Временная шкала действия</b><input id="attackSeek" type="range" min="0" max="3" step="0.01" value="0" style="width:100%"><div id="attackTimeline" class="row" style="flex-wrap:wrap"></div><div id="attackLinks" class="row" style="flex-wrap:wrap"></div></div>
   <div id="attackProps" style="display:flex;flex-wrap:wrap;gap:12px"></div>
   <details><summary>Все параметры действия (JSON)</summary><p class="note">Здесь можно изменить любой параметр атаки, включая параметры снарядов и призыва. Сохраняются только изменённые поля.</p><textarea id="attackJson" style="width:100%;height:240px"></textarea><button id="attackApply">Применить JSON</button></details>
   <p id="attackStatus" class="note"></p>
@@ -577,6 +603,30 @@ a{color:var(--sel)}
   </main>
 </div>
 
+<div id="goreLayout" class="gorelayout">
+  <aside class="side lifeside" id="goreSide">
+    <label>Кто<select id="goreBodies"></select></label>
+    <div id="goreProps"></div>
+  </aside>
+  <main class="lifemain">
+    <div class="lifebar">
+      <button class="sm" data-act="gore-hit" title="Обычный удар слева">▶ Удар</button>
+      <button class="sm" data-act="gore-crit" title="Критический удар: больше брызг, рана дольше">▶ Крит</button>
+      <button class="sm" data-act="gore-death" title="Смертельный удар: фонтан, лужа и — если можно — тело рвётся на куски">☠ Смерть</button>
+      <label title="Удар в спину или крит: шанс разрыва ×2, брызг больше"><input type="checkbox" id="goreBack"> в спину</label>
+      <label title="Для показа: рвать при каждой смерти, не бросая кубик"><input type="checkbox" id="goreAlways" checked> всегда рвать</label>
+      <label title="Удар, удар, крит, смерть, пауза — по кругу"><input type="checkbox" id="goreAuto" checked> по кругу</label>
+      <label>Скорость <select id="goreSlow"><option value="1">как в игре</option><option value="0.5">в 2 раза медленнее</option><option value="0.25">в 4 раза медленнее</option></select></label>
+      <button class="sm" data-act="gore-clear" title="Смыть пятна и убрать куски">🧽 Смыть</button>
+      <span class="grow muted" id="goreVerdict"></span>
+      <button class="sm" data-act="gore-revert" title="Отменить все несохранённые правки крови">↺ Как в игре</button>
+      <button class="primary" id="goreSend" data-act="gore-send" disabled>→ В игру</button>
+    </div>
+    <div id="goreStage"><canvas id="goreCanvas"></canvas></div>
+    <div class="note">Кровь — по материалу из бестиария (плоть, ткань, кольчуга, латы, перья, дух, золото); у тела могут быть свои значения поверх. Куски режутся из самого рисунка — кадра, в котором тело умерло. В игре это выключается: Настройки → Кровь (полная / меньше, без расчленения / выкл.).</div>
+  </main>
+</div>
+
 <div id="shotLayout" class="shotlayout">
   <aside class="side lifeside" id="shotSide">
     <div id="shotList" class="ilist"></div>
@@ -585,6 +635,7 @@ a{color:var(--sel)}
   <main class="lifemain">
     <div class="lifebar">
       <button class="sm" data-act="shot-fire" title="Выстрелить сейчас, не дожидаясь паузы">▶ Выстрел</button>
+      <button class="sm" data-act="shot-live" title="Этот снаряд в настоящей игре: стрелок на тренировочном дворе, правки долетают сами">🎮 В игре</button>
       <label title="Кто стреляет и в кого — их спрайты из игры, со своей анимацией атаки"><input type="checkbox" id="shotBodies" checked> Показать персонажей</label>
       <label>Скорость показа <select id="shotSlow"><option value="1">как в игре</option><option value="0.5">в 2 раза медленнее</option><option value="0.25">в 4 раза медленнее</option></select></label>
       <span class="grow muted">Слева — кто стреляет, справа — в кого. По кругу: замах → залп → пауза.</span>
@@ -712,10 +763,14 @@ a{color:var(--sel)}
 <script src="js/life.js"></script>
 <script src="js/tiles.js"></script>
 <script src="js/seams.js"></script>
+<script src="js/drafts.js"></script>
 <script src="js/shots.js"></script>
 <script src="js/attacks.js"></script>
 <script src="js/particles.js"></script>
+<script src="js/gore.js"></script>
 <script src="js/dialogues.js"></script>
+<script src="js/world.js"></script>
+<script src="js/workspace.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>
 </body>

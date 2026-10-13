@@ -11,7 +11,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '../../..');
-const PORT = 8799;
+const PORT = Number(process.env.STUDIO_E2E_PORT) || 8799;
 const URL = `http://127.0.0.1:${PORT}/tools/studio/`;
 const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' });
 const before = new Set(git('status', '--porcelain', '--untracked-files=all').split('\n').filter(Boolean));
@@ -296,7 +296,7 @@ async function step(name, fn) {
     });
 
     await step('a dialogue line edited in a cutscene changes one line of strings.csv', async () => {
-      git('checkout', '--', 'localization/strings.csv');
+      const beforeCsv = fs.readFileSync(path.join(ROOT, 'localization/strings.csv'), 'utf8');
       await page.evaluate(async () => {
         setMode('cut'); await new Promise(r => setTimeout(r, 1500));
         CUT = cuts.find(c => c.id === 'knight_arrival');
@@ -305,8 +305,10 @@ async function step(name, fn) {
         sendToGame(cutFiles, 'cut');
       });
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
-      const diff = git('diff', '--numstat', '--', 'localization/strings.csv', 'data/cutscenes', 'data/dialogues').trim().split('\n');
-      assert.deepEqual(diff, ['1\t1\tlocalization/strings.csv'], diff.join(' | '));
+      const beforeLines = beforeCsv.split('\n'), afterLines = fs.readFileSync(path.join(ROOT, 'localization/strings.csv'), 'utf8').split('\n');
+      assert.equal(beforeLines.length, afterLines.length);
+      assert.equal(afterLines.filter((line, i) => line !== beforeLines[i]).length, 1, 'one dialogue line changes; wizard localization survives');
+      assert.equal(git('diff', '--numstat', '--', 'data/cutscenes', 'data/dialogues').trim(), '');
     });
 
     // ---- an iPad with an Apple Pencil: a touch screen, the pencil as a pen pointer (CDP), a palm as a touch ----

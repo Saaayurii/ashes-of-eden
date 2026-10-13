@@ -1,0 +1,52 @@
+'use strict';
+const { chromium } = require('playwright');
+const { spawn, execFileSync } = require('node:child_process');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../../..'), port = 8795;
+(async () => {
+  execFileSync('python3',['tools/studio/build_data.py'],{cwd:root,stdio:'ignore'});
+  const server = spawn('python3',['tools/studio/serve.py'],{cwd:root,env:{...process.env,STUDIO_PORT:String(port)},stdio:'ignore'});
+  let browser;
+  try {
+    for(let i=0;i<60;i++){try{if((await fetch(`http://127.0.0.1:${port}/api/ping`)).ok)break;}catch{}await new Promise(r=>setTimeout(r,200));}
+    browser=await chromium.launch(); const context=await browser.newContext({viewport:{width:1400,height:1000}}),page=await context.newPage(),errors=[];
+    page.on('pageerror',e=>errors.push(String(e)));
+    await page.goto(`http://127.0.0.1:${port}/tools/studio/`); await page.waitForFunction(()=>P && Writer.mode==='local');
+    await page.locator('[data-m="attacks"]').click(); await page.waitForFunction(()=>ATTACKS.data && document.querySelector('#attackProps input'));
+    const original=fs.readFileSync(path.join(root,'data/enemy_archetypes/tree.json'),'utf8'),fresh=JSON.parse(original);fresh[0].attacks[2].damage=12;
+    await page.route('**/data/enemy_archetypes/tree.json',route=>route.fulfill({contentType:'application/json',body:JSON.stringify(fresh)}));
+    const safe=await page.evaluate(async()=>{attackSet('range',96);return JSON.parse((await attacksFiles()).files['data/enemy_archetypes/tree.json'])[0].attacks[2];});
+    assert.equal(safe.damage,12);assert.equal(safe.range,96);
+    const undo=await page.evaluate(()=>{history.attacks.t=0;attackSet('damage',8);const out=[attackValue().damage];undoRedo(false);out.push(attackValue().damage);undoRedo(true);out.push(attackValue().damage);return out;}); assert.deepEqual(undo,[8,7,8]);
+    const conflict=page.evaluate(async()=>JSON.parse((await attacksFiles()).files['data/enemy_archetypes/tree.json'])[0].attacks[2].damage);
+    await page.locator('#dlg[open] [data-conflict]').waitFor();await page.locator('[data-conflict]').selectOption('mine');await page.locator('#dlg [data-dlg="1"]').click();assert.equal(await conflict,8);
+    await page.evaluate(()=>{delete ATTACKS.work['possessed_villager:2'];attacksSave();});
+    await page.unroute('**/data/enemy_archetypes/tree.json');
+    await page.evaluate(async()=>{await shotsEnter();const i=ATTACKS.data.roster.findIndex(r=>r.id==='blind_preacher');ATTACKS.enemy=i;ATTACKS.index=1;history.attacks.t=0;attackSet('damage',17);SHOTS.user=SHOTS.data.users.findIndex(u=>u.id==='blind_preacher'&&u.index===1);});
+    assert.equal(await page.evaluate(()=>shotAttack().damage),17);
+    await page.evaluate(()=>{history.shots.t=0;shotSet('a.range',341);});assert.equal(await page.evaluate(()=>attackValue().range),341);
+    const combined=await page.evaluate(async()=>{const r=await workspaceFiles();return JSON.parse(r.files['data/enemy_archetypes/tree.json']).find(r=>r.id==='blind_preacher').attacks[1];}); assert.equal(combined.damage,17);assert.equal(combined.range,341);
+    await page.evaluate(()=>{shotSet('a.projectile_range',230);renderShots();});assert.equal(await page.locator('[data-shot="a.projectile_range"]').inputValue(),'230');assert.equal(await page.evaluate(async()=>JSON.parse((await shotsFiles()).files['data/enemy_archetypes/tree.json']).find(r=>r.id==='blind_preacher').attacks[1].projectile_range),230);
+    assert.ok(await page.evaluate(()=>{const b={x:0,y:0,dx:1,dy:0,t:0,life:4,range:35,travelled:0,speed:100,motion:'accelerate',amount:1};for(let i=0;i<20;i++)shotStep(b,0.1,[1000,0]);return Math.abs(b.x-35)<0.001 && b.life<=0;}));
+    const styles=JSON.parse(fs.readFileSync(path.join(root,'data/projectiles.json'),'utf8'));styles.styles.concurrent={sheet:'res://assets/sprites/projectiles/cult_page_studio.png'};
+    await page.route('**/data/projectiles.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify(styles)}));
+    await page.evaluate(()=>{SHOTS.style='preacher';shotSet('s.light',31);});assert.equal(await page.evaluate(async()=>JSON.parse((await shotsFiles()).files['data/projectiles.json']).styles.concurrent.sheet),styles.styles.concurrent.sheet);
+    await page.unroute('**/data/projectiles.json');
+    await page.locator('[data-m="pfx"]').click();await page.waitForFunction(()=>PFX.data && history.pfx.last);
+    const pfx=await page.evaluate(()=>{const key=PFX.data.bodies[PFX.body].key;const before=JSON.stringify(PFX.rules);history.pfx.t=0;PFX.rules[key]={idle:[{fx:'dust',when:'start'}]};pfxSave();undoRedo(false);const back=JSON.stringify(PFX.rules);undoRedo(true);return {before,back,changed:JSON.stringify(PFX.rules)!==before};});assert.equal(pfx.before,pfx.back);assert.ok(pfx.changed);
+    await page.locator('[data-m="world"]').click();await page.waitForFunction(()=>WORLD.data && WORLD.room);
+    const world=await page.evaluate(()=>{WORLD.file='data/enemies/cultist.json';WORLD.index=0;renderWorld();history.world.t=0;const hp=worldItem().hp;worldEdit('hp',hp+1);undoRedo(false);return {hp,after:worldItem().hp};});assert.equal(world.hp,world.after);
+    await page.evaluate(()=>{WORLD.file='data/player_actions.json';WORLD.index=3;renderWorld();worldEdit('multiplier',2);});assert.equal(await page.locator('[data-world-prop="multiplier"]').inputValue(),'2');
+    await page.evaluate(()=>{document.querySelector('#worldSpawns').value=JSON.stringify(WORLD.room.spawns);document.querySelector('#worldWaves').value=JSON.stringify([[['cultist',420,506]]]);worldRoomApply();});assert.ok(await page.evaluate(()=>WORLD.work['tools/rooms/studio_rooms.json'][WORLD.room.name].waves.length===1));
+    const live=await page.evaluate(async()=>{const path='data/enemy_archetypes/tree.json';const doc=structuredClone(WORLD.data.files[path]);doc.find(r=>r.id==='blind_preacher').attacks[1].recover=.88;WORLD.work[path]=doc;const msg=await sandboxDraftData('blind_preacher');delete WORLD.work[path];return msg.spec.attacks[1];});assert.equal(live.recover,.88);assert.equal(live.damage,17);assert.equal(live.projectile_range,230);
+    const bundle=await page.evaluate(async()=>{localStorage.setItem('ss_github','secret-token');const b=await workspaceBundle();return {format:b.format,projectCount:b.stores.projects.length,attack:JSON.parse(b.local.ss_attacks)['blind_preacher:1'].damage,base:JSON.parse(b.local.ss_bases).attacks.sha,secrets:JSON.stringify(b).includes('secret-token'),binary:unpackWorkspace(await packWorkspace(new Blob(['audio'],{type:'audio/wav'}))).size};});assert.equal(bundle.format,'ashes-studio-workspace');assert.ok(bundle.projectCount);assert.equal(bundle.attack,17);assert.ok(bundle.base);assert.equal(bundle.secrets,false);assert.equal(bundle.binary,5);
+    await page.locator('[data-m="life"]').click();await page.waitForFunction(()=>LIFE.data && history.life.last);
+    const life=await page.evaluate(()=>{const before=JSON.stringify([...LIFE.edits]);history.life.t=0;lifeEdit(r=>r.flame=.13);undoRedo(false);return before===JSON.stringify([...LIFE.edits]);});assert.ok(life);
+    await page.locator('[data-m="dlg"]').click();await page.waitForFunction(()=>DLG.data && history.dlg.last);
+    const dlg=await page.evaluate(()=>{const before=JSON.stringify(DLG.work);history.dlg.t=0;dlgEdit(d=>d.blocking=false);undoRedo(false);return before===JSON.stringify(DLG.work);});assert.ok(dlg);
+    await page.setViewportSize({width:390,height:844});await page.evaluate(()=>document.querySelector('[data-m="world"]').scrollIntoView());const nav=await page.locator('header.top > .modes').evaluate(el=>({width:el.clientWidth,scroll:el.scrollWidth,overflow:getComputedStyle(el).overflowX,page:document.documentElement.scrollWidth}));assert.equal(nav.overflow,'auto');assert.ok(nav.scroll>nav.width);assert.ok(nav.page<=390);
+    assert.deepEqual(errors,[]);console.log('WORKSPACE_E2E PASSED: merge/conflicts, shared actions, multi-tab undo, portable project, hero behavior, room waves, mobile navigation');
+  }finally{await browser?.close();server.kill();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

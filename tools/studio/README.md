@@ -1,6 +1,6 @@
 # Art studio (`tools/studio`)
 
-A browser tool for the game's art, sound and story, for people who do not open
+A browser tool for the game's art, actions, behavior, sound and story, for people who do not open
 Godot: characters frame by frame (cleaned up from image-model output), parallax
 backgrounds, cutscenes with their dialogue lines, and sound effects, music and
 spoken lines. It reads the game itself and writes back into it.
@@ -20,7 +20,7 @@ spoken lines. It reads the game itself and writes back into it.
 | `lib.js` | the pure half: background removal, pixel-grid recovery, palette, file formats; tested in Node |
 | `repo.js` | sign-in, writing (local server or GitHub pull request), what each tab sends |
 | `build_data.py` | turns the game into `import/*.json` for the page (not tracked) |
-| `serve.py` | the local server; writes only under `assets/`, `data/cutscenes`, `data/dialogues`, `data/backdrops.json`, `localization/strings.csv`, `tools/studio/projects/` |
+| `serve.py` | the local server; writes only under `assets/`, `data/`, `localization/strings.csv`, `tools/studio/projects/` |
 | `projects/` | studio projects people shared, and `files.json`: files the studio created |
 | `refs/` | style references to attach in an image model (the hero at 16×) |
 
@@ -111,6 +111,12 @@ validator would refuse is listed in red before sending (`dlgProblems`), includin
 the font subset. A changed dialogue is written back by `lib.js mergeDialogueFile`: every node still
 as it was keeps its bytes, a changed one keeps its own layout (one line or expanded), so a
 hand-laid file stays hand-laid (`tests/lib.test.js` rebuilds every dialogue of the game).
+The windows can be dragged and sized on the preview (the panel, the captions and a portrait
+window), for the whole dialogue or one line, and dressed in a named style — colours, border,
+corner, text sizes — made and edited in the same tab; each speaker's portrait is picked from
+`assets/portraits` or uploaded. All of it is `data/dialogue_looks.json` plus `"look"` on the
+dialogue and its nodes (docs/DIALOGUE_LOOKS.md), merged on sending by `lib.js mergeLooks`; the
+preview (`dlgDrawLine`, shared with «Катсцены») follows `DialogueBox._dress`.
 
 **Particles on actions** (`js/particles.js`, «Частицы»). `data/action_fx.json` is
 read by `scripts/fx/action_fx.gd`, an `ActionFx` node on the hero's and every
@@ -119,6 +125,16 @@ the game names (`ActionFx.EVENTS`). `build_data.py` writes `import/action_fx.jso
 the rules, `KINDS` / `ANCHORS` / `EVENTS` read from the script, and every body with
 its strips (the hero's per-animation fps). The preview draws a likeness of `Fx`;
 keep the kinds in step with `ActionFx.emit`.
+
+**Blood and torn limbs** (`js/gore.js`, «Кровь»). `data/gore.json` is read by
+`scripts/fx/gore.gd`: a table per material, a body's own keys laid over it.
+`build_data.py` writes `import/gore.json` (the tables, `Gore.KEYS` / `DEFAULTS`
+read from the script, the bodies of «Частицы» with their material). The preview
+is a port of `gore.gd` — drops, marks, the pool, `Gore.cut` on the frame the body
+died in (every way of `cuts`, ragged lines, `Gore.pick_cut`), `GorePiece`'s bounce,
+stand-and-topple and stump jets, shaded drops, clots and the three kinds of mark:
+change one, change the other. `goreText` writes the
+file one line per table, byte-identical when nothing changed (`tests/gore.test.js`).
 
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
@@ -152,8 +168,12 @@ same and keeps only the overridden pictures of what the generators rewrite.
 If a generator later draws something else under an edit of the same size, the
 edit still applies, the entry is marked `stale`, and the studio says «База
 изменилась — проверь». If the size changed, the generator fails, naming the
-override. A frame cannot be added to a generated strip (make a new character),
-and the hero's `.tres` stays the generator's.
+override. A bestiary enemy's animation may change its length: with more or
+fewer frames than the game's it is not an override but a strip of the studio's
+own (`assets/sprites/<id>_studio_<anim>.png`, in `projects/files.json`), and
+the animation's path in `data/enemy_archetypes/tree.json` is pointed at it
+(`resizedStrips` in `repo.js`). The hero's strips cannot grow (his `.tres`
+stays the generator's).
 
 **It keeps the repository's formatting.** `strings.csv`, dialogue files and
 cutscenes are rewritten byte-identically when unchanged (tests check this
@@ -316,7 +336,8 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     картину», тот же размер) → «→ В игру». Правка ляжет поверх того, что
     рисует генератор; робот пересоберёт картинки в той же отправке. «База
     изменилась — проверь» — генератор перерисовал картинку под правкой:
-    посмотри и отправь ещё раз.
+    посмотри и отправь ещё раз. Кадров у анимации врага можно сделать
+    больше или меньше (＋ / − / ✕): такая анимация уходит своей лентой.
 11. **🎮 Песочница** — открывается на всё окно (▣ — уменьшить в угол рядом с
     кадрами, ⛶ — весь экран компьютера): твой персонаж на тренировочном
    дворе, дерётся как выбранный враг и обновляется сам через пару секунд после
@@ -373,3 +394,58 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     цвет и прозрачность, куда летит, сдвиг. «точки» — показать, где на теле
     ноги, рука, голова. Дым под ногами Элиана теперь тоже здесь: шаг,
     приземление, перекат.
+21. **Кровь** — брызги от ударов, пятна на полу и стенах, лужа под телом и
+    расчленение. Слева: кто, и что править — материал (плоть, ткань,
+    кольчуга, латы, перья, дух, золото: для всех, кто из него) или только
+    это тело («своё» поверх материала, ↺ — вернуть к материалу). Удар: цвет,
+    сколько капель, как быстро летят, размер пятен, сколько держатся, сколько
+    кровоточит рана, разброс оттенка (каждая капля и пятно — свой оттенок).
+    Смерть: фонтан, лужа, на сколько кусков рвётся (их режет из самого
+    рисунка — кадра, в котором умер), шанс, сила разлёта, сколько бьёт струёй
+    обрубок. «Как рвётся» — веса способов: на куски, голова прочь, пополам,
+    рука прочь; линии разреза рваные, что осталось стоять — стоит миг и
+    валится по удару. «В превью» показывает один способ, не по весам.
+    «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу».
+    Игрок может убавить или выключить кровь: Настройки → Кровь.
+
+## Actions and shared workspace
+
+«Снаряды» distinguishes the distance at which an enemy starts firing from the
+projectile’s traveled distance cap (including curved paths). Zero keeps the
+existing four-second flight; hostile, gift and cosmetic network bolts use the
+same cap.
+
+«Атаки» and «Снаряды» edit the same enemy action values. The timeline shows
+windup, animation, impact frame, particles, sound and recovery; pause and seek
+inspect the drawing. «В игре» sends drafts to the real sandbox without writing
+files. It includes action/stat, particle, projectile, sound, gift and hero action
+data. Sandbox controls pause, advance physics, force the selected enemy attack
+at a chosen distance and show its zones. The engine requires the newly deployed
+Web build for these controls.
+
+«Поведение» exposes existing JSON game data, including enemy AI parameters,
+abilities, rewards and `data/player_actions.json`. Common numbers have controls;
+advanced conditions and structures use the JSON editor. Hero swings and special
+moves read damage multipliers, recovery, hitboxes and impact frames from that
+file. Input handling, movement algorithms and new AI implementations still need
+engine code. Room placements can be moved on the map; extra waves spawn after
+the previous enemies die, and the door opens after the last wave. Rest raises
+original common placements, rather than replaying reinforcement waves.
+
+All editor tabs support undo/redo. The workspace bar exports/imports one portable
+JSON project with source images, sounds and drafts; credentials are excluded.
+«Проверить всё» previews the combined changed files, and «Отправить всё» reviews
+and sends them together. Hosted sends include the portable project, which can
+be reopened from the PR and continued in the same branch.
+
+Drafts keep their original baseline. Sending performs a three-way merge against
+the current repository: unrelated fresh fields survive, and conflicting values
+require a choice. Reordered actions are matched by identity; ambiguous mappings
+are rejected. Legacy drafts without a baseline require explicit review.
+
+The local server validates all submitted bytes and paths before writing. A
+serialized transaction restores modified/deleted files and generated outputs if
+regeneration or Godot validation fails. Regenerating one artwork retains only
+submitted changes and leaves unrelated art/audio bytes intact. Validation uses
+the same transaction lock. Run browser mutation tests sequentially because
+their fixtures temporarily edit and restore the real checkout.
