@@ -89,8 +89,12 @@ async function step(name, fn) {
         return { ledges, offered, took, back: COMP.entry.ledges.length, ok: COMP.reach.ok, size: compSize(), panels: COMP.data.panels.length };
       });
       assert.ok(r.ledges > 5 && r.offered > 0 && r.took === 1 && r.back === r.ledges, JSON.stringify(r));
-      assert.ok(r.ok, 'a room on its own panel is walked to its door, as the generator walks it: ' + JSON.stringify(r));
-      assert.deepEqual([r.size.width, r.size.height], [1280, 720]);
+      assert.ok(r.ok, 'the room is walked to its door, as the generator walks it: ' + JSON.stringify(r));
+      // its own panel, or the grid composed_rooms.json already lays for it
+      const table = path.join(ROOT, 'tools/rooms/composed_rooms.json');
+      const cells = (fs.existsSync(table) && JSON.parse(fs.readFileSync(table, 'utf8')).graveyard_cross?.cells) || [{ col: 0, row: 0 }];
+      const grid = k => (Math.max(...cells.map(c => c[k])) + 1);
+      assert.deepEqual([r.size.width, r.size.height], [grid('col') * 1280, grid('row') * 720]);
       assert.ok(r.panels > 10, 'every painted panel is offered');
       // the volume view: the stitched picture and plate are built, the room's openings come along,
       // a candle and a front piece are placed and undone
