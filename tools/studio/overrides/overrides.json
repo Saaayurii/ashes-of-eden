@@ -124,5 +124,68 @@
     "base": "a87aad8928137970",
     "by": "Saaayurii",
     "at": "2026-10-10"
+  },
+  "assets/sprites/raven_v2_attack.png": {
+    "size": [
+      644,
+      64
+    ],
+    "base": "f0935e8df85ed165",
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/raven_v2_attack_alt.png": {
+    "size": [
+      644,
+      64
+    ],
+    "base": "e94072b9fe8a23ae",
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/raven_v2_death.png": {
+    "size": [
+      644,
+      64
+    ],
+    "base": "c53dba971e4540f3",
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/raven_v2_hurt.png": {
+    "size": [
+      644,
+      64
+    ],
+    "base": "2f929ff8ae9156f9",
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/raven_v2_idle.png": {
+    "size": [
+      644,
+      64
+    ],
+    "base": "4ff2d335a2f47c12",
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/raven_v2_special.png": {
+    "size": [
+      644,
+      64
+    ],
+    "base": "9406682ab2c5b7c6",
+    "by": "Saaayurii",
+    "at": "2026-10-10"
+  },
+  "assets/sprites/raven_v2_walk.png": {
+    "size": [
+      644,
+      64
+    ],
+    "base": "3e32fa27c46ce40a",
+    "by": "Saaayurii",
+    "at": "2026-10-10"
   }
 }
