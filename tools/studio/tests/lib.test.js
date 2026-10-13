@@ -532,3 +532,64 @@ test('her style and portrait edits go in over whatever the file has become', () 
     styles: { default: {}, a: { bg: '#112233ff' }, c: { text: '#ffffffff' }, b: { radius: 4 } },
     speakers: { Y: 'res://y.png' } });
 });
+
+// --- the room composer (js/composer.js): the same reach and tracer as tools/rooms ---
+
+const COMPOSER = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/studio/import/composer.json'), 'utf8'));
+
+test('composeReach: a floor across reaches the door, a wall of air does not', () => {
+  const R = COMPOSER.reach;
+  const room = { ground: [[0, 600, 2560, 120]], player: [40, 590], door: [2500, 590], spawns: [['cultist', 1200, 588]], props: [['barrel', 900, 600]] };
+  assert.ok(L.composeReach(room, R).ok);
+  const split = { ...room, ground: [[0, 600, 1000, 120], [1600, 600, 960, 120]] };
+  const r = L.composeReach(split, R);
+  assert.ok(!r.ok);
+  assert.ok(r.problems.some(p => p.fatal && /двери/.test(p.text)));
+  // a flyer needs no floor; a prop above its floor is said to float
+  const up = { ...room, spawns: [[R.FLYERS[0], 1200, 100]], props: [['barrel', 900, 560]] };
+  assert.deepEqual(L.composeReach(up, R).problems.filter(p => p.fatal).map(p => p.text), ['barrel: висит над полом']);
+});
+
+test('composeReach agrees with painted_rooms.check_reach on every painted panel', () => {
+  // Bare panels: some are joined only by the widened room's bridges, and say so in both.
+  const expected = { graveyard_arches: false };
+  for (const [name, room] of Object.entries(COMPOSER.rooms)) {
+    if (name in expected) assert.equal(L.composeReach(room, COMPOSER.reach).ok, expected[name], name);
+  }
+});
+
+test('composeShift moves a room into its cell, ids kept', () => {
+  const g = { ledges: [[10, 20, 30, 4]], ramps: [[0, 0, 5, 5]], spawns: [['cultist', 1, 2]], player: [3, 4] };
+  const s = L.composeShift(g, 1280, 720);
+  assert.deepEqual(s.ledges, [[1290, 740, 30, 4]]);
+  assert.deepEqual(s.ramps, [[1280, 720, 1285, 725]]);
+  assert.deepEqual(s.spawns, [['cultist', 1281, 722]]);
+  assert.deepEqual(s.player, [1283, 724]);
+  assert.deepEqual(L.composeGrid({ cells: [{ col: 1, row: 0 }, { col: 0, row: 1 }] }, [1280, 720]), { cols: 2, rows: 2, width: 2560, height: 1440 });
+});
+
+test('composeClip keeps only what is inside the room', () => {
+  const e = { ledges: [[1200, 10, 200, 4], [1400, 10, 50, 4]], spawns: [['a', 100, 10], ['b', 1500, 10]], ramps: [[0, 0, 1300, 5]], door: [1500, 5] };
+  const c = L.composeClip(e, 1280, 720);
+  assert.deepEqual(c.ledges, [[1200, 10, 80, 4]]);
+  assert.deepEqual(c.spawns, [['a', 100, 10]]);
+  assert.deepEqual(c.ramps, []);
+  assert.deepEqual(c.door, [1280, 5]);
+});
+
+test('traceLedges finds a lit top over dark stone, not a lone bright line', () => {
+  const w = 200, h = 60, lum = new Uint8Array(w * h).fill(20);
+  for (let x = 30; x < 130; x++) { lum[30 * w + x] = 200; for (let y = 31; y < 45; y++) lum[y * w + x] = 60; }
+  for (let x = 140; x < 160; x++) lum[10 * w + x] = 200; // too short
+  assert.deepEqual(L.traceLedges(lum, w, h), [[30, 30, 100]]);
+});
+
+test('fmtComposed: one line per thing, and it reads back the same', () => {
+  const doc = { b: { live: false, cells: [{ painting: 'x', col: 0, row: 0 }], ledges: [[1, 2, 3, 4]], spawns: [['cultist', 5, 6]], player: [1, 2], door: [3, 4] }, a: { live: true, cells: [{ painting: 'y', col: 0, row: 0 }] } };
+  const text = L.fmtComposed(doc);
+  assert.deepEqual(JSON.parse(text), doc);
+  assert.ok(text.indexOf('"a"') < text.indexOf('"b"'));
+  assert.match(text, /\n {6}\[1, 2, 3, 4\]/);
+  assert.match(text, /\n {6}\["cultist", 5, 6\]/);
+  assert.equal(L.fmtComposed({}), '{}\n');
+});

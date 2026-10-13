@@ -1020,7 +1020,132 @@ async function filesFingerprint(entries) {
   for (const p of parts) { all.set(p, o); o += p.length; }
   return [...new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', all))].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+// ---- the room composer: tools/rooms/composed_rooms.json (tools/rooms/compose.py, js/composer.js) ----
+
+// Walkable surfaces [x, top, w] of a room and the pairs a ramp joins (painted_rooms._surfaces).
+function composeSurfaces(room) {
+  const out = [], links = [];
+  for (const k of ['ground', 'ledges', 'platforms']) for (const [x, y, w] of room[k] || []) out.push([x, y, w]);
+  for (const [x0, y0, x1, y1] of room.ramps || []) {
+    const base = out.length;
+    out.push([Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0)], [x0, y0, 4], [x1, y1, 4]);
+    links.push([base, base + 1], [base, base + 2], [base + 1, base + 2]);
+  }
+  return { surfaces: out, links };
+}
+// painted_rooms._climb_reach / _can_jump, with the hero's numbers R (import/composer.json "reach")
+function composeClimbReach(rise, R) {
+  const peak = R.JUMP_VELOCITY ** 2 / R.GRAVITY;
+  const airtime = 2 * R.JUMP_VELOCITY / R.GRAVITY + Math.sqrt(Math.max(0, 2 * (peak - rise) / R.GRAVITY));
+  return R.RUN_SPEED * airtime * R.REACH_MARGIN + R.BODY_WIDTH;
+}
+function composeCanJump(a, b, R) {
+  const [ax, ay, aw] = a, [bx, by, bw] = b;
+  const gap = Math.max(0, bx - (ax + aw), ax - (bx + bw)), rise = ay - by;
+  if (rise > 0) return rise <= R.JUMP_UP && gap <= Math.max(R.JUMP_ACROSS - rise * 0.9, composeClimbReach(rise, R));
+  return gap <= Math.max(R.JUMP_ACROSS, R.DROP_ACROSS + Math.min(120, -rise * 0.5));
+}
+// painted_rooms.check_reach: can the hero get from the entrance to the door, to every walker
+// and every prop? {ok, problems: [{fatal, text, at}], seen: Set of surface indices, surfaces}.
+// A person's round (data/npcs path) is the generator's to check; here only where they stand.
+function composeReach(room, R) {
+  const { surfaces, links } = composeSurfaces(room), joined = new Map(), problems = [];
+  for (const [a, b] of links) { (joined.get(a) || joined.set(a, new Set()).get(a)).add(b); (joined.get(b) || joined.set(b, new Set()).get(b)).add(a); }
+  const under = (x, y) => { let best = null; surfaces.forEach(([sx, sy, sw], i) => { if (sx - 8 <= x && x <= sx + sw + 8 && sy >= y - 4 && (best === null || sy < surfaces[best][1])) best = i; }); return best; };
+  const fail = (text, at) => problems.push({ fatal: true, text, at });
+  const seen = new Set();
+  if (!room.player || !room.door) { fail('нет входа или двери'); return { ok: false, problems, seen, surfaces }; }
+  const start = under(...room.player), goal = under(...room.door);
+  if (start === null) fail('вход стоит ни на чём', room.player);
+  if (goal === null) fail('дверь стоит ни на чём', room.door);
+  if (start !== null) {
+    seen.add(start); const frontier = [start];
+    while (frontier.length) {
+      const i = frontier.pop();
+      surfaces.forEach((s, j) => { if (!seen.has(j) && ((joined.get(i) && joined.get(i).has(j)) || composeCanJump(surfaces[i], s, R))) { seen.add(j); frontier.push(j); } });
+    }
+    if (goal !== null && !seen.has(goal)) fail('до двери не дойти от входа', room.door);
+  }
+  for (const [id, x, y] of room.spawns || []) {
+    if ((R.FLYERS || []).includes(id)) continue;
+    const s = under(x, y + 12);
+    if (s === null) fail(`${id}: стоит ни на чём`, [x, y]); else if (!seen.has(s)) fail(`${id}: к нему не добраться`, [x, y]);
+  }
+  for (const [id, x, y] of room.props || []) {
+    const s = under(x, y);
+    if (s === null) fail(`${id}: стоит ни на чём`, [x, y]);
+    else if (!seen.has(s)) fail(`${id}: к нему не добраться`, [x, y]);
+    else if (Math.abs(surfaces[s][1] - y) > 2) fail(`${id}: висит над полом`, [x, y]);
+  }
+  for (const [id, x, y] of room.npcs || []) if (under(x, y) === null) fail(`${id}: стоит ни на чём`, [x, y]);
+  surfaces.forEach((s, i) => { if (!seen.has(i) && s[2] > 8 && start !== null) problems.push({ fatal: false, text: 'сюда не попасть', at: [s[0] + s[2] / 2, s[1]] }); });
+  return { ok: !problems.some(p => p.fatal), problems, seen, surfaces };
+}
+// trace_panel.ledges: runs where a lit top sits over darker stone, [x, y, w] — candidates the eye picks from.
+// lum: luminance per pixel (PIL "L": (299 R + 587 G + 114 B) / 1000), w × h.
+function traceLedges(lum, w, h, minLen = 44, gap = 6) {
+  const below = new Float32Array(w * h), above = new Float32Array(w * h), runs = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let b = 0; for (let dy = 3; dy < 11; dy++) if (y + dy < h) b += lum[(y + dy) * w + x];
+    let a = 0; for (let dy = 2; dy < 6; dy++) if (y - dy >= 0) a += lum[(y - dy) * w + x];
+    below[y * w + x] = b / 8; above[y * w + x] = a / 4;
+  }
+  const edge = i => lum[i] - below[i] > 34 && lum[i] > 70 && lum[i] - above[i] > -12;
+  for (let y = 0; y < h; y++) {
+    let x = 0;
+    while (x < w) {
+      if (!edge(y * w + x)) { x++; continue; }
+      const start = x; let last = x;
+      while (x < w && (edge(y * w + x) || x - last <= gap)) { if (edge(y * w + x)) last = x; x++; }
+      if (last - start + 1 >= minLen) runs.push([start, y, last - start + 1]);
+    }
+  }
+  runs.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+  const merged = [];
+  for (const r of runs) {
+    const m = merged.find(m => Math.abs(m[1] - r[1]) <= 3 && r[0] < m[0] + m[2] && m[0] < r[0] + r[2]);
+    if (m) { const x0 = Math.min(m[0], r[0]), x1 = Math.max(m[0] + m[2], r[0] + r[2]); m[0] = x0; m[2] = x1 - x0; m[1] = Math.min(m[1], r[1]); }
+    else merged.push([...r]);
+  }
+  return merged.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+}
+// A painted room's own geometry (panel pixels) moved into cell (col, row) of a composed room.
+const COMPOSE_LISTS = ['ground', 'ledges', 'platforms', 'ramps', 'hazards', 'spawns', 'props', 'npcs'];
+function composeShift(geom, dx, dy) {
+  const out = {};
+  for (const k of COMPOSE_LISTS) out[k] = (geom[k] || []).map(v => k === 'ramps' ? [v[0] + dx, v[1] + dy, v[2] + dx, v[3] + dy]
+    : typeof v[0] === 'string' ? [v[0], v[1] + dx, v[2] + dy] : [v[0] + dx, v[1] + dy, v[2], v[3]]);
+  for (const k of ['player', 'door']) if (geom[k]) out[k] = [geom[k][0] + dx, geom[k][1] + dy];
+  return out;
+}
+// The grid's size in cells, and the room's in pixels.
+function composeGrid(entry, cell) {
+  const cols = Math.max(1, ...(entry.cells || []).map(c => c.col + 1)), rows = Math.max(1, ...(entry.cells || []).map(c => c.row + 1));
+  return { cols, rows, width: cols * cell[0], height: rows * cell[1] };
+}
+// What still lies inside a w × h room once a cell is gone: rectangles cut to it, the rest dropped
+// (compose.validate refuses anything outside).
+function composeClip(entry, w, h) {
+  const out = structuredClone(entry);
+  for (const k of ['ground', 'ledges', 'platforms', 'hazards']) out[k] = (out[k] || []).map(([x, y, rw, rh]) => {
+    const x0 = Math.max(0, x), y0 = Math.max(0, y), x1 = Math.min(w, x + rw), y1 = Math.min(h, y + rh);
+    return [x0, y0, x1 - x0, y1 - y0];
+  }).filter(r => r[2] > 0 && r[3] > 0);
+  out.ramps = (out.ramps || []).filter(r => r.every((v, i) => v >= 0 && v <= (i % 2 ? h : w)));
+  for (const k of ['spawns', 'props', 'npcs']) out[k] = (out[k] || []).filter(([, x, y]) => x >= 0 && x <= w && y >= 0 && y <= h);
+  for (const k of ['player', 'door']) if (out[k]) out[k] = [Math.min(w, Math.max(0, out[k][0])), Math.min(h, Math.max(0, out[k][1]))];
+  return out;
+}
+// tools/rooms/composed_rooms.json as the studio writes it: two spaces, one line per cell, rectangle and thing.
+function fmtComposed(doc) {
+  const room = r => '{\n' + Object.entries(r).map(([k, v]) => `    ${JSON.stringify(k)}: ` + (Array.isArray(v) && v.length && typeof v[0] === 'object'
+    ? '[\n' + v.map(x => '      ' + JSON.stringify(x).replace(/,(?=["\d-\[{tf])/g, ', ').replace(/":/g, '": ')).join(',\n') + '\n    ]'
+    : JSON.stringify(v).replace(/,(?=["\d-])/g, ', '))).join(',\n') + '\n  }';
+  const names = Object.keys(doc).sort();
+  return names.length ? '{\n' + names.map(n => `  ${JSON.stringify(n)}: ${room(doc[n])}`).join(',\n') + '\n}\n' : '{}\n';
+}
+
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+Object.assign(g, { filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

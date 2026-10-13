@@ -11,6 +11,7 @@ working tree, runs the data validator and opens Godot in a room:
     POST /api/write   {"files": [{"path", "b64"}], "delete": [path]}
     POST /api/validate                  scripts/tools/validate_data.gd, headless
     POST /api/run     {"room": name}    make room ROOM=name, without make
+                      {"composed": true}  ... its composed draft (tools/rooms/compose.py)
 
 It binds to 127.0.0.1 only and writes only under WRITABLE: the studio's
 outputs never touch scripts, scenes or the tools themselves.
@@ -29,8 +30,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WRITABLE = ("assets/", "data/", "data/cutscenes/", "data/dialogues/", "data/enemies/", "data/abilities/", "data/projectiles.json", "data/action_fx.json", "data/enemy_archetypes/tree.json", "data/backdrops.json",
-            "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json",
+            "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json",
             "tools/studio/overrides/")
+## Tables the rooms generator reads: writing one regenerates the rooms.
+ROOM_TABLES = ("tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json")
+## What the generator writes into assets/levels that a send means to change: a composed room's
+## picture. The panels it re-saves there otherwise only drift by a pixel on another zlib.
+COMPOSED_OUT = ("assets/levels/composed/", "assets/levels/panels/")
 WRITE_LOCK = threading.RLock()
 PORT = int(os.environ.get("STUDIO_PORT", "8765"))
 
@@ -115,7 +121,7 @@ def write_transaction(files, delete):
     with WRITE_LOCK:
         targets, doomed = prepared_changes(files, delete)
         dirs = ["data", "localization", "tools/studio/overrides", "tools/studio/import", "tools/studio/projects", "tools/rooms"]
-        if any(f["path"].startswith("tools/studio/overrides/") or f["path"] == "tools/rooms/studio_rooms.json" for f in files):
+        if any(f["path"].startswith("tools/studio/overrides/") or f["path"] in ROOM_TABLES for f in files):
             dirs += [p.relative_to(ROOT).as_posix() for p in (ROOT / "assets").iterdir() if p.is_dir() and p.name != "audio"] + ["scenes/rooms"]
         direct = [p for p, _ in targets] + [q for p in doomed for q in (p, p.with_name(p.name + ".import"))]
         before = snapshot_tree(dirs)
@@ -188,13 +194,15 @@ class Handler(SimpleHTTPRequestHandler):
                 with write_transaction(data.get("files", []), data.get("delete", [])) as before:
                     written, removed = apply_changes(data.get("files", []), data.get("delete", []))
                     regenerated = False
-                    if "tools/rooms/studio_rooms.json" in written:
+                    if any(t in written for t in ROOM_TABLES):
                         code, out = run([sys.executable, "tools/rooms/generate_rooms.py"])
                         if code:
                             raise ValueError("генератор комнат не принял изменения:\n" + out)
                         regenerated = True
-                        # Room generation owns scenes, not the already-painted panels.
-                        restore_files({p: raw for p, raw in before.items() if "assets/levels/" in p.relative_to(ROOT).as_posix()})
+                        # Room generation owns scenes, not the already-painted panels — but a
+                        # composed room's picture is what the send was for.
+                        restore_files({p: raw for p, raw in before.items()
+                                       if "assets/levels/" in (rel := p.relative_to(ROOT).as_posix()) and not rel.startswith(COMPOSED_OUT)})
                     if any(w.startswith("tools/studio/overrides/") for w in written):
                         manifest = ROOT / "tools/studio/overrides/overrides.json"
                         old = json.loads(before.get(manifest, b"{}"))
@@ -241,7 +249,8 @@ class Handler(SimpleHTTPRequestHandler):
                 if not room.replace("_", "").isalnum():
                     raise ValueError("bad room name")
                 run([g, "--headless", "--path", str(ROOT), "--import"])
-                subprocess.Popen([g, "--path", str(ROOT), "scenes/run/run.tscn", "--", f"room={room}"], cwd=ROOT)
+                extra = ["--composed"] if data.get("composed") else []
+                subprocess.Popen([g, "--path", str(ROOT), "scenes/run/run.tscn", "--", f"room={room}"] + extra, cwd=ROOT)
                 return self._json(200, {"ok": True})
             return self._json(404, {"ok": False, "error": "no such endpoint"})
         except ValueError as e:

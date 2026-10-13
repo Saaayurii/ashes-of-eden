@@ -49,6 +49,18 @@ func _go() -> void:
 	_check(Run.room_from_args(PackedStringArray(["room=nowhere"])) == -1,
 		"a name that is not a room falls back to the beginning")
 
+	# A composed draft (tools/rooms/compose.py) is opened with `--composed` and
+	# sits beside its room under the same name; its painting breathes with the
+	# room's flames but none of its zones, which were drawn on another picture.
+	var hell: String = Run.composed_path(names.size() - 1)
+	_check(hell == "res://scenes/rooms/composed/hell_gate.tscn", "a draft lies beside its room: " + hell)
+	var Life: GDScript = load("res://scripts/rooms/backdrop_life.gd")
+	var own: Dictionary = Life.rule("graveyard_cross")
+	var drafted: Dictionary = Life.rule("composed/graveyard_cross")
+	_check(not drafted.is_empty() and (drafted.zones as Array).is_empty(), "a composed picture keeps no zones")
+	_check(drafted.get("flame") == own.get("flame"), "but its room's flames")
+	_check(Life.rule("composed/nowhere").is_empty(), "and nothing for a room that is not one")
+
 	print("ROOM JUMP TEST " + ("FAILED" if _failed else "PASSED"))
 	quit(1 if _failed else 0)
 

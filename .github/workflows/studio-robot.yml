@@ -14,6 +14,9 @@ on:
   pull_request:
     paths:
       - "tools/rooms/studio_rooms.json"
+      # rooms put together from several paintings (tools/rooms/compose.py) and the new paintings
+      - "tools/rooms/composed_rooms.json"
+      - "assets/levels/panels/**"
       # her edits of pictures a generator owns (tools/art/studio_overrides.py)
       - "tools/studio/overrides/**"
 
@@ -62,14 +65,15 @@ jobs:
         run: |
           set -eu
           OWNED="scenes/rooms assets tools/studio/overrides data/enemy_archetypes/tree.json"
-          if git diff --quiet -- $OWNED; then
+          # status, not diff: a composed room is a scene and a picture that did not exist before
+          if [ -z "$(git status --porcelain -- $OWNED)" ]; then
             echo "The generated files already match the tables and her edits." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git config user.name "studio-robot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A $OWNED
-          git commit -m "Studio robot: regenerate what her edits and tools/rooms/studio_rooms.json change"
+          git commit -m "Studio robot: regenerate what her edits and the studio's room tables change"
           git push origin "HEAD:$BRANCH"
           git diff --stat HEAD~1 >> "$GITHUB_STEP_SUMMARY"
           gh workflow run ci.yml --ref "$BRANCH"

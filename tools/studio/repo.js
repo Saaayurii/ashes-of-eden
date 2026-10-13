@@ -214,11 +214,11 @@ async function validate() {
     return v.ok ? '<div class="ok">✓ Проверка данных пройдена</div>' : `<div class="warn">✗ Проверка данных нашла ошибки:</div><pre class="log">${esc(v.log || v.error || '')}</pre>`;
   } catch (e) { return `<div class="warn">Проверка не запустилась: ${esc(e.message)}</div>`; }
 }
-async function runInGodot(room) {
+async function runInGodot(room, composed = false) {
   if (Writer.mode !== 'local') return dialog('<h3>Запуск в Godot</h3><p>Работает, когда студия открыта из папки игры: <code>python3 tools/studio/serve.py</code>. На сайте игру можно проверить после того, как изменения вольют.</p>');
   if (!room) return dialog('<h3>Запуск в Godot</h3><p>Эту катсцену не показывает ни одна комната. Её подключают полем <code>intro_cutscene</code> / <code>outro_cutscene</code> в таблице комнат (<code>tools/rooms/generate_rooms.py</code>).</p>');
-  const r = await (await fetch('/api/run', { method: 'POST', body: JSON.stringify({ room }) })).json();
-  toast(r.ok ? `Godot открывает комнату ${room}…` : 'Не запустилось: ' + r.error, r.ok ? '' : 'err');
+  const r = await (await fetch('/api/run', { method: 'POST', body: JSON.stringify({ room, composed }) })).json();
+  toast(r.ok ? `Godot открывает ${composed ? 'черновик' : 'комнату'} ${room}…` : 'Не запустилось: ' + r.error, r.ok ? '' : 'err');
 }
 
 /* ---------- edits of what a generator draws: overrides (lib.js frameEdits, tools/art/studio_overrides.py) ---------- */
