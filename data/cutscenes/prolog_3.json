@@ -1,0 +1,20 @@
+{
+  "id": "prolog_3",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.4},
+    {"do": "camera", "to": "player", "zoom": 1.2, "time": 0.8},
+    {"do": "wait", "time": 0.8},
+    {"do": "presence", "at": "player", "offset": [150, -24], "color": "#9aa0b8", "radius": 40, "strength": 0.9, "eyes": true, "time": 1.6},
+    {"do": "wait", "time": 0.6},
+    {"do": "dialogue", "id": "prolog_3_whisper"},
+    {"do": "wait", "time": 0.8},
+    {"do": "fx", "kind": "ash", "at": "player", "offset": [150, -20], "color": "#222222", "amount": 14},
+    {"do": "presence", "on": false, "time": 1.6},
+    {"do": "wait", "time": 1.0},
+    {"do": "dialogue", "id": "prolog_3_death"},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.8},
+    {"do": "letterbox", "on": false, "time": 0.4},
+    {"do": "release"}
+  ]
+}
