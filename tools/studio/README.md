@@ -131,7 +131,9 @@ keep the kinds in step with `ActionFx.emit`.
 `build_data.py` writes `import/gore.json` (the tables, `Gore.KEYS` / `DEFAULTS`
 read from the script, the bodies of «Частицы» with their material). The preview
 is a port of `gore.gd` — drops, marks, the pool, `Gore.cut` on the frame the body
-died in, `GorePiece`'s bounce: change one, change the other. `goreText` writes the
+died in (every way of `cuts`, ragged lines, `Gore.pick_cut`), `GorePiece`'s bounce,
+stand-and-topple and stump jets, shaded drops, clots and the three kinds of mark:
+change one, change the other. `goreText` writes the
 file one line per table, byte-identical when nothing changed (`tests/gore.test.js`).
 
 **Old content too: edits of what a generator draws are overrides.** The
@@ -397,8 +399,12 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     кольчуга, латы, перья, дух, золото: для всех, кто из него) или только
     это тело («своё» поверх материала, ↺ — вернуть к материалу). Удар: цвет,
     сколько капель, как быстро летят, размер пятен, сколько держатся, сколько
-    кровоточит рана. Смерть: фонтан, лужа, на сколько кусков рвётся (их режет
-    из самого рисунка — кадра, в котором умер), шанс и сила разлёта.
+    кровоточит рана, разброс оттенка (каждая капля и пятно — свой оттенок).
+    Смерть: фонтан, лужа, на сколько кусков рвётся (их режет из самого
+    рисунка — кадра, в котором умер), шанс, сила разлёта, сколько бьёт струёй
+    обрубок. «Как рвётся» — веса способов: на куски, голова прочь, пополам,
+    рука прочь; линии разреза рваные, что осталось стоять — стоит миг и
+    валится по удару. «В превью» показывает один способ, не по весам.
     «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу».
     Игрок может убавить или выключить кровь: Настройки → Кровь.
 

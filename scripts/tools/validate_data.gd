@@ -879,7 +879,7 @@ func _check_action_fx() -> void:
 ## data/gore.json (scripts/fx/gore.gd): every material is one the enemies use,
 ## every body is Elian or an enemy, every key one Gore reads, within bounds the
 ## room can stand (drops are simulated one by one; a body tears into 2–6 pieces).
-const GORE_BOUNDS := {"drops": [0, 40], "spray": [0, 400], "stain": [0, 3], "stain_life": [0, 120],
+const GORE_BOUNDS := {"shade": [0, 0.5], "spurt": [0, 4], "drops": [0, 40], "spray": [0, 400], "stain": [0, 3], "stain_life": [0, 120],
 	"gush": [0, 80], "pool": [0, 60], "bleed": [0, 5], "limbs": [0, 6], "chance": [0, 1], "fling": [0, 400]}
 
 
@@ -906,6 +906,21 @@ func _check_gore() -> void:
 		var table: Dictionary = tables[where]
 		for key in table:
 			if key == "material" and where.begins_with("bodies/"):
+				continue
+			if key == "cuts":
+				if not table.cuts is Dictionary or table.cuts.is_empty():
+					_error("gore/%s: cuts must weigh at least one of all, head, half, limb" % where)
+					continue
+				var weight := 0.0
+				for way in table.cuts:
+					if not ["all", "head", "half", "limb"].has(way):
+						_error("gore/%s: cuts/%s is not a way to tear (all, head, half, limb)" % [where, way])
+					elif float(table.cuts[way]) < 0.0 or float(table.cuts[way]) > 10.0:
+						_error("gore/%s: cuts/%s must weigh 0..10" % [where, way])
+					else:
+						weight += float(table.cuts[way])
+				if weight <= 0.0:
+					_error("gore/%s: cuts all weigh nothing" % where)
 				continue
 			if key == "blood":
 				if not Color.html_is_valid(str(table.blood)):

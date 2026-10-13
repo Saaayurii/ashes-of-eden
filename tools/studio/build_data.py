@@ -719,8 +719,14 @@ def action_fx(root: Path, strings, shots):
 def gore(root: Path, pfx, shots):
     doc = json.loads((root / "data/gore.json").read_text(encoding="utf-8"))
     src = (root / "scripts/fx/gore.gd").read_text(encoding="utf-8")
-    keys = re.findall(r'"(\w+)"', re.search(r"const KEYS := \[(.*?)\]", src)[1])
-    defaults = json.loads("{" + re.search(r"const DEFAULTS := \{(.*?)\}", src, re.S)[1].replace("\n", " ").replace("\t", "") + "}")
+    keys = re.findall(r'"(\w+)"', re.search(r"const KEYS := \[(.*?)\]", src, re.S)[1])
+    start = src.index("{", src.index("const DEFAULTS :="))
+    depth, end = 0, start
+    for end, ch in enumerate(src[start:], start):  # the table nests (cuts): balance the braces
+        depth += {"{": 1, "}": -1}.get(ch, 0)
+        if depth == 0:
+            break
+    defaults = json.loads(src[start:end + 1].replace("\n", " ").replace("\t", ""))
     material = {r["id"]: r.get("material", "cloth") for r in shots["roster"]}
     bodies = [{**b, "material": "flesh" if b["key"] == "elian" else material.get(b["key"], "cloth")} for b in pfx["bodies"]]
     return {"materials": doc.get("materials", {}), "bodies_rules": doc.get("bodies", {}), "keys": keys,
