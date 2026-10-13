@@ -857,7 +857,8 @@ def gamedata(root: Path, strings):
         "stats": _gd_list(validator, "STATS"), "item_stats": _gd_list(validator, "ITEM_STATS"),
         "techniques": _gd_list(validator, "TECHNIQUES"), "caps": caps,
         "counters": _gd_list(deeds, "COUNTERS"),
-        "flags_read_in_code": _gd_list(validator, "FLAGS_READ_IN_CODE"),
+        # flags something other than a branch reads: the game's own list (data/game.json "flags_read")
+        "flags_read_in_code": json.loads((root / "data" / "game.json").read_text()).get("flags_read", []),
         "flags_set_in_code": _gd_list(validator, "FLAGS_SET_IN_CODE"),
         "flags_for_tests": _gd_list(validator, "FLAGS_FOR_TESTS"),
         "music": {"existing": existing, "tracks": [{k: t[k] for k in ("slug", "title", "author", "license", "playlists")} for t in manifest["tracks"]],
