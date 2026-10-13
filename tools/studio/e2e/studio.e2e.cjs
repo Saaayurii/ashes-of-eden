@@ -92,6 +92,29 @@ async function step(name, fn) {
       assert.ok(r.ok, 'a room on its own panel is walked to its door, as the generator walks it: ' + JSON.stringify(r));
       assert.deepEqual([r.size.width, r.size.height], [1280, 720]);
       assert.ok(r.panels > 10, 'every painted panel is offered');
+      // the volume view: the stitched picture and plate are built, the room's openings come along,
+      // a candle and a front piece are placed and undone
+      const v = await page.evaluate(async () => {
+        document.querySelector('[data-compview="depth"]').click();
+        const t = performance.now();
+        while ([...COMP.built.values()].filter(j => j.canvas).length < 2 && performance.now() - t < 20000) await new Promise(r => setTimeout(r, 100));
+        const built = [...COMP.built.values()].filter(j => j.canvas).length, windows = compWindows().length;
+        document.querySelector('[data-comptool="lights"]').click();
+        const cv = document.getElementById('compCanvas'), b = cv.getBoundingClientRect();
+        const at = (px, py) => ({ clientX: b.left + COMP.ox + px * COMP.scale, clientY: b.top + COMP.oy + py * COMP.scale, pointerId: 1, button: 0, bubbles: true });
+        const lights = compLights().length;
+        cv.dispatchEvent(new PointerEvent('pointerdown', at(640, 300))); cv.dispatchEvent(new PointerEvent('pointerup', at(640, 300)));
+        const lit = COMP.entry.lights.length - lights, owned = COMP.entry.windows.length;
+        compAddFront(COMP.entry.cells[0], [100, 100, 120, 80]);
+        const piece = COMP.entry.front[0], baked = !!compPiece(piece);
+        compUndo(false); compUndo(false);
+        document.querySelector('[data-compview="cells"]').click();
+        return { built, windows, lit, owned, piece, baked, back: !COMP.entry.lights && !COMP.entry.front };
+      });
+      assert.equal(v.built, 2, 'the stitched picture and its plate: ' + JSON.stringify(v));
+      assert.ok(v.windows >= 3 && v.owned === v.windows, 'the room brings its far openings: ' + JSON.stringify(v));
+      assert.ok(v.lit === 1 && v.baked && v.back, JSON.stringify(v));
+      assert.deepEqual(v.piece.at, [79, 72], 'a piece keeps its foot where the crop was');
       // the steps after this one work on characters, where 'every tab loads' left the page
       await page.evaluate(() => { try { localStorage.removeItem('ss_composer'); } catch {} setMode('chars'); });
     });
