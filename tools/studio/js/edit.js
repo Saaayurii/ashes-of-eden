@@ -86,10 +86,11 @@ const undoTarget = m => m === 'chars' ? P : m === 'bg' ? BG : m === 'cut' ? CUT
   : m === 'shots' ? { id: 'shots', styles: SHOTS.styles, edits: [...SHOTS.edits], adds: SHOTS.adds, removed: [...SHOTS.removed], sheets: [...SHOTS.newSheets] }
   : m === 'pfx' ? { id: 'pfx', rules: PFX.rules } : m === 'gore' ? { id: 'gore', work: GORE.work } : m === 'life' ? { id: 'life', edits: [...LIFE.edits] }
   : m === 'dlg' ? { id: 'dlg', work: DLG.work, strings: DLG.strings } : m === 'world' ? { id: 'world', work: WORLD.work }
-  : m === 'workspace' ? WORKSPACE : null;
+  : m === 'workspace' ? WORKSPACE : typeof STUDIO_TABS !== 'undefined' && STUDIO_TABS[m] ? gdSnap(m) : null;
 let historyRestoring = false;
 function trackChange(m) {
   if (historyRestoring) return;
+  if (typeof STUDIO_TABS !== 'undefined' && STUDIO_TABS[m]) history[m] ||= { u: [], r: [] };
   const h = history[m], o = undoTarget(m); if (!h || !o) return;
   const snap = snapshot(o, undoTable);
   if (h.id !== o.id) { Object.assign(h, { id: o.id, u: [], r: [], last: snap, t: 0 }); return; }
@@ -108,7 +109,8 @@ function undoRedo(redo) {
   historyRestoring = true;
   // what is restored is the new baseline, so re-rendering does not count as a change
   const settle = o => { h.last = snapshot(o, undoTable); return o; };
-  if (mode === 'attacks') { ATTACKS.work = obj.work; SHOTS.edits = new Map(obj.shotsEdits || []); shotsSave(); attacksSave(); renderAttacks(); }
+  if (typeof STUDIO_TABS !== 'undefined' && STUDIO_TABS[mode]) gdRestore(mode, obj);
+  else if (mode === 'attacks') { ATTACKS.work = obj.work; SHOTS.edits = new Map(obj.shotsEdits || []); shotsSave(); attacksSave(); renderAttacks(); }
   else if (mode === 'shots') { SHOTS.styles = obj.styles; SHOTS.edits = new Map(obj.edits); SHOTS.adds = obj.adds; SHOTS.removed = new Set(obj.removed); SHOTS.newSheets = new Map(obj.sheets); SHOTS.sheets.clear(); SHOTS.data.users = SHOTS.data.users.filter(u => !u.added); for (const a of SHOTS.adds) shotUserFor(a); SHOTS.user = Math.min(SHOTS.user, SHOTS.data.users.length - 1); shotsSave(); renderShots(); }
   else if (mode === 'pfx') { PFX.rules = obj.rules; pfxSave(); renderPfx(); }
   else if (mode === 'gore') { GORE.work = obj.work; goreSave(); renderGore(); }

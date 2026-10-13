@@ -31,7 +31,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WRITABLE = ("assets/", "data/", "data/cutscenes/", "data/dialogues/", "data/enemies/", "data/abilities/", "data/projectiles.json", "data/action_fx.json", "data/enemy_archetypes/tree.json", "data/backdrops.json",
-            "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json",
+            "localization/strings.csv", "tools/audio/music_manifest.json", "tools/studio/projects/", "tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json",
             "tools/rooms/front_layers.json", "tools/studio/overrides/")
 ## Tables the rooms generator reads: writing one regenerates the rooms.
 ROOM_TABLES = ("tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json", "tools/rooms/front_layers.json")
