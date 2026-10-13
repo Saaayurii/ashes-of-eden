@@ -1,4 +1,4 @@
-.PHONY: pull-playtest android android-image validate test net-test build build-web web image editor server relay
+.PHONY: game ashes new-game game-test rooms pull-playtest android android-image validate test net-test build build-web web image editor server relay
 
 image:      ## build the Docker image with headless Godot
 	docker compose build godot
@@ -39,8 +39,21 @@ room: import ## open straight into one room, e.g. make room ROOM=hell_gate (name
 	"$(GODOT)" --path "$(CURDIR)" scenes/run/run.tscn -- room=$(ROOM)
 
 rooms:      ## list the names `make room ROOM=...` accepts, in play order
-	@grep -o 'scenes/rooms/[a-z0-9_]*\.tscn' scripts/run/run.gd \
-		| sed 's|scenes/rooms/||;s|\.tscn||' | nl -w3 -s'  '
+	@python3 -c "import json,pathlib; g=pathlib.Path('content/data/game.json'); g=g if g.exists() else pathlib.Path('data/game.json'); [print(f'{i:3}  {pathlib.Path(r).stem}') for i, r in enumerate(json.load(open(g))['rooms'])]"
+
+game:       ## lay a game pack over the engine, e.g. make game GAME=../saints-of-rust (docs/GAME_PACKS.md)
+	python3 tools/packs/apply_pack.py "$(GAME)"
+	"$(GODOT)" --headless --path "$(CURDIR)" --import
+
+ashes:      ## back to Ashes of Eden after `make game`
+	python3 tools/packs/apply_pack.py --restore
+	"$(GODOT)" --headless --path "$(CURDIR)" --import
+
+new-game:   ## start a new game from the template, e.g. make new-game DIR=../saints NAME="Saints of Rust"
+	python3 tools/packs/new_game.py "$(DIR)" --name "$(NAME)"
+
+game-test:  ## validate and play whatever game is laid over the engine, in Docker
+	docker compose run --rm godot game-test
 
 android-image: ## Android export image (JDK + SDK + debug keystore; accepts the Android SDK licence)
 	docker build -f tools/docker/Dockerfile.android -t ashes-of-eden/godot-android:4.7.2 .

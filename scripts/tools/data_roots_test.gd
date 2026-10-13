@@ -45,11 +45,14 @@ func _run() -> void:
 	_check(game.rooms == ["res://scenes/rooms/church.tscn"], "a list is the pack's whole")
 	_check(game.paths.grace.color == "#00ff00" and game.paths.grace.has("icon") and game.paths.has("will"),
 		"a table merges key by key")
+	var own: Dictionary = doc.top("game.json", roots)
+	_check(own.size() == 2 and own.has("rooms") and not own.paths.has("will"),
+		"game.json is the pack's alone, whole: nothing of Ashes' comes with it")
 	_check(doc.doc("nothing_here.json", roots).is_empty() and not doc.exists("nothing_here.json", roots), "a file no root has is {}")
 	_check(doc.relative("res://data/gore.json") == "gore.json", "an engine path names the same file in every root")
 
 	var saved: Dictionary = data.game
-	data.game = game
+	data.game = own
 	var enemies: Dictionary = data._load_collection("enemies", roots)
 	_check(enemies.cultist.hp == 1 and enemies.cultist._source.begins_with(PACK), "a pack's entry replaces the engine's by id")
 	_check(enemies.size() > 5, "the engine's other enemies are still there")
@@ -57,6 +60,8 @@ func _run() -> void:
 	_check(data._load_collection("enemies", roots).size() == enemies.size(), "an inherited collection is the engine's and the pack's")
 	var dialogues: Dictionary = data._load_collection("dialogues", roots)
 	_check(dialogues.keys() == ["only_mine"], "a collection not inherited is the pack's alone (%d)" % dialogues.size())
+	data.game = {"exclude": {"enemies": ["cultist"]}}
+	_check(not data._load_collection("enemies", roots).has("cultist"), "an excluded entry is left out")
 	data.game = saved
 
 	for file in ["hero.json", "game.json", "enemies/cultist.json", "dialogues/only_mine.json"]:

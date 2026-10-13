@@ -9,6 +9,11 @@ extends RefCounted
 ## Static and autoload-free, because the Fx/Gore/Projectile tables are asked
 ## for from tool scripts and the studio's tests before Data is up.
 
+## The engine's version as a game pack sees it: game.json "engine" names the one
+## it was made for, and the validator refuses a pack made for a newer one. Raise
+## it when a data format changes in a way an older pack would not survive, and
+## say what changed in docs/GAME_PACKS.md.
+const ENGINE := 1
 const ROOTS := ["res://data", "res://content/data"]
 const MODS_ROOT := "user://mods"
 const ENGINE_ROOT := "res://data/"
@@ -68,6 +73,21 @@ static func doc(path: String, from: Array[String] = []) -> Dictionary:
 			merge(out, parsed)
 		else:
 			push_error("[Data] invalid JSON: %s" % file)
+	return out
+
+
+## The last root's copy alone, whole — for game.json, which says what the game
+## is: a pack that leaves a key out must not get Ashes' value for it.
+static func top(path: String, from: Array[String] = []) -> Dictionary:
+	var out := {}
+	for root in (from if not from.is_empty() else roots()):
+		var file := root.path_join(relative(path))
+		if FileAccess.file_exists(file):
+			var parsed = JSON.parse_string(FileAccess.get_file_as_string(file))
+			if parsed is Dictionary:
+				out = parsed
+			else:
+				push_error("[Data] invalid JSON: %s" % file)
 	return out
 
 

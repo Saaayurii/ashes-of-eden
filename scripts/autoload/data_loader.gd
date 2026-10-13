@@ -52,6 +52,7 @@ var hero: Dictionary = {}
 ## What makes this game this game (data/game.json, docs/GAME_PACKS.md): its
 ## rooms in play order, the practice yard, the menu's picture and music, and
 ## the three paths' colours and icons. The engine's code names none of them.
+## Whole from the last root that has it, never merged (DataDoc.top).
 var game: Dictionary = {}
 ## The run's rooms in play order (game.json "rooms"), as Run.ROOMS reads them.
 var rooms: Array[String] = []
@@ -64,7 +65,7 @@ func _ready() -> void:
 
 func reload() -> void:
 	var roots := _roots()
-	game = load_doc("game.json", roots)
+	game = DataDoc.top("game.json", roots)
 	rooms.assign((game.get("rooms", []) as Array).map(func(r) -> String: return str(r)))
 	_path_icons.clear()
 	hero = load_doc("hero.json", roots)
@@ -174,6 +175,9 @@ func _load_collection(folder: String, roots: Array[String]) -> Dictionary:
 		for file_name in dir.get_files():
 			if file_name.ends_with(".json"):
 				_merge_file(dir_path.path_join(file_name), result)
+	# a pack may leave out an entry it inherits (game.json "exclude": {"props": ["altar_book"]})
+	for id in game.get("exclude", {}).get(folder, []):
+		result.erase(str(id))
 	return result
 
 

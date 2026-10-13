@@ -1,0 +1,20 @@
+{
+  "id": "__ID__",
+  "name": "__NAME__",
+  "version": "0.1.0",
+  "engine": __ENGINE__,
+  "inherit": ["abilities", "enemies", "enemy_archetypes", "affixes", "items", "resonances", "vials", "relics", "omens", "skins", "techniques", "props"],
+  "exclude": {"props": ["altar_book", "cult_letters", "gate_cache", "reliquary_names", "secret_wall_catacombs", "secret_wall_swamp", "secret_wall_village"]},
+  "rooms": [
+    "res://scenes/rooms/graveyard_arches.tscn",
+    "res://scenes/rooms/swamp_threshold.tscn",
+    "res://scenes/rooms/catacombs_3.tscn"
+  ],
+  "practice_room": "res://scenes/rooms/practice_yard.tscn",
+  "menu": {"background": "res://assets/backgrounds/village_dawn.png", "music": "menu"},
+  "paths": {
+    "grace": {"color": "#f2d980", "aura": "#ffe080", "drift": [0, -26], "icon": "res://assets/ui/icons/sun.png"},
+    "temptation": {"color": "#d94d66", "aura": "#d91f26", "drift": [0, 14], "icon": "res://assets/ui/icons/drop.png"},
+    "will": {"color": "#bfcce6", "aura": "#b8b3ad", "drift": [8, -6], "icon": "res://assets/ui/icons/swords.png"}
+  }
+}

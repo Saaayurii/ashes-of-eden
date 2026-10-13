@@ -1,0 +1,23 @@
+name: Build
+
+# Everything happens in the engine's workflow (docs/GAME_PACKS.md in the engine):
+# it checks the engine out at `engine_ref`, lays this repository over it as
+# content/, validates the whole game, exports the Web build to Pages and
+# publishes the studio's data to the `studio-data` branch, so the art studio
+# can open this game.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  game:
+    uses: __ENGINE_REPO__/.github/workflows/game.yml@main
+    with:
+      engine_repository: __ENGINE_REPO__
+      engine_ref: main

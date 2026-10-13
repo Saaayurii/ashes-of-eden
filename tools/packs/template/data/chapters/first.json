@@ -1,0 +1,10 @@
+[
+  {
+    "id": "__ID___first",
+    "chapter": "__KEY___CHAPTER_I",
+    "title": "__KEY___AREA_FIRST",
+    "subtitle": "__KEY___AREA_FIRST_SUB",
+    "color": "#d8cbb0",
+    "rooms": ["res://scenes/rooms/graveyard_arches.tscn", "res://scenes/rooms/swamp_threshold.tscn", "res://scenes/rooms/catacombs_3.tscn"]
+  }
+]

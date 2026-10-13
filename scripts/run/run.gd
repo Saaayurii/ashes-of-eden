@@ -294,11 +294,16 @@ func _begin() -> void:
 	if not heard:
 		Profile.data.prologue_seen = true
 		Profile.save()
-	await cutscene.play("ch1_prologue_short" if heard else "ch1_prologue")
+	# which scene and which words are the game's (data/game.json "opening"); one it lacks is skipped
+	var opening: Dictionary = Data.game.get("opening", {})
+	var prologue := str(opening.get("prologue_short" if heard else "prologue", ""))
+	if Data.cutscenes.has(prologue):
+		await cutscene.play(prologue)
 	if not is_inside_tree() or room != opening_room:
 		return
 	# The angel talks over the fight; hands stay on the controls from second one.
-	dialogue.play("ch1_intro")
+	if Data.dialogues.has(str(opening.get("intro", ""))):
+		dialogue.play(str(opening.intro))
 	# ...except for the first second and a half: Elian rises out of the grave.
 	# The captions run over it (docs/CORE_LOOP.md).
 	if player:
