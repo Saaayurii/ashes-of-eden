@@ -2,6 +2,12 @@
 """Serves the art studio from this repository and lets it write into it.
 
     python3 tools/studio/serve.py          # then open http://localhost:8765/tools/studio/
+    python3 tools/studio/serve.py --game ../saints-of-rust   # another game on this engine
+
+With --game the pack is laid over the engine as content/ (tools/packs/apply_pack.py,
+a link, so its repository is what changes) and the studio edits that game: a
+file it writes goes into the pack — data/hero.json becomes the pack's own
+data/hero.json, which overrides the engine's (docs/GAME_PACKS.md).
 
 The page is the same one GitHub Pages hosts; served from here it finds this
 small API and, instead of opening a pull request, writes straight into the
@@ -32,6 +38,7 @@ WRITABLE = ("assets/", "data/", "data/cutscenes/", "data/dialogues/", "data/enem
             "localization/strings.csv", "tools/studio/projects/", "tools/rooms/studio_rooms.json",
             "tools/studio/overrides/")
 WRITE_LOCK = threading.RLock()
+PACK: Path | None = None  # --game: the pack's folder, linked in as content/
 PORT = int(os.environ.get("STUDIO_PORT", "8765"))
 
 
@@ -44,12 +51,23 @@ def godot():
 
 
 def safe_path(rel: str) -> Path:
-    """The repository file a studio path names, or ValueError if it may not be written."""
+    """The repository file a studio path names, or ValueError if it may not be written.
+    With --game, content/<path> is the pack's file and the same rules hold inside it."""
     rel = rel.replace("\\", "/").lstrip("/")
-    path = (ROOT / rel).resolve()
-    if ROOT not in path.parents or not any(rel == w or rel.startswith(w) for w in WRITABLE) or ".." in rel.split("/"):
+    base, inner = ROOT, rel
+    if PACK is not None and rel.startswith("content/"):
+        base, inner = PACK, rel.removeprefix("content/")
+    path = (base / inner).resolve()
+    if base not in path.parents or not any(inner == w or inner.startswith(w) for w in WRITABLE) or ".." in rel.split("/"):
         raise ValueError(f"not writable from the studio: {rel}")
     return path
+
+
+def rel_of(path: Path) -> str:
+    """A written file as the page names it: content/… for the pack's."""
+    if PACK is not None and PACK in path.parents:
+        return "content/" + path.relative_to(PACK).as_posix()
+    return path.relative_to(ROOT).as_posix()
 
 
 def prepared_changes(files, delete):
@@ -79,12 +97,12 @@ def apply_changes(files, delete):
         for path, raw in targets:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(raw)
-            written.append(path.relative_to(ROOT).as_posix())
+            written.append(rel_of(path))
         for path in doomed:
             for p in (path, path.with_name(path.name + ".import")):
                 if p.exists():
                     p.unlink()
-                    removed.append(p.relative_to(ROOT).as_posix())
+                    removed.append(rel_of(p))
     except Exception:
         restore_files(before)
         raise
@@ -115,6 +133,8 @@ def write_transaction(files, delete):
     with WRITE_LOCK:
         targets, doomed = prepared_changes(files, delete)
         dirs = ["data", "localization", "tools/studio/overrides", "tools/studio/import", "tools/studio/projects", "tools/rooms"]
+        if PACK is not None:
+            dirs += ["content/data", "content/localization"]
         if any(f["path"].startswith("tools/studio/overrides/") or f["path"] == "tools/rooms/studio_rooms.json" for f in files):
             dirs += [p.relative_to(ROOT).as_posix() for p in (ROOT / "assets").iterdir() if p.is_dir() and p.name != "audio"] + ["scenes/rooms"]
         direct = [p for p, _ in targets] + [q for p in doomed for q in (p, p.with_name(p.name + ".import"))]
@@ -178,7 +198,11 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/ping":
             branch = run(["git", "rev-parse", "--abbrev-ref", "HEAD"])[1].strip()
-            return self._json(200, {"ok": True, "branch": branch, "godot": godot()})
+            game = {}
+            if PACK is not None:
+                game = json.loads((PACK / "data/game.json").read_text(encoding="utf-8"))
+                game = {"id": game.get("id", ""), "name": game.get("name", ""), "path": str(PACK)}
+            return self._json(200, {"ok": True, "branch": branch, "godot": godot(), "game": game})
         return super().do_GET()
 
     def do_POST(self):
@@ -216,7 +240,12 @@ class Handler(SimpleHTTPRequestHandler):
                                 continue
                             if rel not in keep and rel not in explicit:
                                 restore_files({p: before.get(p)})
-                    code, out = run([sys.executable, "tools/studio/build_data.py"])
+                    if PACK is not None and any(w.startswith("content/localization/") for w in written):
+                        # Godot reads one strings.csv: lay the pack's over the engine's again
+                        code, out = run([sys.executable, "tools/packs/apply_pack.py", str(PACK), "--force"])
+                        if code:
+                            raise ValueError("не удалось разложить строки игры:\n" + out)
+                    code, out = run(build_data_cmd())
                     if code:
                         raise ValueError("не удалось обновить данные студии:\n" + out)
                     g = godot()
@@ -260,11 +289,35 @@ class Server(ThreadingHTTPServer):
     daemon_threads = True
 
 
+def build_data_cmd():
+    cmd = [sys.executable, "tools/studio/build_data.py"]
+    if PACK is not None:
+        remote = subprocess.run(["git", "remote", "get-url", "origin"], cwd=PACK, capture_output=True, text=True).stdout.strip()
+        repo = remote.removesuffix(".git").replace("git@github.com:", "https://github.com/").split("github.com/")[-1] if "github.com" in remote else ""
+        cmd += ["--repo", repo]
+    return cmd
+
+
 def main():
-    if not (ROOT / "tools/studio/import/meta.json").exists():
+    global PACK
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--game", type=Path, help="a game pack's folder: edit that game instead of Ashes of Eden")
+    args = ap.parse_args()
+    if args.game:
+        PACK = args.game.resolve()
+        subprocess.run([sys.executable, str(ROOT / "tools/packs/apply_pack.py"), str(PACK), "--force"], check=True)
+        g = godot()
+        if g:
+            subprocess.run([g, "--headless", "--path", str(ROOT), "--import"], capture_output=True)
+    elif (ROOT / "content/data/game.json").exists():
+        print("content/ holds a game pack: restart with --game <its folder> to write into it, "
+              "or python3 tools/packs/apply_pack.py --restore for Ashes", file=sys.stderr)
+        sys.exit(1)
+    if PACK is not None or not (ROOT / "tools/studio/import/meta.json").exists():
         print("building the studio's data first (tools/studio/build_data.py)…")
-        subprocess.run([sys.executable, str(ROOT / "tools/studio/build_data.py")], check=True)
-    print(f"Studio: http://localhost:{PORT}/tools/studio/  (writes into {ROOT})")
+        subprocess.run(build_data_cmd(), cwd=ROOT, check=True)
+    print(f"Studio: http://localhost:{PORT}/tools/studio/  (writes into {PACK or ROOT})")
     Server(("127.0.0.1", PORT), Handler).serve_forever()
 
 

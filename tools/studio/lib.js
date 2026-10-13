@@ -1048,5 +1048,28 @@ async function filesFingerprint(entries) {
 }
 const fingerprintMark = fp => `<!-- studio-files:${fp} -->`;
 
-Object.assign(g, { heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
+/* ---------- another game on the engine (docs/GAME_PACKS.md) ----------
+ * A game pack's repository is what the engine reads as content/: its data/
+ * overlays the engine's, its pictures and scenes are res://content/…. Its CI
+ * publishes the studio's data to the branch `studio-data`, which the page reads
+ * when opened with ?game=owner/name. */
+const GAME_REPO = /^\w[\w.-]*\/\w[\w.-]*$/;
+const gameDataBase = (repo, branch = 'studio-data') => `https://raw.githubusercontent.com/${repo}/${branch}/`;
+// What a send writes, as the pack's repository holds it. data/ and localization/
+// keep their paths (the pack's copy overrides the engine's); content/x is the
+// pack's own x; any other new file (a picture, a .tres) is the pack's too, so a
+// res:// path naming it in the same send becomes res://content/….
+function packFiles(files, del = []) {
+  const own = p => !/^(data|localization|tools)\//.test(p) && !p.startsWith('content/');
+  const moved = Object.keys(files).filter(own).sort((a, b) => b.length - a.length);
+  const out = {};
+  for (const [p, b] of Object.entries(files)) {
+    let v = b;
+    if (typeof v === 'string') for (const m of moved) v = v.split('res://' + m).join('res://content/' + m);
+    out[p.replace(/^content\//, '')] = v;
+  }
+  return { files: out, del: del.map(p => p.replace(/^content\//, '')) };
+}
+
+Object.assign(g, { GAME_REPO, gameDataBase, packFiles, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson });
 })(typeof module !== 'undefined' ? module.exports : window);

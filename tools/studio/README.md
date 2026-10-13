@@ -408,6 +408,21 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу».
     Игрок может убавить или выключить кровь: Настройки → Кровь.
 
+## Other games on the engine
+
+The studio edits any game made on this engine (docs/GAME_PACKS.md). Hosted,
+**▣ → Открыть игру** takes `owner/name` and reloads with `?game=owner/name`:
+every `import/…` the page asks for is read from that repository's `studio-data`
+branch (published by the engine's `.github/workflows/game.yml`), a pack's own
+picture (`content/…`) from `meta.json`'s `contentBase`, and sends open pull
+requests there. `packFiles` (lib.js) turns a send into the pack's files:
+`data/…` overrides the engine's, a new picture is the pack's and the `res://`
+naming it becomes `res://content/…`. `repoText` reads the pack's copy of a file,
+or the engine's at the commit the data was built from. Locally,
+`serve.py --game ../folder` links the pack in, builds the data through
+`tools/packs/game_view.py` and writes into the pack (`content/…` in the API).
+The sandbox of another game is that game's own build (`META.site`).
+
 ## Actions and shared workspace
 
 «Снаряды» distinguishes the distance at which an enemy starts firing from the

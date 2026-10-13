@@ -556,3 +556,18 @@ test('heroPatch and actionsPatch change one value in the real files and nothing 
   assert.equal(x.filter((l, i) => l !== y[i]).length, 1, 'one line changed');
   assert.equal(JSON.parse(changed).actions.attack3.multiplier, 2); assert.deepEqual(JSON.parse(changed).actions.attack3.hitbox, [40, 30]);
 });
+
+test('packFiles: a send into a game pack keeps data paths, owns new pictures, strips content/', () => {
+  const L = require('../lib.js');
+  const { files, del } = L.packFiles({
+    'data/hero.json': '{}',
+    'assets/portraits/nun.png': 'PNG',
+    'data/npcs/nun.json': '{"avatar": "res://assets/portraits/nun.png", "old": "res://assets/portraits/elian.png"}',
+    'content/data/chapters/first.json': '{}',
+  }, ['content/assets/old.png', 'data/x.json']);
+  assert.deepEqual(Object.keys(files).sort(), ['assets/portraits/nun.png', 'data/chapters/first.json', 'data/hero.json', 'data/npcs/nun.json']);
+  assert.equal(files['data/npcs/nun.json'], '{"avatar": "res://content/assets/portraits/nun.png", "old": "res://assets/portraits/elian.png"}');
+  assert.deepEqual(del, ['assets/old.png', 'data/x.json']);
+  assert.ok(L.GAME_REPO.test('Saaayurii/saints-of-rust') && !L.GAME_REPO.test('../evil') && !L.GAME_REPO.test('a/b/c'));
+  assert.equal(L.gameDataBase('o/r'), 'https://raw.githubusercontent.com/o/r/studio-data/');
+});
