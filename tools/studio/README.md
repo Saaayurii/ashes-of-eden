@@ -470,6 +470,30 @@ engine code. Room placements can be moved on the map; extra waves spawn after
 the previous enemies die, and the door opens after the last wave. Rest raises
 original common placements, rather than replaying reinforcement waves.
 
+**The game's own tables** (`js/gamedata.js`, «Облик», «Тексты», «Музыка», «Забег»,
+«Сюжет», «Места»). `build_data.py` writes `import/gamedata.json`: every string,
+`STATS` / `ITEM_STATS` / `TECHNIQUES` and the flag lists from the validator,
+`AbilitySystem.CAPS`, `Achievements.COUNTERS`, `EXISTING` and the manifest of
+`fetch_music.py`, the music files on disk and each room's mood. The data files are
+drafts in `WORLD.work`, the same drafts «Поведение» keeps, and any list is written
+back entry by entry in the file's own style (`gdText`: an untouched entry is the very
+text it was). «Облик» edits `data/skins` and draws the hero through a port of the
+skin in `alignment_marks.gdshader`; «Тексты» edits `strings.csv` in four languages
+and warns of Chinese characters outside the font subset; «Музыка» moves tracks
+between moods in `tools/audio/music_manifest.json` and rewrites
+`data/music/playlists.json` exactly as `fetch_music.py` would, edits
+`data/ambience.json` and a room's mood (`music` in `studio_rooms.json`); «Забег»
+edits items, relics, resonances, omens, vials, affixes and deeds (a deed's id is a
+store name and is never renamed or removed); «Сюжет» is the chapter, its forks and
+notes and every flag both ways; «Места» puts the rest point and studio props
+(`props` in `studio_rooms.json`, in the finished room's pixels) on the room map.
+Each check mirrors `validate_data.gd` (`gdProblems`, `gdFlags`), and a send the
+validator would refuse is refused here: change one, change the other
+(`tests/gamedata.test.js`). After a playlist change, run
+`python3 tools/export/music_filters.py`. In the sandbox, «✚ Дар» sends
+`{command: "gift"}`: `Run._studio_gift` hands the hero a skill and casts it at the
+nearest foe, or takes any other gift once (`studio_live_test.gd`).
+
 All editor tabs support undo/redo. The workspace bar exports/imports one portable
 JSON project with source images, sounds and drafts; credentials are excluded.
 «Проверить всё» previews the combined changed files, and «Отправить всё» reviews

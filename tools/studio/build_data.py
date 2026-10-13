@@ -26,6 +26,7 @@ in tools/studio/projects/files.json and stay editable.
     python3 tools/studio/build_data.py
     python3 tools/studio/build_data.py --asset-base https://raw.githubusercontent.com/OWNER/REPO/main/
 """
+import ast
 import argparse
 import base64
 import csv
@@ -801,6 +802,60 @@ def head_sha(root: Path):
     return r.stdout.strip()
 
 
+def _gd_list(source: str, name: str):
+    """A const list of strings from a GDScript source (`const NAME := [...]`)."""
+    m = re.search(r"const %s := \[(.*?)\]" % name, source, re.S)
+    return re.findall(r'"([^"]+)"', m.group(1)) if m else []
+
+
+def gamedata(root: Path, strings):
+    """What the studio's later editors read beside world.json (js/gamedata.js): every line of
+    strings.csv, the lists the validator checks against (so a draft is refused in the browser
+    before CI refuses it), the music library and each room's mood and size, and the
+    flags GDScript itself reads or writes (the story map)."""
+    validator = (root / "scripts/tools/validate_data.gd").read_text(encoding="utf-8")
+    caps_src = (root / "scripts/combat/ability_system.gd").read_text(encoding="utf-8")
+    caps = {k: [float(a), float(b)] for k, a, b in re.findall(r'"(\w+)": \[(-?[\d.]+), (-?[\d.]+)\]', caps_src.split("const CAPS := {", 1)[1].split("\n}", 1)[0])}
+    deeds = (root / "scripts/meta/achievements.gd").read_text(encoding="utf-8")
+    fetch = (root / "tools/audio/fetch_music.py").read_text(encoding="utf-8")
+    existing = ast.literal_eval(re.search(r"EXISTING = (\{.*?\n\})", fetch, re.S).group(1))
+    manifest = json.loads((root / "tools/audio/music_manifest.json").read_text(encoding="utf-8"))
+    music = root / "assets/audio/music"
+    rooms = {}
+    for path in sorted((root / "scenes/rooms").glob("*.tscn")):
+        whole = path.read_text(encoding="utf-8")
+        m = re.search(r'^music = "([^"]*)"', whole, re.M)  # on the room's Ambient
+        text = whole[whole.find('[node name="Room"'):]  # the room's own size, not a sub-resource's
+        text = text[:text.find("\n[", 1)]
+        w = re.search(r"^width = (\d+)", text, re.M)
+        h = re.search(r"^height = (\d+)", text, re.M)
+        rooms[path.stem] = {"music": m.group(1) if m else "", "width": int(w.group(1)) if w else 0, "height": int(h.group(1)) if h else 0}
+    return {
+        "strings": strings,
+        "stats": _gd_list(validator, "STATS"), "item_stats": _gd_list(validator, "ITEM_STATS"),
+        "techniques": _gd_list(validator, "TECHNIQUES"), "caps": caps,
+        "counters": _gd_list(deeds, "COUNTERS"),
+        "flags_read_in_code": _gd_list(validator, "FLAGS_READ_IN_CODE"),
+        "flags_set_in_code": _gd_list(validator, "FLAGS_SET_IN_CODE"),
+        "flags_for_tests": _gd_list(validator, "FLAGS_FOR_TESTS"),
+        "music": {"existing": existing, "tracks": [{k: t[k] for k in ("slug", "title", "author", "license", "playlists")} for t in manifest["tracks"]],
+                  "files": {p.stem: p.name for p in sorted(music.iterdir()) if p.suffix in (".mp3", ".ogg", ".wav")}},
+        "rooms": rooms,
+    }
+
+
+def write(out: Path, rel: str, data):
+    path = out / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    return rel
+
+
+def head_sha(root: Path):
+    r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True)
+    return r.stdout.strip()
+
+
 def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str = ""):
     strings = load_strings(root)
     chars = [hero(root)] + bestiary(root)
@@ -824,6 +879,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     write(out, "gore.json", gore(root, pfx, shots))
     write(out, "audio.json", audio(root, strings))
     write(out, "enemies.json", enemies(root, strings))
+    write(out, "gamedata.json", gamedata(root, strings))
     st = story(root, strings, [r for r in rooms if r.get("origin", {}).get("kind") == "game"])
     st["cutscenes"] += shared("cuts", {c["id"] for c in st["cutscenes"]})
     write(out, "cutscenes.json", st)

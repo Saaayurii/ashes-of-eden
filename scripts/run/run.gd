@@ -1335,6 +1335,41 @@ func _studio_live_swap() -> void:
 			(node as Enemy).showcase = str(view.anim)
 
 
+## A gift the studio is shaping, on the hero in the sandbox (its «Снаряды» and
+## «Песочница»): a skill is put in his hands and cast at once, turned to the
+## nearest foe; any other gift is taken once, so pressing again does not pile
+## its stats up past what one card gives.
+var _studio_gifts := {}
+
+
+func _studio_gift(id: String) -> void:
+	var gift: Dictionary = Data.abilities.get(id, {})
+	if gift.is_empty() or player == null or player.is_dead():
+		return
+	var skill := {}
+	for effect in gift.get("effects", []):
+		if effect.get("type", "") == "skill":
+			skill = effect.get("skill", {})
+	if skill.is_empty():
+		if not _studio_gifts.has(id):
+			_studio_gifts[id] = true
+			AbilitySystem.apply(player, gift)
+		return
+	player.skill = skill.duplicate()
+	var nearest: Node2D = null
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is Enemy and not (node as Enemy).is_dead() and (nearest == null \
+				or node.global_position.distance_to(player.global_position) < nearest.global_position.distance_to(player.global_position)):
+			nearest = node
+	if nearest != null:
+		var side := 1 if nearest.global_position.x >= player.global_position.x else -1
+		if side != player.facing:
+			player.facing = side
+			player.body.flip_h = side < 0
+			player.hitbox.scale.x = side * player.stats.attack_scale
+	player.call("_cast_skill")
+
+
 ## From the night's end straight into the yard against what killed him: the
 ## same run scene, the night over, the practice set (docs/PRACTICE.md).
 func _spar(enemy_id: String) -> void:
@@ -1366,6 +1401,8 @@ func _studio_live_control(msg: Dictionary) -> void:
 			if node is Enemy and node.enemy_id == StudioLive.ID:
 				node.global_position = player.global_position + Vector2(clampf(float(msg.get("distance", 50)), 1, 1200), 0)
 				node.studio_force_attack(int(msg.get("attack", 0)), player)
+	elif command == "gift":
+		_studio_gift(str(msg.get("gift", "")))
 	for node in get_tree().get_nodes_in_group("enemies"):
 		if node is Enemy:
 			node.studio_debug = bool(msg.get("debug", true))

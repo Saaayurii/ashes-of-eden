@@ -1643,9 +1643,14 @@ if os.path.exists(STUDIO_ROOMS):
                     if len(_spawn) != 3 or not os.path.exists(os.path.join(ROOT, "data/enemies", _spawn[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _spawn[1:]):
                         raise SystemExit("invalid wave spawn")
             ROOMS[_name]["waves"] = _extra.get("waves", [])
-            for _key in ("intro_cutscene", "outro_cutscene"):
+            for _key in ("intro_cutscene", "outro_cutscene", "music"):
                 if _key in _extra:
                     ROOMS[_name][_key] = _extra[_key]
+            # chests and other props the studio stands on the floor, in the finished room's pixels
+            for _prop in _extra.get("props", []):
+                if len(_prop) != 3 or not os.path.exists(os.path.join(ROOT, "data/props", _prop[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _prop[1:]):
+                    raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a prop is [existing prop id, x, y]")
+            ROOMS[_name]["props"] = list(ROOMS[_name].get("props", [])) + [tuple(p) for p in _extra.get("props", [])]
 
 # What stands in front of the hero in a painted room (tools/rooms/front.py),
 # in the finished room's pixels; a composed room carries its own.
