@@ -368,7 +368,7 @@ func _requested_room() -> int:
 
 ## The scene a chapter lists for an index: a draft belongs to its room's place.
 func _chapter_path(index: int) -> String:
-	return ROOMS[index] if index == _draft_index else _room_path(index)
+	return ROOMS[index] if index >= 0 and index == _draft_index else _room_path(index)
 
 
 ## Where the composed draft of a room is written.
@@ -564,7 +564,7 @@ func _net_cover(index: int) -> void:
 
 ## The scene a room index stands for: one of ROOMS, or the practice yard.
 func _room_path(index: int) -> String:
-	if index == _draft_index:
+	if index >= 0 and index == _draft_index:
 		return composed_path(index)
 	return PRACTICE_ROOM if index == PRACTICE_INDEX else ROOMS[index]
 
@@ -641,7 +641,7 @@ func _build_room(index: int) -> void:
 	room.reopened.connect(_on_room_reopened)
 	room.exited.connect(_on_room_exited)
 	_place_local_player()
-	if not Net.active and player != null and index != PRACTICE_INDEX and Game.daily == "" and index != _draft_index:
+	if not Net.active and player != null and index != PRACTICE_INDEX and Game.daily == "" and (index < 0 or index != _draft_index):
 		checkpoint = Saves.capture(ROOMS[index], kills, elapsed, player)
 		Saves.write(Saves.AUTO, checkpoint)
 	if _is_server():
