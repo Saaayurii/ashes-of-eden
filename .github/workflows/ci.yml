@@ -117,4 +117,7 @@ jobs:
         working-directory: tools/studio/e2e
         run: |
           python3 -m pip install --quiet numpy pillow
+          # the studio's data (tools/studio/import): studio.github reads it before
+          # any server builds it, and it used to be left by the script before it
+          python3 ../../../tools/studio/build_data.py
           node ${{ matrix.script }}.e2e.cjs
