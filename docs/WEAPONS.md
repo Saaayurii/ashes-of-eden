@@ -97,7 +97,8 @@ edits it in the one place it always did. Any other weapon must give
 
 ## Adding one
 
-1. `data/weapons/<id>.json` with a chain of poses Elian has.
+1. `data/weapons/<id>.json` with a chain of poses Elian has, and an icon: a fourth
+   shape on the sheet (and its id in `IDS`), then `make_weapon_icons.py`.
 2. `WEAPON_<ID>` and `WEAPON_<ID>_DESC` in `localization/strings.csv`, all four
    columns; new Chinese characters → `python3 tools/art/make_cjk_font.py`.
 3. `validate_data.gd`, then `weapon_test.gd`; keep it within a quarter of the
