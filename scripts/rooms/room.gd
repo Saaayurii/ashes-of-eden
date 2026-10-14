@@ -84,6 +84,7 @@ func _ready() -> void:
 	ROOM_LAYERS.arrange(self)
 	door.entered.connect(exited.emit)
 	EventBus.enemy_died.connect(_on_enemy_died)
+	EventBus.enemy_left.connect(_on_enemy_died)
 
 
 func _process(_delta: float) -> void:

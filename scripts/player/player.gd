@@ -60,6 +60,7 @@ static var BASE_STATS := {
 	"covetous": 0.0,            # the chance a chest's common item is a rare one instead (Covetous Eye)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
+	"taut_damage": 0.0,         # a body hanging on its chain's end takes this much more (Loosened Chain)
 }
 ## Where the item mechanics above reach.
 static var HEAL_BURST_RADIUS := 72.0
@@ -1969,6 +1970,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Trophy Hunter: the chosen of the dead (an elite, a boss) are the prey
 		if live_enemy and stats.chosen_damage > 0.0 and (target as Enemy).is_chosen():
 			damage *= 1.0 + stats.chosen_damage
+		# Loosened Chain: a body hanging on its chain's end is open
+		if live_enemy and stats.taut_damage > 0.0 and (target as Enemy).is_taut():
+			damage *= 1.0 + stats.taut_damage
 		# Cruel Opening: the wind-up the player can read is also a door
 		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
 			damage *= 1.0 + stats.windup_bonus

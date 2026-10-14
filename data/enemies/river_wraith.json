@@ -1,0 +1,36 @@
+{
+  "id": "river_wraith",
+  "extends": "wraith",
+  "name": "ENEMY_RIVER_WRAITH",
+  "lore": "ENEMY_RIVER_WRAITH_LORE",
+  "tip": "TIP_RIVER_WRAITH",
+  "_art": "the wraith's own strips, silt-green — a spirit of the river",
+  "hp": 46,
+  "speed": 70,
+  "aggro_range": 460,
+  "color": "#5a7a6a",
+  "material": "spirit",
+  "sprite": {
+    "like": "wraith",
+    "tint": "#9fb8a8"
+  },
+  "attacks": [
+    {
+      "type": "ranged",
+      "range": 300,
+      "windup": 0.8,
+      "damage": 11,
+      "cooldown": 2.4,
+      "projectile_speed": 190,
+      "projectile_style": "wraith",
+      "color": "#9fc8b8"
+    }
+  ],
+  "essence": 16,
+  "light": {
+    "color": "#9fc8b8",
+    "radius": 50,
+    "energy": 0.6,
+    "flicker": 0.1
+  }
+}

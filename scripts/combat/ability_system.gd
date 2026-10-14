@@ -45,6 +45,8 @@ const CAPS := {
 	"covetous": [0.0, 1.0],
 	"charge_speed": [0.0, 1.0],
 	"parry_window": [0.0, 0.15],
+	# chapter VI: a blow on a body hanging on its chain (Loosened Chain)
+	"taut_damage": [0.0, 1.0],
 }
 ## Caps expressed as multipliers of the base value rather than absolutes.
 const RELATIVE := ["attack_cooldown", "speed"]

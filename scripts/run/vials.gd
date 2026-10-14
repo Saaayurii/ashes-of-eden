@@ -7,17 +7,20 @@ class_name Vials
 ##   flasks                    flasks carried into the night (Player._ready)
 ##   enemy_damage / enemy_hp   on top of the difficulty (Game.enemy_*_multiplier)
 ##   rest_heal                 what an altar gives back (Player.rest)
+##   tether_length             every chain's length (Tether, chapter VI's omen)
 ## and the night's Ash is multiplied by the vial's own "ash". Solo only: online
 ## the two bodies would each carry their own, and the host's enemies one.
 
 const TIERS := 5
 ## How a rule stacks as the vials pile up.
 const ADD := ["flasks"]
-const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown"]
+const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown",
+	"tether_length"]
 const MAX := ["promote_chance"]
 const MIN := ["rest_heal"]
 const DEFAULTS := {"flasks": 0, "enemy_damage": 1.0, "enemy_hp": 1.0, "promote_chance": 0.0, "rest_heal": 1.0,
-	"essence": 1.0, "enemy_sight": 1.0, "skill_cooldown": 1.0}
+	"essence": 1.0, "enemy_sight": 1.0, "skill_cooldown": 1.0,
+	"tether_length": 1.0}
 
 
 ## The vial of [param tier], {} for none.

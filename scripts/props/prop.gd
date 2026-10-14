@@ -2,7 +2,8 @@ extends Area2D
 class_name Prop
 ## Barrels, crates and chests. Everything comes from res://data/props/*.json
 ## (see docs/DATA_FORMATS.md):
-##   kind      "destructible" (hit it) | "chest" (walk into it)
+##   kind      "destructible" (hit it) | "chest" (walk into it) | "chain" (a
+##             ring a chained body is held to, ChainRing: "opens_with" a flag)
 ##   sprite    one strip: whole -> cracked -> bursting -> leftovers
 ##   essence   paid out when it breaks or opens
 ##   effect    optional alignment nudge, the same block dialogue choices use
@@ -107,6 +108,9 @@ func _ready() -> void:
 	shape.position.y = -size.y / 2.0
 	_max_hp = maxf(1.0, float(stats.get("hp", 1)))
 	hp = _max_hp
+	if stats.get("kind", "") == "chain":
+		ChainRing.setup(self)
+		return
 	# Anchored to the floor by a shadow, so a body walking past reads as
 	# passing in front of it instead of through it.
 	Fx.shadow(self, Vector2(0, 1), size.x * 1.5, 0.9)
@@ -258,6 +262,9 @@ func _emit_ambient() -> void:
 
 ## The sword hits props through the same call it uses on enemies.
 func take_damage(amount: float, _source: Node = null, _info: Dictionary = {}) -> void:
+	if stats.get("kind", "") == "chain":
+		ChainRing.struck(self)
+		return
 	if _spent or stats.get("kind", "destructible") != "destructible":
 		return
 	hp -= amount
@@ -310,7 +317,8 @@ func _add_prompt() -> void:
 ## `interact` pays it.
 func _offer() -> void:
 	var taker := _local_taker()
-	_prompt.visible = taker != null and not _spent and not Game.cutscene
+	_prompt.visible = taker != null and not _spent and not Game.cutscene \
+		and (stats.get("kind", "") != "chain" or ChainRing.can_open(self))
 	if not _prompt.visible:
 		return
 	if _keepers_near():
@@ -353,6 +361,8 @@ func _local_taker() -> Player:
 func open(taker: Player) -> void:
 	if _spent or taker == null or _keepers_near():
 		return
+	if stats.get("kind", "") == "chain" and not ChainRing.can_open(self):
+		return
 	if Net.active:
 		_net_open.rpc()
 	_on_body_entered(taker)
@@ -375,6 +385,9 @@ func _on_body_entered(body: Node) -> void:
 	remove_from_group("interactable")
 	if _prompt != null:
 		_prompt.visible = false
+	if stats.get("kind", "") == "chain":
+		ChainRing.unlock(self)
+		return
 	_rest_on_floor()
 	# We are inside the area's own body_entered: physics is mid-flush and will
 	# not let us switch monitoring off until it is done.

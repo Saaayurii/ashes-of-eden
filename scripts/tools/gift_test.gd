@@ -196,6 +196,22 @@ func _run() -> void:
 	player.stats.chosen_damage = 0.0
 	_assert(common_loss > 0.0 and absf(chosen_loss / common_loss - 1.25) < 0.05,
 		"trophy hunter: an elite takes a quarter more (%.1f vs %.1f)" % [chosen_loss, common_loss])
+	# Loosened Chain: a body hanging on its chain takes more; a free one does not
+	player.stats.taut_damage = 0.6
+	var free_loss: float = await swing_loss.call(false)
+	enemy.stats["tether"] = {"length": 999}
+	enemy._tether = load("res://scripts/enemies/tether.gd").attach(enemy)
+	enemy.tethered = true
+	enemy.taut = true  # the body is still: nothing lets go of the strain
+	var taut_loss: float = await swing_loss.call(false)
+	enemy._tether.queue_free()
+	enemy._tether = null
+	enemy.tethered = false
+	enemy.taut = false
+	enemy.stats.erase("tether")
+	player.stats.taut_damage = 0.0
+	_assert(free_loss > 0.0 and absf(taut_loss / free_loss - 1.6) < 0.05,
+		"loosened chain: a body on its chain's end takes 60 %% more (%.1f vs %.1f)" % [taut_loss, free_loss])
 	enemy.state = enemy.State.CHASE
 	await _frames(30)
 	# Benediction: a special move that lands heals; a plain swing does not

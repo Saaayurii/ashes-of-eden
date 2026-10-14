@@ -21,7 +21,7 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction",
 	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
 	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
-	"cursed_damage", "chosen_damage", "curse_relief", "covetous"]
+	"cursed_damage", "chosen_damage", "curse_relief", "covetous", "taut_damage"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
@@ -41,7 +41,7 @@ const LOOK_NUMBERS := {"border_width": [0, 4], "radius": [0, 12], "speaker_size"
 	"text_size": [10, 28], "caption_size": [9, 24]}  # DialogueLook.NUMBERS
 const LOOK_KEYS := ["style", "panel", "caption", "portrait", "face"]
 const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
-const PROP_KINDS := ["destructible", "chest"]
+const PROP_KINDS := ["destructible", "chest", "chain"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
 const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold"]
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
@@ -305,6 +305,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				if float(light.get("radius", 50)) <= 0.0 or float(light.get("energy", 0.7)) <= 0.0:
 					_error("%s: light.radius and light.energy must be positive" % where)
 			_check_awareness(entry, where)
+			_check_tether(entry, attacks, where)
 			if entry.has("material") and not MATERIALS.has(entry.material):
 				_error("%s: material must be one of %s" % [where, MATERIALS])
 			if not entry.has("material") and not entry.has("extends"):
@@ -337,6 +338,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: weapon is true or false, on a chest (it lays the night's weapon)" % where)
 			if entry.has("requires_flag"):
 				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
+			if entry.has("opens_with"):
+				flags_read[str(entry.opens_with)] = where  # a chain ring opens only with it (ChainRing)
+				if entry.get("kind") != "chain":
+					_error("%s: opens_with is a chain ring's (kind \"chain\")" % where)
+			elif entry.get("kind") == "chain":
+				_error("%s: a chain ring needs \"opens_with\" (the flag of the keys that open it)" % where)
 			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
 					or int(entry.curse) < 1 or int(entry.curse) > 30):
 				_error("%s: curse is a number of kills (1–30), on a chest" % where)
@@ -1369,6 +1376,11 @@ func _check_omen(entry: Dictionary, where: String) -> void:
 			"enemy_sight":
 				helps = helps or float(value) < 1.0
 				hurts = hurts or float(value) > 1.0
+			"tether_length":  # chapter VI: a longer chain is a longer reach
+				hurts = hurts or float(value) > 1.0
+				helps = helps or float(value) < 1.0
+				if float(value) < 1.0 or float(value) > 2.0:
+					_error("%s: tether_length is 1.0..2.0" % where)
 			"promote_chance":
 				hurts = hurts or float(value) > 0.0
 				if float(value) > 1.0:
@@ -1564,7 +1576,8 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 ## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
-const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck"]
+const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck",
+	"chain_opened", "fettered_freed"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
 
@@ -2286,3 +2299,64 @@ func _check_player_actions() -> void:
 			_error("player action %s.hit_frame needs a nonnegative integer" % id)
 		if action.has("sfx") and not action.sfx is String:
 			_error("player action %s.sfx needs a sound name" % id)
+
+
+## Chains (Tether, docs/CHAPTER6.md §9): "tether" {length, anchor?, strain?},
+## "freed" (multipliers, or leaves), "bound_phases" (the Four Bound's pillars)
+## and a melee blow "behind" its back.
+func _check_tether(entry: Dictionary, attacks: Array, where: String) -> void:
+	if entry.has("tether"):
+		var spec = entry.tether
+		if not spec is Dictionary:
+			_error("%s: tether is {length, anchor?, strain?}" % where)
+		else:
+			for key in spec:
+				if not ["length", "anchor", "strain"].has(key):
+					_error("%s: tether.%s is not a key Tether reads" % [where, key])
+			if float(spec.get("length", 0)) < 40.0 or float(spec.get("length", 0)) > 600.0:
+				_error("%s: tether.length is 40–600 px" % where)
+			if spec.has("anchor") and not (spec.anchor is Array and spec.anchor.size() == 2):
+				_error("%s: tether.anchor is [x, y] in room pixels" % where)
+			if spec.has("strain") and (float(spec.strain) < 0.3 or float(spec.strain) > 2.0):
+				_error("%s: tether.strain is 0.3–2 s (the window it hangs open)" % where)
+	if entry.has("freed"):
+		if not entry.has("tether"):
+			_error("%s: freed is what the keys make of a chained body — it has no tether" % where)
+		var freed = entry.freed
+		for key in freed:
+			match key:
+				"speed", "damage", "cooldown":
+					if float(freed[key]) < 0.5 or float(freed[key]) > 2.0:
+						_error("%s: freed.%s is a multiplier, 0.5–2" % [where, key])
+				"leaves":
+					if not freed[key] is bool:
+						_error("%s: freed.leaves is true or false" % where)
+				_:
+					_error("%s: freed.%s is not a key Enemy.loose reads" % [where, key])
+	if entry.has("bound_phases"):
+		var bound: Dictionary = entry.bound_phases
+		for key in bound:
+			if not ["anchors", "lengths", "at_hp", "tints", "speakers", "swap"].has(key):
+				_error("%s: bound_phases.%s is not a key Tether reads" % [where, key])
+		if (bound.get("lengths", []) as Array).size() != 4:
+			_error("%s: bound_phases.lengths names four chains" % where)
+		var last := 1.0
+		for share in bound.get("at_hp", []):
+			if float(share) <= 0.0 or float(share) >= last:
+				_error("%s: bound_phases.at_hp falls from 1 to 0" % where)
+			last = float(share)
+		if (bound.get("at_hp", []) as Array).size() != 3:
+			_error("%s: bound_phases.at_hp is three thresholds" % where)
+		for tint in bound.get("tints", []):
+			if not Color.html_is_valid(str(tint)):
+				_error("%s: bound_phases.tints are #rrggbb" % where)
+		for speaker in bound.get("speakers", []):
+			_use_key(str(speaker), where)
+		for room in bound.get("anchors", {}):
+			if (bound.anchors[room] as Array).size() != 4:
+				_error("%s: bound_phases.anchors.%s names four pillars" % [where, room])
+		if float(bound.get("swap", 1.6)) < 0.5 or float(bound.get("swap", 1.6)) > 4.0:
+			_error("%s: bound_phases.swap is 0.5–4 s" % where)
+	for attack in attacks:
+		if attack.has("behind") and not (attack.behind is bool and attack.get("type") == "melee"):
+			_error("%s: behind is true or false, on a melee attack" % where)
