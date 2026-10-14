@@ -1,0 +1,53 @@
+{
+  "id": "waiting_townsman",
+  "name": "ENEMY_WAITING_TOWNSMAN",
+  "lore": "ENEMY_WAITING_TOWNSMAN_LORE",
+  "tip": "TIP_WAITING_TOWNSMAN",
+  "hp": 30,
+  "speed": 38,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 260,
+  "size": 12,
+  "color": "#7d7468",
+  "material": "cloth",
+  "tags": [
+    "human"
+  ],
+  "waits": true,
+  "patrol": {
+    "radius": 6,
+    "speed": 0.15,
+    "pause": [
+      5,
+      10
+    ]
+  },
+  "sprite": {
+    "cell": [
+      72,
+      64
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/waiting_townsman_v2_idle.png",
+      "walk": "res://assets/sprites/waiting_townsman_v2_walk.png",
+      "attack": "res://assets/sprites/waiting_townsman_v2_attack.png",
+      "attack_alt": "res://assets/sprites/waiting_townsman_v2_attack_alt.png",
+      "special": "res://assets/sprites/waiting_townsman_v2_special.png",
+      "hurt": "res://assets/sprites/waiting_townsman_v2_hurt.png",
+      "death": "res://assets/sprites/waiting_townsman_v2_death.png"
+    }
+  },
+  "attack": {
+    "type": "melee",
+    "range": 26,
+    "reach": 32,
+    "windup": 0.8,
+    "damage": 6,
+    "cooldown": 2.2,
+    "recover": 0.5
+  },
+  "essence": 0
+}

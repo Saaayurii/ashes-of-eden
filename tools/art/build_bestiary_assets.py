@@ -24,6 +24,10 @@ ENEMIES = [
     "shade", "wraith", "knight_of_ash", "ophanim",
 ]
 PEOPLE = ["knight", "mara", "matthew", "nun", "severin", "villager"]
+# Seir (chapter II): its bestiary and its people, drawn by Codex (assets/CREDITS.md)
+# the sixth cell, a sea wraith, came out teal; ours is the red tide's, so it keeps the wraith's
+SEIR_ENEMIES = ["watchman", "waiting_townsman", "gate_warden", "drowned", "drowned_bosun"]
+SEIR_PEOPLE = ["lazarus", "jonah", "naomi"]
 
 STRIPS = {
     "possessed_villager": ("possessed_idle.png", (40, 36)),
@@ -52,6 +56,9 @@ GAME_CELLS = {
     "fallen_champion": (96, 80), "knight_of_ash": (128, 96),
     "blind_preacher": (80, 88), "raven": (80, 56), "shade": (64, 64),
     "wraith": (96, 80), "ophanim": (128, 128),
+    # Seir (chapter II), drawn by Codex's image generation (assets/CREDITS.md)
+    "waiting_townsman": (52, 52), "drowned": (60, 60), "gate_warden": (72, 72),
+    "drowned_bosun": (96, 84), "watchman": (88, 88),
 }
 
 
@@ -562,6 +569,8 @@ def write_cells(cells: dict[str, tuple[tuple[int, int], int]]) -> None:
 def main() -> None:
     split_atlas(PORTRAITS / "enemies_atlas.png", ENEMIES, 4, 3)
     split_atlas(PORTRAITS / "people_atlas.png", PEOPLE, 3, 2)
+    split_atlas(PORTRAITS / "seir_enemies_atlas.png", SEIR_ENEMIES, 3, 2)
+    split_atlas(PORTRAITS / "seir_people_atlas.png", SEIR_PEOPLE, 3, 1)
     build_strips()
     write_cells(build_generated_animation_strips())
 

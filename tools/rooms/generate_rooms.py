@@ -45,6 +45,10 @@ ROOM_EXPANSION_CUTS = {
     "catacombs_2": (260, 1020), "catacombs_3": (420, 960),
     "crypt_skulls": (390, 870), "crypt_lava": (400, 780),
     "hell_gate": (460, 650), "church": (320, 640), "preacher_nave": (300, 660),
+    "seir_road": (600, 860), "seir_gate": (600, 1100), "seir_street": (340, 780),
+    "seir_square": (380, 820), "seir_roofs": (300, 1020), "seir_canal": (200, 1000),
+    "seir_quay": (250, 1050), "seir_wrecks": (250, 470), "seir_warehouses": (320, 1000),
+    "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -63,6 +67,15 @@ AUTHORED_WIDE_OVERLAYS = {
 FOCAL_RANGES = {
     "village_night": ((815, 925),),            # moon
     "swamp_red": ((310, 520), (660, 765), (850, 1110)),  # castle, moon, old tree
+    "seir_road": ((440, 540),),                # moon
+    "seir_square": ((520, 670), (740, 810)),   # the stopped clock, moon
+    "seir_roofs": ((430, 500), (850, 970)),    # moon, belfry
+    "seir_canal": ((740, 820),),               # moon
+    "seir_quay": ((450, 620), (835, 995)),     # Naomi's lamp and bench, the sailors' shrine
+    "seir_wrecks": ((700, 790),),              # moon
+    "seir_warehouses": ((890, 960),),          # the clock on the post
+    "seir_breakwater": ((740, 820),),          # moon
+    "seir_lighthouse": ((540, 640), (900, 1130)),  # moon in its window, the lamp
 }
 
 TRAVERSAL_PATCHES = {
@@ -100,6 +113,11 @@ SEAM_STORIES = {
     "hell_gate": ("graveyard/cross_4", ""),  # the second seam is distant scenery, not a floor
     "preacher_nave": ("clutter/brazier_lit", "graveyard/coffin_4"),
     "church": ("graveyard/coffin_1", "clutter/altar_lit"),
+    # Seir's paintings are busy enough; the seams stay clear.
+    "seir_road": ("", ""), "seir_gate": ("", ""), "seir_street": ("", ""), "seir_square": ("", ""),
+    "seir_roofs": ("", ""), "seir_canal": ("", ""), "seir_quay": ("", ""), "seir_wrecks": ("", ""),
+    "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
+    "seir_lighthouse": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -132,6 +150,9 @@ ROOM_PROP_MOTIFS = {
     "dead_bridge": {"crate": "rubble", "crate_large": "rubble"},
     "fallen_knight": {"barrel": "rubble", "box_goods": "funeral_offering"},
     "church_ophanim": {"pot": "funeral_offering", "barrel": "rubble", "crate": "funeral_offering"},
+    "seir_road": {}, "seir_gate": {}, "seir_street": {}, "seir_square": {}, "seir_roofs": {},
+    "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
+    "seir_lighthouse_stair": {}, "seir_lighthouse": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -207,6 +228,12 @@ DEPTH_WINDOWS = {
         [(470, 288), (588, 281), (586, 407), (505, 423), (473, 408)],
         [(585, 515), (686, 510), (688, 552), (588, 552)],
     ]),
+    # Seir has no inpainted plates yet (docs/CHAPTER2_ART.md): no opening
+    # until one is painted, and the generator widens no plate for it.
+    "seir_road": (0.02, []), "seir_gate": (0.02, []), "seir_street": (0.02, []), "seir_square": (0.02, []),
+    "seir_roofs": (0.02, []), "seir_canal": (0.02, []), "seir_quay": (0.02, []), "seir_wrecks": (0.02, []),
+    "seir_warehouses": (0.02, []), "seir_breakwater": (0.02, []), "seir_lighthouse_stair": (0.02, []),
+    "seir_lighthouse": (0.02, []),
 }
 
 
@@ -1957,7 +1984,9 @@ if __name__ == "__main__":
             if not check_reach(name, {**room, "spawns": room.get("spawns", []) + [tuple(spawn) for wave in room.get("waves", []) for spawn in wave]}):
                 failed.append(name)
             _expand_panel(room["painting"], room["_x_inserts"], FOCAL_RANGES.get(name, ()), _painted_floors(room))
-            _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"], FOCAL_RANGES.get(name, ()))
+            # no opening, no plate behind it (a new painting before its plate is inpainted)
+            if DEPTH_WINDOWS[name][1]:
+                _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"], FOCAL_RANGES.get(name, ()))
         build(name, room)
     if not selected:
         # a composed room taken out of the table, or gone live, leaves no draft behind

@@ -97,7 +97,7 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	var clock := "%d:%02d" % [int(seconds) / 60, int(seconds) % 60]
 	stats.text = tr("RUN_STATS_PLACE") % [Profile.data.nights, tr(place), kills, clock] if place != "" \
 		else tr("RUN_STATS") % [Profile.data.nights, area, kills, clock]
-	best.text = "%s   ·   %s" % [tr("RUN_BEST") % Profile.data.best_wave, tr("RUN_ASH") % [Game.ash_earned, Profile.data.ash]]
+	best.text = "%s   ·   %s" % [tr("RUN_BEST") % Profile.best_of(Data.night), tr("RUN_ASH") % [Game.ash_earned, Profile.data.ash]]
 	if Game.unscathed > 0:
 		best.text += "   ·   " + tr("RUN_UNSCATHED") % Game.unscathed
 	# the vial this night was played under, and the one a dawn opens (data/vials)

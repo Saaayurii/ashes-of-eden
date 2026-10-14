@@ -243,8 +243,11 @@ func _spec(id: String) -> Dictionary:
 		return {"name": tr("CHRONICLE_TOTAL")}
 	if id.begins_with("chron:"):
 		var night: Dictionary = _history()[int(id.trim_prefix("chron:"))]
-		return {"name": tr("CHRONICLE_NIGHT") % [int(night.get("night", 0)),
-			tr("CHRONICLE_DAWN") if night.get("won", false) else tr("CHRONICLE_AREA") % int(night.get("area", 0))]}
+		var outcome: String = tr("CHRONICLE_DAWN") if night.get("won", false) else tr("CHRONICLE_AREA") % int(night.get("area", 0))
+		# a later night's (game.json "nights") line says which chapter it was
+		if str(night.get("night_id", "")) != "" and Data.has_night(str(night.night_id)):
+			outcome = Route.night_name(Data.night_spec(str(night.night_id))) + " · " + outcome
+		return {"name": tr("CHRONICLE_NIGHT") % [int(night.get("night", 0)), outcome]}
 	return Data.enemies.get(id, {})
 
 

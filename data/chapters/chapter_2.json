@@ -1,0 +1,61 @@
+[
+  {
+    "id": "seir_road",
+    "chapter": "CHAPTER_II",
+    "title": "AREA_SEIR_ROAD",
+    "subtitle": "AREA_SEIR_ROAD_SUB",
+    "color": "#c8bfae",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/seir_road.tscn"
+    ]
+  },
+  {
+    "id": "seir_gate",
+    "chapter": "CHAPTER_II",
+    "title": "AREA_SEIR_GATE",
+    "subtitle": "AREA_SEIR_GATE_SUB",
+    "color": "#b9b2a4",
+    "rooms": [
+      "res://scenes/rooms/seir_gate.tscn"
+    ]
+  },
+  {
+    "id": "seir_city",
+    "chapter": "CHAPTER_II",
+    "title": "AREA_SEIR_CITY",
+    "subtitle": "AREA_SEIR_CITY_SUB",
+    "color": "#a9b4c2",
+    "rooms": [
+      "res://scenes/rooms/seir_street.tscn",
+      "res://scenes/rooms/seir_square.tscn",
+      "res://scenes/rooms/seir_roofs.tscn",
+      "res://scenes/rooms/seir_canal.tscn"
+    ]
+  },
+  {
+    "id": "seir_harbour",
+    "chapter": "CHAPTER_II",
+    "title": "AREA_SEIR_HARBOUR",
+    "subtitle": "AREA_SEIR_HARBOUR_SUB",
+    "color": "#c98a7a",
+    "rooms": [
+      "res://scenes/rooms/seir_quay.tscn",
+      "res://scenes/rooms/seir_wrecks.tscn",
+      "res://scenes/rooms/seir_warehouses.tscn",
+      "res://scenes/rooms/seir_breakwater.tscn"
+    ]
+  },
+  {
+    "id": "seir_lighthouse",
+    "chapter": "CHAPTER_II",
+    "title": "AREA_SEIR_LIGHTHOUSE",
+    "subtitle": "AREA_SEIR_LIGHTHOUSE_SUB",
+    "color": "#ffe2a0",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/seir_lighthouse_stair.tscn",
+      "res://scenes/rooms/seir_lighthouse.tscn"
+    ]
+  }
+]

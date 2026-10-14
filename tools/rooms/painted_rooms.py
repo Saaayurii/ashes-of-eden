@@ -542,4 +542,152 @@ PAINTED = {
                 (570, 310, "#8fa8ff", 150, 0.8, 0.05), (750, 310, "#8fa8ff", 150, 0.8, 0.05)],
         bell=(480, 120),
         player=(60, 360), door=(926, 348), shrine=(480, 380)),
+    # Chapter II, Seir (docs/CHAPTER2.md). Panels drawn by Codex from
+    # docs/CHAPTER2_ART.md (credited in assets/CREDITS.md), traced with
+    # tools/rooms/trace_panel.py. The cold harbour city: one long floor in most
+    # rooms, because the people of Seir sit on it and wait.
+    "seir_road": dict(
+        # The coast road: the dead tree on the bluff, the city's gate tower on
+        # the right. Lazarus lies by the milestone; the ravens are the fight.
+        painting="seir_road", width=1280, height=720, weather="ash", fog=0.2, intro="", music="road",
+        intro_cutscene="lazarus_on_the_road", void_kill_y=690,
+        ground=[(0, 470, 222, 250), (0, 567, 1280, 153)],
+        ledges=[(226, 477, 49, 12), (265, 508, 55, 12)],
+        spawns=[("raven", 150, 250), ("raven", 270, 330)],
+        props=[("rubble", 700, 567), ("pot", 980, 567)],
+        decor=[], npcs=[("lazarus", 420, 567)], ambient="#bcc0cc", lights="auto",
+        player=(40, 450), door=(1190, 535)),
+    "seir_gate": dict(
+        # The gatehouse: the wardens stand under the portcullis and wait, so the
+        # way on is open from the start; the gallery above is reached by the stair.
+        painting="seir_gate", width=1280, height=720, weather="none", fog=0.12, intro="", music="road", void_kill_y=690,
+        ground=[(0, 545, 1280, 175)],
+        # the gallery stops short of the stair's head, which rises under it
+        ledges=[(28, 253, 352, 14), (511, 272, 339, 14)],
+        ramps=[(175, 545, 490, 253)],
+        spawns=[("gate_warden", 950, 533), ("gate_warden", 1050, 533), ("waiting_townsman", 620, 533),
+                ("waiting_townsman", 300, 241), ("waiting_townsman", 700, 260)],
+        props=[("seir_cache_jonah_sermon", 120, 253), ("crate", 430, 545), ("barrel", 760, 545)],
+        decor=[], npcs=[], ambient="#c4bcb8", lights="auto",
+        player=(40, 525), door=(1215, 513)),
+    "seir_street": dict(
+        # A street of doorsteps over the canal, a waiter on each; two shades in
+        # the windows above are the only ones who move.
+        painting="seir_street", width=1280, height=720, weather="ash", fog=0.18, intro="", music="village_night", void_kill_y=690,
+        ground=[(0, 535, 1280, 185)],
+        spawns=[("waiting_townsman", 50, 523), ("waiting_townsman", 165, 523), ("waiting_townsman", 565, 523),
+                ("waiting_townsman", 660, 523), ("waiting_townsman", 905, 523), ("waiting_townsman", 1010, 523),
+                ("shade", 300, 230), ("shade", 1000, 230)],
+        props=[("barrel", 290, 535), ("pot", 760, 535)],
+        decor=[], npcs=[], ambient="#bcc0cc", lights="auto",
+        player=(110, 515), door=(1215, 503)),
+    "seir_square": dict(
+        # The square of the stopped clock. The dry fountain is the rest point;
+        # Jonah preaches from the terrace on the east side, up its stair.
+        painting="seir_square", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night", void_kill_y=690,
+        ground=[(0, 577, 1280, 143)],
+        ledges=[(482, 527, 281, 12), (607, 487, 61, 10), (860, 362, 180, 14), (1097, 363, 143, 14)],
+        ramps=[(885, 362, 1130, 577)],
+        spawns=[("waiting_townsman", 200, 565), ("waiting_townsman", 330, 565), ("waiting_townsman", 520, 515),
+                ("waiting_townsman", 1180, 565), ("waiting_townsman", 800, 565), ("cult_caller", 1180, 351)],
+        props=[("pot", 150, 577), ("barrel", 1220, 363)],
+        decor=[], npcs=[("jonah", 960, 362)], ambient="#c0bccc", lights="auto",
+        player=(55, 557), door=(1235, 545)),
+    "seir_roofs": dict(
+        # Over the roofs (the square's fork): chimneys and a belfry, climbed
+        # left to right; what lives up here flies. Below the tiles is the drop.
+        painting="seir_roofs", width=1280, height=720, weather="ash", fog=0.2, intro="", music="village_night", void_kill_y=690,
+        ground=[],
+        ledges=[(0, 580, 349, 14), (56, 538, 62, 12), (173, 488, 230, 14), (438, 410, 263, 14), (491, 380, 83, 12),
+                (652, 333, 334, 14), (949, 266, 211, 14), (1144, 274, 136, 14)],
+        ramps=[(370, 488, 445, 410)],
+        spawns=[("shade", 300, 300), ("shade", 780, 250), ("shade", 1050, 380),
+                ("raven", 600, 150), ("raven", 1000, 150), ("raven", 250, 380)],
+        props=[("pot", 300, 488), ("rubble", 860, 333)],
+        decor=[], npcs=[], ambient="#c0bccc", lights="auto",
+        player=(30, 560), door=(1240, 242)),
+    "seir_canal": dict(
+        # Along the canal (the square's fork): two quays and two bridges over
+        # the red water; the drowned climb out of it. The water is a fall.
+        painting="seir_canal", width=1280, height=720, weather="ash", fog=0.25, intro="", music="village_night", void_kill_y=690,
+        ground=[(0, 413, 408, 307), (872, 413, 408, 307)],
+        ledges=[(388, 377, 221, 14), (607, 395, 47, 12), (652, 377, 242, 14), (1162, 403, 96, 10)],
+        spawns=[("drowned", 500, 365), ("drowned", 760, 365), ("drowned", 300, 401), ("drowned", 1000, 401),
+                ("waiting_townsman", 150, 401), ("waiting_townsman", 1100, 401)],
+        props=[("barrel", 120, 413), ("crate", 980, 413)],
+        decor=[], npcs=[], ambient="#c8b8bc", lights="auto",
+        player=(20, 393), door=(1225, 371)),
+    "seir_quay": dict(
+        # The quay: Naomi's lamp on the bench is the only warm light; the
+        # sailors' shrine is the rest point.
+        painting="seir_quay", width=1280, height=720, weather="ash", fog=0.25, intro="", music="dead_bridge",
+        intro_cutscene="quay_arrival", void_kill_y=690,
+        ground=[(0, 490, 1280, 230)],
+        ledges=[(349, 436, 59, 12), (925, 452, 68, 12), (839, 413, 96, 12)],
+        spawns=[("drowned", 180, 478), ("drowned", 700, 478), ("drowned", 1010, 478),
+                ("waiting_townsman", 380, 478), ("waiting_townsman", 1110, 478)],
+        props=[("barrel", 820, 490)],
+        decor=[], npcs=[("naomi", 500, 490), ("lazarus_quay", 580, 490)], ambient="#bcbccc", lights="auto",
+        player=(20, 470), door=(1255, 458)),
+    "seir_wrecks": dict(
+        # The burned hulls. The quay runs the whole way; the right hull's deck
+        # (and the Orpah's sealed cabin on it) is climbed from the crane.
+        painting="seir_wrecks", width=1280, height=720, weather="ash", fog=0.25, intro="", music="dead_bridge", void_kill_y=690,
+        ground=[(0, 507, 1280, 213)],
+        ledges=[(653, 350, 85, 12), (734, 354, 124, 12), (821, 358, 110, 12), (931, 362, 144, 12), (1075, 366, 167, 12)],
+        platforms=[(540, 455, 50, 10), (600, 408, 50, 10)],  # two timber steps hung from the crane, up to the deck
+        spawns=[("drowned", 200, 495), ("drowned", 400, 495), ("drowned", 860, 495), ("drowned", 1000, 495),
+                ("drowned", 850, 342), ("sea_wraith", 300, 200), ("sea_wraith", 900, 250), ("drowned_bosun", 700, 495)],
+        props=[("seir_cache_orpah_log", 1150, 366), ("barrel", 300, 507), ("crate", 1050, 507)],
+        decor=[], npcs=[], ambient="#c4bcc4", lights="auto",
+        player=(20, 486), door=(1212, 475)),
+    "seir_warehouses": dict(
+        # The grain stores (the harbour's fork): close quarters on one floor,
+        # the gallery above out of reach. No story here.
+        painting="seir_warehouses", width=1280, height=720, weather="none", fog=0.1, intro="", music="dead_bridge", void_kill_y=690,
+        ground=[(0, 597, 1280, 123)],
+        ledges=[(134, 552, 66, 12)],
+        spawns=[("drowned", 350, 585), ("drowned", 560, 585), ("drowned", 800, 585), ("drowned", 1000, 585),
+                ("waiting_townsman", 230, 585), ("waiting_townsman", 680, 585), ("waiting_townsman", 1100, 585),
+                ("shade", 500, 200)],
+        props=[("sack", 460, 597), ("barrel", 900, 597)],
+        decor=[], npcs=[], ambient="#c8bcb4", lights="auto",
+        player=(60, 577), door=(1210, 565)),
+    "seir_breakwater": dict(
+        # Out along the breakwater (the harbour's fork): three spans over the
+        # red sea and the wind. A fall between them is a fall into the sea.
+        painting="seir_breakwater", width=1280, height=720, weather="rain", fog=0.15, intro="", music="dead_bridge", void_kill_y=690,
+        ground=[(0, 432, 431, 123), (462, 432, 358, 123), (848, 432, 432, 123)],
+        spawns=[("sea_wraith", 300, 300), ("sea_wraith", 600, 250), ("sea_wraith", 900, 300), ("sea_wraith", 1100, 250),
+                ("drowned", 300, 420), ("drowned", 950, 420)],
+        props=[("barrel", 140, 432)],
+        decor=[], npcs=[], ambient="#c4b8c4", lights="auto",
+        player=(30, 412), door=(1228, 400)),
+    "seir_lighthouse_stair": dict(
+        # Up the lighthouse: four floors joined by stairs. The painting's third
+        # stair starts right over the head of the second, where nobody could
+        # stand, so the way to the upper floor is a run of cornices on the
+        # wall instead; the first stair comes up through a gap in the floor above.
+        painting="seir_lighthouse_stair", width=1280, height=720, weather="none", fog=0.1, intro="", music="graveyard", void_kill_y=700,
+        ground=[(32, 651, 660, 69), (680, 680, 560, 40)],
+        ledges=[(693, 483, 90, 14), (850, 483, 248, 14), (213, 380, 407, 14), (680, 292, 542, 14), (33, 206, 445, 14),
+                (523, 119, 715, 14)],
+        ramps=[(600, 651, 850, 483), (610, 380, 755, 483), (400, 206, 535, 119)],
+        stone_steps=True,
+        platforms=[(1040, 420, 50, 10), (1120, 357, 50, 10), (630, 235, 50, 10), (585, 180, 50, 10)],
+        spawns=[("drowned", 300, 639), ("drowned", 900, 668), ("drowned", 420, 368),
+                ("sea_wraith", 300, 500), ("sea_wraith", 1000, 400), ("drowned_bosun", 950, 471)],
+        props=[("seir_cache_relief_order", 290, 380), ("crate", 1000, 680)],
+        decor=[], npcs=[], ambient="#c8bcb4", lights="auto",
+        player=(100, 631), door=(1190, 87)),
+    "seir_lighthouse": dict(
+        # The lamp room: the Watchman stands between Elian and the fire.
+        painting="seir_lighthouse", width=1280, height=720, weather="none", fog=0.08, intro="", music="boss_knight",
+        intro_cutscene="watchman_arrival", outro_cutscene="ch2_finale", void_kill_y=690,
+        ground=[(0, 495, 1280, 225)],
+        ledges=[(854, 442, 85, 12), (954, 396, 124, 12), (1068, 441, 56, 12)],
+        spawns=[("watchman", 640, 483)],
+        props=[],
+        decor=[], npcs=[], ambient="#ccc0b8", lights="auto",
+        player=(40, 475), door=(1250, 463)),
 }

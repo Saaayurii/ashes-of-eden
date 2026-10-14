@@ -2,7 +2,7 @@
 """Turns a painted level panel (a ChatGPT png in ~/Downloads) into a room's
 raw material for tools/rooms/generate_rooms.py:
 
-    python3 tools/rooms/trace_panel.py <time stamp> <room name> [overlay.png]
+    python3 tools/rooms/trace_panel.py <time stamp | path.png> <room name> [overlay.png]
 
 - writes assets/levels/<room name>.png, the panel at exactly 1280x720
 - prints candidate ledges: horizontal runs where a lit stone top sits over
@@ -22,13 +22,17 @@ import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "art"))
+from studio_overrides import patched  # the art studio's edits of what this writes
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, "assets", "levels")
 SIZE = (1280, 720)
 
 
 def load(stamp):
-    hits = glob.glob(os.path.expanduser(f"~/Downloads/*{stamp}.png"))
+    # a path to the picture itself (a Codex or studio export), or a stamp in ~/Downloads
+    hits = [stamp] if os.path.isfile(stamp) else glob.glob(os.path.expanduser(f"~/Downloads/*{stamp}.png"))
     if not hits:
         sys.exit(f"no *{stamp}.png in ~/Downloads")
     image = Image.open(hits[0]).convert("RGB").resize(SIZE, Image.LANCZOS)
@@ -134,7 +138,9 @@ def main():
     overlay_path = sys.argv[3] if len(sys.argv) > 3 else None
     image = load(stamp)
     os.makedirs(OUT, exist_ok=True)
-    image.save(os.path.join(OUT, name + ".png"))
+    out = os.path.join(OUT, name + ".png")
+    image = patched(out, image)
+    image.save(out)
     found = ledges(image)
     lit = lights(image)
     # the generator reads these when a room says lights="auto"

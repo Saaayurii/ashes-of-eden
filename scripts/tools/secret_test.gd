@@ -118,6 +118,29 @@ func _run() -> void:
 	game.flags.erase("book_read")
 	church.queue_free()
 	await _settle(0.1)
+	# Seir's caches have no wall yet (docs/CHAPTER2_ART.md): they stand open
+	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn"]:
+		var room = load(scene).instantiate()
+		root.add_child(room)
+		current_scene = room
+		await _settle(0.2)
+		var caches := []
+		for prop in get_nodes_in_group("props"):
+			if room.is_ancestor_of(prop) and prop.stats.has("note"):
+				caches.append(prop)
+		_assert(caches.size() == 1, "%s: one open cache (%d)" % [scene.get_file(), caches.size()])
+		for cache in caches:
+			var note: String = cache.stats.note
+			profile.data.bestiary.erase("note:" + note)
+			var ash_before: int = game.ash_earned
+			cache._pay_out()
+			_assert(game.ash_earned - ash_before == int(cache.stats.ash), "%s: pays %d ash the first time" % [cache.prop_id, int(cache.stats.ash)])
+			ash_before = game.ash_earned
+			cache._pay_out()
+			_assert(game.ash_earned == ash_before, "%s: no ash the second time" % cache.prop_id)
+			found[note] = true
+		room.queue_free()
+		await _settle(0.1)
 	_assert(found.size() == data_loader.notes.size(), "every record is placed somewhere (%d/%d)" % [found.size(), data_loader.notes.size()])
 	_assert(heard.size() == found.size() * 2 and heard[0][1] and not heard[1][1], "note_found: first, then again")
 	_assert(game.flags.has("read_letters"), "the preacher's letters set read_letters")

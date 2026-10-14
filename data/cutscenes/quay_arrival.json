@@ -1,0 +1,15 @@
+{
+  "id": "quay_arrival",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.4},
+    {"do": "camera", "to": "npc:naomi", "zoom": 1.2, "time": 1.2},
+    {"do": "fx", "kind": "light", "at": "npc:naomi", "offset": [8, -20], "color": "#ffb060", "radius": 70, "time": 1.6, "energy": 0.9},
+    {"do": "appear", "who": "npc:lazarus_quay", "time": 1.0, "if": "lazarus_helped"},
+    {"do": "dialogue", "id": "ch2_quay_lazarus", "cast": {"NPC_LAZARUS": "npc:lazarus_quay"}, "zoom": 1.25, "if": "lazarus_helped"},
+    {"do": "dialogue", "id": "ch2_quay_nobody", "cast": {"NPC_NAOMI": "npc:naomi"}, "zoom": 1.25, "if": "lazarus_passed"},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.8},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
+  ]
+}

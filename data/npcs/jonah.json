@@ -1,0 +1,27 @@
+{
+  "id": "jonah",
+  "_art": "stand-in body (matthew); own sheet in docs/CHAPTER2_ART.md (the portrait is drawn)",
+  "name": "NPC_JONAH",
+  "avatar": "res://assets/portraits/jonah.png",
+  "dialogue": "npc_jonah",
+  "face": "right",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/matthew_v2_idle.png",
+      "walk": "res://assets/sprites/matthew_v2_walk.png",
+      "interact": "res://assets/sprites/matthew_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 4
+  },
+  "lore": "NPC_JONAH_LORE",
+  "role": "NPC_ROLE_JONAH",
+  "location": "LOC_SEIR_SQUARE",
+  "lines": [
+    "NPC_JONAH_LINE_1",
+    "NPC_JONAH_LINE_2"
+  ]
+}
