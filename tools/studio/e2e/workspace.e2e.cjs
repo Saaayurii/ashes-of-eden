@@ -10,7 +10,7 @@ const root = path.resolve(__dirname, '../../..'), port = 8795;
   const server = spawn('python3',['tools/studio/serve.py'],{cwd:root,env:{...process.env,STUDIO_PORT:String(port)},stdio:'ignore'});
   let browser;
   try {
-    for(let i=0;i<60;i++){try{if((await fetch(`http://127.0.0.1:${port}/api/ping`)).ok)break;}catch{}await new Promise(r=>setTimeout(r,200));}
+    for(let i=0;i<60;i++){try{const res = await fetch(`http://127.0.0.1:${port}/api/ping`); await res.arrayBuffer(); if (res.ok) break;}catch{}await new Promise(r=>setTimeout(r,200));}
     browser=await chromium.launch(); const context=await browser.newContext({viewport:{width:1400,height:1000}}),page=await context.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(String(e)));
     await page.goto(`http://127.0.0.1:${port}/tools/studio/`); await page.waitForFunction(()=>P && Writer.mode==='local');

@@ -1,5 +1,5 @@
 class_name Route
-## Chapter I's way through its rooms (docs/CHAPTER1.md): ROOMS in order, with
+## A night's way through its rooms (docs/CHAPTER1.md): ROOMS in order, with
 ## forks (data/forks) where the player picks one of two rooms and both come
 ## out at the same next one. Only rooms that carry no story may be options —
 ## a scene, a person whose flags are read later, a rest point — so the
@@ -9,6 +9,25 @@ class_name Route
 ## The Run's ROOMS, for callers without a Run (the HUD, a save's summary).
 static func rooms() -> Array:
 	return Data.rooms
+
+
+## The nights (game.json "nights") this profile may start: the first always,
+## a later one once it has seen its "after_dawns" dawns (Profile.data.wins).
+## The menu's Play asks which only when there is more than one.
+static func open_nights() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for night in Data.nights():
+		if int(Profile.data.get("wins", 0)) >= int(night.get("after_dawns", 0)):
+			out.append(night)
+	return out
+
+
+## What a night is called on the menu: the chapter its first room's place
+## belongs to (data/chapters "chapter"), "Chapter II · The Second Trumpet".
+static func night_name(night: Dictionary) -> String:
+	var rooms: Array = night.get("rooms", [])
+	var place: Dictionary = Data.chapter_for(str(rooms[0])) if not rooms.is_empty() else {}
+	return TranslationServer.translate(str(place.get("chapter", night.get("id", ""))))
 
 
 ## The fork whose question is asked leaving [param path], or {}.
@@ -48,6 +67,8 @@ static func step(room_list: Array, index: int) -> int:
 	var skipped := 0
 	for fork in Data.forks.values():
 		var at: Array = (fork.get("options", {}) as Dictionary).values().map(func(p) -> int: return room_list.find(str(p)))
+		if at.has(-1):
+			continue  # another night's fork
 		var first: int = at.min()
 		if index > at.max():
 			skipped += at.size() - 1

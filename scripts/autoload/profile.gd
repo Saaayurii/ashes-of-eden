@@ -17,7 +17,8 @@ static func _defaults() -> Dictionary:
 	return {
 		"version": VERSION,
 		"nights": 0,        # runs finished (won or died)
-		"best_wave": 0,
+		"best_wave": 0,     # the first night's furthest room; a later night's is in best_nights
+		"best_nights": {},  # game.json "nights" id -> its furthest room (best_of)
 		"total_kills": 0,
 		"total_seconds": 0.0,
 		"ash": 0,           # permanent currency (docs/BALANCE.md)
@@ -95,7 +96,12 @@ func load_profile() -> void:
 
 func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -> void:
 	data.nights += 1
-	data.best_wave = maxi(data.best_wave, wave)
+	if Data.night == "":
+		data.best_wave = maxi(data.best_wave, wave)
+	else:
+		if not data.get("best_nights") is Dictionary:
+			data.best_nights = {}
+		data.best_nights[Data.night] = maxi(int(data.best_nights.get(Data.night, 0)), wave)
 	data.total_kills += kills
 	data.total_seconds += seconds
 	data.ash += ash
@@ -151,6 +157,15 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 ## One line of the chronicle per night: where it ended, how it leaned, what it
 ## carried. Gift and resonance ids, so a renamed gift reads in the new name and
 ## a removed one is simply left out (Chronicle in the bestiary).
+## The furthest room a night has seen, by its id ("" the first: best_wave).
+## Every night counts its own rooms (Route.step), so they never mix.
+func best_of(night: String) -> int:
+	if night == "":
+		return int(data.get("best_wave", 0))
+	var bests = data.get("best_nights", {})
+	return int(bests.get(night, 0)) if bests is Dictionary else 0
+
+
 func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 	if not (data.get("history") is Array):
 		data.history = []
@@ -158,6 +173,7 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 		"night": int(data.nights),
 		"date": Time.get_date_string_from_system(),
 		"area": area,
+		"night_id": Data.night,  # which night's rooms "area" counts ("" the first)
 		"won": won,
 		"path": Game.dominant_path() if Game.lead() >= 2 else "",
 		"seconds": int(seconds),

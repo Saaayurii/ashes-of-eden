@@ -1,0 +1,580 @@
+[gd_scene load_steps=44 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Texture2D" path="res://assets/levels/seir_lighthouse_stair_wide.png" id="2_backdrop"]
+[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Script" path="res://scripts/rooms/door.gd" id="4_door"]
+[ext_resource type="Script" path="res://scripts/rooms/enemy_spawn.gd" id="5_spawn"]
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="7_prop"]
+[ext_resource type="Texture2D" path="res://assets/decor/door_gate.png" id="8_gate"]
+[ext_resource type="Texture2D" path="res://assets/decor/shrine.png" id="9_shrine"]
+[ext_resource type="Texture2D" path="res://assets/decor/barrier.png" id="11_barrier"]
+[ext_resource type="Script" path="res://scripts/rooms/room_fixture.gd" id="10_fixture"]
+[ext_resource type="PackedScene" path="res://scenes/npc/npc.tscn" id="11_npc"]
+[ext_resource type="Script" path="res://scripts/fx/glow_light.gd" id="12_light"]
+[ext_resource type="Script" path="res://scripts/fx/ambient_light.gd" id="13_ambient"]
+[ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
+[ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_6.png" id="piece_ledge_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_8.png" id="piece_ledge_8"]
+
+[sub_resource type="Gradient" id="fade"]
+offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="FastNoiseLite" id="noise"]
+frequency = 0.012
+
+[sub_resource type="NoiseTexture2D" id="noise_tex"]
+seamless = true
+noise = SubResource("noise")
+
+[sub_resource type="ShaderMaterial" id="fog_mat"]
+shader = ExtResource("3_fog")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/density = 0.1
+
+[sub_resource type="Gradient" id="glow_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.85, 0.5, 0.7, 1, 0.85, 0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_tex"]
+gradient = SubResource("glow_grad")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="dot_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_grad")
+width = 4
+height = 4
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="drop"]
+gradient = SubResource("dot_grad")
+width = 2
+height = 10
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CanvasItemMaterial" id="add_mat"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="door_shape"]
+size = Vector2(20, 56)
+
+[sub_resource type="RectangleShape2D" id="Ground1_shape"]
+size = Vector2(820, 69)
+
+[sub_resource type="RectangleShape2D" id="Ground2_shape"]
+size = Vector2(720, 40)
+
+[sub_resource type="RectangleShape2D" id="Platform1_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform2_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform3_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform4_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge1_shape"]
+size = Vector2(90, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge2_shape"]
+size = Vector2(408, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge3_shape"]
+size = Vector2(567, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge4_shape"]
+size = Vector2(702, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge5_shape"]
+size = Vector2(605, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge6_shape"]
+size = Vector2(875, 14)
+
+[sub_resource type="RectangleShape2D" id="Wall1_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall2_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall3_shape"]
+size = Vector2(1600, 16)
+
+[node name="Room" type="Node2D"]
+script = ExtResource("1_room")
+width = 1600
+height = 720
+void_kill_y = 700
+intro_dialogue = ""
+intro_cutscene = ""
+outro_cutscene = ""
+painting_source = "res://assets/levels/seir_lighthouse_stair_wide.png"
+
+[node name="Ambient" type="CanvasModulate" parent="."]
+color = Color(0.784, 0.737, 0.706, 1)
+script = ExtResource("13_ambient")
+music = "graveyard"
+
+[node name="Painting" type="Sprite2D" parent="."]
+texture_filter = 2
+texture = ExtResource("2_backdrop")
+centered = false
+
+[node name="FogFar" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.75, 0.75)
+
+[node name="Fog" type="ColorRect" parent="FogFar"]
+material = SubResource("fog_mat")
+offset_right = 1800.0
+offset_bottom = 1120.0
+mouse_filter = 2
+
+[node name="DecorBack" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.88, 1)
+
+[node name="Geometry" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(442.0, 685.5)
+shape = SubResource("Ground1_shape")
+
+[node name="Ground2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1200.0, 700.0)
+shape = SubResource("Ground2_shape")
+
+[node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-8.0, 352.0)
+shape = SubResource("Wall1_shape")
+
+[node name="Wall2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1608.0, 352.0)
+shape = SubResource("Wall2_shape")
+
+[node name="Wall3Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(800.0, -8.0)
+shape = SubResource("Wall3_shape")
+
+[node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(760.0, 651.0, 771.9, 651.0, 771.9, 643.0, 783.81, 643.0, 783.81, 635.0, 795.71, 635.0, 795.71, 627.0, 807.62, 627.0, 807.62, 619.0, 819.52, 619.0, 819.52, 611.0, 831.43, 611.0, 831.43, 603.0, 843.33, 603.0, 843.33, 595.0, 855.24, 595.0, 855.24, 587.0, 867.14, 587.0, 867.14, 579.0, 879.05, 579.0, 879.05, 571.0, 890.95, 571.0, 890.95, 563.0, 902.86, 563.0, 902.86, 555.0, 914.76, 555.0, 914.76, 547.0, 926.67, 547.0, 926.67, 539.0, 938.57, 539.0, 938.57, 531.0, 950.48, 531.0, 950.48, 523.0, 962.38, 523.0, 962.38, 515.0, 974.29, 515.0, 974.29, 507.0, 986.19, 507.0, 986.19, 499.0, 998.1, 499.0, 998.1, 491.0, 1010.0, 491.0, 1010.0, 483.0, 1010.0, 499.0, 1010.0, 507.0, 998.1, 507.0, 998.1, 515.0, 986.19, 515.0, 986.19, 523.0, 974.29, 523.0, 974.29, 531.0, 962.38, 531.0, 962.38, 539.0, 950.48, 539.0, 950.48, 547.0, 938.57, 547.0, 938.57, 555.0, 926.67, 555.0, 926.67, 563.0, 914.76, 563.0, 914.76, 571.0, 902.86, 571.0, 902.86, 579.0, 890.95, 579.0, 890.95, 587.0, 879.05, 587.0, 879.05, 595.0, 867.14, 595.0, 867.14, 603.0, 855.24, 603.0, 855.24, 611.0, 843.33, 611.0, 843.33, 619.0, 831.43, 619.0, 831.43, 627.0, 819.52, 627.0, 819.52, 635.0, 807.62, 635.0, 807.62, 643.0, 795.71, 643.0, 795.71, 651.0, 783.81, 651.0, 783.81, 659.0, 771.9, 659.0, 771.9, 667.0, 760.0, 667.0)
+
+[node name="Ramp2" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(770.0, 380.0, 781.15, 380.0, 781.15, 387.92, 792.31, 387.92, 792.31, 395.85, 803.46, 395.85, 803.46, 403.77, 814.62, 403.77, 814.62, 411.69, 825.77, 411.69, 825.77, 419.62, 836.92, 419.62, 836.92, 427.54, 848.08, 427.54, 848.08, 435.46, 859.23, 435.46, 859.23, 443.38, 870.38, 443.38, 870.38, 451.31, 881.54, 451.31, 881.54, 459.23, 892.69, 459.23, 892.69, 467.15, 903.85, 467.15, 903.85, 475.08, 915.0, 475.08, 915.0, 483.0, 915.0, 499.0, 915.0, 491.08, 903.85, 491.08, 903.85, 483.15, 892.69, 483.15, 892.69, 475.23, 881.54, 475.23, 881.54, 467.31, 870.38, 467.31, 870.38, 459.38, 859.23, 459.38, 859.23, 451.46, 848.08, 451.46, 848.08, 443.54, 836.92, 443.54, 836.92, 435.62, 825.77, 435.62, 825.77, 427.69, 814.62, 427.69, 814.62, 419.77, 803.46, 419.77, 803.46, 411.85, 792.31, 411.85, 792.31, 403.92, 781.15, 403.92, 781.15, 396.0, 770.0, 396.0)
+
+[node name="Ramp3" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(560.0, 206.0, 572.27, 206.0, 572.27, 198.09, 584.55, 198.09, 584.55, 190.18, 596.82, 190.18, 596.82, 182.27, 609.09, 182.27, 609.09, 174.36, 621.36, 174.36, 621.36, 166.45, 633.64, 166.45, 633.64, 158.55, 645.91, 158.55, 645.91, 150.64, 658.18, 150.64, 658.18, 142.73, 670.45, 142.73, 670.45, 134.82, 682.73, 134.82, 682.73, 126.91, 695.0, 126.91, 695.0, 119.0, 695.0, 135.0, 695.0, 142.91, 682.73, 142.91, 682.73, 150.82, 670.45, 150.82, 670.45, 158.73, 658.18, 158.73, 658.18, 166.64, 645.91, 166.64, 645.91, 174.55, 633.64, 174.55, 633.64, 182.45, 621.36, 182.45, 621.36, 190.36, 609.09, 190.36, 609.09, 198.27, 596.82, 198.27, 596.82, 206.18, 584.55, 206.18, 584.55, 214.09, 572.27, 214.09, 572.27, 222.0, 560.0, 222.0)
+
+[node name="Ledges" type="StaticBody2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1385.0, 425.0)
+shape = SubResource("Platform1_shape")
+one_way_collision = true
+
+[node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1465.0, 362.0)
+shape = SubResource("Platform2_shape")
+one_way_collision = true
+
+[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(815.0, 240.0)
+shape = SubResource("Platform3_shape")
+one_way_collision = true
+
+[node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(770.0, 185.0)
+shape = SubResource("Platform4_shape")
+one_way_collision = true
+
+[node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(898.0, 490.0)
+shape = SubResource("Ledge1_shape")
+one_way_collision = true
+
+[node name="Ledge2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1214.0, 490.0)
+shape = SubResource("Ledge2_shape")
+one_way_collision = true
+
+[node name="Ledge3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(496.5, 387.0)
+shape = SubResource("Ledge3_shape")
+one_way_collision = true
+
+[node name="Ledge4Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1191.0, 299.0)
+shape = SubResource("Ledge4_shape")
+one_way_collision = true
+
+[node name="Ledge5Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(335.5, 213.0)
+shape = SubResource("Ledge5_shape")
+one_way_collision = true
+
+[node name="Ledge6Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1120.5, 126.0)
+shape = SubResource("Ledge6_shape")
+one_way_collision = true
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Platform1_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(1360, 420)
+texture = ExtResource("piece_ledge_6")
+centered = false
+modulate = Color(0.96, 0.96, 0.961, 1)
+
+[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(1372, 420)
+texture = ExtResource("piece_ledge_8")
+centered = false
+flip_h = true
+modulate = Color(0.911, 0.911, 0.913, 1)
+
+[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(1440, 357)
+texture = ExtResource("piece_ledge_2")
+centered = false
+modulate = Color(0.964, 0.964, 0.965, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 50, 46)
+
+[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(790, 235)
+texture = ExtResource("piece_ledge_2")
+centered = false
+modulate = Color(0.947, 0.947, 0.948, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 50, 46)
+
+[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(745, 180)
+texture = ExtResource("piece_ledge_8")
+centered = false
+flip_h = true
+modulate = Color(0.934, 0.934, 0.935, 1)
+
+[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(752, 180)
+texture = ExtResource("piece_ledge_6")
+centered = false
+
+[node name="DecorMid" type="Node2D" parent="."]
+
+[node name="DecorFront" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(290, 380)
+prop_id = "seir_cache_relief_order"
+
+[node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1320, 680)
+prop_id = "crate"
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="Spawns"]
+position = Vector2(460, 639)
+script = ExtResource("5_spawn")
+enemy_id = "drowned"
+
+[node name="Spawn2" type="Marker2D" parent="Spawns"]
+position = Vector2(1060, 668)
+script = ExtResource("5_spawn")
+enemy_id = "drowned"
+
+[node name="Spawn3" type="Marker2D" parent="Spawns"]
+position = Vector2(580, 368)
+script = ExtResource("5_spawn")
+enemy_id = "drowned"
+
+[node name="Spawn4" type="Marker2D" parent="Spawns"]
+position = Vector2(460, 500)
+script = ExtResource("5_spawn")
+enemy_id = "sea_wraith"
+
+[node name="Spawn5" type="Marker2D" parent="Spawns"]
+position = Vector2(1320, 400)
+script = ExtResource("5_spawn")
+enemy_id = "sea_wraith"
+
+[node name="Spawn6" type="Marker2D" parent="Spawns"]
+position = Vector2(1110, 471)
+script = ExtResource("5_spawn")
+enemy_id = "drowned_bosun"
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(100, 631)
+
+[node name="Door" type="Area2D" parent="."]
+position = Vector2(1510, 87)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_door")
+painted_arch = true
+
+[node name="Shape" type="CollisionShape2D" parent="Door"]
+shape = SubResource("door_shape")
+
+[node name="Gate" type="Sprite2D" parent="Door"]
+texture = ExtResource("8_gate")
+hframes = 5
+
+[node name="Glow" type="Sprite2D" parent="Door"]
+visible = false
+material = SubResource("add_mat")
+scale = Vector2(1.6, 1.6)
+texture = SubResource("glow_tex")
+
+
+[node name="Motes" type="CPUParticles2D" parent="."]
+z_index = 1
+position = Vector2(800.0, 360.0)
+amount = 90
+lifetime = 9.0
+preprocess = 9.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(800.0, 360.0)
+direction = Vector2(1, 0)
+spread = 180.0
+gravity = Vector2(0, -3)
+initial_velocity_min = 3.0
+initial_velocity_max = 9.0
+scale_amount_min = 0.3
+scale_amount_max = 0.6
+color = Color(1, 0.95, 0.85, 0.5)
+color_ramp = SubResource("fade")
+
+[node name="Lights" type="Node2D" parent="."]
+
+[node name="Light1" type="PointLight2D" parent="Lights"]
+position = Vector2(62, 159)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light2" type="PointLight2D" parent="Lights"]
+position = Vector2(78, 598)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light3" type="PointLight2D" parent="Lights"]
+position = Vector2(80, 652)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light4" type="PointLight2D" parent="Lights"]
+position = Vector2(146, 601)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light5" type="PointLight2D" parent="Lights"]
+position = Vector2(206, 651)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light6" type="PointLight2D" parent="Lights"]
+position = Vector2(260, 353)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light7" type="PointLight2D" parent="Lights"]
+position = Vector2(488, 336)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light8" type="PointLight2D" parent="Lights"]
+position = Vector2(656, 339)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light9" type="PointLight2D" parent="Lights"]
+position = Vector2(660, 652)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light10" type="PointLight2D" parent="Lights"]
+position = Vector2(726, 85)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light11" type="PointLight2D" parent="Lights"]
+position = Vector2(785, 628)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light12" type="PointLight2D" parent="Lights"]
+position = Vector2(870, 279)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light13" type="PointLight2D" parent="Lights"]
+position = Vector2(928, 264)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light14" type="PointLight2D" parent="Lights"]
+position = Vector2(943, 471)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light15" type="PointLight2D" parent="Lights"]
+position = Vector2(1011, 425)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light16" type="PointLight2D" parent="Lights"]
+position = Vector2(1020, 67)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light17" type="PointLight2D" parent="Lights"]
+position = Vector2(1020, 649)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light18" type="PointLight2D" parent="Lights"]
+position = Vector2(1078, 678)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light19" type="PointLight2D" parent="Lights"]
+position = Vector2(1152, 456)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light20" type="PointLight2D" parent="Lights"]
+position = Vector2(1322, 47)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light21" type="PointLight2D" parent="Lights"]
+position = Vector2(1362, 431)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light22" type="PointLight2D" parent="Lights"]
+position = Vector2(1365, 680)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light23" type="PointLight2D" parent="Lights"]
+position = Vector2(1384, 120)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light24" type="PointLight2D" parent="Lights"]
+position = Vector2(1409, 244)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light25" type="PointLight2D" parent="Lights"]
+position = Vector2(1421, 680)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light26" type="PointLight2D" parent="Lights"]
+position = Vector2(1445, 95)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3

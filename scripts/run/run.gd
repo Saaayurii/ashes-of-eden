@@ -92,6 +92,11 @@ var drills: PracticeDrills
 
 func _ready() -> void:
 	Game.new_run()
+	# which night (game.json "nights"): the menu's pick or the save's; the night
+	# of the day, a co-op night and the yard are the first
+	if Net.active or Game.daily != "" or not Data.has_night(Game.night):
+		Game.night = ""
+	Data.use_night(Game.night)
 	Game.vial = Vials.for_new_night()
 	if Game.daily != "":
 		# the night of the day: its own vial and its own deal, the same for all
@@ -151,6 +156,8 @@ func _ready() -> void:
 			# chooser picks this ending itself, the finale's room, its scene.
 			Endings.seed(ending)
 			print("run: playing the ending %s" % ending)
+			Game.night = Data.night_of(str(Endings.finale().get("room", "")))  # the finale's own night
+			Data.use_night(Game.night)
 			await _go_to_room(maxi(0, ROOMS.find(str(Endings.finale().get("room", "")))))
 			_close_campaign(ending)
 		elif jump >= 0:
@@ -279,7 +286,12 @@ func _net_begin() -> void:
 func _begin() -> void:
 	# He is already lying in the grave while the curtain is still up: waiting
 	# for it with the body in its default pose showed him standing first.
-	if player:
+	# which scene and which words are this night's (game.json "opening", or a
+	# later night's own); one it lacks is skipped, and "wake": false is a night
+	# he walks into on his feet rather than out of the grave
+	var opening: Dictionary = Data.night_spec(Data.night).get("opening", {})
+	var wakes := bool(opening.get("wake", true))
+	if player and wakes:
 		player.lie_down()
 	# The night opens on the chapter card; the angel speaks once we can see.
 	while transition.active:
@@ -302,8 +314,6 @@ func _begin() -> void:
 	if not heard:
 		Profile.data.prologue_seen = true
 		Profile.save()
-	# which scene and which words are the game's (data/game.json "opening"); one it lacks is skipped
-	var opening: Dictionary = Data.game.get("opening", {})
 	var prologue := str(opening.get("prologue_short" if heard else "prologue", ""))
 	if Data.cutscenes.has(prologue):
 		await cutscene.play(prologue)
@@ -314,7 +324,7 @@ func _begin() -> void:
 		dialogue.play(str(opening.intro))
 	# ...except for the first second and a half: Elian rises out of the grave.
 	# The captions run over it (docs/CORE_LOOP.md).
-	if player:
+	if player and wakes:
 		player.wake_up()
 	await _announce_unlocks()
 	_announce_omen()
@@ -436,6 +446,13 @@ static func room_from_args(args: PackedStringArray) -> int:
 		var found := names.find(want)
 		if found >= 0:
 			return found
+		# a room of another night (game.json "nights") opens that night
+		for night in Data.nights():
+			for path in night.get("rooms", []):
+				if str(path).get_file().get_basename() == want:
+					Game.night = str(night.id)
+					Data.use_night(Game.night)
+					return room_names().find(want)
 		push_warning("run: no room called '%s'. Try one of: %s" % [want, ", ".join(names)])
 	return -1
 

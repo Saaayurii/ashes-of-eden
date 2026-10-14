@@ -1,0 +1,21 @@
+{
+  "id": "lazarus_quay",
+  "_art": "the same man, sitting on Naomi's bench; shown only by quay_arrival when lazarus_helped",
+  "name": "NPC_LAZARUS",
+  "avatar": "res://assets/portraits/lazarus.png",
+  "dialogue": "npc_lazarus",
+  "scripted": true,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/severin_v2_idle.png",
+      "walk": "res://assets/sprites/severin_v2_walk.png",
+      "interact": "res://assets/sprites/severin_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  }
+}

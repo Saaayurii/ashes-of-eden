@@ -93,7 +93,7 @@ func _run() -> void:
 
 func _every_open_column(only: Array = []) -> bool:
 	var ok := true
-	var rooms: Array = only if not only.is_empty() else root.get_node("Data").rooms
+	var rooms: Array = only if not only.is_empty() else root.get_node("Data").all_rooms()
 	for path in rooms:
 		var room = load(path).instantiate()
 		root.add_child(room)

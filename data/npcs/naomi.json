@@ -1,0 +1,33 @@
+{
+  "id": "naomi",
+  "_art": "stand-in body (the village widow); own sheet in docs/CHAPTER2_ART.md (the portrait is drawn)",
+  "name": "NPC_NAOMI",
+  "avatar": "res://assets/portraits/naomi.png",
+  "dialogue": "npc_naomi",
+  "face": "right",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/villager_v2_idle.png",
+      "walk": "res://assets/sprites/villager_v2_walk.png",
+      "interact": "res://assets/sprites/villager_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_NAOMI_LORE",
+  "role": "NPC_ROLE_NAOMI",
+  "location": "LOC_SEIR_QUAY",
+  "light": {
+    "color": "#ffb060",
+    "radius": 48,
+    "energy": 0.7,
+    "flicker": 0.25
+  },
+  "lines": [
+    "NPC_NAOMI_LINE_1",
+    "NPC_NAOMI_LINE_2"
+  ]
+}

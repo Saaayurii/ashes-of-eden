@@ -63,6 +63,9 @@ signal dialogue_finished(dialogue_id: String)
 ## A blocking dialogue cut short by Skip / Escape (the Playtest "skip" event).
 signal dialogue_skipped(dialogue_id: String)
 signal choice_made(dialogue_id: String, choice_id: String)
+## A story choice gave flasks away or handed some over ("flask" in an effect,
+## Game.apply_effect): our own body takes [param count] from its flasks.
+signal flasks_given(count: int)
 ## A deed was done for the first time on this profile (data/achievements).
 signal achievement_unlocked(achievement_id: String)
 ## The "Lighting" setting flipped; every GlowLight and ambient tint re-reads Settings.lighting.

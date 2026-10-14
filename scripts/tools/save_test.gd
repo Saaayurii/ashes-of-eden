@@ -79,6 +79,35 @@ func _run() -> void:
 	stale.game_state.abilities.append("gift_that_was_removed")
 	_assert(saves.parse(JSON.stringify(stale)).game_state.abilities.size() == 1, "removed gifts are dropped, not fatal")
 
+	# a night of its own (game.json "nights"): a save names it, an older one is the first's
+	var data = root.get_node("Data")
+	_assert(checkpoint.get("night", "x") == "", "a save of the first night names it (\"\")")
+	var old := checkpoint.duplicate(true)
+	old.erase("night")
+	_assert(not saves.parse(JSON.stringify(old)).is_empty(), "a save older than nights is the first night's")
+	var seir := checkpoint.duplicate(true)
+	seir.room = "res://scenes/rooms/seir_quay.tscn"
+	_assert(saves.parse(JSON.stringify(seir)).is_empty(), "a later night's room in a first-night save is refused")
+	seir["night"] = "no_such_night"
+	_assert(saves.parse(JSON.stringify(seir)).is_empty(), "a night the game does not have is refused")
+	seir["night"] = "seir"
+	_assert(not saves.parse(JSON.stringify(seir)).is_empty(), "a later night's save is taken with its night named")
+	run.queue_free()
+	await process_frame
+	game.new_run()
+	saves.pending = saves.parse(JSON.stringify(seir))
+	run = load("res://scenes/run/run.tscn").instantiate()
+	root.add_child(run)
+	current_scene = run
+	await _settle(0.5)
+	_assert(data.night == "seir" and game.night == "seir", "loading it plays that night (%s)" % data.night)
+	_assert(run.ROOMS[run.room_index] == seir.room, "in its room (%s)" % run.ROOMS[run.room_index].get_file())
+	_assert(run.checkpoint.get("night", "") == "seir", "and the next save names it too")
+	run.queue_free()
+	await process_frame
+	game.night = ""
+	data.use_night("")
+
 	if backup.is_empty():
 		saves.delete("3")
 	else:

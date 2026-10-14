@@ -23,7 +23,7 @@ func _check(ok: bool, message: String) -> void:
 
 
 func _run() -> void:
-	var rooms: Array = (root.get_node("Data").rooms as Array).duplicate()
+	var rooms: Array = (root.get_node("Data").all_rooms() as Array).duplicate()
 	if DirAccess.dir_exists_absolute("res://scenes/rooms/composed"):
 		for file in ResourceLoader.list_directory("res://scenes/rooms/composed"):
 			if file.ends_with(".tscn"):

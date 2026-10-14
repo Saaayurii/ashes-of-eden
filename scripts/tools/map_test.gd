@@ -37,7 +37,7 @@ func _node(nodes: Array, name: String) -> Dictionary:
 func _run() -> void:
 	var route = load("res://scripts/run/route.gd")
 	var map_script = load("res://scripts/ui/chapter_map.gd")
-	var rooms: Array = route.rooms()
+	var rooms: Array = route.rooms().duplicate()  # Data.rooms itself changes with the night
 	var at := func(name: String) -> String: return "res://scenes/rooms/%s.tscn" % name
 	var walked := ["village_night", "graveyard_cross", "graveyard_arches", "graveyard_tree", "swamp_moon", "swamp_crypt"].map(at)
 
@@ -63,6 +63,22 @@ func _run() -> void:
 	nodes = map_script.layout(rooms, walked, at.call("swamp_crypt"), 15, at.call("catacombs_2"))
 	_check(_node(nodes, "catacombs_2").fell and not _node(nodes, "catacombs_1").fell,
 		"the room where last night's body lies is marked")
+
+	_check(_node(nodes, "seir_road").is_empty(), "the first night's map ends at its own last room")
+
+	# a later night (game.json "nights") maps its own way, from its own first room
+	root.get_node("Data").use_night("seir")
+	var seir: Array = route.rooms()
+	nodes = map_script.layout(seir, [at.call("seir_road")], at.call("seir_road"), 0)
+	columns = {}
+	for node in nodes:
+		columns[int(node.step)] = true
+	_check(columns.size() == route.length(seir) and _node(nodes, "hell_gate").is_empty(),
+		"Seir's map is Seir's rooms alone (%d columns)" % columns.size())
+	_check(_node(nodes, "seir_road").step == 0 and _node(nodes, "seir_road").state == "here", "and starts at its road")
+	_check(_node(nodes, "seir_gate").state == "ahead" and _node(nodes, "seir_square").state == "unknown",
+		"its own furthest room, not the first night's, hides what is past it")
+	root.get_node("Data").use_night("")
 
 	# --- kept in a save, and opened from the pause menu -----------------------
 	change_scene_to_file("res://scenes/run/run.tscn")
@@ -98,6 +114,29 @@ func _run() -> void:
 
 	current_scene = null
 	run.queue_free()
+	await _settle(0.2)
+
+	# --- which chapter a night starts in: asked on Play only after a dawn -----
+	var profile = root.get_node("Profile")
+	var wins_were = profile.data.get("wins", 0)
+	profile.data.wins = 0  # in memory only: nothing here saves the profile
+	_check(route.open_nights().size() == 1, "before any dawn only the first night is open")
+	var menu = load("res://scenes/ui/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await _settle(0.2)
+	profile.data.wins = 1
+	var open: Array = route.open_nights()
+	_check(open.size() == 2 and str(open[1].id) == "seir", "a dawn opens Seir's night")
+	menu._open_night_pick(open)
+	await process_frame
+	var pick = menu.get_node("NightPick")
+	var buttons: Array = pick.find_children("Night_*", "Button", true, false)
+	_check(pick.visible and buttons.size() == 2, "Play asks which chapter (%d)" % buttons.size())
+	_check(buttons[1].text != "" and buttons[1].text != buttons[0].text, "each by its chapter's name (%s)" % buttons[1].text)
+	menu._close_night_pick()
+	_check(not pick.visible, "and Back leaves the question")
+	profile.data.wins = wins_were
+	menu.queue_free()
 	await _settle(0.2)
 	print("MAP TEST %s" % ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	quit(0 if failures == 0 else 1)

@@ -3,7 +3,7 @@ extends SceneTree
 ##   - the way splits after the crone's swamp and after the knight's niche,
 ##     and both ways join again at the same room;
 ##   - the player picks by answering the question; unanswered, the first way;
-##   - a night is 17 rooms whichever way, and the numbers shown have no gaps;
+##   - a night skips one room per way not taken, and the numbers shown have no gaps;
 ##   - a door out of either way is a door out of the place: the gift is there;
 ##   - a save in a way the night took resumes on that way.
 ##   godot --headless --path . -s scripts/tools/fork_test.gd
@@ -31,6 +31,15 @@ func _path(name: String) -> String:
 	return "res://scenes/rooms/%s.tscn" % name
 
 
+## Rooms a night skips: one per way not taken, at the forks inside its rooms.
+func _skipped(rooms: Array) -> int:
+	var skipped := 0
+	for fork in root.get_node("Data").forks.values():
+		if rooms.has(str(fork.after)):
+			skipped += fork.options.size() - 1
+	return skipped
+
+
 func _answer(run, choice_index: int) -> void:
 	# wait for the question, then pick as a player would
 	for i in 120:
@@ -43,7 +52,7 @@ func _answer(run, choice_index: int) -> void:
 
 func _run() -> void:
 	var route = load("res://scripts/run/route.gd")
-	var rooms: Array = route.rooms()
+	var rooms: Array = route.rooms().duplicate()  # Data.rooms itself changes with the night
 	var at := func(name: String) -> int: return rooms.find(_path(name))
 
 	# the arithmetic
@@ -64,9 +73,24 @@ func _run() -> void:
 	_check(route.next_index(rooms, at.call("church")) == at.call("ashes_threshold")
 		and route.next_index(rooms, at.call("ashes_threshold")) == at.call("crypt_lava"),
 		"the church leads through the ash passage")
-	_check(route.length(rooms) == rooms.size() - 2, "a night is %d rooms whichever way" % route.length(rooms))
+	_check(route.length(rooms) == rooms.size() - _skipped(rooms), "a night is %d rooms whichever way" % route.length(rooms))
 	_check(route.step(rooms, at.call("swamp_red")) == route.step(rooms, at.call("swamp_crypt")), "both ways have the same number")
 	_check(route.step(rooms, at.call("catacombs_threshold")) == route.step(rooms, at.call("swamp_red")) + 1, "and the number after is the next one: no gap")
+
+	# a later night (game.json "nights") has its own forks, and the first night's
+	# arithmetic does not see them, nor they its
+	var data = root.get_node("Data")
+	data.use_night("seir")
+	var seir: Array = route.rooms()
+	var on := func(name: String) -> int: return seir.find(_path(name))
+	_check(not seir.has(_path("hell_gate")) and not rooms.has(_path("seir_road")), "the two nights share no room")
+	_check(route.next_index(seir, on.call("seir_square"), "canal") == on.call("seir_canal")
+		and route.next_index(seir, on.call("seir_roofs")) == on.call("seir_quay")
+		and route.next_index(seir, on.call("seir_canal")) == on.call("seir_quay"),
+		"Seir's square: the roofs or the canal, both to the quay")
+	_check(route.length(seir) == seir.size() - _skipped(seir), "Seir's night is %d rooms whichever way" % route.length(seir))
+	_check(route.step(seir, on.call("seir_quay")) == route.step(seir, on.call("seir_roofs")) + 1, "and counted from its own first room")
+	data.use_night("")
 
 	# the Run
 	change_scene_to_file("res://scenes/run/run.tscn")

@@ -6,7 +6,7 @@ extends Node
 ## "estimate vs reality" in docs/BALANCE_PROBE.md.
 ##
 ## Events (one per line, "t" = seconds since the run started):
-##   run_start, room_start {room, index}, room_clear {room, seconds, damage, deaths},
+##   run_start {version, difficulty, platform, weapon, night}, room_start {room, index}, room_clear {room, seconds, damage, deaths},
 ##   hurt {room, fraction}, death {room, x, y, by}, boss {room, id, seconds},
 ##   gift {id, rarity, path}, refuse {}, altar {room, paid}, chest {room, id}, level {level}, choice {dialogue, choice}, secret {room, note, first},
 ##   skip {dialogue} (a blocking dialogue cut short),
@@ -88,7 +88,8 @@ func _begin() -> void:
 	_clock = 0.0
 	_active = true
 	_write("run_start", {"version": ProjectSettings.get_setting("application/config/version", ""),
-		"difficulty": str(Settings.get("difficulty")), "platform": OS.get_name(), "weapon": Game.weapon})
+		"difficulty": str(Settings.get("difficulty")), "platform": OS.get_name(), "weapon": Game.weapon,
+		"night": Data.night})
 	var run := _run_scene()
 	if run != null and int(run.get("room_index")) >= 0:
 		_on_room_started(int(run.room_index) + 1)  # the first room began before we did

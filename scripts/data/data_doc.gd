@@ -13,7 +13,8 @@ extends RefCounted
 ## it was made for, and the validator refuses a pack made for a newer one. Raise
 ## it when a data format changes in a way an older pack would not survive, and
 ## say what changed in docs/GAME_PACKS.md.
-const ENGINE := 1
+## 2: game.json "nights", a game told in more than one night (Data.nights).
+const ENGINE := 2
 const ROOTS := ["res://data", "res://content/data"]
 const MODS_ROOT := "user://mods"
 const ENGINE_ROOT := "res://data/"
@@ -44,6 +45,29 @@ static func collection_roots(folder: String, from: Array[String], game: Dictiona
 	for root in from:
 		if root != ROOTS[0]:
 			out.append(root)
+	return out
+
+
+## The nights a game is told in (game.json, docs/GAME_PACKS.md): the first is
+## "rooms" and "opening" themselves, id "", always open; every entry of
+## "nights" after it is a night of its own — {id, rooms, opening, after_dawns}
+## — chosen from the menu once the profile has seen that many dawns. Static,
+## so the validator and the room tests read the same list the game plays.
+static func nights(game: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = [{"id": "", "rooms": game.get("rooms", []), "opening": game.get("opening", {}), "after_dawns": 0}]
+	for entry in game.get("nights", []):
+		if entry is Dictionary and str(entry.get("id", "")) != "":
+			out.append(entry)
+	return out
+
+
+## Every room of every night, in order: what a test that walks all rooms walks.
+static func all_rooms(game: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	for night in nights(game):
+		for path in night.get("rooms", []):
+			if not out.has(str(path)):
+				out.append(str(path))
 	return out
 
 
