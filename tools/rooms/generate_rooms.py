@@ -53,6 +53,11 @@ ROOM_EXPANSION_CUTS = {
     "tyre_bright_quay": (400, 780), "tyre_dyeworks": (460, 1160),
     "tyre_gate": (660, 870), "tyre_lamp_market": (470, 700), "tyre_rich_gate": (520, 1115),
     "tyre_vaults": (420, 800), "tyre_galleys": (360, 850), "tyre_palace_stair": (180,), "tyre_throne": (640, 850),
+    "marah_gallows": (180, 1200), "marah_ford": (500, 850), "marah_host_bank": (400, 700),
+    "marah_field": (560, 1180), "marah_bitter_wells": (170, 1140), "marah_dry_bed": (900, 1120),
+    "marah_legion_bank": (600, 1110), "marah_trench": (230, 1080),
+    "marah_parley": (360, 850), "marah_siege": (630, 790),
+    "marah_springs_path": (180, 780), "marah_wormwood_spring": (300, 965),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -91,6 +96,18 @@ FOCAL_RANGES = {
     "tyre_galleys": ((455, 505),),             # moon
     "tyre_palace_stair": ((300, 360), (605, 695)),  # moon, the laver
     "tyre_throne": ((455, 510), (1080, 1180)),  # moon, the throne
+    "marah_gallows": ((480, 850),),             # the dead tree and its noose
+    "marah_ford": ((740, 820),),                # moon
+    "marah_host_bank": ((500, 580), (1040, 1110)),  # moon, the white brazier on the tower
+    "marah_field": ((225, 515),),               # Rizpah's rock
+    "marah_bitter_wells": ((600, 690),),        # the shaft of light
+    "marah_dry_bed": ((300, 350), (560, 760)),  # moon, the dead tree
+    "marah_legion_bank": ((240, 500), (900, 960)),  # the cart, the banner
+    "marah_trench": ((540, 600), (640, 830)),  # moon, the dugout
+    "marah_parley": ((480, 800),),               # the long table
+    "marah_siege": ((960, 1230), (300, 612)),    # the tower, the rampart
+    "marah_springs_path": ((270, 575), (930, 1110)),  # the fold and trough, the hut
+    "marah_wormwood_spring": ((395, 960),),           # the basin and the star
 }
 
 TRAVERSAL_PATCHES = {
@@ -136,6 +153,10 @@ SEAM_STORIES = {
     # Tyre's too.
     "tyre_causeway": ("", ""), "tyre_counting_house": ("", ""), "tyre_dark_quarter": ("", ""),
     "tyre_bright_quay": ("", ""), "tyre_dyeworks": ("", ""), "tyre_gate": ("", ""), "tyre_lamp_market": ("", ""), "tyre_rich_gate": ("", ""), "tyre_vaults": ("", ""), "tyre_galleys": ("", ""), "tyre_palace_stair": ("", ""), "tyre_throne": ("", ""),
+    "marah_gallows": ("", ""), "marah_ford": ("", ""), "marah_host_bank": ("", ""), "marah_field": ("", ""),
+    "marah_bitter_wells": ("", ""), "marah_dry_bed": ("", ""), "marah_trench": ("", ""),
+    "marah_legion_bank": ("", ""), "marah_parley": ("", ""), "marah_siege": ("", ""),
+    "marah_springs_path": ("", ""), "marah_wormwood_spring": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -173,6 +194,8 @@ ROOM_PROP_MOTIFS = {
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
     "tyre_causeway": {}, "tyre_counting_house": {}, "tyre_dark_quarter": {}, "tyre_bright_quay": {},
     "tyre_dyeworks": {}, "tyre_gate": {}, "tyre_lamp_market": {}, "tyre_rich_gate": {}, "tyre_vaults": {}, "tyre_galleys": {}, "tyre_palace_stair": {}, "tyre_throne": {},
+    "marah_gallows": {}, "marah_ford": {}, "marah_host_bank": {}, "marah_field": {}, "marah_bitter_wells": {},
+    "marah_dry_bed": {}, "marah_trench": {}, "marah_legion_bank": {}, "marah_parley": {}, "marah_siege": {}, "marah_springs_path": {}, "marah_wormwood_spring": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -257,6 +280,11 @@ DEPTH_WINDOWS = {
     # Tyre has no inpainted plates yet (docs/CHAPTER4_ART.md) either.
     "tyre_causeway": (0.02, []), "tyre_counting_house": (0.02, []), "tyre_dark_quarter": (0.02, []),
     "tyre_bright_quay": (0.02, []), "tyre_dyeworks": (0.02, []), "tyre_gate": (0.02, []), "tyre_lamp_market": (0.02, []), "tyre_rich_gate": (0.02, []), "tyre_vaults": (0.02, []), "tyre_galleys": (0.02, []), "tyre_palace_stair": (0.02, []), "tyre_throne": (0.02, []),
+    # Marah (chapter III): no inpainted plates yet either
+    "marah_gallows": (0.02, []), "marah_ford": (0.02, []), "marah_host_bank": (0.02, []), "marah_field": (0.02, []),
+    "marah_bitter_wells": (0.02, []), "marah_dry_bed": (0.02, []), "marah_trench": (0.02, []),
+    "marah_legion_bank": (0.02, []), "marah_parley": (0.02, []), "marah_siege": (0.02, []),
+    "marah_springs_path": (0.02, []), "marah_wormwood_spring": (0.02, []),
 }
 
 
@@ -1492,6 +1520,9 @@ def build(name, r, scene=None):
         text = text.replace(f'height = {height}\n', f'height = {height}\nwaves_json = {_waves}\n', 1)
     if "void_kill_y" in r:
         text = text.replace(f'height = {height}\n', f'height = {height}\nvoid_kill_y = {r["void_kill_y"]}\n', 1)
+    if r.get("quiet_outro"):
+        # left without waking anyone who waits (Room.quiet_outro, docs/CHAPTER2.md)
+        text = text.replace(f'height = {height}\n', f'height = {height}\nquiet_outro = "{r["quiet_outro"]}"\n', 1)
     if r.get("interior"):
         # Inside: no painting, no fog; a stone wall behind everything.
         text = text.replace('[ext_resource type="Texture2D" path="res://assets/backgrounds/.png" id="2_backdrop"]\n', '')
@@ -1633,7 +1664,8 @@ def build(name, r, scene=None):
     for i, pool in enumerate(r.get("liquids", []), 1):
         kind, lx, ly, lw, lh = pool[:5]
         options = pool[5] if len(pool) > 5 else {}
-        text += (f'[node name="Liquid{i}" type="Area2D" parent="."]\nposition = Vector2({lx}, {ly})\n'
+        # {"name": ...} names the node, for a boss that raises it (Enemy._flood)
+        text += (f'[node name="{options.get("name", f"Liquid{i}")}" type="Area2D" parent="."]\nposition = Vector2({lx}, {ly})\n'
                  f'script = ExtResource("15_hazard")\nkind = "{kind}"\nsize = Vector2({lw}, {lh})\n'
                  + ('painted = true\n' if options.get("painted") else '') + '\n')
     if r.get("bell"):
@@ -1775,7 +1807,7 @@ if os.path.exists(STUDIO_ROOMS):
                     if len(_spawn) != 3 or not os.path.exists(os.path.join(ROOT, "data/enemies", _spawn[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _spawn[1:]):
                         raise SystemExit("invalid wave spawn")
             ROOMS[_name]["waves"] = list(ROOMS[_name].get("waves", [])) + _extra.get("waves", [])
-            for _key in ("intro_cutscene", "outro_cutscene", "music"):
+            for _key in ("intro_cutscene", "outro_cutscene", "quiet_outro", "music"):
                 if _key in _extra:
                     ROOMS[_name][_key] = _extra[_key]
             # chests and other props the studio stands on the floor, in the finished room's pixels
@@ -1869,8 +1901,8 @@ PACK_SCENES = os.path.join(PACK, "scenes", "rooms")
 # what the art studio adds to the pack's rooms, as tools/rooms/studio_rooms.json
 # adds to the engine's: spawns and props beside the table's, waves, cutscenes, music
 PACK_STUDIO = os.path.join(PACK, "rooms", "studio_rooms.json")
-PACK_STORY = {"npcs": [], "npc_paths": [], "intro_cutscene": "", "outro_cutscene": "", "intro": "", "props": [], "waves": []}
-PACK_OWN = ("spawns", "waves", "props", "npcs", "intro_cutscene", "outro_cutscene", "intro", "music", "ambient", "weather", "fog", "hazards")
+PACK_STORY = {"npcs": [], "npc_paths": [], "intro_cutscene": "", "outro_cutscene": "", "quiet_outro": "", "intro": "", "props": [], "waves": []}
+PACK_OWN = ("spawns", "waves", "props", "npcs", "intro_cutscene", "outro_cutscene", "quiet_outro", "intro", "music", "ambient", "weather", "fog", "hazards")
 
 
 def _pack_has(folder, ident):
@@ -1921,7 +1953,7 @@ def studio_extra(name, room, extra, where="content/rooms/studio_rooms.json"):
     room["spawns"] = [tuple(s) for s in extra.get("spawns_override", room.get("spawns", []))] + [tuple(s) for s in extra.get("spawns", [])]
     if "waves" in extra:
         room["waves"] = extra["waves"]
-    for key in ("intro_cutscene", "outro_cutscene", "music"):
+    for key in ("intro_cutscene", "outro_cutscene", "quiet_outro", "music"):
         if key in extra:
             room[key] = extra[key]
     room["props"] = list(room.get("props", [])) + [tuple(p) for p in extra.get("props", [])]

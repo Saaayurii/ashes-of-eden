@@ -14,7 +14,9 @@ class_name Enemy
 ##              When the last seal breaks it opens its eyes, drops low and takes
 ##              "exposed_bonus" more from every blow for "exposed" seconds,
 ##              without attacking — the damage phase. Once per fight.
-##   attacks    optional telegraphed attacks: [{"type": "melee" | "ranged" | "lunge" | "beam" | "nova", "windup", ...}]
+##   attacks    optional telegraphed attacks: [{"type": "melee" | "ranged" | "lunge" | "beam" | "nova" | "summon" | "wail", "windup", ...}]
+##              "wail" hurts nobody: after its wind-up every body that waits
+##              within "radius" wakes and hunts (the city woken by another's voice).
 ##              (a single "attack" object is accepted too). One is picked by weight among those in range,
 ##              with a strong penalty for repeating while another is available.
 ##   sprite     one strip, or {"cell", "fps", "animations": {idle, walk, attack, hurt, death}}
@@ -28,6 +30,11 @@ class_name Enemy
 ##              shield turns, while it is not swinging: from its wind-up to the
 ##              end of the recovery after its blow it is open, and a backstab
 ##              or a riposte goes round the shield anyway.
+##   patience   {"every": [min, max], "turn", "animation", "quicken", "min_windup"}:
+##              between blows, every so often it turns its back to the fire
+##              ("turn" seconds, the pose held). A blow then is a backstab and
+##              does not turn it round; it remembers one, and its next wind-up
+##              is "quicken" as long, never under "min_windup" (the Watchman).
 ##   on_death   {"type": "explode", "radius", "damage", "delay"} — the corpse
 ##              bursts; {"type": "split", "into": id, "count"} — it comes apart
 ##              into that many of another kind, already awake.
@@ -42,7 +49,7 @@ class_name Enemy
 ## receive the pose through a synchronizer and the theatre — telegraph, swing,
 ## beam, death — through RPCs, so both players read the same wind-up.
 
-enum State { PATROL, ALERT, CHASE, WINDUP, STRIKE, RECOVER, DEAD }
+enum State { PATROL, ALERT, CHASE, WINDUP, STRIKE, RECOVER, DEAD, TEND }
 
 const PROJECTILE_SCENE := preload("res://scenes/fx/projectile.tscn")
 static var RETARGET_INTERVAL: float = 0.4
@@ -198,6 +205,10 @@ var _hex_left := 0.0
 var _hex_bonus := 0.0
 ## A training dummy's quiet time left before it is whole again.
 var _dummy_rest := 0.0
+## "patience" (the Watchman): time to his next turn to the fire, and whether a
+## blow landed while he tended it (his next wind-up is the shorter for it).
+var _patience_left := 0.0
+var _patience_struck := false
 var _ward: Line2D
 ## Two armies (scripts/enemies/faction.gd): spared = its side spares the hero
 ## tonight and he has not struck it (replicated, for the minimap and the nod);
@@ -322,6 +333,8 @@ func _ready() -> void:
 		collision_mask &= ~16  # ledges are for walkers; a flyer passes through them
 	_home = global_position
 	_patrol_wait = randf_range(0.2, 1.2)
+	if stats.has("patience"):
+		_patience_left = _patience_roll()
 	# one that waits (chapter II) is never awake until struck, a boss included
 	aware = start_aware or (not waits() and (bool(stats.get("aware", false)) or bool(stats.get("boss", false))))
 	state = State.CHASE if aware else State.PATROL
@@ -617,7 +630,15 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var to_target := _target.global_position - global_position
+	if stats.has("patience") and state in [State.CHASE, State.RECOVER]:
+		_patience_left -= delta
+		if _patience_left <= 0.0 and state == State.CHASE:
+			_begin_tend(to_target)
 	match state:
+		State.TEND:
+			_hold(delta)
+			if _state_left <= 0.0:
+				_set_state(State.CHASE, 0.0)
 		State.CHASE:
 			_chase(to_target, delta)
 			if EnemyDark.douse_due(self, hp / _max_hp):
@@ -1225,12 +1246,14 @@ func _in_attack_range(attack: Dictionary, to_target: Vector2) -> bool:
 			return to_target.length() <= float(attack.get("trigger_range", range))
 		"summon":
 			return to_target.length() <= range and _summons_near(attack) < int(attack.get("max_alive", 2))
+		"wail":
+			return to_target.length() <= range and not _waiting_near(float(attack.get("radius", 200))).is_empty()
 		_:
 			return to_target.length() <= range
 
 
 func _begin_windup(to_target: Vector2) -> void:
-	_set_state(State.WINDUP, float(_attack.get("windup", 0.5)))
+	_set_state(State.WINDUP, _windup_of(_attack))
 	facing = 1 if to_target.x >= 0.0 else -1
 	var beam: bool = _attack.get("type", "melee") == "beam"
 	var length := float(_attack.get("length", 420))
@@ -1239,6 +1262,45 @@ func _begin_windup(to_target: Vector2) -> void:
 	_telegraph(_state_left, beam, length, thickness, color, str(_attack.get("animation", "attack")), str(_attack.get("telegraph_fx", "glow")))
 	if Net.active:
 		_net_telegraph.rpc(facing, _state_left, beam, length, thickness, color, str(_attack.get("animation", "attack")), str(_attack.get("telegraph_fx", "glow")))
+
+
+## How long this wind-up is. A blow taken while it tended the fire is
+## remembered: the next one comes sooner, never under patience.min_windup.
+func _windup_of(attack: Dictionary) -> float:
+	var windup := float(attack.get("windup", 0.5))
+	if _patience_struck:
+		_patience_struck = false
+		var spec: Dictionary = stats.get("patience", {})
+		windup = maxf(minf(windup, float(spec.get("min_windup", 0.5))), windup * float(spec.get("quicken", 0.6)))
+	return windup
+
+
+func _patience_roll() -> float:
+	var every: Array = stats.get("patience", {}).get("every", [8.0, 10.0])
+	return randf_range(float(every[0]), float(every[1]))
+
+
+## Patience: between blows he turns his back on the hero and tends the fire
+## for "turn" seconds. No glow builds — nothing is coming — only the lamp
+## answers; a blow now lands in his back and does not turn him round.
+func _begin_tend(to_target: Vector2) -> void:
+	var spec: Dictionary = stats.get("patience", {})
+	if absf(to_target.x) > 1.0:
+		facing = -1 if to_target.x > 0.0 else 1
+	_set_state(State.TEND, float(spec.get("turn", 1.2)))
+	_tend_fx(str(spec.get("animation", "special")))
+	if Net.active:
+		_net_tend.rpc(facing, str(spec.get("animation", "special")))
+
+
+func _tend_fx(animation: String) -> void:
+	_play(animation if _has_anim.has(animation) else "idle", true)
+	Fx.flash(global_position + Vector2(-8 * facing, -40), Color("#ffc870"), 80.0, 0.9, 0.7)
+
+
+## True while it has its back to the fire (patience): a blow now is a backstab.
+func is_tending() -> bool:
+	return state == State.TEND
 
 
 ## The telegraph: a bright pulse the player can read from across the room, and
@@ -1341,7 +1403,7 @@ func _resolve_strike(to_target: Vector2) -> void:
 		# backstep once CHASE resumes without delaying the next ready attack.
 		_disengage_left = minf(_attack_cd * 0.8,
 			float(_attack.get("recover", 0.35)) + 0.18 + randf_range(0.55, 0.8))
-	elif stats.get("behaviour", "walker") == "caster" and _attack.get("type") in ["ranged", "summon", "beam"]:
+	elif stats.get("behaviour", "walker") == "caster" and _attack.get("type") in ["ranged", "summon", "beam", "wail"]:
 		_disengage_left = minf(_attack_cd * 0.7,
 			float(_attack.get("recover", 0.35)) + 0.25 + randf_range(0.5, 0.75))
 	var animation := str(_attack.get("animation", "attack"))
@@ -1390,6 +1452,15 @@ func _resolve_strike(to_target: Vector2) -> void:
 			_set_state(State.STRIKE, 0.3)
 			_play(animation)
 			_douse(1)
+		"wail":
+			_set_state(State.STRIKE, float(_attack.get("duration", 0.6)))
+			_play(animation)
+			var radius := float(_attack.get("radius", 200))
+			_wail_fx(radius)
+			if Net.active:
+				_net_wail.rpc(radius, animation)
+			for sleeper in _waiting_near(radius):
+				sleeper.hear_wail(_target)
 		"nova":
 			_set_state(State.STRIKE, float(_attack.get("duration", 0.3)))
 			_play(animation)
@@ -1447,6 +1518,54 @@ func _net_stole(amount: float) -> void:
 
 
 @rpc("authority", "call_remote", "reliable")
+func _net_tend(new_facing: int, animation: String) -> void:
+	facing = new_facing
+	_tend_fx(animation)
+
+
+## The wail: a pale ring out to where it is heard, the cry carried by the
+## telegraph's own voice cue (her "attack" take). Hurts nobody.
+func _wail_fx(radius: float) -> void:
+	var tint := Color("#c8c4e0")
+	Fx.ring(global_position + Vector2(0, -14), radius, tint, 0.6)
+	Fx.flash(global_position + Vector2(0, -14), tint, 50.0, 0.5, 0.5)
+	Juice.shake(1.5)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_wail(radius: float, animation := "special") -> void:
+	_play(animation)
+	_wail_fx(radius)
+
+
+## Every body within radius that still waits, unwoken (a wail's audience).
+func _waiting_near(radius: float) -> Array[Enemy]:
+	var out: Array[Enemy] = []
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var other := node as Enemy
+		if other != null and other != self and not other.is_dead() and other.waits() and other.is_unaware() \
+				and other.global_position.distance_to(global_position) <= radius:
+			out.append(other)
+	return out
+
+
+## Woken by a wail, not by a blow: the one thing besides a sword that stirs a
+## body that waits. No backstab is owed and no waiter_struck is set — it was
+## not the hero's hand. Host only (the wail resolves there).
+func hear_wail(who: Player) -> void:
+	if not is_unaware() or is_dead():
+		return
+	_target = who
+	aware = true
+	_set_state(State.ALERT, float(_ai("alert_time")))
+	if who != null and absf(who.global_position.x - global_position.x) > 4.0:
+		facing = 1 if who.global_position.x > global_position.x else -1
+	_alert_fx()
+	if Net.active:
+		_net_alert.rpc(facing)
+
+
+@rpc("authority", "call_remote", "reliable")
 func _net_beam(length: float, thickness: float, color: String) -> void:
 	_beam_fx(length, thickness, color)
 
@@ -1489,6 +1608,12 @@ func _nova_hit() -> void:
 			victim.take_damage(float(_attack.get("damage", 12)) * Faction.damage_between(), self)
 
 
+## It is fighting another body, not a player (Faction; Blood Feud reads it).
+## The host's: online a guest's copy has no target and reads false.
+func feuding() -> bool:
+	return not is_dead() and not is_unaware() and _target is Enemy and is_instance_valid(_target) and not (_target as Enemy).is_dead()
+
+
 ## The bodies of hostile sides in the tree (none outside chapter III).
 func _hostile_bodies() -> Array[Enemy]:
 	var out: Array[Enemy] = []
@@ -1527,13 +1652,20 @@ func _fire_round(attack: Dictionary, aim: Vector2) -> void:
 		var offset := 0.0 if count == 1 else lerpf(-spread * 0.5, spread * 0.5, float(i) / float(count - 1))
 		var shot := direction.rotated(offset)
 		var speed := float(attack.get("projectile_speed", 170)) * (1.0 + randf_range(-jitter, jitter))
-		_spawn_projectile(origin, shot, false, attack, speed)
+		var bolt := attack
 		if attack.has("mark_landing"):
-			_mark_landing(origin, shot, speed, attack)
+			# a bolt flies through the painted stone (an Area2D never meets a
+			# StaticBody2D), so a marked one ends where its mark lies
+			var reach := _mark_landing(origin, shot, speed, attack)
+			if reach > 0.0:
+				bolt = attack.duplicate()
+				var own := float(attack.get("projectile_range", 0.0))
+				bolt["projectile_range"] = reach if own <= 0.0 else minf(own, reach)
+		_spawn_projectile(origin, shot, false, bolt, speed)
 		if Net.active:
-			_net_projectile.rpc(origin, shot, speed, str(attack.get("color", "#ffd27a")), _projectile_style(attack),
-				str(attack.get("projectile_motion", "straight")), float(attack.get("motion_amount", 0.0)),
-				float(attack.get("projectile_scale", 1.0)), float(attack.get("projectile_range", 0.0)))
+			_net_projectile.rpc(origin, shot, speed, str(bolt.get("color", "#ffd27a")), _projectile_style(bolt),
+				str(bolt.get("projectile_motion", "straight")), float(bolt.get("motion_amount", 0.0)),
+				float(bolt.get("projectile_scale", 1.0)), float(bolt.get("projectile_range", 0.0)))
 
 
 func _nearest_player() -> Node2D:
@@ -1697,6 +1829,8 @@ func _hold_attack_frame() -> void:
 
 
 func _set_state(new_state: State, duration: float) -> void:
+	if state == State.TEND and new_state != State.TEND:
+		_patience_left = _patience_roll()  # however the tending ended, the next one is a while off
 	if new_state != State.STRIKE:
 		_strike_wait = false
 	if new_state == State.WINDUP:
@@ -1775,7 +1909,11 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		amount *= 1.0 + float(stats.get("seal_phase", {}).get("exposed_bonus", 0.5))
 	if _hex_left > 0.0:
 		amount *= 1.0 + _hex_bonus
-	var backstab := is_unaware() and sneak > 1.0 and Player.can_move("backstab")
+	# his back to the fire (patience) is as good as a back that never saw you
+	var tending := state == State.TEND
+	if tending:
+		_patience_struck = true
+	var backstab := (is_unaware() or tending) and sneak > 1.0 and Player.can_move("backstab")
 	if backstab:
 		amount *= sneak
 		crit = true
@@ -1845,8 +1983,8 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 			# and now and then it gives ground rather than trade blows
 			if randf() < float(stats.get("hit_retreat", 0.35)):
 				_disengage_left = maxf(_disengage_left, randf_range(0.4, 0.7))
-	if hp > 0.0:
-		_play("hurt")
+	if hp > 0.0 and not tending:
+		_play("hurt")  # tending, he does not turn round, nor flinch
 	if seal_now:
 		_enter_seal()
 	if stats.get("boss", false) and not _summoned and stats.has("summons") \
@@ -2136,11 +2274,12 @@ func _ground_under(x: float) -> float:
 ## "mark_landing" on an arcing bolt: where it will come down glows that many
 ## seconds before it does (Wormwood's embers). The curve is the projectile's own
 ## (motion "arc": y += amount·t·dt), stepped until it meets the world or water.
-func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Dictionary) -> void:
+func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Dictionary) -> float:
 	var amount := float(attack.get("motion_amount", 0.0))
-	var step := 1.0 / 30.0
+	var step := 1.0 / 60.0
 	var t := 0.0
 	var at := origin
+	var length := 0.0
 	var space := get_world_2d().direct_space_state
 	while t < 4.0:
 		t += step
@@ -2148,8 +2287,10 @@ func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Di
 		var query := PhysicsRayQueryParameters2D.create(at, next, 1)
 		var hit := space.intersect_ray(query)
 		if not hit.is_empty():
+			length += at.distance_to(hit.position)
 			at = hit.position
 			break
+		length += at.distance_to(next)
 		var wet := false
 		for node in get_tree().get_nodes_in_group("liquids"):
 			var pool := node as Hazard
@@ -2160,12 +2301,13 @@ func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Di
 		if wet:
 			break
 	if t >= 4.0:
-		return
+		return 0.0
 	var lead := float(attack.mark_landing)
 	var color := str(attack.get("color", "#d8ecff"))
 	_mark(at, maxf(0.0, t - lead), minf(lead, t), color)
 	if Net.active:
 		_net_mark.rpc(at, maxf(0.0, t - lead), minf(lead, t), color)
+	return length
 
 
 ## The glow on the ground where a bolt will fall, from [param delay] for [param time].
@@ -2556,7 +2698,7 @@ func _draw() -> void:
 	var color := Color(1, 0.75, 0.2, 0.7) if state != State.STRIKE else Color(1, 0.2, 0.2, 0.8)
 	draw_arc(Vector2.ZERO, float(_attack.get("range", 30)), 0, TAU, 64, Color(0.4, 0.7, 1, 0.45), 1)
 	match _attack.get("type", "melee"):
-		"nova":
+		"nova", "wail":
 			draw_arc(Vector2.ZERO, float(_attack.get("radius", 90)), 0, TAU, 64, color, 2)
 		"melee":
 			var shape := attack_shape.shape as RectangleShape2D

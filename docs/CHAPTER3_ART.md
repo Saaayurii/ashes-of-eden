@@ -10,7 +10,7 @@
 
 | Что | Статус | Чем заменено пока |
 |---|---|---|
-| 12 панелей 1280×720 `assets/levels/marah_*.png` | **не нарисовано** | ничем: комната без картины не входит в игру; ночь `marah` не вписывается в `game.json`, пока не готовы все 12 и не зелёны reach / stairs / void / smoke |
+| 12 панелей 1280×720 `assets/levels/marah_*.png` | **12 из 12**: `gallows`, `ford`, `host_bank`, `field`, `bitter_wells`, `dry_bed` нарисованы Codex, `legion_bank`, `trench`, `parley`, `siege`, `springs_path`, `wormwood_spring` — генерацией изображений ChatGPT (те же промпты, тот же образец стиля); все обведены, reach / stairs / void зелёны | — (ночь `marah` — все двенадцать комнат, обе развилки, точка отдыха у загона пастуха) |
 | Атласы `host_spearman`, `host_archer`, `host_sentinel`, `legion_brute`, `host_standard_bearer`, `legion_centurion`, `wormwood` | **не нарисовано** | `"extends"` + `sprite.like` + `tint` (CHAPTER3.md §8): `gate_warden`, `ash_archer`, `wraith`, `shield_bearer`, `gate_warden` ×1,15, `fallen_champion`, `ophanim` |
 | `legion_possessed`, `wormwood_shade` | **не рисовать** — варианты на старых полосах | `possessed_villager` (тёплая сажа), `wraith` (зелёный) |
 | Портреты врагов (7) и босса | **не нарисовано** | портрет того, чью полосу он берёт |

@@ -50,6 +50,18 @@ const DOORWAYS := {
 	"tyre_galleys": [1525, 1570, 445],          # the harbour tower's lit door
 	"tyre_palace_stair": [1370, 1415, 176],     # the arch at the head of the stair
 	"tyre_throne": [1530, 1580, 521],           # the arch behind the throne
+	"marah_gallows": [1320, 1350, 605],         # the path between the rocks
+	"marah_ford": [1530, 1580, 536],            # the dark arch in the far bank
+	"marah_host_bank": [1545, 1590, 540],       # the open flap of the last tent
+	"marah_field": [1525, 1555, 555],           # the gap in the stakes
+	"marah_bitter_wells": [1525, 1590, 473],    # the arch out of the cellar
+	"marah_dry_bed": [1515, 1580, 550],         # the cave in the bank
+	"marah_trench": [1530, 1590, 592],          # the far end of the trench
+	"marah_legion_bank": [1500, 1560, 472],     # the gate in the stockade
+	"marah_parley": [1535, 1595, 538],          # the far flap
+	"marah_siege": [1545, 1600, 602],           # the gap behind the tower
+	"marah_springs_path": [1505, 1570, 135],    # the gap between the rocks at the top
+	"marah_wormwood_spring": [1540, 1590, 590], # the arch on the right
 }
 
 var failures := 0

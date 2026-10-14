@@ -85,6 +85,7 @@ size = Vector2(1600, 16)
 script = ExtResource("1_room")
 width = 1600
 height = 720
+quiet_outro = "seir_street_left_waiting"
 void_kill_y = 690
 intro_dialogue = ""
 intro_cutscene = ""
@@ -187,11 +188,16 @@ script = ExtResource("5_spawn")
 enemy_id = "waiting_townsman"
 
 [node name="Spawn7" type="Marker2D" parent="Spawns"]
+position = Vector2(1100, 523)
+script = ExtResource("5_spawn")
+enemy_id = "wailer"
+
+[node name="Spawn8" type="Marker2D" parent="Spawns"]
 position = Vector2(300, 230)
 script = ExtResource("5_spawn")
 enemy_id = "shade"
 
-[node name="Spawn8" type="Marker2D" parent="Spawns"]
+[node name="Spawn9" type="Marker2D" parent="Spawns"]
 position = Vector2(1320, 230)
 script = ExtResource("5_spawn")
 enemy_id = "shade"

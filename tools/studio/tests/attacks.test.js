@@ -21,3 +21,10 @@ test('frame bounds and effect types are validated before sending', () => {
   assert.ok(attackProblems({ ...a, telegraph_fx: 'red' }, 7).length);
   assert.ok(attackProblems({ ...a, damage: 0 }, 7).length);
 });
+test('a wail hurts nobody, is heard within a radius and breathes before it', () => {
+  const w = { type: 'wail', range: 320, radius: 240, windup: 1, cooldown: 6 };
+  assert.deepEqual(attackProblems(w, 7), []);
+  assert.ok(attackProblems({ ...w, damage: 5 }, 7).length);
+  assert.ok(attackProblems({ ...w, windup: 0.5 }, 7).length);
+  assert.ok(attackProblems({ ...w, radius: 20 }, 7).length);
+});

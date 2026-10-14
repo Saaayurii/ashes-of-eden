@@ -42,6 +42,9 @@ const FAR_WINDOWS := {
 	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
 	"tyre_causeway": [], "tyre_counting_house": [], "tyre_dark_quarter": [], "tyre_bright_quay": [], "tyre_dyeworks": [], "tyre_gate": [], "tyre_lamp_market": [], "tyre_rich_gate": [], "tyre_vaults": [], "tyre_galleys": [], "tyre_palace_stair": [], "tyre_throne": [],
+	# nor Marah (chapter III)
+	"marah_gallows": [], "marah_ford": [], "marah_host_bank": [], "marah_field": [],
+	"marah_bitter_wells": [], "marah_dry_bed": [], "marah_trench": [], "marah_legion_bank": [], "marah_parley": [], "marah_siege": [], "marah_springs_path": [], "marah_wormwood_spring": [],
 }
 
 

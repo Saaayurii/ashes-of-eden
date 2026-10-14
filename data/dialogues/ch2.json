@@ -416,6 +416,39 @@
     }
   },
   {
+    "id": "ch2_gate_left_waiting",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH2_GATE_LEFT_WAITING"
+      }
+    }
+  },
+  {
+    "id": "ch2_street_left_waiting",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH2_STREET_LEFT_WAITING"
+      }
+    }
+  },
+  {
+    "id": "ch2_square_left_waiting",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH2_SQUARE_LEFT_WAITING"
+      }
+    }
+  },
+  {
     "id": "ch2_watchman",
     "start": "route",
     "nodes": {

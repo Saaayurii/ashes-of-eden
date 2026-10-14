@@ -52,6 +52,11 @@ const CAPS := {
 	"dark_damage": [0.0, 0.6],
 	"dark_sight": [0.0, 0.6],
 	"parry_flare": [0.0, 5.0],
+	# chapter III (drafts/chapter_3): crossfire_armor is added to armor under its 0.5
+	"liquid_mend": [0.0, 4.0],
+	"truce_hold": [0.0, 3.0],
+	"feud_damage": [0.0, 0.8],
+	"crossfire_armor": [0.0, 0.3],
 }
 ## Caps expressed as multipliers of the base value rather than absolutes.
 const RELATIVE := ["attack_cooldown", "speed"]
