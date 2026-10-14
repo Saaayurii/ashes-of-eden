@@ -690,4 +690,170 @@ PAINTED = {
         props=[],
         decor=[], npcs=[], ambient="#ccc0b8", lights="auto",
         player=(40, 475), door=(1250, 463)),
+    # ---- Chapter VII, the Heavenly Hall (docs/CHAPTER7.md): twelve painted
+    # rooms of an even, shadowless light. Ambient is lighter than anywhere
+    # else and no lamp is hung on a wall: the only lights are fires the
+    # paintings show (the lamps of 4a, the lamp of the archive, the stones,
+    # the ark, the way's braziers, the gate's hedge of fire).
+    "hall_elders_stair": dict(
+        # The elders' stair: the twenty-four sit on the terraces along it and
+        # cast down their crowns toward the top edge, where nothing is shown.
+        painting="hall_elders_stair", width=1280, height=720, weather="none", fog=0.05, intro="", music="church",
+        intro_cutscene="elders_fall_down", void_kill_y=700,
+        ground=[(0, 562, 1280, 158)],
+        ledges=[(530, 343, 250, 14), (780, 346, 340, 14)],
+        ramps=[(170, 562, 530, 343)],
+        stone_steps=True,
+        spawns=[("wheel", 860, 250), ("wheel", 1040, 220), ("measuring_angel", 980, 334)],
+        props=[("hall_cache_crown", 640, 343)],
+        decor=[], npcs=[("elders", 880, 346), ("elders", 1010, 346), ("elders", 1090, 346)],
+        ambient="#e8e4dc", lights=[],
+        player=(30, 542), door=(1222, 530)),
+    "hall_outer_court": dict(
+        # The outer court, given to the nations and never measured: the
+        # seraph over it, the wheels over the terrace, the tally in the niche.
+        painting="hall_outer_court", width=1280, height=720, weather="none", fog=0.08, intro="", music="church",
+        intro_cutscene="ch7_court_sky", void_kill_y=700,
+        ground=[(0, 570, 1280, 150)],
+        ledges=[(495, 548, 235, 12), (545, 528, 185, 12), (595, 508, 135, 12), (690, 488, 45, 12), (730, 432, 360, 14)],
+        spawns=[("seraph", 400, 250), ("wheel", 820, 330), ("wheel", 1000, 320)],
+        props=[("hall_cache_court_tally", 1140, 570)],
+        decor=[], npcs=[], ambient="#e8e4dc", lights=[],
+        player=(30, 550), door=(1232, 538)),
+    "hall_measured_temple": dict(
+        # The measured temple: the altar and the worshippers counted with the
+        # reed. The door asks which way (fork_hall_temple).
+        painting="hall_measured_temple", width=1280, height=720, weather="none", fog=0.05, intro="ch7_temple_intro",
+        music="church", void_kill_y=700,
+        ground=[(0, 500, 1280, 220)],
+        ledges=[(560, 482, 160, 10), (578, 412, 122, 12)],
+        spawns=[("measuring_angel", 380, 488), ("measuring_angel", 840, 488), ("measuring_angel", 1050, 488),
+                ("register_scribe", 640, 400)],
+        props=[],
+        decor=[], npcs=[], ambient="#e8e4dc", lights=[],
+        player=(30, 480), door=(1240, 470)),
+    "hall_gallery_of_lamps": dict(
+        # The seven lamps (the temple's fork): three galleries between them,
+        # the right one climbed by its stair.
+        painting="hall_gallery_of_lamps", width=1280, height=720, weather="none", fog=0.05, intro="", music="arena",
+        void_kill_y=700,
+        ground=[(0, 505, 1280, 215)],
+        ledges=[(60, 306, 360, 12), (522, 346, 236, 12), (860, 393, 256, 12)],
+        ramps=[(1190, 505, 1115, 393)],
+        stone_steps=True,
+        spawns=[("seraph", 300, 200), ("seraph", 900, 230), ("register_scribe", 640, 334),
+                ("register_scribe", 950, 381), ("wheel", 520, 420)],
+        props=[],
+        decor=[], npcs=[], ambient="#e8e0d0",
+        lights=[(128, 185, "#ffe0a0", 70, 0.55, 0.12), (318, 185, "#ffe0a0", 70, 0.55, 0.12),
+                (503, 185, "#ffe0a0", 70, 0.55, 0.12), (640, 185, "#ffe0a0", 70, 0.55, 0.12),
+                (775, 185, "#ffe0a0", 70, 0.55, 0.12), (960, 185, "#ffe0a0", 70, 0.55, 0.12),
+                (1152, 185, "#ffe0a0", 70, 0.55, 0.12)],
+        player=(30, 485), door=(1250, 475)),
+    "hall_sea_of_glass": dict(
+        # The sea of glass like crystal (the temple's fork): the floor is a
+        # mirror and the reflections stand up out of it.
+        painting="hall_sea_of_glass", width=1280, height=720, weather="none", fog=0.08, intro="ch7_glass_intro",
+        music="arena", void_kill_y=700,
+        ground=[(0, 520, 1280, 200)],
+        ledges=[(445, 385, 390, 12)],
+        platforms=[(520, 455, 60, 10)],
+        spawns=[("mirror_elian", 380, 508), ("mirror_elian", 700, 508), ("mirror_elian", 1000, 508),
+                ("proud_mirror", 860, 508)],
+        props=[],
+        decor=[], npcs=[], ambient="#e8e4dc", lights=[],
+        player=(30, 500), door=(1250, 490)),
+    "hall_archive": dict(
+        # The archive: Enoch at his lectern under the gallery; the scribes
+        # bent over their work wait and hold no door. A rest at the lectern.
+        painting="hall_archive", width=1280, height=720, weather="none", fog=0.05, intro="", music="end",
+        void_kill_y=700,
+        ground=[(0, 608, 1280, 112)],
+        ledges=[(60, 415, 830, 14), (1030, 345, 250, 12)],
+        ramps=[(885, 608, 1010, 440)],
+        stone_steps=True,
+        platforms=[(960, 392, 50, 10)],
+        spawns=[("archive_scribe", 200, 403), ("archive_scribe", 480, 403), ("archive_scribe", 300, 596),
+                ("archive_scribe", 700, 596)],
+        props=[("hall_cache_register", 1150, 345)],
+        decor=[], npcs=[("enoch", 760, 415)], ambient="#e8e0d0",
+        lights=[(253, 350, "#ffd890", 60, 0.6, 0.2), (852, 298, "#ffd890", 70, 0.65, 0.2)],
+        player=(30, 588), door=(1212, 576)),
+    "hall_stones_of_fire": dict(
+        # The stones of fire, where the anointed cherub walked: no enemy, the
+        # one shadow in the hall lies under Lucifer. The molten seams between
+        # the stones are painted light only (BackdropLife lava), not a pool:
+        # the scene is no fight and the walk to it must not burn.
+        painting="hall_stones_of_fire", width=1280, height=720, weather="none", fog=0.05, intro="", music="end",
+        intro_cutscene="lucifer_on_the_stones", void_kill_y=700,
+        ground=[(0, 500, 1280, 220)],
+        spawns=[],
+        props=[],
+        decor=[], npcs=[("lucifer", 1000, 500)], ambient="#ece4d8",
+        lights=[(200, 505, "#ffb860", 80, 0.5, 0.25), (520, 505, "#ffb860", 80, 0.5, 0.25),
+                (840, 505, "#ffb860", 80, 0.5, 0.25), (1140, 505, "#ffb860", 80, 0.5, 0.25)],
+        player=(30, 480), door=(1245, 468)),
+    "hall_ark_sanctum": dict(
+        # The temple opened: the ark under its covering, nobody on it or over
+        # it. The voices, the thunder, then the fight. The door asks which way
+        # (fork_hall_storm).
+        painting="hall_ark_sanctum", width=1280, height=720, weather="none", fog=0.08, intro="", music="church",
+        intro_cutscene="ark_opened", void_kill_y=700,
+        ground=[(0, 530, 1280, 190)],
+        ledges=[(122, 420, 295, 12)],
+        platforms=[(440, 475, 50, 10)],
+        spawns=[("seraph", 300, 230), ("seraph", 980, 230), ("measuring_angel", 900, 518), ("wheel", 640, 300)],
+        props=[],
+        decor=[], npcs=[], ambient="#e4e0dc",
+        lights=[(640, 420, "#fff4d8", 120, 0.6, 0.05)],
+        player=(30, 510), door=(1250, 498)),
+    "hall_thunders": dict(
+        # The thunders (the storm's fork): a climb past the storm windows.
+        painting="hall_thunders", width=1280, height=720, weather="none", fog=0.1, intro="", music="arena",
+        void_kill_y=700,
+        ground=[(0, 553, 1280, 167)],
+        ledges=[(108, 392, 290, 14), (390, 300, 310, 14), (608, 106, 295, 14), (866, 228, 310, 14)],
+        platforms=[(310, 480, 50, 10), (400, 410, 50, 10), (420, 340, 50, 10), (760, 262, 50, 10), (930, 168, 50, 10)],
+        spawns=[("wheel", 500, 400), ("wheel", 900, 320), ("seraph", 700, 180), ("proud_mirror", 900, 541)],
+        props=[],
+        decor=[], npcs=[], ambient="#d8d8e0", lights=[],
+        player=(30, 533), door=(1245, 520)),
+    "hall_hail_gallery": dict(
+        # The great hail (the storm's fork): an open gallery, the floor whole
+        # from end to end, the shadows of the hail on it.
+        painting="hall_hail_gallery", width=1280, height=720, weather="hail", fog=0.12, intro="", music="arena",
+        void_kill_y=700,
+        ground=[(0, 552, 1280, 168)],
+        spawns=[("hail_spirit", 350, 330), ("hail_spirit", 700, 300), ("hail_spirit", 1000, 330),
+                ("measuring_angel", 800, 540)],
+        props=[],
+        decor=[], npcs=[], ambient="#dcdce4", lights=[],
+        player=(30, 532), door=(1225, 520)),
+    "hall_flaming_way": dict(
+        # The way to the tree of life: the first spring of the river out of
+        # Eden is the rest point at the left; the braziers burn along it.
+        painting="hall_flaming_way", width=1280, height=720, weather="none", fog=0.08, intro="", music="road",
+        void_kill_y=700,
+        ground=[(0, 578, 1280, 142)],
+        spawns=[("measuring_angel", 500, 566), ("measuring_angel", 900, 566), ("mirror_elian", 650, 566),
+                ("mirror_elian", 1050, 566), ("seraph", 800, 260)],
+        props=[],
+        decor=[], npcs=[], ambient="#ece4d4",
+        lights=[(85, 190, "#ffc070", 60, 0.55, 0.3), (218, 190, "#ffc070", 60, 0.55, 0.3),
+                (525, 190, "#ffc070", 60, 0.55, 0.3), (355, 500, "#ffc070", 50, 0.5, 0.3),
+                (683, 500, "#ffc070", 50, 0.5, 0.3), (970, 500, "#ffc070", 50, 0.5, 0.3),
+                (915, 350, "#ffc070", 60, 0.55, 0.3)],
+        player=(30, 558), door=(1238, 548)),
+    "hall_eden_gate": dict(
+        # The gate of Eden in its hedge of fire, and the Cherub before it.
+        # Beaten, he lowers the sword (ch7_finale); the door is the gate.
+        painting="hall_eden_gate", width=1280, height=720, weather="none", fog=0.05, intro="", music="boss_ophanim",
+        intro_cutscene="cherub_at_the_gate", outro_cutscene="ch7_finale", void_kill_y=700,
+        ground=[(0, 540, 1280, 180)],
+        spawns=[("cherub", 760, 528)],
+        props=[],
+        decor=[], npcs=[], ambient="#ece4d8",
+        lights=[(1080, 300, "#ffc070", 160, 0.7, 0.3), (960, 470, "#ffc070", 80, 0.6, 0.3),
+                (1200, 470, "#ffc070", 80, 0.6, 0.3)],
+        player=(40, 520), door=(1230, 510)),
 }

@@ -28,6 +28,11 @@ PEOPLE = ["knight", "mara", "matthew", "nun", "severin", "villager"]
 # the sixth cell, a sea wraith, came out teal; ours is the red tide's, so it keeps the wraith's
 SEIR_ENEMIES = ["watchman", "waiting_townsman", "gate_warden", "drowned", "drowned_bosun"]
 SEIR_PEOPLE = ["lazarus", "jonah", "naomi"]
+# the Heavenly Hall (chapter VII), drawn by Codex (assets/CREDITS.md); the
+# variants (wheel, hail spirit, archive scribe) and the reflections draw no new body
+HALL_ENEMIES = ["seraph", "measuring_angel", "register_scribe", "wheel",
+                "hail_spirit", "mirror_elian", "proud_mirror", "cherub"]
+HALL_PEOPLE = ["elders", "enoch", "lucifer"]
 
 STRIPS = {
     "possessed_villager": ("possessed_idle.png", (40, 36)),
@@ -59,7 +64,17 @@ GAME_CELLS = {
     # Seir (chapter II), drawn by Codex's image generation (assets/CREDITS.md)
     "waiting_townsman": (52, 52), "drowned": (60, 60), "gate_warden": (72, 72),
     "drowned_bosun": (96, 84), "watchman": (88, 88),
+    # the Heavenly Hall (chapter VII), drawn by Codex's image generation
+    "seraph": (72, 60), "measuring_angel": (60, 72), "register_scribe": (56, 52),
+    "cherub": (112, 96),
 }
+# A creature that hovers: its drawing is centred in the cell, not stood on the bottom row.
+FLYERS = {"raven", "shade", "wraith", "ophanim", "seraph"}
+# The cherub's four faces (Ezek. 1:10), one row each of a 7x7 atlas: four idle
+# frames, then three of its attack. Each is cut to HEAD_CELL, its collar ring on
+# the bottom row, and laid on the body at the tree's "head_at" (Enemy, CherubFaces).
+CHERUB_FACES = ["man", "lion", "ox", "eagle"]
+HEAD_CELL = (32, 32)
 
 
 # How far past its grid line a frame may reach for its own swing, as a share
@@ -458,7 +473,7 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     """Every creature's seven strips; returns the strip cell of each and how
     many rows were added above a flyer's drawing (its "pad_y")."""
     atlas_dir = SPRITES / "enemy_atlases"
-    flyers = {"raven", "shade", "wraith", "ophanim"}
+    flyers = FLYERS
     cells: dict[str, tuple[tuple[int, int], int]] = {}
     for enemy, target_cell in GAME_CELLS.items():
         source = atlas_dir / f"{enemy}.png"
@@ -551,6 +566,37 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     return cells
 
 
+def build_cherub_heads() -> None:
+    """The four heads, one strip each (cherub_head_<face>.png): one scale for
+    all four, from the tallest idle head, every head's collar on the bottom row
+    and centred on the same x, so the face can change without the neck moving."""
+    source = SPRITES / "enemy_atlases" / "cherub_heads.png"
+    if not source.exists():
+        return
+    atlas = Image.open(source).convert("RGBA")
+    rows = [_row_frames(atlas, row, False) for row in range(len(CHERUB_FACES))]
+    tallest = widest = 1
+    for frames_of in rows:
+        for frame, _ in frames_of:
+            bounds = frame.getchannel("A").getbbox()
+            if bounds:
+                tallest = max(tallest, bounds[3] - bounds[1])
+                widest = max(widest, bounds[2] - bounds[0])
+    scale = min((HEAD_CELL[0] - 2) / widest, (HEAD_CELL[1] - 2) / tallest)
+    for face, frames_of in zip(CHERUB_FACES, rows):
+        sequence = []
+        for frame, _ in frames_of:
+            bounds = frame.getchannel("A").getbbox()
+            canvas = Image.new("RGBA", HEAD_CELL)
+            if bounds:
+                head = frame.crop(bounds)
+                head = head.resize((max(1, round(head.width * scale)), max(1, round(head.height * scale))),
+                                   Image.Resampling.LANCZOS)
+                canvas.alpha_composite(head, ((HEAD_CELL[0] - head.width) // 2, HEAD_CELL[1] - head.height))
+            sequence.append(canvas)
+        save_strip(SPRITES / f"cherub_head_{face}.png", sequence)
+
+
 def write_cells(cells: dict[str, tuple[tuple[int, int], int]]) -> None:
     """The tree's "cell" is the strip's: the two must never disagree. A flyer
     grown in height also gets "pad_y", so the game keeps its body where the
@@ -571,7 +617,10 @@ def main() -> None:
     split_atlas(PORTRAITS / "people_atlas.png", PEOPLE, 3, 2)
     split_atlas(PORTRAITS / "seir_enemies_atlas.png", SEIR_ENEMIES, 3, 2)
     split_atlas(PORTRAITS / "seir_people_atlas.png", SEIR_PEOPLE, 3, 1)
+    split_atlas(PORTRAITS / "hall_enemies_atlas.png", HALL_ENEMIES, 4, 2)
+    split_atlas(PORTRAITS / "hall_people_atlas.png", HALL_PEOPLE, 3, 2)
     build_strips()
+    build_cherub_heads()
     write_cells(build_generated_animation_strips())
 
 

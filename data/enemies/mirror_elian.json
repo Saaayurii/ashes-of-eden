@@ -1,0 +1,59 @@
+{
+  "id": "mirror_elian",
+  "name": "ENEMY_MIRROR_ELIAN",
+  "lore": "ENEMY_MIRROR_ELIAN_LORE",
+  "tip": "TIP_MIRROR_ELIAN",
+  "hp": 130,
+  "speed": 70,
+  "damage": 14,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 460,
+  "size": 14,
+  "color": "#e8dcb0",
+  "material": "glass",
+  "tags": [
+    "mirror"
+  ],
+  "mirror": {
+    "windup_scale": 1.6,
+    "copies": "last_technique",
+    "copies_count": 1,
+    "roll": {
+      "chance": 0.3,
+      "cooldown": 3.5
+    },
+    "rise": 160
+  },
+  "sprite": {
+    "frames": "res://assets/sprites/elian_frames.tres",
+    "cell": [
+      128,
+      64
+    ],
+    "tint": "#e8dcb0",
+    "fps": 10,
+    "anim_map": {
+      "special": "cleave",
+      "attack_alt": "lunge"
+    },
+    "glass": 0.6
+  },
+  "attack": {
+    "type": "melee",
+    "range": 50,
+    "reach": 54,
+    "windup": 0.8,
+    "damage": 14,
+    "cooldown": 1.2,
+    "recover": 0.4,
+    "animation": "attack"
+  },
+  "essence": 26,
+  "light": {
+    "color": "#fff0c8",
+    "radius": 40,
+    "energy": 0.5,
+    "flicker": 0.05
+  }
+}

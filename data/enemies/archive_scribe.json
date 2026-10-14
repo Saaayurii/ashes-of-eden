@@ -1,0 +1,23 @@
+{
+  "id": "archive_scribe",
+  "extends": "register_scribe",
+  "_comment": "The register's scribe bent over its work in the archive: it waits (sees, hears and feels nobody until struck) and holds no door, so the archive is quiet.",
+  "name": "ENEMY_ARCHIVE_SCRIBE",
+  "lore": "ENEMY_ARCHIVE_SCRIBE_LORE",
+  "tip": "TIP_REGISTER_SCRIBE",
+  "waits": true,
+  "essence": 0,
+  "patrol": {
+    "radius": 4,
+    "speed": 0.1,
+    "pause": [
+      6,
+      12
+    ]
+  },
+  "sprite": {
+    "like": "register_scribe",
+    "tint": "#f0e8d4"
+  },
+  "voice": "register_scribe"
+}

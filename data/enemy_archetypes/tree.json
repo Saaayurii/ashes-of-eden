@@ -1032,5 +1032,98 @@
       },
       "scale": 0.96
     }
+  },
+  {
+    "id": "seraph",
+    "family": "hall",
+    "tier": 2,
+    "avatar": "res://assets/portraits/seraph.png",
+    "sprite": {
+      "cell": [
+        112,
+        74
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/seraph_v2_idle.png",
+        "walk": "res://assets/sprites/seraph_v2_walk.png",
+        "attack": "res://assets/sprites/seraph_v2_attack.png",
+        "attack_alt": "res://assets/sprites/seraph_v2_attack_alt.png",
+        "special": "res://assets/sprites/seraph_v2_special.png",
+        "hurt": "res://assets/sprites/seraph_v2_hurt.png",
+        "death": "res://assets/sprites/seraph_v2_death.png"
+      },
+      "scale": 1.0,
+      "pad_y": 7
+    }
+  },
+  {
+    "id": "measuring_angel",
+    "family": "hall",
+    "tier": 2,
+    "avatar": "res://assets/portraits/measuring_angel.png",
+    "sprite": {
+      "cell": [
+        120,
+        78
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/measuring_angel_v2_idle.png",
+        "walk": "res://assets/sprites/measuring_angel_v2_walk.png",
+        "attack": "res://assets/sprites/measuring_angel_v2_attack.png",
+        "attack_alt": "res://assets/sprites/measuring_angel_v2_attack_alt.png",
+        "special": "res://assets/sprites/measuring_angel_v2_special.png",
+        "hurt": "res://assets/sprites/measuring_angel_v2_hurt.png",
+        "death": "res://assets/sprites/measuring_angel_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
+    "id": "register_scribe",
+    "family": "hall",
+    "tier": 1,
+    "avatar": "res://assets/portraits/register_scribe.png",
+    "sprite": {
+      "cell": [
+        88,
+        56
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/register_scribe_v2_idle.png",
+        "walk": "res://assets/sprites/register_scribe_v2_walk.png",
+        "attack": "res://assets/sprites/register_scribe_v2_attack.png",
+        "attack_alt": "res://assets/sprites/register_scribe_v2_attack_alt.png",
+        "special": "res://assets/sprites/register_scribe_v2_special.png",
+        "hurt": "res://assets/sprites/register_scribe_v2_hurt.png",
+        "death": "res://assets/sprites/register_scribe_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
+    "id": "cherub",
+    "family": "hall",
+    "tier": 3,
+    "avatar": "res://assets/portraits/cherub.png",
+    "sprite": {
+      "cell": [
+        172,
+        99
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/cherub_v2_idle.png",
+        "walk": "res://assets/sprites/cherub_v2_walk.png",
+        "attack": "res://assets/sprites/cherub_v2_attack.png",
+        "attack_alt": "res://assets/sprites/cherub_v2_attack_alt.png",
+        "special": "res://assets/sprites/cherub_v2_special.png",
+        "hurt": "res://assets/sprites/cherub_v2_hurt.png",
+        "death": "res://assets/sprites/cherub_v2_death.png"
+      },
+      "scale": 1.0
+    }
   }
 ]

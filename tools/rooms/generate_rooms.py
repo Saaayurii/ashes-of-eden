@@ -49,6 +49,19 @@ ROOM_EXPANSION_CUTS = {
     "seir_square": (380, 820), "seir_roofs": (300, 1020), "seir_canal": (200, 1000),
     "seir_quay": (250, 1050), "seir_wrecks": (250, 470), "seir_warehouses": (320, 1000),
     "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
+    # the Heavenly Hall (chapter VII)
+    "hall_elders_stair": (600, 900),
+    "hall_outer_court": (180, 600),
+    "hall_measured_temple": (300, 960),
+    "hall_gallery_of_lamps": (200, 1240),
+    "hall_sea_of_glass": (400, 870),
+    "hall_archive": (300, 700),
+    "hall_stones_of_fire": (440, 790),
+    "hall_ark_sanctum": (300, 960),
+    "hall_thunders": (300, 1010),
+    "hall_hail_gallery": (440, 800),
+    "hall_flaming_way": (300, 650),
+    "hall_eden_gate": (300, 620),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -76,6 +89,11 @@ FOCAL_RANGES = {
     "seir_warehouses": ((890, 960),),          # the clock on the post
     "seir_breakwater": ((740, 820),),          # moon
     "seir_lighthouse": ((540, 640), (900, 1130)),  # moon in its window, the lamp
+    "hall_elders_stair": ((1170, 1280),),           # the exit arch
+    "hall_measured_temple": ((560, 720),),          # the measured altar
+    "hall_ark_sanctum": ((430, 850),),              # the veil and the ark under its covering
+    "hall_stones_of_fire": ((870, 1160),),          # the plinth stone Lucifer stands on
+    "hall_eden_gate": ((860, 1280),),               # the gate in its hedge of fire
 }
 
 TRAVERSAL_PATCHES = {
@@ -118,6 +136,19 @@ SEAM_STORIES = {
     "seir_roofs": ("", ""), "seir_canal": ("", ""), "seir_quay": ("", ""), "seir_wrecks": ("", ""),
     "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
     "seir_lighthouse": ("", ""),
+    # the Heavenly Hall's paintings are ordered and even; the seams stay clear
+    "hall_elders_stair": ("", ""),
+    "hall_outer_court": ("", ""),
+    "hall_measured_temple": ("", ""),
+    "hall_gallery_of_lamps": ("", ""),
+    "hall_sea_of_glass": ("", ""),
+    "hall_archive": ("", ""),
+    "hall_stones_of_fire": ("", ""),
+    "hall_ark_sanctum": ("", ""),
+    "hall_thunders": ("", ""),
+    "hall_hail_gallery": ("", ""),
+    "hall_flaming_way": ("", ""),
+    "hall_eden_gate": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -153,6 +184,18 @@ ROOM_PROP_MOTIFS = {
     "seir_road": {}, "seir_gate": {}, "seir_street": {}, "seir_square": {}, "seir_roofs": {},
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
+    "hall_elders_stair": {},
+    "hall_outer_court": {},
+    "hall_measured_temple": {},
+    "hall_gallery_of_lamps": {},
+    "hall_sea_of_glass": {},
+    "hall_archive": {},
+    "hall_stones_of_fire": {},
+    "hall_ark_sanctum": {},
+    "hall_thunders": {},
+    "hall_hail_gallery": {},
+    "hall_flaming_way": {},
+    "hall_eden_gate": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -234,6 +277,19 @@ DEPTH_WINDOWS = {
     "seir_roofs": (0.02, []), "seir_canal": (0.02, []), "seir_quay": (0.02, []), "seir_wrecks": (0.02, []),
     "seir_warehouses": (0.02, []), "seir_breakwater": (0.02, []), "seir_lighthouse_stair": (0.02, []),
     "seir_lighthouse": (0.02, []),
+    # the Heavenly Hall: no inpainted plates yet (docs/CHAPTER7_ART.md §5)
+    "hall_elders_stair": (0.02, []),
+    "hall_outer_court": (0.02, []),
+    "hall_measured_temple": (0.02, []),
+    "hall_gallery_of_lamps": (0.02, []),
+    "hall_sea_of_glass": (0.02, []),
+    "hall_archive": (0.02, []),
+    "hall_stones_of_fire": (0.02, []),
+    "hall_ark_sanctum": (0.02, []),
+    "hall_thunders": (0.02, []),
+    "hall_hail_gallery": (0.02, []),
+    "hall_flaming_way": (0.02, []),
+    "hall_eden_gate": (0.02, []),
 }
 
 
@@ -875,6 +931,29 @@ angular_velocity_max = 40.0
 scale_amount_min = 0.5
 scale_amount_max = 1.1
 color = Color(0.75, 0.75, 0.85, 0.7)
+color_ramp = SubResource("fade")
+"""
+
+# The great hail (chapter VII, hall_hail_gallery): hard white stones falling
+# fast and slanting with the wind, cosmetic only (the hail that hurts is the
+# hail spirits' attack, whose shadows show where it falls).
+WEATHER["hail"] = """[node name="Weather" type="CPUParticles2D" parent="."]
+z_index = 2
+position = Vector2({cx}, -20)
+amount = {amount_high}
+lifetime = 1.6
+preprocess = 1.6
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2({ex}, 4)
+direction = Vector2(0.25, 1)
+spread = 6.0
+gravity = Vector2(0, 600)
+initial_velocity_min = 260.0
+initial_velocity_max = 380.0
+scale_amount_min = 0.6
+scale_amount_max = 1.2
+color = Color(0.92, 0.95, 1.0, 0.85)
 color_ramp = SubResource("fade")
 """
 
