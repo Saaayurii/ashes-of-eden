@@ -20,6 +20,7 @@
     {"do": "dialogue", "id": "ch1_finale_bell_left", "if": "matthew_let_ring"},
     {"do": "dialogue", "id": "ch1_finale_names", "if": "matthew_book_revealed"},
     {"do": "dialogue", "id": "ch1_finale_book", "if": "book_read"},
+    {"do": "dialogue", "id": "ch1_finale_versions", "if": ["version_heaven", "version_abyss", "version_man"]},
     {"do": "camera", "to": "door", "zoom": 1.15, "time": 1.4},
     {"do": "fx", "kind": "light", "at": "door", "offset": [0, -24], "color": "#ffe2a0", "radius": 140, "time": 2.4, "energy": 1.1},
     {"do": "dialogue", "id": "ch1_finale_grace", "path": "grace"},

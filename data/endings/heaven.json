@@ -1,0 +1,9 @@
+{
+  "id": "heaven",
+  "name": "ENDING_HEAVEN",
+  "description": "ENDING_HEAVEN_DESC",
+  "line": "ENDING_HEAVEN_LINE",
+  "cutscene": "ending_heaven",
+  "order": 2,
+  "when": {"path": "grace", "lead": 2}
+}

@@ -12,6 +12,7 @@ class_name Achievements
 ##   moves     [ids] or "all"      special moves pulled off (data/techniques)
 ##   deeds     {counter: N}        a counter Profile.count keeps (COUNTERS)
 ##   fast      {boss id: seconds}  laid low within that long (its best_time)
+##   endings   [ids] or "all"      the campaign ended so (bestiary "ending:<id>", Endings)
 ## Several keys in one "unlock" must all hold. The id is also the name a store
 ## achievement will carry (Steam's API name), so it never changes once shipped.
 
@@ -107,6 +108,13 @@ static func _parts(unlock: Dictionary) -> Array:
 			if data.get("moves_done", {}).has(id):
 				have += 1
 		parts.append([have, moves.size()])
+	if unlock.has("endings"):
+		var endings: Array = Data.endings.keys() if str(unlock.endings) == "all" else unlock.endings
+		var have := 0
+		for id in endings:
+			if data.bestiary.has("ending:" + str(id)):
+				have += 1
+		parts.append([have, endings.size()])
 	for counter in unlock.get("deeds", {}):
 		parts.append([int(data.get("deeds", {}).get(counter, 0)), int(unlock.deeds[counter])])
 	# a boss's best fight (Profile.record_boss_time) within the time: done or not

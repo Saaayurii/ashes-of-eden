@@ -86,7 +86,7 @@ function gdFlags(files, code = {}) {
 }
 /* validate_data.gd, entry by entry: what the validator would refuse ({error}) or only say ({warn}) */
 const GD_RULES = {
-  achievements: ['nights', 'wins', 'total_kills', 'kills', 'known', 'notes', 'items', 'affixes', 'moves', 'deeds', 'fast'],
+  achievements: ['nights', 'wins', 'total_kills', 'kills', 'known', 'notes', 'items', 'affixes', 'moves', 'deeds', 'fast', 'endings'],
   vials: ['flasks', 'enemy_damage', 'enemy_hp', 'promote_chance', 'rest_heal', 'promote'],
   omens: ['essence', 'ash', 'flasks', 'enemy_damage', 'enemy_hp', 'skill_cooldown', 'enemy_sight', 'promote_chance', 'rest_heal', 'promote'],
   affixes: ['hp', 'damage', 'speed', 'cooldown', 'armor'],

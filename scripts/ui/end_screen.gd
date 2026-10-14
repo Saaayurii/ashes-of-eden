@@ -70,11 +70,26 @@ func allow_retry(allowed: bool) -> void:
 ## [param place] is the localization key of the chapter the night ended in
 ## (data/chapters); empty for a room no chapter claims, and then the line
 ## falls back to the area's number.
+## "Ending: The Fourth" for an ending reached, "" for none.
+static func ending_title(id: String) -> String:
+	if id == "" or not Data.endings.has(id):
+		return ""
+	return TranslationServer.translate("RUN_ENDING_TITLE") % TranslationServer.translate(str(Endings.spec(id).get("name", id)))
+
+
 func show_result(won: bool, area: int, kills: int, seconds: float, place := "") -> void:
 	title.text = "RUN_WIN_TITLE" if won else "RUN_DEAD_TITLE"
 	if won:
 		speaker.text = ""
 		line.text = WIN_LINES.get(Game.dominant_path(), "WIN_LINE")
+		# how the campaign ended, if it did (Endings); a dawn short of the
+		# finale's end is the chapter's, and the road goes on
+		var ending := ending_title(Game.ending)
+		if ending != "":
+			title.text = ending
+			line.text = str(Endings.spec(Game.ending).get("line", line.text))
+		else:
+			line.text = tr(line.text) + "\n" + tr("RUN_TO_BE_CONTINUED")
 	else:
 		var who: Array = LINES[Game.dominant_path()]
 		speaker.text = who[0]

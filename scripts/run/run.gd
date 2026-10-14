@@ -143,8 +143,16 @@ func _ready() -> void:
 			_start_studio_live()
 		_spawn_player(1, 0)
 		var jump := _requested_room()
+		var ending := _requested_ending()
 		if Game.practice != "":
 			_go_to_room(PRACTICE_INDEX)
+		elif ending != "":
+			# Straight to how the campaign ends: the night laid out so the
+			# chooser picks this ending itself, the finale's room, its scene.
+			Endings.seed(ending)
+			print("run: playing the ending %s" % ending)
+			await _go_to_room(maxi(0, ROOMS.find(str(Endings.finale().get("room", "")))))
+			_close_campaign(ending)
 		elif jump >= 0:
 			# Straight into a room to look at it: no prologue, no intro, no
 			# save, hero on his feet — the shape _resume_from already has.
@@ -783,6 +791,12 @@ func _advance() -> void:
 	# swamp, catacombs… not one per room. With a gift behind every door the
 	# chapter handed out ~23 upgrades against the 10–14 docs/BALANCE.md asks
 	# for (measured by scripts/tools/balance_probe.gd); essence levels fill the rest.
+	# Out of the finale's room, once the campaign ends there (data/game.json
+	# "finale"): no gift and no next room, the ending instead.
+	if room_index >= 0 and room_index < ROOMS.size() and Endings.closes_campaign(ROOMS[room_index]):
+		await _close_campaign()
+		_advancing = false
+		return
 	if _door_grants_gift():
 		if Net.active:
 			_gift_pending = {}
@@ -812,6 +826,43 @@ func _advance() -> void:
 	# new (possibly quiet) room before the player sees it.
 	await get_tree().physics_frame
 	_advancing = false
+
+
+## How the campaign ends (scripts/run/endings.gd): the host reads the night —
+## the hidden counters and the flags, its own, the story's — and every peer
+## plays the same ending, then the dawn comes up on it. [param forced] is the
+## debug build's `--ending=`; it still goes through the chooser, so a seed that
+## does not lead to its ending shows up as the wrong scene, not a quiet pass.
+func _close_campaign(forced := "") -> void:
+	if not _is_server() and Net.active:
+		return
+	var id := Endings.choose()
+	if forced != "" and id != forced:
+		push_warning("run: asked for the ending %s, the night leads to %s" % [forced, id])
+	if Net.active:
+		_net_ending.rpc(id)
+	await _play_ending(id)
+	if is_inside_tree():
+		_end_run(true)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_ending(id: String) -> void:
+	_play_ending(id)
+
+
+func _play_ending(id: String) -> void:
+	Game.ending = id
+	var scene := str(Endings.spec(id).get("cutscene", ""))
+	if scene != "" and Data.cutscenes.has(scene):
+		await cutscene.play(scene)
+
+
+## Which ending the command line asks for (`-- --ending=fourth`): debug builds only.
+func _requested_ending() -> String:
+	if not OS.is_debug_build():
+		return ""
+	return Endings.from_args(OS.get_cmdline_user_args())
 
 
 ## Where the door leads. At a fork (data/forks) the way splits and the

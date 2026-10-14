@@ -18,18 +18,20 @@
     "v_killed": {
       "speaker": "NPC_VILLAGER",
       "text": "DLG_CRONE_KILLED",
-      "next": "omen"
+      "next": "ash"
     },
     "v_mara": {
       "speaker": "NPC_VILLAGER",
       "text": "DLG_CRONE_MARA",
-      "next": "omen"
+      "next": "ash"
     },
     "v_default": {
       "speaker": "NPC_VILLAGER",
       "text": "DLG_NPC_VILLAGER_1",
-      "next": "omen"
+      "next": "ash"
     },
+    "ash": {"branches": [{"nights": 3, "next": "v_ash"}], "next": "omen"},
+    "v_ash": {"speaker": "NPC_VILLAGER", "text": "DLG_CRONE_ASH", "next": "omen"},
     "omen": {
       "branches": [
         {"omen": "blood_moon", "next": "o_blood_moon"},

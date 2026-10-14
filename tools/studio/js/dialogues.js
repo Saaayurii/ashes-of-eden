@@ -2,7 +2,7 @@
  * Every dialogue of the game, not only the ones a cutscene step reaches: the people on E, the
  * notes, the forks' questions at a door. Lines (speaker + text in all four locales), choices
  * (answer, what it weighs on the paths, the flags it sets, where it leads), routers (flag / path /
- * habit / vial / omen → node), and which window it is drawn in: the panel at the bottom
+ * habit / vial / omen / nights → node), and which window it is drawn in: the panel at the bottom
  * (blocking, the game waits, choices allowed) or captions at the top ("blocking": false, play
  * goes on, no choices). An NPC's blocking dialogue is drawn as bubbles over the heads instead
  * (DialogueBox.play_bubble). The preview draws each of the three as the game lays them out
@@ -22,7 +22,7 @@ const DLG_STYLE_KEYS = { bg: ['Фон окна', '#1a1a1a99'], border: ['Рам�
   border_width: ['Толщина рамки', 1], radius: ['Скругление', 3], speaker_size: ['Размер имени', 12], text_size: ['Размер текста', 16], caption_size: ['Размер субтитра', 13] };
 const DLG_WINDOWS = { panel: 'панель', caption: 'субтитр', portrait: 'портрет' };
 const DLG_LOCALES = [['ru', 'Русский'], ['en', 'English'], ['uk', 'Українська'], ['zh_CN', '中文']];
-const DLG_TESTS = { flag: 'флаг', path: 'путь сейчас', habit: 'привычка (3 ночи)', vial: 'чаша ≥', omen: 'знамение' };
+const DLG_TESTS = { flag: 'флаг', path: 'путь сейчас', habit: 'привычка (3 ночи)', vial: 'чаша ≥', omen: 'знамение', nights: 'ночей ≥' };
 const DLG_PATHS = { grace: 'благодать', temptation: 'искушение', will: 'воля' };
 const DLG_USER = { npcs: 'NPC (разговор на E)', notes: 'записка', forks: 'развилка у двери', props: 'предмет', rest_points: 'место отдыха' };
 const DLG_TYPE_RATE = 55, DLG_TYPE_MAX = 1.4;   // DialogueBox.TYPE_RATE / TYPE_MAX
@@ -404,7 +404,7 @@ function renderDlgNodes() {
       <div class="muted" style="font-size:12px">Развилка: первое выполненное условие решает, куда дальше. Текста у неё нет.</div>
       ${n.branches.map((b, i) => { const k = Object.keys(DLG_TESTS).find(k => k in b) || 'flag', v = b[k] ?? '';
         const val = k === 'path' || k === 'habit' ? `<select data-dn="b.${i}.val">${Object.entries(DLG_PATHS).map(([p, l]) => `<option value="${p}"${p === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`
-          : k === 'vial' ? `<input type="number" min="1" max="5" data-dn="b.${i}.val" value="${esc(v)}" style="width:60px">` : `<input data-dn="b.${i}.val" value="${esc(v)}" list="${k === 'flag' ? 'dlgFlags' : ''}" placeholder="${k === 'flag' ? 'имя флага' : 'id знамения'}">`;
+          : k === 'vial' || k === 'nights' ? `<input type="number" min="1" max="${k === 'vial' ? 5 : 99}" data-dn="b.${i}.val" value="${esc(v)}" style="width:60px">` : `<input data-dn="b.${i}.val" value="${esc(v)}" list="${k === 'flag' ? 'dlgFlags' : ''}" placeholder="${k === 'flag' ? 'имя флага' : 'id знамения'}">`;
         return `<div class="row" data-bi="${i}"><span class="muted">если</span><select data-dn="b.${i}.kind">${Object.entries(DLG_TESTS).map(([t, l]) => `<option value="${t}"${t === k ? ' selected' : ''}>${l}</option>`).join('')}</select>${val}<span class="muted">→</span>${dlgNextSel(d, b.next, `data-dn="b.${i}.next"`, '— выбери —')}<button class="sm danger" data-act="dg-del-branch" data-i="${i}">✕</button></div>`; }).join('')}
       <div class="row"><button class="sm" data-act="dg-add-branch">＋ Условие</button><span class="muted">иначе →</span>${dlgNextSel(d, n.next, 'data-dn="next"')}</div></div>`;
     return `<div class="card${nid === pv ? ' sel' : ''}" data-nid="${esc(nid)}" style="margin-top:8px">${head}
@@ -529,8 +529,8 @@ function dlgNodeInput(e) {
     else if (f[0] === 'b') {
       const b = n.branches[+f[1]];
       if (f[2] === 'next') b.next = v;
-      else if (f[2] === 'kind') { const old = Object.keys(DLG_TESTS).find(k => k in b); delete b[old]; b[v] = v === 'vial' ? 1 : v === 'path' || v === 'habit' ? 'grace' : ''; }
-      else { const k = Object.keys(DLG_TESTS).find(k => k in b) || 'flag'; b[k] = k === 'vial' ? +v : v.trim(); }
+      else if (f[2] === 'kind') { const old = Object.keys(DLG_TESTS).find(k => k in b); delete b[old]; b[v] = v === 'vial' ? 1 : v === 'nights' ? 3 : v === 'path' || v === 'habit' ? 'grace' : ''; }
+      else { const k = Object.keys(DLG_TESTS).find(k => k in b) || 'flag'; b[k] = k === 'vial' || k === 'nights' ? +v : v.trim(); }
     } else if (f[0] === 'c') {
       const c = n.choices[+f[1]];
       if (f[2] === 'id') c.id = v.trim();

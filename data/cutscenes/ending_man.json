@@ -1,0 +1,17 @@
+{
+  "id": "ending_man",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.5},
+    {"do": "camera", "to": "player", "zoom": 1.2, "time": 1.0},
+    {"do": "dialogue", "id": "ending_man"},
+    {"do": "fade", "to": 1.0, "color": "#000000", "time": 1.6},
+    {"do": "panel", "image": "res://assets/cutscenes/prolog_1_walk_a.png", "time": 0.0, "drift": 0.04},
+    {"do": "fade", "to": 0.0, "color": "#000000", "time": 1.2},
+    {"do": "title", "name": "ENDING_MAN", "subtitle": "ENDING_SUBTITLE", "time": 2.4},
+    {"do": "fade", "to": 1.0, "color": "#000000", "time": 2.0},
+    {"do": "panel_clear"},
+    {"do": "wait", "time": 0.6},
+    {"do": "release"}
+  ]
+}

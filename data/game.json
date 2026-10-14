@@ -25,6 +25,7 @@
     "res://scenes/rooms/hell_gate.tscn"
   ],
   "opening": {"prologue": "ch1_prologue", "prologue_short": "ch1_prologue_short", "intro": "ch1_intro", "last_fall": "ch1_last_fall"},
+  "finale": {"room": "res://scenes/rooms/hell_gate.tscn", "cutscene": "ch1_finale", "ends_campaign": false},
   "practice_room": "res://scenes/rooms/practice_yard.tscn",
   "menu": {"background": "res://assets/backgrounds/village_dawn.png", "music": "menu"},
   "paths": {

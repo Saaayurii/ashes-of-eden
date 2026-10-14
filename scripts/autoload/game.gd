@@ -74,6 +74,8 @@ var parries := 0
 var deeds_tonight: Array = []
 ## The omen this night is drawn under (data/omens, Omens), "" for a plain night.
 var omen := ""
+## The ending this night closed the campaign with (data/endings, Endings), "" for none.
+var ending := ""
 ## The vial of wrath this night is played under (scripts/run/vials.gd), 0 for none.
 var vial := 0
 ## Times the gift cards may still be dealt again tonight (the rosary, Relics).
@@ -119,6 +121,7 @@ func new_run() -> void:
 	parries = 0
 	deeds_tonight = []
 	omen = ""
+	ending = ""
 	vial = 0
 	rerolls = 0
 	essence_bonus = 0.0

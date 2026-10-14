@@ -91,5 +91,5 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] macOS notarization and Windows signing written and wired into `release.yml`, Android upload-key signing into `mobile.yml` — [ ] the certificates themselves, which have to be bought: `docs/RELEASE.md` says what each costs, what it fixes and in what order it is worth paying
 
 ## v1.0 — Campaign
-- [ ] Seven regions, four endings
+- [ ] Seven regions — [x] four endings as data (`data/endings`, `Endings`): chosen from the hidden counters and the three versions of the execution, a scene each from existing panels, a page in the book, a deed each; chapter I says "to be continued" until the finale moves to the last region (`data/game.json` `finale`, `endings_test.gd`)
 - [ ] iOS — the preset and the macOS job exist (`.github/workflows/mobile.yml`), but Godot will not export for iOS without an App Store Team ID, so nothing can be built until there is a paid Apple Developer account. The job skips itself and says so.
