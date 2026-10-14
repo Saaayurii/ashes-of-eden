@@ -1,0 +1,27 @@
+{
+  "id": "hall_cache_register",
+  "_art": "a plain chest standing where the painting hides the record (docs/CHAPTER7.md §4 Тайники)",
+  "kind": "chest",
+  "essence": 30,
+  "ash": 20,
+  "note": "note_register",
+  "glow": "#f2e0b0",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_wooden.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/realm/document_5.png"
+  ],
+  "effect": {
+    "set_flags": [
+      "register_read"
+    ]
+  }
+}

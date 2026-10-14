@@ -597,6 +597,60 @@ def build_cherub_heads() -> None:
         save_strip(SPRITES / f"cherub_head_{face}.png", sequence)
 
 
+def track_cherub_neck() -> None:
+    """Where the cherub's head sits in every frame (docs/CHAPTER7.md §9): its
+    body is drawn headless, and the head is a sprite of its own (CherubFaces)
+    that must ride the neck through a swing and a fall. The collar of the first
+    idle frame is found once (the highest torso pixel between the wings and the
+    sword), then matched in every frame of every strip; the tree gets "head_at"
+    (the idle head's centre from the cell's centre) and "head_track" (each
+    frame's collar offset from the idle one)."""
+    import numpy as np
+    tree = json.loads(TREE.read_text(encoding="utf-8"))
+    entry = next((e for e in tree if e["id"] == "cherub" and "sprite" in e), None)
+    if entry is None:
+        return
+    cell_w, cell_h = entry["sprite"]["cell"]
+
+    def frames(anim):
+        path = SPRITES / f"cherub_v2_{anim}.png"
+        if not path.exists():
+            return []
+        strip = np.asarray(Image.open(path).convert("RGBA"), dtype=np.float32)
+        return [strip[:, i * cell_w:(i + 1) * cell_w] for i in range(strip.shape[1] // cell_w)]
+
+    idle = frames("idle")
+    if not idle:
+        return
+    first = idle[0]
+    alpha = first[..., 3] > 128
+    x0, x1 = int(cell_w * 0.46), int(cell_w * 0.58)
+    rows = np.where(alpha[:, x0:x1].any(axis=1))[0]
+    top = int(rows[0])
+    cols = np.where(alpha[top, x0:x1])[0]
+    neck_x = x0 + int(cols.mean())
+    half_w, depth = 9, 12
+    template = first[top:top + depth, neck_x - half_w:neck_x + half_w + 1]
+    weight = (template[..., 3:4] > 128).astype(np.float32)
+    track = {}
+    for anim in ("idle", "walk", "attack", "attack_alt", "special", "hurt", "death"):
+        offsets = []
+        for frame in frames(anim):
+            best, at = None, (0, 0)
+            for y in range(0, cell_h - depth):
+                for x in range(half_w, cell_w - half_w - 1):
+                    patch = frame[y:y + depth, x - half_w:x + half_w + 1]
+                    cost = float((np.abs(patch - template) * weight).sum())
+                    if best is None or cost < best:
+                        best, at = cost, (x - neck_x, y - top)
+            offsets.append(list(at))
+        if offsets:
+            track[anim] = offsets
+    entry["sprite"]["head_at"] = [neck_x - cell_w // 2, top - cell_h // 2 - HEAD_CELL[1] // 2 + 4]
+    entry["sprite"]["head_track"] = track
+    TREE.write_text(json.dumps(tree, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def write_cells(cells: dict[str, tuple[tuple[int, int], int]]) -> None:
     """The tree's "cell" is the strip's: the two must never disagree. A flyer
     grown in height also gets "pad_y", so the game keeps its body where the
@@ -622,6 +676,7 @@ def main() -> None:
     build_strips()
     build_cherub_heads()
     write_cells(build_generated_animation_strips())
+    track_cherub_neck()
 
 
 if __name__ == "__main__":

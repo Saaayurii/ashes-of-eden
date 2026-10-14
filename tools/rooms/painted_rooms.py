@@ -706,7 +706,7 @@ PAINTED = {
         stone_steps=True,
         spawns=[("wheel", 860, 250), ("wheel", 1040, 220), ("measuring_angel", 980, 334)],
         props=[("hall_cache_crown", 640, 343)],
-        decor=[], npcs=[("elders", 880, 346), ("elders", 1010, 346), ("elders", 1090, 346)],
+        decor=[], npcs=[("elders", 880, 346), ("elders_2", 1010, 346), ("elders_3", 1090, 346)],
         ambient="#e8e4dc", lights=[],
         player=(30, 542), door=(1222, 530)),
     "hall_outer_court": dict(

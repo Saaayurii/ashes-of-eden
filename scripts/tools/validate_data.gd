@@ -1571,9 +1571,21 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 ## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
-const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck"]
+const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck",
+	# the scales of dawns (Dawns.seed_night, a night with "seed": "dawns")
+	"weighed_grace", "weighed_temptation", "weighed_will", "weighed_level", "weighed_none"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
+## Flags the finale reads (docs/CHAPTER7.md §5) that chapters III–VI write once
+## they are built (docs/CAMPAIGN.md §5): counted as written, and named in a
+## warning while nobody writes them yet. Remove a flag here when its chapter lands.
+const FLAGS_AWAITED := [
+	"sided_host", "sided_legion", "sided_none", "rope_paid_before", "prisoner_cut", "malchus_asked", "malchus_hanged",
+	"marah_sweetened", "marah_bitter", "wormwood_drunk", "rizpah_watched", "rizpah_told", "rizpah_left",
+	"light_returned", "light_shared", "light_taken", "read_tyre_ledger",
+	"tirzah_herbs", "pit_locked", "key_thrown", "key_kept",
+	"angels_kept_bound", "angels_loosed", "angels_left_to_men", "scroll_eaten",
+	"witnesses_covered", "witnesses_asked", "witnesses_robbed"]
 
 
 ## The engine room a game pack's room was made from (`base_room` in its scene), or "".
@@ -1712,6 +1724,13 @@ func _check_story_flags() -> void:
 	for flag in FLAGS_FOR_TESTS:
 		flags_set[flag] = "a test"
 		flags_read[flag] = "a test"
+	var awaited: Array = []
+	for flag in FLAGS_AWAITED:
+		if not flags_set.has(flag):
+			awaited.append(flag)
+			flags_set[flag] = "a chapter still to come"
+	if not awaited.is_empty():
+		_warn("flag(s) the campaign's end reads that no chapter writes yet (FLAGS_AWAITED): %s" % ", ".join(awaited))
 	var orphans: Array = []
 	for flag in flags_set:
 		if not flags_read.has(flag):
@@ -2179,6 +2198,9 @@ func _check_nights(game: Dictionary) -> void:
 					_error("%s: after \"%s\" is not an earlier night (or the game's id, %s, for the first)" % [where, after, game.get("id", "")])
 		elif night.has("after"):
 			_error("data/game.json: the first night is always open — it comes after nothing")
+		# "seed": "dawns" (Dawns, docs/CHAPTER7.md §9): the only seed there is
+		if night.has("seed") and str(night.seed) != "dawns":
+			_error("%s: seed must be \"dawns\" (the scales of the other nights' dawns)" % where)
 		for path in night.get("rooms", []):
 			owner[str(path)] = str(night.id)
 	for fork in _game_entries("forks"):

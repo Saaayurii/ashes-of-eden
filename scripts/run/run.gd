@@ -171,6 +171,9 @@ func _ready() -> void:
 				[room_names()[jump], jump + 1, ROOMS.size()])
 			_go_to_room(jump)
 		elif save.is_empty():
+			# a night on the scales starts weighted by the other nights' dawns
+			# (game.json "seed": "dawns", docs/CHAPTER7.md §9); a save already holds them
+			Dawns.seed_night()
 			_go_to_room(0)
 			_begin()
 		else:

@@ -175,11 +175,11 @@ npc_id = "elders"
 
 [node name="Npc2" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(1330, 346)
-npc_id = "elders"
+npc_id = "elders_2"
 
 [node name="Npc3" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(1410, 346)
-npc_id = "elders"
+npc_id = "elders_3"
 
 [node name="Spawns" type="Node2D" parent="."]
 

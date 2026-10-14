@@ -1,0 +1,18 @@
+[
+  {
+    "id": "hall_archive",
+    "at": [
+      1145,
+      415
+    ],
+    "_comment": "the lectern with its burning lamp on the archive's gallery, where Enoch writes"
+  },
+  {
+    "id": "hall_flaming_way",
+    "at": [
+      105,
+      578
+    ],
+    "_comment": "the stone basin the stream starts from — the first spring of the river out of Eden, before the fire"
+  }
+]
