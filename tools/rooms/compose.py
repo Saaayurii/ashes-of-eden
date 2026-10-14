@@ -58,7 +58,7 @@ MAX_COLS, MAX_ROWS = 6, 4
 ## How far each side of a seam the stitch may reach.
 SEAM = 96
 ## What the room keeps of the painted room it is made for.
-ATMOSPHERE = ("ambient", "fog", "intro", "music", "weather", "intro_cutscene", "outro_cutscene")
+ATMOSPHERE = ("ambient", "fog", "intro", "music", "weather", "intro_cutscene", "outro_cutscene", "quiet_outro")
 RECTS = ("ground", "ledges", "platforms", "hazards")
 PLACED = ("spawns", "props", "npcs")
 ## What a crumbling platform may be drawn as: crumbling_platform.gd's surface_kind.

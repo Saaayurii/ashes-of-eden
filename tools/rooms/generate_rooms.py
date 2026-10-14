@@ -1517,6 +1517,9 @@ def build(name, r, scene=None):
         text = text.replace(f'height = {height}\n', f'height = {height}\nwaves_json = {_waves}\n', 1)
     if "void_kill_y" in r:
         text = text.replace(f'height = {height}\n', f'height = {height}\nvoid_kill_y = {r["void_kill_y"]}\n', 1)
+    if r.get("quiet_outro"):
+        # left without waking anyone who waits (Room.quiet_outro, docs/CHAPTER2.md)
+        text = text.replace(f'height = {height}\n', f'height = {height}\nquiet_outro = "{r["quiet_outro"]}"\n', 1)
     if r.get("interior"):
         # Inside: no painting, no fog; a stone wall behind everything.
         text = text.replace('[ext_resource type="Texture2D" path="res://assets/backgrounds/.png" id="2_backdrop"]\n', '')
@@ -1795,7 +1798,7 @@ if os.path.exists(STUDIO_ROOMS):
                     if len(_spawn) != 3 or not os.path.exists(os.path.join(ROOT, "data/enemies", _spawn[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _spawn[1:]):
                         raise SystemExit("invalid wave spawn")
             ROOMS[_name]["waves"] = list(ROOMS[_name].get("waves", [])) + _extra.get("waves", [])
-            for _key in ("intro_cutscene", "outro_cutscene", "music"):
+            for _key in ("intro_cutscene", "outro_cutscene", "quiet_outro", "music"):
                 if _key in _extra:
                     ROOMS[_name][_key] = _extra[_key]
             # chests and other props the studio stands on the floor, in the finished room's pixels
@@ -1889,8 +1892,8 @@ PACK_SCENES = os.path.join(PACK, "scenes", "rooms")
 # what the art studio adds to the pack's rooms, as tools/rooms/studio_rooms.json
 # adds to the engine's: spawns and props beside the table's, waves, cutscenes, music
 PACK_STUDIO = os.path.join(PACK, "rooms", "studio_rooms.json")
-PACK_STORY = {"npcs": [], "npc_paths": [], "intro_cutscene": "", "outro_cutscene": "", "intro": "", "props": [], "waves": []}
-PACK_OWN = ("spawns", "waves", "props", "npcs", "intro_cutscene", "outro_cutscene", "intro", "music", "ambient", "weather", "fog", "hazards")
+PACK_STORY = {"npcs": [], "npc_paths": [], "intro_cutscene": "", "outro_cutscene": "", "quiet_outro": "", "intro": "", "props": [], "waves": []}
+PACK_OWN = ("spawns", "waves", "props", "npcs", "intro_cutscene", "outro_cutscene", "quiet_outro", "intro", "music", "ambient", "weather", "fog", "hazards")
 
 
 def _pack_has(folder, ident):
@@ -1941,7 +1944,7 @@ def studio_extra(name, room, extra, where="content/rooms/studio_rooms.json"):
     room["spawns"] = [tuple(s) for s in extra.get("spawns_override", room.get("spawns", []))] + [tuple(s) for s in extra.get("spawns", [])]
     if "waves" in extra:
         room["waves"] = extra["waves"]
-    for key in ("intro_cutscene", "outro_cutscene", "music"):
+    for key in ("intro_cutscene", "outro_cutscene", "quiet_outro", "music"):
         if key in extra:
             room[key] = extra[key]
     room["props"] = list(room.get("props", [])) + [tuple(p) for p in extra.get("props", [])]

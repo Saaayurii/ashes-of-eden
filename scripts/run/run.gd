@@ -836,6 +836,14 @@ func _advance() -> void:
 		await _close_campaign()
 		_advancing = false
 		return
+	# Left without waking anyone who waits (Room.quiet_outro): the room's last word.
+	if room != null and room.quiet_outro != "" and not room.woke_waiter():
+		if Net.active:
+			_net_quiet_outro.rpc(room.quiet_outro)
+		await cutscene.play(room.quiet_outro)
+		if _finished or not is_inside_tree():
+			_advancing = false
+			return
 	if _door_grants_gift():
 		if Net.active:
 			_gift_pending = {}
@@ -865,6 +873,11 @@ func _advance() -> void:
 	# new (possibly quiet) room before the player sees it.
 	await get_tree().physics_frame
 	_advancing = false
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_quiet_outro(id: String) -> void:
+	cutscene.play(id)
 
 
 ## How the campaign ends (scripts/run/endings.gd): the host reads the night —

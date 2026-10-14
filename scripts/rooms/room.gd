@@ -24,6 +24,10 @@ const ROOM_LAYERS := preload("res://scripts/rooms/room_layers.gd")
 ## Cutscenes (data/cutscenes) at the start of the room and once it is cleared. Empty = none.
 @export var intro_cutscene := ""
 @export var outro_cutscene := ""
+## A cutscene for leaving through the door without having woken anyone who
+## waits ("waits" in an enemy's JSON, docs/CHAPTER2.md): the way a room of
+## waiters ends, since it never sends `cleared`. The host decides (Run._advance).
+@export var quiet_outro := ""
 ## A game pack's room made from an engine room (tools/rooms/generate_rooms.py
 ## --pack, docs/GAME_PACKS.md): the engine room whose painting it shows, so its
 ## openings, life, ambience and depth are that room's. Empty = itself.
@@ -54,6 +58,9 @@ var authoritative := true
 ## Every enemy placed from a marker, [marker, body], for a rest to raise again.
 var _from_markers: Array = []
 var _cleared_once := false
+## Somebody here who waited was woken (struck, cried awake, laid low): kept once
+## seen, so a rest that stands the dead up again does not forget it.
+var _waiter_woken := false
 
 var _map_rects: Array[Rect2] = []
 var _depth_window_materials: Dictionary = {}
@@ -186,6 +193,7 @@ func populate() -> void:
 ## stand up again where they first stood, unaware. Elites and bosses stay down.
 ## Returns how many got up; the door shuts behind them until they are down.
 func respawn_commons() -> int:
+	woke_waiter()  # remember it before the dead stand up again unaware
 	var risen := 0
 	for pair in _from_markers:
 		var spawn: EnemySpawn = pair[0]
@@ -231,6 +239,21 @@ func _on_enemy_died(_id: StringName, _position: Vector2) -> void:
 		else:
 			_cleared_once = true
 			cleared.emit()
+
+
+## Whether anyone placed here who waits has stopped waiting — woken, or dead.
+## The host's to ask: a peer that only watches places nobody.
+func woke_waiter() -> bool:
+	if _waiter_woken:
+		return true
+	for pair in _from_markers:
+		if holds_door((pair[0] as EnemySpawn).enemy_id):
+			continue
+		var body = pair[1]
+		if not is_instance_valid(body) or (body as Enemy).is_dead() or not (body as Enemy).is_unaware():
+			_waiter_woken = true
+			break
+	return _waiter_woken
 
 
 ## One that waits ("waits" in its JSON, docs/CHAPTER2.md) never keeps the door
