@@ -1502,13 +1502,20 @@ func _fire_round(attack: Dictionary, aim: Vector2) -> void:
 		var offset := 0.0 if count == 1 else lerpf(-spread * 0.5, spread * 0.5, float(i) / float(count - 1))
 		var shot := direction.rotated(offset)
 		var speed := float(attack.get("projectile_speed", 170)) * (1.0 + randf_range(-jitter, jitter))
-		_spawn_projectile(origin, shot, false, attack, speed)
+		var bolt := attack
 		if attack.has("mark_landing"):
-			_mark_landing(origin, shot, speed, attack)
+			# a bolt flies through the painted stone (an Area2D never meets a
+			# StaticBody2D), so a marked one ends where its mark lies
+			var reach := _mark_landing(origin, shot, speed, attack)
+			if reach > 0.0:
+				bolt = attack.duplicate()
+				var own := float(attack.get("projectile_range", 0.0))
+				bolt["projectile_range"] = reach if own <= 0.0 else minf(own, reach)
+		_spawn_projectile(origin, shot, false, bolt, speed)
 		if Net.active:
-			_net_projectile.rpc(origin, shot, speed, str(attack.get("color", "#ffd27a")), _projectile_style(attack),
-				str(attack.get("projectile_motion", "straight")), float(attack.get("motion_amount", 0.0)),
-				float(attack.get("projectile_scale", 1.0)), float(attack.get("projectile_range", 0.0)))
+			_net_projectile.rpc(origin, shot, speed, str(bolt.get("color", "#ffd27a")), _projectile_style(bolt),
+				str(bolt.get("projectile_motion", "straight")), float(bolt.get("motion_amount", 0.0)),
+				float(bolt.get("projectile_scale", 1.0)), float(bolt.get("projectile_range", 0.0)))
 
 
 func _nearest_player() -> Node2D:
@@ -2111,11 +2118,12 @@ func _ground_under(x: float) -> float:
 ## "mark_landing" on an arcing bolt: where it will come down glows that many
 ## seconds before it does (Wormwood's embers). The curve is the projectile's own
 ## (motion "arc": y += amount·t·dt), stepped until it meets the world or water.
-func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Dictionary) -> void:
+func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Dictionary) -> float:
 	var amount := float(attack.get("motion_amount", 0.0))
-	var step := 1.0 / 30.0
+	var step := 1.0 / 60.0
 	var t := 0.0
 	var at := origin
+	var length := 0.0
 	var space := get_world_2d().direct_space_state
 	while t < 4.0:
 		t += step
@@ -2123,8 +2131,10 @@ func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Di
 		var query := PhysicsRayQueryParameters2D.create(at, next, 1)
 		var hit := space.intersect_ray(query)
 		if not hit.is_empty():
+			length += at.distance_to(hit.position)
 			at = hit.position
 			break
+		length += at.distance_to(next)
 		var wet := false
 		for node in get_tree().get_nodes_in_group("liquids"):
 			var pool := node as Hazard
@@ -2135,12 +2145,13 @@ func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Di
 		if wet:
 			break
 	if t >= 4.0:
-		return
+		return 0.0
 	var lead := float(attack.mark_landing)
 	var color := str(attack.get("color", "#d8ecff"))
 	_mark(at, maxf(0.0, t - lead), minf(lead, t), color)
 	if Net.active:
 		_net_mark.rpc(at, maxf(0.0, t - lead), minf(lead, t), color)
+	return length
 
 
 ## The glow on the ground where a bolt will fall, from [param delay] for [param time].
