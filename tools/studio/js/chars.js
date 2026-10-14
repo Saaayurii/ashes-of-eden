@@ -310,9 +310,27 @@ async function exportGodot() {
 }
 
 /* ---------- render ---------- */
+// Her projects, then every creature of the game by chapter (lib.js creatureGroups), opened or not:
+// one not opened yet comes from the game when chosen (openCreature). A creature whose strips are
+// another's (a tinted variant) opens that one. Without import/enemies.json, her projects alone.
 function renderProjSel() {
-  $('#projSel').innerHTML = projects.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-    .map(p => `<option value="${p.id}" ${p.id === P.id ? 'selected' : ''}>${esc(p.name || 'без имени')}</option>`).join('');
+  if (!enemyList && !renderProjSel.asked) { renderProjSel.asked = true; fetch('import/enemies.json').then(r => r.json()).then(j => { enemyList ||= j; renderProjSel(); }).catch(() => {}); }
+  const groups = creatureGroups((enemyList || []).filter(e => e.char)), held = new Set(groups.flatMap(g => g.items.map(i => i.char)));
+  const mine = projects.filter(p => !held.has(p.id)).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    .map(p => `<option value="${esc(p.id)}" ${p.id === P.id ? 'selected' : ''}>${esc(p.name || 'без имени')}</option>`).join('');
+  const have = new Set(projects.map(p => p.id));
+  $('#projSel').innerHTML = (groups.length ? `<optgroup label="Мои и открытые">${mine}</optgroup>` : mine) + groups.map(g => `<optgroup label="${esc(g.label === 'Нет в игре' ? 'Нет в игре (черновики)' : 'Игра · ' + g.label)}">${g.items.map(i =>
+    `<option value="enemy:${esc(i.id)}" ${i.id === P.id ? 'selected' : ''} title="${esc([...i.where, i.base ? `рисуется кадрами «${i.base}»${i.tint ? ', оттенок ' + i.tint : ''}` : ''].filter(Boolean).join('\n'))}">${esc(i.name)}${i.boss ? ' ⚜' : ''}${i.base ? ` — как «${esc(i.base)}»` : ''}${have.has(i.char) ? '' : ' · из игры'}</option>`).join('')}</optgroup>`).join('');
+}
+// A creature of the game chosen in the list: its character (from the game the first time), then a word when it wears another's strips.
+async function openCreature(id) {
+  const e = (enemyList || []).find(x => x.id === id); if (!e?.char) return;
+  const have = projects.find(p => p.id === e.char);
+  if (have) P = migrate(have); else await importFromUrl(`import/chars/${encodeURIComponent(e.char)}.sprite.json`);
+  selected = null; pv.i = 0; processed = new Map(); procRef = null;
+  try { localStorage.setItem('ss_last', P.id); } catch {}
+  renderAll(); scheduleBuild(0);
+  if (e.char !== e.id) toast(`«${e.name?.ru || e.id}» рисуется кадрами «${P.name}»${e.tint ? ` с оттенком ${e.tint}` : ''} — правка этих кадров изменит обоих.`);
 }
 function renderSide() {
   $('#pName').value = P.name || '';
@@ -738,6 +756,7 @@ document.addEventListener('input', e => {
   else if (t.dataset.f) { const { f } = findFrame(t.closest('[data-fid]').dataset.fid); if (f) { f[t.dataset.f] = t.type === 'number' ? Math.max(0.25, +t.value || 1) : t.value; save(); } }
 });
 $('#projSel').addEventListener('change', e => {
+  if (e.target.value.startsWith('enemy:')) { openCreature(e.target.value.slice(6)); return; }
   const p = projects.find(x => x.id === e.target.value); if (!p) return;
   P = migrate(p); selected = null; pv.i = 0; processed = new Map(); procRef = null;
   try { localStorage.setItem('ss_last', P.id); } catch {}
