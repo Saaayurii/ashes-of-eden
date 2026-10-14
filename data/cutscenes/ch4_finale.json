@@ -8,7 +8,7 @@
     {"do": "dialogue", "id": "ch4_prince_fall", "cast": {"SPEAKER_PRINCE_OF_TYRE": "boss", "SPEAKER_ELIAN": "player"}, "zoom": 1.25},
     {"do": "flash", "color": "#fff6d6", "strength": 0.6, "time": 1.0, "if": "light_returned"},
     {"do": "dialogue", "id": "ch4_finale_returned", "if": "light_returned"},
-    {"do": "fx", "kind": "light", "at": "player", "offset": [0, -30], "color": "#ffcf70", "radius": 140, "time": 2.4, "energy": 1.0, "if": "light_shared"},
+    {"do": "fx", "kind": "light", "at": "player", "offset": [0, -30], "color": "#ffcf70", "radius": 140, "time": 2.4, "energy": 1, "if": "light_shared"},
     {"do": "dialogue", "id": "ch4_finale_shared", "if": "light_shared"},
     {"do": "fx", "kind": "light", "at": "player", "offset": [0, -44], "color": "#fff0b0", "radius": 90, "time": 2.4, "energy": 1.1, "if": "light_taken"},
     {"do": "dialogue", "id": "ch4_finale_taken", "cast": {"SPEAKER_PRINCE_OF_TYRE": "boss"}, "if": "light_taken"},
