@@ -1,8 +1,10 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/hall_eden_gate_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
+[ext_resource type="Texture2D" path="res://assets/levels/depth/hall_eden_gate_backfill_wide.png" id="depth_plate"]
 [ext_resource type="Script" path="res://scripts/rooms/door.gd" id="4_door"]
 [ext_resource type="Script" path="res://scripts/rooms/enemy_spawn.gd" id="5_spawn"]
 [ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="7_prop"]
@@ -31,6 +33,10 @@ noise = SubResource("noise")
 shader = ExtResource("3_fog")
 shader_parameter/noise = SubResource("noise_tex")
 shader_parameter/density = 0.05
+
+[sub_resource type="ShaderMaterial" id="depth_window_mat"]
+shader = ExtResource("depth_shader")
+shader_parameter/plate_width = 1600.0
 
 [sub_resource type="Gradient" id="glow_grad"]
 offsets = PackedFloat32Array(0, 1)
@@ -90,6 +96,7 @@ intro_dialogue = ""
 intro_cutscene = "cherub_at_the_gate"
 outro_cutscene = "ch7_finale"
 painting_source = "res://assets/levels/hall_eden_gate_wide.png"
+depth_parallax = 0.02
 
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.925, 0.894, 0.847, 1)
@@ -100,6 +107,116 @@ music = "boss_ophanim"
 texture_filter = 2
 texture = ExtResource("2_backdrop")
 centered = false
+
+[node name="DepthWindows" type="Node2D" parent="."]
+
+[node name="Window1Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(533, 144, 470, 10, 596, 10)
+uv = PackedVector2Array(533, 144, 470, 10, 596, 10)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(533, 144, 596, 10, 596, 278)
+uv = PackedVector2Array(533, 144, 596, 10, 596, 278)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(533, 144, 596, 278, 470, 278)
+uv = PackedVector2Array(533, 144, 596, 278, 470, 278)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(533, 144, 470, 278, 470, 10)
+uv = PackedVector2Array(533, 144, 470, 278, 470, 10)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(990, 178, 948, 10, 1032, 10)
+uv = PackedVector2Array(990, 178, 948, 10, 1032, 10)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(990, 178, 1032, 10, 1032, 345)
+uv = PackedVector2Array(990, 178, 1032, 10, 1032, 345)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(990, 178, 1032, 345, 948, 345)
+uv = PackedVector2Array(990, 178, 1032, 345, 948, 345)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(990, 178, 948, 345, 948, 10)
+uv = PackedVector2Array(990, 178, 948, 345, 948, 10)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(67, 306, 42, 112, 92, 112)
+uv = PackedVector2Array(67, 306, 42, 112, 92, 112)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(67, 306, 92, 112, 92, 500)
+uv = PackedVector2Array(67, 306, 92, 112, 92, 500)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(67, 306, 92, 500, 42, 500)
+uv = PackedVector2Array(67, 306, 92, 500, 42, 500)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(67, 306, 42, 500, 42, 112)
+uv = PackedVector2Array(67, 306, 42, 500, 42, 112)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
 
 [node name="FogFar" type="Parallax2D" parent="."]
 scroll_scale = Vector2(0.75, 0.75)

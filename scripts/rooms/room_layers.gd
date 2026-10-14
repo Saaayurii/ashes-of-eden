@@ -41,10 +41,19 @@ const FAR_WINDOWS := {
 	"seir_road": [], "seir_gate": [], "seir_street": [], "seir_square": [],
 	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
-	# the Heavenly Hall (chapter VII) has no inpainted plates yet either
-	"hall_elders_stair": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], "hall_outer_court": [1, 2, 3, 4], "hall_measured_temple": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "hall_gallery_of_lamps": [],
-	"hall_sea_of_glass": [], "hall_archive": [], "hall_stones_of_fire": [], "hall_ark_sanctum": [],
-	"hall_thunders": [], "hall_hail_gallery": [], "hall_flaming_way": [], "hall_eden_gate": [],
+	# the Heavenly Hall (chapter VII): every pane, arch and gap onto its sky slides
+	"hall_elders_stair": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+	"hall_outer_court": [1, 2, 3, 4],
+	"hall_measured_temple": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+	"hall_gallery_of_lamps": [], # no sky: the lamps hang in a closed hall
+	"hall_sea_of_glass": [1, 2, 3, 4, 5, 6],
+	"hall_archive": [], # no sky: shelves and stone
+	"hall_stones_of_fire": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+	"hall_ark_sanctum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+	"hall_thunders": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+	"hall_hail_gallery": [1, 2, 3, 4, 5, 6, 7],
+	"hall_flaming_way": [1, 2, 3],
+	"hall_eden_gate": [1, 2, 3],
 }
 
 

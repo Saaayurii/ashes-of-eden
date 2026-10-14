@@ -27,7 +27,7 @@ const rebuild = () => execFileSync('python3', ['tools/studio/build_data.py'], { 
     assert.equal(await page.locator('[data-attack="impact_fx"]').inputValue(), 'dust');
     assert.equal(await page.locator('[data-attack="telegraph_fx"]').inputValue(), 'none');
     const types = await page.evaluate(() => [...new Set(ATTACKS.data.roster.flatMap(r => r.source.items.map(a => a.type)))].sort());
-    assert.deepEqual(types, ['beam', 'lunge', 'melee', 'nova', 'ranged', 'summon', 'wail']);
+    assert.deepEqual(types, ['beam', 'hail', 'lunge', 'melee', 'nova', 'ranged', 'summon', 'wail']);
     await page.locator('[data-attack="hit_frame"]').fill('3');
     await page.locator('[data-attack="hit_frame"]').dispatchEvent('change');
     const output = await page.evaluate(async () => (await attacksFiles()).files);
