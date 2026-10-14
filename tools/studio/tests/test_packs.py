@@ -1,6 +1,7 @@
 """Tests for the game-pack tools (tools/packs, docs/GAME_PACKS.md): the strings a
 pack lays over the engine's, the game a pack makes as the studio reads it, a new
-game from the template, and the studio's builder pointed at one.
+game from the template, the studio's builder pointed at one, and the rooms a
+pack makes from the engine's (generate_rooms.py --pack).
 
     python3 -m unittest discover -s tools/studio/tests
 """
@@ -18,6 +19,12 @@ sys.path.insert(0, str(ROOT / "tools" / "studio"))
 import apply_pack  # noqa: E402
 import build_data  # noqa: E402
 import game_view  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "tools" / "rooms"))
+_argv, sys.argv = sys.argv, [sys.argv[0]]
+import generate_rooms  # noqa: E402
+import painted_rooms  # noqa: E402
+sys.argv = _argv
 
 
 class Strings(unittest.TestCase):
@@ -100,6 +107,46 @@ class NewGame(unittest.TestCase):
         self.assertEqual(leftovers, [])
         for res in game["rooms"] + [game["practice_room"]]:
             self.assertTrue(build_data.res_to_path(ROOT, res).exists(), res)
+
+
+class PackRooms(unittest.TestCase):
+    """A pack's rooms.json entry: an engine room's ground under its own story."""
+
+    def test_takes_the_ground_and_leaves_the_story(self):
+        base, room = generate_rooms.pack_room("shallows", {"base": "swamp_moon", "weather": "bubbles",
+                                                           "spawns": [["shade", 700, 300]]})
+        engine = generate_rooms.ROOMS["swamp_moon"]
+        self.assertEqual(base, "swamp_moon")
+        self.assertEqual((room["width"], room["height"], room["door"]), (engine["width"], engine["height"], engine["door"]))
+        self.assertEqual(room["spawns"], [("shade", 700, 300)])
+        self.assertEqual((room["weather"], room["props"], room["npcs"], room["intro_cutscene"]), ("bubbles", [], [], ""))
+        self.assertTrue(painted_rooms.check_reach("swamp_moon", room))
+
+    def test_spawns_left_out_are_the_base_rooms(self):
+        _, room = generate_rooms.pack_room("again", {"base": "catacombs_2"})
+        self.assertEqual(room["spawns"], generate_rooms.ROOMS["catacombs_2"]["spawns"])
+
+    def test_refuses_what_it_cannot_build(self):
+        for name, entry in [("x", {"base": "nowhere"}), ("swamp_red", {"base": "swamp_moon"}),
+                            ("Bad Name", {"base": "swamp_moon"}), ("x", {"base": "swamp_moon", "weather": "snow"}),
+                            ("x", {"base": "swamp_moon", "spawns": [["no_such_enemy", 1, 2]]})]:
+            with self.assertRaises(SystemExit, msg=f"{name} {entry}"):
+                generate_rooms.pack_room(name, entry)
+
+    def test_water_weather(self):
+        for kind in ("drips", "bubbles"):
+            self.assertIn('[node name="Weather"', generate_rooms.WEATHER[kind])
+
+    def test_scene_names_its_base(self):
+        path = Path(tempfile.mkdtemp()) / "room.tscn"
+        path.write_text('[node name="Room" type="Node2D"]\nscript = ExtResource("1_room")\nwidth = 1600\n', encoding="utf-8")
+        generate_rooms._mark_base(str(path), "swamp_moon")
+        self.assertIn('script = ExtResource("1_room")\nbase_room = "swamp_moon"\n', path.read_text(encoding="utf-8"))
+
+    def test_flyers_come_from_the_data(self):
+        for file in (ROOT / "data/enemies").glob("*.json"):
+            flies = json.loads(file.read_text(encoding="utf-8")).get("behaviour") == "flyer"
+            self.assertEqual(file.stem in painted_rooms.FLYERS, flies or file.stem == "ophanim", file.stem)
 
 
 if __name__ == "__main__":

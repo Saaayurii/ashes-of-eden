@@ -61,6 +61,39 @@ var _path_icons: Dictionary = {}
 
 func _ready() -> void:
 	reload()
+	_lay_pack_font()
+
+
+## A game pack's own Chinese (tools/art/make_cjk_font.py --pack, docs/GAME_PACKS.md):
+## the characters its strings use, which the engine's subset was never cut for,
+## laid into every font of the project theme just ahead of the system fallback.
+## No pack, or a pack without Chinese of its own: nothing changes.
+const PACK_CJK_FONT := "res://content/assets/fonts/NotoSerifSC-Subset.ttf"
+
+
+func _lay_pack_font() -> void:
+	if not ResourceLoader.exists(PACK_CJK_FONT):
+		return
+	var font := load(PACK_CJK_FONT) as Font
+	var theme := ThemeDB.get_project_theme()
+	if font == null or theme == null:
+		return
+	var fonts: Array = [theme.default_font]
+	for type in theme.get_font_type_list():
+		for font_name in theme.get_font_list(type):
+			fonts.append(theme.get_font(font_name, type))
+	for each in fonts:
+		var variation := each as FontVariation
+		if variation == null or variation.fallbacks.has(font):
+			continue
+		var chain := variation.fallbacks.duplicate()
+		var at := chain.size()
+		for i in chain.size():
+			if chain[i] is SystemFont:
+				at = i
+				break
+		chain.insert(at, font)
+		variation.fallbacks = chain
 
 
 func reload() -> void:

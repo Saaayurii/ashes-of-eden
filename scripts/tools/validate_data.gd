@@ -473,7 +473,10 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 ## right — Godot falls back to a system font — while the Web build, which has
 ## no system fonts, draws tofu. Nobody would catch that until a player did, so
 ## it is checked here instead.
+## A game pack carries its own subset for the Chinese only it uses
+## (`make_cjk_font.py --pack`), which Data lays beside the engine's.
 const CJK_FONT := "res://assets/fonts/NotoSerifSC-Subset.ttf"
+const PACK_CJK_FONT := "res://content/assets/fonts/NotoSerifSC-Subset.ttf"
 
 
 func _check_cjk_font(strings: Dictionary) -> void:
@@ -484,12 +487,14 @@ func _check_cjk_font(strings: Dictionary) -> void:
 	if font == null:
 		_error("%s will not load as a font" % CJK_FONT)
 		return
+	var pack: FontFile = load(PACK_CJK_FONT) if ResourceLoader.exists(PACK_CJK_FONT) else null
 	var zh := LOCALES.find("zh_CN")
 	var missing := {}
 	for key in strings:
 		for ch in strings[key][zh]:
 			# Below U+2000 is ASCII and punctuation the Latin faces cover.
-			if ch.unicode_at(0) > 0x2000 and not font.has_char(ch.unicode_at(0)):
+			if ch.unicode_at(0) > 0x2000 and not font.has_char(ch.unicode_at(0)) \
+					and not (pack and pack.has_char(ch.unicode_at(0))):
 				missing[ch] = key
 	if missing.is_empty():
 		return
@@ -497,7 +502,7 @@ func _check_cjk_font(strings: Dictionary) -> void:
 	chars.sort()
 	_error("%d character(s) in the zh_CN text are not in the subsetted font: %s "
 		% [chars.size(), "".join(chars).left(40)]
-		+ "(first seen in %s) — run tools/art/make_cjk_font.py and commit the result"
+		+ "(first seen in %s) — run tools/art/make_cjk_font.py (in a game pack: --pack) and commit the result"
 		% missing[chars[0]])
 
 
@@ -514,15 +519,16 @@ func _check_glyphs(strings: Dictionary) -> void:
 	var cjk: FontFile = load(CJK_FONT)
 	if body == null or cjk == null:
 		return
+	var pack: FontFile = load(PACK_CJK_FONT) if ResourceLoader.exists(PACK_CJK_FONT) else null
 	var missing := {}
 	for key in strings:
 		for text in strings[key]:
-			_note_missing(str(text), body, cjk, missing, key)
+			_note_missing(str(text), body, cjk, missing, key, false, pack)
 	for path in _files_under("res://scripts", ["gd"]) + _files_under("res://scenes", ["tscn"]) \
 			+ _files_under("res://data", ["json"]):
 		if path.begins_with("res://scripts/tools/"):
 			continue
-		_note_missing(FileAccess.get_file_as_string(path), body, cjk, missing, path, true)
+		_note_missing(FileAccess.get_file_as_string(path), body, cjk, missing, path, true, pack)
 	if missing.is_empty():
 		return
 	var chars := missing.keys()
@@ -536,7 +542,7 @@ func _check_glyphs(strings: Dictionary) -> void:
 ## [param literals_only]: in source, only what sits between double quotes is
 ## ever drawn; comments may say what they like.
 func _note_missing(text: String, body: FontFile, cjk: FontFile, missing: Dictionary, where: String,
-		literals_only := false) -> void:
+		literals_only := false, pack: FontFile = null) -> void:
 	var inside := not literals_only
 	for i in text.length():
 		var code := text.unicode_at(i)
@@ -548,7 +554,7 @@ func _note_missing(text: String, body: FontFile, cjk: FontFile, missing: Diction
 				inside = false
 		if not inside or code < 0x80 or code == 0xFEFF:
 			continue
-		if not body.has_char(code) and not cjk.has_char(code):
+		if not body.has_char(code) and not cjk.has_char(code) and not (pack and pack.has_char(code)):
 			missing[text[i]] = where
 
 

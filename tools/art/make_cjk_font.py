@@ -27,6 +27,14 @@ fails, so the rule is simple — change the Chinese text, run this again.
 
     python3 tools/art/make_cjk_font.py
 
+A game pack (docs/GAME_PACKS.md) has Chinese of its own, and the engine's
+subset was cut for Ashes. With the pack laid over the engine as content/,
+
+    python3 tools/art/make_cjk_font.py --pack
+
+cuts the pack its own subset from its own strings into
+content/assets/fonts/, which Data lays beside the engine's at start.
+
 Noto Sans SC is SIL OFL 1.1 (assets/CREDITS.md). The downloaded original
 lives in tools/art/.cache/ and is git-ignored; the subset is committed.
 """
@@ -49,6 +57,12 @@ LICENCE_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserif
 ## only ever reached as a fallback. What it must carry is anything above
 ## ASCII that appears in the Chinese column: the characters themselves, and
 ## the full-width punctuation that comes with them.
+PACK = "--pack" in sys.argv
+if PACK:
+    STRINGS = os.path.join(ROOT, "content", "localization", "strings.csv")
+    OUT = os.path.join(ROOT, "content", "assets", "fonts", "NotoSerifSC-Subset.ttf")
+
+
 def wanted():
     chars = set()
     with open(STRINGS, encoding="utf-8") as handle:
@@ -102,6 +116,12 @@ def main():
 
     fetch(URL, SOURCE, "Noto Serif SC (once)")
     fetch(LICENCE_URL, LICENCE, "its OFL licence")
+    if PACK:
+        if not os.path.exists(STRINGS):
+            sys.exit("make_cjk_font --pack: no game pack laid over the engine (tools/packs/apply_pack.py)")
+        os.makedirs(os.path.dirname(OUT), exist_ok=True)
+        with open(LICENCE, "rb") as src, open(os.path.join(os.path.dirname(OUT), os.path.basename(LICENCE)), "wb") as dst:
+            dst.write(src.read())
 
     chars = wanted()
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
