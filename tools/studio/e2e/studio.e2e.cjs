@@ -555,6 +555,30 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('the game-data tabs open, and «Текстуры» lays a picture and moves a generated one into the scene', async () => {
+      const opened = await page.evaluate(async () => {
+        const d = document.querySelector('#dlg'); if (d.open) d.close(); d.replaceChildren();
+        const out = {};
+        for (const m of Object.keys(STUDIO_TABS)) { setMode(m); await new Promise(r => setTimeout(r, 700)); out[m] = document.querySelector(`#gdLayout_${m}`).innerText.length; }
+        return out;
+      });
+      for (const [m, n] of Object.entries(opened)) assert.ok(n > 20, `tab ${m} drew nothing`);
+      await page.evaluate(async () => {
+        GD.sel.room = 'graveyard_cross'; TX.room = null; setMode('tex'); await new Promise(r => setTimeout(r, 1500));
+        txAdd('decor/tombstone_3.png', [700, 500]); txSet(txSelected(), { rot: 30, scale: [2, 1], layer: 'top', blend: 'add' });
+        TX.sel = 'n:Front/Piece1'; txSet(txSelected(), { at: [450, 436], hidden: true });
+        await gdSend('tex');
+      });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
+      const table = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/rooms/studio_rooms.json'), 'utf8')).graveyard_cross;
+      assert.deepEqual(table.textures, [{ tex: 'decor/tombstone_3.png', at: [700, 500], scale: [2, 1], rot: 30, layer: 'top', blend: 'add' }]);
+      assert.deepEqual(table.retouch, { 'Front/Piece1': { was: 'levels/front/graveyard_cross_1.png', at: [450, 436], hidden: true } });
+      const scene = fs.readFileSync(path.join(ROOT, 'scenes/rooms/graveyard_cross.tscn'), 'utf8');
+      assert.match(scene, /\[node name="StudioTop" type="Node2D" parent="\."\]\nz_index = 3\n\n\[node name="Tex1" type="Sprite2D" parent="StudioTop"\]\nposition = Vector2\(700, 500\)\nrotation = 0\.523599\nscale = Vector2\(2, 1\)\nmaterial = SubResource\("studio_blend_add"\)/);
+      assert.match(scene, /\[node name="Piece1" type="Sprite2D" parent="Front"\][^[]*position = Vector2\(450, 436\)\nvisible = false/);
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {

@@ -34,6 +34,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import math
 import re
 import subprocess
 import sys
@@ -209,6 +210,10 @@ def _size(root, res, cache={}):
     return cache[res]
 
 
+## the layer nodes tools/rooms/studio_textures.py lays her own pictures in
+STUDIO_LAYERS = ("StudioBack", "StudioMid", "StudioFront", "StudioTop")
+
+
 def room_project(root: Path, path: Path):
     text = path.read_text(encoding="utf-8")
     ext, nodes = parse_tscn(text)
@@ -228,12 +233,22 @@ def room_project(root: Path, path: Path):
         images.setdefault(res, {"url": asset_url(res), "res": res, "w": size[0], "h": size[1]})
         sx, sy = _vec(p.get("scale"), (1, 1))
         x, y = _vec(p.get("position"))
+        region = [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?(?:e-?\d+)?", p.get("region_rect", "").partition("(")[2])] if p.get("region_enabled") == "true" else None
+        w, h = region[2:] if region else size
         if p.get("centered", "true") != "false":  # the studio keeps the top-left corner
-            x -= size[0] * abs(sx) / 2
-            y -= size[1] * abs(sy) / 2
+            x -= w * abs(sx) / 2
+            y -= h * abs(sy) / 2
+        blend = re.match(r'SubResource\("studio_blend_(\w+)"\)', p.get("material", ""))
         return {"id": f"{path.stem}_{n['parent']}_{n['name']}", "kind": "sprite", "name": n["name"], "img": res,
                 "x": round(x, 2), "y": round(y, 2), "sx": sx, "sy": sy, "flipH": p.get("flip_h") == "true",
-                "modulate": _color(p.get("modulate")), "filter": int(p.get("texture_filter", 0))}
+                "modulate": _color(p.get("modulate")), "filter": int(p.get("texture_filter", 0)),
+                # the node as the scene has it, for the «Текстуры» tab's retouch (tools/rooms/studio_textures.py)
+                "node": {"path": n["name"] if n["parent"] == "." else f"{n['parent']}/{n['name']}",
+                         "tex": res.removeprefix("res://assets/"), "pos": _vec(p.get("position")),
+                         "centered": p.get("centered", "true") != "false",
+                         "rot": round(math.degrees(float(p.get("rotation", 0))), 4), "flipV": p.get("flip_v") == "true",
+                         "region": region, "z": int(p.get("z_index", 0)), "visible": p.get("visible", "true") != "false",
+                         "repeat": int(p.get("texture_repeat", 0)), "blend": blend[1] if blend else "mix"}}
 
     def rect(n):
         p = n["props"]
@@ -263,8 +278,12 @@ def room_project(root: Path, path: Path):
                 layer("Painting", [1, 1], [n], z)
             else:
                 loose.append(n)
-        elif n["type"] == "Node2D" and n["name"] in ("Terrain", "DecorMid", "DecorFront"):
+        elif n["type"] == "Node2D" and n["name"] in ("Terrain", "DecorMid", "DecorFront", "Front"):
             layer(n["name"], [1, 1], kids, z)
+        elif n["type"] == "Node2D" and n["name"] in STUDIO_LAYERS:  # laid by the «Текстуры» tab
+            layer(n["name"], [1, 1], kids, z)
+            if layers and layers[-1]["name"] == n["name"]:
+                layers[-1]["studio"] = True
     if loose:
         layer("Sprites", [1, 1], loose)
     layers.sort(key=lambda l: l["z"])

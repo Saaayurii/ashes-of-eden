@@ -31,6 +31,7 @@ with open(os.path.join(PLATFORM_DIR, "manifest.json")) as _f:
 from painted_rooms import PAINTED, check_reach  # noqa: E402  (rooms drawn as one panel each)
 import compose  # noqa: E402  (rooms put together from several panels, the studio's «Конструктор»)
 import front  # noqa: E402  (the plane in front of the hero, docs/DEPTH.md)
+import studio_textures  # noqa: E402  (pictures laid and retouched by hand in the studio's «Текстуры»)
 
 # Each room gets two expansion seams in different places. Unlike global x
 # scaling, seams add real traversal space without fattening characters,
@@ -1584,6 +1585,10 @@ texture = SubResource("glow_tex")
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
                             '[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]')
+    if scene is None:  # a composed draft is another room's geometry: her textures wait for the room itself
+        text, warnings = studio_textures.apply(text, STUDIO_TEXTURES.get(name), name)
+        for warning in warnings:
+            print("  !!", warning)
     text = text.replace("load_steps=0", "load_steps=%d" % (text.count("[ext_resource") + text.count("[sub_resource")))
     path = scene or os.path.join(ROOT, "scenes", "rooms", f"{name}.tscn")
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -1630,6 +1635,8 @@ ROOMS.update({name: expand_painted_room(name, room) if name in ROOM_EXPANSION_CU
 # the painted widening, like a "wide" entry), and which cutscene a room plays.
 # The spawns go through check_reach like every other walker.
 STUDIO_ROOMS = os.path.join(ROOT, "tools", "rooms", "studio_rooms.json")
+## Pictures she laid into a room or retouched there by hand (tools/rooms/studio_textures.py).
+STUDIO_TEXTURES = {}
 if os.path.exists(STUDIO_ROOMS):
     with open(STUDIO_ROOMS) as _f:
         for _name, _extra in json.load(_f).items():
@@ -1651,6 +1658,9 @@ if os.path.exists(STUDIO_ROOMS):
                 if len(_prop) != 3 or not os.path.exists(os.path.join(ROOT, "data/props", _prop[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _prop[1:]):
                     raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a prop is [existing prop id, x, y]")
             ROOMS[_name]["props"] = list(ROOMS[_name].get("props", [])) + [tuple(p) for p in _extra.get("props", [])]
+            if "textures" in _extra or "retouch" in _extra:
+                studio_textures.validate(f"tools/rooms/studio_rooms.json: {_name}", _extra)
+                STUDIO_TEXTURES[_name] = {k: _extra[k] for k in ("textures", "retouch") if k in _extra}
 
 # What stands in front of the hero in a painted room (tools/rooms/front.py),
 # in the finished room's pixels; a composed room carries its own.

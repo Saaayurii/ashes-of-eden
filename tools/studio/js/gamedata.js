@@ -10,7 +10,9 @@
 
 const GD_LOCALES = ['en', 'ru', 'uk', 'zh_CN'];
 const GD = { data: null, strings: {}, music: {}, zh: null, tab: '', sel: {}, pic: null, raf: 0, audio: null };
-/* A tab: {label, title, enter, render, paths(p) → bool, strings?, music?}; setMode, undo and the workspace ask here. */
+/* A tab: {label, title, enter, render, paths(p) → bool, strings?, music?, problems?, revert?, extraFiles?}; setMode, undo and
+ * the workspace ask here. `revert` undoes only the tab's own part of a file it shares (studio_rooms.json is three tabs');
+ * `extraFiles` adds what is not a data file (an uploaded picture) to a send. */
 const STUDIO_TABS = {};
 
 /* ---------- pure helpers (tests/gamedata.test.js) ---------- */
@@ -238,8 +240,8 @@ async function gdFiles(tab) {
     const merged = await resolveDraft(draftBase('world', WORLD.data.files)[p], mine, latest, p, BASES.world?.uncertain);
     if (!sameDraft(merged, latest)) { files[p] = gdText(text, merged); what.push(p); }
   }
-  const extra = await gdExtraFiles(tab.strings, tab.music);
-  Object.assign(files, extra.files); what.push(...extra.what);
+  const extra = await gdExtraFiles(tab.strings, tab.music), own = tab.extraFiles ? await tab.extraFiles() : { files: {}, what: [] };
+  Object.assign(files, extra.files, own.files); what.push(...extra.what, ...own.what);
   if (!Object.keys(files).length) throw new Error('Нет изменений');
   const notes = tab.music && extra.files[GD_PLAYLISTS] ? ['После слияния: python3 tools/export/music_filters.py — лёгкие сборки (Android, Web) берут свои треки из плейлистов.'] : [];
   return { files, notes, title: `Studio: ${tab.title} — ${what.join('; ').slice(0, 120)}`, body: `${tab.title} from the studio's «${tab.label}»:\n\n${what.map(w => '- ' + w).join('\n')}${notes.length ? '\n\n' + notes.join('\n') : ''}` };
@@ -252,6 +254,7 @@ async function gdSend(m) {
   for (const p of Object.keys(WORLD.work)) if (tab.paths(p)) { WORLD.data.files[p] = WORLD.work[p]; if (BASES.world) BASES.world.value[p] = structuredClone(WORLD.work[p]); delete WORLD.work[p]; }
   if (tab.strings) { for (const [k, v] of Object.entries(GD.strings)) GD.data.strings[k] = v; GD.strings = {}; GD.zh = new Set(Object.values(GD.data.strings).flatMap(v => [...(v.zh_CN || '')])); }
   if (tab.music) { for (const t of GD.data.music.tracks) if (GD.music[t.slug]) t.playlists = GD.music[t.slug]; GD.music = {}; }
+  if (tab.sent) tab.sent();
   draftBasesSave(); try { localStorage.setItem('ss_world', JSON.stringify(WORLD.work)); } catch {} gdSaveStrings(); tab.render();
 }
 const gdDirty = tab => Object.keys(WORLD.work).some(p => tab.paths(p)) || tab.strings && Object.keys(GD.strings).length > 0 || tab.music && Object.keys(GD.music).length > 0;
@@ -261,7 +264,7 @@ function gdBar(m) {
 }
 function gdRevert(m) {
   const tab = STUDIO_TABS[m];
-  for (const p of Object.keys(WORLD.work)) if (tab.paths(p)) delete WORLD.work[p];
+  if (tab.revert) tab.revert(); else for (const p of Object.keys(WORLD.work)) if (tab.paths(p)) delete WORLD.work[p];
   if (tab.strings && m === 'txt') GD.strings = {};
   if (tab.music) GD.music = {};
   try { localStorage.setItem('ss_world', JSON.stringify(WORLD.work)); } catch {} gdSaveStrings(); tab.render();
@@ -610,12 +613,14 @@ STUDIO_TABS.places = {
 };
 
 /* ---------- the tabs on the page ---------- */
+// Puts every tab not yet on the page there: a file loaded after this one registers its tab and calls it again.
 function gdInit() {
-  const modes = $('.modes'); if (!modes || $('#gdLayout_skins')) return;
-  const ids = Object.keys(STUDIO_TABS);
+  const modes = $('.modes'); if (!modes) return;
+  const ids = Object.keys(STUDIO_TABS).filter(m => !$('#gdLayout_' + m)); if (!ids.length) return;
   const style = document.createElement('style');
   style.textContent = ids.map(m => `body:not([data-mode=${m}]) #gdLayout_${m}`).join(',') + `{display:none!important}
-    body:is(${ids.map(m => `[data-mode=${m}]`).join(',')}) :is(.layout,.bglayout,.cutlayout,.sndlayout,.riglayout,.lifelayout,.attacklayout,.shotlayout,.pfxlayout,.gorelayout,.dlglayout,.complayout){display:none!important}
+    body:is(${ids.map(m => `[data-mode=${m}]`).join(',')}) :is(.layout,.bglayout,.cutlayout,.sndlayout,.riglayout,.lifelayout,.attacklayout,.shotlayout,.pfxlayout,.gorelayout,.dlglayout,.complayout){display:none!important}`;
+  if (!$('#gdStyle')) style.textContent += `
     .gdlayout{display:grid;grid-template-columns:380px 1fr;height:calc(100vh - var(--hdr, 50px))}
     .gdlayout>main{min-width:0}.gdlayout>.side>*{flex:none}.gdscroll{flex:1;min-height:0;overflow:auto;padding:4px 8px}
     .gdstage{flex:1;min-height:0;width:100%;border-radius:6px;image-rendering:pixelated}.gdmap{width:100%;border-radius:6px;cursor:crosshair}
@@ -627,15 +632,16 @@ function gdInit() {
     .gdtable{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}.gdtable td,.gdtable th{border-bottom:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
     .gdchapter{display:grid;gap:8px}.gdrooms{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.gdroomcard{border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;min-width:150px}.gdfork{color:#ffd75f}
     @media (max-width:900px){.gdlayout{grid-template-columns:minmax(0,1fr);height:auto}.gdstage{min-height:260px}}`;
+  if (!$('#gdStyle')) style.id = 'gdStyle';
   document.head.append(style);
-  const anchor = $('#goreLayout');
+  const anchor = [...document.querySelectorAll('.gdlayout')].pop() || $('#goreLayout');
   for (const m of ids) {
     const t = STUDIO_TABS[m], b = document.createElement('button');
     Object.assign(b.dataset, { act: 'mode', m }); b.textContent = t.label; b.title = t.tip; modes.append(b);
     const box = document.createElement('div'); box.id = 'gdLayout_' + m; box.className = 'gdlayout'; box.innerHTML = t.html; anchor.after(box);
     box.addEventListener('input', gdInput); box.addEventListener('change', gdInput); box.addEventListener('click', gdClick);
   }
-  $('#gdCanvas_places').addEventListener('click', gdPlaceAt);
+  if (ids.includes('places')) $('#gdCanvas_places').addEventListener('click', gdPlaceAt);
 }
 async function gdEnter(m) {
   GD.tab = m;
