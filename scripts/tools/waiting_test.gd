@@ -5,8 +5,8 @@ extends SceneTree
 ##   - a blow wakes it, lands as a backstab and sets waiter_struck;
 ##   - a boss that waits starts unaware too;
 ##   - a choice's "flask": -1 takes a flask, never below none.
-## The chapter's enemies are drafts the game does not load, so the test lays
-## two stand-ins into Data.enemies and takes them out again.
+## The test lays two stand-ins of its own into Data.enemies (a chapter I room
+## to stand in, a boss that waits) and takes them out again.
 ##   godot --headless --path . -s scripts/tools/waiting_test.gd
 
 var failures := 0

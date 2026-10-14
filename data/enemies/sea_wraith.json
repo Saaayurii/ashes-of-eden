@@ -1,0 +1,43 @@
+{
+  "id": "sea_wraith",
+  "name": "ENEMY_SEA_WRAITH",
+  "lore": "ENEMY_SEA_WRAITH_LORE",
+  "tip": "TIP_SEA_WRAITH",
+  "_art": "the wraith's own strips, recoloured — an honest reuse: a spirit of the drowned sea",
+  "hp": 34,
+  "speed": 68,
+  "damage": 6,
+  "attack_interval": 0.8,
+  "behaviour": "flyer",
+  "hover_distance": 86,
+  "aggro_range": 520,
+  "size": 12,
+  "color": "#c85a5a",
+  "material": "spirit",
+  "tags": [
+    "spirit"
+  ],
+  "sprite": {
+    "like": "wraith",
+    "tint": "#e8a0a0"
+  },
+  "attack": {
+    "type": "ranged",
+    "range": 240,
+    "windup": 0.75,
+    "damage": 10,
+    "cooldown": 2.4,
+    "projectile_speed": 140,
+    "projectile_motion": "wave",
+    "motion_amount": 18,
+    "projectile_style": "wraith",
+    "color": "#ff8a7a"
+  },
+  "essence": 15,
+  "light": {
+    "color": "#ff7a6a",
+    "radius": 54,
+    "energy": 0.7,
+    "flicker": 0.12
+  }
+}

@@ -23,7 +23,7 @@ const FEET := 15.0          # body origin to the soles
 const MAX_RISE := 110.0     # no surface higher than this is worth a try
 const MAX_GAP := 230.0
 const HOP_FRAMES := 200
-const FLYERS := ["shade", "wraith", "raven", "ophanim"]
+const FLYERS := ["shade", "wraith", "raven", "ophanim", "sea_wraith"]
 ## (first jump frame, second jump frame or -1, walk off without jumping)
 const STRATEGIES := [[0, 18], [0, 28], [0, -1], [0, 10], [-1, -1]]
 

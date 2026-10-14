@@ -37,6 +37,10 @@ const FAR_WINDOWS := {
 	"ashes_threshold": [],      # the stained glass and its mullions are part of the church wall
 	"gate_threshold": [1, 2],    # only the distant city behind the two underbridge arches moves
 	"hell_gate": [1, 2, 3],
+	# Seir (chapter II) has no inpainted plates yet, so no opening of its own
+	"seir_road": [], "seir_gate": [], "seir_street": [], "seir_square": [],
+	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
+	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
 }
 
 

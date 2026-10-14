@@ -53,12 +53,13 @@ func _run() -> void:
 
 	while index < run.ROOMS.size():
 		await _dismiss_ui(dialogue, picker, cut)
-		# a quiet room (the church) has nobody to fight: its door is open from the start
-		await _wait_until(func(): return run.room_index == index and run.room != null and (run.room.alive > 0 or run.room.get_node("Spawns").get_child_count() == 0), "room %d started with enemies" % (index + 1))
+		# a quiet room (the church) has nobody to fight, and one where everybody
+		# waits (chapter II's gate) nobody who keeps the door: open from the start
+		await _wait_until(func(): return run.room_index == index and run.room != null and (run.room.alive > 0 or _holders(run.room) == 0), "room %d started with enemies" % (index + 1))
 		if index == 0:
 			_assert(dialogue.get_node("%Caption").visible, "intro plays as captions over room 1")
 		var room = run.room
-		var quiet: bool = room.get_node("Spawns").get_child_count() == 0
+		var quiet: bool = _holders(room) == 0
 		_assert(quiet or not room.door.open, "door starts locked")
 		for attempt in 10:  # bosses summon reinforcements mid-fight: keep killing
 			# The run parents spawned enemies under Entities (the session replicates
@@ -216,3 +217,8 @@ func _assert(condition: bool, label: String) -> void:
 	print(("  ok   " if condition else "  FAIL ") + label)
 	if not condition:
 		_failed = true
+
+
+## The spawns that keep the door shut: every one but those that wait (Room.holds_door).
+func _holders(room) -> int:
+	return room.get_node("Spawns").get_children().filter(func(spawn): return room.holds_door(str(spawn.enemy_id))).size()

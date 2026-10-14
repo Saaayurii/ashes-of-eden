@@ -1,12 +1,26 @@
-# Глава II — заказ художнице
+# Глава II — что нарисовано и что осталось
 
-*Всё, что нужно нарисовать, чтобы глава «Уныние» (docs/CHAPTER2.md) стала играбельной. Больше её
-ничего не держит: данные, тексты, сцены и проверки готовы в `drafts/chapter_2/`. Рисует
-художница в своём ChatGPT по правилам навыка `ashes-art` (`.claude/skills/ashes-art/SKILL.md`):
-агент готовит промпт и картинки-роли, Enter нажимает она.*
+*Картины главы «Уныние» (docs/CHAPTER2.md) нарисованы Codex CLI (`codex exec`, встроенная
+генерация картинок) по промптам ниже и прошли обычный конвейер; глава в игре. Этот файл —
+промпты, по которым их можно перерисовать, и список того, что Codex не сделал или сделал
+слабо: это заказ художнице (её ChatGPT, навык `ashes-art`, `.claude/skills/ashes-art/SKILL.md`).*
 
-Порядок — по важности для игры: сначала 12 панелей (без них нет комнат), потом Сторож и
-ждущий (их больше всего на экране), потом остальные враги, люди, портреты.
+## Состояние
+
+| Что | Статус | Где |
+|---|---|---|
+| 12 панелей 1280×720 | **нарисованы Codex**, оттрассированы, проходимы (reach / stairs / void / smoke) | `assets/levels/seir_*.png`, `painted_rooms.py` |
+| Атласы `watchman`, `waiting_townsman`, `gate_warden`, `drowned`, `drowned_bosun` | **нарисованы Codex**, нарезаны | `assets/sprites/enemy_atlases/`, `tree.json` |
+| `sea_wraith` | перекрашенный `wraith` — оставлено как есть | `data/enemies/sea_wraith.json` |
+| Портреты врагов (5) и людей (Лазарь, Иона, Ноеминь) | **нарисованы Codex**; портрет `sea_wraith` вышел бирюзовым, а наш дух — красного прилива: стоит портрет `wraith` | `assets/portraits/seir_*_atlas.png` |
+| Листы тел людей (`lazarus`, `lazarus_quay`, `jonah`, `naomi`) | **не нарисованы** — стоят чужие тела (§3) | `data/npcs/*.json` `sprite` |
+| Пластины глубины за проёмами (`depth/<room>_backfill.png`) и `DEPTH_WINDOWS` | **нет** — у Сейра пока нет дальнего плана, проёмы стоят | `generate_rooms.py` |
+| Передний план (`front_layers.json`) | **нет** | docs/DEPTH.md |
+| Замурованные стены у тайников (`reveals`) | **нет** — тайники стоят открыто | `make_secret_walls.py` |
+| Слабые места панелей | галерея складов (`seir_warehouses`) нарисована, но не достаётся прыжком — уступ снят; лестница маяка: третий марш на картине начинается над вторым, ход наверх — карнизы | `painted_rooms.py` |
+
+Порядок, если перерисовывать: сначала листы людей (их видно в сценах), потом пластины глубины
+и передний план, потом панели, которые хочется лучше.
 
 ## 0. Библия стиля главы
 
@@ -42,7 +56,7 @@
 > bottom fifth stays dark and quiet. Opaque canvas, artwork to every edge. No characters, no
 > people, no text, no letters, no labels, no UI, no watermark, no border.
 
-## 1. Панели комнат — 12 штук, 1280×720
+## 1. Панели комнат — 12 штук, 1280×720 (нарисованы Codex)
 
 Каждая — `assets/levels/<id>.png`, 16:9 (ChatGPT рисует 1536×1024 или 1792×1024 — студия
 кадрирует и масштабирует; размер в промпт **не** писать). Генератор потом расширит её до 1600
@@ -81,15 +95,15 @@
 > behind.
 > **Style:** …(общий блок)… **Constraints:** …(общий блок)…
 
-## 2. Враги — атласы 7×7
+## 2. Враги — атласы 7×7 (нарисованы Codex, кроме `sea_wraith`)
 
 Каждый — `assets/sprites/enemy_atlases/<id>.png`, сетка 7×7, ряды сверху вниз: idle, walk,
 attack, attack_alt, special, hurt, death (`ART_DIRECTION.md`, «Enemies»). Режет
 `tools/art/build_bestiary_assets.py`. Один новый чат ChatGPT на атлас. Роли:
 **Image 1** — дизайн персонажа (её референс или одобренный первый кадр);
 **Image 2** — `tools/studio/refs/elian_style_idle.png`: масштаб, контур, темнота палитры ТОЛЬКО,
-не его броня и не меч. После атласа — убрать `"sprite": {"like": …}` в
-`drafts/chapter_2/data/enemies/chapter_2.json`.
+не его броня и не меч. Клетку и масштаб задаёт `GAME_CELLS` в сборщике, полосы — `sprite` в `data/enemies/<id>.json`
+и `data/enemy_archetypes/tree.json`.
 
 | id | Кто | Рост (от героя, 44) | material | Ряды, на что смотреть | Сейчас стоит |
 |---|---|---|---|---|---|
@@ -102,7 +116,7 @@ attack, attack_alt, special, hurt, death (`ART_DIRECTION.md`, «Enemies»). Ре
 
 Портрет каждого для бестиария — `assets/portraits/<id>.png`, 192×192, по одному кадру idle.
 
-## 3. Люди — листы NPC и портреты
+## 3. Люди — листы NPC (не нарисованы) и портреты (нарисованы Codex)
 
 Лист — три полосы (`idle`, `walk`, `interact`), клетки 48×48, как `assets/sprites/villager_v2_*`.
 Портрет для диалогов — `assets/portraits/<id>.png`, 192×192 (`avatar` у NPC и `speakers` в
@@ -117,29 +131,17 @@ attack, attack_alt, special, hurt, death (`ART_DIRECTION.md`, «Enemies»). Ре
 | `naomi` | Вдова в тёмном платке, немолодая, прямая спина, в руках масляная лампа | сидит на скамье, лампа на коленях | поднимает лампу выше | `villager_v2` |
 | (портрет) `watchman` | Сторож крупно: капюшон, борода, свет фонаря снизу | — | — | — |
 
-## 4. Чем собрать черновые комнаты сейчас
+## 4. Как это было нарисовано
 
-Пока панелей нет, Конструктор (`docs/ROOM_COMPOSER.md`, `composed_rooms.json`) может собрать
-проходимый черновик из картин главы I — чтобы проверить ритм «пустых» и «настоящих» комнат.
-Заменители (поле `stand_in` в `drafts/chapter_2/rooms.json`, валидатор проверяет, что они есть):
-
-| Комната главы II | Картины главы I | Почему |
-|---|---|---|
-| `seir_road` | `village_night` | дорога у стены деревни, мало уступов |
-| `seir_gate` | `graveyard_arches` | арки = проход ворот, верхний ярус для тайника |
-| `seir_street` | `graveyard_cross` + `catacombs_1` | длинная улица с двумя уровнями |
-| `seir_square` | `church` | открытый зал с высокой точкой справа |
-| `seir_roofs` | `graveyard_tree` | вертикаль |
-| `seir_canal`, `seir_breakwater` | `swamp_red` | красная вода уже нарисована |
-| `seir_quay` | `swamp_moon` | вода под луной, длинный ровный берег |
-| `seir_wrecks` | `swamp_crypt` | остовы над водой |
-| `seir_warehouses` | `catacombs_2` | тесно и низко |
-| `seir_lighthouse_stair` | `catacombs_3` | двухэкранная вертикаль |
-| `seir_lighthouse` | `preacher_nave` | одноэкранная арена босса |
+`codex exec -m gpt-5.6-sol --skip-git-repo-check -s workspace-write -C <папка> -i <роль.png> - < промпт.txt`,
+по 3–4 минуты на картинку. Панели — по промпту §1 с картиной главы I как ролью стиля; атласы — с
+атласом `fallen_guard` (раскладка 7×7) и `tools/studio/refs/elian_style_idle.png` (масштаб, контур);
+портреты — с `enemies_atlas.png` / `people_atlas.png`. Затем: панель → `trace_panel.py <путь.png> <id>`
+→ строка в `painted_rooms.py` → `generate_rooms.py`; атлас → `enemy_atlases/<id>.png` + `GAME_CELLS`
+→ `build_bestiary_assets.py`. Все выходы идут через `patched()` (правки студии).
 
 ## 5. Проверка перед pull request
 
-- `make validate`: валидатор проверяет и черновик; как только появляется сцена
-  `scenes/rooms/seir_*.tscn`, она перестаёт быть «ждущей картины» и проверяется как любая.
+- `make validate`.
 - `reach_test.gd -- seir_<id>`, `stairs_test.gd`, `void_fall_test.gd` на каждую новую комнату.
 - Бестиарий: каждая полоса против своей клетки (валидатор), рост против героя.
