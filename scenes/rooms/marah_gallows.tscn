@@ -235,7 +235,7 @@ enemy_id = "legion_possessed"
 position = Vector2(20, 490)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1570, 585)
+position = Vector2(1335, 573)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

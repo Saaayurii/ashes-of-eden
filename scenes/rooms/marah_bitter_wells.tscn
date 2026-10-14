@@ -248,7 +248,7 @@ enemy_id = "host_archer"
 position = Vector2(20, 453)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1565, 453)
+position = Vector2(1565, 441)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

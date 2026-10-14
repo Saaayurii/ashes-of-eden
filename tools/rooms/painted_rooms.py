@@ -702,7 +702,7 @@ PAINTED = {
                 ("legion_possessed", 150, 498), ("legion_possessed", 1160, 593)],
         props=[("marah_cache_rizpah_names", 560, 510)],  # under the tree's roots, behind the stones
         decor=[], npcs=[("malchus", 690, 396), ("marah_scout", 745, 396), ("malchus_hanged", 800, 396)], ambient="#b8bccc", lights="auto",
-        player=(20, 490), door=(1250, 585)),
+        player=(20, 490), door=(1175, 573)),  # the path between the rocks
     "marah_ford": dict(
         # The ford: knee-deep bitter water between three stone piers; the Host
         # and the Legion are already at it in the middle of the stream.
@@ -714,7 +714,7 @@ PAINTED = {
                 ("legion_brute", 820, 548), ("legion_possessed", 520, 548), ("legion_possessed", 1100, 548)],
         props=[],
         decor=[], npcs=[], ambient="#b4bccc", lights="auto",
-        player=(20, 422), door=(1240, 516)),
+        player=(20, 422), door=(1240, 504)),
     "marah_host_bank": dict(
         # The Host's bank (the ford's fork): white tents, white fires, the
         # watchtower; the Host hunts him here like anyone else.
@@ -725,7 +725,7 @@ PAINTED = {
                 ("host_archer", 500, 528), ("host_archer", 860, 528), ("host_sentinel", 620, 300)],
         props=[("crate", 760, 540)],
         decor=[], npcs=[], ambient="#bcc0d0", lights="auto",
-        player=(20, 520), door=(1250, 520)),
+        player=(20, 520), door=(1250, 508)),
     "marah_field": dict(
         # The field where they fight every day: Rizpah's rock on the left, her
         # sackcloth and fire the rest point; the ravens at the hanged.
@@ -735,9 +735,9 @@ PAINTED = {
         spawns=[("raven", 300, 250), ("raven", 700, 300), ("raven", 1000, 250),
                 ("legion_possessed", 600, 543), ("legion_possessed", 1000, 453),
                 ("host_spearman", 330, 543), ("host_spearman", 1150, 543)],
-        props=[],
+        props=[("marah_cache_two_orders", 960, 465)],  # on the far mound, where both lines dropped their orders
         decor=[], npcs=[("rizpah", 380, 415)], ambient="#b8b8c8", lights="auto",
-        player=(20, 535), door=(1250, 535)),
+        player=(20, 535), door=(1220, 523)),  # the gap in the stakes
     "marah_bitter_wells": dict(
         # The bitter wells (the siege's fork): two deep cisterns under a
         # vaulted cellar, the shades stand up out of the water. No story here.
@@ -748,7 +748,7 @@ PAINTED = {
                 ("legion_possessed", 150, 461), ("legion_possessed", 1150, 461), ("host_archer", 640, 443)],
         props=[],
         decor=[], npcs=[], ambient="#b0bcc0", lights="auto",
-        player=(20, 453), door=(1245, 453)),
+        player=(20, 453), door=(1245, 441)),
     "marah_dry_bed": dict(
         # The dry bed (the siege's fork): the riverbed the star drank, open to
         # the sky and the archers; the cave at the right goes on up. No story.
@@ -759,5 +759,5 @@ PAINTED = {
                 ("legion_brute", 650, 538), ("legion_possessed", 500, 538), ("legion_possessed", 1050, 538)],
         props=[],
         decor=[], npcs=[], ambient="#b8bccc", lights="auto",
-        player=(20, 530), door=(1235, 530)),
+        player=(20, 530), door=(1235, 518)),
 }

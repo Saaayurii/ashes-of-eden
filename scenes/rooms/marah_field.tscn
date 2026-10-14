@@ -186,6 +186,10 @@ z_index = 1
 
 [node name="Props" type="Node2D" parent="."]
 
+[node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1120, 465)
+prop_id = "marah_cache_two_orders"
+
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(380, 415)
 npc_id = "rizpah"
@@ -231,7 +235,7 @@ enemy_id = "host_spearman"
 position = Vector2(20, 535)
 
 [node name="Door" type="Area2D" parent="."]
-position = Vector2(1570, 535)
+position = Vector2(1540, 523)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_door")

@@ -38,6 +38,12 @@ const DOORWAYS := {
 	"seir_breakwater": [1523, 1573, 432],       # the lighthouse door
 	"seir_lighthouse_stair": [1485, 1535, 119], # the arch at the top of the stair
 	"seir_lighthouse": [1545, 1595, 495],       # the arch past the lamp room
+	"marah_gallows": [1320, 1350, 605],         # the path between the rocks
+	"marah_ford": [1530, 1580, 536],            # the dark arch in the far bank
+	"marah_host_bank": [1545, 1590, 540],       # the open flap of the last tent
+	"marah_field": [1525, 1555, 555],           # the gap in the stakes
+	"marah_bitter_wells": [1525, 1590, 473],    # the arch out of the cellar
+	"marah_dry_bed": [1515, 1580, 550],         # the cave in the bank
 }
 
 var failures := 0
