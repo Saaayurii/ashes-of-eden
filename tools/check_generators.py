@@ -70,6 +70,8 @@ GENERATORS = [
      ["tools/web/shell.html"], False),
     ("tyre lamp", ["tools/art/make_tyre_lamp.py"],
      ["assets/props/tyre_lamp.png"], False),
+    ("coin flight", ["tools/art/make_coin_flight.py"],
+     ["assets/sprites/projectiles/coin_flight_v3.png"], False),
     ("cjk subset", ["tools/art/make_cjk_font.py"],
      ["assets/fonts/NotoSerifSC-Subset.ttf"], True),
 ]

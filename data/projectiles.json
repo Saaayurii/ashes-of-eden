@@ -474,7 +474,7 @@
       ]
     },
     "coin": {
-      "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",
+      "sheet": "res://assets/sprites/projectiles/coin_flight_v3.png",
       "frames": 4,
       "fps": 14,
       "shader": 4,
