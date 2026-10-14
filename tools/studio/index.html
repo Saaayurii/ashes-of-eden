@@ -670,9 +670,11 @@ a{color:var(--sel)}
       <button class="sm" data-act="gore-hit" title="Обычный удар слева">▶ Удар</button>
       <button class="sm" data-act="gore-crit" title="Критический удар: больше брызг, рана дольше">▶ Крит</button>
       <button class="sm" data-act="gore-death" title="Смертельный удар: фонтан, лужа и — если можно — тело рвётся на куски">☠ Смерть</button>
+      <label title="Чем бьёт герой: у каждого приёма свой след — апперкот бросает кровь и куски вверх, подсечка — низом, удар о землю — во все стороны">Приём <select id="goreMove"></select></label>
       <label title="Удар в спину или крит: шанс разрыва ×2, брызг больше"><input type="checkbox" id="goreBack"> в спину</label>
       <label title="Для показа: рвать при каждой смерти, не бросая кубик"><input type="checkbox" id="goreAlways" checked> всегда рвать</label>
       <label title="Удар, удар, крит, смерть, пауза — по кругу"><input type="checkbox" id="goreAuto" checked> по кругу</label>
+      <label title="Настройки → Кровь «меньше»: половина капель, без мороси и брызг, никого не рвёт"><input type="checkbox" id="goreReduced"> меньше крови</label>
       <label>Скорость <select id="goreSlow"><option value="1">как в игре</option><option value="0.5">в 2 раза медленнее</option><option value="0.25">в 4 раза медленнее</option></select></label>
       <button class="sm" data-act="gore-clear" title="Смыть пятна и убрать куски">🧽 Смыть</button>
       <span class="grow muted" id="goreVerdict"></span>
@@ -680,7 +682,7 @@ a{color:var(--sel)}
       <button class="primary" id="goreSend" data-act="gore-send" disabled>→ В игру</button>
     </div>
     <div id="goreStage"><canvas id="goreCanvas"></canvas></div>
-    <div class="note">Кровь — по материалу из бестиария (плоть, ткань, кольчуга, латы, перья, дух, золото); у тела могут быть свои значения поверх. Куски режутся из самого рисунка — кадра, в котором тело умерло. В игре это выключается: Настройки → Кровь (полная / меньше, без расчленения / выкл.).</div>
+    <div class="note">Кровь — по материалу из бестиария (плоть, ткань, кольчуга, латы, перья, дух, золото); у тела могут быть свои значения поверх, а приём, которым ударили, поворачивает и усиливает всё это (карточка «Приём»). Слева в полу — лава (кровь шипит паром), справа — вода (расплывается облаком). Куски режутся из самого рисунка — кадра, в котором тело умерло. В игре это выключается: Настройки → Кровь (полная / меньше, без расчленения / выкл.).</div>
   </main>
 </div>
 
@@ -830,6 +832,7 @@ a{color:var(--sel)}
 <script src="js/world.js"></script>
 <script src="js/combat.js"></script>
 <script src="js/gamedata.js"></script>
+<script src="js/liquids.js"></script>
 <script src="js/workspace.js"></script>
 <script src="js/edit.js"></script>
 <script src="js/main.js"></script>

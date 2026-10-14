@@ -98,7 +98,12 @@ var facing := 1:
 var _max_hp: float
 ## The last blow's side and weight, for the way a death bleeds (Gore.death).
 var _last_away := 1.0
+## The pool it wades in (Hazard.liquid_touch), how deep, and when it last said so.
+var _liquid: Hazard = null
+var _liquid_depth := 0.0
+var _liquid_frame := -10
 var _last_violent := false
+var _last_move := ""
 var _attacks: Array = []
 var _attack: Dictionary = {}  # the one being performed
 ## Index in _attacks of the last wind-up begun. Repeats are less likely when
@@ -318,6 +323,49 @@ func _show_affix() -> void:
 		label.self_modulate = Color(minf(4.0, 1.0 / maxf(c.r, 0.25)), minf(4.0, 1.0 / maxf(c.g, 0.25)),
 			minf(4.0, 1.0 / maxf(c.b, 0.25)))
 	add_child(label)
+
+
+## A pool holds this walker this frame (Hazard): how deep, 0..1. Flyers pass over.
+func liquid_touch(liquid: Hazard, depth: float) -> void:
+	_liquid = liquid
+	_liquid_depth = depth
+	_liquid_frame = Engine.get_physics_frames()
+
+
+func _liquid_now() -> float:
+	if _liquid == null or not is_instance_valid(_liquid) or Engine.get_physics_frames() - _liquid_frame > 2:
+		_liquid = null
+		return 0.0
+	return _liquid_depth
+
+
+## Its pace in a pool: the kind's enemy.drag, by how deep it stands.
+func _liquid_drag() -> float:
+	if _liquid_now() <= 0.0:
+		return 1.0
+	return lerpf(1.0, float(_liquid.spec.get("enemy", {}).get("drag", 1.0)), _liquid_depth)
+
+
+## A walker's gravity, held up and slowed in a pool like the hero's.
+func _fall(delta: float) -> void:
+	var depth := _liquid_now()
+	if depth <= 0.0:
+		velocity.y += 1100.0 * delta
+		return
+	var body_spec: Dictionary = _liquid.spec.get("body", {})
+	velocity.y += 1100.0 * delta * lerpf(1.0, float(body_spec.get("buoyancy", 1.0)), depth)
+	var sink := float(body_spec.get("sink_speed", INF))
+	if depth > 0.35 and velocity.y > sink:
+		velocity.y = move_toward(velocity.y, sink, 2400.0 * delta)
+
+
+## What a pool of blood gives back (Hazard, host only): the bar follows.
+func liquid_heal(amount: float) -> void:
+	if state == State.DEAD or hp >= _max_hp:
+		return
+	hp = minf(_max_hp, hp + amount)
+	hp_bar.size.x = 14.0 * clampf(hp / _max_hp, 0.0, 1.0)
+	Fx.sparkle(global_position + Vector2(0, -10), Color(0.8, 0.15, 0.2), 3, 8.0)
 
 
 func _is_flying() -> bool:
@@ -556,7 +604,7 @@ func _acquire_target() -> void:
 func _patrol(delta: float) -> void:
 	var spec: Dictionary = stats.get("patrol", {})
 	var radius := float(spec.get("radius", PATROL_DEFAULTS.radius))
-	var speed := float(stats.get("speed", 50)) * float(spec.get("speed", PATROL_DEFAULTS.speed))
+	var speed := float(stats.get("speed", 50)) * float(spec.get("speed", PATROL_DEFAULTS.speed)) * _liquid_drag()
 	var pause: Array = spec.get("pause", PATROL_DEFAULTS.pause)
 	if _is_flying():
 		_bob += delta * 2.0
@@ -578,7 +626,7 @@ func _patrol(delta: float) -> void:
 		velocity += _knockback
 		_play("walk" if velocity.length() > 6.0 else "idle")
 		return
-	velocity.y += 1100.0 * delta
+	_fall(delta)
 	velocity.x = _knockback.x
 	if _patrol_wait > 0.0:
 		_patrol_wait -= delta
@@ -714,7 +762,7 @@ func _net_alert(new_facing: int) -> void:
 
 
 func _chase(to_target: Vector2, delta: float) -> void:
-	var speed := float(stats.get("speed", 50))
+	var speed := float(stats.get("speed", 50)) * _liquid_drag()
 	var aggro := float(stats.get("aggro_range", 380))
 	var chase := Vector2.ZERO
 	match stats.get("behaviour", "walker"):
@@ -782,7 +830,7 @@ func _chase(to_target: Vector2, delta: float) -> void:
 			chase.y += sin(_bob) * 20.0
 			velocity = chase + _knockback
 		_:
-			velocity.y += 1100.0 * delta
+			_fall(delta)
 			# The close stance is for a ready attack. During cooldown, hold just
 			# outside melee range; after a strike, backstep before returning.
 			var stop_at := float(stats.get("size", 12)) * 0.5 + 11.0
@@ -837,7 +885,7 @@ func _hold(delta: float) -> void:
 				velocity += _personal_space(_target.global_position - global_position) * 220.0
 		_:
 			velocity.x = _knockback.x
-			velocity.y += 1100.0 * delta
+			_fall(delta)
 
 
 ## Between blows: a walker holds a distance just outside its reach, paced
@@ -1420,22 +1468,24 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 	var knockback := float(info.get("knockback", 1.0))
 	var sneak := float(info.get("sneak", 1.0))
 	var execute := float(info.get("execute", 0.0))
+	var move := str(info.get("move", ""))
 	if Net.active and not multiplayer.is_server():
 		if multiplayer.get_peers().has(1):
-			_net_hit.rpc_id(1, amount, from, crit, knockback, sneak, execute)
+			_net_hit.rpc_id(1, amount, from, crit, knockback, sneak, execute, move)
 		return
-	_apply_damage(amount, from, source != null, crit, knockback, sneak, execute)
+	_apply_damage(amount, from, source != null, crit, knockback, sneak, execute, move)
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func _net_hit(amount: float, from: Vector2, crit: bool, knockback: float, sneak: float, execute := 0.0) -> void:
-	_apply_damage(amount, from, true, crit, knockback, sneak, execute)
+func _net_hit(amount: float, from: Vector2, crit: bool, knockback: float, sneak: float, execute := 0.0, move := "") -> void:
+	_apply_damage(amount, from, true, crit, knockback, sneak, execute, move)
 
 
 ## [param sneak] is what the blow is worth on a body that never saw it coming;
 ## only the host knows whether this one did, so the multiplier is applied here.
+## [param move] names the blow that landed (Gore.moves): how this body bleeds and tears.
 func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knockback: float, sneak := 1.0,
-		execute := 0.0) -> void:
+		execute := 0.0, move := "") -> void:
 	if state == State.DEAD:
 		return
 	if _sealed:
@@ -1477,9 +1527,9 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	var away := signf(global_position.x - from.x)
 	if away == 0.0:
 		away = float(facing)
-	_hit_fx(amount, crit, hp, away, backstab)
+	_hit_fx(amount, crit, hp, away, backstab, move)
 	if Net.active:
-		_net_hit_fx.rpc(amount, crit, hp, _max_hp, away, backstab)
+		_net_hit_fx.rpc(amount, crit, hp, _max_hp, away, backstab, move)
 	if riposte:
 		_riposte_fx()
 		if Net.active:
@@ -1665,7 +1715,7 @@ func _net_riposte_fx() -> void:
 ## What a hit looks like from the receiving end: a white blow-out, a squash that
 ## springs back, sparks thrown the way the blade was going, and the number.
 ## [param away] is -1 or 1: the direction the hit came from, pointing outwards.
-func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := false) -> void:
+func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := false, move := "") -> void:
 	Game.note_dealt(amount)  # the night's numbers (every peer sees every blow)
 	Fx.damage_number(global_position, amount, Color(1.0, 0.8, 0.3) if crit else Color(1, 0.95, 0.8))
 	if backstab:
@@ -1691,9 +1741,10 @@ func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := 
 	# blood thrown the way the blade went, by what it is made of (data/gore.json)
 	_last_away = away
 	_last_violent = crit or backstab
+	_last_move = "thrust" if backstab and move in ["", "attack"] else move
 	var share := amount / maxf(_max_hp, 1.0)
 	Gore.hit(self, enemy_id, str(stats.get("material", "cloth")), global_position + Vector2(away * -4.0, -10.0),
-		Vector2(away, -0.3), 1.0 + (0.6 if crit else 0.0) + (1.0 if backstab else 0.0) + share * 2.0)
+		Vector2(away, -0.3), 1.0 + (0.6 if crit else 0.0) + (1.0 if backstab else 0.0) + share * 2.0, _last_move)
 	if stats.get("boss", false):
 		EventBus.boss_hp_changed.emit(stats.get("name", ""), maxf(new_hp, 0.0), _max_hp)
 
@@ -1711,10 +1762,10 @@ func _punch(crit: bool) -> void:
 ## The host also sends its own max: difficulty is a per-player setting, so the
 ## numbers a client computed at spawn are not the numbers being fought.
 @rpc("authority", "call_remote", "unreliable_ordered")
-func _net_hit_fx(amount: float, crit: bool, new_hp: float, max_hp: float, away: float, backstab: bool) -> void:
+func _net_hit_fx(amount: float, crit: bool, new_hp: float, max_hp: float, away: float, backstab: bool, move := "") -> void:
 	hp = new_hp
 	_max_hp = maxf(max_hp, 1.0)
-	_hit_fx(amount, crit, new_hp, away, backstab)
+	_hit_fx(amount, crit, new_hp, away, backstab, move)
 
 
 ## Attack type "summon": after its wind-up, calls "count" of "id" out of the
@@ -1944,7 +1995,7 @@ func _die() -> void:
 	# blood, a pool under it, and — when data/gore.json allows — its own drawing
 	# torn into pieces; a boss lingers whole for its last words
 	var torn := Gore.death(self, enemy_id, material, null if is_boss else sprite,
-		Vector2(_last_away, -0.2), _last_violent)
+		Vector2(_last_away, -0.2), _last_violent, _last_move)
 	# Cosmetic essence has its own readable allegiance; the numeric reward above
 	# is unchanged. Possession and undeath override a human origin.
 	var dark := _soul_affinity() == "dark"

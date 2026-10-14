@@ -509,6 +509,13 @@ prop_id = "pot"
 position = Vector2(630, 474)
 npc_id = "villager"
 
+[node name="Liquid1" type="Area2D" parent="."]
+position = Vector2(1074, 542)
+script = ExtResource("15_hazard")
+kind = "water"
+size = Vector2(53, 8)
+painted = true
+
 [node name="Spawns" type="Node2D" parent="."]
 
 [node name="Spawn1" type="Marker2D" parent="Spawns"]

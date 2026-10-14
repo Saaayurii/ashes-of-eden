@@ -236,7 +236,7 @@ async function gdFiles(tab) {
     if (!tab.paths(p)) continue;
     const text = await repoText(p), latest = JSON.parse(text);
     const merged = await resolveDraft(draftBase('world', WORLD.data.files)[p], mine, latest, p, BASES.world?.uncertain);
-    if (!sameDraft(merged, latest)) { files[p] = gdText(text, merged); what.push(p); }
+    if (!sameDraft(merged, latest)) { files[p] = tab.text?.(p, merged, text) ?? (p === GD_ROOMS ? fmtStudioRooms(merged) : gdText(text, merged)); what.push(p); }
   }
   const extra = await gdExtraFiles(tab.strings, tab.music);
   Object.assign(files, extra.files); what.push(...extra.what);

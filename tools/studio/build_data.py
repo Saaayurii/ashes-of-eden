@@ -280,8 +280,20 @@ def room_project(root: Path, path: Path):
             (cx, cy), (w, h) = _vec(c["props"].get("position")), rects[shape[1]]
             if w >= 16 and cy - h / 2 >= 0:
                 surfaces.append([round(cx - w / 2, 1), round(cy - h / 2, 1), round(w, 1)])
+    # what burns or drowns already (scripts/rooms/hazard.gd): the painted rooms' lava, and whatever
+    # liquids the generator laid from tools/rooms/studio_rooms.json; «Жидкости» shows them on the map
+    hazard_ids = set(re.findall(r'\[ext_resource type="Script"[^\]]*?path="res://scripts/rooms/hazard\.gd"[^\]]*?id="([^"]+)"\]', text))
+    hazards = []
+    for n in nodes:
+        script = re.match(r'ExtResource\("([^"]+)"\)', n["props"].get("script", ""))
+        if n["type"] == "Area2D" and script and script[1] in hazard_ids:
+            hx, hy = _vec(n["props"].get("position"))
+            hw, hh = _vec(n["props"].get("size"), (100, 30))
+            kind = (n["props"].get("kind") or n["props"].get("liquid") or '"lava"').strip('"&')
+            hazards.append([kind, round(hx, 1), round(hy, 1), round(hw, 1), round(hh, 1),
+                            {"painted": n["props"].get("painted", "true") != "false", "name": n["name"]}])
     return {
-        "spawns": spawns, "surfaces": surfaces,
+        "spawns": spawns, "surfaces": surfaces, "hazards": hazards,
         "id": "room_" + path.stem, "kind": "bg", "name": path.stem,
         "width": int(float(top.get("width", 1280))), "height": int(float(top.get("height", 360))),
         "viewW": round(640 / VIEW_ZOOM), "viewH": round(360 / VIEW_ZOOM), "ambient": ambient,
@@ -754,10 +766,14 @@ def gore(root: Path, pfx, shots):
         if depth == 0:
             break
     defaults = json.loads(src[start:end + 1].replace("\n", " ").replace("\t", ""))
-    material = {r["id"]: r.get("material", "cloth") for r in shots["roster"]}
+    # the blows (Gore.MOVES) and what a blow the table leaves out does (MOVE_DEFAULTS)
+    moves = re.findall(r'"(\w+)"', re.search(r"const MOVES := \[(.*?)\]", src, re.S)[1])
+    move_defaults = json.loads(re.search(r"const MOVE_DEFAULTS := (\{.*?\})", src, re.S)[1].replace("\n", " ").replace("\t", ""))
+    material ={r["id"]: r.get("material", "cloth") for r in shots["roster"]}
     bodies = [{**b, "material": "flesh" if b["key"] == "elian" else material.get(b["key"], "cloth")} for b in pfx["bodies"]]
     return {"materials": doc.get("materials", {}), "bodies_rules": doc.get("bodies", {}), "keys": keys,
-            "defaults": defaults, "bodies": bodies}
+            "defaults": defaults, "bodies": bodies, "moves": doc.get("moves", {}), "move_names": moves,
+            "move_defaults": move_defaults}
 
 
 def world(root, rooms):

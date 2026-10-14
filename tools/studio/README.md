@@ -135,9 +135,26 @@ died in (every way of `cuts`, ragged lines, `Gore.pick_cut`), `GorePiece`'s boun
 stand-and-topple and stump jets, shaded drops, clots and the three kinds of mark,
 and where blood lands (`goreHitStage`: a ledge, a wall ending in the air, the sky's
 opening in a brick backdrop — splash, edge drips, wall runs, back splats, mist,
-and `soak` drawn with `multiply` as the `Soak` node does):
+and `soak` drawn with `multiply` as the `Soak` node does; water clouds and lava
+steam in the floor; `moves` — how each blow of the hero's turns the spray and
+throws the pieces, picked in the «Приём» select; «меньше крови» is `reduced`):
 change one, change the other. `goreText` writes the
 file one line per table, byte-identical when nothing changed (`tests/gore.test.js`).
+
+**Water, lava, bog and blood** (`js/liquids.js`, «Жидкости»). Two halves. «В комнате»: pools on
+a room's map, saved as `"liquids": [[kind, x, y, w, h, {"painted": true}?]]` in
+`tools/rooms/studio_rooms.json` (finished-room pixels like the spawns; y is the surface, h the depth
+below it; `painted` — the picture already shows it, the game draws it faint). Drag to add, drag to
+move, edges and corners to resize, Delete, arrows, numeric fields; the surface sticks to a floor top
+within 6 px. What the scene already has (`hazard.gd` nodes: the painted rooms' lava, from
+`build_data.room_project` as `hazards`) is drawn read-only. The checks (`liqPlaceProblems`: unknown
+kind, under 16×8, outside the room, overlapping) block a send. «Виды жидкостей»: every number, colour,
+particle, light and sound of `data/liquids.json`, with a pit to throw a body into (the hero or a
+walker: splash, swim, burn, drown, trail). The look is a port of `scripts/rooms/hazard.gd` (spring
+surface, resting wave, gradient body, foam, shimmer, the `body_<kind>.png` texture drifting by `flow`)
+— change one, change the other. `liqText` writes the file in its own layout, byte-identical when
+unchanged; `lib.js fmtStudioRooms` keeps every row of `studio_rooms.json` on one line, for every
+tab that writes it (`tests/liquids.test.js`).
 
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
@@ -414,7 +431,13 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
     (не к небу и не к проёмам); морось — в «Ударе». Пятно не заходит за
     край того, на чём лежит. Сцена превью — кирпичная стена с проёмом неба,
     висячий уступ и стена, обрывающаяся в воздухе.
-    «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу».
+    В воде кровь расходится облачком (`cloud`), на лаве шипит паром (`hiss`).
+    «Приём» — каким ударом героя: апперкот подбрасывает голову и кровь
+    вверх, удар сверху разбрасывает куски во все стороны, выпад бьёт одной
+    струёй, подсечка — низко. Карточка «Приём» правит его: наклон струи,
+    веер, сила, высота раны, шанс и способы разрыва, как летят куски.
+    «▶ Удар», «▶ Крит», «☠ Смерть», «в спину» (шанс ×2), «по кругу»,
+    «меньше крови» — как у игрока с Настройки → Кровь: уменьшено.
     Игрок может убавить или выключить кровь: Настройки → Кровь.
 22. **Конструктор** — большая комната из нескольких картин 1280×720 сеткой
     (до 6×4): выбери комнату, «+» в сетке — добавить картину (из игры или

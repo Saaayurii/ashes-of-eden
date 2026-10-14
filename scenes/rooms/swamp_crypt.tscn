@@ -605,6 +605,41 @@ prop_id = "bone_reliquary"
 position = Vector2(790, 451)
 prop_id = "secret_wall_swamp"
 
+[node name="Liquid1" type="Area2D" parent="."]
+position = Vector2(114, 598)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(49, 8)
+painted = true
+
+[node name="Liquid2" type="Area2D" parent="."]
+position = Vector2(227, 578)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(250, 8)
+painted = true
+
+[node name="Liquid3" type="Area2D" parent="."]
+position = Vector2(531, 532)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(162, 8)
+painted = true
+
+[node name="Liquid4" type="Area2D" parent="."]
+position = Vector2(589, 575)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(46, 8)
+painted = true
+
+[node name="Liquid5" type="Area2D" parent="."]
+position = Vector2(1103, 647)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(86, 8)
+painted = true
+
 [node name="Spawns" type="Node2D" parent="."]
 
 [node name="Spawn1" type="Marker2D" parent="Spawns"]

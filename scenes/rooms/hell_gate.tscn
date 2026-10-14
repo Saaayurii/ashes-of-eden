@@ -536,17 +536,23 @@ prop_id = "chest_cursed"
 [node name="Hazard1" type="Area2D" parent="."]
 position = Vector2(425, 694)
 script = ExtResource("15_hazard")
+kind = "lava"
 size = Vector2(262, 26)
+painted = true
 
 [node name="Hazard2" type="Area2D" parent="."]
 position = Vector2(801, 694)
 script = ExtResource("15_hazard")
+kind = "lava"
 size = Vector2(310, 26)
+painted = true
 
 [node name="Hazard3" type="Area2D" parent="."]
 position = Vector2(1310, 694)
 script = ExtResource("15_hazard")
+kind = "lava"
 size = Vector2(88, 26)
+painted = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

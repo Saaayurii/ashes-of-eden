@@ -30,7 +30,7 @@ async function worldFiles() {
   for (const [path, mine] of Object.entries(WORLD.work)) {
     const text = await repoText(path), latest = JSON.parse(text), base = draftBase('world', WORLD.data.files)[path];
     const merged = await resolveDraft(base, mine, latest, path, BASES.world.uncertain);
-    if (!sameDraft(merged, latest)) files[path] = gdText(text, merged);
+    if (!sameDraft(merged, latest)) files[path] = path === 'tools/rooms/studio_rooms.json' ? fmtStudioRooms(merged) : gdText(text, merged);
   }
   if (!Object.keys(files).length) throw new Error('Нет изменений поведения.');
   return { files, title: 'Studio: game behavior and encounters', body: 'Game data edited in «Поведение»: ' + Object.keys(files).join(', ') };
