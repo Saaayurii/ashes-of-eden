@@ -36,6 +36,13 @@ import numpy as np
 from PIL import Image
 from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
+
+def proj(rel, d):
+    """rel · d, the same on every machine: elementwise (a matrix product goes
+    through whichever BLAS numpy has, and Accelerate and OpenBLAS part in the
+    last bits), rounded so a pixel on a threshold's edge falls one way only."""
+    return np.round(rel[..., 0] * d[0] + rel[..., 1] * d[1], 6)
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SPRITES = os.path.join(ROOT, "assets", "sprites")
 CONTACT = os.path.join(ROOT, "tools", "art", "contact")
@@ -207,8 +214,8 @@ def find_line(a):
         d /= length
         nrm = np.array([-d[1], d[0]])
         rel = pts - p
-        u = rel @ d
-        v = rel @ nrm
+        u = proj(rel, d)
+        v = proj(rel, nrm)
         on = np.abs(v) <= 1.1
         us = np.sort(u[on])
         if us.size < 6:
@@ -253,7 +260,7 @@ def along(g, t):
     d /= length
     yy, xx = np.mgrid[0:CELL[1], 0:CELL[0]]
     rel = np.stack([xx - g[0], yy - g[1]], axis=-1)
-    return rel @ d, rel @ np.array([-d[1], d[0]]), length
+    return proj(rel, d), proj(rel, np.array([-d[1], d[0]])), length
 
 
 def lift(a, line, extra=()):
@@ -400,7 +407,7 @@ def raster(layer, shape, grip, d, spec, under=None):
     for y in range(max(0, y0), min(CELL[1], y1)):
         for x in range(max(0, x0), min(CELL[0], x1)):
             rel = np.array([x + 0.5 - grip[0], y + 0.5 - grip[1]])
-            u, v = float(rel @ d), float(rel @ nrm)
+            u, v = float(proj(rel, d)), float(proj(rel, nrm))
             colour = shape(u, v, spec)
             if colour is None:
                 continue
