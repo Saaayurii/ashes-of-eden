@@ -43,6 +43,9 @@ const DOORWAYS := {
 	"tyre_dark_quarter": [1535, 1585, 546],     # the alley mouth at the street's end
 	"tyre_bright_quay": [1535, 1585, 485],      # the lit arch over the quay
 	"tyre_dyeworks": [1530, 1580, 505],         # the arch past the last vat
+	"tyre_gate": [1510, 1560, 514],             # the inner arch into the city
+	"tyre_lamp_market": [1510, 1560, 518],      # the arcade's far passage
+	"tyre_rich_gate": [1510, 1560, 579],        # the side passage past the shrine
 }
 
 var failures := 0

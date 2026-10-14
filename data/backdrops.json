@@ -491,6 +491,31 @@
       {"kind": "haze", "rect": [130, 20, 140, 270], "strength": 1.0},
       {"kind": "glow", "rect": [160, 395, 70, 50], "tint": "#ff9040", "strength": 0.3, "speed": 0.8},
       {"kind": "glow", "rect": [840, 40, 60, 60], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5}
+    ]},
+    "tyre_gate": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [500, 20, 80, 160], "tint": "#9fb8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "sway", "rect": [340, 120, 50, 120], "strength": 0.8, "speed": 0.6},
+      {"kind": "sway", "rect": [1250, 160, 45, 200], "strength": 0.8, "speed": 0.6},
+      {"kind": "sway", "rect": [470, 300, 60, 150], "strength": 0.7, "speed": 0.5},
+      {"kind": "haze", "rect": [1420, 280, 130, 220], "strength": 0.7}
+    ]},
+    "tyre_lamp_market": {"family": "tyre", "zones": [
+      {"kind": "sway", "rect": [120, 360, 350, 80], "strength": 0.9, "speed": 0.7},
+      {"kind": "sway", "rect": [710, 360, 360, 80], "strength": 0.9, "speed": 0.7},
+      {"kind": "sway", "rect": [1350, 50, 220, 150], "strength": 0.8, "speed": 0.6},
+      {"kind": "sway", "rect": [1350, 330, 220, 120], "strength": 0.8, "speed": 0.6},
+      {"kind": "water", "rect": [330, 235, 820, 25], "floor": 0.3},
+      {"kind": "glow", "rect": [350, 50, 60, 55], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5},
+      {"kind": "stars", "rect": [230, 0, 1050, 130]}
+    ]},
+    "tyre_rich_gate": {"family": "tyre", "zones": [
+      {"kind": "water", "rect": [40, 300, 390, 110], "floor": 0.3},
+      {"kind": "glow", "rect": [175, 45, 60, 55], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5},
+      {"kind": "stars", "rect": [0, 0, 440, 120]},
+      {"kind": "sway", "rect": [1200, 0, 400, 300], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "oak"},
+      {"kind": "sway", "rect": [550, 180, 140, 160], "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [1320, 250, 120, 200], "strength": 1.0, "speed": 0.8},
+      {"kind": "haze", "rect": [1500, 420, 100, 160], "strength": 0.6}
     ]}
   }
 }

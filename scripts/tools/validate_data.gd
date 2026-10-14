@@ -6,7 +6,7 @@ extends SceneTree
 
 ## Secret walls set into an arch the room's painting already has; every other
 ## one brings its own niche (tools/art/make_secret_walls.py).
-const NICHE_PAINTED := ["secret_wall_catacombs", "secret_wall_tyre_counting"]
+const NICHE_PAINTED := ["secret_wall_catacombs", "secret_wall_tyre_counting", "secret_wall_tyre_gate"]
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const PATHS := ["grace", "temptation", "will"]
 const EFFECT_TYPES := ["stat", "lifesteal", "extra_life", "heal", "skill"]

@@ -706,6 +706,37 @@ PAINTED = {
         props=[],
         decor=[], npcs=[("zacchaeus", 262, 262)], ambient="#c4bcb0", lights="auto",
         player=(20, 478), door=(1255, 466)),
+    "tyre_gate": dict(
+        # The sea gate: the toll house's gallery over the passage, up its stair
+        # on the left; the collectors' booth at the gallery's end is bricked up
+        # (the light tariff behind it). Two lamps burn at the inner arch.
+        painting="tyre_gate", width=1280, height=720, weather="none", fog=0.12, intro="", music="road",
+        dark=0.5,
+        ground=[(0, 514, 1280, 206)],
+        ledges=[(325, 470, 45, 12), (285, 425, 45, 12), (245, 380, 45, 12), (205, 335, 45, 12), (165, 292, 45, 12),
+                (65, 249, 700, 14)],
+        spawns=[("tyre_guard", 560, 502), ("tyre_guard", 900, 502), ("cutpurse", 700, 502), ("cutpurse", 500, 237)],
+        props=[("tyre_lamp_lit", 1000, 514), ("tyre_lamp_lit", 1235, 514), ("tyre_lamp_15", 420, 249),
+               ("tyre_lamp_15", 680, 249), ("secret_wall_tyre_gate", 232, 249)],
+        decor=[], npcs=[], ambient="#c4bcae", lights="auto",
+        player=(20, 494), door=(1215, 482)),
+    "tyre_lamp_market": dict(
+        # The lamp-sellers' arcade: the stalls on the left, the one lamp on the
+        # middle counter is the free one; the upper arcade on the right, up its
+        # stair. Every lamp here is for sale.
+        painting="tyre_lamp_market", width=1280, height=720, weather="none", fog=0.12,
+        intro="ch4_market_caption", music="village_night",
+        dark=0.75,
+        ground=[(0, 518, 1280, 202)],
+        ledges=[(115, 475, 240, 12), (565, 475, 190, 12),
+                (845, 480, 40, 12), (885, 445, 40, 12), (925, 410, 40, 12), (962, 375, 40, 12), (965, 345, 60, 12),
+                (1030, 305, 40, 12), (860, 263, 420, 14)],
+        spawns=[("cutpurse", 300, 506), ("cutpurse", 700, 506), ("cutpurse", 1100, 251),
+                ("debt_wraith", 450, 250), ("debt_wraith", 800, 200)],
+        props=[("tyre_lamp_free", 640, 518), ("tyre_lamp_10", 230, 518), ("tyre_lamp_10", 440, 518),
+               ("tyre_lamp_15", 790, 518), ("tyre_lamp_15", 1120, 263), ("tyre_lamp", 1180, 518)],
+        decor=[], npcs=[], ambient="#c0b8b0", lights="auto",
+        player=(20, 498), door=(1215, 486)),
     "tyre_counting_house": dict(
         # The counting house: the scales and ledgers on the floor, the strongroom
         # cage up on the left gallery (the ledger's cache), a stair at each side.
@@ -748,6 +779,21 @@ PAINTED = {
         props=[("crate", 700, 436)],
         decor=[], npcs=[], ambient="#c8c0b4", lights="auto",
         player=(20, 465), door=(1240, 453)),
+    "tyre_rich_gate": dict(
+        # The rich man's gate: six steps up to the studded door, the balcony
+        # over it reached by the terrace stair on the left, the garden wall on
+        # the right under the fig. The household shrine is the rest point.
+        painting="tyre_rich_gate", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night",
+        intro_cutscene="rich_gate_arrival", dark=0.45,
+        ground=[(0, 579, 1280, 141)],
+        ledges=[(590, 557, 295, 12), (613, 517, 233, 12),
+                (40, 407, 210, 14), (255, 365, 40, 12), (295, 325, 40, 12), (335, 288, 40, 12), (372, 250, 40, 12),
+                (404, 230, 70, 12), (475, 229, 425, 14)],
+        platforms=[(320, 515, 60, 10), (265, 460, 60, 10)],
+        spawns=[("tyre_guard", 450, 567), ("tyre_guard", 1000, 567), ("woe_eagle", 600, 150), ("woe_eagle", 1000, 200)],
+        props=[("tyre_lamp_lit", 560, 579), ("tyre_lamp_lit", 900, 579)],
+        decor=[], npcs=[("lazarus_tyre", 700, 517)], ambient="#c4bcb0", lights="auto",
+        player=(20, 559), door=(1215, 547)),
     "tyre_dyeworks": dict(
         # The dyeworks: three vats of purple sunk in the floor, the dyers'
         # scaffold over them (up by its ladders). Lydia stands between the

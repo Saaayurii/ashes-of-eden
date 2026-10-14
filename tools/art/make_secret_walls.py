@@ -37,6 +37,8 @@ WALLS = {
     "swamp": ("swamp_crypt", (600, 330, 640, 420), 52, 76, 5),
     # Tyre (docs/CHAPTER4_ART.md §4.7): the bricked arch inside the counting house's cage
     "tyre_counting": ("tyre_counting_house", (158, 175, 200, 250), 48, 84, 13),
+    # the collectors' booth on the sea gate's gallery, its doorway bricked in the painting
+    "tyre_gate": ("tyre_gate", (205, 150, 258, 248), 52, 92, 17),
 }
 GLOW = (255, 204, 120)
 

@@ -41,7 +41,7 @@ const FAR_WINDOWS := {
 	"seir_road": [], "seir_gate": [], "seir_street": [], "seir_square": [],
 	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
-	"tyre_causeway": [], "tyre_counting_house": [], "tyre_dark_quarter": [], "tyre_bright_quay": [], "tyre_dyeworks": [],
+	"tyre_causeway": [], "tyre_counting_house": [], "tyre_dark_quarter": [], "tyre_bright_quay": [], "tyre_dyeworks": [], "tyre_gate": [], "tyre_lamp_market": [], "tyre_rich_gate": [],
 }
 
 
