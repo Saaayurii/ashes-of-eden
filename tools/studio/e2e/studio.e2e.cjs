@@ -35,9 +35,10 @@ function restore() {
 const steps = [];
 async function step(name, fn) {
   process.stdout.write(`  … ${name}\n`);
+  const t = Date.now();
   await fn();
   steps.push(name);
-  process.stdout.write(`  ok ${name}\n`);
+  process.stdout.write(`  ok ${name} (${((Date.now() - t) / 1000).toFixed(1)} s)\n`);
 }
 
 (async () => {

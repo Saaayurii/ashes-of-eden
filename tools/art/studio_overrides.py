@@ -31,6 +31,7 @@ by `settle`, which lays every edit over the picture as it is.
     python3 tools/art/studio_overrides.py list        # what is overridden, by which generator
     python3 tools/art/studio_overrides.py settle      # lay every edit over its picture as it is now
     python3 tools/art/studio_overrides.py regenerate  # run the generators that own an edit, then settle
+    python3 tools/art/studio_overrides.py regenerate <path>…  # only for these edits (the studio server's new ones)
 """
 import atexit, hashlib, json, os, subprocess, sys
 
@@ -42,6 +43,10 @@ MANIFEST = os.path.join(DIR, "overrides.json")
 ## and so whose pictures the studio may edit (tools/studio/build_data.py lists them for it).
 OVERRIDABLE = {"secret walls", "altar book", "blood altar", "weapon icons", "bestiary strips", "ophanim seals",
                "rooms", "weapon frames", "hero moves", "practice yard", "liquids"}
+
+## Generators that can build only what writes some files (`--for <file>…`, the rooms or creatures
+## those are): regenerating for one edit then costs a room, not all of them.
+NARROWS = {"tools/rooms/generate_rooms.py", "tools/art/build_bestiary_assets.py"}
 
 _cache = None
 _seen = {}   # rel -> ("new" | "stale", base hash), recorded at exit when asked
@@ -164,18 +169,21 @@ def settle():
     return changed
 
 
-def regenerate():
+def regenerate(only=None):
     """What the studio's robot and the local studio server do with a new edit: run each
-    generator that owns one (recording bases and stale marks), then settle."""
+    generator that owns one (recording bases and stale marks), then settle. `only`: the edits
+    that are new or taken away — the rest are already in their pictures — so only their
+    generators run, and those in NARROWS only for the files they were drawn on."""
     env = dict(os.environ, STUDIO_OVERRIDES_RECORD="1")
-    scripts = []
-    for rel in load():
+    scripts = {}
+    for rel in sorted(load() if only is None else only):
         _name, script = owner_of(rel)
-        if script and script not in scripts:
-            scripts.append(script)
-    for script in scripts:
+        if script:
+            scripts.setdefault(script, []).append(rel)
+    for script, rels in scripts.items():
         print("==> %s" % script, flush=True)
-        subprocess.run([sys.executable, script], cwd=ROOT, env=env, check=True)
+        subprocess.run([sys.executable, script] + (["--for"] + rels if only is not None and script in NARROWS else []),
+                       cwd=ROOT, env=env, check=True)
     global _cache
     _cache = None
     return scripts, settle()
@@ -192,7 +200,7 @@ def main():
         for rel in settle():
             print("settled", rel)
     elif cmd == "regenerate":
-        scripts, settled = regenerate()
+        scripts, settled = regenerate(set(sys.argv[2:]) or None)
         print("ran %d generator(s), settled %d picture(s)" % (len(scripts), len(settled)))
     else:
         sys.exit(__doc__)
