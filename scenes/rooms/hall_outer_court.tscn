@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/hall_outer_court_wide.png" id="2_backdrop"]
@@ -86,6 +86,9 @@ size = Vector2(45, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge5_shape"]
 size = Vector2(360, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge6_shape"]
+size = Vector2(36, 8)
 
 [sub_resource type="RectangleShape2D" id="Wall1_shape"]
 size = Vector2(16, 736)
@@ -177,6 +180,11 @@ position = Vector2(1230.0, 439.0)
 shape = SubResource("Ledge5_shape")
 one_way_collision = true
 
+[node name="Ledge6Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1458.0, 548.0)
+shape = SubResource("Ledge6_shape")
+one_way_collision = true
+
 [node name="Terrain" type="Node2D" parent="."]
 
 [node name="DecorMid" type="Node2D" parent="."]
@@ -187,8 +195,8 @@ z_index = 1
 [node name="Props" type="Node2D" parent="."]
 
 [node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1460, 570)
-prop_id = "hall_cache_court_tally"
+position = Vector2(1458, 544)
+prop_id = "secret_wall_hall_court"
 
 [node name="Spawns" type="Node2D" parent="."]
 

@@ -1,6 +1,6 @@
 {
   "id": "hall_cache_register",
-  "_art": "a plain chest standing where the painting hides the record (docs/CHAPTER7.md §4 Тайники)",
+  "_art": "the chest behind a marble secret wall (secret_wall_hall_*) (docs/CHAPTER7.md §4 Тайники)",
   "kind": "chest",
   "essence": 30,
   "ash": 20,

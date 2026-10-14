@@ -183,8 +183,8 @@ z_index = 1
 [node name="Props" type="Node2D" parent="."]
 
 [node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(1470, 345)
-prop_id = "hall_cache_register"
+position = Vector2(1572, 345)
+prop_id = "secret_wall_hall_archive"
 
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(1080, 415)

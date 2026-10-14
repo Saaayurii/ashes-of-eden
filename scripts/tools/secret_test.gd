@@ -20,7 +20,8 @@ func _run() -> void:
 	var found := {}
 	var heard := []
 	root.get_node("EventBus").note_found.connect(func(note_id: String, first: bool) -> void: heard.append([note_id, first]))
-	for scene in ["res://scenes/rooms/village_night.tscn", "res://scenes/rooms/swamp_crypt.tscn", "res://scenes/rooms/catacombs_2.tscn"]:
+	for scene in ["res://scenes/rooms/village_night.tscn", "res://scenes/rooms/swamp_crypt.tscn", "res://scenes/rooms/catacombs_2.tscn",
+			"res://scenes/rooms/hall_elders_stair.tscn", "res://scenes/rooms/hall_outer_court.tscn", "res://scenes/rooms/hall_archive.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room
@@ -36,7 +37,7 @@ func _run() -> void:
 			# a bricked-up doorway, not a patch of bricks: its niche is drawn
 			# behind it, or the painting has the arch (NICHE_PAINTED)
 			var niche = wall.get_node_or_null("Niche")
-			_assert(niche != null or wall.prop_id == "secret_wall_catacombs",
+			_assert(niche != null or wall.prop_id in ["secret_wall_catacombs", "secret_wall_hall_court"],
 				"%s: stands in a doorway" % wall.prop_id)
 			if niche != null:
 				_assert(niche.get_index() == 0 and niche.texture.get_width() > wall.sprite.texture.get_width() / wall.sprite.hframes,
@@ -118,10 +119,8 @@ func _run() -> void:
 	game.flags.erase("book_read")
 	church.queue_free()
 	await _settle(0.1)
-	# Seir's caches have no wall yet (docs/CHAPTER2_ART.md), and the Heavenly
-	# Hall hides nothing behind brick (docs/CHAPTER7.md §4): they stand open
-	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn",
-			"res://scenes/rooms/hall_elders_stair.tscn", "res://scenes/rooms/hall_outer_court.tscn", "res://scenes/rooms/hall_archive.tscn"]:
+	# Seir's caches have no wall yet (docs/CHAPTER2_ART.md): they stand open
+	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room

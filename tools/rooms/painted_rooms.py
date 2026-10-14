@@ -705,7 +705,7 @@ PAINTED = {
         ramps=[(170, 562, 530, 343)],
         stone_steps=True,
         spawns=[("wheel", 860, 250), ("wheel", 1040, 220), ("measuring_angel", 980, 334)],
-        props=[("hall_cache_crown", 640, 343)],
+        props=[("secret_wall_hall_stair", 758, 343)],  # the crown behind the landing's back wall
         decor=[], npcs=[("elders", 880, 346), ("elders_2", 1010, 346), ("elders_3", 1090, 346)],
         ambient="#e8e4dc", lights=[],
         player=(30, 542), door=(1222, 530)),
@@ -715,9 +715,10 @@ PAINTED = {
         painting="hall_outer_court", width=1280, height=720, weather="none", fog=0.08, intro="", music="church",
         intro_cutscene="ch7_court_sky", void_kill_y=700,
         ground=[(0, 570, 1280, 150)],
-        ledges=[(495, 548, 235, 12), (545, 528, 185, 12), (595, 508, 135, 12), (690, 488, 45, 12), (730, 432, 360, 14)],
+        ledges=[(495, 548, 235, 12), (545, 528, 185, 12), (595, 508, 135, 12), (690, 488, 45, 12), (730, 432, 360, 14),
+                (1120, 544, 36, 8)],  # the niche's sill by the door, where the tally is walled up
         spawns=[("seraph", 400, 250), ("wheel", 820, 330), ("wheel", 1000, 320)],
-        props=[("hall_cache_court_tally", 1140, 570)],
+        props=[("secret_wall_hall_court", 1138, 544)],  # in the painted niche by the door, on its sill
         decor=[], npcs=[], ambient="#e8e4dc", lights=[],
         player=(30, 550), door=(1232, 538)),
     "hall_measured_temple": dict(
@@ -775,7 +776,7 @@ PAINTED = {
         platforms=[(960, 392, 50, 10)],
         spawns=[("archive_scribe", 200, 403), ("archive_scribe", 480, 403), ("archive_scribe", 300, 596),
                 ("archive_scribe", 700, 596)],
-        props=[("hall_cache_register", 1150, 345)],
+        props=[("secret_wall_hall_archive", 1252, 345)],  # walled into the upper gallery's pillar
         decor=[], npcs=[("enoch", 760, 415)], ambient="#e8e0d0",
         lights=[(253, 350, "#ffd890", 60, 0.6, 0.2), (852, 298, "#ffd890", 70, 0.65, 0.2)],
         player=(30, 588), door=(1212, 576)),

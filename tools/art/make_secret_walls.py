@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bricked-up doorways for the secrets of chapter I (docs/CHAPTER1.md, Secrets).
+"""Bricked-up doorways for the secrets of chapters I and VII (docs/CHAPTER1.md, Secrets).
 
 Each wall is a prop strip (scripts/props/prop.gd): whole -> cracked -> bursting
 -> leftovers. The stones are drawn here, but their colours are sampled from the
@@ -30,11 +30,17 @@ OUT = os.path.join(ROOT, "assets", "props")
 
 # place: (panel, sample box in panel pixels, frame width, frame height, seed)
 # The niche: how thick its stone ring is, or 0 when the painting has the arch.
-NICHE_RING = {"village": 7, "swamp": 7, "catacombs": 0}
+NICHE_RING = {"village": 7, "swamp": 7, "catacombs": 0,
+              "hall_stair": 6, "hall_court": 0, "hall_archive": 5}
 WALLS = {
     "catacombs": ("catacombs_2", (1058, 575, 1098, 688), 64, 100, 7),
     "village": ("graveyard_moon", (1085, 560, 1135, 640), 48, 72, 11),
     "swamp": ("swamp_crypt", (600, 330, 640, 420), 52, 76, 5),
+    # Chapter VII (docs/CHAPTER7.md, Тайники): white marble with gold in its
+    # veins. The court's wall fills the niche the painting already has, on its sill.
+    "hall_stair": ("hall_elders_stair", (560, 260, 640, 330), 32, 52, 23),
+    "hall_court": ("hall_outer_court", (1000, 480, 1080, 560), 36, 70, 29),
+    "hall_archive": ("hall_archive", (1235, 300, 1245, 340), 32, 52, 31),
 }
 GLOW = (255, 204, 120)
 
@@ -45,7 +51,8 @@ def palette(panel, box, stone_only=False):
     pixels = [img.getpixel((x, y)) for x in range(box[0], box[2]) for y in range(box[1], box[3])]
     if stone_only:
         # A crypt-wall sample includes black mortar and red roots. The secret
-        # opening must borrow the visible grey masonry, not those shadows.
+        # opening must borrow the visible grey masonry, not those shadows; the
+        # hall's marble, its white and not the gold in its veins.
         stones = [p for p in pixels if 0.3 * p[0] + 0.59 * p[1] + 0.11 * p[2] > 38
                   and max(p) - min(p) < 45]
         if stones:
@@ -225,7 +232,7 @@ def draw_niche(w, h, ring, pal, rng):
 
 def build(place, spec):
     panel, box, w, h, seed = spec
-    pal = palette(panel, box, stone_only=place == "swamp")
+    pal = palette(panel, box, stone_only=place == "swamp" or place.startswith("hall_"))
     frames = []
     # 0: whole, two hairline cracks — enough for a looking eye
     rng = random.Random(seed)
