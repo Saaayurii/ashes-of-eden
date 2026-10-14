@@ -35,6 +35,8 @@ signal chest_opened(prop_id: String)
 ## Gifts taken together woke something none does alone (data/resonances).
 signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)
+## Our own body took a weapon in hand (Player.equip): its id and the one it laid down.
+signal weapon_taken(id: String, dropped: String)
 ## Our own body rested at a rest point (scripts/rooms/rest_point.gd), in this room.
 signal player_rested(room_path: String)
 signal alignment_changed(alignment: Dictionary)
@@ -58,6 +60,8 @@ signal cutscene_started(cutscene_id: String)
 signal cutscene_finished(cutscene_id: String)
 signal dialogue_started(dialogue_id: String)
 signal dialogue_finished(dialogue_id: String)
+## A blocking dialogue cut short by Skip / Escape (the Playtest "skip" event).
+signal dialogue_skipped(dialogue_id: String)
 signal choice_made(dialogue_id: String, choice_id: String)
 ## A story choice gave flasks away or handed some over ("flask" in an effect,
 ## Game.apply_effect): our own body takes [param count] from its flasks.
@@ -68,3 +72,5 @@ signal achievement_unlocked(achievement_id: String)
 signal lighting_changed
 ## A saved game was put back into Game and the body (Saves.restore): redraw what reads them.
 signal run_restored
+## "Again" on the night's end: another night begins (Telemetry counts it).
+signal night_retried

@@ -534,8 +534,10 @@ def expand_painted_room(name, room):
         out["painted_cornices"] = True
         out["cornice_crop"] = (860, 458)
         # The return route is necessary, but bare stone shelves over lava
-        # looked pasted on. Tie each to the room's overhead masonry.
-        out["hanging_supports"] = {1: (295, 160), 2: (315, 315)}
+        # looked pasted on. The terrace hangs from the gallery return; that
+        # one is held by its cornice to the pillar on its left: nothing stands
+        # above it, and chains up to the room's top edge read as two lines.
+        out["hanging_supports"] = {1: (295, 160)}
         out["cornice_supports"] = {
             1: [(0, 10), (100, 10), (100, 20), (15, 40), (0, 60), (-25, 60), (-25, 52)],
             2: [(-55, 10), (85, 10), (85, 18), (24, 43), (-55, 48)],
@@ -1664,11 +1666,15 @@ ROOMS.update({name: expand_painted_room(name, room) if name in ROOM_EXPANSION_CU
 STUDIO_ROOMS = os.path.join(ROOT, "tools", "rooms", "studio_rooms.json")
 ## Pictures she laid into a room or retouched there by hand (tools/rooms/studio_textures.py).
 STUDIO_TEXTURES = {}
+## Each room's additions as written, for a composed room gone live: the studio
+## places them on the room the night walks, so they are that room's pixels.
+STUDIO_EXTRAS = {}
 if os.path.exists(STUDIO_ROOMS):
     with open(STUDIO_ROOMS) as _f:
         for _name, _extra in json.load(_f).items():
             if _name not in ROOMS:
                 raise SystemExit(f"tools/rooms/studio_rooms.json names no room: {_name}")
+            STUDIO_EXTRAS[_name] = _extra
             ROOMS[_name]["spawns"] = [tuple(s) for s in _extra.get("spawns_override", ROOMS[_name].get("spawns", []))] + [tuple(s) for s in _extra.get("spawns", [])]
             for _wave in _extra.get("waves", []):
                 if not isinstance(_wave, list) or not _wave:
@@ -1714,6 +1720,12 @@ def compose_room(name, entry):
     """Paint and build one composed room; False when its route does not hold."""
     room = compose.room_table(name, entry, ROOMS[name], compose.owners(PAINTED, DEPTH_WINDOWS))
     if entry.get("live"):
+        # what the studio placed in the live room (enemies, waves, props) stays in it;
+        # a draft is another room's geometry and takes none of it
+        extra = STUDIO_EXTRAS.get(name, {})
+        room["spawns"] = [tuple(s) for s in extra.get("spawns_override", room["spawns"])] + [tuple(s) for s in extra.get("spawns", [])]
+        room["waves"] = extra.get("waves", [])
+        room["props"] = room["props"] + [tuple(p) for p in extra.get("props", [])]
         ROOMS[name] = room
     picture = os.path.join(ROOT, "assets", "levels", "composed", name + ".png")
     os.makedirs(os.path.dirname(picture), exist_ok=True)
@@ -1732,7 +1744,7 @@ def compose_room(name, entry):
             os.unlink(plate + ".pending.png")
         else:
             os.replace(plate + ".pending.png", plate)
-    reached = check_reach(name, room)
+    reached = check_reach(name, {**room, "spawns": room.get("spawns", []) + [tuple(spawn) for wave in room.get("waves", []) for spawn in wave]})
     build(name, room, None if entry.get("live") else os.path.join(ROOT, "scenes", "rooms", "composed", name + ".tscn"))
     if not reached and not entry.get("live"):
         print(f"{name}: the composed draft's route does not hold yet (above); it is a draft, so it is written anyway")

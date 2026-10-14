@@ -16,6 +16,7 @@
     {"do": "sound", "name": "bell", "volume": -14, "if": "voice_no"},
     {"do": "flash", "color": "#d8d0c0", "strength": 0.25, "time": 1.2, "if": "voice_no"},
     {"do": "wait", "time": 1.6, "if": "voice_silent"},
+    {"do": "dialogue", "id": "voice_catacombs_more", "if": "voice_answered"},
     {"do": "wait", "time": 0.6},
     {"do": "presence", "on": false, "time": 1.0},
     {"do": "camera", "to": "player", "zoom": 1.0, "time": 1.2},

@@ -56,6 +56,10 @@ func _ready() -> void:
 	spar_button.pressed.connect(func() -> void: spar.emit(Game.slain_by))
 	exits.add_child(spar_button)
 	menu.reparent(exits, false)
+	# where a playtester says what the numbers cannot (docs/PLAYTEST.md); no link, no button
+	var feedback := FeedbackButton.make()
+	if feedback != null:
+		exits.add_child(feedback)
 
 
 ## Online it is the host who starts another night; a guest only gets the door out.
@@ -66,11 +70,26 @@ func allow_retry(allowed: bool) -> void:
 ## [param place] is the localization key of the chapter the night ended in
 ## (data/chapters); empty for a room no chapter claims, and then the line
 ## falls back to the area's number.
+## "Ending: The Fourth" for an ending reached, "" for none.
+static func ending_title(id: String) -> String:
+	if id == "" or not Data.endings.has(id):
+		return ""
+	return TranslationServer.translate("RUN_ENDING_TITLE") % TranslationServer.translate(str(Endings.spec(id).get("name", id)))
+
+
 func show_result(won: bool, area: int, kills: int, seconds: float, place := "") -> void:
 	title.text = "RUN_WIN_TITLE" if won else "RUN_DEAD_TITLE"
 	if won:
 		speaker.text = ""
 		line.text = WIN_LINES.get(Game.dominant_path(), "WIN_LINE")
+		# how the campaign ended, if it did (Endings); a dawn short of the
+		# finale's end is the chapter's, and the road goes on
+		var ending := ending_title(Game.ending)
+		if ending != "":
+			title.text = ending
+			line.text = str(Endings.spec(Game.ending).get("line", line.text))
+		else:
+			line.text = tr(line.text) + "\n" + tr("RUN_TO_BE_CONTINUED")
 	else:
 		var who: Array = LINES[Game.dominant_path()]
 		speaker.text = who[0]
@@ -122,6 +141,10 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	for id in Game.resonances:
 		names.append("◆ " + tr(str(Resonances.spec(id).get("name", id))))
 	gifts.text = "%s: %s" % [tr("RUN_GIFTS"), ", ".join(names)] if not names.is_empty() else ""
+	# the weapon the night ended with (data/weapons), when it was not the first one
+	if Game.weapon != Weapons.DEFAULT:
+		var weapon := tr("RUN_WEAPON") % tr(str(Weapons.spec(Game.weapon).get("name", Game.weapon)))
+		gifts.text = weapon + ("\n" + gifts.text if gifts.text != "" else "")
 	Audio.music("end")
 	Audio.play(&"victory" if won else &"defeat", -2.0, 0.0)
 	backdrop.texture = BACKDROP_WON if won else BACKDROP_DEAD

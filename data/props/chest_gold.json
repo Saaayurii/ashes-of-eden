@@ -39,5 +39,6 @@
     "res://assets/icons/quest/emblem_5.png",
     "res://assets/icons/quest/emblem_6.png"
   ],
-  "item": "rare"
+  "item": "rare",
+  "weapon": true
 }

@@ -16,6 +16,7 @@ stitching every seam.
     "cells": [{"painting": "graveyard_cross", "col": 0, "row": 0},
               {"painting": "panels/graveyard_hill", "col": 1, "row": 0}],
     "ground": [[x, y, w, h]], "ledges": [...], "platforms": [...],
+    "crumbling_platforms": [[x, y, w], [x, y, w, "timber"]],
     "ramps": [[x0, y0, x1, y1]], "hazards": [[x, y, w, h]],
     "player": [x, y], "door": [x, y],
     "spawns": [[id, x, y]], "props": [[id, x, y]], "npcs": [[id, x, y]],
@@ -35,6 +36,13 @@ stitching every seam.
 - **Layers** (`windows`, `lights`, `front`): when left out, the room uses its
   cells' own. Written, they are the studio's. See [DEPTH.md](DEPTH.md).
 - **Coordinates** are in the finished room's pixels, not panel pixels.
+- **Crumbling platforms** (`scripts/rooms/crumbling_platform.gd`) are
+  `[x, y, w]`, or `[x, y, w, kind]` with kind `stone` (the default) or `timber`:
+  a foothold that gives way under the hero and grows back, written into the
+  scene exactly as a painted room's `crumbling_platforms`. As in a painted room,
+  the route never counts on one — `check_reach`, the studio's `composeReach` and
+  `reach_test.gd` all leave it out — so the way through must hold without it.
+  It is a shortcut over a gap, not the bridge.
 - **The key** names the painted room the composition is made for. The composed
   room keeps that room's ambient light, fog, music, weather, intro caption and
   cutscenes. It keeps none of its geometry, which is all in the entry.
@@ -102,7 +110,9 @@ studio's «Оживление» lists the composed pictures.
 - **Editing by hand:**
   - Drag anything to move it.
   - Drag a selected rectangle's edges or corner to resize it.
-  - Draw new ground, ledges, platforms, ramps and hazards with the tools.
+  - Draw new ground, ledges, platforms, crumbling platforms («+ Осыпь»), ramps
+    and hazards with the tools. A crumbling platform is dashed, has no height
+    of its own, and its side panel picks stone or timber.
   - Place enemies and things, and change their kind in the side panel.
   - Delete removes the selection, Ctrl+Z undoes, the wheel zooms, and the right
     button or Space pans.
@@ -139,11 +149,14 @@ studio's «Оживление» lists the composed pictures.
   - a hole runs its neighbour on into the night;
   - openings and front pieces;
   - bad entries are refused;
-  - the room table is the grid.
+  - the room table is the grid;
+  - crumbling platforms are checked, carried to the generator, and never on the
+    route.
 - The engine tests take a draft with `-- --composed [room]`: `reach_test.gd`,
   `stairs_test.gd`, `void_fall_test.gd`.
 - `tools/studio/tests/lib.test.js` covers:
-  - reach, tracer, shifting, clipping and the file format;
+  - reach, tracer, shifting, clipping and the file format, crumbling platforms
+    included (the route leaves them out, as `check_reach` does);
   - the JS stitch against `compose.py` itself.
 - `scripts/tools/room_jump_test.gd`: where a draft lies, and its backdrop rule.
 - `tools/studio/e2e/studio.e2e.cjs`: the tab opens, traces, takes a ledge and

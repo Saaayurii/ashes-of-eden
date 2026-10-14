@@ -804,7 +804,7 @@ def composer(root: Path):
         by_painting.setdefault(room["painting"], name)
         rooms[name] = {"painting": room["painting"],
                        # a thing standing in a seam ("wide") has no place in the bare panel
-                       **{k: [list(v) for v in room.get(k, []) if "wide" not in v] for k in ("ground", "ledges", "platforms", "ramps", "hazards", "spawns", "props", "npcs")},
+                       **{k: [list(v) for v in room.get(k, []) if "wide" not in v] for k in ("ground", "ledges", "platforms", "crumbling_platforms", "ramps", "hazards", "spawns", "props", "npcs")},
                        "player": list(room["player"]), "door": list(room["door"])}
     panels = []
     for path in sorted((root / "assets/levels").glob("*.png")) + sorted((root / "assets/levels/panels").glob("*.png")):

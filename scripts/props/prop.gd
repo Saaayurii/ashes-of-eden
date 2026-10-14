@@ -433,6 +433,9 @@ func _pay_out(taker: Player = null) -> void:
 				ItemSystem.give(taker, id)
 				Fx.popup(global_position + Vector2(0, -40),
 					tr("HUD_ITEM_FOUND") % tr(str(Data.items[id].name)), Color(1.0, 0.86, 0.55), 9)
+		# the night's weapon (data/weapons): the first such chest lays one beside itself
+		if stats.get("weapon", false):
+			_lay_weapon(taker)
 	# A record is ours only when our own body opened it (online, the other
 	# player's puppet walks into chests on this machine too).
 	var note := str(stats.get("note", ""))
@@ -444,6 +447,28 @@ func _pay_out(taker: Player = null) -> void:
 		Game.ash_earned += ash
 		Fx.popup(global_position + Vector2(0, -30), tr("NOTE_ASH") % ash, Color(0.85, 0.82, 0.95))
 	EventBus.note_found.emit(note, first)
+
+
+## One weapon a night, on the floor beside the chest, never the one in hand
+## (Weapons.roll). The night of the day lays the day's: the same for everyone.
+func _lay_weapon(taker: Player) -> void:
+	if Game.weapon_found or Game.practice != "":
+		return
+	var rng := RandomNumberGenerator.new()
+	if Game.daily != "":
+		rng.seed = hash("weapon:" + Game.daily)
+	else:
+		rng.randomize()
+	var id := Weapons.roll(taker.weapon, rng)
+	if id == "":
+		return
+	Game.weapon_found = true
+	# where the opener stands, on the chest's floor: never off a ledge's end
+	var dx := clampf(taker.global_position.x - global_position.x, -20.0, 20.0)
+	var drop := WeaponDrop.lay(get_parent(), id, position + Vector2(dx, 0.0))
+	Fx.sparkle(drop.global_position + Vector2(0, -12), Color(1.0, 0.86, 0.55), 14, 12.0)
+	Fx.popup(global_position + Vector2(0, -52),
+		tr("WEAPON_FOUND") % tr(str(Weapons.spec(id).get("name", id))), Color(1.0, 0.86, 0.55), 9)
 
 
 ## The bricked-up doorway is down: whatever it hid stands where it stood.

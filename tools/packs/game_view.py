@@ -25,7 +25,7 @@ from pathlib import Path
 COLLECTIONS = {
     "abilities", "enemies", "enemy_archetypes", "dialogues", "cutscenes", "chapters", "props", "npcs",
     "notes", "items", "rest_points", "skins", "techniques", "forks", "achievements", "resonances",
-    "vials", "relics", "omens", "affixes",
+    "vials", "relics", "omens", "affixes", "weapons", "endings",
 }
 
 

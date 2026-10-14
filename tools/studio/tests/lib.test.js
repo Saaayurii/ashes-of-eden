@@ -619,6 +619,28 @@ test('composeClip keeps only what is inside the room', () => {
   assert.deepEqual(c.door, [1280, 5]);
 });
 
+test('crumbling platforms: never on the route (as check_reach), moved, clipped and written back unchanged', () => {
+  const R = COMPOSER.reach;
+  const gap = { ground: [[0, 600, 1000, 120], [1600, 600, 960, 120]], crumbling_platforms: [[1000, 600, 600]], player: [40, 590], door: [2500, 590] };
+  const py = JSON.parse(require('node:child_process').execFileSync('python3', ['-c',
+    'import json, sys; sys.path.insert(0, "tools/rooms"); import compose, painted_rooms; e = json.loads(sys.argv[1]);'
+    + ' room = compose.room_table("t", dict(e, cells=[{"painting": "graveyard_cross", "col": 1, "row": 0}], lights=[], spawns=[], props=[]), {}); print(json.dumps(painted_rooms.check_reach("t", room)))',
+    JSON.stringify(gap)], { cwd: ROOT, encoding: 'utf8' }).trim().split('\n').pop());
+  assert.equal(py, false);
+  assert.equal(L.composeReach(gap, R).ok, py);
+  assert.ok(L.composeReach({ ...gap, platforms: [[1000, 600, 600, 10]] }, R).ok);
+  assert.equal(L.composeSurfaces(gap).surfaces.length, 2);
+  const s = L.composeShift({ crumbling_platforms: [[10, 20, 30], [40, 50, 60, 'timber']] }, 1280, 720);
+  assert.deepEqual(s.crumbling_platforms, [[1290, 740, 30], [1320, 770, 60, 'timber']]);
+  const c = L.composeClip({ crumbling_platforms: [[1250, 10, 80, 'timber'], [1300, 10, 20], [10, 800, 20]] }, 1280, 720);
+  assert.deepEqual(c.crumbling_platforms, [[1250, 10, 30, 'timber']]);
+  assert.ok(L.COMPOSE_LISTS.includes('crumbling_platforms'));
+  const doc = { g: { live: false, cells: [{ painting: 'x', col: 0, row: 0 }], platforms: [[1, 2, 3, 4]], crumbling_platforms: [[301, 264, 80], [5, 6, 7, 'timber']] } };
+  const text = L.fmtComposed(doc);
+  assert.deepEqual(JSON.parse(text), doc);
+  assert.match(text, /\n {6}\[5, 6, 7, "timber"\]/);
+});
+
 test('traceLedges finds a lit top over dark stone, not a lone bright line', () => {
   const w = 200, h = 60, lum = new Uint8Array(w * h).fill(20);
   for (let x = 30; x < 130; x++) { lum[30 * w + x] = 200; for (let y = 31; y < 45; y++) lum[y * w + x] = 60; }

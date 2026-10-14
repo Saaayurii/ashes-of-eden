@@ -39,7 +39,9 @@ FLYERS = {"shade", "wraith", "elder_wraith", "raven", "ophanim", "sea_wraith"}
 
 
 def _surfaces(room):
-    """Walkable surfaces (x, y, w) and the pairs joined by walking (ramps)."""
+    """Walkable surfaces (x, y, w) and the pairs joined by walking (ramps).
+    A crumbling platform is not one: it gives way, so the route never counts
+    on it (reach_test.gd leaves it out too)."""
     out = []
     links = []
     for x, y, w, h in room.get("ground", []):

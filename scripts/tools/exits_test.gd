@@ -9,7 +9,7 @@ extends SceneTree
 ## room -> the painted opening's span in x (left, right) and its sill y
 const DOORWAYS := {
 	"village_night": [1545, 1580, 260],     # the gate of the chapel, top right
-	"graveyard_cross": [1225, 1265, 386],   # the arch under the chapel of the statue
+	"graveyard_cross": [2480, 2550, 302],   # composed: the gate atop the hill
 	"graveyard_arches": [1420, 1460, 292],  # the ruined arch with a candle
 	"graveyard_tree": [1495, 1540, 241],    # the arch between the gate pillars
 	"swamp_threshold": [1460, 1550, 363],   # the open arch across the marsh causeway

@@ -226,6 +226,9 @@ func play(dialogue_id: String) -> void:
 ##   "habit"  the way the last nights have leaned (Profile.habit(), docs/CORE_LOOP.md
 ##            "the world notices"). A player's own history, so never online, where
 ##            both peers must walk the same lines.
+##   "nights" at least this many nights already lived (Profile.data.nights): the
+##            night repeats, and some people remember it (docs/STORY_BIBLE.md,
+##            "why he comes back"). The player's own count, so never online either.
 static func branch_holds(branch: Dictionary) -> bool:
 	if branch.has("flag") and Game.flags.has(branch.flag):
 		return true
@@ -234,6 +237,8 @@ static func branch_holds(branch: Dictionary) -> bool:
 	if branch.has("vial") and Game.vial >= int(branch.vial):
 		return true
 	if branch.has("omen") and not Net.active and Game.omen == str(branch.omen):
+		return true
+	if branch.has("nights") and not Net.active and int(Profile.data.get("nights", 0)) >= int(branch.nights):
 		return true
 	return branch.has("habit") and not Net.active and Profile.habit() == str(branch.habit)
 
@@ -597,6 +602,8 @@ func _on_continue() -> void:
 
 
 func _on_skip() -> void:
+	if _busy and _blocking and not _skipped:
+		EventBus.dialogue_skipped.emit(_dialogue_id)
 	_skipped = true
 	answered_locally.emit(-1)
 	_answered.emit(null)

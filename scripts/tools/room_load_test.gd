@@ -27,7 +27,9 @@ func _run() -> void:
 			for window in windows.get_children():
 				assert(window is Polygon2D and window.texture != null,
 					"Room %d has an empty depth mask" % (index + 1))
-			if run.ROOMS[index].contains("graveyard_cross") or run.ROOMS[index].contains("swamp_red"):
+			# a composed room (assets/levels/composed) has its seams stitched, not silhouetted
+			var composed := painting.texture.resource_path.contains("/composed/")
+			if (run.ROOMS[index].contains("graveyard_cross") or run.ROOMS[index].contains("swamp_red")) and not composed:
 				var silhouette := run.room.get_node_or_null("SeamSilhouette") as Sprite2D
 				assert(silhouette != null and silhouette.texture != null,
 					"Room %d lost its authored seam silhouette" % (index + 1))

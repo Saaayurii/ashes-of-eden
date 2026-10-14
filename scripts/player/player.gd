@@ -191,7 +191,7 @@ static var WAVE_SPEED := 260.0
 ## Slot 1 wears a colder cloth so the two of you never lose each other.
 const SLOT_TINTS := [Color.WHITE, Color(0.72, 0.84, 1.05)]
 ## What the other peer needs to draw this body. The rest is local theatre.
-const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin"]
+const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon"]
 
 signal died(player: Player)
 
@@ -204,6 +204,11 @@ var skin := "":
 		skin = value
 		if is_node_ready():
 			_dress()
+
+## What he swings (data/weapons, scripts/combat/weapons.gd): the sword unless
+## a chest laid another at his feet. Replicated, so the other player's slash
+## is drawn the weapon's size; saved with the body (Saves.capture).
+var weapon := Weapons.DEFAULT
 
 var stats: Dictionary = BASE_STATS.duplicate()
 var hp: float
@@ -426,7 +431,7 @@ func auto_target() -> Enemy:
 		if enemy == null or enemy.is_dead() or enemy.is_unaware():
 			continue
 		var d := enemy.global_position - global_position
-		if absf(d.x) > AUTO_REACH * stats.attack_scale or absf(d.y) > AUTO_HEIGHT:
+		if absf(d.x) > Weapons.number(weapon, "auto_reach", AUTO_REACH) * stats.attack_scale or absf(d.y) > AUTO_HEIGHT:
 			continue
 		if absf(d.x) < best_d:
 			best_d = absf(d.x)
@@ -851,6 +856,7 @@ func _animate(on_floor: bool) -> void:
 
 
 func _play(animation: String) -> void:
+	body.speed_scale = 1.0  # a weapon's swing may have hurried or slowed the last one
 	body.play(animation)
 	net_anim = animation
 
@@ -1068,6 +1074,9 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		Audio.play(&"hit_crit", -6.0)
 		return
 	amount *= 1.0 - clampf(stats.armor, 0.0, 0.5)
+	# a heavy weapon's poise: a body mid-swing pays less for standing its ground
+	if _attack_anim_left > 0.0:
+		amount *= 1.0 - Weapons.number(weapon, "poise", 0.0)
 	if curse > 0:
 		amount *= CURSE_DAMAGE
 	if blocked:
@@ -1714,22 +1723,47 @@ func _action_hit_frame(spec: Dictionary, animation: String) -> bool:
 	return true
 
 
+## Takes [param id] in hand (data/weapons); returns the one laid down, or ""
+## when it was already held. The chain starts again from its first step. Our
+## own body tells the night (Game.weapon, the codex, the chronicle, Playtest).
+func equip(id: String) -> String:
+	id = Weapons.known(id)
+	if id == weapon:
+		return ""
+	var dropped := weapon
+	weapon = id
+	_combo = 0
+	_combo_timer = 0.0
+	if _is_mine():
+		Game.weapon = id
+		if not Game.weapons_used.has(id):
+			Game.weapons_used.append(id)
+		EventBus.weapon_taken.emit(id, dropped)
+	return dropped
+
+
 func _attack() -> void:
 	# Up + attack is an intentional anti-air slash. It trades the horizontal
-	# three-hit chain for a taller, narrower hit area above the player's head.
+	# chain for a taller, narrower hit area above the player's head.
 	var aim_up := _dash_left <= 0.0 and Input.is_action_pressed("move_up")
-	var hit_index := 0 if aim_up else _combo
-	_attack_cd = stats.attack_cooldown * (0.65 if aim_up else COMBO_RECOVERY[hit_index])
+	# The weapon's chain (data/weapons). A key a step leaves out is the hero's
+	# own for that step — which is all of them for the sword.
+	var chain := Weapons.chain(weapon)
+	var hit_index := 0 if aim_up else _combo % chain.size()
+	var own := mini(hit_index, COMBO_MULTIPLIERS.size() - 1)  # the hero's step it falls back on
+	var step: Dictionary = {} if aim_up else Weapons.step(weapon, hit_index)
+	var base := str(step.get("animation", SWING_ANIMATIONS[own]))
+	_attack_cd = stats.attack_cooldown * (0.65 if aim_up else COMBO_RECOVERY[own])
 	_attack_cd_total = _attack_cd
-	_combo = 0 if aim_up else (_combo + 1) % COMBO_MULTIPLIERS.size()
-	_combo_timer = 0.0 if aim_up else COMBO_WINDOW
+	_combo = 0 if aim_up else (_combo + 1) % chain.size()
+	_combo_timer = 0.0 if aim_up else Weapons.number(weapon, "combo_window", COMBO_WINDOW)
 	_armed = true
 	_scripted_left = 0.0
 	hitbox_collision.position = Vector2(8, -38) if aim_up else Vector2(24, -4)
 	(hitbox_collision.shape as RectangleShape2D).size = Vector2(36, 60) if aim_up else Vector2(30, 30)
-	# The same three blows, drawn for where the body is: out of a roll, in the
+	# The same blows, drawn for where the body is: out of a roll, in the
 	# air, or into the back of somebody who has not turned round yet.
-	var animation: String = SWING_ANIMATIONS[hit_index]
+	var animation: String = base
 	if _dash_left > 0.0:
 		animation = "dash_strike"
 	elif aim_up:
@@ -1738,8 +1772,18 @@ func _attack() -> void:
 		animation = "rising"
 	elif hit_index == 0 and _sneak_target_ahead():
 		animation = "thrust"
-	var spec := (action_spec("rising") if aim_up else action_spec(SWING_ANIMATIONS[hit_index])).duplicate(true)
+	var spec := (action_spec("rising") if aim_up else action_spec(base)).duplicate(true)
 	spec.merge(action_spec(animation), true)
+	# the weapon's reach, then its step, over the hero's own swing; a pose the
+	# body was forced into (a roll, the air) keeps its own length
+	var weapon_spec := Weapons.spec(weapon)
+	if not aim_up:
+		for key in ["hitbox", "offset"]:
+			if weapon_spec.has(key):
+				spec[key] = weapon_spec[key]
+		for key in step:
+			if key != "animation" and (animation == base or key not in ["animation_time", "speed"]):
+				spec[key] = step[key]
 	var hit_size: Array = spec.get("hitbox", [(hitbox_collision.shape as RectangleShape2D).size.x, (hitbox_collision.shape as RectangleShape2D).size.y])
 	var hit_at: Array = spec.get("offset", [hitbox_collision.position.x, hitbox_collision.position.y])
 	# A ground attack's defaults must not flatten the existing anti-air hitbox.
@@ -1747,22 +1791,34 @@ func _attack() -> void:
 		(hitbox_collision.shape as RectangleShape2D).size = Vector2(float(hit_size[0]), float(hit_size[1]))
 	if not aim_up or spec.has("offset"):
 		hitbox_collision.position = Vector2(float(hit_at[0]), float(hit_at[1]))
-	_attack_cd = stats.attack_cooldown * float(spec.get("recovery", 0.65 if aim_up else COMBO_RECOVERY[hit_index]))
+	_attack_cd = stats.attack_cooldown * float(spec.get("recovery", 0.65 if aim_up else COMBO_RECOVERY[own]))
 	_attack_cd_total = _attack_cd
+	var heavy := bool(spec.get("heavy", hit_index == 2))
 	_play(animation)
-	Audio.play(StringName(str(spec.get("sfx", "swing"))), -2.0 if hit_index == 2 else -5.0)
+	body.speed_scale = float(spec.get("speed", 1.0))
+	if weapon_spec.has("pitch"):
+		Audio.play(StringName(str(spec.get("sfx", "swing"))), -2.0 if heavy else -5.0, float(weapon_spec.pitch))
+	else:
+		Audio.play(StringName(str(spec.get("sfx", "swing"))), -2.0 if heavy else -5.0)
 	_attack_anim_left = float(spec.get("animation_time", SWING_TIME[animation]))
-	var arc := "white" if aim_up else _arc_for(hit_index)
+	var arc := "white" if aim_up else _arc_for(hit_index, str(step.get("arc", "")))
 	_swing_fx(hit_index, arc)
 	EventBus.world_impulse.emit(
 		global_position + (Vector2(0, -28) if aim_up else Vector2(facing * 12.0, -10.0)),
-		Vector2.UP if aim_up else Vector2(facing, -0.15), 0.45 + hit_index * 0.2, &"attack")
+		Vector2.UP if aim_up else Vector2(facing, -0.15), 0.45 + mini(hit_index, 2) * 0.2, &"attack")
 	if Net.active:
 		_net_swing.rpc(hit_index, arc)
-	if animation != SWING_ANIMATIONS[hit_index] and animation != "thrust":
+	if animation != base and animation != "thrust":
 		EventBus.technique_performed.emit(animation)  # rising, dash_strike
-	if await _action_hit_frame(spec, animation):
-		await _land_hits(float(spec.get("multiplier", COMBO_MULTIPLIERS[hit_index])), float(spec.get("knockback", 2.0 if hit_index == 2 else 1.0)), bool(spec.get("heavy", hit_index == 2)), float(spec.get("stagger", 0)))
+	if not await _action_hit_frame(spec, animation):
+		return
+	# a weapon that takes a breath before it bites (the spear, the headsman's blade)
+	var wind := float(spec.get("wind", 0.0))
+	if wind > 0.0:
+		await get_tree().create_timer(wind, false).timeout
+		if not is_inside_tree() or _dead:
+			return
+	await _land_hits(float(spec.get("multiplier", COMBO_MULTIPLIERS[own])), float(spec.get("knockback", 2.0 if hit_index == 2 else 1.0)), heavy, float(spec.get("stagger", 0)))
 
 
 ## Everything a swing does once it is in the air: the hitbox (already placed
@@ -1790,7 +1846,7 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		if target == self or not target.has_method("take_damage"):
 			continue
 		var live_enemy: bool = target is Enemy and not (target as Enemy).is_dead()
-		var damage: float = stats.attack_damage * multiplier
+		var damage: float = stats.attack_damage * multiplier * Weapons.number(weapon, "damage", 1.0)
 		var counter_hit := live_enemy and _dodge_counter_left > 0.0
 		if counter_hit:
 			damage *= 1.0 + DODGE_COUNTER_BONUS
@@ -1817,7 +1873,7 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# "sneak" is what the blow is worth on an enemy that has not noticed us;
 		# the enemy (the host, online) knows whether it has and applies it.
 		target.take_damage(damage, self, {"crit": crit, "knockback": knockback,
-			"sneak": stats.backstab_multiplier, "execute": stats.execute})
+			"sneak": stats.backstab_multiplier + Weapons.number(weapon, "backstab", 0.0), "execute": stats.execute})
 		if live_enemy and stagger > 0.0:
 			(target as Enemy).stagger(stagger)
 		if live_enemy:
@@ -1962,7 +2018,8 @@ func _technique(id: String) -> void:
 			knockback = 0.6
 			stagger = SWEEP_STAGGER
 			Fx.dust(global_position + Vector2(facing * 18.0, 12.0), Vector2(facing, -0.2), 8)
-	var spec := action_spec(id)
+	var spec := action_spec(id).duplicate(true)
+	spec.merge(Weapons.technique(weapon, id), true)  # a spear lunges further, an axe cleaves harder
 	var hit_size: Array = spec.get("hitbox", [reach.x, reach.y])
 	var hit_at: Array = spec.get("offset", [at.x, at.y])
 	reach = Vector2(float(hit_size[0]), float(hit_size[1]))
@@ -2004,8 +2061,11 @@ func _sneak_target_ahead() -> bool:
 ## and slow; the first two are coloured by the path the run leans towards
 ## (docs/GDD.md — the build shows on the blade before it shows anywhere else)
 ## and plain white means nothing extra at all.
-func _arc_for(hit_index: int) -> String:
-	if hit_index == 2:
+func _arc_for(hit_index: int, asked := "") -> String:
+	# a weapon's step may name its arc: "heavy", "white", or "path" (the lean's colour)
+	if asked in ["heavy", "white", "gold", "red"]:
+		return asked
+	if hit_index == 2 and asked != "path":
 		return "heavy"
 	match Game.dominant_path():
 		"grace":
@@ -2022,9 +2082,11 @@ func _swing_fx(hit_index: int, arc: String) -> void:
 	if arc == "white":
 		return  # the plain arc is drawn into the swing itself; only colour and weight are added
 	slash.visible = true
-	slash.flip_v = hit_index == 1
-	slash.scale = Vector2.ONE * [1.0, 1.1, 1.3][hit_index]
-	slash.speed_scale = 0.85 if hit_index == 2 else 1.0
+	slash.flip_v = hit_index % 2 == 1
+	# the weapon's own reach shapes the arc: long and thin for the spear
+	var shape: Array = Weapons.spec(weapon).get("slash_scale", [1.0, 1.0])
+	slash.scale = Vector2(float(shape[0]), float(shape[1])) * [1.0, 1.1, 1.3][mini(hit_index, 2)]
+	slash.speed_scale = 0.85 if arc == "heavy" else 1.0
 	slash.play(arc if slash.sprite_frames.has_animation(arc) else "white")
 
 
