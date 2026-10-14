@@ -26,6 +26,18 @@ const DOORWAYS := {
 	"ashes_threshold": [1505, 1570, 392], # open fiery arch over the continuous nave floor
 	"gate_threshold": [1460, 1570, 339], # burning arch at the bridge's end
 	"hell_gate": [1290, 1350, 372],         # the chained gate of the pit
+	"seir_road": [1485, 1535, 567],             # the dark passage under the town wall
+	"seir_gate": [1510, 1560, 545],             # the arch beside the gatehouse
+	"seir_street": [1510, 1560, 535],           # the harbour arch with the lantern
+	"seir_square": [1530, 1580, 577],           # the arched door off the square
+	"seir_roofs": [1535, 1585, 274],            # the rooftop door under the chimney
+	"seir_canal": [1520, 1570, 403],            # the arch at the canal's end
+	"seir_quay": [1550, 1600, 490],             # the gap in the quay wall
+	"seir_wrecks": [1507, 1557, 507],           # the arch in the dock wall
+	"seir_warehouses": [1505, 1555, 597],       # the open bay of the last warehouse
+	"seir_breakwater": [1523, 1573, 432],       # the lighthouse door
+	"seir_lighthouse_stair": [1485, 1535, 119], # the arch at the top of the stair
+	"seir_lighthouse": [1545, 1595, 495],       # the arch past the lamp room
 }
 
 var failures := 0
