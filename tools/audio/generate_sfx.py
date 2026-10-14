@@ -10,6 +10,7 @@ replacing a placeholder a matter of dropping an .ogg beside it.
 
     python3 tools/audio/generate_sfx.py
     python3 tools/audio/generate_sfx.py liquids   # only the pools' sounds (LIQUID_SFX)
+    python3 tools/audio/generate_sfx.py garden    # only chapter V's (GARDEN_SFX)
 """
 import math
 import os
@@ -444,6 +445,63 @@ def liquid_sfx():
             write(os.path.join(SFX_DIR, file_name + ".wav"), make(), SFX_RATE)
 
 
+# --------------------------------------------- the garden (chapter V) ---
+# docs/CHAPTER5.md §2: a fruit bitten, a heal the sting refuses, the locusts'
+# hum when one lands. Placeholders like the pools': filtered noise and tones.
+
+def eat():
+    """A bite: the skin breaks (a short bright crunch), then the wet of it."""
+    out = silence(0.34, SFX_RATE)
+    crunch = env(highpass(noise(0.07, SFX_RATE), random.uniform(1400, 2000), SFX_RATE), 0.02, 1.0, 3.0)
+    place(out, crunch, 0.0, 0.9)
+    place(out, env(lowpass(noise(0.05, SFX_RATE), 900, SFX_RATE), 0.05, 1.0, 2.0), 0.06, 0.5)
+    juice = env(lowpass(noise(0.2, SFX_RATE), random.uniform(1800, 2600), SFX_RATE), 0.1, 1.0, 2.2)
+    place(out, juice, 0.09, 0.35)
+    f = random.uniform(420, 620)
+    place(out, bloop(0.05, f, f * 1.4), random.uniform(0.12, 0.2), 0.25)
+    return normalize(out, 0.55)
+
+
+def denied():
+    """A heal that does not take: a dull fall of two notes, muffled."""
+    out = silence(0.42, SFX_RATE)
+    f = random.uniform(300, 330)
+    place(out, env(tone(0.16, SFX_RATE, f, f * 0.94, "tri"), 0.04, 0.8, 2.0), 0.0, 0.7)
+    place(out, env(tone(0.24, SFX_RATE, f * 0.75, f * 0.68, "tri"), 0.04, 0.8, 1.6), 0.13, 0.8)
+    return normalize(lowpass(out, 1400, SFX_RATE), 0.5)
+
+
+def locust_hum():
+    """Many small wings at once: a buzz beating against itself, swelling in."""
+    seconds = random.uniform(0.75, 0.9)
+    out = silence(seconds, SFX_RATE)
+    for _ in range(5):
+        f = random.uniform(150, 230)
+        wing = tone(seconds, SFX_RATE, f, f * random.uniform(0.96, 1.04))
+        rate = random.uniform(22, 34)
+        layer = [math.copysign(min(1.0, abs(v) * 2.5), v) * (0.55 + 0.45 * math.sin(2 * math.pi * rate * i / SFX_RATE))
+                 for i, v in enumerate(wing)]
+        place(out, layer, 0.0, random.uniform(0.3, 0.6))
+    place(out, highpass(noise(seconds, SFX_RATE), 2400, SFX_RATE), 0.0, 0.12)
+    return normalize(env(lowpass(out, 3200, SFX_RATE), 0.35, 1.0, 1.4), 0.5)
+
+
+GARDEN_SFX = {
+    "eat": (eat, 3),
+    "denied": (denied, 2),
+    "locust_hum": (locust_hum, 3),
+}
+
+
+def garden_sfx():
+    import zlib
+    for name, (make, takes) in GARDEN_SFX.items():
+        for take in range(1, takes + 1):
+            file_name = "%s_%d" % (name, take)
+            random.seed(zlib.crc32(file_name.encode()))
+            write(os.path.join(SFX_DIR, file_name + ".wav"), make(), SFX_RATE)
+
+
 # ------------------------------------------------------------------ music ---
 
 def ambient_night(seconds=24.0):
@@ -577,6 +635,9 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["rustle"]:  # only the trees' leaves: python3 tools/audio/generate_sfx.py rustle
         rustle_sfx()
         sys.exit(0)
+    if sys.argv[1:] == ["garden"]:  # only chapter V's: python3 tools/audio/generate_sfx.py garden
+        garden_sfx()
+        sys.exit(0)
     if sys.argv[1:] == ["wingbeat"]:  # only the ravens' wings: python3 tools/audio/generate_sfx.py wingbeat
         wingbeat_sfx()
         sys.exit(0)
@@ -589,3 +650,4 @@ if __name__ == "__main__":
     liquid_sfx()
     rustle_sfx()
     wingbeat_sfx()
+    garden_sfx()

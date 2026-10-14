@@ -128,6 +128,10 @@ const MIX := {
 	&"water_bubble": [-14.0, 1.0, 0.15],
 	&"bog_squelch": [-8.0, 0.85, 0.10],
 	&"bog_bubble": [-12.0, 1.0, 0.15],
+	# the garden (docs/CHAPTER5.md): a fruit bitten, a heal the sting refuses, the locusts' hum
+	&"eat": [-6.0, 1.0, 0.10],
+	&"denied": [-8.0, 1.0, 0.06],
+	&"locust_hum": [-8.0, 1.0, 0.12],
 	&"water_loop": [-16.0, 1.0, 0.0],
 	&"lava_loop": [-12.0, 1.0, 0.0],
 	&"bog_loop": [-16.0, 1.0, 0.0],

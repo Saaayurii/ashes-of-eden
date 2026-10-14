@@ -32,6 +32,8 @@ var _toast_tween: Tween
 var _rally_mark: ColorRect
 ## A cursed chest's price, beside the flasks while it is owed (Player.curse).
 var _curse_label: Label
+## The locust's sting, under it while nothing can heal him (Player.torment).
+var _torment_label: Label
 ## The night's omen (data/omens), small under the area number.
 var _omen_label: Label
 
@@ -69,6 +71,15 @@ func _ready() -> void:
 	_curse_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_curse_label.visible = false
 	add_child(_curse_label)
+	_torment_label = Label.new()
+	_torment_label.name = "Torment"
+	_torment_label.position = Vector2(70, 57)
+	_torment_label.size = Vector2(160, 12)
+	_torment_label.add_theme_font_size_override("font_size", 9)
+	_torment_label.add_theme_color_override("font_color", Color(0.85, 0.6, 0.35))
+	_torment_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_torment_label.visible = false
+	add_child(_torment_label)
 	_omen_label = Label.new()
 	_omen_label.name = "Omen"
 	_omen_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -105,6 +116,9 @@ func _process(_delta: float) -> void:
 	_curse_label.visible = _body.curse > 0
 	if _curse_label.visible:
 		_curse_label.text = tr("HUD_CURSE") % _body.curse
+	_torment_label.visible = _body.torment > 0.0
+	if _torment_label.visible:
+		_torment_label.text = "%s · %d" % [tr("HUD_TORMENT"), ceili(_body.torment)]
 	skill_row.visible = not _body.skill.is_empty()
 	if skill_row.visible:
 		_set_meter(skill_bar, skill_key, _body.skill_ready_ratio())
