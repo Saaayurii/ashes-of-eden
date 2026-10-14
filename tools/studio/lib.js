@@ -1386,17 +1386,31 @@ const gameDataBase = (repo, branch = 'studio-data') => `https://raw.githubuserco
 // keep their paths (the pack's copy overrides the engine's); content/x is the
 // pack's own x; any other new file (a picture, a .tres) is the pack's too, so a
 // res:// path naming it in the same send becomes res://content/….
+// Drafts are a game's own: what is being made for one game never shows in
+// another's tabs. Every studio key (ss_…) but the person's own settings — the
+// GitHub sign-in, the image API, the tab, the pen, the side panel — is kept per
+// game, and so is the IndexedDB of projects, backgrounds, sounds, cutscenes.
+// Ashes (game '') keeps the names it always had.
+const STUDIO_PERSONAL = new Set(['ss_github', 'ss_api', 'ss_mode', 'ss_pen', 'ss_noside']);
+const storageKey = (key, game) => game && String(key).startsWith('ss_') && !STUDIO_PERSONAL.has(key) ? `${key}@${game}` : key;
+const studioDbName = game => game ? `sprite-studio@${game}` : 'sprite-studio';
+// The room tables are the pack's own and start empty, never from Ashes': its
+// rooms are rooms/rooms.json (an engine room under its own spawns and weather),
+// rooms/composed_rooms.json and what the studio adds, rooms/studio_rooms.json
+// (tools/rooms/generate_rooms.py --pack).
+const PACK_TABLES = { 'tools/rooms/studio_rooms.json': 'rooms/studio_rooms.json', 'tools/rooms/composed_rooms.json': 'rooms/composed_rooms.json' };
 function packFiles(files, del = []) {
   const own = p => !/^(data|localization|tools)\//.test(p) && !p.startsWith('content/');
   const moved = Object.keys(files).filter(own).sort((a, b) => b.length - a.length);
+  const where = p => PACK_TABLES[p] || p.replace(/^content\//, '');
   const out = {};
   for (const [p, b] of Object.entries(files)) {
     let v = b;
     if (typeof v === 'string') for (const m of moved) v = v.split('res://' + m).join('res://content/' + m);
-    out[p.replace(/^content\//, '')] = v;
+    out[where(p)] = v;
   }
-  return { files: out, del: del.map(p => p.replace(/^content\//, '')) };
+  return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, packFiles, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates });
 })(typeof module !== 'undefined' ? module.exports : window);

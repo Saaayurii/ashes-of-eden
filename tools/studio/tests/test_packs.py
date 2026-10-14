@@ -133,6 +133,13 @@ class PackRooms(unittest.TestCase):
             with self.assertRaises(SystemExit, msg=f"{name} {entry}"):
                 generate_rooms.pack_room(name, entry)
 
+    def test_the_studio_adds_beside_the_table(self):
+        _, room = generate_rooms.pack_room("shallows", {"base": "swamp_moon", "spawns": [["shade", 700, 300]]})
+        generate_rooms.studio_extra("shallows", room, {"spawns": [["raven", 900, 200]], "music": "graveyard"})
+        self.assertEqual((room["spawns"], room["music"]), ([("shade", 700, 300), ("raven", 900, 200)], "graveyard"))
+        with self.assertRaises(SystemExit):
+            generate_rooms.studio_extra("shallows", room, {"spawns": [["nobody", 1, 2]]})
+
     def test_water_weather(self):
         for kind in ("drips", "bubbles"):
             self.assertIn('[node name="Weather"', generate_rooms.WEATHER[kind])

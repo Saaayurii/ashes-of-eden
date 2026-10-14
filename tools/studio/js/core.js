@@ -119,7 +119,7 @@ const DB = {
   async open() {
     if (this.db) return this.db;
     this.db = await new Promise((res, rej) => {
-      const r = indexedDB.open('sprite-studio', 3);
+      const r = indexedDB.open(studioDbName(studioGame()), 3);
       r.onupgradeneeded = () => { for (const st of ['projects', 'backgrounds', 'sounds', 'cutscenes']) if (!r.result.objectStoreNames.contains(st)) r.result.createObjectStore(st, { keyPath: 'id' }); };
       r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
     });

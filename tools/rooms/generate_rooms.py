@@ -1758,12 +1758,23 @@ def compose_room(name, entry):
 PACK = os.path.join(ROOT, "content")
 PACK_ROOMS = os.path.join(PACK, "rooms", "rooms.json")
 PACK_SCENES = os.path.join(PACK, "scenes", "rooms")
+# what the art studio adds to the pack's rooms, as tools/rooms/studio_rooms.json
+# adds to the engine's: spawns and props beside the table's, waves, cutscenes, music
+PACK_STUDIO = os.path.join(PACK, "rooms", "studio_rooms.json")
 PACK_STORY = {"npcs": [], "npc_paths": [], "intro_cutscene": "", "outro_cutscene": "", "intro": "", "props": [], "waves": []}
 PACK_OWN = ("spawns", "waves", "props", "npcs", "intro_cutscene", "outro_cutscene", "intro", "music", "ambient", "weather", "fog", "hazards")
 
 
 def _pack_has(folder, ident):
-    return any(os.path.exists(os.path.join(root, "data", folder, f"{ident}.json")) for root in (ROOT, PACK))
+    """Whether the game the pack makes has this entry: its own, or the engine's
+    when game.json inherits the collection and does not exclude the id."""
+    if os.path.exists(os.path.join(PACK, "data", folder, f"{ident}.json")):
+        return True
+    path = os.path.join(PACK, "data", "game.json")
+    game = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    inherit = game.get("inherit")
+    return (not isinstance(inherit, list) or folder in inherit) and ident not in game.get("exclude", {}).get(folder, []) \
+        and os.path.exists(os.path.join(ROOT, "data", folder, f"{ident}.json"))
 
 
 def pack_room(name, entry, where="content/rooms/rooms.json"):
@@ -1791,6 +1802,24 @@ def pack_room(name, entry, where="content/rooms/rooms.json"):
     return base, room
 
 
+def studio_extra(name, room, extra, where="content/rooms/studio_rooms.json"):
+    """The studio's additions to one of the pack's rooms."""
+    for spawn in extra.get("spawns", []) + [s for w in extra.get("waves", []) for s in w]:
+        if len(spawn) != 3 or not _pack_has("enemies", spawn[0]):
+            raise SystemExit(f"{where}: {name}: spawn {spawn} — [id in data/enemies, x, y]")
+    for prop in extra.get("props", []):
+        if len(prop) != 3 or not _pack_has("props", prop[0]):
+            raise SystemExit(f"{where}: {name}: a prop is [existing prop id, x, y]")
+    room["spawns"] = [tuple(s) for s in extra.get("spawns_override", room.get("spawns", []))] + [tuple(s) for s in extra.get("spawns", [])]
+    if "waves" in extra:
+        room["waves"] = extra["waves"]
+    for key in ("intro_cutscene", "outro_cutscene", "music"):
+        if key in extra:
+            room[key] = extra[key]
+    room["props"] = list(room.get("props", [])) + [tuple(p) for p in extra.get("props", [])]
+    return room
+
+
 def _mark_base(path, base):
     with open(path, encoding="utf-8") as f:
         text = f.read()
@@ -1804,11 +1833,15 @@ def build_pack():
     ok = True
     rooms = json.load(open(PACK_ROOMS, encoding="utf-8")) if os.path.exists(PACK_ROOMS) else {}
     composed = compose.load(compose.PACK_TABLE)
+    extras = json.load(open(PACK_STUDIO, encoding="utf-8")) if os.path.exists(PACK_STUDIO) else {}
     for name in rooms.keys() & composed.keys():
         raise SystemExit(f"content/rooms: {name} is in both rooms.json and composed_rooms.json")
+    for name in extras.keys() - rooms.keys() - composed.keys():
+        raise SystemExit(f"content/rooms/studio_rooms.json names no room of the pack: {name}")
     written = set()
     for name, entry in rooms.items():
         base, room = pack_room(name, entry)
+        studio_extra(name, room, extras.get(name, {}))
         reach = {**room, "spawns": list(room.get("spawns", [])) + [tuple(s) for w in room.get("waves", []) for s in w]}
         if not check_reach(base, reach):
             print(f"{name} (from {base}): the route does not hold")
@@ -1818,7 +1851,8 @@ def build_pack():
         _mark_base(path, base)
         written.add(name)
     for name, entry in composed.items():
-        base = entry.get("base")
+        # the studio's «Конструктор» keys a room by the painted room whose air it keeps
+        base = entry.get("base", name)
         if base not in PAINTED or "painting" not in PAINTED[base]:
             raise SystemExit(f"content/rooms/composed_rooms.json: {name}: base must be a painted engine room")
         compose.validate(name, entry, "content/rooms/composed_rooms.json")
@@ -1826,6 +1860,7 @@ def build_pack():
             raise SystemExit(f"content/rooms/composed_rooms.json: {name}: a pack's room has no front plane yet")
         room = compose.room_table(name, entry, ROOMS[base], compose.owners(PAINTED, DEPTH_WINDOWS))
         room["levels_res"] = "res://content/assets/levels/"
+        studio_extra(name, room, extras.get(name, {}))
         out = os.path.join(compose.PACK_LEVELS, "composed")
         os.makedirs(out, exist_ok=True)
         compose.compose_picture(entry).save(os.path.join(out, name + ".png"))

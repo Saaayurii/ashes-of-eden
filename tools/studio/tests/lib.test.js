@@ -572,6 +572,22 @@ test('packFiles: a send into a game pack keeps data paths, owns new pictures, st
   assert.equal(L.gameDataBase('o/r'), 'https://raw.githubusercontent.com/o/r/studio-data/');
 });
 
+test('drafts are kept per game, settings are the person\'s', () => {
+  const L = require('../lib.js');
+  assert.equal(L.storageKey('ss_combat', ''), 'ss_combat');
+  assert.equal(L.storageKey('ss_combat', 'o/undertow'), 'ss_combat@o/undertow');
+  assert.equal(L.storageKey('ss_github', 'o/undertow'), 'ss_github');
+  assert.equal(L.storageKey('other', 'o/undertow'), 'other');
+  assert.equal(L.studioDbName(''), 'sprite-studio');
+  assert.equal(L.studioDbName('o/undertow'), 'sprite-studio@o/undertow');
+});
+
+test('packFiles: the room tables a send writes are the pack\'s own (rooms/, generate_rooms.py --pack)', () => {
+  const L = require('../lib.js');
+  const { files } = L.packFiles({ 'tools/rooms/studio_rooms.json': '{}', 'tools/rooms/composed_rooms.json': '{}', 'assets/levels/panels/reef.png': 'PNG' });
+  assert.deepEqual(Object.keys(files).sort(), ['assets/levels/panels/reef.png', 'rooms/composed_rooms.json', 'rooms/studio_rooms.json']);
+});
+
 // --- the room composer (js/composer.js): the same reach and tracer as tools/rooms ---
 
 // what build_data.composer hands the studio, asked of it directly: tools/studio/import is not in git
