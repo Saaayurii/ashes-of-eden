@@ -804,6 +804,7 @@ RELIC_ROSARY_DESC,"Once a night, the gift cards may be dealt again.","Раз з�
 RELIC_EARLY_DESC,"%s joins the gifts now, before its night comes.","%s входит в дары сейчас, не дожидаясь своей ночи.","%s входить у дари вже зараз, не чекаючи своєї ночі.","%s 现在就加入赐福，不必等到它的那一夜。"
 SETTINGS_AUTO_ATTACK,"Auto attack","Автоатака","Автоатака","自动攻击"
 MENU_DAILY,"Night of the day","Ночь дня","Ніч дня","今日之夜"
+MENU_WHICH_CHAPTER,"Which chapter?","Какая глава?","Яка глава?","哪一章？"
 DAILY_TOOLTIP,"The same night for everyone today: the same gifts, %s, no relics, no saves.","Одна ночь на всех сегодня: те же дары, %s, без реликвий и сохранений.","Одна ніч на всіх сьогодні: ті самі дари, %s, без реліквій і збережень.","今天所有人的同一夜：相同的赐福，%s，无圣物，无存档。"
 DAILY_STREAK,"%d days in a row","Дней подряд: %d","Днів поспіль: %d","连续 %d 天"
 CHRONICLE_DAILY_STREAK,"Nights of the day in a row (now / best)","Ночей дня подряд (сейчас / лучшее)","Ночей дня поспіль (зараз / найкраще)","连续每日之夜（当前 / 最佳）"

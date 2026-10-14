@@ -24,7 +24,7 @@ func _go() -> void:
 	_check(names.size() == int(Run.ROOMS.size()), "every room has a name")
 	_check(names[0] == "village_night", "the first is the village")
 	var gate: int = names.find("hell_gate")
-	_check(gate >= 0, "the gate is a room")
+	_check(gate == names.size() - 1, "the gate is the first night's last room")
 
 	_check(Run.room_from_args(PackedStringArray([])) == -1,
 		"no argument starts the night from the beginning")
@@ -49,6 +49,19 @@ func _go() -> void:
 	_check(Run.room_from_args(PackedStringArray(["room=-3"])) == 0, "before the start is the first")
 	_check(Run.room_from_args(PackedStringArray(["room=nowhere"])) == -1,
 		"a name that is not a room falls back to the beginning")
+
+	# a room of a later night (game.json "nights") opens that night, from its own rooms
+	var data = root.get_node("Data")
+	var game = root.get_node("Game")
+	var quay: int = Run.room_from_args(PackedStringArray(["room=seir_quay"]))
+	_check(data.night == "seir" and game.night == "seir", "room=seir_quay opens Seir's night (%s)" % data.night)
+	_check(quay >= 0 and str(Run.ROOMS[quay]).ends_with("seir_quay.tscn"), "at its quay (%d of %d)" % [quay + 1, Run.ROOMS.size()])
+	_check(Run.room_from_args(PackedStringArray(["room=0"])) == 0 and str(Run.ROOMS[0]).ends_with("seir_road.tscn"),
+		"and an index there counts Seir's rooms")
+	_check(Run.room_from_args(PackedStringArray(["room=church"])) >= 0 and data.night == "",
+		"a room of the first night takes it back")
+	game.night = ""
+	data.use_night("")
 
 	# A composed draft (tools/rooms/compose.py) is opened with `--composed` and
 	# sits beside its room under the same name; its painting breathes with the

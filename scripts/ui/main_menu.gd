@@ -28,6 +28,8 @@ const HERO_CELL := Vector2i(128, 64)
 const FIGURE_FEET := Vector2(160, 278)  # on the path in front of the fence
 const FIGURE_SCALE := 2.0
 var _characters: Array[String] = []
+## Play's question once a later night is open (_open_night_pick), built on first use.
+var _night_pick: CenterContainer
 var _character := 0
 
 ## The painting is 640x360 but its last rows are empty dark; the layers use
@@ -78,7 +80,7 @@ func _ready() -> void:
 			language.select(i)
 	language.item_selected.connect(func(index: int) -> void: Settings.set_locale(Settings.LOCALES[index]))
 	# keep_closed: the run opens on its own chapter card, already in the black.
-	play_button.pressed.connect(func() -> void: Saves.pending = {}; Curtain.change_scene(RUN_SCENE, true))
+	play_button.pressed.connect(_play)
 	%Continue.pressed.connect(_continue)
 	%OpenLoad.pressed.connect(func() -> void: %SaveMenu.open("load"))
 	%SaveMenu.closed.connect(func() -> void: _refresh_saves(); %OpenLoad.grab_focus())
@@ -92,6 +94,7 @@ func _ready() -> void:
 	Game.practice = ""
 	# the night of the day (Daily): beside Play, the same night for everyone today
 	Game.daily = ""
+	Game.night = ""
 	var daily := Button.new()
 	daily.name = "PlayDaily"
 	daily.text = "MENU_DAILY"
@@ -137,6 +140,67 @@ func _ready() -> void:
 		consent.open()
 
 
+## Play: straight into the first night, or — once a later one is open
+## (game.json "nights", Route.open_nights: a dawn seen) — asked which.
+func _play() -> void:
+	var open := Route.open_nights()
+	if open.size() <= 1:
+		_start_night("")
+	else:
+		_open_night_pick(open)
+
+
+func _start_night(id: String) -> void:
+	Game.night = id
+	Saves.pending = {}
+	Curtain.change_scene(RUN_SCENE, true)
+
+
+## Which chapter a night starts in: a button per open night, newest last, over
+## the menu; Back or Esc leaves it.
+func _open_night_pick(open: Array[Dictionary]) -> void:
+	if _night_pick == null:
+		_night_pick = CenterContainer.new()
+		_night_pick.name = "NightPick"
+		_night_pick.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_night_pick.mouse_filter = Control.MOUSE_FILTER_STOP
+		add_child(_night_pick)
+		var panel := PanelContainer.new()
+		_night_pick.add_child(panel)
+		var column := VBoxContainer.new()
+		column.name = "Nights"
+		column.add_theme_constant_override("separation", 6)
+		panel.add_child(column)
+	var column := _night_pick.get_node("PanelContainer/Nights") as VBoxContainer
+	for child in column.get_children():
+		child.queue_free()
+	var heading := Label.new()
+	heading.text = "MENU_WHICH_CHAPTER"
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(heading)
+	var first: Button = null
+	for night in open:
+		var button := Button.new()
+		button.name = "Night_" + (str(night.id) if str(night.id) != "" else "first")
+		button.text = Route.night_name(night)
+		button.pressed.connect(_start_night.bind(str(night.id)))
+		column.add_child(button)
+		if first == null:
+			first = button
+	var back := Button.new()
+	back.name = "Back"
+	back.text = "MENU_BACK"
+	back.pressed.connect(_close_night_pick)
+	column.add_child(back)
+	_night_pick.visible = true
+	first.grab_focus()
+
+
+func _close_night_pick() -> void:
+	_night_pick.visible = false
+	play_button.grab_focus()
+
+
 ## Puts [param first] and [param second] side by side in one row of the menu,
 ## where [param first] stood, as halves — the way Continue | Load are drawn.
 func _pair(first: Control, second: Control, row_name: String) -> void:
@@ -178,6 +242,11 @@ func _fit_layers() -> void:
 ## Left and right on the stick or keyboard flip the figure too, so the arrows
 ## are not mouse-only. Only while the menu itself has the screen.
 func _unhandled_input(event: InputEvent) -> void:
+	if _night_pick != null and _night_pick.visible:
+		if event.is_action_pressed("ui_cancel"):
+			_close_night_pick()
+			get_viewport().set_input_as_handled()
+		return
 	if not visible or %Settings.visible or %Bestiary.visible:
 		return
 	if event.is_action_pressed("ui_left"):

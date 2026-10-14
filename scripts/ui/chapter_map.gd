@@ -35,7 +35,7 @@ func _ready() -> void:
 
 func open() -> void:
 	var fell: Dictionary = Profile.data.get("last_fall", {}) if Profile.data.get("last_fall") is Dictionary else {}
-	_nodes = layout(Route.rooms(), Game.walked, _here(), int(Profile.data.get("best_wave", 0)), str(fell.get("room", "")))
+	_nodes = layout(Route.rooms(), Game.walked, _here(), Profile.best_of(Data.night), str(fell.get("room", "")))
 	visible = true
 	queue_redraw()
 

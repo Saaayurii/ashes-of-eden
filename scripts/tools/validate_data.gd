@@ -1447,7 +1447,7 @@ func _check_backdrops() -> void:
 		if not lean.has(path) or not Color.html_is_valid(str(lean[path])):
 			_error("data/backdrops.json: lean needs a colour for %s" % path)
 	var rooms: Dictionary = parsed.get("rooms", {})
-	for path in _doc("game.json").get("rooms", []):
+	for path in DATA_DOC.all_rooms(_doc("game.json")):
 		if not rooms.has(str(path).get_file().get_basename()):
 			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % str(path).get_file().get_basename())
 	# every picture a scene shows or a passage card carries breathes too
@@ -1730,22 +1730,18 @@ func _check_game() -> void:
 	if rooms.is_empty():
 		_error("data/game.json: \"rooms\" is empty")
 	var seen := {}
-	for path in rooms + [game.get("practice_room", "")]:
+	var every: Array = []
+	for night in DATA_DOC.nights(game):
+		every.append_array(night.get("rooms", []))
+	for path in every + [game.get("practice_room", "")]:
 		if seen.has(path):
 			_error("data/game.json: %s is listed twice" % path)
 		seen[path] = true
 		if not ResourceLoader.exists(str(path)):
 			_error("data/game.json: no scene %s" % path)
-	var opening: Dictionary = game.get("opening", {})
-	for key in opening:
-		var id := str(opening[key])
-		var folder := "dialogues" if key in ["intro", "last_fall"] else "cutscenes"
-		var found := false
-		for data_root in DATA_DOC.collection_roots(folder, _validated_roots(), game):
-			for entry in _load_entries(data_root.path_join(folder), true):
-				found = found or entry.get("id") == id
-		if not found:
-			_error("data/game.json: opening.%s names %s \"%s\", which does not exist" % [key, folder, id])
+	_check_nights(game)
+	for night in DATA_DOC.nights(game):
+		_check_opening(night.get("opening", {}), "opening" if str(night.id) == "" else "nights.%s.opening" % night.id, game)
 	var menu: Dictionary = game.get("menu", {})
 	if menu.has("background") and not ResourceLoader.exists(str(menu.background)):
 		_error("data/game.json: menu background %s does not exist" % menu.background)
@@ -1768,12 +1764,60 @@ func _check_game() -> void:
 ## Every room the game plays names only creatures, people, props and scenes the
 ## game has — the room is read as text, so a pack that borrows an engine room
 ## learns here which of its story it would need (docs/GAME_PACKS.md).
+## A night's opening (game.json "opening", or a later night's): each key names
+## a dialogue (intro, last_fall) or a cutscene (prologue…) the game has;
+## "wake" says whether he rises out of the grave (true when left out).
+func _check_opening(opening: Dictionary, where: String, game: Dictionary) -> void:
+	for key in opening:
+		if key == "wake":
+			if not opening[key] is bool:
+				_error("data/game.json: %s.wake must be true or false" % where)
+			continue
+		var id := str(opening[key])
+		var folder := "dialogues" if key in ["intro", "last_fall"] else "cutscenes"
+		var found := false
+		for data_root in DATA_DOC.collection_roots(folder, _validated_roots(), game):
+			for entry in _load_entries(data_root.path_join(folder), true):
+				found = found or entry.get("id") == id
+		if not found:
+			_error("data/game.json: %s.%s names %s \"%s\", which does not exist" % [where, key, folder, id])
+
+
+## The nights after the first (game.json "nights", DataDoc.nights): each its
+## own id and rooms, no room in two nights, opened by a number of dawns, and
+## its forks inside it.
+func _check_nights(game: Dictionary) -> void:
+	var ids := {"": true}
+	var owner := {}
+	var nights := DATA_DOC.nights(game)
+	for i in nights.size():
+		var night: Dictionary = nights[i]
+		var where := "data/game.json: nights.%s" % night.id
+		if i > 0:
+			if ids.has(str(night.id)):
+				_error("%s is listed twice" % where)
+			ids[str(night.id)] = true
+			if not (night.get("rooms") is Array) or (night.rooms as Array).is_empty():
+				_error("%s: a night with no rooms" % where)
+			var dawns = night.get("after_dawns", 0)
+			if not (dawns is float or dawns is int) or int(dawns) < 1:
+				_error("%s: after_dawns must be 1 or more — the first night is the one always open" % where)
+		for path in night.get("rooms", []):
+			owner[str(path)] = str(night.id)
+	for fork in _game_entries("forks"):
+		var in_nights := {}
+		for path in [fork.get("after", ""), fork.get("then", "")] + (fork.get("options", {}) as Dictionary).values():
+			in_nights[owner.get(str(path), "?")] = true
+		if in_nights.size() != 1 or in_nights.has("?"):
+			_error("data/forks/%s: its rooms must all be one night's" % fork.get("id", "?"))
+
+
 func _check_game_rooms(game: Dictionary) -> void:
 	var wants := {"enemy_id": [_enemy_ids, "enemy"], "npc_id": [_npc_ids, "npc"], "prop_id": [_prop_ids, "prop"],
 		"intro_cutscene": [_cutscene_ids, "cutscene"], "outro_cutscene": [_cutscene_ids, "cutscene"],
 		"intro_dialogue": [_dialogue_ids, "dialogue"]}
 	var line := RegEx.create_from_string("^(\\w+) = \"([^\"]+)\"$")
-	for path in game.get("rooms", []) + [game.get("practice_room", "")]:
+	for path in DATA_DOC.all_rooms(game) + [game.get("practice_room", "")]:
 		if not ResourceLoader.exists(str(path)):
 			continue
 		var room := str(path).get_file().get_basename()

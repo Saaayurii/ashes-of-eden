@@ -54,7 +54,7 @@ func _check(ok: bool, message: String) -> void:
 
 
 func _run() -> void:
-	var rooms: Array = root.get_node("Data").rooms
+	var rooms: Array = root.get_node("Data").all_rooms()
 	for path in rooms:
 		var name: String = path.get_file().get_basename()
 		var room = load(path).instantiate()

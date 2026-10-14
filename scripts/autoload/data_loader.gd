@@ -58,8 +58,11 @@ var hero: Dictionary = {}
 ## the three paths' colours and icons. The engine's code names none of them.
 ## Whole from the last root that has it, never merged (DataDoc.top).
 var game: Dictionary = {}
-## The run's rooms in play order (game.json "rooms"), as Run.ROOMS reads them.
+## The night being played's rooms in play order, as Run.ROOMS reads them: the
+## first night's (game.json "rooms") unless use_night picked another.
 var rooms: Array[String] = []
+## Which night [member rooms] are ("" the first; game.json "nights", DataDoc.nights).
+var night := ""
 var _path_icons: Dictionary = {}
 
 
@@ -70,7 +73,7 @@ func _ready() -> void:
 func reload() -> void:
 	var roots := _roots()
 	game = DataDoc.top("game.json", roots)
-	rooms.assign((game.get("rooms", []) as Array).map(func(r) -> String: return str(r)))
+	use_night(night)
 	_path_icons.clear()
 	hero = load_doc("hero.json", roots)
 	Player.apply_hero(hero)
@@ -98,6 +101,46 @@ func reload() -> void:
 	endings = _load_collection("endings", roots)
 	affixes = _load_collection("affixes", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
+
+
+## Plays [param id]'s rooms from now on (Game.night): the menu's pick, a save's
+## night. An id the game does not have is the first night.
+func use_night(id: String) -> void:
+	var spec := night_spec(id)
+	night = str(spec.get("id", ""))
+	rooms.assign((spec.get("rooms", []) as Array).map(func(r) -> String: return str(r)))
+
+
+## The nights this game is told in, the first one first (DataDoc.nights).
+func nights() -> Array[Dictionary]:
+	return DataDoc.nights(game)
+
+
+## One night's entry ({id, rooms, opening, after_dawns}); the first for an unknown id.
+func night_spec(id: String) -> Dictionary:
+	for entry in nights():
+		if str(entry.id) == id:
+			return entry
+	return nights()[0]
+
+
+## Every night's rooms, in order (DataDoc.all_rooms): what a test of every room walks.
+func all_rooms() -> Array[String]:
+	return DataDoc.all_rooms(game)
+
+
+## Whether the game has a night called [param id] ("" always).
+func has_night(id: String) -> bool:
+	return nights().any(func(entry: Dictionary) -> bool: return str(entry.id) == id)
+
+
+## The night a room is played in, or "" when none lists it — rooms are never
+## shared between nights (the validator), so the answer is one.
+func night_of(scene_path: String) -> String:
+	for entry in nights():
+		if (entry.get("rooms", []) as Array).has(scene_path):
+			return str(entry.id)
+	return ""
 
 
 ## A path's colour from game.json: "color" for its text and cards, "aura" for

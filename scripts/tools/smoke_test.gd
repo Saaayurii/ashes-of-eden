@@ -42,6 +42,34 @@ func _run() -> void:
 	var picker = run.get_node("UI/AbilityPicker")
 	var run_end = run.get_node("UI/RunEnd")
 	var cut = run.get_node("UI/Cutscene")
+	var expected_kills: int = await _walk(run, dialogue, picker, cut, game, true)
+	_assert(not run.ROOMS.any(func(p): return root.get_node("Data").night_of(p) != ""),
+		"the first night is its own rooms alone: it ends at its finale, not in a later night")
+
+	await _settle()
+	_assert(run_end.visible, "run end screen shown")
+	_assert(run.player.hp > 0.0, "player alive")
+	_assert(run.kills == expected_kills, "all %d enemies counted (%d)" % [expected_kills, run.kills])
+	# Quiet passages have no gift; every area's final door still does.
+	var places := {}
+	for path in run.ROOMS:
+		places[root.get_node("Data").chapter_for(path).get("id", "")] = true
+	var gifts_possible: int = mini(places.size(), root.get_node("Data").abilities.size())
+	_assert(game.abilities.size() >= gifts_possible, "at least one gift per area (%d)" % game.abilities.size())
+	_assert(game.level >= 2, "essence levelled up (level %d)" % game.level)
+	_assert(game.alignment["will"] >= 1, "stranger choice applied: %s" % game.alignment)
+	_assert(game.flags.has("stranger_refused"), "story flag set")
+	_assert(profile.data.nights == nights_before + 1, "profile recorded the night")
+	_assert(run_end.get_node("%RunEndStats").text.contains(str(run.kills)), "run stats shown")
+	await _check_transition(run, root.get_node("Data"))
+	await _second_night(profile, game, nights_before)
+	print("SMOKE TEST %s" % ("FAILED" if _failed else "PASSED"))
+	quit(1 if _failed else 0)
+
+
+## One night from its first room to its dawn, every room cleared by hand, the
+## doors walked through; the kills it should have counted.
+func _walk(run, dialogue, picker, cut, game, first: bool) -> int:
 	# the night follows the chapter's way (scripts/run/route.gd): at a fork the
 	# question is skipped below, so it takes the first way, and one room of
 	# each fork is never walked
@@ -56,7 +84,7 @@ func _run() -> void:
 		# a quiet room (the church) has nobody to fight, and one where everybody
 		# waits (chapter II's gate) nobody who keeps the door: open from the start
 		await _wait_until(func(): return run.room_index == index and run.room != null and (run.room.alive > 0 or _holders(run.room) == 0), "room %d started with enemies" % (index + 1))
-		if index == 0:
+		if index == 0 and first:
 			_assert(dialogue.get_node("%Caption").visible, "intro plays as captions over room 1")
 		var room = run.room
 		var quiet: bool = _holders(room) == 0
@@ -96,25 +124,31 @@ func _run() -> void:
 		var allowed: Array = fork.options.values().map(func(p): return run.ROOMS.find(p)) if not fork.is_empty() \
 			else [route.next_index(run.ROOMS, was)]
 		_assert(allowed.has(index), "room %d leads where the route says" % (was + 1))
+	_assert(walked == total_rooms, "the night (%s) walked %d rooms, one way through each fork" % [run.ROOMS[0].get_file(), walked])
+	return expected_kills
 
-	_assert(walked == total_rooms, "the night walked %d rooms, one way through each fork" % walked)
-
-	await _settle()
-	_assert(run_end.visible, "run end screen shown")
-	_assert(run.player.hp > 0.0, "player alive")
-	_assert(run.kills == expected_kills, "all %d enemies counted (%d)" % [expected_kills, run.kills])
-	# Quiet passages have no gift; every area's final door still does.
-	var gifts_possible: int = mini(root.get_node("Data").chapters.size(), root.get_node("Data").abilities.size())
-	_assert(game.abilities.size() >= gifts_possible, "at least one gift per area (%d)" % game.abilities.size())
-	_assert(game.level >= 2, "essence levelled up (level %d)" % game.level)
-	_assert(game.alignment["will"] >= 1, "stranger choice applied: %s" % game.alignment)
-	_assert(game.flags.has("stranger_refused"), "story flag set")
-	_assert(profile.data.nights == nights_before + 1, "profile recorded the night")
-	_assert(run_end.get_node("%RunEndStats").text.contains(str(run.kills)), "run stats shown")
-	await _check_transition(run, root.get_node("Data"))
-	print("SMOKE TEST %s" % ("FAILED" if _failed else "PASSED"))
-	quit(1 if _failed else 0)
-
+## The later nights (game.json "nights"): each its own night from the menu's
+## pick, walked to its own dawn, its furthest room kept apart from the first's.
+func _second_night(profile, game, nights_before: int) -> void:
+	var data = root.get_node("Data")
+	var nights: Array = data.nights()
+	for i in range(1, nights.size()):
+		game.night = str(nights[i].id)
+		change_scene_to_file("res://scenes/run/run.tscn")
+		await _settle()
+		var run := current_scene
+		_assert(data.night == game.night and run.ROOMS == nights[i].rooms, "the night %s plays its own rooms" % game.night)
+		var best_first: int = profile.best_of("")
+		var kills: int = await _walk(run, run.get_node("UI/DialogueBox"), run.get_node("UI/AbilityPicker"), run.get_node("UI/Cutscene"), game, false)
+		await _settle()
+		_assert(run.get_node("UI/RunEnd").visible, "the night %s ends at its own dawn" % game.night)
+		_assert(run.kills == kills, "its %d enemies counted (%d)" % [kills, run.kills])
+		_assert(profile.data.nights == nights_before + 1 + i, "the profile recorded the night %s" % game.night)
+		_assert(profile.best_of(game.night) > 0,
+			"its furthest room is its own (%d)" % profile.best_of(game.night))
+		_assert(profile.best_of("") == best_first, "and the first night's is left alone")
+	game.night = ""
+	data.use_night("")
 
 ## The curtain and the chapter card (scripts/autoload/curtain.gd). The run
 ## above played with them switched off — a tool script does — so they are

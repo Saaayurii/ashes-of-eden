@@ -23,7 +23,8 @@ func _run() -> void:
 	var life = load("res://scripts/rooms/backdrop_life.gd")
 	var shader: Shader = load("res://assets/shaders/backdrop_life.gdshader")
 	# the game's rooms (data/game.json), read as the file: the test should not depend on run.gd compiling
-	var rooms: Array = load("res://scripts/data/data_doc.gd").doc("game.json").get("rooms", []).duplicate()
+	var doc = load("res://scripts/data/data_doc.gd")
+	var rooms: Array = doc.all_rooms(doc.doc("game.json"))  # every night's
 	_check(rooms.size() > 10, "game.json lists %d rooms" % rooms.size())
 	# and what the studio composed: keyed composed/<room>, its zones on its own picture
 	if DirAccess.dir_exists_absolute("res://scenes/rooms/composed"):
