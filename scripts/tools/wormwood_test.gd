@@ -72,7 +72,8 @@ func _run() -> void:
 	pools.sort_custom(func(a, b) -> bool: return a.global_position.x < b.global_position.x)
 	var spring = pools[0]
 	spring.name = "Spring"
-	var boss = room.spawn_enemy("wormwood", room.global_position + Vector2(640, 330), true)
+	# the anchor is the spring's centre in its own arena, which is bitter_wells' middle too
+	var boss = room.spawn_enemy("wormwood", room.global_position + Vector2(800, 330), true)
 	await _frames(4)
 	_check(boss != null and boss.stats.get("boss", false), "Wormwood stands up as a boss")
 

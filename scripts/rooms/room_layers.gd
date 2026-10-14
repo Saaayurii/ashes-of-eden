@@ -43,7 +43,7 @@ const FAR_WINDOWS := {
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
 	# nor Marah (chapter III)
 	"marah_gallows": [], "marah_ford": [], "marah_host_bank": [], "marah_field": [],
-	"marah_bitter_wells": [], "marah_dry_bed": [],
+	"marah_bitter_wells": [], "marah_dry_bed": [], "marah_trench": [], "marah_legion_bank": [], "marah_parley": [], "marah_siege": [], "marah_springs_path": [], "marah_wormwood_spring": [],
 }
 
 

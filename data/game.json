@@ -69,9 +69,15 @@
         "res://scenes/rooms/marah_gallows.tscn",
         "res://scenes/rooms/marah_ford.tscn",
         "res://scenes/rooms/marah_host_bank.tscn",
+        "res://scenes/rooms/marah_legion_bank.tscn",
         "res://scenes/rooms/marah_field.tscn",
+        "res://scenes/rooms/marah_trench.tscn",
+        "res://scenes/rooms/marah_parley.tscn",
+        "res://scenes/rooms/marah_siege.tscn",
         "res://scenes/rooms/marah_bitter_wells.tscn",
-        "res://scenes/rooms/marah_dry_bed.tscn"
+        "res://scenes/rooms/marah_dry_bed.tscn",
+        "res://scenes/rooms/marah_springs_path.tscn",
+        "res://scenes/rooms/marah_wormwood_spring.tscn"
       ]
     }
   ],

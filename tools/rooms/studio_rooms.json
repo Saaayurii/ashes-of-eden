@@ -15,6 +15,11 @@
       ["bitter", 235, 536, 1235, 24, {"painted": true}]
     ]
   },
+  "marah_wormwood_spring": {
+    "liquids": [
+      ["bitter", 555, 585, 565, 55, {"name": "Spring", "painted": true}]
+    ]
+  },
   "swamp_crypt": {
     "liquids": [
       ["blood", 114, 598, 49, 8, {"painted": true}],

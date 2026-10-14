@@ -51,6 +51,9 @@ ROOM_EXPANSION_CUTS = {
     "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
     "marah_gallows": (180, 1200), "marah_ford": (500, 850), "marah_host_bank": (400, 700),
     "marah_field": (560, 1180), "marah_bitter_wells": (170, 1140), "marah_dry_bed": (900, 1120),
+    "marah_legion_bank": (600, 1110), "marah_trench": (230, 1080),
+    "marah_parley": (360, 850), "marah_siege": (630, 790),
+    "marah_springs_path": (180, 780), "marah_wormwood_spring": (300, 965),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -84,6 +87,12 @@ FOCAL_RANGES = {
     "marah_field": ((225, 515),),               # Rizpah's rock
     "marah_bitter_wells": ((600, 690),),        # the shaft of light
     "marah_dry_bed": ((300, 350), (560, 760)),  # moon, the dead tree
+    "marah_legion_bank": ((240, 500), (900, 960)),  # the cart, the banner
+    "marah_trench": ((540, 600), (640, 830)),  # moon, the dugout
+    "marah_parley": ((480, 800),),               # the long table
+    "marah_siege": ((960, 1230), (300, 612)),    # the tower, the rampart
+    "marah_springs_path": ((270, 575), (930, 1110)),  # the fold and trough, the hut
+    "marah_wormwood_spring": ((395, 960),),           # the basin and the star
 }
 
 TRAVERSAL_PATCHES = {
@@ -127,7 +136,9 @@ SEAM_STORIES = {
     "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
     "seir_lighthouse": ("", ""),
     "marah_gallows": ("", ""), "marah_ford": ("", ""), "marah_host_bank": ("", ""), "marah_field": ("", ""),
-    "marah_bitter_wells": ("", ""), "marah_dry_bed": ("", ""),
+    "marah_bitter_wells": ("", ""), "marah_dry_bed": ("", ""), "marah_trench": ("", ""),
+    "marah_legion_bank": ("", ""), "marah_parley": ("", ""), "marah_siege": ("", ""),
+    "marah_springs_path": ("", ""), "marah_wormwood_spring": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -164,7 +175,7 @@ ROOM_PROP_MOTIFS = {
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
     "marah_gallows": {}, "marah_ford": {}, "marah_host_bank": {}, "marah_field": {}, "marah_bitter_wells": {},
-    "marah_dry_bed": {},
+    "marah_dry_bed": {}, "marah_trench": {}, "marah_legion_bank": {}, "marah_parley": {}, "marah_siege": {}, "marah_springs_path": {}, "marah_wormwood_spring": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -248,7 +259,9 @@ DEPTH_WINDOWS = {
     "seir_lighthouse": (0.02, []),
     # Marah (chapter III): no inpainted plates yet either
     "marah_gallows": (0.02, []), "marah_ford": (0.02, []), "marah_host_bank": (0.02, []), "marah_field": (0.02, []),
-    "marah_bitter_wells": (0.02, []), "marah_dry_bed": (0.02, []),
+    "marah_bitter_wells": (0.02, []), "marah_dry_bed": (0.02, []), "marah_trench": (0.02, []),
+    "marah_legion_bank": (0.02, []), "marah_parley": (0.02, []), "marah_siege": (0.02, []),
+    "marah_springs_path": (0.02, []), "marah_wormwood_spring": (0.02, []),
 }
 
 

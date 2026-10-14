@@ -44,6 +44,12 @@ const DOORWAYS := {
 	"marah_field": [1525, 1555, 555],           # the gap in the stakes
 	"marah_bitter_wells": [1525, 1590, 473],    # the arch out of the cellar
 	"marah_dry_bed": [1515, 1580, 550],         # the cave in the bank
+	"marah_trench": [1530, 1590, 592],          # the far end of the trench
+	"marah_legion_bank": [1500, 1560, 472],     # the gate in the stockade
+	"marah_parley": [1535, 1595, 538],          # the far flap
+	"marah_siege": [1545, 1600, 602],           # the gap behind the tower
+	"marah_springs_path": [1505, 1570, 135],    # the gap between the rocks at the top
+	"marah_wormwood_spring": [1540, 1590, 590], # the arch on the right
 }
 
 var failures := 0

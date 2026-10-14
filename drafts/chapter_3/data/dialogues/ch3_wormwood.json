@@ -1,3 +1,0 @@
-[
-  {"id": "ch3_wormwood", "start": "w1", "nodes": {"w1": {"speaker": "SPEAKER_WORMWOOD", "text": "DLG_CH3_WORMWOOD_1", "next": "tally"}, "tally": {"branches": [{"flag": "read_shepherd_tally", "next": "t1"}], "next": "w2"}, "t1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH3_WORMWOOD_TALLY", "next": "t2"}, "t2": {"speaker": "SPEAKER_WORMWOOD", "text": "DLG_CH3_WORMWOOD_TALLY_REPLY", "next": "w2"}, "w2": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH3_WORMWOOD_2", "next": "w3"}, "w3": {"speaker": "SPEAKER_WORMWOOD", "text": "DLG_CH3_WORMWOOD_3", "next": "w4"}, "w4": {"speaker": "SPEAKER_WORMWOOD", "text": "DLG_CH3_WORMWOOD_4", "next": "w5"}, "w5": {"speaker": "SPEAKER_WORMWOOD", "text": "DLG_CH3_WORMWOOD_5"}}}
-]
