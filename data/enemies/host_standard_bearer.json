@@ -1,0 +1,57 @@
+{
+  "id": "host_standard_bearer",
+  "name": "ENEMY_HOST_STANDARD_BEARER",
+  "lore": "ENEMY_HOST_STANDARD_BEARER_LORE",
+  "tip": "TIP_HOST_STANDARD_BEARER",
+  "_comment": "Chapter III elite. Stub art: the gate warden's strips, larger, in a white vestment.",
+  "faction": "host",
+  "hp": 190,
+  "speed": 46,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 420,
+  "size": 15,
+  "color": "#f0e8d8",
+  "material": "mail",
+  "tags": [
+    "human",
+    "elite"
+  ],
+  "armor": 0.15,
+  "stagger_chance": 0.05,
+  "essence": 50,
+  "voice": "gate_warden",
+  "sprite": {
+    "like": "gate_warden",
+    "tint": "#fff8e8",
+    "scale": 1.15
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 54,
+      "reach": 74,
+      "windup": 1.0,
+      "damage": 20,
+      "cooldown": 2.6,
+      "recover": 0.7,
+      "weight": 3,
+      "animation": "attack"
+    },
+    {
+      "type": "summon",
+      "id": "host_spearman",
+      "count": 1,
+      "max_alive": 2,
+      "range": 360,
+      "windup": 1.3,
+      "cooldown": 9.0,
+      "recover": 0.6,
+      "weight": 1,
+      "animation": "special",
+      "color": "#fff4d8",
+      "damage": 1
+    }
+  ]
+}

@@ -41,6 +41,9 @@ const FAR_WINDOWS := {
 	"seir_road": [], "seir_gate": [], "seir_street": [], "seir_square": [],
 	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
+	# nor Marah (chapter III)
+	"marah_gallows": [], "marah_ford": [], "marah_host_bank": [], "marah_field": [],
+	"marah_bitter_wells": [], "marah_dry_bed": [], "marah_trench": [], "marah_legion_bank": [], "marah_parley": [], "marah_siege": [], "marah_springs_path": [], "marah_wormwood_spring": [],
 	# the Heavenly Hall (chapter VII): every pane, arch and gap onto its sky slides
 	"hall_elders_stair": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
 	"hall_outer_court": [1, 2, 3, 4],

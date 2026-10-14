@@ -1,0 +1,52 @@
+{
+  "id": "host_spearman",
+  "name": "ENEMY_HOST_SPEARMAN",
+  "lore": "ENEMY_HOST_SPEARMAN_LORE",
+  "tip": "TIP_HOST_SPEARMAN",
+  "_comment": "Chapter III (docs/CHAPTER3.md §6). Stub art: the gate warden's strips, bleached, until its own atlas.",
+  "faction": "host",
+  "hp": 62,
+  "speed": 54,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "behaviour": "walker",
+  "aggro_range": 380,
+  "size": 13,
+  "color": "#d8dce4",
+  "material": "mail",
+  "tags": [
+    "human"
+  ],
+  "armor": 0.05,
+  "essence": 16,
+  "voice": "gate_warden",
+  "sprite": {
+    "like": "gate_warden",
+    "tint": "#e8ecf4"
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 44,
+      "reach": 60,
+      "windup": 0.7,
+      "damage": 12,
+      "cooldown": 2.0,
+      "recover": 0.5,
+      "weight": 2,
+      "animation": "attack"
+    },
+    {
+      "type": "lunge",
+      "range": 200,
+      "windup": 0.85,
+      "damage": 15,
+      "lunge_speed": 340,
+      "lunge_time": 0.35,
+      "cooldown": 3.4,
+      "recover": 0.9,
+      "weight": 1,
+      "animation": "attack_alt"
+    }
+  ]
+}

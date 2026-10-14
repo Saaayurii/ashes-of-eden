@@ -53,6 +53,8 @@ TESTS=(
     "--headless -s scripts/tools/night_order_test.gd"
     "--headless -s scripts/tools/dawn_scales_test.gd"
     "--headless -s scripts/tools/mirror_test.gd"
+    "--headless --fixed-fps 60 -s scripts/tools/faction_test.gd"
+    "--headless --fixed-fps 60 -s scripts/tools/wormwood_test.gd"
     "--headless -s scripts/tools/move_hints_test.gd"
     "--headless -s scripts/tools/achievements_test.gd"
     "--headless -s scripts/tools/habit_test.gd"
