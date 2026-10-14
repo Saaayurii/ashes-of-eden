@@ -917,5 +917,120 @@
       },
       "scale": 1.0
     }
+  },
+  {
+    "id": "waiting_townsman",
+    "family": "seir",
+    "tier": 1,
+    "avatar": "res://assets/portraits/waiting_townsman.png",
+    "sprite": {
+      "cell": [
+        72,
+        64
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/waiting_townsman_v2_idle.png",
+        "walk": "res://assets/sprites/waiting_townsman_v2_walk.png",
+        "attack": "res://assets/sprites/waiting_townsman_v2_attack.png",
+        "attack_alt": "res://assets/sprites/waiting_townsman_v2_attack_alt.png",
+        "special": "res://assets/sprites/waiting_townsman_v2_special.png",
+        "hurt": "res://assets/sprites/waiting_townsman_v2_hurt.png",
+        "death": "res://assets/sprites/waiting_townsman_v2_death.png"
+      },
+      "scale": 0.8
+    }
+  },
+  {
+    "id": "drowned",
+    "family": "drowned",
+    "tier": 1,
+    "avatar": "res://assets/portraits/drowned.png",
+    "sprite": {
+      "cell": [
+        80,
+        63
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/drowned_v2_idle.png",
+        "walk": "res://assets/sprites/drowned_v2_walk.png",
+        "attack": "res://assets/sprites/drowned_v2_attack.png",
+        "attack_alt": "res://assets/sprites/drowned_v2_attack_alt.png",
+        "special": "res://assets/sprites/drowned_v2_special.png",
+        "hurt": "res://assets/sprites/drowned_v2_hurt.png",
+        "death": "res://assets/sprites/drowned_v2_death.png"
+      },
+      "scale": 0.82
+    }
+  },
+  {
+    "id": "gate_warden",
+    "family": "seir",
+    "tier": 2,
+    "avatar": "res://assets/portraits/gate_warden.png",
+    "sprite": {
+      "cell": [
+        108,
+        75
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/gate_warden_v2_idle.png",
+        "walk": "res://assets/sprites/gate_warden_v2_walk.png",
+        "attack": "res://assets/sprites/gate_warden_v2_attack.png",
+        "attack_alt": "res://assets/sprites/gate_warden_v2_attack_alt.png",
+        "special": "res://assets/sprites/gate_warden_v2_special.png",
+        "hurt": "res://assets/sprites/gate_warden_v2_hurt.png",
+        "death": "res://assets/sprites/gate_warden_v2_death.png"
+      },
+      "scale": 0.84
+    }
+  },
+  {
+    "id": "drowned_bosun",
+    "family": "drowned",
+    "tier": 2,
+    "avatar": "res://assets/portraits/drowned_bosun.png",
+    "sprite": {
+      "cell": [
+        112,
+        91
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/drowned_bosun_v2_idle.png",
+        "walk": "res://assets/sprites/drowned_bosun_v2_walk.png",
+        "attack": "res://assets/sprites/drowned_bosun_v2_attack.png",
+        "attack_alt": "res://assets/sprites/drowned_bosun_v2_attack_alt.png",
+        "special": "res://assets/sprites/drowned_bosun_v2_special.png",
+        "hurt": "res://assets/sprites/drowned_bosun_v2_hurt.png",
+        "death": "res://assets/sprites/drowned_bosun_v2_death.png"
+      },
+      "scale": 0.92
+    }
+  },
+  {
+    "id": "watchman",
+    "family": "seir",
+    "tier": 3,
+    "avatar": "res://assets/portraits/watchman.png",
+    "sprite": {
+      "cell": [
+        132,
+        91
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/watchman_v2_idle.png",
+        "walk": "res://assets/sprites/watchman_v2_walk.png",
+        "attack": "res://assets/sprites/watchman_v2_attack.png",
+        "attack_alt": "res://assets/sprites/watchman_v2_attack_alt.png",
+        "special": "res://assets/sprites/watchman_v2_special.png",
+        "hurt": "res://assets/sprites/watchman_v2_hurt.png",
+        "death": "res://assets/sprites/watchman_v2_death.png"
+      },
+      "scale": 0.96
+    }
   }
 ]

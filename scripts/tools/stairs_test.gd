@@ -35,7 +35,7 @@ func _walk(hero: CharacterBody2D, from: Vector2, to: Vector2) -> Variant:
 
 func _run() -> void:
 	var failures: Array[String] = []
-	var rooms: Array = root.get_node("Data").rooms
+	var rooms: Array = root.get_node("Data").all_rooms()
 	if OS.get_cmdline_user_args().has("--composed"):
 		rooms = _composed_rooms()
 	for path in rooms:

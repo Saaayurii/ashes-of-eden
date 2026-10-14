@@ -195,7 +195,8 @@ func respawn_commons() -> int:
 		if data.get("boss", false) or data.get("tags", []).has("elite"):
 			continue
 		pair[1] = spawn_enemy(spawn.enemy_id, spawn.global_position)
-		risen += 1
+		if holds_door(spawn.enemy_id):
+			risen += 1
 	if risen > 0:
 		door.open = false
 	return risen
@@ -204,7 +205,8 @@ func respawn_commons() -> int:
 ## Also used by bosses that summon: everything spawned here must die before the door opens.
 ## [param aware] skips the patrol: reinforcements arrive already fighting.
 func spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
-	alive += 1
+	if holds_door(enemy_id):
+		alive += 1
 	if spawn_hook.is_valid():
 		return spawn_hook.call(enemy_id, at, aware)
 	var enemy: Enemy = ENEMY_SCENE.instantiate()
@@ -216,7 +218,7 @@ func spawn_enemy(enemy_id: String, at: Vector2, aware := false) -> Enemy:
 
 
 func _on_enemy_died(_id: StringName, _position: Vector2) -> void:
-	if not authoritative:
+	if not authoritative or not holds_door(str(_id)):
 		return
 	alive -= 1
 	if alive == 0 and not door.open:
@@ -228,6 +230,12 @@ func _on_enemy_died(_id: StringName, _position: Vector2) -> void:
 		else:
 			_cleared_once = true
 			cleared.emit()
+
+
+## One that waits ("waits" in its JSON, docs/CHAPTER2.md) never keeps the door
+## shut: a room of them is open from the start, and striking one does not close it.
+static func holds_door(enemy_id: String) -> bool:
+	return not bool(Data.enemies.get(enemy_id, {}).get("waits", false))
 
 
 func _next_wave() -> bool:

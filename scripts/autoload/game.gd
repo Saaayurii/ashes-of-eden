@@ -47,6 +47,10 @@ var practice := ""
 ## The date of the night of the day being played (scripts/run/daily.gd), "" for
 ## an ordinary night. Set by the main menu like practice, kept across new_run.
 var daily := ""
+## Which of the game's nights is played (game.json "nights", Data.use_night):
+## "" the first. Set by the main menu's chapter pick or a save, kept across
+## new_run like daily; the night of the day and a co-op night are the first.
+var night := ""
 ## Whether the night of the day just finished beat the day's best (end screen).
 var daily_best := false
 ## Rooms this body cleared without a wound, this night (Run._on_unscathed).
@@ -151,6 +155,9 @@ func apply_effect(effect: Dictionary) -> void:
 		alignment[path] += int(effect.get(path, 0))
 	for flag in effect.get("set_flags", []):
 		flags[flag] = true
+	# a choice that costs something real (Lazarus on the road, docs/CHAPTER2.md)
+	if int(effect.get("flask", 0)) != 0:
+		EventBus.flasks_given.emit(-int(effect.flask))
 	EventBus.alignment_changed.emit(alignment.duplicate())
 
 

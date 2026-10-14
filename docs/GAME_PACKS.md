@@ -39,7 +39,8 @@ engine's, which is Ashes'), `res://content/data` (the pack), `user://mods/*/data
 | `paths` | grace / temptation / will: `color`, `aura`, `drift`, `icon` |
 | `inherit` | the engine collections the pack takes (`abilities`, `enemies`, …); every other collection is the pack's alone. Without `inherit` everything is inherited — that is Ashes itself |
 | `exclude` | `{collection: [id, …]}` — inherited entries to leave out (props that carry Ashes' story) |
-| `opening` | ids of the `prologue`, `prologue_short`, `intro` and `last_fall` scenes/dialogues; any may be absent |
+| `opening` | ids of the `prologue`, `prologue_short`, `intro` and `last_fall` scenes/dialogues; any may be absent; `"wake": false` starts the hero on his feet instead of rising out of the grave |
+| `nights` | later nights, each `{id, rooms, opening, after_dawns}`: its own rooms (none shared with another night), its own opening, offered on Play («Which chapter?») once the profile has seen `after_dawns` dawns. `rooms` / `opening` above are the first night (`Data.nights`, `Game.night`) |
 | `flags_read` | story flags only code reads, for the validator's both-ways check |
 | `web` | the loading page's `tagline` and `description` (`tools/web/pack_shell.py`, run by `game.yml` before the Web export: the game's name, words and menu picture instead of Ashes'; `apply_pack.py --restore` checks `shell.html` out again) |
 
@@ -152,3 +153,4 @@ Raise `DataDoc.ENGINE` when a data format changes in a way an older pack would
 not survive, and say here what changed.
 
 - **1** — hero.json, game.json (`inherit`, `exclude`, `opening`, `flags_read`), data roots.
+- **2** — game.json `nights`: a game told in more than one night. Older packs (no `nights`) play as before; a pack that has them needs this engine.

@@ -383,6 +383,15 @@ def game_doc(root: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def game_rooms(game: dict) -> list:
+    """Every night's rooms in play order: "rooms", then each of "nights" (DataDoc.all_rooms)."""
+    out = []
+    for path in game.get("rooms", []) + [p for night in game.get("nights", []) for p in night.get("rooms", [])]:
+        if path not in out:
+            out.append(path)
+    return out
+
+
 def room_scenes(root: Path):
     """The room scenes the game has: every one in scenes/rooms for Ashes; for a game
     pack (game.json "inherit") the ones its game.json plays, borrowed or its own,
@@ -391,7 +400,7 @@ def room_scenes(root: Path):
     if "inherit" not in game:
         return sorted((root / "scenes/rooms").glob("*.tscn"))
     found = {}
-    for res in game.get("rooms", []) + [game.get("practice_room", "")]:
+    for res in game_rooms(game) + [game.get("practice_room", "")]:
         path = res_to_path(root, res) if res else None
         if path and path.exists():
             found[path.as_posix()] = path
@@ -403,7 +412,7 @@ def room_scenes(root: Path):
 def room_order(root: Path):
     game = game_doc(root)
     seen = []
-    for path in game.get("rooms", []) + [game.get("practice_room", "")]:
+    for path in game_rooms(game) + [game.get("practice_room", "")]:
         name = Path(path).stem
         if name and name not in seen:
             seen.append(name)

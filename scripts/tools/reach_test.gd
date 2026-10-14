@@ -23,7 +23,7 @@ const FEET := 15.0          # body origin to the soles
 const MAX_RISE := 110.0     # no surface higher than this is worth a try
 const MAX_GAP := 230.0
 const HOP_FRAMES := 200
-const FLYERS := ["shade", "wraith", "elder_wraith", "hollow_wraith", "raven", "ophanim"]
+const FLYERS := ["shade", "wraith", "elder_wraith", "hollow_wraith", "raven", "ophanim", "sea_wraith"]
 ## (first jump frame, second jump frame or -1, walk off without jumping)
 const STRATEGIES := [[0, 18], [0, 28], [0, -1], [0, 10], [-1, -1]]
 
@@ -55,35 +55,39 @@ func _main() -> void:
 	var death_handler: Callable = run._on_local_death
 	if player.died.is_connected(death_handler):
 		player.died.disconnect(death_handler)
-	for index in run.ROOMS.size():
-		var path: String = run.ROOMS[index]
-		if only != "" and not Array(only.split("|")).any(func(part: String) -> bool: return path.contains(part)):
-			continue
-		if args.has("--composed"):
-			if not ResourceLoader.exists(run.composed_path(index)):
+	# every night's rooms (game.json "nights"): ROOMS is the night being played
+	for night in root.get_node("Data").nights():
+		root.get_node("Data").use_night(str(night.id))
+		for index in run.ROOMS.size():
+			var path: String = run.ROOMS[index]
+			if only != "" and not Array(only.split("|")).any(func(part: String) -> bool: return path.contains(part)):
 				continue
-			run._draft_index = index
-			print("  the composed draft of %s" % path.get_file().get_basename())
-		if not await _test_room(index, path):
-			# The body carries state from the rooms before (an animation, a
-			# lock); a room that failed gets one clean second look.
-			print("       retrying with a fresh body")
-			player.revive(player.global_position, 1.0)
+			if args.has("--composed"):
+				if not ResourceLoader.exists(run.composed_path(index)):
+					continue
+				run._draft_index = index
+				print("  the composed draft of %s" % path.get_file().get_basename())
 			if not await _test_room(index, path):
-				failures += 1
-		var return_starts := {
-			"village_night": Vector2(1480, 635), "graveyard_cross": Vector2(70, 635),
-			"graveyard_arches": Vector2(1120, 574), "graveyard_tree": Vector2(920, 615),
-			"swamp_moon": Vector2(1520, 534), "swamp_red": Vector2(80, 485),
-			"swamp_crypt": Vector2(1100, 635), "catacombs_1": Vector2(1370, 623),
-			"hell_gate": Vector2(1435, 618),
-			"crypt_lava": Vector2(660, 655),
-			"crypt_skulls": Vector2(300, 646),
-		}
-		if args.has("reverse") and not args.has("--composed") and return_starts.has(path.get_file().get_basename()):
-			var crypt_start: Vector2 = return_starts[path.get_file().get_basename()]
-			if not await _test_room(index, path, crypt_start):
-				failures += 1
+				# The body carries state from the rooms before (an animation, a
+				# lock); a room that failed gets one clean second look.
+				print("       retrying with a fresh body")
+				player.revive(player.global_position, 1.0)
+				if not await _test_room(index, path):
+					failures += 1
+			var return_starts := {
+				"village_night": Vector2(1480, 635), "graveyard_cross": Vector2(70, 635),
+				"graveyard_arches": Vector2(1120, 574), "graveyard_tree": Vector2(920, 615),
+				"swamp_moon": Vector2(1520, 534), "swamp_red": Vector2(80, 485),
+				"swamp_crypt": Vector2(1100, 635), "catacombs_1": Vector2(1370, 623),
+				"hell_gate": Vector2(1435, 618),
+				"crypt_lava": Vector2(660, 655),
+				"crypt_skulls": Vector2(300, 646),
+			}
+			if args.has("reverse") and not args.has("--composed") and return_starts.has(path.get_file().get_basename()):
+				var crypt_start: Vector2 = return_starts[path.get_file().get_basename()]
+				if not await _test_room(index, path, crypt_start):
+					failures += 1
+	root.get_node("Data").use_night("")
 	print("REACH TEST PASSED" if failures == 0 else "REACH TEST FAILED (%d rooms)" % failures)
 	quit(1 if failures > 0 else 0)
 

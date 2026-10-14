@@ -11,7 +11,8 @@
     "ashes": {"flame": 0.35, "flame_floor": 0.72},
     "hell": {"flame": 0.22, "flame_floor": 0.82},
     "dawn": {"flame": 0.45, "flame_floor": 0.74},
-    "dusk": {"flame": 0.45, "flame_floor": 0.8}
+    "dusk": {"flame": 0.45, "flame_floor": 0.8},
+    "harbour": {"flame": 0.5, "flame_floor": 0.6}
   },
   "rooms": {
     "prolog_1_walk_a": {"family": "dusk", "zones": []},
@@ -356,6 +357,97 @@
       {"kind": "sway", "rect": [1115, 195, 45, 115]},
       {"kind": "sway", "rect": [1485, 185, 55, 115]},
       {"kind": "sway", "rect": [135, 515, 55, 125]}
+    ]},
+    "seir_road": {"family": "harbour", "zones": [
+      {"kind": "glow", "rect": [450, 90, 90, 80], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "stars", "rect": [220, 0, 1020, 90]},
+      {"kind": "water", "rect": [350, 375, 660, 120]},
+      {"kind": "sway", "rect": [0, 100, 360, 330], "strength": 1.2, "speed": 1.0},
+      {"kind": "sway", "rect": [1340, 120, 40, 140]},
+      {"kind": "sway", "rect": [1555, 40, 40, 160]},
+      {"kind": "haze", "rect": [550, 300, 770, 200]}
+    ]},
+    "seir_gate": {"family": "harbour", "zones": [
+      {"kind": "sway", "rect": [55, 65, 45, 150]},
+      {"kind": "sway", "rect": [555, 110, 40, 150]},
+      {"kind": "sway", "rect": [910, 325, 45, 160]},
+      {"kind": "sway", "rect": [95, 330, 40, 150]},
+      {"kind": "sway", "rect": [1520, 80, 50, 190]},
+      {"kind": "water", "rect": [1070, 420, 180, 95]},
+      {"kind": "glow", "rect": [840, 170, 60, 70], "tint": "#ffb060", "strength": 0.18, "speed": 0.5}
+    ]},
+    "seir_street": {"family": "harbour", "zones": [
+      {"kind": "water", "rect": [0, 648, 1600, 72]},
+      {"kind": "sway", "rect": [540, 180, 120, 60], "strength": 1.2, "speed": 1.1},
+      {"kind": "sway", "rect": [1100, 180, 130, 60], "strength": 1.2, "speed": 1.1},
+      {"kind": "stars", "rect": [640, 0, 460, 60]},
+      {"kind": "glow", "rect": [920, 45, 210, 50], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6}
+    ]},
+    "seir_square": {"family": "harbour", "zones": [
+      {"kind": "glow", "rect": [915, 95, 60, 60], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "water", "rect": [300, 480, 560, 45]},
+      {"kind": "sway", "rect": [110, 320, 220, 80], "strength": 1.0},
+      {"kind": "sway", "rect": [1360, 60, 90, 140], "strength": 1.2, "speed": 1.0},
+      {"kind": "haze", "rect": [200, 200, 560, 200]},
+      {"kind": "stars", "rect": [200, 0, 460, 80]}
+    ]},
+    "seir_roofs": {"family": "harbour", "zones": [
+      {"kind": "glow", "rect": [600, 30, 60, 60], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "water", "rect": [0, 160, 1600, 95]},
+      {"kind": "haze", "rect": [95, 220, 50, 110]},
+      {"kind": "haze", "rect": [925, 165, 50, 110]},
+      {"kind": "haze", "rect": [1410, 85, 50, 110]},
+      {"kind": "stars", "rect": [660, 0, 500, 90]}
+    ]},
+    "seir_canal": {"family": "harbour", "zones": [
+      {"kind": "water", "rect": [0, 528, 1600, 192]},
+      {"kind": "glow", "rect": [925, 70, 40, 40], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "sway", "rect": [415, 200, 30, 70]},
+      {"kind": "stars", "rect": [580, 0, 320, 80]},
+      {"kind": "haze", "rect": [580, 180, 480, 170]}
+    ]},
+    "seir_quay": {"family": "harbour", "zones": [
+      {"kind": "water", "rect": [0, 322, 1520, 150]},
+      {"kind": "sway", "rect": [1485, 140, 40, 160]},
+      {"kind": "haze", "rect": [0, 250, 1600, 90]},
+      {"kind": "glow", "rect": [615, 385, 40, 50], "tint": "#ffb060", "strength": 0.2, "speed": 0.5}
+    ]},
+    "seir_wrecks": {"family": "harbour", "zones": [
+      {"kind": "water", "rect": [0, 605, 1600, 115]},
+      {"kind": "sway", "rect": [230, 10, 280, 250], "strength": 1.0, "speed": 0.8},
+      {"kind": "glow", "rect": [1045, 70, 50, 50], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "haze", "rect": [820, 180, 500, 200]}
+    ]},
+    "seir_warehouses": {"family": "harbour", "zones": [
+      {"kind": "sway", "rect": [90, 60, 110, 220], "strength": 1.2, "speed": 0.9},
+      {"kind": "sway", "rect": [1490, 170, 90, 110], "strength": 1.2, "speed": 0.9},
+      {"kind": "sway", "rect": [900, 60, 40, 180]},
+      {"kind": "sway", "rect": [800, 330, 30, 120]},
+      {"kind": "sway", "rect": [930, 330, 30, 160]},
+      {"kind": "glow", "rect": [555, 100, 40, 200], "tint": "#9fb8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "glow", "rect": [1015, 120, 40, 200], "tint": "#9fb8ff", "strength": 0.1, "speed": 0.4}
+    ]},
+    "seir_breakwater": {"family": "harbour", "zones": [
+      {"kind": "water", "rect": [0, 455, 1600, 265]},
+      {"kind": "glow", "rect": [910, 90, 60, 60], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [1510, 80, 70, 70], "tint": "#ffb060", "strength": 0.22, "speed": 0.5},
+      {"kind": "sway", "rect": [65, 165, 35, 80], "strength": 1.4, "speed": 1.2},
+      {"kind": "stars", "rect": [0, 0, 1420, 110]}
+    ]},
+    "seir_lighthouse_stair": {"family": "harbour", "zones": [
+      {"kind": "sway", "rect": [1320, 10, 40, 70]},
+      {"kind": "sway", "rect": [880, 220, 40, 60]},
+      {"kind": "sway", "rect": [1350, 380, 40, 60]},
+      {"kind": "sway", "rect": [1400, 230, 30, 50]},
+      {"kind": "haze", "rect": [840, 0, 140, 100]}
+    ]},
+    "seir_lighthouse": {"family": "harbour", "zones": [
+      {"kind": "glow", "rect": [1240, 150, 200, 250], "tint": "#ffc070", "strength": 0.25, "speed": 0.5},
+      {"kind": "water", "rect": [500, 385, 700, 80]},
+      {"kind": "glow", "rect": [725, 175, 45, 45], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "sway", "rect": [0, 0, 80, 230]},
+      {"kind": "sway", "rect": [1520, 0, 60, 230]},
+      {"kind": "stars", "rect": [140, 40, 1060, 150]}
     ]}
   }
 }

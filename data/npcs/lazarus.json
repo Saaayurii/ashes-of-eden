@@ -1,0 +1,27 @@
+{
+  "id": "lazarus",
+  "_art": "stand-in body (severin); own sheet in docs/CHAPTER2_ART.md (the portrait is drawn)",
+  "name": "NPC_LAZARUS",
+  "avatar": "res://assets/portraits/lazarus.png",
+  "dialogue": "npc_lazarus",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/severin_v2_idle.png",
+      "walk": "res://assets/sprites/severin_v2_walk.png",
+      "interact": "res://assets/sprites/severin_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_LAZARUS_LORE",
+  "role": "NPC_ROLE_LAZARUS",
+  "location": "LOC_SEIR_ROAD",
+  "lines": [
+    "NPC_LAZARUS_LINE_1",
+    "NPC_LAZARUS_LINE_2"
+  ]
+}

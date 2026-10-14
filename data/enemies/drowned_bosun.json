@@ -1,0 +1,62 @@
+{
+  "id": "drowned_bosun",
+  "name": "ENEMY_DROWNED_BOSUN",
+  "lore": "ENEMY_DROWNED_BOSUN_LORE",
+  "tip": "TIP_DROWNED_BOSUN",
+  "hp": 170,
+  "speed": 50,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 460,
+  "size": 15,
+  "color": "#4f5f5a",
+  "material": "flesh",
+  "tags": [
+    "undead",
+    "elite"
+  ],
+  "armor": 0.1,
+  "sprite": {
+    "cell": [
+      112,
+      91
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/drowned_bosun_v2_idle.png",
+      "walk": "res://assets/sprites/drowned_bosun_v2_walk.png",
+      "attack": "res://assets/sprites/drowned_bosun_v2_attack.png",
+      "attack_alt": "res://assets/sprites/drowned_bosun_v2_attack_alt.png",
+      "special": "res://assets/sprites/drowned_bosun_v2_special.png",
+      "hurt": "res://assets/sprites/drowned_bosun_v2_hurt.png",
+      "death": "res://assets/sprites/drowned_bosun_v2_death.png"
+    }
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 58,
+      "reach": 74,
+      "windup": 1.0,
+      "damage": 22,
+      "cooldown": 2.6,
+      "recover": 0.7,
+      "weight": 2,
+      "animation": "attack"
+    },
+    {
+      "type": "lunge",
+      "range": 260,
+      "windup": 0.9,
+      "damage": 16,
+      "cooldown": 3.4,
+      "lunge_speed": 380,
+      "lunge_time": 0.4,
+      "recover": 0.8,
+      "weight": 1,
+      "animation": "attack_alt"
+    }
+  ],
+  "essence": 45
+}

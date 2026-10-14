@@ -109,6 +109,7 @@ func first_free_manual() -> String:
 ## Queues a save for the Run scene and opens it.
 func start(data: Dictionary) -> void:
 	pending = data
+	Game.night = night_of(data)  # the Run plays this night's rooms (Data.use_night)
 	Curtain.change_scene("res://scenes/run/run.tscn", true,
 		func() -> void: get_tree().paused = false)
 
@@ -166,7 +167,10 @@ func validate(raw: Variant) -> Dictionary:
 	for field in ["room", "game_state", "player"]:
 		if not data.has(field):
 			return {}
-	if not data.room is String or room_index(data.room) < 0:
+	# a save made in a later night names it (game.json "nights"); an older one has none: the first
+	if not data.get("night", "") is String or not Data.has_night(str(data.get("night", ""))):
+		return {}
+	if not data.room is String or not Data.night_spec(night_of(data)).get("rooms", []).has(data.room):
 		return {}
 	if not data.game_state is Dictionary or not data.player is Dictionary:
 		return {}
@@ -195,6 +199,11 @@ func room_index(path: String) -> int:
 	return Data.rooms.find(path)
 
 
+## The night a save was made in ("" for the first, and for every save older than nights).
+func night_of(data: Dictionary) -> String:
+	return str(data.get("night", ""))
+
+
 # ---------------------------------------------------------------- capture ---
 
 ## A snapshot of the run as it stands now. The Run calls this on entering a
@@ -204,6 +213,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 		"game": GAME_ID,
 		"format": FORMAT,
 		"room": room_path,
+		"night": Data.night,
 		"room_number": Route.step(Route.rooms(), room_index(room_path)) + 1,
 		"game_state": {
 			"alignment": Game.alignment.duplicate(),
@@ -245,6 +255,8 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 func restore(data: Dictionary, body: Player) -> void:
 	var state: Dictionary = data.game_state
 	Game.new_run()
+	Game.night = night_of(data)
+	Data.use_night(Game.night)
 	for path in Game.PATHS:
 		Game.alignment[path] = int(state.get("alignment", {}).get(path, 0))
 	Game.flags = state.get("flags", {}).duplicate()

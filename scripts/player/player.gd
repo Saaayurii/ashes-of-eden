@@ -365,6 +365,7 @@ func _ready() -> void:
 	slash.animation_finished.connect(func() -> void: slash.visible = false)
 	ActionFx.attach(self, body, "elian")   # particles on his actions, as data (data/action_fx.json)
 	EventBus.boss_died.connect(func() -> void: heal_charges = int(stats.heal_charges); _emit_hp())
+	EventBus.flasks_given.connect(_give_flasks)
 	EventBus.enemy_died.connect(_on_enemy_died)
 	EventBus.room_cleared.connect(_on_room_cleared)
 	EventBus.room_started.connect(func(_index: int) -> void:
@@ -935,6 +936,15 @@ func refuse_gift() -> void:
 	heal_charges = mini(heal_charges + 1, int(stats.heal_charges))
 	_emit_hp()
 	Fx.sparkle(global_position + Vector2(0, -14), Color(0.8, 0.85, 0.95), 12, 12.0)
+
+
+## A story choice's "flask" (Game.apply_effect): flasks given away, never below
+## none and never past full; only our own body pays.
+func _give_flasks(count: int) -> void:
+	if not _is_mine():
+		return
+	heal_charges = clampi(heal_charges - count, 0, int(stats.heal_charges))
+	_emit_hp()
 
 
 ## A blood altar's price, paid once a gift is taken from it: [param share] of
