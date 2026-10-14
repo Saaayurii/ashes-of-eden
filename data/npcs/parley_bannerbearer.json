@@ -1,0 +1,27 @@
+{
+  "id": "parley_bannerbearer",
+  "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn (the Host's bannerbearer, white linen side of the tent)",
+  "name": "SPEAKER_HOST_BANNER",
+  "avatar": "res://assets/portraits/gate_warden.png",
+  "dialogue": "ch3_parley",
+  "scripted": true,
+  "face": "right",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/knight_v2_idle.png",
+      "walk": "res://assets/sprites/knight_v2_walk.png",
+      "interact": "res://assets/sprites/knight_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 4
+  },
+  "light": {
+    "color": "#e8f0ff",
+    "radius": 44,
+    "energy": 0.55,
+    "flicker": 0.0
+  }
+}

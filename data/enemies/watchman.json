@@ -20,6 +20,16 @@
   ],
   "stagger_chance": 0.0,
   "armor": 0.15,
+  "patience": {
+    "every": [
+      8,
+      10
+    ],
+    "turn": 1.2,
+    "animation": "special",
+    "quicken": 0.6,
+    "min_windup": 0.5
+  },
   "sprite": {
     "cell": [
       132,

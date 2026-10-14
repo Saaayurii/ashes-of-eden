@@ -66,7 +66,7 @@ TONE_ROWS = 48
 ## How far apart two lights may be evened out; past it, a seam keeps the rest.
 TONE_LIMIT = 2.0
 ## What the room keeps of the painted room it is made for.
-ATMOSPHERE = ("ambient", "fog", "intro", "music", "weather", "intro_cutscene", "outro_cutscene")
+ATMOSPHERE = ("ambient", "fog", "intro", "music", "weather", "intro_cutscene", "outro_cutscene", "quiet_outro")
 RECTS = ("ground", "ledges", "platforms", "hazards")
 PLACED = ("spawns", "props", "npcs")
 ## What a crumbling platform may be drawn as: crumbling_platform.gd's surface_kind.
