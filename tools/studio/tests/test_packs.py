@@ -151,9 +151,15 @@ class PackRooms(unittest.TestCase):
         self.assertIn('script = ExtResource("1_room")\nbase_room = "swamp_moon"\n', path.read_text(encoding="utf-8"))
 
     def test_flyers_come_from_the_data(self):
-        for file in (ROOT / "data/enemies").glob("*.json"):
-            flies = json.loads(file.read_text(encoding="utf-8")).get("behaviour") == "flyer"
-            self.assertEqual(file.stem in painted_rooms.FLYERS, flies or file.stem == "ophanim", file.stem)
+        docs = {f.stem: json.loads(f.read_text(encoding="utf-8")) for f in (ROOT / "data/enemies").glob("*.json")}
+
+        def flies(eid):  # its own behaviour, else the one it extends
+            doc = docs[eid]
+            return doc["behaviour"] == "flyer" if "behaviour" in doc or "extends" not in doc else flies(doc["extends"])
+
+        for eid in docs:
+            self.assertEqual(eid in painted_rooms.FLYERS, flies(eid) or eid == "ophanim", eid)
+        self.assertIn("hollow_wraith", painted_rooms.FLYERS)  # extends wraith, says nothing of its own
 
 
 if __name__ == "__main__":

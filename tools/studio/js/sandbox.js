@@ -130,7 +130,7 @@ async function sandboxDraftData(id) {
   if (r) {
     const src = r.source, changed = WORLD.work[src.file];
     const node = changed && (Array.isArray(changed) ? changed.find(v => v.id === id) : src.path.reduce((o, k) => o?.[k], changed));
-    const configured = node && (src.single ? [node[src.key]] : node[src.key]);
+    const configured = node && (src.single ? [src.over ? { ...docs[src.over]?.attack, ...node[src.key] } : node[src.key]] : node[src.key]);
     const actions = structuredClone(configured || src.items), deleted = new Set(), keys = actions.map(() => '');
     for (const [i, base] of src.items.entries()) {
       // where each of the game's attacks ended up, so «⚔ Атака» fires the one she has open

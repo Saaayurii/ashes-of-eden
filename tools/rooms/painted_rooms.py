@@ -36,16 +36,23 @@ GRAVITY = 1100.0
 BODY_WIDTH = 14.0
 REACH_MARGIN = 0.85
 def _flyers():
-    """Every creature that flies (behaviour "flyer"), the engine's and a laid-over
-    game pack's (content/data): it needs no floor under its spawn."""
-    out = {"ophanim"}  # a boss that hovers over its arena
+    """Every creature that flies (behaviour "flyer", its own or through "extends"),
+    the engine's and a laid-over game pack's (content/data): it needs no floor
+    under its spawn."""
+    docs = {}
     for root in (os.path.join(ROOT, "data", "enemies"), os.path.join(ROOT, "content", "data", "enemies")):
         for file in sorted(os.listdir(root)) if os.path.isdir(root) else []:
             if file.endswith(".json"):
                 with open(os.path.join(root, file), encoding="utf-8") as f:
-                    if json.load(f).get("behaviour") == "flyer":
-                        out.add(file[:-5])
-    return out
+                    docs.setdefault(file[:-5], {}).update(json.load(f))
+
+    def behaviour(eid, seen=()):
+        doc = docs.get(eid, {})
+        if "behaviour" in doc or doc.get("extends") in (None, *seen):
+            return doc.get("behaviour")
+        return behaviour(doc["extends"], (*seen, eid))
+
+    return {"ophanim"} | {eid for eid in docs if behaviour(eid) == "flyer"}  # ophanim: a boss over its arena
 
 
 FLYERS = _flyers()
@@ -198,6 +205,8 @@ PAINTED = {
         spawns=[("possessed_villager", 470, 515), ("possessed_villager", 760, 548), ("possessed_villager", 1150, 508),
                 ("possessed_villager", 1050, 248), ("possessed_villager", 330, 333),
                 ("shade", 500, 300), ("shade", 900, 200), ("raven", 700, 120)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("possessed_villager", 1150, 508), ("cultist", 760, 548), ("possessed_villager", 1050, 248), ("raven", 700, 120)]],
         props=[("pot", 280, 195), ("rubble", 370, 345), ("barrel_apples", 330, 527), ("box_goods", 365, 527), ("rubble", 500, 527),
                ("pot", 700, 560), ("rubble", 1000, 625), ("chest_wooden", 1200, 655),
                ("secret_wall_village", 1110, 655)],  # Gate log at the crypt's painted floor, not an invisible shelf
@@ -230,7 +239,10 @@ PAINTED = {
         crumbling_platforms=[(301, 264, 80)],
         spawns=[("possessed_villager", 400, 506), ("possessed_villager", 650, 506), ("cultist", 880, 533),
                 ("possessed_villager", 900, 373), ("zealot", 1180, 376), ("shade", 600, 300), ("raven", 800, 150),
-                ("wraith", 300, 600)],
+                ("wraith", 300, 600), ("cult_slinger", 1000, 373)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("possessed_villager", 400, 506), ("cultist", 650, 506), ("cult_slinger", 1180, 376),
+                ("possessed_villager", 880, 533), ("shade", 600, 300)]],
         props=[("pot", 200, 254), ("barrel", 300, 348), ("crate", 700, 518), ("sack", 860, 545),
                ("chest_wooden", 70, 655), ("barrel_apples", 940, 385)],
         decor=[], npcs=[("nun", 122, 655), ("stranger", 252, 254)], ambient="#c0bccc", lights="auto",
@@ -252,7 +264,10 @@ PAINTED = {
         platforms=[(1130, 470, 56, 10), (1080, 350, 56, 10)],
         spawns=[("possessed_villager", 500, 338), ("possessed_villager", 450, 540), ("possessed_villager", 600, 540),
                 ("cultist", 800, 582), ("zealot", 1220, 375), ("fallen_guard", 950, 304), ("shade", 750, 250),
-                ("raven", 600, 120), ("wraith", 250, 620)],
+                ("raven", 600, 120), ("wraith", 250, 620), ("cult_slinger", 1100, 280)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("shield_bearer", 600, 540), ("cultist", 450, 540), ("cult_slinger", 500, 338),
+                ("possessed_villager", 800, 582), ("wraith", 250, 620)]],
         props=[("chest_iron", 150, 220), ("barrel", 420, 350), ("box_goods", 380, 552), ("sack", 850, 594), ("barrel_apples", 1000, 603),
                ("chest_gold", 242, 494), ("pot", 1230, 387)],
         decor=[], npcs=[], ambient="#bcb8cc", lights="auto",
@@ -272,7 +287,10 @@ PAINTED = {
         platforms=[(1150, 300, 56, 10)],  # the only added step needed to return to the gate
         spawns=[("possessed_villager", 400, 407), ("possessed_villager", 650, 407), ("cultist", 880, 368),
                 ("fallen_guard", 1200, 433), ("possessed_villager", 600, 603), ("zealot", 300, 300),
-                ("shade", 700, 250), ("wraith", 950, 600), ("raven", 500, 150)],
+                ("shade", 700, 250), ("hollow_wraith", 950, 600), ("raven", 500, 150)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("shield_bearer", 650, 407), ("cultist", 400, 407), ("cult_slinger", 880, 368),
+                ("possessed_villager", 600, 603), ("raven", 500, 150)]],
         props=[("pot", 110, 289), ("barrel", 350, 312), ("crate", 500, 419), ("rubble", 720, 419), ("blood_altar", 1000, 365),
                ("chest_wooden", 760, 635), ("pot", 250, 563), ("crate", 1250, 445)],
         decor=[], npcs=[("mara", 955, 380)], ambient="#bcb8cc", lights="auto",
@@ -292,6 +310,9 @@ PAINTED = {
         spawns=[("possessed_villager", 520, 326), ("cultist", 750, 403), ("possessed_villager", 400, 462),
                 ("zealot", 1150, 401), ("fallen_guard", 580, 556), ("shade", 800, 300), ("wraith", 300, 600),
                 ("raven", 900, 150), ("shade", 1000, 250)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("cultist", 750, 403), ("possessed_villager", 520, 326), ("cult_slinger", 1150, 401),
+                ("possessed_villager", 580, 556), ("hollow_wraith", 300, 600)]],
         props=[("barrel", 250, 264), ("pot", 600, 338), ("box_goods", 780, 415), ("sack", 350, 474),
                ("chest_wooden", 1200, 554), ("barrel_apples", 100, 351), ("pot", 680, 535)],
         decor=[], npcs=[("villager", 470, 474)], ambient="#b4b8cc", lights="auto",
@@ -312,7 +333,7 @@ PAINTED = {
         crumbling_platforms=[(778, 366, 70, "timber")],
         spawns=[("possessed_villager", 200, 335), ("cultist", 600, 422), ("possessed_villager", 300, 487),
                 ("zealot", 1120, 413), ("fallen_guard", 980, 400), ("wraith", 600, 300), ("shade", 850, 250),
-                ("raven", 400, 150), ("elite_possessed", 1180, 243)],
+                ("raven", 400, 150), ("elite_possessed", 1180, 243), ("cult_slinger", 1170, 413)],
         props=[("barrel", 120, 347), ("crate", 280, 347), ("pot", 580, 434), ("sack", 250, 499), ("barrel_apples", 1100, 425),
                ("chest_cursed", 80, 505), ("pot", 1160, 255)],
         decor=[], npcs=[], ambient="#c8b0b4", lights="auto",
@@ -334,6 +355,9 @@ PAINTED = {
         spawns=[("possessed_villager", 100, 402), ("cult_caller", 600, 244), ("possessed_villager", 600, 439),
                 ("fallen_guard", 1200, 299), ("preacher_acolyte", 960, 302), ("zealot", 450, 528), ("wraith", 700, 400),
                 ("shade", 300, 200), ("raven", 850, 120), ("elite_possessed", 690, 300)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("shield_bearer", 600, 439), ("cultist", 100, 402), ("cult_slinger", 960, 302), ("possessed_villager", 450, 528)],
+               [("fallen_champion", 1200, 299), ("hollow_wraith", 700, 400), ("cultist", 600, 439), ("cult_slinger", 600, 244)]],
         props=[("barrel", 150, 319), ("chest_iron", 200, 414), ("box_goods", 560, 256), ("rubble", 680, 451), ("barrel_apples", 1000, 314),
                ("chest_wooden", 1130, 485), ("pot", 560, 451), ("box_goods", 1200, 311),
                ("secret_wall_swamp", 630, 451)],  # letters behind the tower masonry, not the red root mass
@@ -355,6 +379,9 @@ PAINTED = {
         spawns=[("cultist", 500, 248), ("possessed_villager", 200, 401), ("possessed_villager", 600, 391),
                 ("fallen_guard", 900, 418), ("zealot", 1150, 428), ("cult_caller", 800, 592), ("preacher_acolyte", 1050, 222),
                 ("possessed_villager", 300, 628), ("shade", 700, 300), ("elder_wraith", 400, 500)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("shield_bearer", 600, 391), ("cultist", 200, 401), ("cult_slinger", 1150, 428),
+                ("possessed_villager", 300, 628), ("hollow_wraith", 700, 300)]],
         props=[("pot", 150, 157), ("barrel", 420, 260), ("crate", 700, 403), ("sack", 1240, 440), ("chest_gold", 1150, 191),
                ("barrel_apples", 250, 413), ("pot", 600, 556), ("crate", 900, 604), ("sack", 80, 582)],
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
@@ -376,7 +403,7 @@ PAINTED = {
         spawns=[("cultist", 350, 341), ("possessed_villager", 550, 412), ("fallen_guard", 1000, 509),
                 ("zealot", 1200, 469), ("cultist", 700, 216), ("preacher_acolyte", 950, 217),
                 ("possessed_villager", 600, 639), ("possessed_villager", 850, 621), ("shade", 500, 300),
-                ("wraith", 1000, 380), ("elite_possessed", 1050, 217)],
+                ("wraith", 1000, 380), ("elite_possessed", 1050, 217), ("cult_slinger", 220, 341)],
         props=[("pot", 80, 298), ("barrel", 250, 353), ("box_goods", 600, 424), ("sack", 1050, 521), ("barrel_apples", 500, 228),
                ("chest_wooden", 60, 579), ("pot", 300, 636), ("box_goods", 700, 651), ("sack", 1190, 481),
                ("secret_wall_catacombs", 1020, 695)],  # the bricked-up ossuary niche: names under the lid
@@ -397,6 +424,10 @@ PAINTED = {
                 ("zealot", 400, 430), ("possessed_villager", 100, 430), ("cultist", 880, 538),
                 ("preacher_acolyte", 250, 652), ("possessed_villager", 560, 655), ("shade", 900, 450),
                 ("wraith", 1150, 500), ("elite_possessed", 1180, 647)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("shield_bearer", 400, 430), ("cultist", 100, 430), ("cult_slinger", 850, 300), ("possessed_villager", 560, 655)],
+               [("shield_bearer", 880, 538), ("cultist", 300, 193), ("cult_slinger", 550, 230), ("hollow_wraith", 900, 450),
+                ("possessed_villager", 250, 652)]],
         props=[("pot", 100, 232), ("barrel", 200, 205), ("crate", 600, 242), ("rubble", 950, 312), ("barrel_apples", 150, 442),
                ("chest_gold", 60, 603), ("pot", 300, 664), ("crate", 700, 538), ("rubble", 1130, 583, "wide")],  # on the floor the seam added
         decor=[], npcs=[], ambient="#c4b4b0", lights="auto",
@@ -418,6 +449,10 @@ PAINTED = {
         spawns=[("possessed_villager", 500, 263), ("fallen_guard", 700, 445), ("zealot", 950, 411),
                 ("elite_cultist", 1080, 392), ("possessed_villager", 150, 463), ("possessed_villager", 450, 569),
                 ("preacher_acolyte", 950, 631), ("wraith", 500, 400), ("shade", 800, 250), ("shade", 1100, 300)],
+        # reinforcements: each wave rises, awake, once the room before it is down
+        waves=[[("shield_bearer", 700, 445), ("cultist", 150, 463), ("cult_slinger", 950, 411), ("possessed_villager", 450, 569)],
+               [("fallen_guard", 950, 631), ("cultist", 500, 263), ("cult_slinger", 1080, 392), ("hollow_wraith", 500, 400),
+                ("shade", 1100, 300)]],
         props=[("chest_iron", 120, 254), ("barrel", 200, 254), ("blood_altar", 890, 423), ("sack", 750, 457), ("funeral_offering", 1000, 423),
                ("chest_cursed", 300, 661), ("pot", 400, 581), ("box_goods", 1245, 603), ("sack", 1180, 603)],
         decor=[], npcs=[], ambient="#b8bccc", lights="auto",

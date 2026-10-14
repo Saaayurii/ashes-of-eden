@@ -99,7 +99,7 @@ async function attacksFiles() {
     let path = source.path;
     if (path.length && Array.isArray(doc)) { const i = doc.findIndex(x => x.id === r.id); if (i < 0) throw new Error(`Нет ${r.id} в актуальном файле`); path = [i]; }
     const node = path.reduce((o, k) => o[k], doc);
-    let current = source.single ? [node[source.key]] : node[source.key];
+    let current = source.single ? [source.over ? { ...JSON.parse(await repoText(source.over)).attack, ...node[source.key] } : node[source.key]] : node[source.key];
     if (!current && source.inherited) {
       const inherited = JSON.parse(await repoText(source.from)); current = source.from_key === 'attack' ? [inherited.attack] : inherited.attacks;
     }
@@ -114,7 +114,7 @@ async function attacksFiles() {
       if (plan[at].animation && !r.body?.anims[plan[at].animation]) problems.push('У персонажа нет этой анимации.');
       if (problems.length) throw new Error(`${r.id}: ${problems.join(' ')}`);
     }
-    if (source.single) files[source.file] = patchJson(original, [...path, source.key], attackDiff(node[source.key], plan[0]));
+    if (source.single) files[source.file] = patchJson(original, [...path, source.key], attackDiff(current[0], plan[0]));
     else if (source.inherited) files[source.file] = setJsonList(original, path, 'attacks', plan);
     else {
       files[source.file] = original;

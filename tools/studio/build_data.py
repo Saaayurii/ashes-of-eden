@@ -714,7 +714,7 @@ def projectiles(root: Path, strings):
         for i, a in enumerate(at["items"]):
             if a.get("type") == "ranged":
                 users.append({"kind": "enemy", "id": eid, "name": name(e.get("name", "")), "index": i,
-                              "file": at["file"], "path": at["path"] + [at["key"], i] if not at["inherited"] and not at["single"] else None,
+                              "file": at["file"], "path": None if at["inherited"] else at["path"] + ([at["key"]] if at["single"] else [at["key"], i]),
                               "attack": a, "boss": bool(resolved[eid].get("boss")), "body": b})
     for f in sorted((root / "data/abilities").glob("*.json")):
         for gi, g in enumerate(json.loads(f.read_text(encoding="utf-8"))):
@@ -729,7 +729,7 @@ def projectiles(root: Path, strings):
 def attack_source(eid, raw, tree_entries):
     """Where the attacks an enemy fights with are written (data_loader.gd: extends, then the
     archetype overlay, whose "attacks" replace the file's and drop its single "attack").
-    {file, path, key, items, single, inherited}: path is the object holding `key` in `file`;
+    {file, path, key, items, single, inherited, over?}: path is the object holding `key` in `file`;
     an inherited list (extends, nothing of its own) is written into the enemy's own file."""
     for i, over in enumerate(tree_entries):
         if over.get("id") == eid and "attacks" in over:
@@ -738,9 +738,15 @@ def attack_source(eid, raw, tree_entries):
     e, own = raw[eid], f"data/enemies/{eid}.json"
     if "attacks" in e:
         return {"file": own, "path": [], "key": "attacks", "items": e["attacks"], "single": False, "inherited": False}
-    if "attack" in e:
-        return {"file": own, "path": [], "key": "attack", "items": [e["attack"]], "single": True, "inherited": False}
     base = raw.get(e.get("extends"))
+    if "attack" in e:
+        # a single "attack" over a base's single "attack" is laid over it key by key
+        # (data_loader.gd merges a dictionary one level deep): the studio shows and edits
+        # the attack the game fights with, and writes back only what differs ("over")
+        if base is not None and isinstance(base.get("attack"), dict) and isinstance(e["attack"], dict):
+            return {"file": own, "path": [], "key": "attack", "items": [{**base["attack"], **e["attack"]}], "single": True,
+                    "inherited": False, "over": f"data/enemies/{e['extends']}.json"}
+        return {"file": own, "path": [], "key": "attack", "items": [e["attack"]], "single": True, "inherited": False}
     if base is not None:
         items = base.get("attacks") or ([base["attack"]] if "attack" in base else [])
         if items:

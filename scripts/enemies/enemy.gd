@@ -24,6 +24,13 @@ class_name Enemy
 ##   patrol     {"radius", "speed", "pause"}: how it idles around its spawn until
 ##              it notices somebody.
 ##   aware      true = awake from frame one (bosses always are).
+##   shield     a share (≤ 0.8) of every blow from the side it faces that its
+##              shield turns, while it is not swinging: from its wind-up to the
+##              end of the recovery after its blow it is open, and a backstab
+##              or a riposte goes round the shield anyway.
+##   on_death   {"type": "explode", "radius", "damage", "delay"} — the corpse
+##              bursts; {"type": "split", "into": id, "count"} — it comes apart
+##              into that many of another kind, already awake.
 ## The telegraph is the whole point: a wind-up the player can read and roll through.
 ##
 ## Nobody is born hostile: an enemy patrols its patch until it sees a player
@@ -129,6 +136,8 @@ var _repeats := 0
 var attack_rng := RandomNumberGenerator.new()
 var _telegraph_tween: Tween
 var _strike_wait := false
+## A shield-bearer between its wind-up and the next time it walks: open.
+var _guard_down := false
 var _strike_frame := 0
 var _strike_aim := Vector2.ZERO
 var _beam_lines: Array[Line2D] = []
@@ -1489,6 +1498,10 @@ func _hold_attack_frame() -> void:
 func _set_state(new_state: State, duration: float) -> void:
 	if new_state != State.STRIKE:
 		_strike_wait = false
+	if new_state == State.WINDUP:
+		_guard_down = true  # a shield-bearer swinging is a shield-bearer open
+	elif new_state == State.CHASE:
+		_guard_down = false
 	state = new_state
 	_state_left = duration
 
@@ -1568,6 +1581,11 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		EventBus.technique_performed.emit("riposte")
 		amount *= RIPOSTE_MULTIPLIER
 		crit = true
+	if _shield_holds(from, backstab or riposte):
+		amount *= 1.0 - clampf(float(stats.get("shield", 0.0)), 0.0, 0.8)
+		_shield_fx()
+		if Net.active:
+			_net_shield_fx.rpc()
 	amount *= 1.0 - clampf(float(stats.get("armor", 0.0)), 0.0, 0.5)  # FinalDamage = Base × (1 − armor)
 	hp -= amount
 	if stats.get("behaviour", "walker") == "dummy":
@@ -1946,6 +1964,37 @@ func _net_sealed(on: bool, broken: bool) -> void:
 	_show_sealed(on, broken)
 
 
+## A shield-bearer (data "shield") turns a blow that comes at its face while it
+## is not swinging; from the wind-up to the end of its recovery it is open.
+func _shield_holds(from: Vector2, round_it: bool) -> bool:
+	if float(stats.get("shield", 0.0)) <= 0.0 or round_it or _guard_down:
+		return false
+	if state == State.WINDUP or state == State.STRIKE:
+		return false
+	var side := signf(from.x - global_position.x)
+	return side == 0.0 or int(side) == facing
+
+
+func _shield_fx() -> void:
+	Audio.play_at(&"block", global_position, -2.0)
+	Fx.impact(global_position + Vector2(facing * 8, -14), Vector2(-facing, 0), Color(1.0, 0.86, 0.6), 6)
+
+
+@rpc("authority", "call_remote", "unreliable")
+func _net_shield_fx() -> void:
+	_shield_fx()
+
+
+## A body that comes apart (on_death "split"): the run spawns the pieces awake
+## beside it, and the room's door waits for them too.
+func _split(spec: Dictionary) -> void:
+	var count := clampi(int(spec.get("count", 2)), 1, 4)
+	for i in count:
+		var offset := Vector2((i - (count - 1) * 0.5) * 22.0, -10.0 - 6.0 * (i % 2))
+		EventBus.enemy_spawn_requested.emit(str(spec.get("into", "shade")), global_position + offset)
+	Fx.ring(global_position + Vector2(0, -8), 40.0, Color(stats.get("light", {}).get("color", "#9fe0ff")))
+
+
 func _warded_fx() -> void:
 	Audio.play_at(&"block", global_position, -4.0)
 	Fx.sparkle(global_position + Vector2(0, -10), Color(1.0, 0.85, 0.5), 8, 16.0)
@@ -2028,6 +2077,8 @@ func _die() -> void:
 		match stats.get("on_death", {}).get("type", ""):
 			"explode":
 				_explode(stats.on_death)
+			"split":
+				_split(stats.on_death)
 	_voice("death", &"boss_death" if is_boss else &"enemy_death")
 	Juice.shake(9.0 if is_boss else 2.5)
 	if is_boss:

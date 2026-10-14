@@ -138,6 +138,14 @@ def validate(name, entry, where_file="tools/rooms/composed_rooms.json"):
             folder = {"spawns": "enemies", "props": "props", "npcs": "npcs"}[key]
             if not any(os.path.exists(os.path.join(root, "data", folder, str(item[0]) + ".json")) for root in (ROOT, PACK)):
                 raise SystemExit(f"{where}: no data/{folder}/{item[0]}.json")
+    for i, wave in enumerate(entry.get("waves", []), 1):
+        if not isinstance(wave, list) or not wave:
+            raise SystemExit(f"{where}: wave {i} is not a non-empty list of spawns")
+        for item in wave:
+            if len(item) != 3 or not (0 <= item[1] <= width and 0 <= item[2] <= height):
+                raise SystemExit(f"{where}: wave {i} spawn {item} is not inside the room")
+            if not os.path.exists(os.path.join(ROOT, "data", "enemies", str(item[0]) + ".json")):
+                raise SystemExit(f"{where}: no data/enemies/{item[0]}.json")
     for i, window in enumerate(entry.get("windows", []), 1):
         points = window.get("points") if isinstance(window, dict) else None
         if not (isinstance(points, list) and len(points) >= 3
@@ -400,4 +408,6 @@ def room_table(name, entry, base, owned=None):
                                    for p in entry.get("crumbling_platforms", [])]
     for key in PLACED:
         room[key] = [tuple(item) for item in entry.get(key, [])]
+    # reinforcements (room.gd), each wave awake once the one before is down
+    room["waves"] = [[list(item) for item in wave] for wave in entry.get("waves", [])]
     return room

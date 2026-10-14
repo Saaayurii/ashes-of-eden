@@ -1,0 +1,31 @@
+{
+  "id": "shield_bearer",
+  "extends": "fallen_guard",
+  "_comment": "The gate guard's strips with the gate's own door-plank for a shield: blows at its face are turned (\"shield\") until it swings; from the wind-up to the end of its long recovery it is open, and its back always is.",
+  "name": "ENEMY_SHIELD_BEARER",
+  "lore": "ENEMY_SHIELD_BEARER_LORE",
+  "tip": "TIP_SHIELD_BEARER",
+  "hp": 84,
+  "speed": 40,
+  "shield": 0.7,
+  "stagger_chance": 0.0,
+  "flinch": 0.08,
+  "hit_retreat": 0.0,
+  "color": "#4a3a2a",
+  "sprite": {
+    "like": "fallen_guard",
+    "tint": "#c8b8a0",
+    "scale": 1.08
+  },
+  "attack": {
+    "type": "melee",
+    "range": 40,
+    "reach": 50,
+    "windup": 0.95,
+    "damage": 17,
+    "cooldown": 2.4,
+    "recover": 0.9
+  },
+  "essence": 30,
+  "voice": "fallen_guard"
+}

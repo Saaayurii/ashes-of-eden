@@ -45,6 +45,18 @@ func _load(run, name: String) -> void:
 	await _frames(4)
 
 
+## Down to the last: a wave rises when the room before it falls, and a hollow
+## wraith leaves two shades, so one sweep is not a cleared room.
+func _clear(run) -> void:
+	for round_i in 8:
+		var bodies := _enemies(run)
+		if bodies.is_empty():
+			break
+		for body in bodies:
+			body.take_damage(99999.0)
+		await _frames(4)
+
+
 func _enemies(run) -> Array:
 	var out: Array = []
 	for node in get_nodes_in_group("enemies"):
@@ -210,11 +222,7 @@ func _run() -> void:
 	var point = run.room.get_node_or_null("RestPoint")
 	_check(point != null, "graveyard_tree has its rest point")
 	if point != null:
-		var commons := 0
-		for body in _enemies(run):
-			body.take_damage(99999.0)
-			commons += 1
-		await _frames(4)
+		await _clear(run)
 		_check(run.room.door.open, "the room cleared, the door opens")
 		player.hp = 20.0
 		player.heal_charges = 0
@@ -229,9 +237,7 @@ func _run() -> void:
 		_check(run.checkpoint.player.hp == player.stats.max_hp and run.checkpoint.game_state.rested.size() == 1,
 			"the autosave remembers the rest")
 		_check(not point.rest(player), "once a night")
-		for body in _enemies(run):
-			body.take_damage(99999.0)
-		await _frames(4)
+		await _clear(run)
 		_check(run.room.door.open, "down again: the door opens again")
 
 	# --- elites stay dead -------------------------------------------------------------
