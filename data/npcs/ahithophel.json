@@ -1,0 +1,23 @@
+{
+  "id": "ahithophel",
+  "_art": "stand-in body (severin, sitting); own sheet in docs/CHAPTER5_ART.md",
+  "name": "NPC_AHITHOPHEL",
+  "avatar": "res://assets/portraits/matthew.png",
+  "dialogue": "npc_ahithophel",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/severin_v2_idle.png",
+      "walk": "res://assets/sprites/severin_v2_walk.png",
+      "interact": "res://assets/sprites/severin_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_AHITHOPHEL_LORE",
+  "role": "NPC_ROLE_AHITHOPHEL",
+  "location": "AREA_ENGEDI_ROAD"
+}

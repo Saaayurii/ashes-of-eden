@@ -1,0 +1,21 @@
+{
+  "id": "engedi_pomegranate",
+  "kind": "fruit",
+  "heal": 0.3,
+  "surfeit": 1,
+  "lifts_torment": true,
+  "style": "pomegranate",
+  "prompt": "PROMPT_EAT",
+  "glow": "#ffe0a0",
+  "idle_frames": 2,
+  "hitbox": [
+    18,
+    18
+  ],
+  "sprite": {
+    "path": "res://assets/props/engedi_pomegranate.png",
+    "frame_w": 24,
+    "frame_h": 24,
+    "frames": 2
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "id": "locust_herald",
+  "extends": "locust_rider",
+  "name": "ENEMY_LOCUST_HERALD",
+  "lore": "ENEMY_LOCUST_HERALD_LORE",
+  "tip": "TIP_LOCUST_HERALD",
+  "hp": 260,
+  "armor": 0.15,
+  "size": 15,
+  "essence": 50,
+  "color": "#e0b040",
+  "tags": [
+    "locust",
+    "elite"
+  ],
+  "sprite": {
+    "like": "fallen_champion",
+    "tint": "#f0c860",
+    "scale": 1.15
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 34,
+      "reach": 46,
+      "windup": 0.7,
+      "damage": 18,
+      "cooldown": 2.0,
+      "recover": 0.5,
+      "weight": 2,
+      "animation": "attack"
+    },
+    {
+      "type": "lunge",
+      "range": 280,
+      "windup": 1.0,
+      "damage": 24,
+      "cooldown": 3.6,
+      "lunge_speed": 420,
+      "lunge_time": 0.45,
+      "recover": 0.8,
+      "weight": 1,
+      "animation": "attack"
+    },
+    {
+      "type": "melee",
+      "range": 44,
+      "reach": 54,
+      "windup": 0.9,
+      "damage": 12,
+      "cooldown": 3.0,
+      "recover": 0.6,
+      "torment": 6.0,
+      "weight": 1,
+      "animation": "attack"
+    },
+    {
+      "type": "summon",
+      "id": "locust",
+      "count": 3,
+      "max_alive": 6,
+      "range": 360,
+      "windup": 1.0,
+      "damage": 1,
+      "cooldown": 9.0,
+      "recover": 0.5,
+      "weight": 1,
+      "animation": "attack"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "engedi_fig",
+  "kind": "fruit",
+  "heal": 0.25,
+  "surfeit": 1,
+  "lifts_torment": true,
+  "style": "fig",
+  "prompt": "PROMPT_EAT",
+  "glow": "#ffe0a0",
+  "idle_frames": 2,
+  "hitbox": [
+    18,
+    18
+  ],
+  "sprite": {
+    "path": "res://assets/props/engedi_fig.png",
+    "frame_w": 24,
+    "frame_h": 24,
+    "frames": 2
+  }
+}

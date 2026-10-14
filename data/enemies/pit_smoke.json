@@ -1,0 +1,47 @@
+{
+  "id": "pit_smoke",
+  "name": "ENEMY_PIT_SMOKE",
+  "lore": "ENEMY_PIT_SMOKE_LORE",
+  "tip": "TIP_PIT_SMOKE",
+  "_art": "placeholder until the Codex atlas: the wraith's strips, smoke brown",
+  "hp": 40,
+  "speed": 80,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "flyer",
+  "hover_distance": 110,
+  "aggro_range": 520,
+  "size": 12,
+  "color": "#7a5a3a",
+  "material": "spirit",
+  "tags": [
+    "spirit"
+  ],
+  "sprite": {
+    "like": "wraith",
+    "tint": "#a07850"
+  },
+  "attacks": [
+    {
+      "type": "ranged",
+      "range": 300,
+      "windup": 0.9,
+      "damage": 11,
+      "cooldown": 3.0,
+      "projectile_speed": 170,
+      "projectile_motion": "home",
+      "motion_amount": 0.8,
+      "volley": 2,
+      "volley_gap": 0.35,
+      "projectile_style": "pit_smoke",
+      "color": "#e0a050"
+    }
+  ],
+  "essence": 15,
+  "light": {
+    "color": "#e0904a",
+    "radius": 50,
+    "energy": 0.6,
+    "flicker": 0.2
+  }
+}

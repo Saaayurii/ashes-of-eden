@@ -1,0 +1,49 @@
+{
+  "id": "vine_husk",
+  "name": "ENEMY_VINE_HUSK",
+  "lore": "ENEMY_VINE_HUSK_LORE",
+  "tip": "TIP_VINE_HUSK",
+  "_art": "placeholder until the Codex atlas: the cultist's strips, vine green",
+  "hp": 70,
+  "speed": 62,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 420,
+  "size": 12,
+  "color": "#6a7a40",
+  "material": "flesh",
+  "tags": [
+    "human",
+    "possessed"
+  ],
+  "sprite": {
+    "like": "cultist",
+    "tint": "#a8c078"
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 30,
+      "reach": 40,
+      "windup": 0.7,
+      "damage": 13,
+      "cooldown": 2.0,
+      "recover": 0.5,
+      "weight": 2,
+      "animation": "attack"
+    },
+    {
+      "type": "melee",
+      "range": 46,
+      "reach": 60,
+      "windup": 1.0,
+      "damage": 18,
+      "cooldown": 3.0,
+      "recover": 0.7,
+      "weight": 1,
+      "animation": "attack"
+    }
+  ],
+  "essence": 14
+}

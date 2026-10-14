@@ -1,0 +1,44 @@
+{
+  "id": "feaster",
+  "name": "ENEMY_FEASTER",
+  "lore": "ENEMY_FEASTER_LORE",
+  "tip": "TIP_FEASTER",
+  "_art": "placeholder until the Codex atlas: the possessed villager's strips, in rich cloth",
+  "hp": 120,
+  "speed": 30,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 260,
+  "size": 13,
+  "color": "#a07850",
+  "material": "flesh",
+  "tags": [
+    "human"
+  ],
+  "armor": 0.1,
+  "stagger": 0.2,
+  "waits": true,
+  "patrol": {
+    "radius": 4,
+    "speed": 0.1,
+    "pause": [
+      6,
+      12
+    ]
+  },
+  "sprite": {
+    "like": "possessed_villager",
+    "tint": "#d8b890"
+  },
+  "attack": {
+    "type": "melee",
+    "range": 38,
+    "reach": 48,
+    "windup": 1.2,
+    "damage": 22,
+    "cooldown": 2.8,
+    "recover": 0.8
+  },
+  "essence": 6
+}

@@ -1,0 +1,24 @@
+{
+  "id": "pit_key",
+  "_art": "the key of the pit, drawn by tools/art/make_engedi_props.py; shown only by ch5_finale",
+  "name": "NPC_PIT_KEY",
+  "dialogue": "ch5_abaddon_fall",
+  "scripted": true,
+  "face": "right",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/props/engedi_pit_key.png"
+    },
+    "cell": [
+      24,
+      16
+    ],
+    "fps": 2
+  },
+  "light": {
+    "color": "#e0a050",
+    "radius": 36,
+    "energy": 0.8,
+    "flicker": 0.2
+  }
+}

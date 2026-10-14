@@ -1,0 +1,31 @@
+{
+  "id": "swollen_feaster",
+  "extends": "feaster",
+  "name": "ENEMY_SWOLLEN_FEASTER",
+  "lore": "ENEMY_SWOLLEN_FEASTER_LORE",
+  "tip": "TIP_SWOLLEN_FEASTER",
+  "hp": 70,
+  "speed": 44,
+  "essence": 10,
+  "waits": false,
+  "color": "#c0b090",
+  "sprite": {
+    "like": "possessed_villager",
+    "tint": "#e0d0b0",
+    "scale": 1.15
+  },
+  "attack": {
+    "type": "melee",
+    "range": 38,
+    "reach": 48,
+    "windup": 1.1,
+    "damage": 18,
+    "cooldown": 2.6,
+    "recover": 0.8
+  },
+  "on_death": {
+    "type": "split",
+    "into": "locust",
+    "count": 3
+  }
+}

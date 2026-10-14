@@ -1,0 +1,29 @@
+{
+  "id": "tirzah",
+  "_art": "stand-in body (the village girl); own sheet in docs/CHAPTER5_ART.md",
+  "name": "NPC_TIRZAH",
+  "avatar": "res://assets/portraits/mara.png",
+  "dialogue": "npc_tirzah",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/villager_v2_idle.png",
+      "walk": "res://assets/sprites/villager_v2_walk.png",
+      "interact": "res://assets/sprites/villager_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_TIRZAH_LORE",
+  "role": "NPC_ROLE_TIRZAH",
+  "location": "AREA_ENGEDI_GARDEN",
+  "light": {
+    "color": "#d8e8ff",
+    "radius": 44,
+    "energy": 0.5,
+    "flicker": 0.1
+  }
+}
