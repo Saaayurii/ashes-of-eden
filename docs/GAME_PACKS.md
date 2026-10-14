@@ -50,9 +50,48 @@ it, so a borrowed room that still points at Ashes' story fails here, not in play
 
 Godot imports one `localization/strings.csv`. `apply_pack.py` lays the pack's
 over the engine's by key (an empty cell keeps the engine's text, new keys go to
-the end); `--restore` puts the tracked file back. Every Chinese character must be
-in the CJK subset (`tools/art/make_cjk_font.py`) — a pack that adds new ones has
-to rebuild it in the engine for now.
+the end); `--restore` puts the tracked file back.
+
+Every Chinese character must be in a CJK subset. A pack with words of its own
+cuts its own: `python3 tools/art/make_cjk_font.py --pack` reads
+`content/localization/strings.csv` and writes `content/assets/fonts/NotoSerifSC-Subset.ttf`
+(with the OFL text beside it); `Data` puts it into the theme's fallback chain
+ahead of the system font (`_lay_pack_font`), and the validator accepts a
+character in either subset.
+
+### Combat
+
+`hero.json` is the whole fight, not only the hero, and a pack names only what it
+changes:
+
+| section | what | read by |
+| --- | --- | --- |
+| `stats` | `Player.BASE_STATS` | `Player.apply_hero` |
+| `feel` | timings and reaches (`Player.FEEL_KEYS`) | `Player.apply_hero` |
+| `moves` | which special moves the hero has (`Player.MOVE_KEYS`: lunge, cleave, sweep, rising, dash_strike, slam, wall_jump, riposte, backstab) — off, the button does the plain thing; the yard's list and the hints leave it out | `Player.can_move` |
+| `enemy_ai` | how enemies keep their distance and wake (`Enemy.AI_KEYS`, docs/ENEMY_AI.md): slots per side, queue step, band, flyer gaps, sight and patrol defaults, alert, shout, parry opening, riposte, execute | `Enemy.apply_ai` |
+
+One enemy can take its own with `"ai": {…}` in its JSON (`Enemy._ai`), over the
+game's. The validator bounds all of it (`_check_hero`, `_check_enemy_ai`); the
+studio's «Боёвка» edits every section and feeds the sandbox. `combat_data_test.gd`.
+
+## Rooms
+
+A pack's rooms are tables, like the engine's, and the scenes are written from them
+(`python3 tools/rooms/generate_rooms.py --pack`, into `content/scenes/rooms/`):
+
+- `rooms/rooms.json` — a room per entry, made from an engine room (`base`): its
+  ground, ledges, painting and look (openings, backdrop life, ambience, depth —
+  `RoomLayers.look_key` keys them to the base, the scene carries `base_room`),
+  with the pack's own `spawns`, `props`, `npcs`, `weather`, `ambient`, music and
+  scenes. Spawns left out are the base's, kept only where the pack has the enemy.
+- `rooms/composed_rooms.json` — rooms made of several paintings
+  (docs/ROOM_COMPOSER.md), stitched into `content/assets/levels/composed/`.
+- `rooms/studio_rooms.json` — what the studio adds (spawns, props, cutscenes).
+
+`game.yml` regenerates them against the engine it builds with and, on a push,
+commits the scenes back to the pack. Open a pack's room by name:
+`godot --path . scenes/run/run.tscn -- room=<name>`.
 
 ## Tools
 
@@ -92,9 +131,17 @@ the first time — and a new picture becomes the pack's, its `res://` path turne
 into `res://content/…` in the same send. Locally, `serve.py --game DIR` does the
 same into the pack's folder and checks the result with the validator.
 
-Not yet: rooms made in the studio (`tools/rooms/studio_rooms.json` and the room
-generator are the engine's), per-game generator overrides, and the studio's
-browser drafts are shared between games on one site.
+Rooms the studio makes go into the pack's tables (`PACK_TABLES` in `lib.js`:
+`rooms/studio_rooms.json`, `rooms/composed_rooms.json`), and the local server
+regenerates the pack's scenes. A one-document file the pack does not have yet
+(«Боёвка»'s `hero.json`) starts empty: the pack writes only its changes.
+
+Drafts in the browser are per game: every `ss_…` key and the IndexedDB are
+suffixed with the game (`storageKey`, `studioDbName`), so a half-made enemy of
+one game never shows up in another's; only the personal settings
+(`STUDIO_PERSONAL`: token, layout) are shared.
+
+Not yet: per-game generator overrides (`tools/studio/overrides/` is the engine's).
 
 ## Engine versions
 

@@ -1010,16 +1010,19 @@ function mergeOverrides(text, entries) {
 // ---- the hero's handling (data/hero.json, data/player_actions.json; Player.apply_hero) ----
 // Only what she changed is written, in place: the rest of each file stays byte for byte, a
 // float keeps its ".0", a list or a table stays on its one line.
-// changes: {stats: {key: value}, feel: {key: value}}
+// changes: {stats, feel, moves, enemy_ai: {key: value}}; a section the file lacks (a game
+// pack's hero.json says only what it changes) is added after the others
+const HERO_SECTIONS = ['stats', 'feel', 'moves', 'enemy_ai'];
 function heroPatch(text, changes) {
   // every list and table in hero.json holds seconds or multipliers: floats, written with their ".0"
   const flt = v => typeof v === 'number' ? (Number.isInteger(v) ? v.toFixed(1) : String(v))
     : Array.isArray(v) ? '[' + v.map(flt).join(', ') + ']'
     : '{' + Object.entries(v).map(([k, x]) => JSON.stringify(k) + ': ' + flt(x)).join(', ') + '}';
   const inline = v => (v && typeof v === 'object') ? { __raw: flt(v) } : v;
-  for (const section of ['stats', 'feel']) {
+  for (const section of HERO_SECTIONS) {
     const set = Object.fromEntries(Object.entries(changes?.[section] || {}).map(([k, v]) => [k, inline(v)]));
-    if (Object.keys(set).length) text = patchJson(text, [section], set);
+    if (!Object.keys(set).length) continue;
+    text = jsonAt(jsonSpans(text), [section]) ? patchJson(text, [section], set) : patchJson(text, [], { [section]: set });
   }
   return text;
 }
@@ -1412,5 +1415,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates });
 })(typeof module !== 'undefined' ? module.exports : window);

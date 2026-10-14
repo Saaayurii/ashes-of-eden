@@ -85,7 +85,7 @@ static func moment(hero: Node2D, enemies: Array) -> String:
 	if walkers_ahead >= 2:
 		found["lunge"] = true
 	for id in ["rising", "sweep", "cleave", "lunge"]:
-		if found.has(id) and not Profile.data.moves_done.has(id) and not Profile.data.hints_shown.has(id):
+		if found.has(id) and Player.can_move(id) and not Profile.data.moves_done.has(id) and not Profile.data.hints_shown.has(id):
 			return id
 	return ""
 

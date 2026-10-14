@@ -86,3 +86,12 @@ Four gifts make the moves and the guard into a build of their own, each a mechan
 | Watchman's Patience | grace, common | the parry's moment +0.06 s (`parry_window`, `Player.parry_window()`) |
 | Cruel Opening | temptation, rare | a blow on an enemy in its wind-up ×1.5 (`windup_bonus`) — the sweep's moment, rewarded |
 | Quick Study | will, common | the cleave glows 40 % sooner (`charge_speed`, `Player.charge_needed()`) |
+
+## Per game
+
+`"moves"` in `data/hero.json` turns any of lunge, cleave, sweep, rising,
+dash_strike, slam, wall_jump, riposte and backstab off for a game
+(`Player.can_move`): the input that made it then does the plain thing — the
+chain, a fall, a slide off the wall, a blow without the multiplier — and the
+yard's move list and `MoveHints` leave it out. Ashes has them all; Undertow has
+no wall jump. `combat_data_test.gd`.
