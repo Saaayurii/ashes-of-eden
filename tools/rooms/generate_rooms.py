@@ -456,6 +456,10 @@ def expand_painted_room(name, room):
     for key in ("spawns", "props", "npcs"):
         out[key] = [(item[0], item[1] if item[3:] == ("wide",) else _map_x(item[1], inserts), item[2])
                     for item in room.get(key, [])]
+    # reinforcements (room.gd's waves): each wave rises, awake, once the one
+    # before it is down; written like spawns, in panel pixels
+    out["waves"] = [[[item[0], item[1] if item[3:] == ("wide",) else _map_x(item[1], inserts), item[2]]
+                     for item in wave] for wave in room.get("waves", [])]
     out["npc_paths"] = []
     for npc_id, x, _ in room.get("npcs", []):
         with open(os.path.join(ROOT, "data", "npcs", npc_id + ".json")) as source:
@@ -1651,7 +1655,7 @@ if os.path.exists(STUDIO_ROOMS):
                 for _spawn in _wave:
                     if len(_spawn) != 3 or not os.path.exists(os.path.join(ROOT, "data/enemies", _spawn[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _spawn[1:]):
                         raise SystemExit("invalid wave spawn")
-            ROOMS[_name]["waves"] = _extra.get("waves", [])
+            ROOMS[_name]["waves"] = list(ROOMS[_name].get("waves", [])) + _extra.get("waves", [])
             for _key in ("intro_cutscene", "outro_cutscene", "music"):
                 if _key in _extra:
                     ROOMS[_name][_key] = _extra[_key]
@@ -1707,7 +1711,7 @@ def compose_room(name, entry):
             os.unlink(plate + ".pending.png")
         else:
             os.replace(plate + ".pending.png", plate)
-    reached = check_reach(name, room)
+    reached = check_reach(name, {**room, "spawns": room.get("spawns", []) + [tuple(spawn) for wave in room.get("waves", []) for spawn in wave]})
     build(name, room, None if entry.get("live") else os.path.join(ROOT, "scenes", "rooms", "composed", name + ".tscn"))
     if not reached and not entry.get("live"):
         print(f"{name}: the composed draft's route does not hold yet (above); it is a draft, so it is written anyway")

@@ -151,6 +151,7 @@ script = ExtResource("1_room")
 width = 1600
 height = 720
 void_kill_y = 690
+waves_json = "[[[\"possessed_villager\", 1470, 508], [\"cultist\", 920, 548], [\"possessed_villager\", 1370, 248], [\"raven\", 860, 120]]]"
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""

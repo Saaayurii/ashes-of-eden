@@ -162,9 +162,14 @@ func lead() -> int:
 	return ahead
 
 
-## Essence needed to finish the current level: 140 × 1.3^(level−1) (docs/BALANCE.md).
+## Essence needed to finish the current level: 180 × 1.3^(level−1) (docs/BALANCE.md;
+## was 140 until the chapter grew its reinforcement waves, 2026-10-14).
+const ESSENCE_BASE := 180.0
+const ESSENCE_GROWTH := 1.3
+
+
 func essence_needed() -> float:
-	return 140.0 * pow(1.3, level - 1)
+	return ESSENCE_BASE * pow(ESSENCE_GROWTH, level - 1)
 
 
 func add_essence(amount: float) -> void:

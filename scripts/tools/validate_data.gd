@@ -226,6 +226,17 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 						_error("%s: missing field \"%s\"" % [where, field])
 			if float(entry.get("armor", 0.0)) > 0.5:
 				_error("%s: armor above the 50 %% cap" % where)
+			if entry.has("shield") and (float(entry.shield) <= 0.0 or float(entry.shield) > 0.8):
+				_error("%s: shield is the share of a frontal blow it turns, in (0, 0.8]" % where)
+			var on_death: Dictionary = entry.get("on_death", {})
+			if not on_death.is_empty() and not ["explode", "split"].has(on_death.get("type", "")):
+				_error("%s: on_death.type must be explode or split" % where)
+			if on_death.get("type", "") == "split":
+				var into := str(on_death.get("into", ""))
+				if not _enemy_ids.has(into) or into == str(entry.get("id", "")):
+					_error("%s: on_death.into must be another enemy: %s" % [where, into])
+				if int(on_death.get("count", 2)) < 1 or int(on_death.get("count", 2)) > 4:
+					_error("%s: on_death.count is 1–4" % where)
 			if not BEHAVIOURS.has(entry.get("behaviour", "walker")):
 				_error("%s: behaviour must be one of %s" % [where, BEHAVIOURS])
 			if entry.has("sprite"):
@@ -315,6 +326,18 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: only a destructible can hide another prop" % where)
 				if not _prop_ids.has(entry.reveals) or entry.reveals == entry.get("id"):
 					_error("%s: reveals unknown prop %s" % [where, entry.reveals])
+			if entry.has("guardians"):
+				if not entry.has("reveals"):
+					_error("%s: guardians keep a secret: only a wall that reveals a cache has them" % where)
+				for round in entry.guardians:
+					if not round is Array or (round as Array).is_empty():
+						_error("%s: guardians are rounds, each a non-empty list of [enemy id, dx, dy]" % where)
+						continue
+					for row in round:
+						if not row is Array or row.size() != 3 or not _enemy_ids.has(str(row[0])) or _enemy_ids.get(str(row[0]), false):
+							_error("%s: a guardian is [enemy id (not a boss), dx, dy]: %s" % [where, row])
+			if entry.has("guarded") and (entry.get("kind") != "chest" or float(entry.guarded) <= 0.0):
+				_error("%s: guarded is a radius in pixels, on a chest" % where)
 			if entry.has("niche") and not FileAccess.file_exists(str(entry.niche)) and not ResourceLoader.exists(str(entry.niche)):
 				_error("%s: niche not found: %s" % [where, entry.niche])
 			if entry.has("reveals") and entry.get("still", false) and not entry.has("niche") \

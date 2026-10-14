@@ -60,6 +60,7 @@ Small releases, each one playable. The rule: one room that is fun beats a world 
 - [x] Alignment shows on the hero: an aura of the leading path and a tint on his light
 - [x] Alignment on the body and in the score: a music layer per path under the room's track, and a shader on the sprite — light along his edge for grace, veins for temptation, ash for will (`alignment_test.gd`). It works off the sprite's alpha, so it needs no painted mask; glowing *eyes* still would, and wait on art.
 - [x] Saves: autosave + 3 slots, continue / load, export / import (file or text code)
+- [x] A night of 25–30 minutes with more to do, not more to walk: reinforcement waves in most painted rooms, three variants on old strips (shield-bearer, cult slinger, hollow wraith — `variants_test.gd`), forks that differ in length and risk, and a three-round gauntlet behind the ossuary wall guarding a rare item (`secret_test.gd`). The estimate is calibrated on recorded playtests (`docs/BALANCE_PROBE.md`) — [ ] re-time it from playtests of the new rooms
 
 ## v0.4 — Community
 - [x] Mod loading from `user://mods` (extra data folders)

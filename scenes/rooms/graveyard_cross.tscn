@@ -143,6 +143,7 @@ script = ExtResource("1_room")
 width = 1440
 height = 720
 void_kill_y = 690
+waves_json = "[[[\"possessed_villager\", 400, 506], [\"cultist\", 650, 506], [\"cult_slinger\", 1340, 376], [\"possessed_villager\", 1040, 533], [\"shade\", 600, 300]]]"
 intro_dialogue = ""
 intro_cutscene = "stranger_meeting"
 outro_cutscene = ""
@@ -539,6 +540,11 @@ script = ExtResource("5_spawn")
 enemy_id = "wraith"
 
 [node name="Spawn9" type="Marker2D" parent="Spawns"]
+position = Vector2(1160, 373)
+script = ExtResource("5_spawn")
+enemy_id = "cult_slinger"
+
+[node name="Spawn10" type="Marker2D" parent="Spawns"]
 position = Vector2(420, 506)
 script = ExtResource("5_spawn")
 enemy_id = "ash_archer"

@@ -18,9 +18,17 @@ extends SceneTree
 
 const DUEL_LIMIT := 90.0
 const BOSS_LIMIT := 240.0
-## Walking the room and dodging between swings, relative to pure TTK. A guess
-## until a real playtest replaces it; stated in the report.
-const FIGHT_OVERHEAD := 1.8
+## Walking the room and dodging between swings, relative to pure TTK. Was a
+## 1.8 guess; measured from the playtests of 2026-10 (69 runs on one machine):
+## village_night, the only room with enough clears (15) and no scene in it,
+## took a median 60 s against 15.2 s of pinned TTK and 14.5 s of walking —
+## (60 − 14.5) / 15.2 ≈ 3.0. Re-measure it when more rooms have clears: a
+## run is timed against the room as it was then, so do it by hand, from a
+## room's median against its census before it changed.
+const FIGHT_OVERHEAD := 3.0
+## A boss fight against its pure damage phase: dodging, phases, the seals
+## (docs/BALANCE.md §6). The same factor the boss verdicts use.
+const BOSS_OVERHEAD := 2.5
 const TRAVERSAL_SPEED := 110.0  # px/s: a hero who stops, looks, jumps
 ## Walking to a seal and breaking it (45 HP, ~4 swings) — a guess, stated.
 const SEAL_TIME := 4.0
@@ -33,6 +41,7 @@ var _free := {}
 ## The moves' damage per second on the straw man (docs/TECHNIQUES.md).
 var _moves := {}
 var _lines: PackedStringArray = []
+
 
 
 func _init() -> void:
@@ -326,21 +335,37 @@ func _census(run, data) -> void:
 		var essence := 0.0
 		var fight := 0.0
 		var bosses: PackedStringArray = []
+		var boss_fight := 0.0
+		var ids: Array = []
 		for spawn in scene.get_node("Spawns").get_children():
-			var id: String = spawn.get("enemy_id")
+			ids.append(str(spawn.get("enemy_id")))
+		# the reinforcements (room.gd waves_json) are fought too
+		var waves = JSON.parse_string(str(scene.get("waves_json")))
+		for wave in (waves if waves is Array else []):
+			for row in wave:
+				ids.append(str(row[0]))
+		var waves_here: int = (waves as Array).size() if waves is Array else 0
+		while not ids.is_empty():
+			var id: String = ids.pop_front()
 			var spec: Dictionary = data.enemies.get(id, {})
 			count += 1
 			hp += float(spec.get("hp", 0))
 			essence += float(spec.get("essence", 10))
-			if _results.has(id):
-				fight += _results[id].ttk
 			if spec.get("boss", false):
 				bosses.append(id)
+				boss_fight += _results.get(id, {}).get("ttk", 0.0)
+			elif _results.has(id):
+				fight += _results[id].ttk
+			# a body that comes apart is fought again in pieces
+			var death: Dictionary = spec.get("on_death", {})
+			if death.get("type", "") == "split":
+				for i in int(death.get("count", 2)):
+					ids.append(str(death.get("into", "shade")))
 		var width := float(scene.get("width"))
-		var room_time := fight * FIGHT_OVERHEAD + width / TRAVERSAL_SPEED
+		var room_time := fight * FIGHT_OVERHEAD + boss_fight * BOSS_OVERHEAD + width / TRAVERSAL_SPEED
 		total_time += room_time * share
 		total_essence += essence * share
-		room_rows.append("| %s%s | %d | %d | %d | %.0f s | %s |" % [path.get_file().get_basename(), " (one way of a fork)" if share < 1.0 else "", count, int(hp), int(essence), room_time, ", ".join(bosses)])
+		room_rows.append("| %s%s | %d | %d | %d | %d | %.0f s | %s |" % [path.get_file().get_basename(), " (one way of a fork)" if share < 1.0 else "", count, waves_here, int(hp), int(essence), room_time, ", ".join(bosses)])
 		scene.free()
 	var levels := _levels(total_essence)
 	var places := {}
@@ -373,7 +398,7 @@ func _census(run, data) -> void:
 			var r: Dictionary = _results[boss_id]
 			var mini: bool = boss_id != "ophanim"  # the preacher and the knight are mid-bosses
 			var wanted := "1.5–2.5 min" if mini else "3–4 min"
-			var real: float = r.ttk * 2.5  # dodging, phases: pure damage time × 2.5 (docs/BALANCE.md §6)
+			var real: float = r.ttk * BOSS_OVERHEAD  # dodging, phases (docs/BALANCE.md §6)
 			var ok: bool = real >= 90.0 and real <= 150.0 if mini else real >= 180.0 and real <= 240.0
 			_lines.append("| %s fight | %s | %.0f s damage phase → ~%.1f min | %s |" % [boss_id, wanted, r.ttk, real / 60.0, _mark(ok)])
 	_append_playtests(total_time)
@@ -408,18 +433,19 @@ func _census(run, data) -> void:
 	_lines.append("")
 	_lines.append("## Rooms")
 	_lines.append("")
-	_lines.append("| Room | Enemies | Total HP | Essence | Est. time | Bosses |")
-	_lines.append("|---|---|---|---|---|---|")
+	_lines.append("| Room | Enemies | Waves | Total HP | Essence | Est. time | Bosses |")
+	_lines.append("|---|---|---|---|---|---|---|")
 	_lines.append_array(room_rows)
 	_lines.append("")
-	_lines.append("Room time = Σ TTK × %.1f (walking, dodging, waiting for openings) + width / %d px/s. Both constants are guesses until a human playtest replaces them; the TTKs are real." % [FIGHT_OVERHEAD, int(TRAVERSAL_SPEED)])
+	_lines.append("Room time = Σ TTK × %.1f (walking, dodging, waiting for openings) + a boss's TTK × %.1f (docs/BALANCE.md §6) + width / %d px/s. Enemies count every reinforcement wave and what a body splits into. The %.1f is measured from playtests (see the constant in balance_probe.gd); the TTKs are real; the walking speed is a guess." % [FIGHT_OVERHEAD, BOSS_OVERHEAD, int(TRAVERSAL_SPEED), FIGHT_OVERHEAD])
 
 
-## Levels reached from a pile of essence: 140 × 1.3^(level−1) each (Game.essence_needed).
+## Levels reached from a pile of essence: Game.essence_needed's curve.
 func _levels(essence: float) -> int:
+	var game = root.get_node("Game")
 	var level := 1
-	while essence >= 140.0 * pow(1.3, level - 1):
-		essence -= 140.0 * pow(1.3, level - 1)
+	while essence >= game.ESSENCE_BASE * pow(game.ESSENCE_GROWTH, level - 1):
+		essence -= game.ESSENCE_BASE * pow(game.ESSENCE_GROWTH, level - 1)
 		level += 1
 	return level - 1
 

@@ -153,6 +153,7 @@ size = Vector2(1600, 16)
 script = ExtResource("1_room")
 width = 1600
 height = 720
+waves_json = "[[[\"shield_bearer\", 400, 430], [\"cultist\", 100, 430], [\"cult_slinger\", 1010, 300], [\"possessed_villager\", 720, 655]], [[\"shield_bearer\", 1040, 538], [\"cultist\", 300, 193], [\"cult_slinger\", 710, 230], [\"hollow_wraith\", 1060, 450], [\"possessed_villager\", 250, 652]]]"
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""

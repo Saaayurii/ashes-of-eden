@@ -22,6 +22,11 @@ class_name Prop
 ##             "prompt" (a key) over it while our body stands there
 ##   requires_flag  not there at all until the story sets this flag (the book
 ##             under the church altar appears once Matthew has spoken of it)
+##   guardians a secret wall's keepers (docs/CHAPTER1.md, the reliquary): rounds
+##             of [[enemy id, dx, dy], ...] that rise awake where it broke, each
+##             once the round before is down. Optional: the wall is a secret.
+##   guarded   a chest that will not open (on `interact`) while an awake enemy
+##             stands within this many pixels of it
 ##   note      a record (data/notes) read aloud as a caption and kept in the
 ##             bestiary; "ash" is paid only the first time it is found
 ## A prop is never an enemy: it does not count towards the room's kill count and
@@ -106,7 +111,7 @@ func _ready() -> void:
 	# passing in front of it instead of through it.
 	Fx.shadow(self, Vector2(0, 1), size.x * 1.5, 0.9)
 	if stats.get("kind", "destructible") == "chest":
-		if int(stats.get("curse", 0)) > 0 or stats.get("interact", false):
+		if int(stats.get("curse", 0)) > 0 or stats.get("interact", false) or stats.has("guarded"):
 			_add_prompt()
 		else:
 			body_entered.connect(_on_body_entered)
@@ -308,10 +313,26 @@ func _offer() -> void:
 	_prompt.visible = taker != null and not _spent and not Game.cutscene
 	if not _prompt.visible:
 		return
+	if _keepers_near():
+		_prompt.text = tr("CHEST_GUARDED")
+		return
 	var offer := tr(str(stats.prompt)) if stats.has("prompt") else tr("CHEST_CURSED_PROMPT") % int(stats.get("curse", 0))
 	_prompt.text = "%s  %s" % [Settings.key_name("interact"), offer]
 	if Input.is_action_just_pressed("interact"):
 		open(taker)
+
+
+## A guarded chest's keepers: an awake enemy still standing near it.
+func _keepers_near() -> bool:
+	if not stats.has("guarded"):
+		return false
+	var radius := float(stats.guarded)
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Enemy
+		if enemy != null and not enemy.is_dead() and enemy.aware \
+				and enemy.global_position.distance_to(global_position) <= radius:
+			return true
+	return false
 
 
 ## Our own body, alive and standing at this chest.
@@ -330,7 +351,7 @@ func _local_taker() -> Player:
 ## Opens a cursed chest for [param taker], here and, online, on the other peer
 ## (where the opener is a puppet that never walked into anything).
 func open(taker: Player) -> void:
-	if _spent or taker == null:
+	if _spent or taker == null or _keepers_near():
 		return
 	if Net.active:
 		_net_open.rpc()
@@ -448,6 +469,7 @@ func _pay_out(taker: Player = null) -> void:
 
 ## The bricked-up doorway is down: whatever it hid stands where it stood.
 func _reveal() -> void:
+	_rouse_guardians()
 	var hidden := str(stats.get("reveals", ""))
 	if hidden == "" or not Data.props.has(hidden):
 		return
@@ -459,3 +481,34 @@ func _reveal() -> void:
 	if is_instance_valid(cache) and cache.is_inside_tree():
 		Fx.sparkle(cache.global_position + Vector2(0, -12), Color(stats.get("glow", "#ffcc78")), 16, 18.0)
 		Fx.flash(cache.global_position + Vector2(0, -16), Color("#ffcc78"), 80.0, 0.5, 1.2)
+
+
+## A wall's keepers ("guardians"), on the host: each round rises awake where
+## the wall stood once the one before it is down. They count for the room's
+## door like any spawn, and online they are replicated like any spawn.
+func _rouse_guardians() -> void:
+	var rounds: Array = stats.get("guardians", [])
+	var room := _room()
+	if rounds.is_empty() or room == null or not room.authoritative:
+		return
+	var at := global_position
+	for round in rounds:
+		await get_tree().create_timer(0.6).timeout
+		if room == null or not is_instance_valid(room) or not room.is_inside_tree():
+			return
+		Fx.flash(at + Vector2(0, -24), Color("#ff9a5a"), 140.0, 0.7, 1.3)
+		Fx.dust(at, Vector2.UP, 12, Color("#5a4c46"))
+		var keepers: Array = []
+		for row in round:
+			keepers.append(room.spawn_enemy(str(row[0]), at + Vector2(float(row[1]), float(row[2])), true))
+		while keepers.any(func(e) -> bool: return is_instance_valid(e) and not (e as Enemy).is_dead()):
+			await get_tree().create_timer(0.3).timeout
+			if not is_instance_valid(room) or not room.is_inside_tree():
+				return
+
+
+func _room() -> Room:
+	var node := get_parent()
+	while node != null and not (node is Room):
+		node = node.get_parent()
+	return node as Room
