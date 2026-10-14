@@ -2,7 +2,7 @@
  * hit_frame is zero-based in JSON, one-based in the UI. No timer approximates the hit:
  * Enemy waits for AnimatedSprite2D.frame_changed. Particle rules remain in «Частицы». */
 'use strict';
-const ATTACK_TYPES = { melee: 'Удар', lunge: 'Рывок', ranged: 'Снаряды', beam: 'Луч', nova: 'По площади', summon: 'Призыв', hail: 'Град' };
+const ATTACK_TYPES = { melee: 'Удар', lunge: 'Рывок', ranged: 'Снаряды', beam: 'Луч', nova: 'По площади', summon: 'Призыв', hail: 'Град', wail: 'Плач (будит ждущих)' };
 const ATTACKS = { data: null, enemy: 0, index: 0, work: {}, position: 0, raf: 0, started: 0, playing: false };
 function attackDiff(base, changed) {
   return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(changed)])]
@@ -12,7 +12,13 @@ function attackProblems(a, frames) {
   const errors = [];
   if (!a || typeof a !== 'object' || Array.isArray(a)) return ['Нужен объект атаки.'];
   if (!(a.type in ATTACK_TYPES)) errors.push('Неизвестный тип атаки.');
-  for (const k of ['range', 'windup', 'damage', 'cooldown']) if (!Number.isFinite(a[k]) || a[k] <= 0) errors.push(`${k}: нужно положительное число.`);
+  // a wail hurts nobody: it wakes the ones who wait (Enemy.hear_wail)
+  for (const k of a.type === 'wail' ? ['range', 'windup', 'cooldown'] : ['range', 'windup', 'damage', 'cooldown']) if (!Number.isFinite(a[k]) || a[k] <= 0) errors.push(`${k}: нужно положительное число.`);
+  if (a.type === 'wail') {
+    if (a.windup < 0.8) errors.push('Плач: подготовка не короче 0,8 с — вдох перед ним и есть предупреждение.');
+    if (!Number.isFinite(a.radius) || a.radius < 60 || a.radius > 400) errors.push('Плач: радиус 60–400 px.');
+    if (a.damage) errors.push('Плач никого не ранит: урон 0.');
+  }
   if (a.animation !== undefined && typeof a.animation !== 'string') errors.push('Анимация: нужно имя.');
   if (a.hit_frame !== undefined && (!Number.isInteger(a.hit_frame) || a.hit_frame < 0 || a.hit_frame >= frames)) errors.push(`Кадр удара: от 1 до ${frames} (в JSON от 0).`);
   if (a.telegraph_fx !== undefined && !['glow', 'none'].includes(a.telegraph_fx)) errors.push('Предупреждение: glow или none.');
@@ -51,6 +57,7 @@ function renderAttacks() {
     `<label>Кадр удара (с 1)<input type="number" data-attack="hit_frame" min="1" step="1" value="${(a.hit_frame ?? 0) + 1}"></label>` +
     select('telegraph_fx', 'Подсветка перед ударом', { glow: 'Свечение', none: 'Без подсветки' }, 'glow') +
     (a.type === 'nova' ? select('impact_fx', 'Эффект удара', { magic: 'Вспышка и кольцо', dust: 'Пыль по земле', none: 'Без эффекта' }, 'magic') + num('radius', 'Радиус, px', 90, 1, 1) : '') +
+    (a.type === 'wail' ? num('radius', 'Слышно на, px', 240, 1, 1) : '') +
     (a.type === 'melee' ? num('reach', 'Размах, px', 38, 1, 1) : '') +
     (a.type === 'lunge' ? num('lunge_speed', 'Скорость рывка, px/с', 400, 1, 10) + num('lunge_time', 'Длительность рывка, с', 0.45, 0.01) : '') +
     (a.type === 'hail' ? num('count', 'Камней', 5, 1, 1) + num('spacing', 'Между камнями, px', 90, 1, 5) + num('fall_time', 'Время падения, с', 0.5, 0.01) : '') +

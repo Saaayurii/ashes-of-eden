@@ -29,6 +29,21 @@
   "village_night": [
     {"from": "graveyard_moon_wide", "crop": [95, 0, 135, 115], "at": [544, 4], "depth": 1.4, "dark": 0.9, "cut": 50, "flip": true}
   ],
+  "seir_road": [
+    {"from": "seir_road_wide", "crop": [170, 140, 190, 150], "at": [562, 341], "depth": 1.45, "dark": 0.9, "cut": 50, "flip": true}
+  ],
+  "seir_square": [
+    {"from": "seir_square_wide", "crop": [355, 240, 110, 200], "at": [740, 308], "depth": 1.45, "dark": 0.92, "cut": 38}
+  ],
+  "seir_roofs": [
+    {"from": "seir_roofs_wide", "crop": [600, 220, 45, 180], "at": [388, 425], "depth": 1.4, "dark": 0.92, "cut": 45}
+  ],
+  "seir_quay": [
+    {"from": "seir_quay_wide", "crop": [60, 165, 85, 95], "at": [1120, 345], "depth": 1.4, "dark": 0.92, "cut": 35}
+  ],
+  "seir_wrecks": [
+    {"from": "seir_wrecks_wide", "crop": [380, 40, 130, 220], "at": [892, 214], "depth": 1.35, "dark": 0.92, "cut": 38}
+  ],
   "hall_measured_temple": [
     {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [140, 160], "depth": 1.4, "dark": 0.6, "key": "alpha"},
     {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [1390, 160], "depth": 1.4, "dark": 0.6, "key": "alpha", "flip": true}
