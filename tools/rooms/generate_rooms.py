@@ -1523,9 +1523,17 @@ def build(name, r, scene=None):
         text += (f'[node name="Shrine" type="Sprite2D" parent="."]\nposition = Vector2({sx}, {sy})\n'
                  'texture = ExtResource("9_shrine")\nhframes = 7\ncentered = false\noffset = Vector2(-24, -64)\n'
                  'script = ExtResource("10_fixture")\nlights = true\n\n')
+    # the painting's own lava (painted: drawn faint, only its life on top), then
+    # the pools the studio poured (docs/LIQUIDS.md): one Hazard each
     for i, (hx, hy, hw, hh) in enumerate(r.get("hazards", []), 1):
         text += (f'[node name="Hazard{i}" type="Area2D" parent="."]\nposition = Vector2({hx}, {hy})\n'
-                 f'script = ExtResource("15_hazard")\nsize = Vector2({hw}, {hh})\n\n')
+                 f'script = ExtResource("15_hazard")\nkind = "lava"\nsize = Vector2({hw}, {hh})\npainted = true\n\n')
+    for i, pool in enumerate(r.get("liquids", []), 1):
+        kind, lx, ly, lw, lh = pool[:5]
+        options = pool[5] if len(pool) > 5 else {}
+        text += (f'[node name="Liquid{i}" type="Area2D" parent="."]\nposition = Vector2({lx}, {ly})\n'
+                 f'script = ExtResource("15_hazard")\nkind = "{kind}"\nsize = Vector2({lw}, {lh})\n'
+                 + ('painted = true\n' if options.get("painted") else '') + '\n')
     if r.get("bell"):
         bx, by = r["bell"]
         text += f'[node name="Bell" type="Node2D" parent="."]\nposition = Vector2({bx}, {by})\nscript = ExtResource("14_bell")\n\n'
@@ -1664,6 +1672,17 @@ if os.path.exists(STUDIO_ROOMS):
                 if len(_prop) != 3 or not os.path.exists(os.path.join(ROOT, "data/props", _prop[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _prop[1:]):
                     raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a prop is [existing prop id, x, y]")
             ROOMS[_name]["props"] = list(ROOMS[_name].get("props", [])) + [tuple(p) for p in _extra.get("props", [])]
+            # pools of water, lava, bog or blood (data/liquids.json), in the finished room's pixels:
+            # [kind, x, surface y, w, depth] and an optional {"painted": true}
+            _kinds = json.load(open(os.path.join(ROOT, "data", "liquids.json"), encoding="utf-8"))["kinds"]
+            for _pool in _extra.get("liquids", []):
+                if not isinstance(_pool, list) or len(_pool) not in (5, 6) or _pool[0] not in _kinds \
+                        or not all(isinstance(v, (int, float)) for v in _pool[1:5]) \
+                        or (len(_pool) == 6 and not isinstance(_pool[5], dict)):
+                    raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a liquid is [kind of data/liquids.json, x, y, w, h(, options)]")
+                if _pool[3] < 16 or _pool[4] < 8:
+                    raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a liquid is at least 16x8 px")
+            ROOMS[_name]["liquids"] = [list(p) for p in _extra.get("liquids", [])]
             if "textures" in _extra or "retouch" in _extra:
                 studio_textures.validate(f"tools/rooms/studio_rooms.json: {_name}", _extra)
                 STUDIO_TEXTURES[_name] = {k: _extra[k] for k in ("textures", "retouch") if k in _extra}

@@ -22,7 +22,7 @@ engine's, which is Ashes'), `res://content/data` (the pack), `user://mods/*/data
   by id: a pack's `enemies/ghoul.json` with the engine's id replaces its keys.
 - **One-document files** (`hero.json`, `projectiles.json`, `gore.json`,
   `action_fx.json`, `backdrops.json`, `ambience.json`, `dialogue_looks.json`,
-  `player_actions.json`, `music/playlists.json`) are deep-merged: a pack names
+  `player_actions.json`, `foliage.json`, `music/playlists.json`) are deep-merged: a pack names
   only the keys it changes; a list is replaced whole.
 - **`game.json`** is the last root's, whole (`DataDoc.top`): a key a pack leaves
   out must not quietly be Ashes'.

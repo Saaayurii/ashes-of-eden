@@ -83,6 +83,8 @@ const MIX := {
 	&"jump": [-10.0, 1.10, 0.08],
 	&"land": [-14.0, 0.95, 0.08],
 	&"step": [-10.0, 1.0, 0.10],
+	&"rustle": [-9.0, 1.0, 0.12],  # a painted tree struck or pushed through (Foliage)
+	&"wingbeat": [-11.0, 1.0, 0.1],  # ravens leaving a painted tree (Foliage)
 	&"player_hurt": [-2.0, 0.90, 0.06],
 	&"player_death": [0.0, 0.60, 0.0],
 	# the blade landing. Every body answers differently (hit_<material>, and
@@ -115,6 +117,21 @@ const MIX := {
 	# the world
 	&"door_open": [-5.0, 0.85, 0.0],
 	&"prop_break": [-4.0, 1.0, 0.08],
+	# the pools (data/liquids.json, Hazard): going in, coming out, wading, and their breath
+	&"splash": [-6.0, 1.0, 0.10],
+	&"splash_big": [-3.0, 0.90, 0.08],
+	&"splash_out": [-9.0, 1.0, 0.10],
+	&"wade": [-13.0, 1.0, 0.12],
+	&"sizzle": [-6.0, 1.0, 0.10],
+	&"lava_splash": [-3.0, 0.90, 0.08],
+	&"lava_bubble": [-12.0, 0.95, 0.15],
+	&"water_bubble": [-14.0, 1.0, 0.15],
+	&"bog_squelch": [-8.0, 0.85, 0.10],
+	&"bog_bubble": [-12.0, 1.0, 0.15],
+	&"water_loop": [-16.0, 1.0, 0.0],
+	&"lava_loop": [-12.0, 1.0, 0.0],
+	&"bog_loop": [-16.0, 1.0, 0.0],
+	&"blood_loop": [-16.0, 1.0, 0.0],
 }
 
 ## Families of sounds that share a mix: the ending decides it when the whole
@@ -239,6 +256,24 @@ static func _base_name(file_name: String) -> StringName:
 ## between a specific sound and a generic fallback.
 func has_clip(name: StringName) -> bool:
 	return _clip(ALIASES.get(name, name)) != null
+
+
+## A clip (one of its takes) made to loop, for a player that holds it — a pool's
+## sound (Hazard). A WAV loops over its whole length; OGG and MP3 by their flag.
+func looping(name: StringName) -> AudioStream:
+	var clip := _clip(ALIASES.get(name, name))
+	if clip is AudioStreamWAV:
+		var wav := (clip as AudioStreamWAV).duplicate() as AudioStreamWAV
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		wav.loop_begin = 0
+		# in frames, whatever the import compressed it to (QOA's bytes are not frames)
+		wav.loop_end = int(wav.get_length() * wav.mix_rate)
+		return wav
+	if clip != null and "loop" in clip:
+		var copy := clip.duplicate()
+		copy.loop = true
+		return copy
+	return clip
 
 
 func play(name: StringName, volume_db := 0.0, pitch := -1.0) -> void:

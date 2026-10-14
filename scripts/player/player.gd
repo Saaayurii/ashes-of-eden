@@ -166,6 +166,16 @@ static var SLAM_DAMAGE_SHARE := 0.9
 ## He cannot steer while falling, and is briefly planted where he lands.
 static var SLAM_RECOVERY := 0.22
 
+## --- liquids (Hazard, data/liquids.json) ---
+## How the pools hold him is the kind's data; these are only how the engine
+## reads it. Below LIQUID_HOLD of his height a fall is not slowed yet, from
+## LIQUID_SWIM_DEPTH jump is a stroke, and a fall is caught at LIQUID_CATCH px/s².
+const LIQUID_HOLD := 0.35
+const LIQUID_SWIM_DEPTH := 0.5
+const LIQUID_CATCH := 2400.0
+## A slam into a pool goes in this much slower: the water takes it.
+const LIQUID_SLAM := 0.4
+
 ## --- wall grab ---
 ## Pressed into a wall in mid-air he catches it and slides instead of falling.
 ## Not a climb: gravity still wins, only slowly, and only while the stick is
@@ -318,6 +328,12 @@ var slain_by := ""
 var _safe_position := Vector2.ZERO
 var _safe_time := 0.0
 var _burn_left := 0.0
+## The pool he is in (Hazard.liquid_touch, every physics frame it holds him),
+## how deep, 0..1, and the swim stroke's cooldown. Stale after two frames.
+var _liquid: Hazard = null
+var _liquid_depth := 0.0
+var _liquid_frame := -10
+var _swim_left := 0.0
 ## A fall beyond the room bounds ends the night immediately, even with an
 ## extra-life gift: there is nowhere to revive inside the void.
 var fell_outside_room := false
@@ -585,7 +601,11 @@ func _physics_process(delta: float) -> void:
 		_coyote -= delta
 		if _was_on_floor and _coyote <= 0.0:
 			_jumps_left = mini(_jumps_left, int(stats.max_jumps) - 1)  # walked off a ledge: no free jump
-		velocity.y += stats.gravity * delta
+		velocity.y += stats.gravity * delta * _liquid_gravity()
+		var sink := _liquid_sink()
+		if velocity.y > sink:
+			velocity.y = move_toward(velocity.y, sink, LIQUID_CATCH * delta)
+	_swim_left = maxf(0.0, _swim_left - delta)
 	_fall_speed = velocity.y
 	_was_on_floor = on_floor
 	_shadow.visible = on_floor
@@ -596,7 +616,7 @@ func _physics_process(delta: float) -> void:
 	_update_wall_grab(on_floor, dir, delta)
 	if _slamming:
 		velocity.x = 0.0
-		velocity.y = SLAM_SPEED
+		velocity.y = SLAM_SPEED * lerpf(1.0, LIQUID_SLAM, _liquid_now())
 		dir = 0.0
 
 	_drop_left -= delta
@@ -613,8 +633,10 @@ func _physics_process(delta: float) -> void:
 			_wall_jump()
 		elif _jump_buffer > 0.0 and on_floor and Input.is_action_pressed("move_down") and _on_ledge():
 			_drop_through()
+		elif _jump_buffer > 0.0 and not on_floor and _can_swim():
+			_swim_stroke()
 		elif _jump_buffer > 0.0 and _jumps_left > 0 and _dash_left <= 0.0:
-			velocity.y = -stats.jump_velocity
+			velocity.y = -stats.jump_velocity * lerpf(1.0, float(_liquid_body().get("jump", 1.0)), _liquid_now())
 			Audio.play(&"jump", -8.0)
 			EventBus.world_impulse.emit(global_position, Vector2(0, -1), 0.45, &"jump")
 			ActionFx.event(self, "jump")
@@ -652,7 +674,7 @@ func _physics_process(delta: float) -> void:
 	# --- horizontal ---
 	if _dash_left > 0.0:
 		_dash_left -= delta
-		velocity.x = facing * stats.dash_speed
+		velocity.x = facing * stats.dash_speed * lerpf(1.0, _liquid_drag(), 0.6)
 		if on_floor:
 			velocity.y = 0.0
 		_dash_hits()
@@ -667,6 +689,7 @@ func _physics_process(delta: float) -> void:
 			top_speed = 0.0  # planted where he landed, for a moment
 		elif _charging:
 			top_speed *= CHARGE_SPEED
+		top_speed *= _liquid_drag()
 		velocity.x = move_toward(velocity.x, dir * top_speed, _horizontal_rate(dir, on_floor) * delta)
 		if controls_enabled and _healing_left <= 0.0 and _slam_recovery <= 0.0 \
 				and Input.is_action_just_pressed("dash") and _dash_cd <= 0.0:
@@ -929,7 +952,7 @@ func _heal_burst() -> void:
 	for node in get_tree().get_nodes_in_group("enemies"):
 		var enemy := node as Enemy
 		if enemy != null and not enemy.is_dead() and enemy.global_position.distance_to(global_position) <= HEAL_BURST_RADIUS:
-			enemy.take_damage(stats.heal_burst, self)
+			enemy.take_damage(stats.heal_burst, self, {"move": "burst"})
 
 
 func heal(amount: float) -> void:
@@ -994,6 +1017,62 @@ func burn(amount: float, danger := Rect2()) -> void:
 	_safe_position = back
 	velocity = Vector2.ZERO
 	Fx.puff(global_position + Vector2(0, -10), 0.8, Color(0.9, 0.85, 0.8))
+
+
+## A pool holds him this frame (Hazard): how deep, 0 (dry) .. 1 (under).
+func liquid_touch(liquid: Hazard, depth: float) -> void:
+	_liquid = liquid
+	_liquid_depth = depth
+	_liquid_frame = Engine.get_physics_frames()
+
+
+## How deep he stands in a pool right now; 0 when none holds him.
+func _liquid_now() -> float:
+	if _liquid == null or not is_instance_valid(_liquid) or Engine.get_physics_frames() - _liquid_frame > 2:
+		_liquid = null
+		return 0.0
+	return _liquid_depth
+
+
+## The pool's "body" table (data/liquids.json): drag, buoyancy, sink, swim.
+func _liquid_body() -> Dictionary:
+	return _liquid.spec.get("body", {}) if _liquid_now() > 0.0 else {}
+
+
+func _liquid_drag() -> float:
+	return lerpf(1.0, float(_liquid_body().get("drag", 1.0)), _liquid_now())
+
+
+func _liquid_gravity() -> float:
+	return lerpf(1.0, float(_liquid_body().get("buoyancy", 1.0)), _liquid_now())
+
+
+## The fastest he sinks in it: the pool catches a fall instead of letting it through.
+func _liquid_sink() -> float:
+	var depth := _liquid_now()
+	if depth < LIQUID_HOLD:
+		return INF
+	return float(_liquid_body().get("sink_speed", INF))
+
+
+func _can_swim() -> bool:
+	return _liquid_now() >= LIQUID_SWIM_DEPTH and float(_liquid_body().get("swim", 0.0)) > 0.0 \
+			and _swim_left <= 0.0 and _dash_left <= 0.0 and not _slamming
+
+
+## Jump under the surface: a stroke up, as often as the kind allows. It does
+## not spend the air jump, so he can still jump out of the water with it.
+func _swim_stroke() -> void:
+	var body_spec := _liquid_body()
+	velocity.y = -float(body_spec.get("swim", 200.0))
+	_swim_left = float(body_spec.get("swim_cooldown", 0.3))
+	_jump_buffer = 0.0
+	_jumps_left = maxi(_jumps_left, 1)
+	if _liquid != null:
+		_liquid.surface.disturb(global_position.x - _liquid.global_position.x, 1.2, 8.0)
+		LiquidFx.fling(_liquid.spec, Vector2(global_position.x, _liquid.surface_y(global_position.x)), 4, 0.5)
+	if _attack_anim_left <= 0.0:
+		_one_shot("jump", 0.3)
 
 
 func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> void:
@@ -1378,7 +1457,7 @@ func _land_slam() -> void:
 		# A flat reach: something directly overhead is not under the landing.
 		if absf(offset.x) > float(spec.get("radius", SLAM_RADIUS)) or offset.y < -24.0 or offset.y > 30.0:
 			continue
-		enemy.take_damage(damage, self, {"knockback": float(spec.get("knockback", 1.6))})
+		enemy.take_damage(damage, self, {"knockback": float(spec.get("knockback", 1.6)), "move": "slam"})
 		Fx.puff(enemy.global_position + Vector2(0, -8), 0.7, Color(0.95, 0.9, 0.8))
 
 
@@ -1448,7 +1527,7 @@ func _dash_hits() -> void:
 		if enemy.global_position.distance_to(global_position) > DASH_REACH:
 			continue
 		_dash_hit[enemy] = true
-		enemy.take_damage(stats.dash_damage, self, {"knockback": 1.2})
+		enemy.take_damage(stats.dash_damage, self, {"knockback": 1.2, "move": "dash"})
 		Fx.puff(enemy.global_position + Vector2(0, -8), 0.6, Color(0.85, 0.95, 1.0))
 
 
@@ -1808,7 +1887,7 @@ func _attack() -> void:
 		await get_tree().create_timer(wind, false).timeout
 		if not is_inside_tree() or _dead:
 			return
-	await _land_hits(float(spec.get("multiplier", COMBO_MULTIPLIERS[own])), float(spec.get("knockback", 2.0 if hit_index == 2 else 1.0)), heavy, float(spec.get("stagger", 0)))
+	await _land_hits(float(spec.get("multiplier", COMBO_MULTIPLIERS[own])), float(spec.get("knockback", 2.0 if hit_index == 2 else 1.0)), heavy, float(spec.get("stagger", 0)), false, animation)
 
 
 ## Everything a swing does once it is in the air: the hitbox (already placed
@@ -1818,7 +1897,9 @@ func _attack() -> void:
 ## stop what it was doing (the cleave, the sweep). The chain and the special
 ## moves share it, so every gift and item that reads a hit reads theirs too.
 ## [param technique]: a special move (_technique), which Benediction heals on.
-func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0, technique := false) -> void:
+## [param move] names the blow (an animation or a technique): the body it opens
+## bleeds and tears the way that blow would (Gore.moves in data/gore.json).
+func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0, technique := false, move := "attack") -> void:
 	hitbox.monitoring = true
 	# Area2D needs a physics tick to register overlaps after monitoring is enabled.
 	await get_tree().physics_frame
@@ -1863,7 +1944,7 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# "sneak" is what the blow is worth on an enemy that has not noticed us;
 		# the enemy (the host, online) knows whether it has and applies it.
 		target.take_damage(damage, self, {"crit": crit, "knockback": knockback,
-			"sneak": stats.backstab_multiplier + Weapons.number(weapon, "backstab", 0.0), "execute": stats.execute})
+			"sneak": stats.backstab_multiplier + Weapons.number(weapon, "backstab", 0.0), "execute": stats.execute, "move": move})
 		if live_enemy and stagger > 0.0:
 			(target as Enemy).stagger(stagger)
 		if live_enemy:
@@ -2030,7 +2111,7 @@ func _technique(id: String) -> void:
 	if _is_mine():
 		EventBus.technique_performed.emit(id)
 	if await _action_hit_frame(spec, id):
-		await _land_hits(multiplier, knockback, heavy, stagger, true)
+		await _land_hits(multiplier, knockback, heavy, stagger, true, id)
 
 
 ## An enemy in front of the sword that has not noticed us: the first blow of
@@ -2201,7 +2282,7 @@ func _cast_skill() -> void:
 				var body_hit := enemy as Node2D
 				if body_hit != null and not body_hit.call("is_dead") \
 						and body_hit.global_position.distance_to(global_position) <= radius:
-					body_hit.take_damage(damage, self, {"knockback": 1.6})
+					body_hit.take_damage(damage, self, {"knockback": 1.6, "move": "nova"})
 			heal(float(skill.get("heal", 0.0)))
 		"bolt":
 			# the gift says how it looks and flies (data/projectiles.json, the studio's «Снаряды»)
@@ -2226,7 +2307,7 @@ func _cast_skill() -> void:
 		"drain":
 			var target := _skill_target(float(skill.get("range", 110.0)))
 			if target != null:
-				target.take_damage(damage, self, {"knockback": 0.6})
+				target.take_damage(damage, self, {"knockback": 0.6, "move": "drain"})
 				heal(damage * float(skill.get("drain", 0.5)))
 		"toll":
 			# a bell struck in the chest: everyone near stops where they stand
@@ -2234,12 +2315,12 @@ func _cast_skill() -> void:
 			for node in get_tree().get_nodes_in_group("enemies"):
 				var near := node as Enemy
 				if near != null and not near.is_dead() and near.global_position.distance_to(global_position) <= reach:
-					near.take_damage(damage, self, {"knockback": 0.4})
+					near.take_damage(damage, self, {"knockback": 0.4, "move": "toll"})
 					near.stagger(float(skill.get("stun", 1.5)))
 		"hex":
 			var marked := _skill_target(float(skill.get("range", 140.0)))
 			if marked != null:
-				marked.take_damage(damage, self, {"knockback": 0.3})
+				marked.take_damage(damage, self, {"knockback": 0.3, "move": "hex"})
 				if marked is Enemy:
 					(marked as Enemy).hex(float(skill.get("hex", 5.0)), float(skill.get("bonus", 0.5)))
 		"blink":
@@ -2267,7 +2348,7 @@ func _blink(reach: float, damage: float) -> void:
 			continue
 		var along := (crossed.global_position.x - start.x) * facing
 		if along >= -6.0 and along <= travel + 14.0 and absf(crossed.global_position.y - start.y) <= 32.0:
-			crossed.take_damage(damage, self, {"knockback": 0.8})
+			crossed.take_damage(damage, self, {"knockback": 0.8, "move": "blink"})
 	Fx.dust(start, Vector2(-facing, 0), 6, Color(0.8, 0.78, 0.72, 0.7))
 	global_position = end
 	velocity = Vector2.ZERO

@@ -9,6 +9,7 @@ a generated clip takes the real one (see Audio._load_clips), which is what makes
 replacing a placeholder a matter of dropping an .ogg beside it.
 
     python3 tools/audio/generate_sfx.py
+    python3 tools/audio/generate_sfx.py liquids   # only the pools' sounds (LIQUID_SFX)
 """
 import math
 import os
@@ -226,6 +227,223 @@ def enemy_special(seed, low, high, seconds=0.62):
     return normalize(mix(rumble, [v * 0.22 for v in spark], [v * 0.28 for v in bell_layer]), 0.68)
 
 
+# ---------------------------------------------------------------- liquids ---
+# The pools of data/liquids.json (scripts/rooms/hazard.gd): what a body makes
+# going into water, lava and bog, and the low loops a pool breathes near it.
+# water_bubble and bog_squelch are real CC0 takes (tools/audio/sfx_manifest.json);
+# the rest stand in here. Each take reseeds from its own name (liquid_sfx), so
+# adding one never re-rolls another.
+
+def place(out, piece, at=0.0, gain=1.0):
+    """Lays `piece` into `out` from `at` seconds, cutting what runs past the end."""
+    offset = int(at * SFX_RATE)
+    for i, v in enumerate(piece):
+        if 0 <= offset + i < len(out):
+            out[offset + i] += v * gain
+    return out
+
+
+def bloop(seconds, f0, f1, decay=2.5):
+    """A drop's plink or a bubble's bloop: a sine sweeping up, gone at once."""
+    return env(tone(seconds, SFX_RATE, f0, f1), 0.02, 1.0, decay)
+
+
+def splash():
+    out = silence(0.55, SFX_RATE)
+    body = highpass(lowpass(noise(0.32, SFX_RATE), random.uniform(2200, 3200), SFX_RATE), 300, SFX_RATE)
+    place(out, env(body, 0.03, 1.0, 2.6))
+    place(out, env(tone(0.14, SFX_RATE, random.uniform(260, 330), 110, "tri"), 0.01, 1.0, 2.5), 0.0, 0.6)
+    for _ in range(random.randint(3, 5)):
+        f = random.uniform(700, 1300)
+        place(out, bloop(0.05, f, f * 1.6), random.uniform(0.08, 0.42), random.uniform(0.12, 0.3))
+    return normalize(out, 0.72)
+
+
+def splash_big():
+    out = silence(1.0, SFX_RATE)
+    body = lowpass(noise(0.75, SFX_RATE), random.uniform(1300, 1800), SFX_RATE)
+    place(out, env(body, 0.02, 1.0, 1.6))
+    spray = highpass(noise(0.5, SFX_RATE), 2500, SFX_RATE)
+    place(out, env(spray, 0.05, 1.0, 2.0), 0.03, 0.35)
+    place(out, env(tone(0.35, SFX_RATE, random.uniform(130, 160), 45, "tri"), 0.005, 1.0, 2.0), 0.0, 0.9)
+    for _ in range(random.randint(7, 10)):  # the water coming back down
+        f = random.uniform(500, 1200)
+        place(out, bloop(0.06, f, f * 1.5), random.uniform(0.25, 0.85), random.uniform(0.1, 0.25))
+    return normalize(out, 0.8)
+
+
+def splash_out():
+    out = silence(0.7, SFX_RATE)
+    slosh = lowpass(noise(0.35, SFX_RATE), random.uniform(900, 1400), SFX_RATE)
+    place(out, env(slosh, 0.3, 1.0, 1.8))
+    for _ in range(random.randint(4, 6)):  # what runs off him
+        f = random.uniform(1100, 1900)
+        place(out, bloop(0.035, f, f * 1.4, 3.0), random.uniform(0.2, 0.62), random.uniform(0.15, 0.35))
+    return normalize(out, 0.6)
+
+
+def wade():
+    out = silence(0.32, SFX_RATE)
+    slosh = lowpass(noise(0.26, SFX_RATE), random.uniform(700, 1100), SFX_RATE)
+    place(out, env(slosh, 0.18, 1.0, 2.0))
+    place(out, env(highpass(noise(0.14, SFX_RATE), 1800, SFX_RATE), 0.2, 1.0, 2.5), 0.03, 0.25)
+    f = random.uniform(380, 560)
+    place(out, bloop(0.06, f, f * 1.5), random.uniform(0.05, 0.12), 0.3)
+    return normalize(out, 0.55)
+
+
+def crackle(seconds, density, cutoff=3500):
+    """Sparse clicks: the spit of a burning surface."""
+    out = silence(seconds, SFX_RATE)
+    for _ in range(int(seconds * density)):
+        click = env(highpass(noise(0.006, SFX_RATE), cutoff, SFX_RATE), 0.01, 1.0, 4.0)
+        place(out, click, random.uniform(0.0, seconds), random.uniform(0.2, 1.0))
+    return out
+
+
+def sizzle():
+    seconds = 0.8
+    out = silence(seconds, SFX_RATE)
+    hiss = highpass(lowpass(noise(seconds, SFX_RATE), 7000, SFX_RATE), random.uniform(2600, 3400), SFX_RATE)
+    place(out, env(hiss, 0.02, 1.0, 1.3), 0.0, 0.8)
+    place(out, env(crackle(seconds, 70), 0.01, 1.0, 1.2), 0.0, 0.7)
+    place(out, env(tone(0.1, SFX_RATE, 140, 70, "tri"), 0.01, 1.0, 3.0), 0.0, 0.5)
+    return normalize(out, 0.62)
+
+
+def lava_splash():
+    seconds = 1.2
+    out = silence(seconds, SFX_RATE)
+    gloop = lowpass(noise(0.6, SFX_RATE), random.uniform(380, 520), SFX_RATE)
+    place(out, env(gloop, 0.03, 1.0, 1.6), 0.0, 1.2)
+    place(out, env(tone(0.5, SFX_RATE, random.uniform(85, 105), 38, "tri"), 0.01, 1.0, 1.8), 0.0, 1.0)
+    for _ in range(3):  # thick blobs landing back
+        f = random.uniform(70, 110)
+        place(out, bloop(0.12, f, f * 2.2, 2.0), random.uniform(0.25, 0.7), 0.5)
+    hiss = highpass(noise(1.0, SFX_RATE), 3000, SFX_RATE)
+    place(out, env(hiss, 0.15, 1.0, 1.0), 0.1, 0.22)
+    place(out, env(crackle(1.0, 40), 0.1, 1.0, 1.0), 0.1, 0.4)
+    return normalize(out, 0.8)
+
+
+def lava_bubble():
+    out = silence(0.4, SFX_RATE)
+    f = random.uniform(55, 80)
+    place(out, env(tone(0.22, SFX_RATE, f, f * 2.8), 0.25, 1.0, 1.6), 0.0, 1.0)  # the dome swelling
+    pop = lowpass(noise(0.05, SFX_RATE), 900, SFX_RATE)
+    at = random.uniform(0.17, 0.21)
+    place(out, env(pop, 0.01, 1.0, 3.5), at, 0.9)
+    place(out, env(crackle(0.15, 60, 4000), 0.01, 1.0, 2.0), at, 0.25)
+    return normalize(out, 0.66)
+
+
+def bog_bubble():
+    out = silence(0.45, SFX_RATE)
+    f = random.uniform(120, 170)
+    n = int(0.25 * SFX_RATE)
+    wob = []
+    phase = 0.0
+    for i in range(n):  # a gassy, wobbling rise
+        t = i / n
+        freq = f * (1 + 1.2 * t) * (1 + 0.08 * math.sin(2 * math.pi * 22 * t))
+        phase += 2 * math.pi * freq / SFX_RATE
+        wob.append(math.sin(phase))
+    place(out, env(wob, 0.15, 1.0, 1.8))
+    at = random.uniform(0.2, 0.25)
+    place(out, env(lowpass(noise(0.08, SFX_RATE), 650, SFX_RATE), 0.02, 1.0, 2.5), at, 1.1)
+    place(out, env(lowpass(noise(0.15, SFX_RATE), 300, SFX_RATE), 0.2, 1.0, 1.5), at + 0.03, 0.6)
+    return normalize(out, 0.6)
+
+
+def seamless(buf, seconds, fade):
+    """The loop's own tail laid over its head, equal-power: generate `seconds` + `fade`
+    and fold the extra back, so the last sample runs straight into the first."""
+    n, x = int(seconds * SFX_RATE), int(fade * SFX_RATE)
+    out = buf[:n]
+    for i in range(x):
+        t = i / x
+        out[i] = buf[i] * math.sin(t * math.pi / 2) + buf[n + i] * math.cos(t * math.pi / 2)
+    return out
+
+
+def swell(n, rate_hz, depth, phase=0.0):
+    return [1.0 - depth + depth * (0.5 + 0.5 * math.sin(2 * math.pi * rate_hz * i / SFX_RATE + phase)) for i in range(n)]
+
+
+def loop_base(seconds, cutoff, wobble):
+    total = seconds + 1.0
+    n = int(total * SFX_RATE)
+    bed = lowpass(lowpass(noise(total, SFX_RATE), cutoff, SFX_RATE), cutoff, SFX_RATE)
+    a, b = swell(n, wobble, 0.5), swell(n, wobble * 2.37, 0.3, 1.3)
+    return [v * x * y for v, x, y in zip(bed, a, b)], total
+
+
+def water_loop(seconds=6.0):
+    bed, total = loop_base(seconds, 520, 0.31)
+    trickle = highpass(lowpass(noise(total, SFX_RATE), 4000, SFX_RATE), 1500, SFX_RATE)
+    bed = mix(bed, [v * 0.06 * w for v, w in zip(trickle, swell(len(trickle), 0.53, 0.8))])
+    for _ in range(int(seconds * 1.6)):  # lapping and the odd bloop
+        f = random.uniform(380, 900)
+        place(bed, bloop(0.07, f, f * 1.5), random.uniform(0.0, total - 0.1), random.uniform(0.05, 0.14))
+    return normalize(seamless(bed, seconds, 1.0), 0.5)
+
+
+def lava_loop(seconds=7.0):
+    bed, total = loop_base(seconds, 160, 0.17)
+    bed = mix(bed, [v * 0.12 for v in crackle(total, 18, 3000)])
+    for _ in range(int(seconds * 0.9)):  # thick gloops rising through it
+        f = random.uniform(50, 80)
+        place(bed, env(tone(0.22, SFX_RATE, f, f * 2.6), 0.3, 1.0, 1.6), random.uniform(0.0, total - 0.3), 0.35)
+    return normalize(seamless(bed, seconds, 1.0), 0.5)
+
+
+def bog_loop(seconds=7.0):
+    bed, total = loop_base(seconds, 300, 0.13)
+    for _ in range(int(seconds * 0.7)):  # gas finding its way up
+        f = random.uniform(110, 170)
+        place(bed, bloop(0.18, f, f * 2.0, 1.8), random.uniform(0.0, total - 0.2), random.uniform(0.18, 0.3))
+    return normalize(seamless(bed, seconds, 1.0), 0.48)
+
+
+def blood_loop(seconds=6.0):
+    bed, total = loop_base(seconds, 240, 0.21)
+    beat = 0.0
+    while beat < total - 0.3:  # a slow, thick pulse under it, felt more than heard
+        place(bed, env(tone(0.16, SFX_RATE, 58, 40, "tri"), 0.08, 1.0, 2.2), beat, 0.22)
+        place(bed, env(tone(0.14, SFX_RATE, 52, 38, "tri"), 0.08, 1.0, 2.2), beat + 0.28, 0.14)
+        beat += 1.5
+    for _ in range(int(seconds * 0.8)):  # viscous drips
+        f = random.uniform(260, 420)
+        place(bed, bloop(0.08, f, f * 1.3, 2.0), random.uniform(0.0, total - 0.1), 0.08)
+    return normalize(seamless(bed, seconds, 1.0), 0.48)
+
+
+## name -> (maker, takes). Takes are <name>_1..n; a loop (takes 0) is the bare name.
+LIQUID_SFX = {
+    "splash": (splash, 4),
+    "splash_big": (splash_big, 3),
+    "splash_out": (splash_out, 3),
+    "wade": (wade, 4),
+    "sizzle": (sizzle, 3),
+    "lava_splash": (lava_splash, 3),
+    "lava_bubble": (lava_bubble, 4),
+    "bog_bubble": (bog_bubble, 3),
+    "water_loop": (water_loop, 0),
+    "lava_loop": (lava_loop, 0),
+    "bog_loop": (bog_loop, 0),
+    "blood_loop": (blood_loop, 0),
+}
+
+
+def liquid_sfx():
+    import zlib
+    for name, (make, takes) in LIQUID_SFX.items():
+        for take in range(1, takes + 1) if takes else [0]:
+            file_name = "%s_%d" % (name, take) if takes else name
+            random.seed(zlib.crc32(file_name.encode()))
+            write(os.path.join(SFX_DIR, file_name + ".wav"), make(), SFX_RATE)
+
+
 # ------------------------------------------------------------------ music ---
 
 def ambient_night(seconds=24.0):
@@ -258,6 +476,65 @@ def bell():
     for i, v in enumerate(strike):
         out[i] += v * 0.5
     return normalize(out, 0.7)
+
+
+def rustle(seed):
+    """Leaves shaken on a branch: a soft bed of air and a scatter of tiny
+    clicks, each take its own (a private generator, so adding a take does not
+    re-roll every clip after it)."""
+    rng = random.Random(seed)
+    n = int(rng.uniform(0.45, 0.6) * SFX_RATE)
+    air = env(highpass(lowpass([rng.uniform(-1.0, 1.0) for _ in range(n)], rng.uniform(5200, 6800), SFX_RATE), 900, SFX_RATE),
+              0.08, 1.0, 1.6)
+    out = [v * 0.5 for v in air]
+    for _ in range(rng.randint(24, 34)):
+        start = int(rng.uniform(0.0, 0.8) * n)
+        length = int(rng.uniform(0.004, 0.012) * SFX_RATE)
+        gain = rng.uniform(0.3, 1.0) * (1.0 - start / n)
+        click = env(highpass([rng.uniform(-1.0, 1.0) for _ in range(length)], 2200, SFX_RATE), 0.05, 1.0, 3.0)
+        for i, v in enumerate(click):
+            if start + i < n:
+                out[start + i] += v * gain
+    return normalize(out, 0.5)
+
+
+def rustle_sfx():
+    """The leaves of a struck or brushed tree (scripts/rooms/foliage.gd), three takes."""
+    for take in (1, 2, 3):
+        write(os.path.join(SFX_DIR, "rustle_%d.wav" % take), rustle(30 + take), SFX_RATE)
+
+
+def wingbeat(seed):
+    """A bird taking off: a few quick beats of air, each a whump of low noise
+    over a feathery hiss, slowing and thinning as it climbs away. Several
+    birds of a flock overlap a little, so a take holds two or three wings."""
+    rng = random.Random(seed)
+    seconds = rng.uniform(0.75, 0.95)
+    n = int(seconds * SFX_RATE)
+    out = [0.0] * n
+    for bird in range(rng.randint(2, 3)):
+        t = rng.uniform(0.0, 0.12) * bird
+        gap = rng.uniform(0.075, 0.095)
+        gain = 1.0 - 0.25 * bird
+        beat = 0
+        while t < seconds - 0.08:
+            length = int(rng.uniform(0.05, 0.07) * SFX_RATE)
+            whump = env(lowpass([rng.uniform(-1.0, 1.0) for _ in range(length)], rng.uniform(380, 520), SFX_RATE), 0.25, 1.0, 2.2)
+            hiss = env(highpass([rng.uniform(-1.0, 1.0) for _ in range(length)], 2600, SFX_RATE), 0.35, 1.0, 2.6)
+            fade = gain * max(0.15, 1.0 - beat * 0.11) * rng.uniform(0.8, 1.0)
+            start = int(t * SFX_RATE)
+            for i in range(length):
+                if start + i < n:
+                    out[start + i] += (whump[i] * 2.2 + hiss[i] * 0.22) * fade
+            beat += 1
+            t += gap * (1.0 + beat * 0.06)
+    return normalize(out, 0.55)
+
+
+def wingbeat_sfx():
+    """Ravens leaving a painted tree (scripts/rooms/foliage.gd), three takes."""
+    for take in (1, 2, 3):
+        write(os.path.join(SFX_DIR, "wingbeat_%d.wav" % take), wingbeat(60 + take), SFX_RATE)
 
 
 SFX = {
@@ -293,9 +570,22 @@ SPECIALS = {
 }
 
 if __name__ == "__main__":
+    import sys
+    if sys.argv[1:] == ["liquids"]:  # only the pools' sounds: python3 tools/audio/generate_sfx.py liquids
+        liquid_sfx()
+        sys.exit(0)
+    if sys.argv[1:] == ["rustle"]:  # only the trees' leaves: python3 tools/audio/generate_sfx.py rustle
+        rustle_sfx()
+        sys.exit(0)
+    if sys.argv[1:] == ["wingbeat"]:  # only the ravens' wings: python3 tools/audio/generate_sfx.py wingbeat
+        wingbeat_sfx()
+        sys.exit(0)
     random.seed(7)  # the same set every run, so a regeneration is not a diff
     for name, make in SFX.items():
         write(os.path.join(SFX_DIR, name + ".wav"), make(), SFX_RATE)
     for name, spec in SPECIALS.items():
         write(os.path.join(SFX_DIR, name + ".wav"), enemy_special(*spec), SFX_RATE)
     write(os.path.join(MUSIC_DIR, "ambient_night.wav"), ambient_night(), MUSIC_RATE)
+    liquid_sfx()
+    rustle_sfx()
+    wingbeat_sfx()

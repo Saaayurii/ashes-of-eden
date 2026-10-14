@@ -73,6 +73,8 @@ func _ready() -> void:
 		Audio.music(music)
 	# The living details of the place (ravens, wisps, fog, lightning): data/ambience.json.
 	Ambience.attach(self, scene_file_path.get_file().get_basename(), float(width), float(height))
+	# its painted trees swing when struck and shed leaves: data/foliage.json
+	Foliage.attach(self)
 	# far, middle and front kept apart: after the clouds exist (Ambience)
 	ROOM_LAYERS.arrange(self)
 	door.entered.connect(exited.emit)
