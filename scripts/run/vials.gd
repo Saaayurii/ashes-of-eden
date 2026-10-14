@@ -12,12 +12,15 @@ class_name Vials
 
 const TIERS := 5
 ## How a rule stacks as the vials pile up.
-const ADD := ["flasks"]
-const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown"]
-const MAX := ["promote_chance"]
+const ADD := ["flasks", "swarm"]
+const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown", "torment", "fruit_heal"]
+const MAX := ["promote_chance", "surfeit_per_fruit"]
 const MIN := ["rest_heal"]
 const DEFAULTS := {"flasks": 0, "enemy_damage": 1.0, "enemy_hp": 1.0, "promote_chance": 0.0, "rest_heal": 1.0,
-	"essence": 1.0, "enemy_sight": 1.0, "skill_cooldown": 1.0}
+	"essence": 1.0, "enemy_sight": 1.0, "skill_cooldown": 1.0,
+	# chapter V's omens (docs/CHAPTER5.md §7): the sting's length, extra locusts
+	# a cloud, what a fruit heals, and how much surfeit one is worth
+	"torment": 1.0, "swarm": 0, "fruit_heal": 1.0, "surfeit_per_fruit": 1}
 
 
 ## The vial of [param tier], {} for none.

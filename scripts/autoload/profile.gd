@@ -188,6 +188,7 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 		"dealt": roundi(Game.dealt),
 		"taken": roundi(Game.taken),
 		"parries": Game.parries,
+		"surfeit": Game.surfeit,
 		"ending": Game.ending if won else "",
 	})
 	while data.history.size() > HISTORY:

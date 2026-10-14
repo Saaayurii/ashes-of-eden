@@ -74,3 +74,6 @@ signal lighting_changed
 signal run_restored
 ## "Again" on the night's end: another night begins (Telemetry counts it).
 signal night_retried
+## A fruit was eaten (scripts/rooms/fruit.gd): its prop id and the night's
+## surfeit after it. Playtest logs it as "eat".
+signal fruit_eaten(id: String, surfeit: int)

@@ -45,6 +45,12 @@ const CAPS := {
 	"covetous": [0.0, 1.0],
 	"charge_speed": [0.0, 1.0],
 	"parry_window": [0.0, 0.15],
+	# chapter V (docs/CHAPTER5.md §7): the sting and the fruit
+	"torment_immune": [0.0, 1.0],
+	"fasting": [0.0, 20.0],
+	"glut": [0.0, 0.05],
+	"torment_damage": [0.0, 0.5],
+	"death_refused": [0.0, 1.0],
 }
 ## Caps expressed as multipliers of the base value rather than absolutes.
 const RELATIVE := ["attack_cooldown", "speed"]

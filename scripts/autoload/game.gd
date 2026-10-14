@@ -55,6 +55,9 @@ var night := ""
 var daily_best := false
 ## Rooms this body cleared without a wound, this night (Run._on_unscathed).
 var unscathed := 0
+## Fruit eaten tonight, in units (scripts/rooms/fruit.gd, docs/CHAPTER5.md §2):
+## the host's count; every unit thickens the locust clouds still to come.
+var surfeit := 0
 ## What laid our own body low this night (Player.slain_by): an enemy id,
 ## "lava", "fall", or "" while it stands. The end screen, the chronicle and
 ## the bestiary read it.
@@ -116,6 +119,7 @@ func new_run() -> void:
 	level = 1
 	ash_earned = 0
 	unscathed = 0
+	surfeit = 0
 	slain_by = ""
 	slain_affix = ""
 	last_blows = []

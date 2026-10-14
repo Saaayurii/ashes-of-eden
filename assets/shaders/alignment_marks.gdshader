@@ -23,6 +23,9 @@ uniform float cloak_hue = 0.0;
 uniform float cloak_saturation = 1.0;
 uniform float cloak_value = 1.0;
 uniform vec4 armor_tint : source_color = vec4(1.0);
+// The locust's sting (Player.torment, docs/CHAPTER5.md §2): a brown tremor
+// running along his edge while nothing can heal him. 0 = none.
+uniform float torment : hint_range(0.0, 1.0) = 0.0;
 
 vec3 rgb2hsv(vec3 c) {
 	vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -111,5 +114,17 @@ void fragment() {
 			rgb = mix(rgb, tint.rgb, grit * strength * 0.5);
 		}
 		COLOR = vec4(rgb, base.a);
+	}
+	if (torment > 0.0 && base.a >= 0.01) {
+		vec2 shiver = vec2(sin(TIME * 47.0 + UV.y * 300.0), cos(TIME * 39.0 + UV.x * 300.0)) * TEXTURE_PIXEL_SIZE;
+		vec2 reach = TEXTURE_PIXEL_SIZE * 1.5;
+		float near =
+			texture(TEXTURE, UV + vec2(reach.x, 0.0) + shiver).a +
+			texture(TEXTURE, UV - vec2(reach.x, 0.0) + shiver).a +
+			texture(TEXTURE, UV + vec2(0.0, reach.y) - shiver).a +
+			texture(TEXTURE, UV - vec2(0.0, reach.y) - shiver).a;
+		float edge = clamp(1.0 - near * 0.25, 0.0, 1.0);
+		float tremble = 0.6 + 0.4 * sin(TIME * 23.0);
+		COLOR.rgb = mix(COLOR.rgb, vec3(0.48, 0.31, 0.18), clamp(edge * torment * tremble, 0.0, 0.85));
 	}
 }

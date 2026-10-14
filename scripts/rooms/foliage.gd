@@ -328,8 +328,8 @@ func _track_bodies(delta: float) -> Array:
 	for group in ["player", "enemies"]:
 		for node in get_tree().get_nodes_in_group(group):
 			var body := node as Node2D
-			if body == null or not body.is_visible_in_tree():
-				continue
+			if body == null or not body.is_visible_in_tree() or Swarm.spares(body):
+				continue  # the locusts leave the garden be (Rev. 9:4)
 			var id := body.get_instance_id()
 			seen[id] = true
 			var at := body.global_position

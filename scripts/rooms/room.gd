@@ -175,7 +175,10 @@ func populate() -> void:
 	_waves = parsed if parsed is Array else []
 	_wave_index = 0
 	for spawn in $Spawns.get_children():
-		if spawn is EnemySpawn:
+		if spawn is EnemySpawn and Swarm.is_swarm(spawn.enemy_id):
+			for body in Swarm.release(self, spawn):  # one marker, a cloud (docs/CHAPTER5.md)
+				_from_markers.append([spawn, body])
+		elif spawn is EnemySpawn:
 			_from_markers.append([spawn, spawn_enemy(spawn.enemy_id, spawn.global_position)])
 	if alive == 0 and not _next_wave():
 		door.open = true
@@ -195,6 +198,7 @@ func respawn_commons() -> int:
 		if data.get("boss", false) or data.get("tags", []).has("elite"):
 			continue
 		pair[1] = spawn_enemy(spawn.enemy_id, spawn.global_position)
+		Swarm.join(pair[1], spawn)
 		if holds_door(spawn.enemy_id):
 			risen += 1
 	if risen > 0:
