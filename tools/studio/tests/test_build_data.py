@@ -39,6 +39,9 @@ class LivingBackdrops(unittest.TestCase):
             node = json.loads((ROOT / u["file"]).read_text(encoding="utf-8"))
             for key in u["path"]:
                 node = node[key]
+            source = next((r["source"] for r in shots["roster"] if r["id"] == u["id"]), {}) if u["kind"] == "enemy" else {}
+            if source.get("over"):   # a single attack laid over its base's, key by key (data_loader.gd)
+                node = {**json.loads((ROOT / source["over"]).read_text(encoding="utf-8"))["attack"], **node}
             self.assertEqual(node, u["attack"], u["id"])
             style = u["attack"].get("projectile_style", u["attack"].get("style", "sacred"))
             self.assertIn(style, shots["styles"], u["id"])
@@ -47,6 +50,11 @@ class LivingBackdrops(unittest.TestCase):
             self.assertTrue(u["body"] and u["body"]["anims"].get("idle"), f"{u['id']} has no body to show")
             self.assertTrue((ROOT / u["body"]["anims"]["idle"]).exists(), u["id"])
         self.assertEqual(next(u for u in shots["users"] if u["id"] == "cult_caller")["body"]["tint"], "#c8b4ff")
+        # a variant's own single "attack" (cult_slinger) is edited where it is; one laid over its
+        # base's (hollow_wraith over wraith) is shown whole, as the game fights with it
+        hollow = next(r for r in shots["roster"] if r["id"] == "hollow_wraith")["source"]
+        self.assertEqual((hollow["over"], hollow["items"][0]["type"]), ("data/enemies/wraith.json", "ranged"))
+        self.assertEqual(next(u for u in shots["users"] if u["id"] == "cult_slinger")["path"], ["attack"])
         self.assertTrue(shots["hero"]["hero"] and shots["dummy"]["anims"]["idle"])
 
     def test_all_attack_types_and_frame_counts_are_available_to_the_actions_editor(self):
