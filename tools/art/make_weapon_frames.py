@@ -34,7 +34,6 @@ import sys
 
 import numpy as np
 from PIL import Image
-from scipy import ndimage
 from studio_overrides import patched  # the art studio's edits of what this writes (tools/studio/overrides)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -102,6 +101,65 @@ def save(name, sequence):
 
 # --- finding the sword -------------------------------------------------------
 
+def shifted(m, dy, dx):
+    """m moved by (dy, dx), zeros brought in at the edges."""
+    out = np.zeros_like(m)
+    h, w = m.shape
+    out[max(dy, 0):h + min(dy, 0), max(dx, 0):w + min(dx, 0)] = m[max(-dy, 0):h + min(-dy, 0), max(-dx, 0):w + min(-dx, 0)]
+    return out
+
+
+def erode(m, offsets):
+    """Set where every offset of the pixel is set (outside the cell is not)."""
+    out = np.ones_like(m, bool)
+    for dy, dx in offsets:
+        out &= shifted(m, -dy, -dx).astype(bool)
+    return out
+
+
+def dilate(m, offsets):
+    out = np.zeros_like(m, bool)
+    for dy, dx in offsets:
+        out |= shifted(m, dy, dx).astype(bool)
+    return out
+
+
+def neighbours(m, kernel):
+    """How many of the kernel's cells around each pixel are set (a 3×3 kernel)."""
+    out = np.zeros(m.shape, int)
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            if kernel[dy + 1][dx + 1]:
+                out += shifted(m.astype(int), -dy, -dx)
+    return out
+
+
+SQUARE = [(dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1)]
+PAIR = [(dy, dx) for dy in (-1, 0) for dx in (-1, 0)]
+CROSS = [(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)]
+
+
+def label(m):
+    """Eight-connected patches of m, numbered from 1 (0 is background)."""
+    labels = np.zeros(m.shape, int)
+    h, w = m.shape
+    count = 0
+    for y, x in zip(*np.nonzero(m)):
+        if labels[y, x]:
+            continue
+        count += 1
+        labels[y, x] = count
+        todo = [(y, x)]
+        while todo:
+            cy, cx = todo.pop()
+            for dy, dx in SQUARE:
+                ny, nx = cy + dy, cx + dx
+                if 0 <= ny < h and 0 <= nx < w and m[ny, nx] and not labels[ny, nx]:
+                    labels[ny, nx] = count
+                    todo.append((ny, nx))
+    return labels
+
+
 def steel(a):
     """Pale, colourless pixels: the blade, the arc, a highlight on the armour."""
     rgb = a[..., :3].astype(int)
@@ -113,17 +171,17 @@ def arc_mask(a):
     """The drawn-in swing: every patch of steel joined to a core thick enough
     to survive an erosion (a blade is two pixels wide and never does)."""
     s = steel(a)
-    core = ndimage.binary_erosion(s & (a[..., :3].mean(axis=2) > 150), np.ones((3, 3)))
-    core = ndimage.binary_opening(core, np.ones((2, 2)))
+    core = erode(s & (a[..., :3].mean(axis=2) > 150), SQUARE)
+    core = dilate(erode(core, PAIR), PAIR)
     if not core.any():
         return np.zeros_like(s)
-    labels, _ = ndimage.label(s, np.ones((3, 3)))
+    labels = label(s)
     ids = np.unique(labels[core & (labels > 0)])
     arc = np.isin(labels, ids)
     # its soft grey rim, a pixel out
     rgb = a[..., :3].astype(int)
     rim = (a[..., 3] > 0) & ((rgb.max(axis=2) - rgb.min(axis=2)) < 50) & (rgb.mean(axis=2) > 70)
-    return arc | (ndimage.binary_dilation(arc, iterations=1) & rim)
+    return arc | (dilate(arc, CROSS) & rim)
 
 
 def find_line(a):
@@ -222,14 +280,14 @@ def lift(a, line, extra=()):
         a[near & grey & (u > 1.5)] = 0
         # strays left along the line: a pixel with almost no neighbours
         alpha = a[..., 3] > 0
-        neigh = ndimage.convolve(alpha.astype(int), np.ones((3, 3)), mode="constant") - alpha
+        neigh = neighbours(alpha, np.ones((3, 3))) - alpha
         strays = alpha & (neigh <= 1) & (np.abs(v) <= 2.6) & (u > 1.5) & (u <= length + 2.5)
         a[strays] = 0
     # fill pin-holes inside the body (the blade crossed it)
     for _ in range(2):
         alpha = a[..., 3] > 0
         cross = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
-        count = ndimage.convolve(alpha.astype(int), cross, mode="constant")
+        count = neighbours(alpha, cross)
         holes = ~alpha & (count >= 3)
         if not holes.any():
             break
