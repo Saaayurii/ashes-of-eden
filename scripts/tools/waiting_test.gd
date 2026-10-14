@@ -60,11 +60,14 @@ func _run() -> void:
 		run.dialogue.call("_on_skip")
 	paused = false
 	await _frames(4)
-	for body in get_nodes_in_group("enemies"):
-		if not body.is_dead():
-			body.take_damage(99999.0)
-	await _frames(6)
 	var room = run.room
+	for attempt in 8:  # a room may come in waves (Room.waves_json): clear each
+		for body in get_nodes_in_group("enemies"):
+			if not body.is_dead():
+				body.take_damage(99999.0)
+		await _frames(6)
+		if room.alive == 0 and room.door.open:
+			break
 	_check(room.door.open, "graveyard_tree cleared, door open")
 
 	var alive_before: int = room.alive

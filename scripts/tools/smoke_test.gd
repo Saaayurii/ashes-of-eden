@@ -119,6 +119,8 @@ func _walk(run, dialogue, picker, cut, game, first: bool) -> int:
 		# is one the route allows (the next room, or a way of the fork)
 		var was := index
 		await _wait_until(func(): return run.room_index != was, "walked out of room %d" % (was + 1))
+		if run.room_index == was:
+			break  # stuck: the failure is said above, don't walk the room again until CI times out
 		index = run.room_index
 		var fork: Dictionary = route.fork_after(run.ROOMS[was])
 		var allowed: Array = fork.options.values().map(func(p): return run.ROOMS.find(p)) if not fork.is_empty() \
@@ -134,6 +136,7 @@ func _second_night(profile, game, nights_before: int) -> void:
 	var nights: Array = data.nights()
 	for i in range(1, nights.size()):
 		game.night = str(nights[i].id)
+		paused = false  # the last night's end screen paused the tree; Play from the menu unpauses it
 		change_scene_to_file("res://scenes/run/run.tscn")
 		await _settle()
 		var run := current_scene
