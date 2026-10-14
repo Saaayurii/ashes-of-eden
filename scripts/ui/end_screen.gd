@@ -56,6 +56,10 @@ func _ready() -> void:
 	spar_button.pressed.connect(func() -> void: spar.emit(Game.slain_by))
 	exits.add_child(spar_button)
 	menu.reparent(exits, false)
+	# where a playtester says what the numbers cannot (docs/PLAYTEST.md); no link, no button
+	var feedback := FeedbackButton.make()
+	if feedback != null:
+		exits.add_child(feedback)
 
 
 ## Online it is the host who starts another night; a guest only gets the door out.

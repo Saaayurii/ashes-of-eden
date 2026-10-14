@@ -1209,6 +1209,7 @@ func _show_end(won: bool, reached: int, total_kills: int, seconds: float, ash: i
 
 
 func _restart() -> void:
+	EventBus.night_retried.emit()
 	if Net.active:
 		if multiplayer.is_server():
 			_net_restart.rpc()
