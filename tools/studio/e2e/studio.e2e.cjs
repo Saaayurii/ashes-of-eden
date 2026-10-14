@@ -291,7 +291,7 @@ async function step(name, fn) {
       await page.selectOption('#ewBase', 'cultist');
       await page.selectOption('.rp-room', 'graveyard_cross');
       await page.waitForTimeout(1500);
-      const placed = await page.evaluate(() => { const map = document.querySelector('.rp-map'); map.onclick({ offsetX: 420 * map.clientWidth / 1440, offsetY: 430 * map.clientWidth / 1440 }); return document.querySelector('.rp-info').textContent; });
+      const placed = await page.evaluate(async () => { const map = document.querySelector('.rp-map'), w = (await loadRoom('graveyard_cross')).width; map.onclick({ offsetX: 420 * map.clientWidth / w, offsetY: 430 * map.clientWidth / w }); return document.querySelector('.rp-info').textContent; });
       assert.match(placed, /graveyard_cross: 420, 506/);
       await page.click('#dlg [data-dlg="0"]');
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
