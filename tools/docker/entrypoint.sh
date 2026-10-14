@@ -56,6 +56,7 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/studio_waves_test.gd
         godot --headless -s scripts/tools/studio_player_actions_test.gd
         godot --headless --fixed-fps 60 -s scripts/tools/techniques_test.gd
+        godot --headless --fixed-fps 60 -s scripts/tools/weapon_test.gd
         godot --headless -s scripts/tools/fork_test.gd
         godot --headless -s scripts/tools/move_hints_test.gd
         godot --headless -s scripts/tools/achievements_test.gd
@@ -86,6 +87,7 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/secret_test.gd
         godot --headless -s scripts/tools/room_jump_test.gd
         godot --headless -s scripts/tools/relay_test.gd
+        godot --headless -s scripts/tools/telemetry_test.gd
         ;;
     net-test)
         shift

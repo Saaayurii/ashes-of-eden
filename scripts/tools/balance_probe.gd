@@ -434,15 +434,21 @@ func _wait(seconds: float) -> void:
 	await process_frame
 
 
-## Real hands: every run recorded by the Playtest autoload (user://playtest/*.jsonl).
+## Real hands: every run recorded by the Playtest autoload (user://playtest/*.jsonl),
+## or, with `-- playtests=<folder>`, the nights players sent in
+## (tools/telemetry/pull.py writes them in the same format; make probe-field).
 ## The estimate above guesses walking and dodging; these do not.
 func _append_playtests(estimate: float) -> void:
-	var dir := DirAccess.open("user://playtest")
+	var folder := "user://playtest"
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("playtests="):
+			folder = arg.trim_prefix("playtests=").trim_suffix("/")
+	var dir := DirAccess.open(folder)
 	var files: Array = []
 	if dir != null:
 		for f in dir.get_files():
 			if f.ends_with(".jsonl"):
-				files.append("user://playtest/" + f)
+				files.append(folder + "/" + f)
 	_lines.append("")
 	_lines.append("## Playtests (%d recorded runs)" % files.size())
 	_lines.append("")

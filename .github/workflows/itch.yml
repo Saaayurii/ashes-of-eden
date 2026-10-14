@@ -85,6 +85,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
 
+      - name: Telemetry server and feedback form (repository variables, docs/PLAYTEST.md)
+        if: steps.gate.outputs.have == 'true'
+        env:
+          TELEMETRY_URL: ${{ vars.TELEMETRY_URL }}
+          FEEDBACK_URL: ${{ vars.FEEDBACK_URL }}
+        run: python3 tools/telemetry/set_urls.py
+
       - name: Export Web
         if: steps.gate.outputs.have == 'true'
         run: docker compose run --rm build build Web

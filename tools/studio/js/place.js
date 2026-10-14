@@ -26,7 +26,9 @@ function drawRoomOverview(c, room, spot, enemyId) {
     x.globalAlpha = l.opacity ?? 1;
     if (it.kind === 'rect') { x.fillStyle = rgba(it.color, 1); x.fillRect(it.x * k, it.y * k, it.w * k, it.h * k); continue; }
     const meta = room.images[it.img], im = meta && roomPic(meta.src || A(meta.url), redraw);
-    if (im) x.drawImage(im, it.x * k, it.y * k, im.width * Math.abs(it.sx) * k, im.height * Math.abs(it.sy) * k);
+    if (!im || it.node?.visible === false) continue;
+    const r = it.node?.region || [0, 0, im.width, im.height];  // a crop of a picture draws only the crop
+    x.drawImage(im, r[0], r[1], r[2], r[3], it.x * k, it.y * k, r[2] * Math.abs(it.sx) * k, r[3] * Math.abs(it.sy) * k);
   }
   x.globalAlpha = 1;
   x.fillStyle = 'rgba(124,195,107,.9)';

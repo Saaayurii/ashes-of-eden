@@ -73,6 +73,7 @@ const REQUIRED := {
 	"relics": ["id", "name", "description", "cost", "effects"],
 	"omens": ["id", "name", "description", "rules"],
 	"affixes": ["id", "name", "color", "mods"],
+	"weapons": ["id", "name", "description", "icon", "chain"],
 }
 
 var errors: PackedStringArray = []
@@ -122,6 +123,7 @@ func _init() -> void:
 	_check_action_fx()
 	_check_gore()
 	_check_player_actions()
+	_check_weapons()
 	_check_hero()
 	_check_game()
 	_check_enemy_archetypes()
@@ -152,6 +154,7 @@ func _init() -> void:
 	_check_glyphs(strings)
 	_check_story_flags()
 	_check_backdrops()
+	_check_telemetry_urls()
 
 	for w in warnings:
 		print("WARNING: " + w)
@@ -165,6 +168,16 @@ func _init() -> void:
 			printerr("ERROR: " + e)
 		printerr("%d error(s)" % errors.size())
 		quit(1)
+
+
+## The telemetry server and the feedback form a build ships with (docs/PLAYTEST.md):
+## empty (off, hidden) or an address. A typo would only be found by a player's
+## silence; https, because the Web build is served over it and may send nowhere else.
+func _check_telemetry_urls() -> void:
+	for setting in ["ashes/telemetry/url", "ashes/telemetry/feedback_url"]:
+		var url := str(ProjectSettings.get_setting(setting, "")).strip_edges()
+		if url != "" and not url.begins_with("https://"):
+			_error("%s must be empty or an https:// address, not \"%s\"" % [setting, url])
 
 
 func _check_entry(collection: String, entry: Dictionary) -> void:
@@ -292,6 +305,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_use_key(entry.prompt, where)
 			if entry.has("interact") and not (entry.interact is bool and entry.get("kind") == "chest"):
 				_error("%s: interact is true or false, on a chest" % where)
+			if entry.has("weapon") and not (entry.weapon is bool and entry.get("kind") == "chest"):
+				_error("%s: weapon is true or false, on a chest (it lays the night's weapon)" % where)
 			if entry.has("requires_flag"):
 				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
 			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
@@ -337,6 +352,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: an item's effect is one of the item mechanics %s" % [where, ITEM_STATS])
 		"forks":
 			_check_fork(entry, where)
+		"weapons":
+			_check_weapon(entry, where)
 		"techniques":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("input", ""), where)
@@ -1698,6 +1715,108 @@ func _check_ai_value(where: String, value, want) -> void:
 				_check_ai_value("%s.%s" % [where, k], value[k], want[k])
 	elif not (value is float or value is int) or not is_finite(float(value)) or value < 0:
 		_error("%s needs a number, zero or more" % where)
+
+
+## A weapon (data/weapons, docs/WEAPONS.md): every number bounded, every pose
+## one Elian has, and a step that leaves a number out only on the sword, whose
+## steps are the hero's own swings (hero.json, player_actions.json).
+const WEAPON_STEP_BOUNDS := {"multiplier": [0.2, 4.0], "recovery": [0.15, 2.0], "wind": [0.0, 0.3],
+	"knockback": [0.0, 4.0], "stagger": [0.0, 1.0], "animation_time": [0.1, 0.6], "speed": [0.5, 2.0]}
+const WEAPON_BOUNDS := {"damage": [0.5, 2.0], "backstab": [0.0, 2.0], "poise": [0.0, 0.5],
+	"combo_window": [0.4, 2.0], "pitch": [0.5, 1.5], "auto_reach": [24.0, 80.0]}
+const WEAPON_STEP_NEEDS := ["multiplier", "recovery", "knockback", "heavy"]
+const WEAPON_ANIMATIONS := ["attack", "attack2", "attack3", "thrust", "rising", "dash_strike"]
+const WEAPON_ARCS := ["white", "gold", "red", "heavy", "path"]
+
+
+func _check_weapon(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	if not ResourceLoader.exists(str(entry.get("icon", ""))):
+		_error("%s: icon not found: %s" % [where, entry.get("icon", "")])
+	for key in WEAPON_BOUNDS:
+		if entry.has(key):
+			_bounded(entry[key], WEAPON_BOUNDS[key], "%s.%s" % [where, key])
+	for key in ["hitbox", "offset", "slash_scale"]:
+		if entry.has(key):
+			_weapon_pair(entry[key], key, where)
+	var chain = entry.get("chain", [])
+	if not chain is Array or chain.is_empty() or chain.size() > 5:
+		_error("%s: chain is 1–5 steps" % where)
+		return
+	var own: bool = entry.get("id", "") == "sword"
+	for i in chain.size():
+		var step = chain[i]
+		var at := "%s.chain[%d]" % [where, i]
+		if not step is Dictionary:
+			_error("%s must be an object" % at)
+			continue
+		if not WEAPON_ANIMATIONS.has(step.get("animation", "")):
+			_error("%s: animation is a pose Elian has: %s" % [at, WEAPON_ANIMATIONS])
+		if not own:
+			for key in WEAPON_STEP_NEEDS:
+				if not step.has(key):
+					_error("%s: needs \"%s\" (only the sword's steps fall back on the hero's own)" % [at, key])
+		for key in WEAPON_STEP_BOUNDS:
+			if step.has(key):
+				_bounded(step[key], WEAPON_STEP_BOUNDS[key], "%s.%s" % [at, key])
+		if step.has("heavy") and not step.heavy is bool:
+			_error("%s.heavy is true or false" % at)
+		if step.has("arc") and not WEAPON_ARCS.has(step.arc):
+			_error("%s.arc is one of %s" % [at, WEAPON_ARCS])
+		for key in ["hitbox", "offset"]:
+			if step.has(key):
+				_weapon_pair(step[key], key, at)
+	var moves = entry.get("techniques", {})
+	if not moves is Dictionary:
+		_error("%s: techniques is an object of move -> overrides" % where)
+	else:
+		for move in moves:
+			if not move in ["lunge", "cleave", "sweep"] or not moves[move] is Dictionary:
+				_error("%s: techniques.%s: only lunge, cleave and sweep, each an object" % [where, move])
+				continue
+			for key in moves[move]:
+				if key in ["hitbox", "offset"]:
+					_weapon_pair(moves[move][key], key, "%s.techniques.%s" % [where, move])
+				elif key == "multiplier":
+					_bounded(moves[move][key], [0.2, 5.0], "%s.techniques.%s.multiplier" % [where, move])
+				elif key in WEAPON_STEP_BOUNDS:
+					_bounded(moves[move][key], WEAPON_STEP_BOUNDS[key], "%s.techniques.%s.%s" % [where, move, key])
+				else:
+					_error("%s.techniques.%s: unknown key %s" % [where, move, key])
+
+
+func _bounded(value, bounds: Array, label: String) -> void:
+	if not (value is float or value is int) or not is_finite(float(value)) \
+			or float(value) < float(bounds[0]) or float(value) > float(bounds[1]):
+		_error("%s must be a number in %s–%s" % [label, bounds[0], bounds[1]])
+
+
+## A hitbox is at most 96×64 and starts in front of the body; an offset keeps
+## the box near him; slash_scale stretches the drawn arc 0.4–2×.
+func _weapon_pair(pair, key: String, where: String) -> void:
+	if not pair is Array or pair.size() != 2 or not ((pair[0] is float or pair[0] is int) and (pair[1] is float or pair[1] is int)):
+		_error("%s.%s needs two numbers" % [where, key])
+		return
+	var x := float(pair[0])
+	var y := float(pair[1])
+	match key:
+		"hitbox":
+			if x < 8.0 or x > 96.0 or y < 8.0 or y > 64.0:
+				_error("%s.hitbox is 8–96 wide and 8–64 high" % where)
+		"offset":
+			if x < 0.0 or x > 60.0 or absf(y) > 40.0:
+				_error("%s.offset is 0–60 ahead and within 40 up or down" % where)
+		"slash_scale":
+			if x < 0.4 or x > 2.0 or y < 0.4 or y > 2.0:
+				_error("%s.slash_scale is 0.4–2 each way" % where)
+
+
+## The game must have the sword: every night's first weapon (Weapons.DEFAULT).
+func _check_weapons() -> void:
+	var ids: Array = _game_entries("weapons").map(func(w: Dictionary) -> String: return str(w.get("id", "")))
+	if not ids.has("sword"):
+		_error("weapons: the sword (Weapons.DEFAULT) is every night's first and must exist")
 
 
 func _check_player_actions() -> void:

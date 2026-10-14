@@ -53,10 +53,15 @@ func _ready() -> void:
 	column.add_child(_back)
 
 
-## Everything carried, in the order it came: gifts, then resonances, then
-## items. Each {kind, name, description, icon (a path or ""), color}.
+## Everything carried: the weapon in hand, then in the order it came: gifts,
+## then resonances, then items. Each {kind, name, description, icon (a path or ""), color}.
 static func entries() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
+	# what is in hand first (data/weapons): the chain every gift below rides on
+	var weapon := Weapons.spec(Game.weapon)
+	if not weapon.is_empty():
+		result.append({"kind": "weapon", "name": str(weapon.get("name", Game.weapon)),
+			"description": str(weapon.get("description", "")), "icon": str(weapon.get("icon", "")), "color": GOLD})
 	for ability in Game.abilities:
 		var path := str(ability.get("path", "will"))
 		result.append({"kind": "gift", "name": str(ability.get("name", "")),
@@ -81,7 +86,7 @@ func open() -> void:
 		list.remove_child(child)
 		child.queue_free()
 	var all := entries()
-	if all.is_empty():
+	if all.all(func(e: Dictionary) -> bool: return e.kind == "weapon"):  # a weapon, nothing given
 		var none := Label.new()
 		none.text = "CARRIED_NONE"
 		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

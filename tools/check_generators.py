@@ -16,6 +16,7 @@ So: run a generator, ask git whether anything moved, report, put it back.
     python3 tools/check_generators.py            # the quick ones
     python3 tools/check_generators.py --all      # including the slow ones
     python3 tools/check_generators.py --list
+    python3 tools/check_generators.py --local-drift   # on a Mac: see same_picture
 
 Exit code 1 if any generator's output differs from what is committed, which
 is either a broken generator or a file somebody edited by hand instead of
@@ -40,6 +41,8 @@ GENERATORS = [
      ["assets/props/altar_book.png"], False),
     ("blood altar", ["tools/art/make_blood_altar.py"],
      ["assets/props/blood_altar.png"], False),
+    ("weapon icons", ["tools/art/make_weapon_icons.py"],
+     ["assets/icons/weapons"], False),
     # The bestiary's strips, cut from the generated atlases, and the cell each
     # one writes into the archetype tree. About 30 seconds.
     ("bestiary strips", ["tools/art/build_bestiary_assets.py"],
@@ -82,6 +85,12 @@ GENERATORS = [
 ## FreeType rasterises glyphs differently between builds — and with those
 ## covers out of the list (see GENERATORS) nothing else needed it. A check
 ## that tolerates a little is a check that will one day tolerate a lot.
+##
+## So CI stays strict. On a Mac, though, the rooms' widened pictures come out
+## of Pillow's resampling a level apart here and there on every run, and a
+## local check that always fails is one nobody runs. `--local-drift` excuses
+## exactly that — no pixel more than 1 apart — and says how much it excused;
+## anything worse still fails. Never in CI.
 def same_picture(path):
     """None when the picture really changed, else why it only looks changed.
 
@@ -114,6 +123,8 @@ def same_picture(path):
     worst = int(delta.max())
     if worst == 0:
         return "zlib"
+    if worst == 1:
+        return "~%d pixel(s) one level apart" % int((delta.sum(2) > 0).sum())
     return "!%d pixel(s) differ, worst by %d" % (int((delta.sum(2) > 0).sum()), worst)
 
 
@@ -165,6 +176,8 @@ def main():
     parser.add_argument("--list", action="store_true", help="name them and stop")
     parser.add_argument("--keep", action="store_true",
                         help="leave any differences in the working tree to look at")
+    parser.add_argument("--local-drift", action="store_true",
+                        help="excuse pictures no pixel of which is more than 1 apart (a Mac's Pillow); never in CI")
     args = parser.parse_args()
 
     if args.list:
@@ -194,11 +207,13 @@ def main():
             failures.append("%s: exited %d" % (name, result.returncode))
             continue
         moved, extra = dirty(paths)
-        # A reason starting with "!" is not an excuse, it is a diagnosis.
+        # A reason starting with "!" is not an excuse, it is a diagnosis; one
+        # starting with "~" is an excuse only when asked for (--local-drift).
         excused = {m: same_picture(m) for m in moved}
         recompressed = [m for m, why in excused.items() if why == "zlib"]
+        drifted = [m for m, why in excused.items() if why and why.startswith("~") and args.local_drift]
         real = ["%s%s" % (m, "  (%s)" % why[1:] if why else "")
-                for m, why in excused.items() if why is None or why.startswith("!")]
+                for m, why in excused.items() if why is None or why[0] in "!~" and m not in drifted]
         if real:
             failures.append("%s: %d file(s) differ from what is committed:\n      %s"
                             % (name, len(real), "\n      ".join(real[:10])))
@@ -208,6 +223,9 @@ def main():
             print("    (%d PNG(s) identical in pixels, different in bytes — another "
                   "zlib: %s)" % (len(recompressed),
                                  ", ".join(os.path.basename(r) for r in recompressed[:3])))
+        if drifted:
+            print("    (%d picture(s) a level apart, excused by --local-drift: %s)"
+                  % (len(drifted), ", ".join(os.path.basename(d) for d in drifted[:3])))
         if extra:
             print("    (writes %d file(s) the repository does not keep: %s)"
                   % (len(extra), ", ".join(os.path.basename(e) for e in extra[:4])))
