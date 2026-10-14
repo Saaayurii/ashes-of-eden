@@ -506,8 +506,10 @@ def expand_painted_room(name, room):
         out["painted_cornices"] = True
         out["cornice_crop"] = (860, 458)
         # The return route is necessary, but bare stone shelves over lava
-        # looked pasted on. Tie each to the room's overhead masonry.
-        out["hanging_supports"] = {1: (295, 160), 2: (315, 315)}
+        # looked pasted on. The terrace hangs from the gallery return; that
+        # one is held by its cornice to the pillar on its left: nothing stands
+        # above it, and chains up to the room's top edge read as two lines.
+        out["hanging_supports"] = {1: (295, 160)}
         out["cornice_supports"] = {
             1: [(0, 10), (100, 10), (100, 20), (15, 40), (0, 60), (-25, 60), (-25, 52)],
             2: [(-55, 10), (85, 10), (85, 18), (24, 43), (-55, 48)],
