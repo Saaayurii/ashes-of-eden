@@ -3,6 +3,7 @@
   "name": "WEAPON_HEADSMAN",
   "description": "WEAPON_HEADSMAN_DESC",
   "icon": "res://assets/icons/weapons/headsman.png",
+  "frames": "headsman",
   "hitbox": [40, 40],
   "offset": [26, -8],
   "slash_scale": [1.25, 1.25],

@@ -3,6 +3,7 @@
   "name": "WEAPON_SPEAR",
   "description": "WEAPON_SPEAR_DESC",
   "icon": "res://assets/icons/weapons/spear.png",
+  "frames": "spear",
   "hitbox": [54, 16],
   "offset": [36, -6],
   "slash_scale": [1.35, 0.6],

@@ -20,6 +20,11 @@ const STEP_KEYS := ["animation", "multiplier", "recovery", "wind", "knockback", 
 ## The poses a step may be drawn with: frames Elian has (docs/WEAPONS.md).
 const ANIMATIONS := ["attack", "attack2", "attack3", "thrust", "rising", "dash_strike"]
 const ARCS := ["white", "gold", "red", "heavy", "path"]
+## The poses a weapon with `"frames"` must have drawn in elian_frames.tres as
+## <frames>_<pose> (make_weapon_frames.py): its chain's, and every one the body
+## may be put in with it in hand. Hurt, knockback and land are drawn too, but
+## optional — a missing one is the hero's own.
+const FRAMED := ["draw", "guard", "thrust", "rising", "dash_strike", "lunge", "charge", "cleave", "sweep"]
 
 
 static func spec(id: String) -> Dictionary:
@@ -29,6 +34,12 @@ static func spec(id: String) -> Dictionary:
 
 ## The weapon id a save or the network handed us, or the sword for one the
 ## game does not have (an old save, a pack without it).
+## The prefix of the weapon's own frames in elian_frames.tres (spear →
+## spear_attack, spear_guard …), or "" for one drawn with the hero's own.
+static func frames(id: String) -> String:
+	return str(spec(id).get("frames", ""))
+
+
 static func known(id: String) -> String:
 	return id if Data.weapons.has(id) else DEFAULT
 

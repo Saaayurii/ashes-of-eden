@@ -2168,6 +2168,11 @@ const WEAPON_BOUNDS := {"damage": [0.5, 2.0], "backstab": [0.0, 2.0], "poise": [
 const WEAPON_STEP_NEEDS := ["multiplier", "recovery", "knockback", "heavy"]
 const WEAPON_ANIMATIONS := ["attack", "attack2", "attack3", "thrust", "rising", "dash_strike"]
 const WEAPON_ARCS := ["white", "gold", "red", "heavy", "path"]
+## A weapon's own frames (`"frames"`, make_weapon_frames.py) must be drawn for
+## its chain's poses and for these, which any weapon in hand may be put in
+## (Weapons.FRAMED).
+const WEAPON_FRAMED := ["draw", "guard", "thrust", "rising", "dash_strike", "lunge", "charge", "cleave", "sweep"]
+const HERO_FRAMES := "res://assets/sprites/elian_frames.tres"
 
 
 func _check_weapon(entry: Dictionary, where: String) -> void:
@@ -2186,6 +2191,8 @@ func _check_weapon(entry: Dictionary, where: String) -> void:
 		_error("%s: chain is 1–5 steps" % where)
 		return
 	var own: bool = entry.get("id", "") == "sword"
+	if entry.has("frames"):
+		_check_weapon_frames(str(entry.frames), chain, where)
 	for i in chain.size():
 		var step = chain[i]
 		var at := "%s.chain[%d]" % [where, i]
@@ -2225,6 +2232,29 @@ func _check_weapon(entry: Dictionary, where: String) -> void:
 					_bounded(moves[move][key], WEAPON_STEP_BOUNDS[key], "%s.techniques.%s.%s" % [where, move, key])
 				else:
 					_error("%s.techniques.%s: unknown key %s" % [where, move, key])
+
+
+## Every pose the weapon's chain names, and every one the body may take with
+## it in hand, drawn as <frames>_<pose> in the hero's SpriteFrames.
+func _check_weapon_frames(prefix: String, chain: Array, where: String) -> void:
+	if prefix == "" or not prefix.is_valid_identifier():
+		_error("%s: frames is the prefix of its animations in %s (spear -> spear_attack)" % [where, HERO_FRAMES])
+		return
+	var hero = load(HERO_FRAMES)
+	if hero == null:
+		_error("%s: cannot load %s" % [where, HERO_FRAMES])
+		return
+	var poses: Array = WEAPON_FRAMED.duplicate()
+	for step in chain:
+		if step is Dictionary and not poses.has(str(step.get("animation", ""))):
+			poses.append(str(step.get("animation", "")))
+	for pose in poses:
+		var own := "%s_%s" % [prefix, pose]
+		if not hero.has_animation(own):
+			_error("%s: no \"%s\" in %s (tools/art/make_weapon_frames.py, build_elian_frames.py)" % [where, own, HERO_FRAMES])
+		elif hero.has_animation(pose) and hero.get_frame_count(own) != hero.get_frame_count(pose):
+			# a hit frame, a hold, the touch of a technique are counted in the hero's frames
+			_error("%s: %s has %d frames, %s has %d" % [where, own, hero.get_frame_count(own), pose, hero.get_frame_count(pose)])
 
 
 func _bounded(value, bounds: Array, label: String) -> void:
