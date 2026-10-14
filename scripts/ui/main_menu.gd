@@ -41,7 +41,10 @@ func _ready() -> void:
 	var picture := str(Data.game.get("menu", {}).get("background", ""))
 	if picture != "" and ResourceLoader.exists(picture):
 		($Layers/Background as Sprite2D).texture = load(picture)
-	BackdropLife.attach_picture($Layers/Background as Sprite2D, "main_menu")
+	var background := $Layers/Background as Sprite2D
+	var life := BackdropLife.attach_picture(background, "main_menu")
+	# held the way a room holds its picture, so the sky's lightning (menu_sky.gd) lights it too
+	set_meta(BackdropLife.META, {"painting": background, "materials": life})
 	_fit_layers()
 	get_viewport().size_changed.connect(_fit_layers)
 	_characters.assign([HERO])
