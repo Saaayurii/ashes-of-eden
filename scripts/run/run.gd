@@ -97,6 +97,8 @@ func _ready() -> void:
 	if Net.active or Game.daily != "" or not Data.has_night(Game.night):
 		Game.night = ""
 	Data.use_night(Game.night)
+	# what other nights left (game.json "flags_kept", docs/CAMPAIGN.md §5)
+	Campaign.lay(Game.flags)
 	Game.vial = Vials.for_new_night()
 	if Game.daily != "":
 		# the night of the day: its own vial and its own deal, the same for all
@@ -452,6 +454,7 @@ static func room_from_args(args: PackedStringArray) -> int:
 				if str(path).get_file().get_basename() == want:
 					Game.night = str(night.id)
 					Data.use_night(Game.night)
+					Campaign.relay(Game.flags)
 					return room_names().find(want)
 		push_warning("run: no room called '%s'. Try one of: %s" % [want, ", ".join(names)])
 	return -1
