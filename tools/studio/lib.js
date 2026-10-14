@@ -875,6 +875,9 @@ function spritePrompt(o) {
 
 // The animation that plays an enemy's slot: one named like it, or for the attack
 // any "attack…"/"shoot…" (the enemy wizard's rule).
+// The animations Enemy plays (scripts/enemies/enemy.gd; ANIMATIONS in validate_data.gd): idle and walk
+// loop, idle_to_walk plays once when it rises from rest into the walk.
+const ENEMY_ANIMATIONS = ['idle', 'walk', 'idle_to_walk', 'interact', 'attack', 'attack_alt', 'special', 'hurt', 'death'];
 function enemySlotFor(anims, slot) {
   return anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null;
 }
@@ -977,11 +980,20 @@ const overrideFiles = path => ({ edit: OVERRIDE_DIR + path, mask: OVERRIDE_DIR +
 // override cannot hold (a frame added past the strip, an animation the game does not have).
 // resizable: the game reads this character's strips from a file the studio may point elsewhere (the
 // archetype tree), so an animation with another number of frames is not an override but a strip of its
-// own — {resize: true, anim, name, res, w, h}, with no frame edits for it.
+// own — {resize: true, anim, name, res, w, h}, with no frame edits for it — and an animation the game
+// does not have yet, named as Enemy plays it (ENEMY_ANIMATIONS), is a new strip: {…, add: true, res: null}.
+// An animation she added and left empty is not sent.
 function frameEdits(anims, orig, resizable = false) {
   const out = [];
   for (const a of anims) {
-    const o = orig.find(x => x.id === a.id);
+    const o = orig.find(x => x.id === a.id) || orig.find(x => x.name && x.name === a.name);
+    if (!o && !a.frames.some(f => !f.off)) continue;
+    if (!o && resizable && ENEMY_ANIMATIONS.includes(a.name)) {
+      const [, , , w, h] = orig.find(x => (x.regions || []).length)?.regions[0] || [];
+      out.push({ resize: true, add: true, anim: a.id, name: a.name, res: null, w, h });
+      continue;
+    }
+    if (!o && resizable) throw new Error(`Анимацию «${a.name}» игра не знает. Назови её так, как её играет враг: ${ENEMY_ANIMATIONS.join(', ')}.`);
     if (!o) throw new Error(`Анимации «${a.name}» нет у этого персонажа в игре — новую анимацию добавляют новым персонажем.`);
     const n = (o.regions || []).length;
     if (resizable && n && a.frames.length !== n) {
@@ -1435,5 +1447,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
 })(typeof module !== 'undefined' ? module.exports : window);

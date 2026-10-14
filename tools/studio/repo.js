@@ -371,14 +371,15 @@ async function gameCharOverrides() {
   const strips = await resizedStrips(files, resized, orig.animations);
   const frames = edits.length, name = P.name;
   const parts = [frames ? `${frames} кадр(ов) в ${[...done, ...Object.keys(direct)].map(p => '`' + p + '`').join(', ')}` : '',
-    ...strips.map(s => `«${s.name}»: ${s.was} → ${s.now} кадр(ов), лента \`${s.path}\``)].filter(Boolean);
+    ...strips.map(s => s.was ? `«${s.name}»: ${s.was} → ${s.now} кадр(ов), лента \`${s.path}\`` : `«${s.name}» — новая анимация, ${s.now} кадр(ов), лента \`${s.path}\``)].filter(Boolean);
   return { files, title: `Studio: ${name} — ${[frames ? `правка ${frames} кадр(ов)` : '', ...strips.map(s => `${s.name} ${s.now} кадр(ов)`)].filter(Boolean).join(', ')}`,
     body: `Правка персонажа игры **${name}**: ${parts.join('; ')}.`,
     notes: [...done.length ? [`Картинки ${name} собирает генератор (${P.origin.generator}); правка лежит в tools/studio/overrides/, и генератор кладёт её поверх своей картинки. Робот студии пересоберёт их в этой же отправке.`] : [],
-      ...strips.length ? [`Анимации другой длины (${strips.map(s => s.name).join(', ')}) — свои ленты студии; data/enemy_archetypes/tree.json теперь указывает на них. Если у атаки задан hit_frame, проверь, что такой кадр есть (проверка данных скажет).`] : []] };
+      ...strips.length ? [`Анимации ${strips.map(s => s.name).join(', ')} — свои ленты студии; data/enemy_archetypes/tree.json теперь указывает на них${strips.some(s => !s.was) ? ' (новые добавлены строкой в sprite.animations)' : ''}. Если у атаки задан hit_frame, проверь, что такой кадр есть (проверка данных скажет).`] : []] };
 }
-// An animation of the bestiary with another number of frames than the game's: the whole strip, written
-// as a file of the studio's own (a generator never writes it), and the archetype tree pointed at it.
+// An animation of the bestiary with another number of frames than the game's, or one it does not have
+// yet (idle_to_walk): the whole strip, written as a file of the studio's own (a generator never writes
+// it), and the archetype tree pointed at it — a new animation is a new line in its sprite.animations.
 // → [{name, was, now, path}]
 async function resizedStrips(files, resized, origAnims) {
   if (!resized.length) return [];
@@ -393,10 +394,11 @@ async function resizedStrips(files, resized, origAnims) {
     const sheet = mk(W * fr.length, H), sx = sheet.getContext('2d');
     fr.forEach((f, i) => sx.drawImage(processed.get(f.id), i * W, 0));
     // a strip the studio already made for it is written again; the generator's own is left alone
-    const was = r.res.replace('res://', ''), path = gen.has(was) ? `assets/sprites/${slug(P.id)}_studio_${slug(r.name)}.png` : was;
+    const was = r.res ? r.res.replace('res://', '') : '', own = `assets/sprites/${slug(P.id)}_studio_${slug(r.name)}.png`;
+    const path = !was || gen.has(was) ? own : was;
     files[path] = await canvasBlob(sheet);
     if (path !== was) text = patchJson(text, [at, 'sprite', 'animations'], { [r.name]: 'res://' + path });
-    out.push({ name: r.name, was: origAnims.find(x => x.id === r.anim).regions.length, now: fr.length, path });
+    out.push({ name: r.name, was: r.add ? 0 : origAnims.find(x => x.id === r.anim).regions.length, now: fr.length, path });
   }
   files[TREE] = text;
   return out;
@@ -736,7 +738,7 @@ async function wavOf(blobOrUrl) {
 }
 
 /* ---------- a character becomes an enemy: data/enemies/<id>.json that extends one the game has ---------- */
-const ENEMY_SLOTS = [['idle', 'покой (обязательно)'], ['walk', 'ходьба'], ['attack', 'атака'], ['attack_alt', 'вторая атака'], ['special', 'особое'], ['hurt', 'боль'], ['death', 'смерть']];
+const ENEMY_SLOTS = [['idle', 'покой (обязательно)'], ['walk', 'ходьба'], ['idle_to_walk', 'покой → ходьба (один раз)'], ['attack', 'атака'], ['attack_alt', 'вторая атака'], ['special', 'особое'], ['hurt', 'боль'], ['death', 'смерть']];
 const BEHAVIOUR_RU = { walker: 'ходит и бьёт', flyer: 'летает', caster: 'держит дистанцию и колдует' };
 let enemyList = null;
 async function enemyWizard() {

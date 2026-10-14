@@ -461,7 +461,8 @@ test('frameEdits keeps untouched frames out and finds a replaced frame and a tou
   assert.equal(e[1].whole, true); assert.equal(e[1].x, 64);
   mine[0].frames.push({ id: 'x', src: 'y' });
   assert.throws(() => L.frameEdits(mine, orig), /не удлинять/);
-  assert.throws(() => L.frameEdits([{ id: 'cultist_fly', name: 'fly', frames: [] }], orig), /новым персонажем/);
+  assert.throws(() => L.frameEdits([{ id: 'cultist_fly', name: 'fly', frames: [{ id: 'f', src: 'n' }] }], orig), /новым персонажем/);
+  assert.deepEqual(L.frameEdits([{ id: 'cultist_fly', name: 'fly', frames: [] }], orig), [], 'an animation she added and left empty is not sent');
 });
 
 test('frameEdits hands a bestiary animation of another length over whole, longer or shorter', () => {
@@ -473,6 +474,22 @@ test('frameEdits hands a bestiary animation of another length over whole, longer
     assert.deepEqual(e, [{ resize: true, anim: 'cultist_idle', name: 'idle', res: 'res://assets/sprites/cultist_v2_idle.png', w: 32, h: 40 }], `${n} frames`);
   }
   assert.equal(L.frameEdits([{ id: 'cultist_idle', name: 'idle', frames: frames(3) }], orig, true).some(e => e.resize), false, 'the same length stays an override');
+});
+
+test('frameEdits hands a bestiary character an animation the game does not have yet as a new strip', () => {
+  const orig = [{ id: 'shade_idle', name: 'idle', frames: [0, 1].map(i => ({ id: `shade_idle_${i}`, src: `s${i}` })),
+    regions: [0, 1].map(i => ['res://assets/sprites/shade_studio_idle.png', i * 132, 0, 132, 88]) }];
+  const frames = n => [...Array(n)].map((_, i) => ({ id: `f${i}`, src: `n${i}` }));
+  assert.deepEqual(L.frameEdits([{ id: 'p_rise', name: 'idle_to_walk', frames: frames(9) }], orig, true),
+    [{ resize: true, add: true, anim: 'p_rise', name: 'idle_to_walk', res: null, w: 132, h: 88 }], 'any number of frames, the cell of the game');
+  assert.throws(() => L.frameEdits([{ id: 'p_x', name: 'swing', frames: frames(3) }], orig, true), /idle_to_walk/, 'a name Enemy does not play is refused, naming the ones it does');
+  assert.throws(() => L.frameEdits([{ id: 'p_rise', name: 'idle_to_walk', frames: frames(3) }], orig), /новым персонажем/, 'the hero (no archetype tree) still cannot grow one');
+  assert.equal(L.frameEdits([{ id: 'other_id', name: 'idle', frames: frames(2) }], orig, true).some(e => e.add), false, 'an animation the game has, found by its name');
+});
+
+test('the studio knows the animations Enemy plays as the validator does', () => {
+  const gd = fs.readFileSync(path.join(__dirname, '../../../scripts/tools/validate_data.gd'), 'utf8');
+  assert.deepEqual(JSON.parse(gd.match(/^const ANIMATIONS := (\[.*\])$/m)[1]), L.ENEMY_ANIMATIONS);
 });
 
 test('an override is her picture, its mask and a manifest line the Python side reads', () => {
