@@ -35,6 +35,8 @@ WALLS = {
     "catacombs": ("catacombs_2", (1058, 575, 1098, 688), 64, 100, 7),
     "village": ("graveyard_moon", (1085, 560, 1135, 640), 48, 72, 11),
     "swamp": ("swamp_crypt", (600, 330, 640, 420), 52, 76, 5),
+    # Tyre (docs/CHAPTER4_ART.md §4.7): the bricked arch inside the counting house's cage
+    "tyre_counting": ("tyre_counting_house", (158, 175, 200, 250), 48, 84, 13),
 }
 GLOW = (255, 204, 120)
 

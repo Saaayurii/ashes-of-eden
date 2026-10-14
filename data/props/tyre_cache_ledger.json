@@ -1,6 +1,6 @@
 {
   "id": "tyre_cache_ledger",
-  "_art": "a chest left in a corner of the painting; a bricked-up wall over it once make_secret_walls.py cuts one",
+  "_art": "behind the bricked arch in the counting house's cage (secret_wall_tyre_counting)",
   "kind": "chest",
   "essence": 30,
   "ash": 15,

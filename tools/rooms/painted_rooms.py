@@ -717,7 +717,7 @@ PAINTED = {
         spawns=[("tyre_guard", 520, 562), ("tyre_guard", 820, 562), ("debt_wraith", 600, 250),
                 ("debt_wraith", 1000, 200), ("tyre_treasurer", 700, 562)],
         props=[("tyre_lamp", 470, 574), ("tyre_lamp", 760, 574), ("tyre_lamp", 1110, 574),
-               ("tyre_cache_ledger", 250, 260)],
+               ("secret_wall_tyre_counting", 179, 260)],
         decor=[], npcs=[], ambient="#c8bca8", lights="auto",
         player=(60, 554), door=(1215, 542)),
     "tyre_dark_quarter": dict(
