@@ -1,0 +1,14 @@
+{
+  "id": "the_four_bound",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.5},
+    {"do": "camera", "to": "boss", "zoom": 1.1, "time": 1.4},
+    {"do": "fx", "kind": "light", "at": "boss", "offset": [0, -30], "color": "#cfe6ff", "radius": 90, "time": 2.0, "energy": 0.9},
+    {"do": "dialogue", "id": "ch6_bound", "cast": {"SPEAKER_BOUND_HOUR": "boss", "SPEAKER_BOUND_DAY": "boss", "SPEAKER_BOUND_MONTH": "boss", "SPEAKER_BOUND_YEAR": "boss", "SPEAKER_ELIAN": "player"}, "zoom": 1.2},
+    {"do": "title", "name": "ENEMY_FOUR_BOUND", "subtitle": "BOSS_EPITHET_FOUR_BOUND", "time": 2.4, "sound": "boss_ophanim", "volume": -8},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.8},
+    {"do": "letterbox", "on": false, "time": 0.4},
+    {"do": "release"}
+  ]
+}

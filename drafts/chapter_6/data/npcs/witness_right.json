@@ -1,0 +1,20 @@
+{
+  "id": "witness_right",
+  "_art": "stand-in body (severin); lying in the street, own sheet in docs/CHAPTER6_ART.md",
+  "name": "SPEAKER_REVELLER",
+  "dialogue": "npc_euphrates_silent",
+  "scripted": true,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/severin_v2_idle.png",
+      "walk": "res://assets/sprites/severin_v2_walk.png",
+      "interact": "res://assets/sprites/severin_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 1
+  }
+}

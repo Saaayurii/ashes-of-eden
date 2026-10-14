@@ -2195,6 +2195,8 @@ func _check_nights(game: Dictionary) -> void:
 		for path in night.get("rooms", []):
 			owner[str(path)] = str(night.id)
 	for fork in _game_entries("forks"):
+		if fork.has("_draft"):
+			continue  # a draft's rooms join a night when their paintings do
 		var in_nights := {}
 		for path in [fork.get("after", ""), fork.get("then", "")] + (fork.get("options", {}) as Dictionary).values():
 			in_nights[owner.get(str(path), "?")] = true
