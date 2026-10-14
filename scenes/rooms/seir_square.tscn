@@ -229,6 +229,11 @@ position = Vector2(1500, 351)
 script = ExtResource("5_spawn")
 enemy_id = "cult_caller"
 
+[node name="Spawn7" type="Marker2D" parent="Spawns"]
+position = Vector2(580, 565)
+script = ExtResource("5_spawn")
+enemy_id = "wailer"
+
 [node name="PlayerSpawn" type="Marker2D" parent="."]
 position = Vector2(55, 557)
 

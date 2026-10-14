@@ -60,7 +60,7 @@ class LivingBackdrops(unittest.TestCase):
     def test_all_attack_types_and_frame_counts_are_available_to_the_actions_editor(self):
         shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
         types = {a["type"] for r in shots["roster"] for a in r["source"]["items"]}
-        self.assertEqual(types, {"melee", "lunge", "ranged", "beam", "nova", "summon"})
+        self.assertEqual(types, {"melee", "lunge", "ranged", "beam", "nova", "summon", "wail"})
         villager = next(r for r in shots["roster"] if r["id"] == "possessed_villager")
         self.assertEqual(villager["source"]["file"], "data/enemy_archetypes/tree.json")
         cry = villager["source"]["items"][2]

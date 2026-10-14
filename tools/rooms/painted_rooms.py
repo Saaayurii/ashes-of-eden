@@ -572,13 +572,14 @@ PAINTED = {
         decor=[], npcs=[], ambient="#c4bcb8", lights="auto",
         player=(40, 525), door=(1215, 513)),
     "seir_street": dict(
-        # A street of doorsteps over the canal, a waiter on each; two shades in
-        # the windows above are the only ones who move.
+        # A street of doorsteps over the canal, a waiter on each, and the
+        # wailer among them; two shades in the windows above are the only ones who move.
         painting="seir_street", width=1280, height=720, weather="ash", fog=0.18, intro="", music="village_night", void_kill_y=690,
         quiet_outro="seir_street_left_waiting",  # nobody woken on the way through
         ground=[(0, 535, 1280, 185)],
         spawns=[("waiting_townsman", 50, 523), ("waiting_townsman", 165, 523), ("waiting_townsman", 565, 523),
                 ("waiting_townsman", 660, 523), ("waiting_townsman", 905, 523), ("waiting_townsman", 1010, 523),
+                ("wailer", 780, 523),  # wake her and the street's doorsteps rise with her
                 ("shade", 300, 230), ("shade", 1000, 230)],
         props=[("barrel", 290, 535), ("pot", 760, 535)],
         decor=[], npcs=[], ambient="#bcc0cc", lights="auto",
@@ -592,7 +593,8 @@ PAINTED = {
         ledges=[(482, 527, 281, 12), (607, 487, 61, 10), (860, 362, 180, 14), (1097, 363, 143, 14)],
         ramps=[(885, 362, 1130, 577)],
         spawns=[("waiting_townsman", 200, 565), ("waiting_townsman", 330, 565), ("waiting_townsman", 520, 515),
-                ("waiting_townsman", 1180, 565), ("waiting_townsman", 800, 565), ("cult_caller", 1180, 351)],
+                ("waiting_townsman", 1180, 565), ("waiting_townsman", 800, 565), ("cult_caller", 1180, 351),
+                ("wailer", 420, 565)],
         props=[("pot", 150, 577), ("barrel", 1220, 363)],
         decor=[], npcs=[("jonah", 960, 362)], ambient="#c0bccc", lights="auto",
         player=(55, 557), door=(1235, 545)),
