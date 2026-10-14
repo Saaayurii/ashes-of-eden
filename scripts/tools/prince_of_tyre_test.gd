@@ -82,16 +82,19 @@ func _run() -> void:
 	await _settle(0.6)
 	_check(not prince.get_meta("doused", false), "above half he has not put the room out")
 	prince.hp = prince._max_hp * 0.49
-	await _settle(0.4)
-	_check(prince.get_meta("doused", false), "at half he raises his palm")
+	var raised := 0.0
+	while not prince.get_meta("doused", false) and raised < 4.0:  # a blow under way ends first
+		await physics_frame
+		raised += 1.0 / 60.0
+	_check(prince.get_meta("doused", false), "at half he raises his palm (%.1f s)" % raised)
 	_check(not dark.doused, "the wind-up comes first: the room is still lit")
 	_check(bought.lit, "and the lamp still burns over it")
 	var waited := 0.0
 	while not dark.doused and waited < 4.0:
 		await _settle(0.1)
 		waited += 0.1
-	_check(dark.doused, "then the room goes out (after %.1f s)" % (waited + 0.4))
-	_check(waited + 0.4 >= float(phase.windup) - 0.15, "no sooner than the wind-up")
+	_check(dark.doused, "then the room goes out (after %.1f s)" % waited)
+	_check(waited >= float(phase.windup) - 0.15, "no sooner than the wind-up")
 	_check(is_equal_approx(dark.dark, float(phase.dark)), "it sinks to %.2f" % dark.dark)
 	_check(not bought.lit and not game.lamps_lit.has(bought.key()), "the bought lamp is out")
 	var out := true
