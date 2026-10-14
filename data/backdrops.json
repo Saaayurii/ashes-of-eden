@@ -12,7 +12,8 @@
     "hell": {"flame": 0.22, "flame_floor": 0.82},
     "dawn": {"flame": 0.45, "flame_floor": 0.74},
     "dusk": {"flame": 0.45, "flame_floor": 0.8},
-    "harbour": {"flame": 0.5, "flame_floor": 0.6}
+    "harbour": {"flame": 0.5, "flame_floor": 0.6},
+    "hall": {"flame": 0.25, "flame_floor": 0.88}
   },
   "rooms": {
     "prolog_1_walk_a": {"family": "dusk", "zones": []},
@@ -448,6 +449,132 @@
       {"kind": "sway", "rect": [0, 0, 80, 230]},
       {"kind": "sway", "rect": [1520, 0, 60, 230]},
       {"kind": "stars", "rect": [140, 40, 1060, 150]}
+    ]},
+    "hall_elders_stair": {"family": "hall", "zones": [
+      {"kind": "glow", "rect": [1280, 40, 320, 110], "tint": "#ffe08a", "strength": 0.14, "speed": 0.45},
+      {"kind": "glow", "rect": [560, 250, 500, 90], "tint": "#ffe08a", "strength": 0.1, "speed": 0.5},
+      {"kind": "haze", "rect": [900, 0, 500, 110], "strength": 0.45},
+      {"kind": "stars", "rect": [140, 30, 560, 380], "strength": 0.4}
+    ]},
+    "hall_outer_court": {"family": "hall", "zones": [
+      {"kind": "haze", "rect": [120, 160, 1380, 360], "strength": 0.5},
+      {"kind": "falls", "rect": [560, 360, 60, 160]},
+      {"kind": "sway", "rect": [80, 40, 40, 260], "strength": 1.2, "speed": 0.8},
+      {"kind": "sway", "rect": [240, 40, 40, 260], "strength": 1.2, "speed": 0.9},
+      {"kind": "sway", "rect": [480, 40, 40, 260], "strength": 1.2, "speed": 0.85},
+      {"kind": "sway", "rect": [720, 40, 40, 260], "strength": 1.2, "speed": 0.8},
+      {"kind": "sway", "rect": [880, 40, 40, 260], "strength": 1.2, "speed": 0.9},
+      {"kind": "sway", "rect": [1180, 40, 40, 260], "strength": 1.2, "speed": 0.85},
+      {"kind": "sway", "rect": [1470, 40, 40, 260], "strength": 1.2, "speed": 0.8}
+    ]},
+    "hall_measured_temple": {"family": "hall", "zones": [
+      {"kind": "glow", "rect": [0, 490, 1600, 30], "tint": "#ffd27a", "strength": 0.14, "speed": 0.4},
+      {"kind": "haze", "rect": [60, 40, 1500, 420], "strength": 0.35},
+      {"kind": "glow", "rect": [700, 400, 200, 80], "tint": "#ffe9b0", "strength": 0.1, "speed": 0.5}
+    ]},
+    "hall_gallery_of_lamps": {"family": "hall", "zones": [
+      {"kind": "glow", "rect": [100, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.6},
+      {"kind": "glow", "rect": [260, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.55},
+      {"kind": "glow", "rect": [445, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.65},
+      {"kind": "glow", "rect": [630, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.5},
+      {"kind": "glow", "rect": [770, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.6},
+      {"kind": "glow", "rect": [905, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.55},
+      {"kind": "glow", "rect": [1090, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.6},
+      {"kind": "glow", "rect": [1280, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.5},
+      {"kind": "glow", "rect": [1440, 60, 60, 150], "tint": "#ffd890", "strength": 0.16, "speed": 0.65},
+      {"kind": "pulse", "rect": [0, 0, 1600, 90], "strength": 0.4}
+    ]},
+    "hall_sea_of_glass": {"family": "hall", "zones": [
+      {"kind": "water", "rect": [0, 520, 1600, 90], "floor": 0.55},
+      {"kind": "glow", "rect": [500, 0, 600, 260], "tint": "#fff4d8", "strength": 0.1, "speed": 0.4},
+      {"kind": "haze", "rect": [100, 180, 1400, 260], "strength": 0.3}
+    ]},
+    "hall_archive": {"family": "hall", "zones": [
+      {"kind": "glow", "rect": [1150, 290, 40, 50], "tint": "#ffd890", "strength": 0.2, "speed": 0.6},
+      {"kind": "haze", "rect": [660, 0, 380, 140], "strength": 0.5},
+      {"kind": "glow", "rect": [660, 0, 380, 140], "tint": "#fff4d8", "strength": 0.1, "speed": 0.35},
+      {"kind": "sway", "rect": [140, 250, 60, 40], "strength": 0.6, "speed": 1.0},
+      {"kind": "sway", "rect": [480, 250, 60, 40], "strength": 0.6, "speed": 1.1},
+      {"kind": "sway", "rect": [760, 280, 60, 40], "strength": 0.6, "speed": 0.9},
+      {"kind": "sway", "rect": [1100, 250, 60, 40], "strength": 0.6, "speed": 1.0}
+    ]},
+    "hall_stones_of_fire": {"family": "hall", "zones": [
+      {"kind": "lava", "rect": [0, 495, 1600, 40], "strength": 0.5, "speed": 0.7},
+      {"kind": "glow", "rect": [160, 440, 240, 120], "tint": "#ffcf7a", "strength": 0.12, "speed": 0.5},
+      {"kind": "glow", "rect": [680, 440, 220, 120], "tint": "#ffcf7a", "strength": 0.12, "speed": 0.55},
+      {"kind": "glow", "rect": [1190, 440, 300, 120], "tint": "#ffcf7a", "strength": 0.12, "speed": 0.5},
+      {"kind": "haze", "rect": [100, 30, 1400, 420], "strength": 0.4}
+    ]},
+    "hall_ark_sanctum": {"family": "hall", "zones": [
+      {"kind": "sway", "rect": [640, 0, 120, 520], "anchor": "hangs", "strength": 1.0, "speed": 0.6},
+      {"kind": "sway", "rect": [850, 0, 100, 520], "anchor": "hangs", "strength": 1.0, "speed": 0.65},
+      {"kind": "glow", "rect": [760, 440, 180, 90], "tint": "#fff0c8", "strength": 0.18, "speed": 0.4},
+      {"kind": "pulse", "rect": [600, 0, 400, 560], "strength": 0.4},
+      {"kind": "stars", "rect": [190, 30, 340, 250], "strength": 0.5},
+      {"kind": "stars", "rect": [1070, 30, 340, 250], "strength": 0.5},
+      {"kind": "glow", "rect": [190, 30, 340, 250], "tint": "#a8b8ff", "strength": 0.1, "speed": 0.7},
+      {"kind": "glow", "rect": [1070, 30, 340, 250], "tint": "#a8b8ff", "strength": 0.1, "speed": 0.75}
+    ]},
+    "hall_thunders": {"family": "hall", "zones": [
+      {"kind": "haze", "rect": [170, 0, 340, 390], "strength": 0.5},
+      {"kind": "haze", "rect": [1100, 0, 400, 540], "strength": 0.5},
+      {"kind": "haze", "rect": [600, 0, 200, 300], "strength": 0.4},
+      {"kind": "stars", "rect": [170, 0, 340, 390], "strength": 0.5},
+      {"kind": "stars", "rect": [1100, 0, 400, 540], "strength": 0.5},
+      {"kind": "pulse", "rect": [0, 0, 1600, 560], "strength": 0.35}
+    ]},
+    "hall_hail_gallery": {"family": "hall", "zones": [
+      {"kind": "haze", "rect": [0, 0, 1500, 300], "strength": 0.5},
+      {"kind": "haze", "rect": [0, 300, 1500, 260], "strength": 0.45},
+      {"kind": "falls", "rect": [0, 470, 180, 90]}
+    ]},
+    "hall_flaming_way": {"family": "hall", "zones": [
+      {"kind": "falls", "rect": [50, 450, 60, 100]},
+      {"kind": "water", "rect": [40, 540, 240, 40], "floor": 0.4},
+      {"kind": "glow", "rect": [240, 470, 1250, 60], "tint": "#ffd890", "strength": 0.14, "speed": 0.55},
+      {"kind": "glow", "rect": [60, 150, 180, 100], "tint": "#ffd890", "strength": 0.12, "speed": 0.5},
+      {"kind": "glow", "rect": [1030, 360, 440, 80], "tint": "#ffd890", "strength": 0.12, "speed": 0.5}
+    ]},
+    "hall_eden_gate": {"family": "hall", "flame": 0.5, "zones": [
+      {"kind": "haze", "rect": [1200, 0, 400, 600], "strength": 0.55},
+      {"kind": "glow", "rect": [1200, 40, 400, 560], "tint": "#ffb060", "strength": 0.16, "speed": 0.6},
+      {"kind": "lava", "rect": [1200, 40, 400, 560], "strength": 0.6, "speed": 1.2},
+      {"kind": "sway", "rect": [200, 60, 50, 230], "anchor": "hangs", "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [680, 60, 50, 230], "anchor": "hangs", "strength": 1.0, "speed": 0.85},
+      {"kind": "sway", "rect": [840, 60, 50, 230], "anchor": "hangs", "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [1090, 60, 50, 230], "anchor": "hangs", "strength": 1.0, "speed": 0.9},
+      {"kind": "sway", "rect": [180, 360, 1000, 250], "anchor": "stands", "strength": 0.6, "speed": 0.7}
+    ]},
+    "ch7_garden_dawn": {"family": "dawn", "zones": [
+      {"kind": "falls", "rect": [1080, 560, 160, 90]},
+      {"kind": "water", "rect": [1000, 620, 450, 170], "floor": 0.3},
+      {"kind": "haze", "rect": [300, 450, 1300, 200], "strength": 0.5},
+      {"kind": "sway", "rect": [500, 40, 800, 420], "anchor": "stands", "strength": 0.5, "speed": 0.6},
+      {"kind": "glow", "rect": [1220, 330, 160, 120], "tint": "#ffd8a0", "strength": 0.14, "speed": 0.35}
+    ]},
+    "ch7_end_heaven": {"family": "dawn", "zones": [
+      {"kind": "falls", "rect": [1430, 200, 60, 160]},
+      {"kind": "water", "rect": [1350, 620, 320, 160], "floor": 0.3},
+      {"kind": "haze", "rect": [700, 420, 900, 200], "strength": 0.5},
+      {"kind": "sway", "rect": [0, 0, 700, 420], "anchor": "stands", "strength": 0.5, "speed": 0.6},
+      {"kind": "glow", "rect": [1300, 280, 140, 100], "tint": "#ffd8a0", "strength": 0.14, "speed": 0.35}
+    ]},
+    "ch7_end_abyss": {"family": "dawn", "zones": [
+      {"kind": "haze", "rect": [600, 500, 800, 200], "strength": 0.55},
+      {"kind": "glow", "rect": [900, 580, 140, 120], "tint": "#ffc890", "strength": 0.14, "speed": 0.35},
+      {"kind": "sway", "rect": [0, 0, 500, 450], "anchor": "stands", "strength": 0.5, "speed": 0.6},
+      {"kind": "sway", "rect": [1300, 100, 372, 400], "anchor": "stands", "strength": 0.5, "speed": 0.65}
+    ]},
+    "ch7_end_man": {"family": "dawn", "zones": [
+      {"kind": "haze", "rect": [100, 600, 1500, 250], "strength": 0.5},
+      {"kind": "glow", "rect": [700, 0, 600, 250], "tint": "#ffe2c0", "strength": 0.08, "speed": 0.3},
+      {"kind": "sway", "rect": [0, 0, 700, 250], "anchor": "stands", "strength": 0.5, "speed": 0.6}
+    ]},
+    "ch7_end_fourth": {"family": "dawn", "zones": [
+      {"kind": "sway", "rect": [990, 140, 60, 180], "anchor": "hangs", "strength": 1.2, "speed": 0.5},
+      {"kind": "sway", "rect": [0, 0, 1600, 330], "anchor": "stands", "strength": 0.5, "speed": 0.6},
+      {"kind": "haze", "rect": [0, 560, 1672, 180], "strength": 0.5},
+      {"kind": "glow", "rect": [1120, 650, 120, 100], "tint": "#ffd8a0", "strength": 0.14, "speed": 0.35}
     ]}
   }
 }

@@ -46,27 +46,23 @@
       32,
       32
     ],
-    "head_at": [
-      6,
-      -62
-    ],
     "face": "man"
   },
   "turns": [
     {
       "at_hp": 0.75,
       "face": "lion",
-      "caption": "DLG_CH7_CHERUB_LION"
+      "caption": "ch7_cherub_lion"
     },
     {
       "at_hp": 0.5,
       "face": "ox",
-      "caption": "DLG_CH7_CHERUB_OX"
+      "caption": "ch7_cherub_ox"
     },
     {
       "at_hp": 0.25,
       "face": "eagle",
-      "caption": "DLG_CH7_CHERUB_EAGLE"
+      "caption": "ch7_cherub_eagle"
     }
   ],
   "attacks": [

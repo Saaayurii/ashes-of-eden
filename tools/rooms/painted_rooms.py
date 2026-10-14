@@ -753,7 +753,7 @@ PAINTED = {
     "hall_sea_of_glass": dict(
         # The sea of glass like crystal (the temple's fork): the floor is a
         # mirror and the reflections stand up out of it.
-        painting="hall_sea_of_glass", width=1280, height=720, weather="none", fog=0.08, intro="ch7_glass_intro",
+        painting="hall_sea_of_glass", width=1280, height=720, weather="none", fog=0.08, intro="",
         music="arena", void_kill_y=700,
         ground=[(0, 520, 1280, 200)],
         ledges=[(445, 385, 390, 12)],

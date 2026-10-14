@@ -30,6 +30,10 @@
           {
             "flag": "weighed_level",
             "next": "w_level"
+          },
+          {
+            "flag": "weighed_none",
+            "next": "w_none"
           }
         ],
         "next": "w_none"
@@ -418,17 +422,6 @@
       "c1": {
         "speaker": "SPEAKER_NARRATOR",
         "text": "DLG_CH7_TEMPLE_INTRO"
-      }
-    }
-  },
-  {
-    "id": "ch7_glass_intro",
-    "blocking": false,
-    "start": "c1",
-    "nodes": {
-      "c1": {
-        "speaker": "SPEAKER_NARRATOR",
-        "text": "DLG_CH7_GLASS_INTRO"
       }
     }
   },

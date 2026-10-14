@@ -472,6 +472,86 @@
           "count": 6
         }
       ]
+    },
+    "page_gold": {
+      "sheet": "res://assets/sprites/projectiles/cult_page_studio.png",
+      "frames": 4,
+      "fps": 11,
+      "shader": 3,
+      "scale": 0.42,
+      "trail": 9,
+      "light": 18,
+      "bob": [
+        1.4,
+        28
+      ],
+      "wiggle": [
+        0.1,
+        14
+      ],
+      "echo": {
+        "offset": 14,
+        "sway": [
+          3,
+          22
+        ],
+        "color": "#ffe9a8",
+        "alpha": 0.35,
+        "scale": 0.6
+      },
+      "burst": [
+        {
+          "fx": "sparkle",
+          "color": "#fff0c8",
+          "count": 8,
+          "size": 4
+        },
+        {
+          "fx": "debris",
+          "color": "#d8b878",
+          "count": 5
+        }
+      ]
+    },
+    "hail": {
+      "sheet": "res://assets/sprites/projectiles/zealot_flight_v3.png",
+      "frames": 4,
+      "fps": 15,
+      "shader": 1,
+      "scale": 0.7,
+      "squash": [
+        0.5,
+        0.05,
+        18
+      ],
+      "pulse": 0.02,
+      "bob": [
+        0,
+        0
+      ],
+      "light": 10,
+      "echo": {
+        "offset": 16,
+        "sway": [
+          0,
+          0
+        ],
+        "color": "#eef6ff",
+        "alpha": 0.3,
+        "scale": 0.7
+      },
+      "burst": [
+        {
+          "fx": "debris",
+          "color": "#dfe8f0",
+          "count": 9
+        },
+        {
+          "fx": "spark",
+          "color": "#eef6ff",
+          "count": 5
+        }
+      ]
     }
   }
 }

@@ -197,6 +197,14 @@ var _hex_left := 0.0
 var _hex_bonus := 0.0
 ## A training dummy's quiet time left before it is whole again.
 var _dummy_rest := 0.0
+## A reflection's rules (scripts/enemies/mirror.gd), null for every other body.
+var _mirror: Mirror
+## The cherub's head (scripts/enemies/cherub_faces.gd), null without "faces".
+var _faces: CherubFaces
+## How many of "turns" have been taken.
+var _turned := 0
+var _hail_marks: Array[Node2D] = []
+var _arc: Line2D
 var _ward: Line2D
 
 @onready var body: ColorRect = $Body
@@ -313,6 +321,8 @@ func _ready() -> void:
 	# one that waits (chapter II) is never awake until struck, a boss included
 	aware = start_aware or (not waits() and (bool(stats.get("aware", false)) or bool(stats.get("boss", false))))
 	state = State.CHASE if aware else State.PATROL
+	if stats.has("mirror"):
+		_mirror = Mirror.attach(self)
 	if Net.active:
 		_simulated = multiplayer.is_server()
 		set_physics_process(_simulated)
@@ -477,7 +487,24 @@ func _setup_sprite(spec: Dictionary) -> void:
 	if spec.has("cell"):
 		cell = Vector2i(int(spec.cell[0]), int(spec.cell[1]))
 	var fps := float(spec.get("fps", 6))
-	if spec.has("animations"):
+	if spec.get("frames") is String:
+		# a whole SpriteFrames (a reflection wears Elian's own): its animations
+		# by name, "anim_map" lending one under another's name (special → cleave)
+		var given := load(str(spec.frames)) as SpriteFrames
+		if given != null:
+			frames = given.duplicate(true) as SpriteFrames
+			for anim in frames.get_animation_names():
+				_has_anim[str(anim)] = true
+			var lent: Dictionary = spec.get("anim_map", {})
+			for anim in lent:
+				if frames.has_animation(str(lent[anim])) and not frames.has_animation(str(anim)):
+					frames.add_animation(str(anim))
+					frames.set_animation_speed(str(anim), frames.get_animation_speed(str(lent[anim])))
+					frames.set_animation_loop(str(anim), false)
+					for i in frames.get_frame_count(str(lent[anim])):
+						frames.add_frame(str(anim), frames.get_frame_texture(str(lent[anim]), i))
+					_has_anim[str(anim)] = true
+	elif spec.has("animations"):
 		for anim in spec.animations:
 			var loop: bool = anim in ["idle", "walk", "special"]
 			if Fx.add_strip(frames, spec.animations[anim], cell, fps, anim, loop):
@@ -499,6 +526,16 @@ func _setup_sprite(spec: Dictionary) -> void:
 	sprite.position.y += float(spec.get("pad_y", 0)) * art_scale
 	if spec.has("tint"):
 		sprite.self_modulate = Color(str(spec.tint))
+	if spec.has("glass"):
+		# glass: the grace mark's edge light on the silhouette (alignment_marks), no new art
+		var shader_material := ShaderMaterial.new()
+		shader_material.shader = Player.MARKS_SHADER
+		shader_material.set_shader_parameter("mode", 0)
+		shader_material.set_shader_parameter("strength", clampf(float(spec.glass), 0.0, 1.0))
+		shader_material.set_shader_parameter("tint", Color("#fff0c8"))
+		sprite.material = shader_material
+	if spec.has("faces"):
+		_faces = CherubFaces.attach(self, sprite, spec)
 	sprite.play("idle")
 	sprite.frame = randi() % maxi(1, frames.get_frame_count("idle"))  # desync the crowd
 	# particles on its actions (data/action_fx.json): anchors measured on this body —
@@ -569,6 +606,8 @@ func _physics_process(delta: float) -> void:
 			_hold(delta)
 			move_and_slide()
 		return
+	if _mirror != null and _mirror.tick(delta):
+		return
 	_contact_cd = maxf(0.0, _contact_cd - delta)
 	_attack_cd = maxf(0.0, _attack_cd - delta)
 	_disengage_left = maxf(0.0, _disengage_left - delta)
@@ -601,7 +640,7 @@ func _physics_process(delta: float) -> void:
 		State.CHASE:
 			_chase(to_target, delta)
 			if _attack_cd <= 0.0:
-				var choice := _choose_attack(to_target)
+				var choice := _mirror.choose(to_target, delta) if _mirror != null else _choose_attack(to_target)
 				if choice >= 0:
 					_repeats = _repeats + 1 if choice == _last_attack else 0
 					_last_attack = choice
@@ -1094,7 +1133,13 @@ func _begin_windup(to_target: Vector2) -> void:
 	_set_state(State.WINDUP, float(_attack.get("windup", 0.5)))
 	facing = 1 if to_target.x >= 0.0 else -1
 	var beam: bool = _attack.get("type", "melee") == "beam"
-	var length := float(_attack.get("length", 420))
+	if _attack.get("type", "melee") == "hail":
+		var marks := _hail_points(to_target)
+		_show_hail(marks, _state_left)
+		if Net.active:
+			_net_hail.rpc(marks, _state_left)
+	# an arc's length is the blade's reach (telegraph_fx "arc")
+	var length := float(_attack.get("length", _attack.get("reach", 420)))
 	var thickness := float(_attack.get("thickness", 26))
 	var color := str(_attack.get("color", "#ffe9a8"))
 	_telegraph(_state_left, beam, length, thickness, color, str(_attack.get("animation", "attack")), str(_attack.get("telegraph_fx", "glow")))
@@ -1122,6 +1167,8 @@ func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26
 	_telegraph_tween.tween_property(visual, "modulate", Color.WHITE, 0.1)
 	# The wind-up also brightens the room around the enemy: readable in the dark.
 	Fx.flash(global_position + Vector2(0, -10), Color(color), 60.0, duration, 0.6)
+	if effect == "arc":
+		_show_arc(duration, length, color)
 	if beam:
 		_show_beam(true, duration, length, thickness, color)
 
@@ -1142,6 +1189,8 @@ func _cancel_telegraph() -> void:
 		create_tween().tween_property(visual, "modulate", Color.WHITE, 0.12)
 	_telegraph_tween = null
 	_clear_beam()
+	_clear_arc()
+	_clear_hail()
 	_play("idle")
 
 
@@ -1244,6 +1293,12 @@ func _resolve_strike(to_target: Vector2) -> void:
 			_call_up(_attack)
 			if Net.active:
 				_net_strike.rpc("summon", animation)
+		"hail":
+			_set_state(State.STRIKE, float(_attack.get("fall_time", 0.5)))
+			_play(animation)
+			_hail_fall(_attack)
+			if Net.active:
+				_net_strike.rpc("hail", animation)
 		"nova":
 			_set_state(State.STRIKE, float(_attack.get("duration", 0.3)))
 			_play(animation)
@@ -1277,6 +1332,8 @@ func _net_strike(kind: String, animation := "attack") -> void:
 	Audio.play(&"enemy_swing", -8.0)
 	if kind == "lunge":
 		_lunge_fx()
+	elif kind == "hail":
+		_hail_fall({"fall_time": 0.5})  # the host's own numbers stay on the host: a cosmetic fall
 	elif kind == "summon":
 		_summon_fx()
 
@@ -1485,6 +1542,12 @@ func _clear_beam() -> void:
 
 
 func _melee_hit() -> void:
+	_clear_arc()
+	if _attack.get("around", false) or _attack.get("box", false):
+		await get_tree().physics_frame
+		if is_inside_tree() and state != State.DEAD:
+			_box_hit()
+		return
 	attack_area.monitoring = true
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -1494,6 +1557,171 @@ func _melee_hit() -> void:
 		if body_hit is Player and not body_hit.is_dead():
 			body_hit.take_damage(float(_attack.get("damage", 10)), self)
 	attack_area.monitoring = false
+
+
+## A blow measured as a box, not through AttackArea (sized once, for one
+## reach): every player within "reach" in front — on both sides when
+## "around" — and within "height" of the blow's line, raised by "lift".
+func _box_hit() -> void:
+	var reach := float(_attack.get("reach", 30))
+	var half := float(_attack.get("height", 30)) * 0.5 + 11.0
+	var line := -6.0 - float(_attack.get("lift", 0))
+	var around := bool(_attack.get("around", false))
+	for node in get_tree().get_nodes_in_group("player"):
+		var who := node as Player
+		if who == null or who.is_dead():
+			continue
+		var to := who.global_position - global_position
+		if absf(to.y - line) > half or absf(to.x) > reach:
+			continue
+		if around or to.x * float(facing) >= -8.0:
+			who.take_damage(float(_attack.get("damage", 10)), self)
+
+
+## telegraph_fx "arc": a pale dashed arc over the whole length of the blade,
+## both sides, for the wind-up (docs/CHAPTER7.md §9). Every peer draws its own.
+func _show_arc(duration: float, radius: float, color: String) -> void:
+	_clear_arc()
+	_arc = Line2D.new()
+	_arc.name = "Arc"
+	_arc.width = 2.0
+	_arc.default_color = Color(color).lightened(0.4)
+	_arc.z_index = 4
+	add_child(_arc)
+	var dashes := 26
+	for i in dashes:
+		var dash := Line2D.new()
+		dash.width = 2.0
+		dash.default_color = _arc.default_color
+		var from := PI + PI * float(i) / float(dashes)
+		var to := from + PI / float(dashes) * 0.55
+		for k in 3:
+			var angle := lerpf(from, to, float(k) / 2.0)
+			dash.add_point(Vector2(cos(angle), sin(angle) * 0.7) * radius + Vector2(0, 4))
+		_arc.add_child(dash)
+	_arc.modulate.a = 0.15
+	_arc.default_color.a = 0.0
+	var tween := _arc.create_tween()
+	tween.tween_property(_arc, "modulate:a", 1.0, maxf(0.05, duration * 0.85))
+
+
+func _clear_arc() -> void:
+	if _arc != null and is_instance_valid(_arc):
+		_arc.queue_free()
+	_arc = null
+
+
+## Where the hail lands: "count" marks "spacing" apart, centred on the quarry
+## and shifted by a random share of a gap, each on the floor under it (a ray
+## down to world or ledge). The gaps are wider than the hero: one stands between.
+func _hail_points(to_target: Vector2) -> PackedVector2Array:
+	var count := clampi(int(_attack.get("count", 5)), 1, 8)
+	var spacing := maxf(70.0, float(_attack.get("spacing", 90)))
+	var centre := global_position + to_target
+	var shift := attack_rng.randf_range(-0.5, 0.5) * spacing
+	var space := get_world_2d().direct_space_state
+	var out := PackedVector2Array()
+	for i in count:
+		var x := centre.x + shift + (float(i) - float(count - 1) * 0.5) * spacing
+		var query := PhysicsRayQueryParameters2D.create(Vector2(x, centre.y - 120.0), Vector2(x, centre.y + 260.0), SOLID_MASK)
+		var hit := space.intersect_ray(query)
+		out.append(Vector2(x, hit.position.y if not hit.is_empty() else centre.y + 11.0))
+	return out
+
+
+## The marks grow the whole wind-up: a shadow on the floor where a stone will fall.
+func _show_hail(marks: PackedVector2Array, duration: float) -> void:
+	_clear_hail()
+	var room := get_parent()
+	if room == null:
+		return
+	for at in marks:
+		var mark := Node2D.new()
+		mark.name = "HailMark"
+		room.add_child(mark)
+		mark.global_position = at
+		Fx.shadow(mark, Vector2.ZERO, 36.0, 1.0)
+		mark.scale = Vector2(0.3, 0.3)
+		mark.modulate.a = 0.25
+		var tween := mark.create_tween().set_parallel()
+		tween.tween_property(mark, "scale", Vector2.ONE, maxf(0.05, duration))
+		tween.tween_property(mark, "modulate:a", 0.95, maxf(0.05, duration))
+		_hail_marks.append(mark)
+
+
+func _clear_hail() -> void:
+	for mark in _hail_marks:
+		if is_instance_valid(mark):
+			mark.queue_free()
+	_hail_marks.clear()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_hail(marks: PackedVector2Array, duration: float) -> void:
+	_show_hail(marks, duration)
+
+
+## The stones: one Projectile of style "hail" straight down onto each mark,
+## arriving in "fall_time". Only the host's bite; every peer draws its own fall.
+func _hail_fall(attack: Dictionary) -> void:
+	var height := 220.0
+	var speed := height / maxf(0.2, float(attack.get("fall_time", 0.5)))
+	var falling := attack.duplicate()
+	falling["projectile_style"] = str(attack.get("projectile_style", "hail"))
+	var space := get_world_2d().direct_space_state
+	for mark in _hail_marks:
+		if not is_instance_valid(mark):
+			continue
+		# from under whatever roofs the mark, never inside a wall
+		var floor_at: Vector2 = mark.global_position + Vector2(0, -4)
+		var hit := space.intersect_ray(PhysicsRayQueryParameters2D.create(floor_at, floor_at + Vector2(0, -height), 1))
+		var drop := height if hit.is_empty() else maxf(24.0, floor_at.y - hit.position.y - 6.0)
+		falling["projectile_range"] = drop + 6.0
+		_spawn_projectile(floor_at + Vector2(0, -drop), Vector2.DOWN, not _simulated, falling, speed)
+	var marks := _hail_marks.duplicate()
+	_hail_marks.clear()
+	get_tree().create_timer(float(attack.get("fall_time", 0.5)) + 0.1, false).timeout.connect(func() -> void:
+		for mark in marks:
+			if is_instance_valid(mark):
+				mark.queue_free())
+
+
+## "turns" (docs/CHAPTER7.md §9): at each share of its health the boss turns —
+## the "special" pose for TURN_TIME without a blow (the window to strike), a
+## caption and its next face. The host decides; every peer plays it.
+const TURN_TIME := 1.2
+
+
+func _check_turns() -> void:
+	var turns: Array = stats.get("turns", [])
+	while _turned < turns.size() and hp > 0.0 and hp <= _max_hp * float(turns[_turned].get("at_hp", 0.0)):
+		_turned += 1
+		_cancel_telegraph()
+		_set_state(State.RECOVER, TURN_TIME)
+		_attack_cd = maxf(_attack_cd, TURN_TIME + 0.3)
+		_turn(_turned - 1)
+		if Net.active:
+			_net_cancel_telegraph.rpc()
+			_net_turn.rpc(_turned - 1)
+
+
+func _turn(index: int) -> void:
+	var turn: Dictionary = stats.get("turns", [])[index]
+	_turned = maxi(_turned, index + 1)
+	_play("special")
+	if _faces != null:
+		_faces.show_face(str(turn.get("face", "")))
+	Fx.flash(global_position + Vector2(0, -30), Color("#fff4d8"), 90.0, 0.4, 0.9)
+	Juice.shake(4.0)
+	var caption := str(turn.get("caption", ""))
+	var box := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
+	if caption != "" and box != null and Data.dialogues.has(caption):
+		box.play(caption)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_turn(index: int) -> void:
+	_turn(index)
 
 
 ## The second frame of the swing, for the enemies that have one drawn.
@@ -1645,6 +1873,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 				_disengage_left = maxf(_disengage_left, randf_range(0.4, 0.7))
 	if hp > 0.0:
 		_play("hurt")
+		_check_turns()
 	if seal_now:
 		_enter_seal()
 	if stats.get("boss", false) and not _summoned and stats.has("summons") \
@@ -2096,6 +2325,8 @@ func _die() -> void:
 		EventBus.boss_died.emit()
 	set_physics_process(false)
 	_clear_beam()
+	_clear_arc()
+	_clear_hail()
 	collision_layer = 0
 	collision_mask = 0
 	contact_area.monitoring = false
