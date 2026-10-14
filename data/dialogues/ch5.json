@@ -235,6 +235,38 @@
       "t1": {
         "speaker": "SPEAKER_TIRZAH",
         "text": "DLG_CH5_TIRZAH_1",
+        "next": "water"
+      },
+      "water": {
+        "branches": [
+          {
+            "flag": "wormwood_drunk",
+            "next": "w_wormwood"
+          },
+          {
+            "flag": "marah_sweetened",
+            "next": "w_sweet"
+          },
+          {
+            "flag": "marah_bitter",
+            "next": "w_bitter"
+          }
+        ],
+        "next": "t2"
+      },
+      "w_wormwood": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_WORMWOOD",
+        "next": "t2"
+      },
+      "w_sweet": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_SWEET",
+        "next": "t2"
+      },
+      "w_bitter": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_BITTER",
         "next": "t2"
       },
       "t2": {
