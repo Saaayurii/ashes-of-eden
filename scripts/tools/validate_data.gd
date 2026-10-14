@@ -28,7 +28,7 @@ const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh
 ## The moves Player reports through EventBus.technique_performed.
 const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy"]
-const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
+const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon", "wail"]
 ## How a bolt may fly (scripts/fx/projectile.gd _advance_motion).
 const PROJECTILE_MOTIONS := ["straight", "wave", "accelerate", "arc", "surge", "return", "home"]
 const BURST_FX := ["sparkle", "ash", "debris", "spark"]
@@ -280,9 +280,19 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			for attack in attacks:
 				if not ATTACK_TYPES.has(attack.get("type")):
 					_error("%s: attack.type must be one of %s" % [where, ATTACK_TYPES])
-				for field in ["windup", "damage", "cooldown"]:
+				# a wail hurts nobody: it wakes the ones who wait (Enemy.hear_wail)
+				for field in (["windup", "cooldown"] if attack.get("type") == "wail" else ["windup", "damage", "cooldown"]):
 					if float(attack.get(field, 0)) <= 0.0:
 						_error("%s: attack.%s must be positive" % [where, field])
+				if attack.get("type") == "wail":
+					if float(attack.get("windup", 0)) < 0.8:
+						_error("%s: a wail's windup is at least 0.8 s — the breath before it is the warning" % where)
+					if float(attack.get("radius", 0)) < 60.0 or float(attack.get("radius", 0)) > 400.0:
+						_error("%s: a wail's radius is 60–400 px" % where)
+					if float(attack.get("damage", 0)) != 0.0:
+						_error("%s: a wail hurts nobody (no damage)" % where)
+			if entry.has("patience"):
+				_check_patience(entry, where)
 			if entry.has("summons") and not entry.summons.has("id"):
 				_error("%s: summons.id missing" % where)
 			if entry.has("seal_phase"):
@@ -720,6 +730,34 @@ func _check_awareness(entry: Dictionary, where: String) -> void:
 					_error("%s: patrol.pause must be [min, max] seconds" % where)
 			_:
 				_error("%s: unknown patrol.%s" % [where, field])
+
+
+## "patience" (Enemy._begin_tend, the Watchman): the turn to the fire and what
+## a blow in it costs him. The quickened wind-up stays readable.
+func _check_patience(entry: Dictionary, where: String) -> void:
+	var spec = entry.patience
+	if not (spec is Dictionary):
+		_error("%s: patience must be an object" % where)
+		return
+	for key in spec:
+		if not ["every", "turn", "animation", "quicken", "min_windup"].has(key):
+			_error("%s: unknown patience.%s" % [where, key])
+	var every = spec.get("every", [8.0, 10.0])
+	if not (every is Array) or every.size() != 2 or float(every[0]) < 4.0 or float(every[1]) < float(every[0]) \
+			or float(every[1]) > 30.0:
+		_error("%s: patience.every is [min, max] seconds, 4–30" % where)
+	var turn := float(spec.get("turn", 1.2))
+	if turn < 0.6 or turn > 2.5:
+		_error("%s: patience.turn is 0.6–2.5 s" % where)
+	var quicken := float(spec.get("quicken", 0.6))
+	if quicken < 0.4 or quicken > 1.0:
+		_error("%s: patience.quicken is a share of the wind-up, 0.4–1" % where)
+	if float(spec.get("min_windup", 0.5)) < 0.45:
+		_error("%s: patience.min_windup under 0.45 s is an unreadable blow" % where)
+	var animation := str(spec.get("animation", "special"))
+	var anims: Dictionary = entry.get("sprite", {}).get("animations", {}) if entry.get("sprite") is Dictionary else {}
+	if not anims.is_empty() and not anims.has(animation):
+		_error("%s: patience.animation %s is not one of its strips" % [where, animation])
 
 
 func _check_enemy_archetypes() -> void:
