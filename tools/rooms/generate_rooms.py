@@ -10,6 +10,7 @@ hand in Godot, delete it from ROOMS so this script never overwrites it.
 import hashlib
 import json
 import os
+import re
 import random
 import filecmp
 import glob
@@ -850,6 +851,47 @@ color = Color(0.75, 0.75, 0.85, 0.7)
 color_ramp = SubResource("fade")
 """
 
+# For a drowned place (a game pack's water rooms, docs/GAME_PACKS.md): drops
+# that gather and fall from the vaults, and slow bubbles rising off the floor.
+WEATHER["drips"] = """[node name="Weather" type="CPUParticles2D" parent="."]
+z_index = 2
+position = Vector2({cx}, -10)
+amount = {amount_low}
+lifetime = {rain_life}
+preprocess = {rain_life}
+texture = SubResource("drop")
+emission_shape = 3
+emission_rect_extents = Vector2({ex}, 4)
+direction = Vector2(0, 1)
+spread = 0.0
+gravity = Vector2(0, 520)
+initial_velocity_min = 0.0
+initial_velocity_max = 20.0
+scale_amount_min = 0.35
+scale_amount_max = 0.6
+color = Color(0.7, 0.9, 1.05, 0.55)
+"""
+
+WEATHER["bubbles"] = """[node name="Weather" type="CPUParticles2D" parent="."]
+z_index = 2
+position = Vector2({cx}, {cy})
+amount = {amount_low}
+lifetime = 7.0
+preprocess = 7.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2({ex}, {ey})
+direction = Vector2(0, -1)
+spread = 12.0
+gravity = Vector2(0, -10)
+initial_velocity_min = 6.0
+initial_velocity_max = 16.0
+scale_amount_min = 0.35
+scale_amount_max = 0.9
+color = Color(0.65, 0.9, 1.0, 0.6)
+color_ramp = SubResource("fade")
+"""
+
 ## Dust in the air of every room: slow, faint, in front of the characters so it
 ## reads as air between them and the camera.
 MOTES = """[node name="Motes" type="CPUParticles2D" parent="."]
@@ -1402,29 +1444,31 @@ def build(name, r, scene=None):
         a = text.index('[node name="Parallax" type="Parallax2D" parent="."]')
         b = text.index('[node name="Geometry" type="StaticBody2D" parent="."]')
         text = text[:a] + '[node name="Interior" type="Node2D" parent="."]\n\n' + interior + text[b:]
+    # where the room's own pictures are: a game pack's composed room keeps them in content/
+    levels = r.get("levels_res", "res://assets/levels/")
     if painted:
         text = text.replace('outro_cutscene = "' + r.get("outro_cutscene", "") + '"\n',
                             'outro_cutscene = "' + r.get("outro_cutscene", "") + '"\n'
-                            + f'painting_source = "res://assets/levels/{r["painting_wide"]}.png"\n', 1)
+                            + f'painting_source = "{levels}{r["painting_wide"]}.png"\n', 1)
         # The wide panel contains inserted local scenery bands rather than a
         # non-uniformly stretched source, so stone and figures keep their scale.
         text = text.replace('[ext_resource type="Texture2D" path="res://assets/backgrounds/.png" id="2_backdrop"]',
-                            f'[ext_resource type="Texture2D" path="res://assets/levels/{r["painting_wide"]}.png" id="2_backdrop"]')
+                            f'[ext_resource type="Texture2D" path="{levels}{r["painting_wide"]}.png" id="2_backdrop"]')
         # The openings onto the far plate: a painted room's own (DEPTH_WINDOWS,
         # through its widening), a composed room's from its cells or the studio.
         if composed:
             openings = [(w["points"], w["depth"], w["sky"]) for w in r.get("windows", [])]
-            plate = f"composed/{os.path.basename(r['painting_wide'])}_backfill"
+            plate = f"{levels}composed/{os.path.basename(r['painting_wide'])}_backfill"
             strength = r.get("depth_parallax", 0.025)
         else:
             strength, polygons = DEPTH_WINDOWS[name]
             openings = [([(_map_x(x, r["_x_inserts"]), y) for x, y in points], None, None) for points in polygons]
-            plate = f"depth/{r['painting']}_backfill_wide"
+            plate = f"res://assets/levels/depth/{r['painting']}_backfill_wide"
         if openings:
             text = text.replace('[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]',
                                 '[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]\n'
                                 '[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]\n'
-                                f'[ext_resource type="Texture2D" path="res://assets/levels/{plate}.png" id="depth_plate"]')
+                                f'[ext_resource type="Texture2D" path="{plate}.png" id="depth_plate"]')
         if name in SEAM_SILHOUETTES and not composed:
             art, _, _, _, _ = SEAM_SILHOUETTES[name]
             text = text.replace('[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]',
@@ -1448,8 +1492,8 @@ def build(name, r, scene=None):
                 # and which are sky are its own (RoomLayers reads them)
                 own = ("window_depths = PackedFloat32Array(" + ", ".join(str(d) for _, d, _ in openings) + ")\n"
                        + "sky_windows = PackedInt32Array(" + ", ".join(str(i) for i, (_, _, sky) in enumerate(openings, 1) if sky) + ")\n")
-            text = text.replace('painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n',
-                                'painting_source = "res://assets/levels/' + r["painting_wide"] + '.png"\n'
+            text = text.replace(f'painting_source = "{levels}' + r["painting_wide"] + '.png"\n',
+                                f'painting_source = "{levels}' + r["painting_wide"] + '.png"\n'
                                 + f'depth_parallax = {strength}\n' + own, 1)
             masks = '[node name="DepthWindows" type="Node2D" parent="."]\n\n'
             for i, (mapped, _, _) in enumerate(openings, 1):
@@ -1583,7 +1627,7 @@ texture = SubResource("glow_tex")
 
 {lights}'''
     if r.get("front"):
-        ext, nodes = front_nodes("composed_" + name if scene else name, r["front"])
+        ext, nodes = front_nodes("composed_" + name if composed and scene else name, r["front"])
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n' + ext)
         text = text.rstrip() + "\n\n" + nodes
@@ -1613,6 +1657,9 @@ texture = SubResource("glow_tex")
 
 ## Every front piece written this run, so a full run can sweep the rest away.
 FRONT_WRITTEN = set()
+# A game pack's room borrows its engine room's pieces as they are (build_pack):
+# baking them again would only rewrite the engine's files by a pixel.
+BAKE_FRONT = True
 
 
 def front_nodes(key, pieces):
@@ -1625,13 +1672,14 @@ def front_nodes(key, pieces):
              + "depths = PackedFloat32Array(" + ", ".join(str(float(p.get("depth", 1.35))) for p in pieces) + ")\n\n")
     for i, piece in enumerate(pieces, 1):
         path = os.path.join(front.OUT, f"{key}_{i}.png")
-        image = patched(path, front.bake(piece))
-        pending = path + ".pending.png"
-        image.save(pending)
-        if os.path.exists(path) and filecmp.cmp(pending, path, shallow=False):
-            os.unlink(pending)
-        else:
-            os.replace(pending, path)
+        if BAKE_FRONT or not os.path.exists(path):
+            image = patched(path, front.bake(piece))
+            pending = path + ".pending.png"
+            image.save(pending)
+            if os.path.exists(path) and filecmp.cmp(pending, path, shallow=False):
+                os.unlink(pending)
+            else:
+                os.replace(pending, path)
         FRONT_WRITTEN.add(os.path.basename(path))
         ext += f'[ext_resource type="Texture2D" path="res://assets/levels/front/{key}_{i}.png" id="front_{i}"]\n'
         cx, cy = front.placed(piece)
@@ -1746,6 +1794,148 @@ def compose_room(name, entry):
         print(f"{name}: the composed draft's route does not hold yet (above); it is a draft, so it is written anyway")
     return reached or not entry.get("live")
 
+
+# A game pack's own rooms (docs/GAME_PACKS.md), written into the pack laid over
+# the engine as content/: content/rooms/rooms.json makes a room from an engine
+# room — its painting, ground and light — with the pack's own creatures, props
+# and air, and none of Ashes' story (people, scenes, captions, props) unless the
+# entry names its own; content/rooms/composed_rooms.json stitches one from
+# panels, the engine's or the pack's (content/assets/levels/panels), keyed by
+# the pack room's name with "base" for the engine room whose atmosphere it
+# keeps. Each comes out as content/scenes/rooms/<name>.tscn, with `base_room`
+# naming the engine room its look is keyed by (RoomLayers.look_key).
+PACK = os.path.join(ROOT, "content")
+PACK_ROOMS = os.path.join(PACK, "rooms", "rooms.json")
+PACK_SCENES = os.path.join(PACK, "scenes", "rooms")
+# what the art studio adds to the pack's rooms, as tools/rooms/studio_rooms.json
+# adds to the engine's: spawns and props beside the table's, waves, cutscenes, music
+PACK_STUDIO = os.path.join(PACK, "rooms", "studio_rooms.json")
+PACK_STORY = {"npcs": [], "npc_paths": [], "intro_cutscene": "", "outro_cutscene": "", "intro": "", "props": [], "waves": []}
+PACK_OWN = ("spawns", "waves", "props", "npcs", "intro_cutscene", "outro_cutscene", "intro", "music", "ambient", "weather", "fog", "hazards")
+
+
+def _pack_has(folder, ident):
+    """Whether the game the pack makes has this entry: its own, or the engine's
+    when game.json inherits the collection and does not exclude the id."""
+    if os.path.exists(os.path.join(PACK, "data", folder, f"{ident}.json")):
+        return True
+    path = os.path.join(PACK, "data", "game.json")
+    game = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    inherit = game.get("inherit")
+    return (not isinstance(inherit, list) or folder in inherit) and ident not in game.get("exclude", {}).get(folder, []) \
+        and os.path.exists(os.path.join(ROOT, "data", folder, f"{ident}.json"))
+
+
+def pack_room(name, entry, where="content/rooms/rooms.json"):
+    """(base, table) for one room of the pack's rooms.json."""
+    base = entry.get("base")
+    if base not in ROOMS or base in COMPOSED and COMPOSED[base].get("live"):
+        raise SystemExit(f"{where}: {name}: base must be one of the engine's rooms, not {base!r}")
+    if not re.fullmatch(r"[a-z][a-z0-9_]*", name) or name in ROOMS:
+        raise SystemExit(f"{where}: {name}: a pack room needs a snake_case name of its own")
+    room = deepcopy(ROOMS[base])
+    room.update(deepcopy(PACK_STORY))
+    for key in PACK_OWN:
+        if key in entry:
+            room[key] = [tuple(v) for v in entry[key]] if isinstance(entry[key], list) and key != "waves" else entry[key]
+    if room["weather"] != "none" and room["weather"] not in WEATHER:
+        raise SystemExit(f"{where}: {name}: no weather {room['weather']!r} ({', '.join(sorted(WEATHER))}, none)")
+    for folder, key in (("enemies", "spawns"), ("props", "props"), ("npcs", "npcs")):
+        for item in room.get(key, []):
+            if len(item) != 3 or not _pack_has(folder, item[0]):
+                raise SystemExit(f"{where}: {name}: {key} {list(item)} — [id in data/{folder}, x, y]")
+    for wave in room.get("waves", []):
+        for spawn in wave:
+            if len(spawn) != 3 or not _pack_has("enemies", spawn[0]):
+                raise SystemExit(f"{where}: {name}: wave spawn {spawn} — [id in data/enemies, x, y]")
+    return base, room
+
+
+def studio_extra(name, room, extra, where="content/rooms/studio_rooms.json"):
+    """The studio's additions to one of the pack's rooms."""
+    for spawn in extra.get("spawns", []) + [s for w in extra.get("waves", []) for s in w]:
+        if len(spawn) != 3 or not _pack_has("enemies", spawn[0]):
+            raise SystemExit(f"{where}: {name}: spawn {spawn} — [id in data/enemies, x, y]")
+    for prop in extra.get("props", []):
+        if len(prop) != 3 or not _pack_has("props", prop[0]):
+            raise SystemExit(f"{where}: {name}: a prop is [existing prop id, x, y]")
+    room["spawns"] = [tuple(s) for s in extra.get("spawns_override", room.get("spawns", []))] + [tuple(s) for s in extra.get("spawns", [])]
+    if "waves" in extra:
+        room["waves"] = extra["waves"]
+    for key in ("intro_cutscene", "outro_cutscene", "music"):
+        if key in extra:
+            room[key] = extra[key]
+    room["props"] = list(room.get("props", [])) + [tuple(p) for p in extra.get("props", [])]
+    return room
+
+
+def _mark_base(path, base):
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    text = text.replace('script = ExtResource("1_room")\n', f'script = ExtResource("1_room")\nbase_room = "{base}"\n', 1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
+
+
+def build_pack():
+    """Every room the pack makes; False when one's route does not hold."""
+    global BAKE_FRONT
+    BAKE_FRONT = False
+    ok = True
+    rooms = json.load(open(PACK_ROOMS, encoding="utf-8")) if os.path.exists(PACK_ROOMS) else {}
+    composed = compose.load(compose.PACK_TABLE)
+    extras = json.load(open(PACK_STUDIO, encoding="utf-8")) if os.path.exists(PACK_STUDIO) else {}
+    for name in rooms.keys() & composed.keys():
+        raise SystemExit(f"content/rooms: {name} is in both rooms.json and composed_rooms.json")
+    for name in extras.keys() - rooms.keys() - composed.keys():
+        raise SystemExit(f"content/rooms/studio_rooms.json names no room of the pack: {name}")
+    written = set()
+    for name, entry in rooms.items():
+        base, room = pack_room(name, entry)
+        studio_extra(name, room, extras.get(name, {}))
+        reach = {**room, "spawns": list(room.get("spawns", [])) + [tuple(s) for w in room.get("waves", []) for s in w]}
+        if not check_reach(base, reach):
+            print(f"{name} (from {base}): the route does not hold")
+            ok = False
+        path = os.path.join(PACK_SCENES, name + ".tscn")
+        build(base, room, path)
+        _mark_base(path, base)
+        written.add(name)
+    for name, entry in composed.items():
+        # the studio's «Конструктор» keys a room by the painted room whose air it keeps
+        base = entry.get("base", name)
+        if base not in PAINTED or "painting" not in PAINTED[base]:
+            raise SystemExit(f"content/rooms/composed_rooms.json: {name}: base must be a painted engine room")
+        compose.validate(name, entry, "content/rooms/composed_rooms.json")
+        if entry.get("front"):
+            raise SystemExit(f"content/rooms/composed_rooms.json: {name}: a pack's room has no front plane yet")
+        room = compose.room_table(name, entry, ROOMS[base], compose.owners(PAINTED, DEPTH_WINDOWS))
+        room["levels_res"] = "res://content/assets/levels/"
+        studio_extra(name, room, extras.get(name, {}))
+        out = os.path.join(compose.PACK_LEVELS, "composed")
+        os.makedirs(out, exist_ok=True)
+        compose.compose_picture(entry).save(os.path.join(out, name + ".png"))
+        if room["windows"]:
+            compose.compose_plate(entry).save(os.path.join(out, name + "_backfill.png"))
+        if not check_reach(name, room):
+            ok = False
+        path = os.path.join(PACK_SCENES, name + ".tscn")
+        build(name, room, path)
+        _mark_base(path, base)
+        written.add(name)
+    # a room taken out of the tables leaves no scene behind
+    for file in sorted(glob.glob(os.path.join(PACK_SCENES, "*.tscn"))):
+        if os.path.basename(file)[:-5] not in written and "\nbase_room = " in open(file, encoding="utf-8").read():
+            os.unlink(file)
+    return ok
+
+
+if __name__ == "__main__" and "--pack" in sys.argv:
+    if not os.path.exists(os.path.join(PACK, "data", "game.json")):
+        raise SystemExit("--pack: no game pack in content/ (tools/packs/apply_pack.py)")
+    if not build_pack():
+        raise SystemExit("unreachable mandatory route in the pack's rooms")
+    sys.exit(0)
 
 if __name__ == "__main__":
     selected = set(sys.argv[1:])

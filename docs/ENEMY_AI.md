@@ -50,3 +50,12 @@ and lets real enemies at him. Against the code before this pass it fails: the
 guard spent 77 % of its time in the hero's face (now under 40 %), three
 cultists bunched into 26 px (now a 49 px queue), a shade sat on his body for
 36 frames at a time (now at most a frame or two).
+
+## Tuned per game
+
+Every number above is data: the `enemy_ai` section of `data/hero.json`
+(`Enemy.AI_KEYS`, laid on by `Enemy.apply_ai` when `Data` loads), so a game pack
+can crowd its hero harder or give him room (docs/GAME_PACKS.md), and the
+studio's «Боёвка» edits it under «Враги: дистанция и повадки». One enemy can
+keep its own with `"ai": {"attackers_per_side": 1, …}` in its JSON; per-body
+code reads `_ai("key")`, never the bare static. `combat_data_test.gd`.

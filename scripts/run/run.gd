@@ -343,8 +343,12 @@ const PREVIEW_ARG := "--studio-preview"
 ## draft is saved — it is not the room the night walks through yet.
 const COMPOSED_ARG := "--composed"
 const COMPOSED_DIR := "res://scenes/rooms/composed/"
-## The index whose draft stands in for it, or -1.
+## A game pack's composed room (generate_rooms.py --pack) is a scene of its
+## own here; one its game.json does not play yet opens in place of the first.
+const PACK_ROOMS_DIR := "res://content/scenes/rooms/"
+## The index whose draft stands in for it, or -1, and the draft's scene.
 var _draft_index := -1
+var _draft_path := ""
 
 
 func _requested_room() -> int:
@@ -352,14 +356,29 @@ func _requested_room() -> int:
 	if not OS.is_debug_build() and not args.has(PREVIEW_ARG):
 		return -1
 	var index := room_from_args(args)
-	if index >= 0 and args.has(COMPOSED_ARG):
-		var draft := composed_path(index)
-		if ResourceLoader.exists(draft):
+	if args.has(COMPOSED_ARG):
+		var draft := pack_draft(args)
+		if draft == "" and index >= 0:
+			draft = composed_path(index)
+		if index < 0 and draft != "":
+			index = 0
+		if draft != "" and ResourceLoader.exists(draft):
 			_draft_index = index
+			_draft_path = draft
 			print("run: the composed draft %s" % draft)
-		else:
+		elif index >= 0:
 			push_warning("run: no composed draft at %s" % draft)
 	return index
+
+
+## `room=<name> --composed` for a game pack's composed room its game.json does
+## not list: the scene generate_rooms.py --pack wrote for it, or "".
+static func pack_draft(args: PackedStringArray) -> String:
+	for arg in args:
+		if arg.begins_with(ROOM_ARG):
+			var path := PACK_ROOMS_DIR + arg.substr(ROOM_ARG.length()).strip_edges() + ".tscn"
+			return path if ResourceLoader.exists(path) else ""
+	return ""
 
 
 ## The scene a chapter lists for an index: a draft belongs to its room's place.
@@ -561,7 +580,7 @@ func _net_cover(index: int) -> void:
 ## The scene a room index stands for: one of ROOMS, or the practice yard.
 func _room_path(index: int) -> String:
 	if index >= 0 and index == _draft_index:
-		return composed_path(index)
+		return _draft_path if _draft_path != "" else composed_path(index)
 	return str(Data.game.get("practice_room", PRACTICE_ROOM)) if index == PRACTICE_INDEX else ROOMS[index]
 
 

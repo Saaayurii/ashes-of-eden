@@ -54,7 +54,7 @@ const PALETTES := {
 
 
 static func attach(room: Node2D) -> void:
-	var key := room.scene_file_path.get_file().get_basename()
+	var key := RoomLayers.look_key(room, LAYOUTS)
 	var layout: Dictionary = LAYOUTS.get(key, {})
 	if layout.is_empty():
 		return

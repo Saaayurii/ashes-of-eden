@@ -627,7 +627,7 @@ func _physics_process(delta: float) -> void:
 		# Down in the air, with room below: fall on it. Down on the ground is
 		# still the drop-through, and down while rolling is nothing at all.
 		if not on_floor and not _slamming and _dash_left <= 0.0 and _mantle_left <= 0.0 \
-				and Input.is_action_just_pressed("move_down") and _room_to_slam():
+				and Input.is_action_just_pressed("move_down") and can_move("slam") and _room_to_slam():
 			_start_slam()
 		elif _jump_buffer > 0.0 and _wall_side != 0 and not on_floor:
 			_wall_jump()
@@ -1468,7 +1468,7 @@ func _land_slam() -> void:
 ## or the wall ending drops him out of it.
 func _update_wall_grab(on_floor: bool, dir: float, delta: float) -> void:
 	if on_floor or _slamming or _dash_left > 0.0 or _mantle_left > 0.0 \
-			or not controls_enabled or _healing_left > 0.0 or _dead:
+			or not controls_enabled or _healing_left > 0.0 or _dead or not can_move("wall_jump"):
 		_wall_side = 0
 		return
 	var side := 0
@@ -1728,6 +1728,13 @@ const FEEL_KEYS := ["heal_burst_radius", "parry_stun_radius", "wrath_time", "des
 	"mantle_rise", "mantle_time", "slam_speed", "slam_min_height", "slam_radius", "slam_damage_share",
 	"slam_recovery", "wall_slide_speed", "wall_jump_push", "wall_jump_rise", "wall_jump_turn_lock",
 	"dash_reach", "wave_speed", "auto_reach", "auto_height"]
+## Which special moves this game's hero has (hero.json "moves", docs/TECHNIQUES.md):
+## a game can leave any of them out, and the button that made it then does the
+## plain thing (a swing, a fall, a slide off the wall). Read through can_move.
+const MOVE_KEYS := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump",
+	"riposte", "backstab"]
+static var MOVES: Dictionary = {"lunge": true, "cleave": true, "sweep": true, "rising": true,
+	"dash_strike": true, "slam": true, "wall_jump": true, "riposte": true, "backstab": true}
 ## What the script itself says, taken before the first apply_hero, so a second
 ## one (the studio trying a value) starts from the same place.
 static var _hero_defaults: Dictionary = {}
@@ -1738,7 +1745,7 @@ static var _hero_defaults: Dictionary = {}
 static func apply_hero(doc: Dictionary) -> void:
 	var script: GDScript = load("res://scripts/player/player.gd")
 	if _hero_defaults.is_empty():
-		_hero_defaults = {"stats": BASE_STATS.duplicate(true), "feel": hero_feel()}
+		_hero_defaults = {"stats": BASE_STATS.duplicate(true), "feel": hero_feel(), "moves": MOVES.duplicate()}
 	var stats: Dictionary = _hero_defaults.stats.duplicate(true)
 	var given = doc.get("stats", {})
 	if given is Dictionary:
@@ -1757,6 +1764,20 @@ static func apply_hero(doc: Dictionary) -> void:
 		if _hero_defaults.feel[key] is float:
 			value = float(value)
 		script.set(key.to_upper(), value)
+	var moves: Dictionary = _hero_defaults.moves.duplicate()
+	var allowed = doc.get("moves", {})
+	if allowed is Dictionary:
+		for key: String in allowed:
+			if moves.has(key) and allowed[key] is bool:
+				moves[key] = allowed[key]
+	MOVES = moves
+	var ai = doc.get("enemy_ai", {})
+	Enemy.apply_ai(ai if ai is Dictionary else {})
+
+
+## Whether this game's hero has the special move [param id] (MOVE_KEYS).
+static func can_move(id: String) -> bool:
+	return bool(MOVES.get(id, true))
 
 
 ## The hero's feel as it stands, by data name.
@@ -1812,9 +1833,13 @@ func equip(id: String) -> String:
 
 
 func _attack() -> void:
+	# A game whose hero has no airborne swing or no strike out of a roll keeps
+	# the button quiet there rather than inventing another blow.
+	if (_dash_left > 0.0 and not can_move("dash_strike")) or (not is_on_floor() and _dash_left <= 0.0 and not can_move("rising")):
+		return
 	# Up + attack is an intentional anti-air slash. It trades the horizontal
 	# chain for a taller, narrower hit area above the player's head.
-	var aim_up := _dash_left <= 0.0 and Input.is_action_pressed("move_up")
+	var aim_up := _dash_left <= 0.0 and Input.is_action_pressed("move_up") and can_move("rising")
 	# The weapon's chain (data/weapons). A key a step leaves out is the hero's
 	# own for that step — which is all of them for the sword.
 	var chain := Weapons.chain(weapon)
@@ -2003,7 +2028,7 @@ func _read_technique_input(delta: float, on_floor: bool) -> void:
 			_release_charge()
 		_attack_held = 0.0
 	if not _charging and _attack_held >= CHARGE_AFTER and on_floor and _attack_anim_left <= 0.0 \
-			and _lunge_left <= 0.0:
+			and _lunge_left <= 0.0 and can_move("cleave"):
 		_charging = true
 		_charge_time = 0.0
 		_charge_ready = false
@@ -2024,9 +2049,9 @@ func _read_technique_input(delta: float, on_floor: bool) -> void:
 func _technique_for_press(on_floor: bool) -> String:
 	if not on_floor or _dash_left > 0.0:
 		return ""
-	if _lunge_armed_left > 0.0:
+	if _lunge_armed_left > 0.0 and can_move("lunge"):
 		return "lunge"
-	if Input.is_action_pressed("move_down"):
+	if Input.is_action_pressed("move_down") and can_move("sweep"):
 		return "sweep"
 	return ""
 

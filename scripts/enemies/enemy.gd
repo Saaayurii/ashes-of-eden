@@ -45,41 +45,54 @@ class_name Enemy
 enum State { PATROL, ALERT, CHASE, WINDUP, STRIKE, RECOVER, DEAD }
 
 const PROJECTILE_SCENE := preload("res://scenes/fx/projectile.tscn")
-const RETARGET_INTERVAL := 0.4
+static var RETARGET_INTERVAL: float = 0.4
 ## A swing the player parried leaves its owner open this long (data can say
 ## otherwise: "parry_opening"); a boss gets its feet back in half the time. The
 ## first blow landed in that window is a riposte, worth half as much again.
-const PARRY_OPENING := 0.9
-const RIPOSTE_MULTIPLIER := 1.5
+static var PARRY_OPENING: float = 0.9
+static var RIPOSTE_MULTIPLIER: float = 1.5
 ## The beat between "!" and the first step towards you.
-const ALERT_TIME := 0.4
+static var ALERT_TIME: float = 0.4
 ## An enemy that wakes up shouts; sleepers this close wake with it.
 ## An enemy at or under this share of its health can be executed outright.
-const EXECUTE_BELOW := 0.3
-const SHOUT_RADIUS := 90.0
+static var EXECUTE_BELOW: float = 0.3
+static var SHOUT_RADIUS: float = 90.0
 ## A hit that stops a body (a flinch, a broken wind-up) also keeps the next
 ## wind-up back this long after it is on its feet: hurt, a beat, then the
 ## telegraph, never a swing that grows straight out of the flinch.
-const HIT_ATTACK_DELAY := 0.25
+static var HIT_ATTACK_DELAY: float = 0.25
 ## Occasional repeats keep two-move enemies from becoming a strict metronome.
-const REPEAT_ATTACK_WEIGHT := 0.18
+static var REPEAT_ATTACK_WEIGHT: float = 0.18
 ## Physics layers a look or a step is stopped by: world (1) and ledges (5).
 const SOLID_MASK := 1 | 16
 ## Per behaviour: sight range, sight height, feel-behind radius.
-const SIGHT_DEFAULTS := {
+static var SIGHT_DEFAULTS: Dictionary = {
 	"walker": [210.0, 70.0, 40.0],
 	"flyer": [260.0, 150.0, 48.0],
 }
-const PATROL_DEFAULTS := {"radius": 110.0, "speed": 0.45, "pause": [0.8, 2.4]}
+static var PATROL_DEFAULTS: Dictionary = {"radius": 110.0, "speed": 0.45, "pause": [0.8, 2.4]}
 ## Spacing (docs/ENEMY_AI.md). How many walkers on one side of a player may
 ## step in to strike at once; the rest wait, each further back by CROWD_STEP.
-const ATTACKERS_PER_SIDE := 2
-const CROWD_STEP := 22.0
+static var ATTACKERS_PER_SIDE: int = 2
+static var CROWD_STEP: float = 22.0
 ## A flyer hovers at least this far from the player it hunts, and is pushed off
 ## anyone's body inside PERSONAL_SPACE unless it is mid-attack.
-const FLYER_MIN_GAP := 48.0
-const PERSONAL_SPACE := 36.0
-const FLOCK_SPACE := 30.0
+static var FLYER_MIN_GAP: float = 48.0
+static var PERSONAL_SPACE: float = 36.0
+static var FLOCK_SPACE: float = 30.0
+## How far behind its slot a walker waits, rolled once per body [min, max].
+static var BAND_DEPTH: Array = [26.0, 52.0]
+
+## How enemies fight is data too (docs/ENEMY_AI.md, docs/GAME_PACKS.md): the
+## "enemy_ai" section of data/hero.json, by the lower-case names of the static
+## vars above; Data.reload lays it on through apply_ai (from Player.apply_hero).
+## One enemy can take its own with "ai": {...} in its JSON, read by _ai.
+const AI_KEYS := ["retarget_interval", "parry_opening", "riposte_multiplier", "alert_time",
+	"execute_below", "shout_radius", "hit_attack_delay", "repeat_attack_weight", "sight_defaults",
+	"patrol_defaults", "attackers_per_side", "crowd_step", "flyer_min_gap", "personal_space",
+	"flock_space", "peck_patience", "band_depth"]
+## The script's own numbers, taken before the first apply_ai.
+static var _ai_defaults: Dictionary = {}
 
 @export var enemy_id: String = "possessed_villager"
 ## What this elite rose with (data/affixes), "" for none: chosen by the host
@@ -159,7 +172,7 @@ var _crowd_rank := 0
 ## How long a flyer has been on its attack run without striking: past
 ## PECK_PATIENCE it gives the run up and pulls out (never hang on the body).
 var _peck_time := 0.0
-const PECK_PATIENCE := 0.35
+static var PECK_PATIENCE: float = 0.35
 var _summoned := false
 var _home := Vector2.ZERO  # where it was spawned; the patrol is around this
 var _patrol_goal := Vector2.ZERO
@@ -203,6 +216,43 @@ func attach_net_sync() -> void:
 		Net.attach_sync(self, [".:position", ".:facing", ".:aware"])
 
 
+## Lays the "enemy_ai" numbers over the script's own (a key it does not know is
+## skipped; the validator names it). A second call starts from the defaults.
+static func apply_ai(doc: Dictionary) -> void:
+	var script: GDScript = load("res://scripts/enemies/enemy.gd")
+	if _ai_defaults.is_empty():
+		_ai_defaults = enemy_ai()
+	for key: String in AI_KEYS:
+		var value = _ai_defaults[key]
+		var given = doc.get(key)
+		if given != null and typeof(given) == typeof(value) or (given is int and value is float) \
+				or (given is float and value is int):
+			value = given
+		if _ai_defaults[key] is float:
+			value = float(value)
+		elif _ai_defaults[key] is int:
+			value = int(value)
+		script.set(key.to_upper(), value.duplicate(true) if value is Array or value is Dictionary else value)
+
+
+## How enemies fight as it stands, by data name.
+static func enemy_ai() -> Dictionary:
+	var script: GDScript = load("res://scripts/enemies/enemy.gd")
+	var out := {}
+	for key: String in AI_KEYS:
+		var value = script.get(key.to_upper())
+		out[key] = value.duplicate(true) if value is Array or value is Dictionary else value
+	return out
+
+
+## One of the AI numbers for this body: its own "ai" in the JSON, else the game's.
+func _ai(key: String) -> Variant:
+	var own = stats.get("ai", {})
+	if own is Dictionary and own.has(key):
+		return own[key]
+	return get(key.to_upper())
+
+
 func _ready() -> void:
 	sprite.frame_changed.connect(_attack_frame_changed)
 	stats = Data.enemies.get(enemy_id, {}).duplicate(true)  # scaled per instance below
@@ -229,7 +279,8 @@ func _ready() -> void:
 	_attack_cd = randf_range(0.3, 1.0)  # not everyone swings on frame one
 	_retreat_distance = randf_range(28.0, 48.0)
 	_retreat_speed = randf_range(0.55, 0.8)
-	_band_depth = randf_range(26.0, 52.0)
+	var band: Array = _ai("band_depth")
+	_band_depth = randf_range(float(band[0]), float(band[1]))
 	_fly_phase = randi() % 2
 	_fly_phase_left = randf_range(0.9, 1.7)
 	var size := float(stats.get("size", 12))
@@ -531,7 +582,7 @@ func _physics_process(delta: float) -> void:
 		return
 	_retarget -= delta
 	if _target == null or not is_instance_valid(_target) or _target.is_dead() or _retarget <= 0.0:
-		_retarget = RETARGET_INTERVAL
+		_retarget = float(_ai("retarget_interval"))
 		_acquire_target()
 		_crowd_rank = _count_crowd()
 	if _target == null:
@@ -717,7 +768,7 @@ func _notice(who: Player, shout := true) -> void:
 		return
 	_target = who
 	aware = true
-	_set_state(State.ALERT, ALERT_TIME)
+	_set_state(State.ALERT, float(_ai("alert_time")))
 	var d := who.global_position - global_position
 	if absf(d.x) > 4.0:
 		facing = 1 if d.x > 0.0 else -1
@@ -728,7 +779,7 @@ func _notice(who: Player, shout := true) -> void:
 		for node in get_tree().get_nodes_in_group("enemies"):
 			var other := node as Enemy
 			if other != null and other != self and other.is_unaware() \
-					and other.global_position.distance_to(global_position) <= SHOUT_RADIUS:
+					and other.global_position.distance_to(global_position) <= float(_ai("shout_radius")):
 				other._notice(who, false)
 
 
@@ -785,7 +836,7 @@ func _chase(to_target: Vector2, delta: float) -> void:
 			# and never parked on the body: in, then out and higher, each flyer on
 			# its own timing and a little further out than the one before it.
 			var side := signf(to_target.x) if absf(to_target.x) > 4.0 else float(facing)
-			var distance := maxf(FLYER_MIN_GAP, float(stats.get("hover_distance", 60.0))) \
+			var distance := maxf(float(_ai("flyer_min_gap")), float(stats.get("hover_distance", 60.0))) \
 				+ (34.0 if _fly_phase == 1 else 0.0) + 16.0 * _crowd_rank
 			var height := 34.0 + 18.0 * _fly_phase + 10.0 * _crowd_rank
 			var pecking := false
@@ -800,7 +851,7 @@ func _chase(to_target: Vector2, delta: float) -> void:
 					height = 16.0
 			if pecking:
 				_peck_time += delta
-				if _peck_time > PECK_PATIENCE:
+				if _peck_time > float(_ai("peck_patience")):
 					# the run came to nothing (another move was picked, or none):
 					# out, rather than hanging over his head
 					pecking = false
@@ -869,7 +920,7 @@ func _chase(to_target: Vector2, delta: float) -> void:
 				# a shooter holds its range; a boss simply comes on
 				if absf(to_target.x) < aggro and absf(to_target.x) > stop_at:
 					chase.x = signf(to_target.x) * speed
-			elif _attack_cd <= 0.3 and _crowd_rank < ATTACKERS_PER_SIDE:
+			elif _attack_cd <= 0.3 and _crowd_rank < int(_ai("attackers_per_side")):
 				# a blow is ready and it is its turn: in to striking distance
 				if absf(to_target.x) < aggro and absf(to_target.x) > stop_at:
 					chase.x = signf(to_target.x) * speed
@@ -903,7 +954,7 @@ func _hold(delta: float) -> void:
 func _keep_distance(to_target: Vector2, melee_range: float, speed: float, aggro: float, delta: float) -> float:
 	var gap := absf(to_target.x)
 	var toward := signf(to_target.x)
-	var band_in := melee_range + 12.0 + CROWD_STEP * _crowd_rank
+	var band_in := melee_range + 12.0 + float(_ai("crowd_step")) * _crowd_rank
 	_pace_left -= delta
 	if _pace_left <= 0.0 or _pace_goal < band_in or _pace_goal > band_in + _band_depth:
 		_pace_left = randf_range(0.6, 1.4)
@@ -956,22 +1007,24 @@ func _melee_reach() -> float:
 func _personal_space(to_target: Vector2) -> Vector2:
 	var chest := to_target + Vector2(0, -12)
 	var depth := chest.length()
-	if depth >= PERSONAL_SPACE:
+	var space := float(_ai("personal_space"))
+	if depth >= space:
 		return Vector2.ZERO
 	var away := -chest.normalized() if depth > 0.5 else Vector2(-float(facing), -1.0).normalized()
-	return away * (1.0 - depth / PERSONAL_SPACE)
+	return away * (1.0 - depth / space)
 
 
 ## Flyers keep off one another, so a flock reads as several birds.
 func _flock() -> Vector2:
 	var push := Vector2.ZERO
+	var space := float(_ai("flock_space"))
 	for node in get_tree().get_nodes_in_group("enemies"):
 		var other := node as Enemy
 		if other == null or other == self or other.is_dead() or not other._is_flying():
 			continue
 		var apart := global_position - other.global_position
-		if apart.length() < FLOCK_SPACE:
-			push += (apart.normalized() if apart.length() > 0.5 else Vector2.UP) * (1.0 - apart.length() / FLOCK_SPACE)
+		if apart.length() < space:
+			push += (apart.normalized() if apart.length() > 0.5 else Vector2.UP) * (1.0 - apart.length() / space)
 	return push
 
 
@@ -1000,13 +1053,14 @@ func _choose_attack(to_target: Vector2) -> int:
 	if candidates.size() > 1 and _repeats >= 1:
 		candidates.erase(_last_attack)  # twice is a habit, three times a loop
 	var total := 0.0
+	var repeat := float(_ai("repeat_attack_weight"))
 	for i in candidates:
 		var weight := maxf(0.0, float(_attacks[i].get("weight", 1.0)))
-		total += weight * (REPEAT_ATTACK_WEIGHT if candidates.size() > 1 and i == _last_attack else 1.0)
+		total += weight * (repeat if candidates.size() > 1 and i == _last_attack else 1.0)
 	var roll := attack_rng.randf() * total
 	for i in candidates:
 		var weight := maxf(0.0, float(_attacks[i].get("weight", 1.0)))
-		roll -= weight * (REPEAT_ATTACK_WEIGHT if candidates.size() > 1 and i == _last_attack else 1.0)
+		roll -= weight * (repeat if candidates.size() > 1 and i == _last_attack else 1.0)
 		if roll <= 0.0:
 			return i
 	return candidates.back()
@@ -1511,7 +1565,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		amount *= 1.0 + float(stats.get("seal_phase", {}).get("exposed_bonus", 0.5))
 	if _hex_left > 0.0:
 		amount *= 1.0 + _hex_bonus
-	var backstab := is_unaware() and sneak > 1.0
+	var backstab := is_unaware() and sneak > 1.0 and Player.can_move("backstab")
 	if backstab:
 		amount *= sneak
 		crit = true
@@ -1521,7 +1575,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	if execute > 0.0 and hp <= _max_hp * EXECUTE_BELOW:
 		amount *= 1.0 + execute
 		crit = true
-	var riposte := _open_left > 0.0
+	var riposte := _open_left > 0.0 and Player.can_move("riposte")
 	if riposte:
 		_open_left = 0.0  # one riposte per parry
 		EventBus.technique_performed.emit("riposte")
@@ -1564,7 +1618,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		_knockback = Vector2(away * push, -35.0 if _is_flying() else -60.0)
 		if state == State.WINDUP and randf() < float(stats.get("stagger_chance", 0.35)):
 			_set_state(State.RECOVER, 0.4)  # interrupted the wind-up
-			_attack_cd = maxf(_attack_cd, _state_left + HIT_ATTACK_DELAY)
+			_attack_cd = maxf(_attack_cd, _state_left + float(_ai("hit_attack_delay")))
 			_cancel_telegraph()
 			if Net.active:
 				_net_cancel_telegraph.rpc()
@@ -1574,7 +1628,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 			# and the sword looks like it passed through. An attack already in
 			# motion still plays out — that is what stagger_chance is for.
 			_set_state(State.RECOVER, float(stats.get("flinch", 0.18)))
-			_attack_cd = maxf(_attack_cd, _state_left + HIT_ATTACK_DELAY)
+			_attack_cd = maxf(_attack_cd, _state_left + float(_ai("hit_attack_delay")))
 			_play("idle")
 			# and now and then it gives ground rather than trade blows
 			if randf() < float(stats.get("hit_retreat", 0.35)):
@@ -1662,7 +1716,7 @@ func _apply_stagger(duration: float) -> void:
 		if Net.active:
 			_net_cancel_telegraph.rpc()
 	_set_state(State.RECOVER, duration)
-	_attack_cd = maxf(_attack_cd, duration + HIT_ATTACK_DELAY)
+	_attack_cd = maxf(_attack_cd, duration + float(_ai("hit_attack_delay")))
 
 
 ## The player's block caught this swing on the beat (Player._parry): the blow is
@@ -1686,7 +1740,7 @@ func _apply_parry(from: Vector2) -> void:
 	if state == State.DEAD:
 		return
 	var boss: bool = stats.get("boss", false)
-	var opening := float(stats.get("parry_opening", PARRY_OPENING)) * (0.5 if boss else 1.0)
+	var opening := float(stats.get("parry_opening", _ai("parry_opening"))) * (0.5 if boss else 1.0)
 	_cancel_telegraph()
 	if Net.active:
 		_net_cancel_telegraph.rpc()
@@ -1839,7 +1893,7 @@ func _enter_seal() -> void:
 	if Net.active:
 		_net_sealed.rpc(true, false)
 	var room := get_tree().get_first_node_in_group("room") as Node2D
-	var key := room.scene_file_path.get_file().get_basename() if room != null else ""
+	var key := RoomLayers.look_key(room, phase.get("points", {})) if room != null else ""
 	var points: Array = phase.get("points", {}).get(key, [])
 	if points.is_empty():
 		points = [[-140, 40], [0, -60], [140, 40]]  # an unlisted room: about the boss

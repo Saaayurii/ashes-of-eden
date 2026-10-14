@@ -40,10 +40,21 @@ const FAR_WINDOWS := {
 }
 
 
+## The name a room's look is keyed by (FAR_WINDOWS here, BackdropLife, Ambience,
+## DepthLayers, …): its scene's own, unless the room is a game pack's variant of
+## an engine room (`base_room`, tools/rooms/generate_rooms.py --pack) and
+## [param table] has no entry of its own for it — then the engine room's,
+## whose painting it shows.
+static func look_key(room: Node, table: Dictionary = {}) -> String:
+	var own := room.scene_file_path.get_file().get_basename()
+	var base := str(room.get("base_room")) if room.get("base_room") != null else ""
+	return own if base == "" or table.has(own) else base
+
+
 static func arrange(room: Node2D) -> void:
 	if room.get_node_or_null("Painting") == null:
 		return
-	var key := room.scene_file_path.get_file().get_basename()
+	var key := look_key(room, FAR_WINDOWS)
 	var fog := room.get_node_or_null("FogFar") as Parallax2D
 	if fog != null:
 		fog.scroll_scale = Vector2.ONE
@@ -59,7 +70,7 @@ static func window_factor(room: Node2D, index: int, factor: float) -> float:
 	var depths: PackedFloat32Array = room.get("window_depths") if room.get("window_depths") != null else PackedFloat32Array()
 	if not depths.is_empty():
 		return depths[index - 1] if index <= depths.size() else 0.0
-	var key := room.scene_file_path.get_file().get_basename()
+	var key := look_key(room, FAR_WINDOWS)
 	if not FAR_WINDOWS.has(key):
 		return factor
 	return factor if (FAR_WINDOWS[key] as Array).has(index) else 0.0

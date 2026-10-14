@@ -4,7 +4,7 @@ const PATH := "res://assets/levels/depth/hell_gate_atmosphere_v2.png"
 const HEAT := preload("res://assets/shaders/hell_depth.gdshader")
 
 static func attach(room: Node2D) -> void:
-	if room.scene_file_path.get_file().get_basename() != "hell_gate":
+	if RoomLayers.look_key(room) != "hell_gate":
 		return
 	if room.has_meta("authored_hell_depth"):
 		return

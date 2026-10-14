@@ -27,6 +27,16 @@ fails, so the rule is simple — change the Chinese text, run this again.
 
     python3 tools/art/make_cjk_font.py
 
+A game pack (docs/GAME_PACKS.md) has Chinese of its own, and the engine's
+subset was cut for Ashes. With the pack laid over the engine as content/,
+
+    python3 tools/art/make_cjk_font.py --pack
+
+cuts the pack its own subset from the merged strings (the engine's and the
+pack's, as apply_pack.py laid them) into content/assets/fonts/ — commit it
+in the pack — and over the engine's copy, which apply_pack.py puts in place
+from then on and --restore takes back.
+
 Noto Sans SC is SIL OFL 1.1 (assets/CREDITS.md). The downloaded original
 lives in tools/art/.cache/ and is git-ignored; the subset is committed.
 """
@@ -49,6 +59,11 @@ LICENCE_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserif
 ## only ever reached as a fallback. What it must carry is anything above
 ## ASCII that appears in the Chinese column: the characters themselves, and
 ## the full-width punctuation that comes with them.
+PACK = "--pack" in sys.argv
+if PACK:
+    PACK_OUT = os.path.join(ROOT, "content", "assets", "fonts", "NotoSerifSC-Subset.ttf")
+
+
 def wanted():
     chars = set()
     with open(STRINGS, encoding="utf-8") as handle:
@@ -102,6 +117,12 @@ def main():
 
     fetch(URL, SOURCE, "Noto Serif SC (once)")
     fetch(LICENCE_URL, LICENCE, "its OFL licence")
+    if PACK:
+        if not os.path.exists(os.path.join(ROOT, "content", "data", "game.json")):
+            sys.exit("make_cjk_font --pack: no game pack laid over the engine (tools/packs/apply_pack.py)")
+        os.makedirs(os.path.dirname(PACK_OUT), exist_ok=True)
+        with open(LICENCE, "rb") as src, open(os.path.join(os.path.dirname(PACK_OUT), os.path.basename(LICENCE)), "wb") as dst:
+            dst.write(src.read())
 
     chars = wanted()
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -125,6 +146,9 @@ def main():
 
     os.remove(SOURCE + ".static.ttf")
     _make_reproducible(OUT)
+    if PACK:
+        with open(OUT, "rb") as src, open(PACK_OUT, "wb") as dst:
+            dst.write(src.read())
     size = os.path.getsize(OUT)
     print("%d characters -> %s (%.0f KB, from %.0f MB)"
           % (len(chars), os.path.relpath(OUT, ROOT), size / 1024,

@@ -13,7 +13,7 @@ const BAYS := {
 }
 
 static func attach(room: Node2D) -> void:
-	var key := room.scene_file_path.get_file().get_basename()
+	var key := RoomLayers.look_key(room, BAYS)
 	if key == "church_ophanim":
 		_attach_sanctum(room)
 		return

@@ -35,7 +35,27 @@ JUMP_VELOCITY = 320.0
 GRAVITY = 1100.0
 BODY_WIDTH = 14.0
 REACH_MARGIN = 0.85
-FLYERS = {"shade", "wraith", "elder_wraith", "hollow_wraith", "raven", "ophanim"}
+def _flyers():
+    """Every creature that flies (behaviour "flyer", its own or through "extends"),
+    the engine's and a laid-over game pack's (content/data): it needs no floor
+    under its spawn."""
+    docs = {}
+    for root in (os.path.join(ROOT, "data", "enemies"), os.path.join(ROOT, "content", "data", "enemies")):
+        for file in sorted(os.listdir(root)) if os.path.isdir(root) else []:
+            if file.endswith(".json"):
+                with open(os.path.join(root, file), encoding="utf-8") as f:
+                    docs.setdefault(file[:-5], {}).update(json.load(f))
+
+    def behaviour(eid, seen=()):
+        doc = docs.get(eid, {})
+        if "behaviour" in doc or doc.get("extends") in (None, *seen):
+            return doc.get("behaviour")
+        return behaviour(doc["extends"], (*seen, eid))
+
+    return {"ophanim"} | {eid for eid in docs if behaviour(eid) == "flyer"}  # ophanim: a boss over its arena
+
+
+FLYERS = _flyers()
 
 
 def _surfaces(room):

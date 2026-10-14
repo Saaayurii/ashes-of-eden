@@ -1,9 +1,11 @@
-/* «Боёвка»: how the hero handles — data/hero.json (stats + feel, Player.apply_hero) and the swings
+/* «Боёвка»: how the hero handles — data/hero.json (stats + feel, Player.apply_hero; the moves he has
+ * and how enemies keep their distance, "moves" / "enemy_ai", Enemy.apply_ai) and the swings
  * in data/player_actions.json. Her edits are a diff over the game's values, kept in the browser
  * (ss_combat); a send writes only the changed values in place (lib.js heroPatch / actionsPatch),
  * and the sandbox gets the whole hero at once (sandboxDraftData → StudioLive.apply). */
 'use strict';
-const COMBAT = { data: null, work: { stats: {}, feel: {}, actions: {} }, open: null };
+const combatBlank = () => ({ stats: {}, feel: {}, moves: {}, enemy_ai: {}, actions: {} });
+const COMBAT = { data: null, work: combatBlank(), open: null };
 // [key, label, step, min, max] grouped as she thinks of them; a key missing from the game's file is skipped
 const COMBAT_GROUPS = [
   ['Тело и прыжок', [['stats.max_hp', 'Здоровье', 5, 1, 999], ['stats.speed', 'Скорость бега, px/с', 5, 10, 600], ['stats.acceleration', 'Разгон', 50, 100, 8000], ['stats.friction', 'Торможение (отпустил стик)', 50, 0, 8000],
@@ -27,15 +29,27 @@ const COMBAT_GROUPS = [
   ['Лечение и раны', [['stats.heal_charges', 'Фляг', 1, 0, 10], ['feel.heal_amount', 'Фляга лечит', 1, 0, 500], ['feel.heal_time', 'Пить флягу, с', 0.05, 0.05, 5], ['stats.armor', 'Броня (доля)', 0.01, 0, 0.9], ['stats.extra_lives', 'Запасных жизней', 1, 0, 5],
     ['feel.rally_time', 'Отыграться: окно, с', 0.1, 0, 10], ['feel.rally_damage_share', 'Отыграться: доля раны назад', 0.01, 0, 1], ['feel.rally_hit_share', 'Отыграться: за удар', 0.01, 0, 1], ['feel.rally_max_hp_share', 'Отыграться: не больше доли полоски', 0.01, 0, 1],
     ['feel.curse_damage', 'Проклятие: раны ×', 0.1, 1, 10], ['feel.refuse_heal', 'Отказ от даров лечит долю', 0.01, 0, 1]]],
+  ['Враги: дистанция и повадки', [['enemy_ai.attackers_per_side', 'Бьют разом с одной стороны', 1, 1, 6], ['enemy_ai.crowd_step', 'Очередь: каждый следующий дальше, px', 1, 0, 120],
+    ['enemy_ai.band_depth', 'Ждёт за досягаемостью, px (от · до)', 1, 0, 200], ['enemy_ai.hit_attack_delay', 'После раны пауза до замаха, с', 0.01, 0, 2], ['enemy_ai.repeat_attack_weight', 'Повтор той же атаки (вес)', 0.01, 0, 1],
+    ['enemy_ai.alert_time', '«!» до первого шага, с', 0.05, 0, 3], ['enemy_ai.shout_radius', 'Крик будит спящих в радиусе, px', 5, 0, 600], ['enemy_ai.retarget_interval', 'Пересматривает цель, с', 0.05, 0.05, 5],
+    ['enemy_ai.sight_defaults', 'Зрение: дальность · высота · чутьё сзади, px', 5, 0, 1000], ['enemy_ai.patrol_defaults', 'Патруль: радиус · скорость × · паузы, с', 0.05, 0, 1000],
+    ['enemy_ai.flyer_min_gap', 'Летун: не ближе, px', 1, 0, 300], ['enemy_ai.personal_space', 'Летун: выталкивается из тела ближе, px', 1, 0, 200], ['enemy_ai.flock_space', 'Летуны друг от друга, px', 1, 0, 200],
+    ['enemy_ai.peck_patience', 'Летун бросает заход через, с', 0.05, 0.05, 3], ['enemy_ai.parry_opening', 'Открыт после парирования, с', 0.05, 0, 5], ['enemy_ai.riposte_multiplier', 'Рипост: урон ×', 0.05, 1, 10],
+    ['enemy_ai.execute_below', 'Добивание ниже доли здоровья', 0.01, 0, 1]]],
   ['Предметы', [['feel.heal_burst_radius', 'Фляга обжигает в радиусе, px', 2, 0, 400], ['feel.parry_stun_radius', 'Парирование оглушает в радиусе, px', 2, 0, 400], ['feel.wrath_time', 'Гнев после раны, с', 0.1, 0, 10], ['feel.desperate_share', 'Отчаяние ниже доли', 0.01, 0, 1]]],
 ];
+// the special moves a game's hero may have (Player.MOVE_KEYS); off = the button does the plain thing
+const COMBAT_MOVES = [['lunge', 'Выпад'], ['cleave', 'Рассечение (заряд)'], ['sweep', 'Подсечка'], ['rising', 'Удар вверх и в прыжке'], ['dash_strike', 'Удар из кувырка'],
+  ['slam', 'Удар сверху'], ['wall_jump', 'Стена: скольжение и прыжок'], ['riposte', 'Рипост'], ['backstab', 'Удар в спину']];
 const ACTION_KEYS = [['multiplier', 'Урон ×', 0.05], ['recovery', 'Перезарядка × базовая', 0.05], ['animation_time', 'Длит., с', 0.01], ['knockback', 'Отбрасывание', 0.1], ['hit_frame', 'Кадр удара (с 0)', 1], ['stagger', 'Оглушение, с', 0.05], ['radius', 'Радиус, px', 1]];
 
 async function combatLoad() {
   if (COMBAT.data) return;
   await worldLoad();
-  COMBAT.data = { hero: WORLD.data.files['data/hero.json'] || { stats: {}, feel: {} }, actions: WORLD.data.files['data/player_actions.json']?.actions || {} };
+  COMBAT.data = { hero: WORLD.data.files['data/hero.json'] || {}, actions: WORLD.data.files['data/player_actions.json']?.actions || {} };
+  for (const s of HERO_SECTIONS) COMBAT.data.hero[s] ||= {};
   try { Object.assign(COMBAT.work, JSON.parse(localStorage.getItem('ss_combat') || '{}')); } catch {}
+  for (const [k, v] of Object.entries(combatBlank())) COMBAT.work[k] ||= v;
 }
 const combatGame = key => { const [s, k] = key.split('.'); return COMBAT.data.hero[s]?.[k]; };
 const combatMine = key => { const [s, k] = key.split('.'); return k in COMBAT.work[s] ? COMBAT.work[s][k] : combatGame(key); };
@@ -47,17 +61,20 @@ function combatSet(key, v) {
   combatSave();
 }
 // the whole hero as the game would load it after a send (for the sandbox)
-const combatHero = () => ({ stats: { ...COMBAT.data.hero.stats, ...COMBAT.work.stats }, feel: { ...COMBAT.data.hero.feel, ...COMBAT.work.feel } });
+const combatHero = () => Object.fromEntries(HERO_SECTIONS.map(s => [s, { ...COMBAT.data.hero[s], ...COMBAT.work[s] }]));
 const combatActions = () => Object.fromEntries(Object.entries(COMBAT.data.actions).map(([id, a]) => [id, { ...a, ...(COMBAT.work.actions[id] || {}) }]));
-const combatCount = () => Object.keys(COMBAT.work.stats).length + Object.keys(COMBAT.work.feel).length + Object.values(COMBAT.work.actions).reduce((n, a) => n + Object.keys(a).length, 0);
+const combatHeroCount = () => HERO_SECTIONS.reduce((n, s) => n + Object.keys(COMBAT.work[s]).length, 0);
+const combatCount = () => combatHeroCount() + Object.values(COMBAT.work.actions).reduce((n, a) => n + Object.keys(a).length, 0);
 
 function combatField(key, label, step, min, max) {
   const game = combatGame(key); if (game === undefined) return '';
   const mine = combatMine(key), changed = !sameDraft(mine, game);
   const num = (v, sub) => `<input type="number" step="${step}" min="${min}" max="${max}" value="${v}" data-cb="${key}"${sub !== undefined ? ` data-cb-sub="${sub}"` : ''} style="width:${sub !== undefined ? 62 : 84}px">`;
-  const inputs = Array.isArray(game) ? mine.map((v, i) => num(v, i)).join('')
-    : game && typeof game === 'object' ? Object.keys(game).map(k => `<span class="muted" style="font-size:11px">${esc(k)}</span>${num(mine[k], k)}`).join('')
-    : num(mine);
+  // a list, a table, a table of lists (sight_defaults): one box per number, its path in data-cb-sub
+  const boxes = (g, m, path) => Array.isArray(g) ? g.map((_, i) => num(m?.[i] ?? g[i], [...path, i].join('.'))).join('')
+    : g && typeof g === 'object' ? Object.keys(g).map(k => `<span class="muted" style="font-size:11px">${esc(k)}</span>${boxes(g[k], m?.[k], [...path, k])}`).join('')
+    : num(m ?? g, path.length ? path.join('.') : undefined);
+  const inputs = boxes(game, mine, []);
   return `<div class="cbrow${changed ? ' cbchanged' : ''}"><label title="${esc(key)}">${esc(label)}</label><span class="cbin">${inputs}</span>
     <span class="muted cbgame" title="как в игре">${changed ? 'было ' + esc(fmtJson(game)) : ''}</span>${changed ? `<button class="sm ghost" data-cb-reset="${key}" title="Как в игре">⟲</button>` : ''}</div>`;
 }
@@ -72,7 +89,11 @@ function renderCombat() {
     <div class="note">Хитбокс, смещение и звук — во вкладке «Поведение» (player_actions.json).</div></details>`;
   const extra = Object.keys(COMBAT.data.hero.stats).filter(k => !COMBAT_GROUPS.some(([, rows]) => rows.some(([key]) => key === 'stats.' + k)));
   const mech = `<details class="card"><summary><b>Механики даров и предметов</b> <span class="muted">у героя без даров — 0</span></summary>${extra.map(k => combatField('stats.' + k, k, 0.05, 0, 100)).join('')}</details>`;
-  $('#combatBody').innerHTML = groups + table + mech;
+  const has = COMBAT_MOVES.filter(([id]) => id in COMBAT.data.hero.moves);
+  const moves = has.length ? `<details class="card" open><summary><b>Приёмы героя</b> <span class="muted">выключенный — кнопка делает простое: удар, падение, скольжение</span></summary>
+    <div style="display:flex;flex-wrap:wrap;gap:4px 14px;padding:4px 0">${has.map(([id, label]) => { const on = combatMine('moves.' + id) !== false, changed = !sameDraft(on, combatGame('moves.' + id));
+      return `<label style="${changed ? 'outline:1px solid #e0b050;' : ''}padding:1px 4px"><input type="checkbox" data-cb-move="${id}" ${on ? 'checked' : ''}> ${esc(label)}</label>`; }).join('')}</div></details>` : '';
+  $('#combatBody').innerHTML = moves + groups + table + mech;
   const n = combatCount();
   $('#combatStatus').textContent = n ? `Изменено значений: ${n}. Сохранено в браузере; «→ В игру» запишет только их.` : 'Всё как в игре.';
   $('#combatSend').disabled = !n;
@@ -82,8 +103,10 @@ async function combatEnter() { try { await combatLoad(); renderCombat(); } catch
 async function combatFiles() {
   await combatLoad();
   const files = {}, notes = [];
-  if (Object.keys(COMBAT.work.stats).length || Object.keys(COMBAT.work.feel).length) {
-    const text = await repoText('data/hero.json');
+  if (combatHeroCount()) {
+    // a game pack's hero.json holds only what it changes (deep-merged over the engine's), so
+    // its own file, or a fresh one, is patched, never a copy of the engine's whole handling
+    const text = META.pack ? (await repoText('content/data/hero.json')) || '{\n}\n' : await repoText('data/hero.json');
     const out = heroPatch(text, COMBAT.work);
     if (out !== text) files['data/hero.json'] = out;
   }
@@ -93,9 +116,9 @@ async function combatFiles() {
     if (out !== text) files['data/player_actions.json'] = out;
   }
   if (!Object.keys(files).length) throw new Error('В «Боёвке» нет изменений.');
-  const list = [...Object.entries({ ...COMBAT.work.stats, ...COMBAT.work.feel }).map(([k, v]) => `${k} → ${fmtJson(v)}`),
+  const list = [...HERO_SECTIONS.flatMap(s => Object.entries(COMBAT.work[s]).map(([k, v]) => `${s === 'stats' || s === 'feel' ? '' : s + '.'}${k} → ${fmtJson(v)}`)),
     ...Object.entries(acts).flatMap(([id, a]) => Object.entries(a).map(([k, v]) => `${id}.${k} → ${fmtJson(v)}`))];
-  notes.push('Проверь в песочнице и парирование/приёмы в игре: тесты parry_test, techniques_test, traversal_moves_test прогонит CI.');
+  notes.push('Проверь в песочнице и парирование/приёмы в игре: тесты parry_test, techniques_test, traversal_moves_test, enemy_spacing_test прогонит CI.');
   return { files, notes, title: `Studio: hero handling (${list.length})`, body: 'Боёвка героя:\n' + list.map(l => '- `' + l + '`').join('\n') };
 }
 
@@ -104,9 +127,15 @@ $('#combatBody').addEventListener('change', e => {
   if (t.dataset.cb) {
     const key = t.dataset.cb, sub = t.dataset.cbSub, game = combatGame(key);
     let v = +t.value; if (!Number.isFinite(v)) return;
-    if (sub !== undefined) { const cur = structuredClone(combatMine(key)); cur[Array.isArray(game) ? +sub : sub] = v; v = cur; }
+    if (sub !== undefined) {
+      const cur = structuredClone(combatMine(key)), path = sub.split('.');
+      let at = cur; for (const p of path.slice(0, -1)) at = at[p];
+      at[path.at(-1)] = v; v = cur;
+    }
     else if (Number.isInteger(game) && !String(game).includes('.')) v = Math.round(v);
     combatSet(key, v); renderCombat();
+  } else if (t.dataset.cbMove) {
+    combatSet('moves.' + t.dataset.cbMove, t.checked); renderCombat();
   } else if (t.dataset.cbAct) {
     const id = t.dataset.cbAct, k = t.dataset.cbKey, v = k === 'hit_frame' ? Math.max(0, Math.round(+t.value)) : +t.value;
     if (!Number.isFinite(v)) return;
@@ -118,10 +147,10 @@ $('#combatBody').addEventListener('change', e => {
 });
 $('#combatBody').addEventListener('click', e => { const b = e.target.closest('[data-cb-reset]'); if (b) { combatSet(b.dataset.cbReset, combatGame(b.dataset.cbReset)); renderCombat(); } });
 $('#combatBody').addEventListener('toggle', e => { if (e.target.open && e.target.dataset.cbGroup) COMBAT.open = e.target.dataset.cbGroup; }, true);
-$('#combatReset').onclick = () => { if (!combatCount() || confirm('Вернуть всю боёвку как в игре?')) { COMBAT.work = { stats: {}, feel: {}, actions: {} }; combatSave(); renderCombat(); } };
+$('#combatReset').onclick = () => { if (!combatCount() || confirm('Вернуть всю боёвку как в игре?')) { COMBAT.work = combatBlank(); combatSave(); renderCombat(); } };
 $('#combatSend').onclick = async () => {
   await sendToGame(combatFiles, 'workspace');
-  if (sendToGame.last?.local) { COMBAT.data = null; WORLD.data = null; COMBAT.work = { stats: {}, feel: {}, actions: {} }; combatSave(); await combatEnter(); }
+  if (sendToGame.last?.local) { COMBAT.data = null; WORLD.data = null; COMBAT.work = combatBlank(); combatSave(); await combatEnter(); }
 };
 // the hero as she set him, against a foe of her choice (data mode, like «Атаки»)
 $('#combatSandbox').onclick = async () => {

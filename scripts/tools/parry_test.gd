@@ -22,6 +22,11 @@ func _frames(n: int) -> void:
 		await physics_frame
 
 func _run() -> void:
+	# The block is held, not toggled, whatever the settings on this machine say
+	# (user:// is the player's; a toggle left on turns every hold below into a press).
+	var settings = root.get_node("Settings")
+	var was_toggle: bool = settings.block_toggle
+	settings.set_block_toggle(false)
 	var room = load("res://scenes/rooms/graveyard.tscn").instantiate()
 	root.add_child(room)
 	var player = load("res://scenes/player/player.tscn").instantiate()
@@ -137,8 +142,6 @@ func _run() -> void:
 
 	# block by toggling (Settings.block_toggle): a press raises the guard with a
 	# parry in it, it stays up once let go, the next press lowers it
-	var settings = root.get_node("Settings")
-	var was_toggle: bool = settings.block_toggle
 	guard.set_physics_process(false)
 	settings.set_block_toggle(true)
 	await _frames(40)  # past the last block's recovery

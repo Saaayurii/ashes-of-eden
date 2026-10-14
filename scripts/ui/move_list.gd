@@ -51,6 +51,8 @@ func _ready() -> void:
 	ids.sort_custom(func(a: String, b: String) -> bool:
 		return int(Data.techniques[a].get("order", 99)) < int(Data.techniques[b].get("order", 99)))
 	for id in ids:
+		if not Player.can_move(id):
+			continue  # this game's hero has no such move (hero.json "moves")
 		var spec: Dictionary = Data.techniques[id]
 		var row := Label.new()
 		row.name = id

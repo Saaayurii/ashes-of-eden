@@ -106,5 +106,35 @@
     "wall_slide_speed": 72.0,
     "wave_speed": 260.0,
     "wrath_time": 2.0
+  },
+  "moves": {
+    "backstab": true,
+    "cleave": true,
+    "dash_strike": true,
+    "lunge": true,
+    "riposte": true,
+    "rising": true,
+    "slam": true,
+    "sweep": true,
+    "wall_jump": true
+  },
+  "enemy_ai": {
+    "alert_time": 0.4,
+    "attackers_per_side": 2,
+    "band_depth": [26.0, 52.0],
+    "crowd_step": 22.0,
+    "execute_below": 0.3,
+    "flock_space": 30.0,
+    "flyer_min_gap": 48.0,
+    "hit_attack_delay": 0.25,
+    "parry_opening": 0.9,
+    "patrol_defaults": {"pause": [0.8, 2.4], "radius": 110.0, "speed": 0.45},
+    "peck_patience": 0.35,
+    "personal_space": 36.0,
+    "repeat_attack_weight": 0.18,
+    "retarget_interval": 0.4,
+    "riposte_multiplier": 1.5,
+    "shout_radius": 90.0,
+    "sight_defaults": {"flyer": [260.0, 150.0, 48.0], "walker": [210.0, 70.0, 40.0]}
   }
 }
