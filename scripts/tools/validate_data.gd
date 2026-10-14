@@ -1631,7 +1631,8 @@ func _check_backdrops() -> void:
 	for path in DATA_DOC.all_rooms(_doc("game.json")):
 		# a game pack's room made from an engine room may take that room's rule (RoomLayers.look_key)
 		var own := str(path).get_file().get_basename()
-		if not rooms.has(own) and not rooms.has(_base_room(str(path))):
+		# a live composed room is keyed composed/<name>, as BackdropLife.room_key reads its painting
+		if not rooms.has(own) and not rooms.has("composed/" + own) and not rooms.has(_base_room(str(path))):
 			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % own)
 	# every picture a scene shows or a passage card carries breathes too
 	for picture in backdrop_pictures():

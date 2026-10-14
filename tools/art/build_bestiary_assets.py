@@ -59,6 +59,8 @@ GAME_CELLS = {
     # Seir (chapter II), drawn by Codex's image generation (assets/CREDITS.md)
     "waiting_townsman": (52, 52), "drowned": (60, 60), "gate_warden": (72, 72),
     "drowned_bosun": (96, 84), "watchman": (88, 88),
+    # the Euphrates (chapter VI), drawn by Codex's image generation (assets/CREDITS.md)
+    "four_bound": (72, 72),
 }
 
 

@@ -2,16 +2,16 @@
   {
     "id": "euphrates_refectory",
     "at": [
-      980,
-      590
+      1060,
+      568
     ],
     "_comment": "the bread oven in the right third, its lamp on top"
   },
   {
     "id": "euphrates_river_stair",
     "at": [
-      640,
-      360
+      625,
+      370
     ],
     "_comment": "the shrine niche on the middle landing"
   }

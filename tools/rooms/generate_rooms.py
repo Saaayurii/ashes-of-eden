@@ -49,6 +49,18 @@ ROOM_EXPANSION_CUTS = {
     "seir_square": (380, 820), "seir_roofs": (300, 1020), "seir_canal": (200, 1000),
     "seir_quay": (250, 1050), "seir_wrecks": (250, 470), "seir_warehouses": (320, 1000),
     "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
+    # chapter VI, the Euphrates
+    "euphrates_bank": (300, 540),
+    "euphrates_town": (540, 760),
+    "euphrates_gate": (320, 460),
+    "euphrates_cloister": (480, 800),
+    "euphrates_scriptorium": (660, 900),
+    "euphrates_refectory": (560, 760),
+    "euphrates_altar_court": (250, 1010),
+    "euphrates_crypt_of_chains": (330, 1000),
+    "euphrates_cistern": (200, 1080),
+    "euphrates_river_stair": (200, 1140),
+    "euphrates_bound": (360, 920),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -76,6 +88,10 @@ FOCAL_RANGES = {
     "seir_warehouses": ((890, 960),),          # the clock on the post
     "seir_breakwater": ((740, 820),),          # moon
     "seir_lighthouse": ((540, 640), (900, 1130)),  # moon in its window, the lamp
+    "euphrates_bank": ((640, 800),),           # the mighty angel with the little book
+    "euphrates_town": ((655, 705),),           # moon
+    "euphrates_altar_court": ((560, 745),),    # the golden altar with four horns
+    "euphrates_bound": ((120, 210), (500, 780), (1065, 1160)),  # the pillars and their rings
 }
 
 TRAVERSAL_PATCHES = {
@@ -118,6 +134,18 @@ SEAM_STORIES = {
     "seir_roofs": ("", ""), "seir_canal": ("", ""), "seir_quay": ("", ""), "seir_wrecks": ("", ""),
     "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
     "seir_lighthouse": ("", ""),
+    "euphrates_bank": ("", ""),
+    "euphrates_town": ("", ""),
+    "euphrates_gate": ("", ""),
+    "euphrates_cloister": ("", ""),
+    "euphrates_scriptorium": ("", ""),
+    "euphrates_refectory": ("", ""),
+    "euphrates_altar_court": ("", ""),
+    "euphrates_crypt_of_chains": ("", ""),
+    "euphrates_cistern": ("", ""),
+    "euphrates_river_stair": ("", ""),
+    "euphrates_bound": ("", ""),
+    "euphrates_bell_tower": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -153,6 +181,18 @@ ROOM_PROP_MOTIFS = {
     "seir_road": {}, "seir_gate": {}, "seir_street": {}, "seir_square": {}, "seir_roofs": {},
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
+    "euphrates_bank": {},
+    "euphrates_town": {},
+    "euphrates_gate": {},
+    "euphrates_cloister": {},
+    "euphrates_scriptorium": {},
+    "euphrates_refectory": {},
+    "euphrates_altar_court": {},
+    "euphrates_crypt_of_chains": {},
+    "euphrates_cistern": {},
+    "euphrates_river_stair": {},
+    "euphrates_bound": {},
+    "euphrates_bell_tower": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -234,6 +274,18 @@ DEPTH_WINDOWS = {
     "seir_roofs": (0.02, []), "seir_canal": (0.02, []), "seir_quay": (0.02, []), "seir_wrecks": (0.02, []),
     "seir_warehouses": (0.02, []), "seir_breakwater": (0.02, []), "seir_lighthouse_stair": (0.02, []),
     "seir_lighthouse": (0.02, []),
+    "euphrates_bank": (0.02, []),
+    "euphrates_town": (0.02, []),
+    "euphrates_gate": (0.02, []),
+    "euphrates_cloister": (0.02, []),
+    "euphrates_scriptorium": (0.02, []),
+    "euphrates_refectory": (0.02, []),
+    "euphrates_altar_court": (0.02, []),
+    "euphrates_crypt_of_chains": (0.02, []),
+    "euphrates_cistern": (0.02, []),
+    "euphrates_river_stair": (0.02, []),
+    "euphrates_bound": (0.02, []),
+    "euphrates_bell_tower": (0.02, []),
 }
 
 

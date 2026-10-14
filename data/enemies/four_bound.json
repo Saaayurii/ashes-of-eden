@@ -22,8 +22,21 @@
     "boss"
   ],
   "sprite": {
-    "like": "knight_of_ash",
-    "tint": "#dfe8ff"
+    "cell": [
+      108,
+      77
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/four_bound_v2_idle.png",
+      "walk": "res://assets/sprites/four_bound_v2_walk.png",
+      "attack": "res://assets/sprites/four_bound_v2_attack.png",
+      "attack_alt": "res://assets/sprites/four_bound_v2_attack_alt.png",
+      "special": "res://assets/sprites/four_bound_v2_special.png",
+      "hurt": "res://assets/sprites/four_bound_v2_hurt.png",
+      "death": "res://assets/sprites/four_bound_v2_death.png"
+    },
+    "scale": 0.92
   },
   "tether": {
     "length": 170,
@@ -33,20 +46,20 @@
     "anchors": {
       "euphrates_bound": [
         [
-          150,
-          600
+          165,
+          598
         ],
         [
-          565,
-          600
+          708,
+          598
         ],
         [
-          715,
-          600
+          892,
+          598
         ],
         [
-          1125,
-          600
+          1432,
+          598
         ]
       ],
       "practice_yard": [

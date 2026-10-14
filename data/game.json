@@ -9,7 +9,10 @@
     ["stranger_killed", "stranger_heard", "stranger_refused"],
     "mara_saved",
     ["lazarus_helped", "lazarus_asked", "lazarus_passed"],
-    ["watchman_sent_down", "watchman_relieved", "watchman_dark"]
+    ["watchman_sent_down", "watchman_relieved", "watchman_dark"],
+    "scroll_eaten",
+    ["angels_kept_bound", "angels_loosed", "angels_left_to_men"],
+    ["witnesses_covered", "witnesses_asked", "witnesses_robbed"]
   ],
   "rooms": [
     "res://scenes/rooms/village_night.tscn",
@@ -53,6 +56,25 @@
         "res://scenes/rooms/seir_breakwater.tscn",
         "res://scenes/rooms/seir_lighthouse_stair.tscn",
         "res://scenes/rooms/seir_lighthouse.tscn"
+      ]
+    },
+    {
+      "id": "euphrates",
+      "after_dawns": 5,
+      "opening": {"wake": false},
+      "rooms": [
+        "res://scenes/rooms/euphrates_bank.tscn",
+        "res://scenes/rooms/euphrates_town.tscn",
+        "res://scenes/rooms/euphrates_gate.tscn",
+        "res://scenes/rooms/euphrates_cloister.tscn",
+        "res://scenes/rooms/euphrates_scriptorium.tscn",
+        "res://scenes/rooms/euphrates_refectory.tscn",
+        "res://scenes/rooms/euphrates_bell_tower.tscn",
+        "res://scenes/rooms/euphrates_altar_court.tscn",
+        "res://scenes/rooms/euphrates_crypt_of_chains.tscn",
+        "res://scenes/rooms/euphrates_cistern.tscn",
+        "res://scenes/rooms/euphrates_river_stair.tscn",
+        "res://scenes/rooms/euphrates_bound.tscn"
       ]
     }
   ],
