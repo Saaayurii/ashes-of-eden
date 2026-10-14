@@ -91,7 +91,7 @@ def build():
 
 def write(file_name, animations, borrowed, cell):
     strips = sorted({strip for _, strip, _, _ in animations} | {strip for _, strip, _, _, _ in borrowed},
-                    key=lambda s: [a[1] for a in animations].index(s) if any(a[1] == s for a in animations) else 99)
+                    key=lambda s: ([a[1] for a in animations].index(s) if any(a[1] == s for a in animations) else 999, s))
     counts = {strip: frame_count(strip, cell) for strip in strips}
 
     ext = "".join(f'[ext_resource type="Texture2D" path="res://assets/sprites/{s}.png" id="tex_{s}"]\n' for s in strips)

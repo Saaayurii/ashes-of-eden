@@ -69,10 +69,10 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_hurt.png" id="tex_elian_daggers_hurt"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_knockback.png" id="tex_elian_daggers_knockback"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_land.png" id="tex_elian_daggers_land"]
-[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_attack.png" id="tex_elian_spear_attack"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_attack.png" id="tex_elian_attack"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_attack.png" id="tex_elian_daggers_attack"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_attack.png" id="tex_elian_headsman_attack"]
-[ext_resource type="Texture2D" path="res://assets/sprites/elian_attack.png" id="tex_elian_attack"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_attack.png" id="tex_elian_spear_attack"]
 
 [sub_resource type="AtlasTexture" id="elian_idle_0"]
 atlas = ExtResource("tex_elian_idle")
@@ -1634,24 +1634,24 @@ region = Rect2(256, 0, 128, 64)
 atlas = ExtResource("tex_elian_daggers_land")
 region = Rect2(384, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_spear_attack_0"]
-atlas = ExtResource("tex_elian_spear_attack")
+[sub_resource type="AtlasTexture" id="elian_attack_0"]
+atlas = ExtResource("tex_elian_attack")
 region = Rect2(0, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_spear_attack_1"]
-atlas = ExtResource("tex_elian_spear_attack")
+[sub_resource type="AtlasTexture" id="elian_attack_1"]
+atlas = ExtResource("tex_elian_attack")
 region = Rect2(128, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_spear_attack_2"]
-atlas = ExtResource("tex_elian_spear_attack")
+[sub_resource type="AtlasTexture" id="elian_attack_2"]
+atlas = ExtResource("tex_elian_attack")
 region = Rect2(256, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_spear_attack_3"]
-atlas = ExtResource("tex_elian_spear_attack")
+[sub_resource type="AtlasTexture" id="elian_attack_3"]
+atlas = ExtResource("tex_elian_attack")
 region = Rect2(384, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_spear_attack_4"]
-atlas = ExtResource("tex_elian_spear_attack")
+[sub_resource type="AtlasTexture" id="elian_attack_4"]
+atlas = ExtResource("tex_elian_attack")
 region = Rect2(512, 0, 128, 64)
 
 [sub_resource type="AtlasTexture" id="elian_daggers_attack_0"]
@@ -1694,24 +1694,24 @@ region = Rect2(384, 0, 128, 64)
 atlas = ExtResource("tex_elian_headsman_attack")
 region = Rect2(512, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_attack_0"]
-atlas = ExtResource("tex_elian_attack")
+[sub_resource type="AtlasTexture" id="elian_spear_attack_0"]
+atlas = ExtResource("tex_elian_spear_attack")
 region = Rect2(0, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_attack_1"]
-atlas = ExtResource("tex_elian_attack")
+[sub_resource type="AtlasTexture" id="elian_spear_attack_1"]
+atlas = ExtResource("tex_elian_spear_attack")
 region = Rect2(128, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_attack_2"]
-atlas = ExtResource("tex_elian_attack")
+[sub_resource type="AtlasTexture" id="elian_spear_attack_2"]
+atlas = ExtResource("tex_elian_spear_attack")
 region = Rect2(256, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_attack_3"]
-atlas = ExtResource("tex_elian_attack")
+[sub_resource type="AtlasTexture" id="elian_spear_attack_3"]
+atlas = ExtResource("tex_elian_spear_attack")
 region = Rect2(384, 0, 128, 64)
 
-[sub_resource type="AtlasTexture" id="elian_attack_4"]
-atlas = ExtResource("tex_elian_attack")
+[sub_resource type="AtlasTexture" id="elian_spear_attack_4"]
+atlas = ExtResource("tex_elian_spear_attack")
 region = Rect2(512, 0, 128, 64)
 
 [resource]
