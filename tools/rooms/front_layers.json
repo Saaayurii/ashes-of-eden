@@ -28,5 +28,9 @@
   ],
   "village_night": [
     {"from": "graveyard_moon_wide", "crop": [95, 0, 135, 115], "at": [544, 4], "depth": 1.4, "dark": 0.9, "cut": 50, "flip": true}
+  ],
+  "hall_measured_temple": [
+    {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [140, 160], "depth": 1.4, "dark": 0.6, "key": "alpha"},
+    {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [1390, 160], "depth": 1.4, "dark": 0.6, "key": "alpha", "flip": true}
   ]
 }
