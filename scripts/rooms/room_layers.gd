@@ -42,7 +42,7 @@ const FAR_WINDOWS := {
 	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
 	# the Heavenly Hall (chapter VII) has no inpainted plates yet either
-	"hall_elders_stair": [], "hall_outer_court": [], "hall_measured_temple": [], "hall_gallery_of_lamps": [],
+	"hall_elders_stair": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], "hall_outer_court": [1, 2, 3, 4], "hall_measured_temple": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "hall_gallery_of_lamps": [],
 	"hall_sea_of_glass": [], "hall_archive": [], "hall_stones_of_fire": [], "hall_ark_sanctum": [],
 	"hall_thunders": [], "hall_hail_gallery": [], "hall_flaming_way": [], "hall_eden_gate": [],
 }
