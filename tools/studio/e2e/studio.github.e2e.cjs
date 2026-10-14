@@ -86,7 +86,8 @@ const textOf = buf => Buffer.from(buf).toString('utf8');
   const gh = fakeGitHub();
   const errors = [];
   try {
-    for (let i = 0; i < 60; i++) { try { const res = await fetch(URL.replace('?hosted', '') + 'import/meta.json'); await res.arrayBuffer(); if (res.ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
+    // read the body: an unread 70 KB answer on a socket the server then closes trips undici's own assert (Node 22) and kills the run
+    for (let i = 0; i < 60; i++) { try { const r = await fetch(URL.replace('?hosted', '') + 'import/meta.json'); await r.arrayBuffer(); if (r.ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
     const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
     await context.addInitScript(() => localStorage.setItem('ss_github', JSON.stringify({ token: 'e2e-fake-token', login: 'tester' })));
     await context.route('https://api.github.com/**', async route => {
