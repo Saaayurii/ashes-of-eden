@@ -118,8 +118,10 @@ func _run() -> void:
 	game.flags.erase("book_read")
 	church.queue_free()
 	await _settle(0.1)
-	# Seir's caches have no wall yet (docs/CHAPTER2_ART.md): they stand open
-	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn"]:
+	# Seir's caches have no wall yet (docs/CHAPTER2_ART.md), and the Heavenly
+	# Hall hides nothing behind brick (docs/CHAPTER7.md §4): they stand open
+	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn",
+			"res://scenes/rooms/hall_elders_stair.tscn", "res://scenes/rooms/hall_outer_court.tscn", "res://scenes/rooms/hall_archive.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room
