@@ -46,6 +46,7 @@ var _turned_back := false
 
 
 func _ready() -> void:
+	add_to_group("projectiles")  # a pool looks for bolts in it (Hazard)
 	if visual_style.is_empty():
 		visual_style = "blade" if friendly else "sacred"
 	# Shader uniforms must belong to this bolt, never to every bolt sharing the scene.

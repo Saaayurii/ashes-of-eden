@@ -796,8 +796,22 @@ function mergeStudioRooms(text, change) {
   const all = text ? JSON.parse(text) : {}, r = all[change.room] ||= {};
   if (change.spawn) { r.spawns = (r.spawns || []).filter(s => s[0] !== change.spawn[0]); r.spawns.push(change.spawn); }
   for (const k of ['intro_cutscene', 'outro_cutscene']) if (change[k] !== undefined) r[k] = change[k];
-  const sorted = Object.fromEntries(Object.keys(all).sort().map(k => [k, all[k]]));
-  return JSON.stringify(sorted, null, 2).replace(/\[\n\s+("[^"]*"),\n\s+(-?[\d.]+),\n\s+(-?[\d.]+)\n\s+\]/g, '[$1, $2, $3]') + '\n';
+  return fmtStudioRooms(all);
+}
+// tools/rooms/studio_rooms.json as the studio writes it: rooms sorted, indent 2, and every row
+// (a list of plain values, maybe ending in a small options object: [id, x, y], [kind, x, y, w, h, {"painted": true}])
+// on one line — the shape mergeStudioRooms always wrote, so a send changes only the rows it touched.
+function fmtStudioRooms(doc) {
+  const plain = x => x === null || typeof x !== 'object', small = x => plain(x) || !Array.isArray(x) && Object.values(x).every(plain);
+  const one = v => Array.isArray(v) ? '[' + v.map(one).join(', ') + ']' : v && typeof v === 'object' ? '{' + Object.entries(v).map(([k, x]) => JSON.stringify(k) + ': ' + one(x)).join(', ') + '}' : JSON.stringify(v);
+  const out = (v, lvl) => {
+    const pad = '  '.repeat(lvl + 1), end = '  '.repeat(lvl);
+    if (Array.isArray(v)) return v.every(small) ? one(v) : '[\n' + v.map(x => pad + out(x, lvl + 1)).join(',\n') + '\n' + end + ']';
+    if (v && typeof v === 'object') { const ks = Object.keys(v); return ks.length ? '{\n' + ks.map(k => pad + JSON.stringify(k) + ': ' + out(v[k], lvl + 1)).join(',\n') + '\n' + end + '}' : '{}'; }
+    return JSON.stringify(v);
+  };
+  const sorted = Object.fromEntries(Object.keys(doc || {}).sort().map(k => [k, doc[k]]));
+  return out(sorted, 0) + '\n';
 }
 
 // ---- prompts for an image model (ChatGPT in the browser, or the API) ----
@@ -1398,5 +1412,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(p => p.replace(/^content\//, '')) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, packFiles, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates });
+Object.assign(g, { GAME_REPO, gameDataBase, packFiles, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, fmtStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates });
 })(typeof module !== 'undefined' ? module.exports : window);

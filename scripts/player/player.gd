@@ -166,6 +166,16 @@ static var SLAM_DAMAGE_SHARE := 0.9
 ## He cannot steer while falling, and is briefly planted where he lands.
 static var SLAM_RECOVERY := 0.22
 
+## --- liquids (Hazard, data/liquids.json) ---
+## How the pools hold him is the kind's data; these are only how the engine
+## reads it. Below LIQUID_HOLD of his height a fall is not slowed yet, from
+## LIQUID_SWIM_DEPTH jump is a stroke, and a fall is caught at LIQUID_CATCH px/s².
+const LIQUID_HOLD := 0.35
+const LIQUID_SWIM_DEPTH := 0.5
+const LIQUID_CATCH := 2400.0
+## A slam into a pool goes in this much slower: the water takes it.
+const LIQUID_SLAM := 0.4
+
 ## --- wall grab ---
 ## Pressed into a wall in mid-air he catches it and slides instead of falling.
 ## Not a climb: gravity still wins, only slowly, and only while the stick is
@@ -313,6 +323,12 @@ var slain_by := ""
 var _safe_position := Vector2.ZERO
 var _safe_time := 0.0
 var _burn_left := 0.0
+## The pool he is in (Hazard.liquid_touch, every physics frame it holds him),
+## how deep, 0..1, and the swim stroke's cooldown. Stale after two frames.
+var _liquid: Hazard = null
+var _liquid_depth := 0.0
+var _liquid_frame := -10
+var _swim_left := 0.0
 ## A fall beyond the room bounds ends the night immediately, even with an
 ## extra-life gift: there is nowhere to revive inside the void.
 var fell_outside_room := false
@@ -580,7 +596,11 @@ func _physics_process(delta: float) -> void:
 		_coyote -= delta
 		if _was_on_floor and _coyote <= 0.0:
 			_jumps_left = mini(_jumps_left, int(stats.max_jumps) - 1)  # walked off a ledge: no free jump
-		velocity.y += stats.gravity * delta
+		velocity.y += stats.gravity * delta * _liquid_gravity()
+		var sink := _liquid_sink()
+		if velocity.y > sink:
+			velocity.y = move_toward(velocity.y, sink, LIQUID_CATCH * delta)
+	_swim_left = maxf(0.0, _swim_left - delta)
 	_fall_speed = velocity.y
 	_was_on_floor = on_floor
 	_shadow.visible = on_floor
@@ -591,7 +611,7 @@ func _physics_process(delta: float) -> void:
 	_update_wall_grab(on_floor, dir, delta)
 	if _slamming:
 		velocity.x = 0.0
-		velocity.y = SLAM_SPEED
+		velocity.y = SLAM_SPEED * lerpf(1.0, LIQUID_SLAM, _liquid_now())
 		dir = 0.0
 
 	_drop_left -= delta
@@ -608,8 +628,10 @@ func _physics_process(delta: float) -> void:
 			_wall_jump()
 		elif _jump_buffer > 0.0 and on_floor and Input.is_action_pressed("move_down") and _on_ledge():
 			_drop_through()
+		elif _jump_buffer > 0.0 and not on_floor and _can_swim():
+			_swim_stroke()
 		elif _jump_buffer > 0.0 and _jumps_left > 0 and _dash_left <= 0.0:
-			velocity.y = -stats.jump_velocity
+			velocity.y = -stats.jump_velocity * lerpf(1.0, float(_liquid_body().get("jump", 1.0)), _liquid_now())
 			Audio.play(&"jump", -8.0)
 			EventBus.world_impulse.emit(global_position, Vector2(0, -1), 0.45, &"jump")
 			ActionFx.event(self, "jump")
@@ -647,7 +669,7 @@ func _physics_process(delta: float) -> void:
 	# --- horizontal ---
 	if _dash_left > 0.0:
 		_dash_left -= delta
-		velocity.x = facing * stats.dash_speed
+		velocity.x = facing * stats.dash_speed * lerpf(1.0, _liquid_drag(), 0.6)
 		if on_floor:
 			velocity.y = 0.0
 		_dash_hits()
@@ -662,6 +684,7 @@ func _physics_process(delta: float) -> void:
 			top_speed = 0.0  # planted where he landed, for a moment
 		elif _charging:
 			top_speed *= CHARGE_SPEED
+		top_speed *= _liquid_drag()
 		velocity.x = move_toward(velocity.x, dir * top_speed, _horizontal_rate(dir, on_floor) * delta)
 		if controls_enabled and _healing_left <= 0.0 and _slam_recovery <= 0.0 \
 				and Input.is_action_just_pressed("dash") and _dash_cd <= 0.0:
@@ -988,6 +1011,62 @@ func burn(amount: float, danger := Rect2()) -> void:
 	_safe_position = back
 	velocity = Vector2.ZERO
 	Fx.puff(global_position + Vector2(0, -10), 0.8, Color(0.9, 0.85, 0.8))
+
+
+## A pool holds him this frame (Hazard): how deep, 0 (dry) .. 1 (under).
+func liquid_touch(liquid: Hazard, depth: float) -> void:
+	_liquid = liquid
+	_liquid_depth = depth
+	_liquid_frame = Engine.get_physics_frames()
+
+
+## How deep he stands in a pool right now; 0 when none holds him.
+func _liquid_now() -> float:
+	if _liquid == null or not is_instance_valid(_liquid) or Engine.get_physics_frames() - _liquid_frame > 2:
+		_liquid = null
+		return 0.0
+	return _liquid_depth
+
+
+## The pool's "body" table (data/liquids.json): drag, buoyancy, sink, swim.
+func _liquid_body() -> Dictionary:
+	return _liquid.spec.get("body", {}) if _liquid_now() > 0.0 else {}
+
+
+func _liquid_drag() -> float:
+	return lerpf(1.0, float(_liquid_body().get("drag", 1.0)), _liquid_now())
+
+
+func _liquid_gravity() -> float:
+	return lerpf(1.0, float(_liquid_body().get("buoyancy", 1.0)), _liquid_now())
+
+
+## The fastest he sinks in it: the pool catches a fall instead of letting it through.
+func _liquid_sink() -> float:
+	var depth := _liquid_now()
+	if depth < LIQUID_HOLD:
+		return INF
+	return float(_liquid_body().get("sink_speed", INF))
+
+
+func _can_swim() -> bool:
+	return _liquid_now() >= LIQUID_SWIM_DEPTH and float(_liquid_body().get("swim", 0.0)) > 0.0 \
+			and _swim_left <= 0.0 and _dash_left <= 0.0 and not _slamming
+
+
+## Jump under the surface: a stroke up, as often as the kind allows. It does
+## not spend the air jump, so he can still jump out of the water with it.
+func _swim_stroke() -> void:
+	var body_spec := _liquid_body()
+	velocity.y = -float(body_spec.get("swim", 200.0))
+	_swim_left = float(body_spec.get("swim_cooldown", 0.3))
+	_jump_buffer = 0.0
+	_jumps_left = maxi(_jumps_left, 1)
+	if _liquid != null:
+		_liquid.surface.disturb(global_position.x - _liquid.global_position.x, 1.2, 8.0)
+		LiquidFx.fling(_liquid.spec, Vector2(global_position.x, _liquid.surface_y(global_position.x)), 4, 0.5)
+	if _attack_anim_left <= 0.0:
+		_one_shot("jump", 0.3)
 
 
 func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> void:

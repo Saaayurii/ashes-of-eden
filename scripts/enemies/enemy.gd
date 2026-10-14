@@ -98,6 +98,10 @@ var facing := 1:
 var _max_hp: float
 ## The last blow's side and weight, for the way a death bleeds (Gore.death).
 var _last_away := 1.0
+## The pool it wades in (Hazard.liquid_touch), how deep, and when it last said so.
+var _liquid: Hazard = null
+var _liquid_depth := 0.0
+var _liquid_frame := -10
 var _last_violent := false
 var _attacks: Array = []
 var _attack: Dictionary = {}  # the one being performed
@@ -318,6 +322,49 @@ func _show_affix() -> void:
 		label.self_modulate = Color(minf(4.0, 1.0 / maxf(c.r, 0.25)), minf(4.0, 1.0 / maxf(c.g, 0.25)),
 			minf(4.0, 1.0 / maxf(c.b, 0.25)))
 	add_child(label)
+
+
+## A pool holds this walker this frame (Hazard): how deep, 0..1. Flyers pass over.
+func liquid_touch(liquid: Hazard, depth: float) -> void:
+	_liquid = liquid
+	_liquid_depth = depth
+	_liquid_frame = Engine.get_physics_frames()
+
+
+func _liquid_now() -> float:
+	if _liquid == null or not is_instance_valid(_liquid) or Engine.get_physics_frames() - _liquid_frame > 2:
+		_liquid = null
+		return 0.0
+	return _liquid_depth
+
+
+## Its pace in a pool: the kind's enemy.drag, by how deep it stands.
+func _liquid_drag() -> float:
+	if _liquid_now() <= 0.0:
+		return 1.0
+	return lerpf(1.0, float(_liquid.spec.get("enemy", {}).get("drag", 1.0)), _liquid_depth)
+
+
+## A walker's gravity, held up and slowed in a pool like the hero's.
+func _fall(delta: float) -> void:
+	var depth := _liquid_now()
+	if depth <= 0.0:
+		velocity.y += 1100.0 * delta
+		return
+	var body_spec: Dictionary = _liquid.spec.get("body", {})
+	velocity.y += 1100.0 * delta * lerpf(1.0, float(body_spec.get("buoyancy", 1.0)), depth)
+	var sink := float(body_spec.get("sink_speed", INF))
+	if depth > 0.35 and velocity.y > sink:
+		velocity.y = move_toward(velocity.y, sink, 2400.0 * delta)
+
+
+## What a pool of blood gives back (Hazard, host only): the bar follows.
+func liquid_heal(amount: float) -> void:
+	if state == State.DEAD or hp >= _max_hp:
+		return
+	hp = minf(_max_hp, hp + amount)
+	hp_bar.size.x = 14.0 * clampf(hp / _max_hp, 0.0, 1.0)
+	Fx.sparkle(global_position + Vector2(0, -10), Color(0.8, 0.15, 0.2), 3, 8.0)
 
 
 func _is_flying() -> bool:
@@ -556,7 +603,7 @@ func _acquire_target() -> void:
 func _patrol(delta: float) -> void:
 	var spec: Dictionary = stats.get("patrol", {})
 	var radius := float(spec.get("radius", PATROL_DEFAULTS.radius))
-	var speed := float(stats.get("speed", 50)) * float(spec.get("speed", PATROL_DEFAULTS.speed))
+	var speed := float(stats.get("speed", 50)) * float(spec.get("speed", PATROL_DEFAULTS.speed)) * _liquid_drag()
 	var pause: Array = spec.get("pause", PATROL_DEFAULTS.pause)
 	if _is_flying():
 		_bob += delta * 2.0
@@ -578,7 +625,7 @@ func _patrol(delta: float) -> void:
 		velocity += _knockback
 		_play("walk" if velocity.length() > 6.0 else "idle")
 		return
-	velocity.y += 1100.0 * delta
+	_fall(delta)
 	velocity.x = _knockback.x
 	if _patrol_wait > 0.0:
 		_patrol_wait -= delta
@@ -714,7 +761,7 @@ func _net_alert(new_facing: int) -> void:
 
 
 func _chase(to_target: Vector2, delta: float) -> void:
-	var speed := float(stats.get("speed", 50))
+	var speed := float(stats.get("speed", 50)) * _liquid_drag()
 	var aggro := float(stats.get("aggro_range", 380))
 	var chase := Vector2.ZERO
 	match stats.get("behaviour", "walker"):
@@ -782,7 +829,7 @@ func _chase(to_target: Vector2, delta: float) -> void:
 			chase.y += sin(_bob) * 20.0
 			velocity = chase + _knockback
 		_:
-			velocity.y += 1100.0 * delta
+			_fall(delta)
 			# The close stance is for a ready attack. During cooldown, hold just
 			# outside melee range; after a strike, backstep before returning.
 			var stop_at := float(stats.get("size", 12)) * 0.5 + 11.0
@@ -837,7 +884,7 @@ func _hold(delta: float) -> void:
 				velocity += _personal_space(_target.global_position - global_position) * 220.0
 		_:
 			velocity.x = _knockback.x
-			velocity.y += 1100.0 * delta
+			_fall(delta)
 
 
 ## Between blows: a walker holds a distance just outside its reach, paced

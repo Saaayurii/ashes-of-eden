@@ -60,6 +60,21 @@
       "members": ["RPG Sound Pack/battle/sword-unsheathe.wav",
                   "RPG Sound Pack/battle/sword-unsheathe3.wav",
                   "RPG Sound Pack/battle/sword-unsheathe5.wav"]
+    },
+    {
+      "name": "water_bubble",
+      "pack": "rpg_pack",
+      "peak_db": -9.0,
+      "members": ["RPG Sound Pack/inventory/bubble.wav",
+                  "RPG Sound Pack/inventory/bubble2.wav",
+                  "RPG Sound Pack/inventory/bubble3.wav"]
+    },
+    {
+      "name": "bog_squelch",
+      "pack": "rpg_pack",
+      "peak_db": -7.0,
+      "members": ["RPG Sound Pack/NPC/slime/slime6.wav", "RPG Sound Pack/NPC/slime/slime7.wav",
+                  "RPG Sound Pack/NPC/slime/slime8.wav", "RPG Sound Pack/NPC/slime/slime9.wav"]
     }
   ]
 }

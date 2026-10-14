@@ -139,6 +139,21 @@ and `soak` drawn with `multiply` as the `Soak` node does):
 change one, change the other. `goreText` writes the
 file one line per table, byte-identical when nothing changed (`tests/gore.test.js`).
 
+**Water, lava, bog and blood** (`js/liquids.js`, «Жидкости»). Two halves. «В комнате»: pools on
+a room's map, saved as `"liquids": [[kind, x, y, w, h, {"painted": true}?]]` in
+`tools/rooms/studio_rooms.json` (finished-room pixels like the spawns; y is the surface, h the depth
+below it; `painted` — the picture already shows it, the game draws it faint). Drag to add, drag to
+move, edges and corners to resize, Delete, arrows, numeric fields; the surface sticks to a floor top
+within 6 px. What the scene already has (`hazard.gd` nodes: the painted rooms' lava, from
+`build_data.room_project` as `hazards`) is drawn read-only. The checks (`liqPlaceProblems`: unknown
+kind, under 16×8, outside the room, overlapping) block a send. «Виды жидкостей»: every number, colour,
+particle, light and sound of `data/liquids.json`, with a pit to throw a body into (the hero or a
+walker: splash, swim, burn, drown, trail). The look is a port of `scripts/rooms/hazard.gd` (spring
+surface, resting wave, gradient body, foam, shimmer, the `body_<kind>.png` texture drifting by `flow`)
+— change one, change the other. `liqText` writes the file in its own layout, byte-identical when
+unchanged; `lib.js fmtStudioRooms` keeps every row of `studio_rooms.json` on one line, for every
+tab that writes it (`tests/liquids.test.js`).
+
 **Old content too: edits of what a generator draws are overrides.** The
 bestiary's strips, the props from `make_*.py`, the hero's special moves, the
 practice yard and the rooms' paintings are generator-owned, and an edit of one

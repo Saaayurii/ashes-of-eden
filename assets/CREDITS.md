@@ -36,6 +36,9 @@
 | `audio/music/arena.ogg` | cynicmusic | https://opengameart.org/content/dramatic-boss-encounter | CC0 — encoded from the WAV source |
 | `audio/music/end.ogg` | beardalaxy | https://opengameart.org/content/dark-urban-church-theme-loop | CC0 |
 | `audio/sfx/prop_break.wav`, `audio/music/ambient_night.wav` | Roman, synthesised by `tools/audio/generate_sfx.py` | project | placeholder, stands in until a real clip is chosen |
+| `audio/sfx/splash_1..4.wav`, `splash_big_1..3`, `splash_out_1..3`, `wade_1..4`, `sizzle_1..3`, `lava_splash_1..3`, `lava_bubble_1..4`, `bog_bubble_1..3`, `water_loop.wav`, `lava_loop.wav`, `bog_loop.wav`, `blood_loop.wav` | synthesised by `tools/audio/generate_sfx.py` (`LIQUID_SFX`, `generate_sfx.py liquids`) | project | placeholders for the pools of `data/liquids.json`: filtered noise and sine bloops, the loops folded seamless; no third-party material |
+| `audio/sfx/wingbeat_1..3.wav` | synthesised by `tools/audio/generate_sfx.py` (`generate_sfx.py wingbeat`) | project | placeholder for ravens taking off from a painted tree (`scripts/rooms/foliage.gd`): beats of filtered noise; no third-party material |
+| `fx/liquids/*.png` (pool body textures, splashes, ripples, bubbles, pops, steam, drip, glint) | drawn in code by `tools/art/make_liquids.py` | project | no third-party material; colours from `data/liquids.json` |
 
 Not used on purpose: two generated sheets depicting a real footballer and a Marvel character (likeness and
 trademark rights), and a modern cityscape with real-world political symbols (off-theme, and a liability in the
@@ -225,6 +228,8 @@ without guesswork. Sources that are already Ogg Vorbis are copied byte for byte.
 | `audio/sfx/block_*.wav` (4 takes) | StarNinjas | https://opengameart.org/content/10-impactshield-blocks | CC0 — peak-normalised to -4 dBFS by `tools/audio/fetch_sfx.py` |
 | `audio/sfx/parry_*.wav` (3 takes) | StarNinjas | https://opengameart.org/content/10-impactshield-blocks | CC0 — peak-normalised to -3 dBFS by `tools/audio/fetch_sfx.py` |
 | `audio/sfx/draw_*.wav` (3 takes) | artisticdude | https://opengameart.org/content/rpg-sound-pack | CC0 — peak-normalised to -8 dBFS by `tools/audio/fetch_sfx.py` |
+| `audio/sfx/water_bubble_*.wav` (3 takes) | artisticdude | https://opengameart.org/content/rpg-sound-pack | CC0 — peak-normalised to -9 dBFS by `tools/audio/fetch_sfx.py` |
+| `audio/sfx/bog_squelch_*.wav` (4 takes) | artisticdude | https://opengameart.org/content/rpg-sound-pack | CC0 — peak-normalised to -7 dBFS by `tools/audio/fetch_sfx.py` |
 <!-- sfx-manifest:end -->
 
 ### Alignment layers (generated)
