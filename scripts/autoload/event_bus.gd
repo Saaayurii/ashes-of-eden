@@ -58,6 +58,8 @@ signal cutscene_started(cutscene_id: String)
 signal cutscene_finished(cutscene_id: String)
 signal dialogue_started(dialogue_id: String)
 signal dialogue_finished(dialogue_id: String)
+## A blocking dialogue cut short by Skip / Escape (the Playtest "skip" event).
+signal dialogue_skipped(dialogue_id: String)
 signal choice_made(dialogue_id: String, choice_id: String)
 ## A deed was done for the first time on this profile (data/achievements).
 signal achievement_unlocked(achievement_id: String)
@@ -65,3 +67,5 @@ signal achievement_unlocked(achievement_id: String)
 signal lighting_changed
 ## A saved game was put back into Game and the body (Saves.restore): redraw what reads them.
 signal run_restored
+## "Again" on the night's end: another night begins (Telemetry counts it).
+signal night_retried

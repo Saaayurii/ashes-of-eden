@@ -66,6 +66,11 @@ jobs:
       - name: The web loading page still works
         run: python3 tools/web/check_shell.py
 
+      # The telemetry receiver and the script that turns what it collected
+      # into the playtest logs balance_probe reads (docs/PLAYTEST.md).
+      - name: Telemetry receiver tests
+        run: python3 -m unittest discover -s tools/telemetry
+
       # The art studio (tools/studio): the picture, grid and audio maths, and
       # the files it writes back into the game — strings.csv, dialogues and
       # cutscenes must come back byte-identical when nothing in them changed.

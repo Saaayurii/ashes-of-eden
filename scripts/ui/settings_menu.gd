@@ -44,6 +44,7 @@ func _ready() -> void:
 	_build_bindings()
 	_build_scheme()
 	_build_speech()
+	_build_telemetry()
 	_build_skin()
 	_build_vial()
 	_build_access()
@@ -91,6 +92,8 @@ func _refresh() -> void:
 		_vibration.set_pressed_no_signal(Settings.vibration)
 	if _speech:
 		_speech.set_pressed_no_signal(Settings.speech)
+	if _telemetry:
+		_telemetry.set_pressed_no_signal(Settings.telemetry)
 	if _scheme:
 		_scheme.select(Settings.CONTROL_SCHEMES.find(Settings.control_scheme))
 		_mouse_aim.set_pressed_no_signal(Settings.mouse_aim)
@@ -122,6 +125,24 @@ func _build_speech() -> void:
 	box.add_child(row)
 	box.move_child(row, sfx_row.get_index() + 1)
 	_speech.toggled.connect(Settings.set_speech)
+
+
+## The anonymous night summaries (scripts/autoload/telemetry.gd), under the
+## language: only in a build that has a server to send them to.
+var _telemetry: CheckButton
+
+
+func _build_telemetry() -> void:
+	if not Telemetry.can_ask():
+		return
+	var anchor: Node = language.get_parent()
+	_telemetry = CheckButton.new()
+	_telemetry.tooltip_text = "SETTINGS_TELEMETRY_HINT"
+	var row := _row("SETTINGS_TELEMETRY", _telemetry)
+	row.name = "TelemetryRow"
+	anchor.get_parent().add_child(row)
+	anchor.get_parent().move_child(row, anchor.get_index() + 1)
+	_telemetry.toggled.connect(Settings.set_telemetry)
 
 
 ## Accessibility, under the lighting switch it sits beside: how big story

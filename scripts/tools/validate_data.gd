@@ -152,6 +152,7 @@ func _init() -> void:
 	_check_glyphs(strings)
 	_check_story_flags()
 	_check_backdrops()
+	_check_telemetry_urls()
 
 	for w in warnings:
 		print("WARNING: " + w)
@@ -165,6 +166,16 @@ func _init() -> void:
 			printerr("ERROR: " + e)
 		printerr("%d error(s)" % errors.size())
 		quit(1)
+
+
+## The telemetry server and the feedback form a build ships with (docs/PLAYTEST.md):
+## empty (off, hidden) or an address. A typo would only be found by a player's
+## silence; https, because the Web build is served over it and may send nowhere else.
+func _check_telemetry_urls() -> void:
+	for setting in ["ashes/telemetry/url", "ashes/telemetry/feedback_url"]:
+		var url := str(ProjectSettings.get_setting(setting, "")).strip_edges()
+		if url != "" and not url.begins_with("https://"):
+			_error("%s must be empty or an https:// address, not \"%s\"" % [setting, url])
 
 
 func _check_entry(collection: String, entry: Dictionary) -> void:

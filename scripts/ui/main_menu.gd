@@ -124,6 +124,14 @@ func _ready() -> void:
 	# column stood taller than the 360-pixel screen and pushed the title off it
 	_pair(%OpenSettings, quit_button, "SystemRow")
 	(%Continue if %Continue.visible else play_button).grab_focus()
+	# the one question about telemetry, on the first launch of a build that
+	# has a server to send to (docs/PLAYTEST.md)
+	if TelemetryConsent.wanted():
+		var consent := TelemetryConsent.new()
+		consent.name = "TelemetryConsent"
+		add_child(consent)
+		consent.closed.connect(func() -> void: (%Continue if %Continue.visible else play_button).grab_focus())
+		consent.open()
 
 
 ## Puts [param first] and [param second] side by side in one row of the menu,

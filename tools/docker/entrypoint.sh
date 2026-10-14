@@ -85,6 +85,7 @@ case "${1:-validate}" in
         godot --headless -s scripts/tools/secret_test.gd
         godot --headless -s scripts/tools/room_jump_test.gd
         godot --headless -s scripts/tools/relay_test.gd
+        godot --headless -s scripts/tools/telemetry_test.gd
         ;;
     net-test)
         shift
