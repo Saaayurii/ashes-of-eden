@@ -1,0 +1,63 @@
+{
+  "id": "parley_tent",
+  "steps": [
+    {
+      "do": "hold"
+    },
+    {
+      "do": "letterbox",
+      "on": true,
+      "time": 0.4
+    },
+    {
+      "do": "camera",
+      "between": [
+        "npc:parley_bannerbearer",
+        "npc:parley_centurion"
+      ],
+      "zoom": 1.15,
+      "time": 1.2
+    },
+    {
+      "do": "dialogue",
+      "id": "ch3_parley",
+      "cast": {
+        "SPEAKER_HOST_BANNER": "npc:parley_bannerbearer",
+        "SPEAKER_LEGION_CENTURION": "npc:parley_centurion",
+        "SPEAKER_ELIAN": "player"
+      },
+      "zoom": 1.3
+    },
+    {
+      "do": "vanish",
+      "who": "npc:parley_bannerbearer",
+      "time": 1.0
+    },
+    {
+      "do": "vanish",
+      "who": "npc:parley_centurion",
+      "time": 1.0
+    },
+    {
+      "do": "camera",
+      "to": "player",
+      "zoom": 1.0,
+      "time": 0.8
+    },
+    {
+      "do": "dialogue",
+      "id": "ch3_parley_end",
+      "cast": {
+        "SPEAKER_ELIAN": "player"
+      }
+    },
+    {
+      "do": "letterbox",
+      "on": false,
+      "time": 0.3
+    },
+    {
+      "do": "release"
+    }
+  ]
+}

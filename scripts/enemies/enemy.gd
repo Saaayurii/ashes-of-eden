@@ -1458,6 +1458,12 @@ func _nova_hit() -> void:
 			victim.take_damage(float(_attack.get("damage", 12)) * Faction.damage_between(), self)
 
 
+## It is fighting another body, not a player (Faction; Blood Feud reads it).
+## The host's: online a guest's copy has no target and reads false.
+func feuding() -> bool:
+	return not is_dead() and not is_unaware() and _target is Enemy and is_instance_valid(_target) and not (_target as Enemy).is_dead()
+
+
 ## The bodies of hostile sides in the tree (none outside chapter III).
 func _hostile_bodies() -> Array[Enemy]:
 	var out: Array[Enemy] = []

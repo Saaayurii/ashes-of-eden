@@ -21,7 +21,8 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction",
 	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
 	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
-	"cursed_damage", "chosen_damage", "curse_relief", "covetous"]
+	"cursed_damage", "chosen_damage", "curse_relief", "covetous",
+	"liquid_mend", "truce_hold", "feud_damage", "crossfire_armor"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
@@ -2254,6 +2255,8 @@ func _check_nights(game: Dictionary) -> void:
 	for fork in _game_entries("forks"):
 		var in_nights := {}
 		for path in [fork.get("after", ""), fork.get("then", "")] + (fork.get("options", {}) as Dictionary).values():
+			if fork.has("_draft") and not FileAccess.file_exists(str(path)):
+				continue  # a draft's room still waiting for its painting (_room_missing)
 			in_nights[owner.get(str(path), "?")] = true
 		if in_nights.size() != 1 or in_nights.has("?"):
 			_error("data/forks/%s: its rooms must all be one night's" % fork.get("id", "?"))

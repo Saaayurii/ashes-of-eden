@@ -690,4 +690,74 @@ PAINTED = {
         props=[],
         decor=[], npcs=[], ambient="#ccc0b8", lights="auto",
         player=(40, 475), door=(1250, 463)),
+    "marah_gallows": dict(
+        # Chapter III opens here (docs/CHAPTER3.md): the dead tree on its rock
+        # over the ford, Malchus under the noose; both armies come for the rope.
+        painting="marah_gallows", width=1280, height=720, weather="ash", fog=0.25, intro="", music="road",
+        intro_cutscene="malchus_at_the_tree", void_kill_y=700,
+        ground=[(0, 510, 990, 210), (1100, 605, 180, 115)],
+        ledges=[(400, 396, 545, 14), (262, 472, 110, 12), (393, 447, 80, 12), (900, 452, 55, 12)],
+        ramps=[(985, 510, 1105, 605)],
+        spawns=[("host_spearman", 250, 498), ("host_spearman", 820, 384), ("host_archer", 470, 384),
+                ("legion_possessed", 150, 498), ("legion_possessed", 1160, 593)],
+        props=[("marah_cache_rizpah_names", 560, 510)],  # under the tree's roots, behind the stones
+        decor=[], npcs=[("malchus", 690, 396), ("marah_scout", 745, 396), ("malchus_hanged", 800, 396)], ambient="#b8bccc", lights="auto",
+        player=(20, 490), door=(1250, 585)),
+    "marah_ford": dict(
+        # The ford: knee-deep bitter water between three stone piers; the Host
+        # and the Legion are already at it in the middle of the stream.
+        painting="marah_ford", width=1280, height=720, weather="ash", fog=0.3, intro="ch3_ford_intro", music="arena", void_kill_y=700,
+        ground=[(0, 442, 235, 278), (235, 560, 1045, 160), (303, 500, 112, 60), (612, 500, 115, 60), (938, 500, 112, 60),
+                (1150, 536, 130, 24)],
+        ledges=[],
+        spawns=[("host_spearman", 360, 488), ("host_spearman", 660, 488), ("host_archer", 990, 488),
+                ("legion_brute", 820, 548), ("legion_possessed", 520, 548), ("legion_possessed", 1100, 548)],
+        props=[],
+        decor=[], npcs=[], ambient="#b4bccc", lights="auto",
+        player=(20, 422), door=(1240, 516)),
+    "marah_host_bank": dict(
+        # The Host's bank (the ford's fork): white tents, white fires, the
+        # watchtower; the Host hunts him here like anyone else.
+        painting="marah_host_bank", width=1280, height=720, weather="ash", fog=0.2, intro="", music="arena", void_kill_y=700,
+        ground=[(0, 540, 1280, 180)],
+        ledges=[],
+        spawns=[("host_spearman", 300, 528), ("host_spearman", 700, 528), ("host_spearman", 1050, 528),
+                ("host_archer", 500, 528), ("host_archer", 860, 528), ("host_sentinel", 620, 300)],
+        props=[("crate", 760, 540)],
+        decor=[], npcs=[], ambient="#bcc0d0", lights="auto",
+        player=(20, 520), door=(1250, 520)),
+    "marah_field": dict(
+        # The field where they fight every day: Rizpah's rock on the left, her
+        # sackcloth and fire the rest point; the ravens at the hanged.
+        painting="marah_field", width=1280, height=720, weather="ash", fog=0.25, intro="ch3_field_intro", music="graveyard", void_kill_y=700,
+        ground=[(0, 555, 1280, 165)],
+        ledges=[(225, 415, 290, 14), (405, 520, 50, 12), (450, 470, 50, 12), (805, 465, 320, 14), (780, 530, 40, 12)],
+        spawns=[("raven", 300, 250), ("raven", 700, 300), ("raven", 1000, 250),
+                ("legion_possessed", 600, 543), ("legion_possessed", 1000, 453),
+                ("host_spearman", 330, 543), ("host_spearman", 1150, 543)],
+        props=[],
+        decor=[], npcs=[("rizpah", 380, 415)], ambient="#b8b8c8", lights="auto",
+        player=(20, 535), door=(1250, 535)),
+    "marah_bitter_wells": dict(
+        # The bitter wells (the siege's fork): two deep cisterns under a
+        # vaulted cellar, the shades stand up out of the water. No story here.
+        painting="marah_bitter_wells", width=1280, height=720, weather="none", fog=0.1, intro="", music="graveyard", void_kill_y=700,
+        ground=[(0, 473, 280, 247), (585, 455, 115, 265), (1000, 473, 280, 247), (280, 560, 305, 160), (700, 560, 300, 160)],
+        ledges=[(550, 510, 35, 10), (700, 510, 35, 10), (965, 515, 35, 10)],  # stones at the pier's foot and the far wall
+        spawns=[("wormwood_shade", 430, 420), ("wormwood_shade", 850, 420), ("wormwood_shade", 640, 300),
+                ("legion_possessed", 150, 461), ("legion_possessed", 1150, 461), ("host_archer", 640, 443)],
+        props=[],
+        decor=[], npcs=[], ambient="#b0bcc0", lights="auto",
+        player=(20, 453), door=(1245, 453)),
+    "marah_dry_bed": dict(
+        # The dry bed (the siege's fork): the riverbed the star drank, open to
+        # the sky and the archers; the cave at the right goes on up. No story.
+        painting="marah_dry_bed", width=1280, height=720, weather="ash", fog=0.2, intro="", music="road", void_kill_y=700,
+        ground=[(0, 550, 1280, 170)],
+        ledges=[(200, 505, 50, 12), (110, 455, 90, 12), (245, 408, 150, 14), (790, 478, 50, 12), (858, 437, 140, 14)],
+        spawns=[("host_sentinel", 400, 250), ("host_sentinel", 900, 200), ("host_archer", 300, 396), ("host_archer", 920, 425),
+                ("legion_brute", 650, 538), ("legion_possessed", 500, 538), ("legion_possessed", 1050, 538)],
+        props=[],
+        decor=[], npcs=[], ambient="#b8bccc", lights="auto",
+        player=(20, 530), door=(1235, 530)),
 }

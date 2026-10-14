@@ -134,3 +134,20 @@ static func break_truce(struck: Node) -> void:
 		if node.global_position.distance_to(struck.global_position) <= shout_radius() and node.call("sees", struck):
 			node.turn_on_hero()
 	Game.set_flag(TRUCE_FLAG)
+
+
+## Soldiers of two different sides are awake (No Man's Land). Every peer sees
+## the bodies and their replicated awareness, so each can ask it.
+static func two_sides_awake(tree: SceneTree) -> bool:
+	if soldiers <= 1 or tree == null:
+		return false
+	var seen := ""
+	for node in tree.get_nodes_in_group("enemies"):
+		var side := of(node)
+		if side == "" or not node.has_method("is_unaware") or node.call("is_dead") or node.call("is_unaware"):
+			continue
+		if seen == "":
+			seen = side
+		elif side != seen:
+			return true
+	return false

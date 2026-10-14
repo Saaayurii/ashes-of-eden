@@ -1,0 +1,23 @@
+[
+  {
+    "id": "note_rizpah_names",
+    "name": "NOTE_RIZPAH_NAMES",
+    "dialogue": "note_rizpah_names",
+    "place": "marah_gallows",
+    "avatar": "res://assets/icons/quest/letter_2.png"
+  },
+  {
+    "id": "note_two_orders",
+    "name": "NOTE_TWO_ORDERS",
+    "dialogue": "note_two_orders",
+    "place": "marah_field",
+    "avatar": "res://assets/icons/quest/letter_4.png"
+  },
+  {
+    "id": "note_shepherd_tally",
+    "name": "NOTE_SHEPHERD_TALLY",
+    "dialogue": "note_shepherd_tally",
+    "avatar": "res://assets/icons/quest/letter_5.png",
+    "place": "marah_spring"
+  }
+]

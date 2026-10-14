@@ -12,7 +12,8 @@
     "hell": {"flame": 0.22, "flame_floor": 0.82},
     "dawn": {"flame": 0.45, "flame_floor": 0.74},
     "dusk": {"flame": 0.45, "flame_floor": 0.8},
-    "harbour": {"flame": 0.5, "flame_floor": 0.6}
+    "harbour": {"flame": 0.5, "flame_floor": 0.6},
+    "marah": {"flame": 0.5, "flame_floor": 0.66}
   },
   "rooms": {
     "prolog_1_walk_a": {"family": "dusk", "zones": []},
@@ -448,6 +449,71 @@
       {"kind": "sway", "rect": [0, 0, 80, 230]},
       {"kind": "sway", "rect": [1520, 0, 60, 230]},
       {"kind": "stars", "rect": [140, 40, 1060, 150]}
+    ]},
+    "marah_gallows": {"family": "marah", "zones": [
+      {"kind": "sway", "rect": [580, 20, 440, 240], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "dead", "birds": 2},
+      {"kind": "sway", "rect": [890, 150, 30, 100], "strength": 1.4, "speed": 0.9},
+      {"kind": "sway", "rect": [100, 345, 50, 80]},
+      {"kind": "sway", "rect": [265, 345, 45, 80]},
+      {"kind": "sway", "rect": [1225, 365, 35, 85]},
+      {"kind": "sway", "rect": [1385, 365, 35, 70]},
+      {"kind": "glow", "rect": [1180, 230, 420, 70], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "water", "rect": [900, 320, 420, 110]},
+      {"kind": "haze", "rect": [0, 240, 1600, 120]}
+    ]},
+    "marah_ford": {"family": "marah", "zones": [
+      {"kind": "water", "rect": [235, 500, 1365, 110]},
+      {"kind": "glow", "rect": [920, 85, 60, 60], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [0, 340, 200, 100], "tint": "#9ab0ff", "strength": 0.2, "speed": 0.6},
+      {"kind": "glow", "rect": [1430, 230, 170, 180], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "sway", "rect": [110, 185, 30, 110]},
+      {"kind": "sway", "rect": [190, 280, 30, 80]},
+      {"kind": "sway", "rect": [1320, 270, 30, 70]},
+      {"kind": "sway", "rect": [1515, 240, 80, 70]},
+      {"kind": "sway", "rect": [1080, 330, 250, 50], "strength": 0.8, "speed": 0.6},
+      {"kind": "haze", "rect": [200, 330, 1100, 150]}
+    ]},
+    "marah_host_bank": {"family": "marah", "zones": [
+      {"kind": "water", "rect": [640, 335, 900, 90]},
+      {"kind": "glow", "rect": [680, 60, 60, 60], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [1385, 180, 50, 60], "tint": "#9ab0ff", "strength": 0.25, "speed": 0.7},
+      {"kind": "sway", "rect": [150, 165, 40, 110]},
+      {"kind": "sway", "rect": [1250, 205, 110, 40], "strength": 0.8},
+      {"kind": "sway", "rect": [0, 330, 170, 90], "strength": 0.6},
+      {"kind": "sway", "rect": [1490, 350, 110, 70], "strength": 0.6},
+      {"kind": "haze", "rect": [600, 280, 1000, 80]}
+    ]},
+    "marah_field": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [395, 380, 30, 30], "tint": "#ffa050", "strength": 0.25, "speed": 0.6},
+      {"kind": "glow", "rect": [1000, 340, 600, 60], "tint": "#ff8040", "strength": 0.2, "speed": 0.5},
+      {"kind": "glow", "rect": [0, 330, 250, 60], "tint": "#9ab0ff", "strength": 0.18, "speed": 0.6},
+      {"kind": "sway", "rect": [340, 265, 30, 100]},
+      {"kind": "sway", "rect": [1195, 295, 35, 100]},
+      {"kind": "sway", "rect": [110, 300, 25, 70]},
+      {"kind": "water", "rect": [540, 440, 420, 60]},
+      {"kind": "haze", "rect": [0, 370, 1600, 90]}
+    ]},
+    "marah_bitter_wells": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [740, 0, 110, 320], "tint": "#d8ecff", "strength": 0.22, "speed": 0.4},
+      {"kind": "water", "rect": [440, 490, 305, 110]},
+      {"kind": "water", "rect": [860, 490, 300, 110]},
+      {"kind": "sway", "rect": [160, 100, 90, 140]},
+      {"kind": "sway", "rect": [320, 110, 90, 130]},
+      {"kind": "sway", "rect": [1200, 130, 130, 100]},
+      {"kind": "sway", "rect": [1400, 130, 110, 90]},
+      {"kind": "sway", "rect": [425, 320, 50, 110], "anchor": "hangs", "strength": 1.2},
+      {"kind": "sway", "rect": [1130, 320, 50, 110], "anchor": "hangs", "strength": 1.2},
+      {"kind": "haze", "rect": [640, 0, 300, 450]}
+    ]},
+    "marah_dry_bed": {"family": "marah", "zones": [
+      {"kind": "sway", "rect": [520, 100, 300, 380], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "dead", "birds": 2},
+      {"kind": "glow", "rect": [310, 50, 60, 60], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [110, 340, 50, 70], "tint": "#9ab0ff", "strength": 0.22, "speed": 0.7},
+      {"kind": "glow", "rect": [1220, 170, 300, 90], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "sway", "rect": [1170, 180, 220, 60], "strength": 0.8},
+      {"kind": "sway", "rect": [30, 270, 50, 80]},
+      {"kind": "water", "rect": [680, 520, 100, 30]},
+      {"kind": "haze", "rect": [0, 320, 1100, 100]}
     ]}
   }
 }
