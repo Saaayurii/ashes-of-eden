@@ -87,6 +87,8 @@ var rerolls := 0
 ## What the greedier gifts add to every kill. Mirrored here from the player's
 ## stats by AbilitySystem, because the essence bar is the run's, not the body's.
 var essence_bonus := 0.0
+## Lamps bought tonight (Lamp.key: "room:prop"), burning till dawn; saved.
+var lamps_lit := {}
 
 
 func _ready() -> void:
@@ -129,6 +131,7 @@ func new_run() -> void:
 	vial = 0
 	rerolls = 0
 	essence_bonus = 0.0
+	lamps_lit = {}
 
 
 ## One more blow taken by our own body (Player._apply_damage).

@@ -21,7 +21,8 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction",
 	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
 	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
-	"cursed_damage", "chosen_damage", "curse_relief", "covetous"]
+	"cursed_damage", "chosen_damage", "curse_relief", "covetous",
+	"lantern", "mite", "lamp_blood", "dark_damage", "dark_sight", "parry_flare"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
@@ -41,7 +42,7 @@ const LOOK_NUMBERS := {"border_width": [0, 4], "radius": [0, 12], "speaker_size"
 	"text_size": [10, 28], "caption_size": [9, 24]}  # DialogueLook.NUMBERS
 const LOOK_KEYS := ["style", "panel", "caption", "portrait", "face"]
 const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
-const PROP_KINDS := ["destructible", "chest"]
+const PROP_KINDS := ["destructible", "chest", "lamp"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
 const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold"]
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
@@ -236,6 +237,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: icon not found: %s" % [where, entry.icon])
 		"enemies":
 			_use_key(entry.get("name", ""), where)
+			_check_dark_enemy(entry, where)
 			if entry.has("lore"):
 				_use_key(entry.lore, where)
 			# the advice the night's end gives when this one laid him low
@@ -337,6 +339,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: weapon is true or false, on a chest (it lays the night's weapon)" % where)
 			if entry.has("requires_flag"):
 				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
+			if entry.get("kind") == "lamp" or entry.has("free_if"):
+				_check_lamp(entry, where)
 			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
 					or int(entry.curse) < 1 or int(entry.curse) > 30):
 				_error("%s: curse is a number of kills (1–30), on a chest" % where)
@@ -2286,3 +2290,62 @@ func _check_player_actions() -> void:
 			_error("player action %s.hit_frame needs a nonnegative integer" % id)
 		if action.has("sfx") and not action.sfx is String:
 			_error("player action %s.sfx needs a sound name" % id)
+
+
+## A lamp of Tyre (scripts/rooms/lamp.gd, docs/CHAPTER4.md §9): a price in
+## essence 0–60, a light 60–220 px, and `free_if` is a flag read.
+func _check_lamp(entry: Dictionary, where: String) -> void:
+	if entry.get("kind") != "lamp":
+		_error("%s: free_if belongs to a lamp" % where)
+		return
+	if not entry.get("prompt", "") is String:
+		_error("%s: a lamp's prompt is a key" % where)
+	var price = entry.get("price", 20)
+	if not (price is float or price is int) or float(price) < 0.0 or float(price) > 60.0:
+		_error("%s: a lamp's price is essence, 0–60" % where)
+	var radius = entry.get("radius", 150)
+	if not (radius is float or radius is int) or float(radius) < 60.0 or float(radius) > 220.0:
+		_error("%s: a lamp's radius is 60–220 px" % where)
+	if entry.has("lit") and not entry.lit is bool:
+		_error("%s: lit is true or false" % where)
+	if entry.has("color") and not (entry.color is String and Color.html_is_valid(entry.color)):
+		_error("%s: color is a #rrggbb" % where)
+	if entry.has("free_if"):
+		if not (entry.free_if is String and entry.free_if != ""):
+			_error("%s: free_if is a flag" % where)
+		else:
+			flags_read[str(entry.free_if)] = where  # it burns for nothing once the story set it
+	_use_key("PROMPT_LAMP", where)
+	_use_key("PROMPT_LAMP_POOR", where)
+
+
+## Chapter IV's keys on an enemy (scripts/enemies/enemy_dark.gd).
+func _check_dark_enemy(entry: Dictionary, where: String) -> void:
+	if entry.has("dark_adapted") and not entry.dark_adapted is bool:
+		_error("%s: dark_adapted is true or false" % where)
+	if entry.has("steals"):
+		var n = entry.steals
+		if not (n is float or n is int) or float(n) < 0.0 or float(n) > 10.0:
+			_error("%s: steals is essence a blow takes, 0–10" % where)
+	if not entry.has("darkness_phase"):
+		return
+	var phase = entry.darkness_phase
+	if not entry.get("boss", false) and not "boss" in entry.get("tags", []):
+		_error("%s: only a boss puts the room out (darkness_phase)" % where)
+	if not phase is Dictionary:
+		_error("%s: darkness_phase is an object" % where)
+		return
+	for key in phase:
+		if not key in ["at_hp", "dark", "relight_price", "windup", "caption", "animation", "color"]:
+			_error("%s: darkness_phase has no key \"%s\"" % [where, key])
+	if float(phase.get("dark", 0.85)) < 0.0 or float(phase.get("dark", 0.85)) > 0.95:
+		_error("%s: darkness_phase.dark is 0–0.95" % where)
+	if float(phase.get("relight_price", 2.0)) < 1.0 or float(phase.get("relight_price", 2.0)) > 3.0:
+		_error("%s: darkness_phase.relight_price is 1–3" % where)
+	if float(phase.get("at_hp", 0.5)) <= 0.0 or float(phase.get("at_hp", 0.5)) >= 1.0:
+		_error("%s: darkness_phase.at_hp is a share of health, between 0 and 1" % where)
+	# a readable wind-up, like every other: the palm raised
+	if float(phase.get("windup", 1.4)) < 0.6:
+		_error("%s: darkness_phase.windup is at least 0.6 s — a wind-up the player can read" % where)
+	if phase.has("caption") and not _dialogue_ids.has(str(phase.caption)):
+		_error("%s: darkness_phase.caption names no dialogue \"%s\"" % [where, phase.caption])
