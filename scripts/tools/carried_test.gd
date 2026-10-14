@@ -59,7 +59,9 @@ func _run() -> void:
 	button.pressed.emit()
 	await process_frame
 	_check(carried.visible and not pause.panel.visible, "it opens over the pause menu")
-	_check(_texts(carried.list) == ["CARRIED_NONE"], "nothing taken: it says so")
+	var bare := _texts(carried.list)
+	_check(bare.has("CARRIED_NONE"), "nothing taken: it says so (%s)" % [bare])
+	_check(bare.has(TranslationServer.translate(data.weapons["sword"].name)), "  under the weapon in hand")
 	carried.close()
 	_check(pause.panel.visible, "  and closes back to the menu")
 
@@ -69,7 +71,7 @@ func _run() -> void:
 	load("res://scripts/combat/item_system.gd").give(player, "censer_ember")
 	var all: Array = carried.entries()
 	var kinds: Array = all.map(func(e: Dictionary) -> String: return e.kind)
-	_check(kinds == ["gift", "gift", "resonance", "item"], "gifts, then the resonance they woke, then the item (%s)" % [kinds])
+	_check(kinds == ["weapon", "gift", "gift", "resonance", "item"], "the weapon, gifts, then the resonance they woke, then the item (%s)" % [kinds])
 	button.pressed.emit()
 	await process_frame
 	var shown := _texts(carried.list)
@@ -77,7 +79,7 @@ func _run() -> void:
 		TranslationServer.translate(data.abilities["briar_mantle"].description),
 		TranslationServer.translate(data.items["censer_ember"].name)]
 	var missing := want.filter(func(t: String) -> bool: return not shown.has(t))
-	_check(carried.list.get_child_count() == 4 and missing.is_empty(), "every one is a row with its name and words (%s)" % [missing])
+	_check(carried.list.get_child_count() == 5 and missing.is_empty(), "every one is a row with its name and words (%s)" % [missing])
 	_check(shown.any(func(t: String) -> bool: return t.begins_with("◆ ")), "  a resonance marked as one")
 	# one gift away: Thorned Oath waits for its second gift while only the first is carried
 	carried.close()

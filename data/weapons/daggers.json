@@ -1,0 +1,20 @@
+{
+  "id": "daggers",
+  "name": "WEAPON_DAGGERS",
+  "description": "WEAPON_DAGGERS_DESC",
+  "icon": "res://assets/icons/realm/gear_5.png",
+  "hitbox": [24, 26],
+  "offset": [20, -4],
+  "slash_scale": [0.8, 0.8],
+  "pitch": 1.25,
+  "backstab": 1.0,
+  "auto_reach": 38,
+  "combo_window": 0.8,
+  "chain": [
+    {"animation": "attack", "multiplier": 0.55, "recovery": 0.28, "knockback": 0.4, "heavy": false, "arc": "path", "animation_time": 0.18, "speed": 1.4},
+    {"animation": "attack2", "multiplier": 0.55, "recovery": 0.28, "knockback": 0.4, "heavy": false, "arc": "path", "animation_time": 0.18, "speed": 1.4},
+    {"animation": "thrust", "multiplier": 0.6, "recovery": 0.28, "knockback": 0.5, "heavy": false, "arc": "path", "animation_time": 0.18, "speed": 1.4},
+    {"animation": "attack", "multiplier": 0.75, "recovery": 0.55, "knockback": 1.0, "heavy": false, "arc": "path", "animation_time": 0.2, "speed": 1.25}
+  ],
+  "notes": "Four quick cuts at arm's length, little in each; a back is worth a whole blow more (backstab +1 on the hero's x2.5). Every gift that reads a hit reads four of them."
+}

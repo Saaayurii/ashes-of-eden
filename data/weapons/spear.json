@@ -1,0 +1,21 @@
+{
+  "id": "spear",
+  "name": "WEAPON_SPEAR",
+  "description": "WEAPON_SPEAR_DESC",
+  "icon": "res://assets/icons/realm/gear_4.png",
+  "hitbox": [54, 16],
+  "offset": [36, -6],
+  "slash_scale": [1.35, 0.6],
+  "pitch": 0.9,
+  "auto_reach": 62,
+  "combo_window": 1.1,
+  "chain": [
+    {"animation": "thrust", "multiplier": 1.0, "recovery": 0.6, "wind": 0.05, "knockback": 1.2, "heavy": false, "arc": "path", "animation_time": 0.3, "speed": 0.85},
+    {"animation": "thrust", "multiplier": 1.1, "recovery": 0.6, "wind": 0.05, "knockback": 1.2, "heavy": false, "arc": "path", "animation_time": 0.3, "speed": 0.85},
+    {"animation": "dash_strike", "multiplier": 1.6, "recovery": 1.1, "wind": 0.08, "knockback": 2.4, "heavy": true, "arc": "heavy", "animation_time": 0.36, "speed": 0.75}
+  ],
+  "techniques": {
+    "lunge": {"hitbox": [84, 20], "offset": [44, -6]}
+  },
+  "notes": "Reach over width: the point lands twice as far out as the sword's edge but in a band a hand high, so a flyer above or a crawler under it is missed. Every thrust waits a breath before it bites. The finisher is the roll's stab, thrown standing."
+}
