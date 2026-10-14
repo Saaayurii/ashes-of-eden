@@ -121,7 +121,7 @@ pinned — common enemies free to move, and each move on the straw man.
   bosses take ×2.5 over their damage phase, the same factor as their verdicts. With that the old chapter
   measured ~15 min. It was lengthened with things to do, not HP: reinforcement waves, three variants
   (shield-bearer, cult slinger, hollow wraith), long and short ways at the forks, the ossuary gauntlet.
-  Estimate **27 min**. The extra essence would have bought 7 levels, so the curve went to **180 × 1.3**:
+  Estimate **28 min** (graveyard_cross, now two paintings wide, is in it). The extra essence would have bought 7 levels, so the curve went to **180 × 1.3**:
   6 levels + 8 doors = 14 upgrades, still inside the target.
 
 ## The vials of wrath

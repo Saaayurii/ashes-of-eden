@@ -6,16 +6,16 @@
 
 | Target | Wanted | Measured | |
 |---|---|---|---|
-| Common enemy TTK, fresh hero | 2–3 s | 1.8 s | ✅ |
+| Common enemy TTK, fresh hero | 2–3 s | 1.9 s | ✅ |
 | Upgrades per run (levels + place doors) | 10–14 | 14 (6 levels + 8 doors) | ✅ |
-| Run length (estimate) | 25–30 min | 27 min | ✅ |
+| Run length (estimate) | 25–30 min | 28 min | ✅ |
 | blind_preacher fight | 1.5–2.5 min | 42 s damage phase → ~1.8 min | ✅ |
-| knight_of_ash fight | 1.5–2.5 min | 40 s damage phase → ~1.7 min | ✅ |
-| ophanim fight | 3–4 min | 90 s damage phase → ~3.8 min | ✅ |
+| knight_of_ash fight | 1.5–2.5 min | 39 s damage phase → ~1.6 min | ✅ |
+| ophanim fight | 3–4 min | 86 s damage phase → ~3.6 min | ✅ |
 
 ## Playtests (69 recorded runs)
 
-No run reached the end yet (estimate above: 27 min).
+No run reached the end yet (estimate above: 28 min).
 
 | Room | Clears | Median time | Median damage (bar) | Deaths | Boss fight |
 |---|---|---|---|---|---|
@@ -55,25 +55,25 @@ No run reached the end yet (estimate above: 27 min).
 | Enemy | TTK | Hits | Damage taken while face-tanking |
 |---|---|---|---|
 | ash_archer | 2.1 s | 5 | 3.7 HP/s |
-| blind_preacher (boss) | 42.0 s | 79 | 1.8 HP/s |
-| cult_caller | 2.5 s | 5 | 0.0 HP/s |
-| cult_slinger | 1.7 s | 4 | 0.0 HP/s |
-| cultist | 2.5 s | 5 | 2.9 HP/s |
-| elder_wraith | 2.5 s | 5 | 0.0 HP/s |
-| elite_cultist | 3.7 s | 8 | 3.9 HP/s |
-| elite_possessed | 2.5 s | 5 | 0.0 HP/s |
-| fallen_champion | 6.6 s | 13 | 1.9 HP/s |
-| fallen_guard | 4.6 s | 9 | 0.0 HP/s |
-| hollow_wraith | 2.1 s | 4 | 3.2 HP/s |
-| knight_of_ash (boss) | 40.5 s | 75 | 4.7 HP/s |
-| ophanim (boss) | 90.1 s | 144 | 4.4 HP/s |
-| possessed_villager | 2.1 s | 5 | 0.0 HP/s |
-| preacher_acolyte | 4.6 s | 9 | 3.0 HP/s |
-| raven | 0.9 s | 2 | 0.0 HP/s |
-| shade | 0.9 s | 2 | 0.0 HP/s |
-| shield_bearer | 6.2 s | 12 | 4.6 HP/s |
-| wraith | 1.7 s | 4 | 3.2 HP/s |
-| zealot | 1.7 s | 4 | 0.0 HP/s |
+| blind_preacher (boss) | 42.1 s | 78 | 2.9 HP/s |
+| cult_caller | 1.7 s | 4 | 0.0 HP/s |
+| cult_slinger | 2.1 s | 4 | 0.0 HP/s |
+| cultist | 1.7 s | 4 | 3.6 HP/s |
+| elder_wraith | 4.2 s | 8 | 0.0 HP/s |
+| elite_cultist | 3.3 s | 7 | 6.9 HP/s |
+| elite_possessed | 2.9 s | 6 | 0.0 HP/s |
+| fallen_champion | 4.2 s | 8 | 5.5 HP/s |
+| fallen_guard | 3.7 s | 8 | 2.0 HP/s |
+| hollow_wraith | 2.1 s | 4 | 0.0 HP/s |
+| knight_of_ash (boss) | 39.3 s | 73 | 4.9 HP/s |
+| ophanim (boss) | 86.4 s | 139 | 4.8 HP/s |
+| possessed_villager | 2.5 s | 5 | 2.1 HP/s |
+| preacher_acolyte | 4.6 s | 9 | 3.8 HP/s |
+| raven | 0.1 s | 1 | 0.0 HP/s |
+| shade | 1.3 s | 3 | 4.2 HP/s |
+| shield_bearer | 6.2 s | 11 | 3.6 HP/s |
+| wraith | 2.1 s | 4 | 2.6 HP/s |
+| zealot | 2.1 s | 5 | 2.6 HP/s |
 
 ## Common enemies free to move
 
@@ -81,11 +81,11 @@ The duels above pin the enemy in front of the sword. Here it paces, queues and g
 
 | Enemy | Pinned | Free |
 |---|---|---|
-| possessed_villager | 0.0 HP/s | 1.4 HP/s |
-| cultist | 2.9 HP/s | 0.6 HP/s |
-| fallen_guard | 0.0 HP/s | 2.2 HP/s |
-| shade | 0.0 HP/s | 0.8 HP/s |
-| raven | 0.0 HP/s | 2.1 HP/s |
+| possessed_villager | 2.1 HP/s | 1.0 HP/s |
+| cultist | 3.6 HP/s | 0.6 HP/s |
+| fallen_guard | 2.0 HP/s | 2.6 HP/s |
+| shade | 4.2 HP/s | 0.8 HP/s |
+| raven | 0.0 HP/s | 1.9 HP/s |
 
 ## The moves on the straw man
 
@@ -93,34 +93,34 @@ Damage per second over 10 s of doing only that (docs/TECHNIQUES.md): a move shou
 
 | Way | Damage/s | vs the chain |
 |---|---|---|
-| chain | 23.1 | ×1.00 |
-| lunge | 15.3 | ×0.66 |
-| cleave | 18.6 | ×0.81 |
-| sweep | 12.0 | ×0.52 |
+| chain | 22.1 | ×1.00 |
+| lunge | 15.3 | ×0.69 |
+| cleave | 18.6 | ×0.84 |
+| sweep | 12.0 | ×0.54 |
 
 ## Rooms
 
 | Room | Enemies | Waves | Total HP | Essence | Est. time | Bosses |
 |---|---|---|---|---|---|---|
-| village_night | 12 | 1 | 460 | 138 | 77 s |  |
-| graveyard_cross | 15 | 1 | 616 | 192 | 95 s |  |
-| graveyard_arches | 15 | 1 | 692 | 228 | 118 s |  |
-| graveyard_tree | 16 | 1 | 684 | 224 | 118 s |  |
+| village_night | 12 | 1 | 460 | 138 | 81 s |  |
+| graveyard_cross | 16 | 0 | 644 | 201 | 110 s |  |
+| graveyard_arches | 15 | 1 | 692 | 228 | 121 s |  |
+| graveyard_tree | 16 | 1 | 684 | 224 | 116 s |  |
 | swamp_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| swamp_moon | 16 | 1 | 648 | 205 | 104 s |  |
-| swamp_red (one way of a fork) | 10 | 0 | 438 | 179 | 77 s |  |
-| swamp_crypt (one way of a fork) | 20 | 2 | 1007 | 378 | 167 s |  |
+| swamp_moon | 16 | 1 | 648 | 205 | 108 s |  |
+| swamp_red (one way of a fork) | 10 | 0 | 438 | 179 | 78 s |  |
+| swamp_crypt (one way of a fork) | 20 | 2 | 1007 | 378 | 161 s |  |
 | catacombs_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| catacombs_1 | 17 | 1 | 890 | 297 | 141 s |  |
-| catacombs_2 (one way of a fork) | 12 | 0 | 636 | 223 | 102 s |  |
-| catacombs_3 (one way of a fork) | 22 | 2 | 1136 | 381 | 184 s |  |
+| catacombs_1 | 17 | 1 | 890 | 297 | 147 s |  |
+| catacombs_2 (one way of a fork) | 12 | 0 | 636 | 223 | 104 s |  |
+| catacombs_3 (one way of a fork) | 22 | 2 | 1136 | 381 | 187 s |  |
 | crypt_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| crypt_skulls | 21 | 2 | 1068 | 352 | 166 s |  |
+| crypt_skulls | 21 | 2 | 1068 | 352 | 171 s |  |
 | preacher_nave | 1 | 0 | 900 | 150 | 116 s | blind_preacher |
 | church | 0 | 0 | 0 | 0 | 11 s |  |
 | ashes_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| crypt_lava | 1 | 0 | 760 | 260 | 116 s | knight_of_ash |
+| crypt_lava | 1 | 0 | 760 | 260 | 113 s | knight_of_ash |
 | gate_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| hell_gate | 1 | 0 | 1500 | 400 | 240 s | ophanim |
+| hell_gate | 1 | 0 | 1500 | 400 | 231 s | ophanim |
 
 Room time = Σ TTK × 3.0 (walking, dodging, waiting for openings) + a boss's TTK × 2.5 (docs/BALANCE.md §6) + width / 110 px/s. Enemies count every reinforcement wave and what a body splits into. The 3.0 is measured from playtests (see the constant in balance_probe.gd); the TTKs are real; the walking speed is a guess.
