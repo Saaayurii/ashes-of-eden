@@ -87,7 +87,7 @@ Group size: 2–3 → 4–5 (5 min) → 5–7 (10 min) → 6–9 (20 min); never
 
 ## Progression inside a run
 
-- **Essence** from kills fills a bar; each level offers 1 of 3 gifts. `RequiredEssence = 140 × 1.3^(level−1)` (was 100 × 1.28, tuned 2026-09-23 from `docs/BALANCE_PROBE.md`).
+- **Essence** from kills fills a bar; each level offers 1 of 3 gifts. `RequiredEssence = 180 × 1.3^(level−1)` (`Game.ESSENCE_BASE` / `ESSENCE_GROWTH`; was 140 until the night grew to 25–30 min on 2026-10-14, 100 × 1.28 before 2026-09-23).
   Possessed 12 · Spirit 15 · Guard 25 · Elite 50 · Mini-boss 150 · Boss 400 → a level every 1.5–2.5 minutes.
 - A door grants a gift only where a place ends (`data/chapters`: graveyard → swamp → catacombs …), not after every room. Target: 10–14 upgrades per run in total.
 - Common gift +8–20 %, rare +20–35 %. No "+200 % damage" except cursed gifts with a real downside.
@@ -116,9 +116,13 @@ pinned — common enemies free to move, and each move on the straw man.
 - **The Ophanim** took ~4.2 min with its seal phase against a 3–4 min target, ~4.4 once its volleys
   learnt to turn back on the hero: HP **1800 → 1500**, measured at ~3.6 min.
 - **Upgrades** at 13 rooms: 14 (6 levels + 8 place doors) — inside 10–14, left alone.
-- **Run length** estimates ~14 min against 25–30. The estimate multiplies measured TTKs by a guessed
-  `FIGHT_OVERHEAD`; with no recorded playtest yet it is the weakest number in the report, and HP was
-  not inflated to move it. The playtest section of the probe will replace it.
+- **Run length** (2026-10-14): the guessed `FIGHT_OVERHEAD` of 1.8 was measured from 69 recorded
+  runs — village_night's median clear of 60 s against 15.2 s of TTK and 14.5 s of walking gives **3.0**;
+  bosses take ×2.5 over their damage phase, the same factor as their verdicts. With that the old chapter
+  measured ~15 min. It was lengthened with things to do, not HP: reinforcement waves, three variants
+  (shield-bearer, cult slinger, hollow wraith), long and short ways at the forks, the ossuary gauntlet.
+  Estimate **28 min** (graveyard_cross, now two paintings wide, is in it). The extra essence would have bought 7 levels, so the curve went to **180 × 1.3**:
+  6 levels + 8 doors = 14 upgrades, still inside the target.
 
 ## The vials of wrath
 

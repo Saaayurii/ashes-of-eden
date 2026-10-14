@@ -1,0 +1,31 @@
+{
+  "id": "hollow_wraith",
+  "extends": "wraith",
+  "_comment": "A wraith gone hollow: laid low, it comes apart into two shades already hunting (on_death split). Kill it where you can meet what it leaves.",
+  "name": "ENEMY_HOLLOW_WRAITH",
+  "lore": "ENEMY_HOLLOW_WRAITH_LORE",
+  "tip": "TIP_HOLLOW_WRAITH",
+  "hp": 44,
+  "color": "#6a7ab0",
+  "sprite": {
+    "like": "wraith",
+    "tint": "#a8b8ff"
+  },
+  "light": {
+    "color": "#8fa8ff",
+    "radius": 56,
+    "energy": 0.8,
+    "flicker": 0.15
+  },
+  "attack": {
+    "windup": 0.8,
+    "color": "#a8c0ff"
+  },
+  "on_death": {
+    "type": "split",
+    "into": "shade",
+    "count": 2
+  },
+  "essence": 14,
+  "voice": "wraith"
+}

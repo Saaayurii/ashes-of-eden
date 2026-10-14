@@ -6,35 +6,74 @@
 
 | Target | Wanted | Measured | |
 |---|---|---|---|
-| Common enemy TTK, fresh hero | 2–3 s | 1.7 s | ✅ |
+| Common enemy TTK, fresh hero | 2–3 s | 1.9 s | ✅ |
 | Upgrades per run (levels + place doors) | 10–14 | 14 (6 levels + 8 doors) | ✅ |
-| Run length (estimate) | 25–30 min | 13 min | ⚠️ |
-| blind_preacher fight | 1.5–2.5 min | 42 s damage phase → ~1.7 min | ✅ |
-| knight_of_ash fight | 1.5–2.5 min | 42 s damage phase → ~1.7 min | ✅ |
-| ophanim fight | 3–4 min | 88 s damage phase → ~3.6 min | ✅ |
+| Run length (estimate) | 25–30 min | 28 min | ✅ |
+| blind_preacher fight | 1.5–2.5 min | 42 s damage phase → ~1.8 min | ✅ |
+| knight_of_ash fight | 1.5–2.5 min | 39 s damage phase → ~1.6 min | ✅ |
+| ophanim fight | 3–4 min | 86 s damage phase → ~3.6 min | ✅ |
 
-## Playtests (0 recorded runs)
+## Playtests (69 recorded runs)
 
-No recorded runs yet. Play the chapter (any build, solo): every run is written to `user://playtest/` and summarised here on the next probe.
+No run reached the end yet (estimate above: 28 min).
+
+| Room | Clears | Median time | Median damage (bar) | Deaths | Boss fight |
+|---|---|---|---|---|---|
+| village_night | 15 | 60 s | 66 % | 21 | — |
+| graveyard_cross | 4 | 84 s | 57 % | 5 | — |
+| graveyard_arches | 1 | 102 s | 26 % | 5 | — |
+| graveyard_tree | 0 | — | — | 1 | — |
+| swamp_red | 0 | — | — | 2 | — |
+| hell_gate | 0 | — | — | 1 | — |
+
+| Move | Times used | Per run |
+|---|---|---|
+| lunge | 10 | 0.1 |
+| cleave | 3 | 0.0 |
+| sweep | 0 | 0.0 |
+| rising | 83 | 1.2 |
+| dash_strike | 7 | 0.1 |
+| slam | 3 | 0.0 |
+| wall_jump | 5 | 0.1 |
+| riposte | 0 | 0.0 |
+| backstab | 11 | 0.2 |
+
+| Laid low by | Deaths | Share |
+|---|---|---|
+| ? | 29 | 83 % |
+| fall | 6 | 17 % |
+
+| Omen | Nights | Dawns |
+|---|---|---|
+| (none) | 61 | 0 |
+| dry_altars | 1 | 0 |
+| fen_mist | 2 | 0 |
+| heavy_earth | 2 | 0 |
 
 ## Duels (fresh hero, no gifts, standing and swinging)
 
 | Enemy | TTK | Hits | Damage taken while face-tanking |
 |---|---|---|---|
-| blind_preacher (boss) | 41.7 s | 78 | 2.4 HP/s |
-| cult_caller | 2.1 s | 4 | 2.9 HP/s |
-| cultist | 2.1 s | 5 | 2.9 HP/s |
-| elite_possessed | 2.5 s | 5 | 0.0 HP/s |
-| fallen_champion | 5.0 s | 10 | 4.6 HP/s |
-| fallen_guard | 4.6 s | 9 | 0.0 HP/s |
-| knight_of_ash (boss) | 41.7 s | 77 | 4.5 HP/s |
-| ophanim (boss) | 87.5 s | 140 | 3.9 HP/s |
-| possessed_villager | 2.1 s | 5 | 0.0 HP/s |
-| preacher_acolyte | 4.6 s | 9 | 4.9 HP/s |
-| raven | 0.9 s | 2 | 0.0 HP/s |
-| shade | 0.9 s | 2 | 0.0 HP/s |
-| wraith | 1.7 s | 4 | 0.0 HP/s |
-| zealot | 1.7 s | 4 | 0.0 HP/s |
+| ash_archer | 2.1 s | 5 | 3.7 HP/s |
+| blind_preacher (boss) | 42.1 s | 78 | 2.9 HP/s |
+| cult_caller | 1.7 s | 4 | 0.0 HP/s |
+| cult_slinger | 2.1 s | 4 | 0.0 HP/s |
+| cultist | 1.7 s | 4 | 3.6 HP/s |
+| elder_wraith | 4.2 s | 8 | 0.0 HP/s |
+| elite_cultist | 3.3 s | 7 | 6.9 HP/s |
+| elite_possessed | 2.9 s | 6 | 0.0 HP/s |
+| fallen_champion | 4.2 s | 8 | 5.5 HP/s |
+| fallen_guard | 3.7 s | 8 | 2.0 HP/s |
+| hollow_wraith | 2.1 s | 4 | 0.0 HP/s |
+| knight_of_ash (boss) | 39.3 s | 73 | 4.9 HP/s |
+| ophanim (boss) | 86.4 s | 139 | 4.8 HP/s |
+| possessed_villager | 2.5 s | 5 | 2.1 HP/s |
+| preacher_acolyte | 4.6 s | 9 | 3.8 HP/s |
+| raven | 0.1 s | 1 | 0.0 HP/s |
+| shade | 1.3 s | 3 | 4.2 HP/s |
+| shield_bearer | 6.2 s | 11 | 3.6 HP/s |
+| wraith | 2.1 s | 4 | 2.6 HP/s |
+| zealot | 2.1 s | 5 | 2.6 HP/s |
 
 ## Common enemies free to move
 
@@ -42,11 +81,11 @@ The duels above pin the enemy in front of the sword. Here it paces, queues and g
 
 | Enemy | Pinned | Free |
 |---|---|---|
-| possessed_villager | 0.0 HP/s | 1.7 HP/s |
-| cultist | 2.9 HP/s | 1.5 HP/s |
-| fallen_guard | 0.0 HP/s | 2.6 HP/s |
-| shade | 0.0 HP/s | 0.8 HP/s |
-| raven | 0.0 HP/s | 1.8 HP/s |
+| possessed_villager | 2.1 HP/s | 1.0 HP/s |
+| cultist | 3.6 HP/s | 0.6 HP/s |
+| fallen_guard | 2.0 HP/s | 2.6 HP/s |
+| shade | 4.2 HP/s | 0.8 HP/s |
+| raven | 0.0 HP/s | 1.9 HP/s |
 
 ## The moves on the straw man
 
@@ -61,22 +100,27 @@ Damage per second over 10 s of doing only that (docs/TECHNIQUES.md): a move shou
 
 ## Rooms
 
-| Room | Enemies | Total HP | Essence | Est. time | Bosses |
-|---|---|---|---|---|---|
-| village_night | 8 | 300 | 88 | 38 s |  |
-| graveyard_cross | 8 | 312 | 100 | 38 s |  |
-| graveyard_arches | 9 | 392 | 125 | 47 s |  |
-| graveyard_tree | 9 | 392 | 125 | 47 s |  |
-| swamp_moon | 9 | 368 | 121 | 45 s |  |
-| swamp_red (one way of a fork) | 9 | 398 | 163 | 48 s |  |
-| swamp_crypt (one way of a fork) | 10 | 504 | 201 | 56 s |  |
-| catacombs_1 | 10 | 538 | 165 | 58 s |  |
-| catacombs_2 (one way of a fork) | 11 | 596 | 207 | 62 s |  |
-| catacombs_3 (one way of a fork) | 11 | 596 | 207 | 62 s |  |
-| crypt_skulls | 10 | 514 | 151 | 55 s |  |
-| preacher_nave | 1 | 900 | 150 | 86 s | blind_preacher |
-| church | 0 | 0 | 0 | 11 s |  |
-| crypt_lava | 1 | 760 | 260 | 90 s | knight_of_ash |
-| hell_gate | 1 | 1500 | 400 | 172 s | ophanim |
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Bosses |
+|---|---|---|---|---|---|---|
+| village_night | 12 | 1 | 460 | 138 | 81 s |  |
+| graveyard_cross | 16 | 0 | 644 | 201 | 110 s |  |
+| graveyard_arches | 15 | 1 | 692 | 228 | 121 s |  |
+| graveyard_tree | 16 | 1 | 684 | 224 | 116 s |  |
+| swamp_threshold | 0 | 0 | 0 | 0 | 15 s |  |
+| swamp_moon | 16 | 1 | 648 | 205 | 108 s |  |
+| swamp_red (one way of a fork) | 10 | 0 | 438 | 179 | 78 s |  |
+| swamp_crypt (one way of a fork) | 20 | 2 | 1007 | 378 | 161 s |  |
+| catacombs_threshold | 0 | 0 | 0 | 0 | 15 s |  |
+| catacombs_1 | 17 | 1 | 890 | 297 | 147 s |  |
+| catacombs_2 (one way of a fork) | 12 | 0 | 636 | 223 | 104 s |  |
+| catacombs_3 (one way of a fork) | 22 | 2 | 1136 | 381 | 187 s |  |
+| crypt_threshold | 0 | 0 | 0 | 0 | 15 s |  |
+| crypt_skulls | 21 | 2 | 1068 | 352 | 171 s |  |
+| preacher_nave | 1 | 0 | 900 | 150 | 116 s | blind_preacher |
+| church | 0 | 0 | 0 | 0 | 11 s |  |
+| ashes_threshold | 0 | 0 | 0 | 0 | 15 s |  |
+| crypt_lava | 1 | 0 | 760 | 260 | 113 s | knight_of_ash |
+| gate_threshold | 0 | 0 | 0 | 0 | 15 s |  |
+| hell_gate | 1 | 0 | 1500 | 400 | 231 s | ophanim |
 
-Room time = Σ TTK × 1.8 (walking, dodging, waiting for openings) + width / 110 px/s. Both constants are guesses until a human playtest replaces them; the TTKs are real.
+Room time = Σ TTK × 3.0 (walking, dodging, waiting for openings) + a boss's TTK × 2.5 (docs/BALANCE.md §6) + width / 110 px/s. Enemies count every reinforcement wave and what a body splits into. The 3.0 is measured from playtests (see the constant in balance_probe.gd); the TTKs are real; the walking speed is a guess.

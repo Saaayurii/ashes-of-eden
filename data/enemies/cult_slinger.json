@@ -1,0 +1,35 @@
+{
+  "id": "cult_slinger",
+  "extends": "cultist",
+  "_comment": "A cultist who keeps back and lobs a burning pot of ash over the melee in front of it: the pot drops as it flies, so it falls short of a hero who closes in.",
+  "name": "ENEMY_CULT_SLINGER",
+  "lore": "ENEMY_CULT_SLINGER_LORE",
+  "tip": "TIP_CULT_SLINGER",
+  "hp": 40,
+  "speed": 66,
+  "behaviour": "caster",
+  "keep_away": 130,
+  "aggro_range": 460,
+  "color": "#4a2a20",
+  "stagger_chance": 0.4,
+  "sprite": {
+    "like": "cultist",
+    "tint": "#e0b8a8"
+  },
+  "attack": {
+    "type": "ranged",
+    "range": 300,
+    "reach": 0,
+    "windup": 0.8,
+    "damage": 9,
+    "cooldown": 2.6,
+    "recover": 0.4,
+    "projectile_speed": 190,
+    "projectile_motion": "arc",
+    "motion_amount": 60,
+    "projectile_style": "ember",
+    "color": "#ff8a3a"
+  },
+  "essence": 16,
+  "voice": "cultist"
+}

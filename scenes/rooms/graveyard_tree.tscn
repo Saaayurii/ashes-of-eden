@@ -153,6 +153,7 @@ script = ExtResource("1_room")
 width = 1600
 height = 720
 void_kill_y = 690
+waves_json = "[[[\"shield_bearer\", 810, 407], [\"cultist\", 560, 407], [\"cult_slinger\", 1040, 368], [\"possessed_villager\", 760, 603], [\"raven\", 660, 150]]]"
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
@@ -540,7 +541,7 @@ enemy_id = "shade"
 [node name="Spawn8" type="Marker2D" parent="Spawns"]
 position = Vector2(1110, 600)
 script = ExtResource("5_spawn")
-enemy_id = "wraith"
+enemy_id = "hollow_wraith"
 
 [node name="Spawn9" type="Marker2D" parent="Spawns"]
 position = Vector2(660, 150)
