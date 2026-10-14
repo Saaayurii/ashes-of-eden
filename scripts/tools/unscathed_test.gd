@@ -42,11 +42,18 @@ func _load(run, name: String) -> void:
 	await _frames(4)
 
 
+## Down to the last: a wave rises when the room before it falls, and a hollow
+## wraith leaves two shades, so one sweep is not a cleared room.
 func _clear_room() -> void:
-	for body in get_nodes_in_group("enemies"):
-		if not body.is_dead():
-			body.take_damage(99999.0)
-	await _frames(6)
+	for round_i in 8:
+		var standing := false
+		for body in get_nodes_in_group("enemies"):
+			if not body.is_dead():
+				body.take_damage(99999.0)
+				standing = true
+		await _frames(6)
+		if not standing:
+			break
 
 
 func _run() -> void:
