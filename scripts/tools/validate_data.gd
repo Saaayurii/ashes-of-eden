@@ -1436,7 +1436,7 @@ func _check_fork(entry: Dictionary, where: String) -> void:
 			continue
 		var scene := FileAccess.get_file_as_string(path)
 		var story := []
-		for field in ["intro_cutscene", "outro_cutscene", "intro_dialogue"]:
+		for field in ["intro_cutscene", "outro_cutscene", "quiet_outro", "intro_dialogue"]:
 			var at := scene.find(field + " = \"")
 			if at >= 0 and scene.substr(at + field.length() + 4, 1) != "\"":
 				story.append(field)
@@ -2047,6 +2047,7 @@ func _check_nights(game: Dictionary) -> void:
 func _check_game_rooms(game: Dictionary) -> void:
 	var wants := {"enemy_id": [_enemy_ids, "enemy"], "npc_id": [_npc_ids, "npc"], "prop_id": [_prop_ids, "prop"],
 		"intro_cutscene": [_cutscene_ids, "cutscene"], "outro_cutscene": [_cutscene_ids, "cutscene"],
+		"quiet_outro": [_cutscene_ids, "cutscene"],
 		"intro_dialogue": [_dialogue_ids, "dialogue"]}
 	var line := RegEx.create_from_string("^(\\w+) = \"([^\"]+)\"$")
 	for path in DATA_DOC.all_rooms(game) + [game.get("practice_room", "")]:
