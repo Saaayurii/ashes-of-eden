@@ -46,7 +46,7 @@ async function step(name, fn) {
   const browser = await chromium.launch();
   const errors = [];
   try {
-    for (let i = 0; i < 60; i++) { try { if ((await fetch(URL + 'import/meta.json')).ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
+    for (let i = 0; i < 60; i++) { try { const res = await fetch(URL + 'import/meta.json'); await res.arrayBuffer(); if (res.ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); } // the body is read: Node 22's fetch can trip on a close-delimited one left unread
     const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
     page.on('pageerror', e => errors.push(String(e)));
     page.on('dialog', d => d.accept(d.type() === 'prompt' ? 'e2e_archer' : undefined));
