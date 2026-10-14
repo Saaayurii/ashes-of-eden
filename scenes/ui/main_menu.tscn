@@ -9,6 +9,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="7_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/bestiary.tscn" id="8_bestiary"]
 [ext_resource type="PackedScene" path="res://scenes/ui/save_menu.tscn" id="9_saves"]
+[ext_resource type="Shader" path="res://assets/shaders/sky_drift.gdshader" id="10_sky"]
+[ext_resource type="Shader" path="res://assets/shaders/god_rays.gdshader" id="11_rays"]
+[ext_resource type="Script" path="res://scripts/ui/menu_sky.gd" id="12_menu_sky"]
 
 [sub_resource type="FastNoiseLite" id="noise"]
 frequency = 0.012
@@ -73,6 +76,30 @@ fill_to = Vector2(0.5, 0)
 [sub_resource type="CanvasItemMaterial" id="add_mat"]
 blend_mode = 1
 
+[sub_resource type="ShaderMaterial" id="sky_mat"]
+shader = ExtResource("10_sky")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/size = Vector2(640, 160)
+
+[sub_resource type="ShaderMaterial" id="rays_mat"]
+shader = ExtResource("11_rays")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/size = Vector2(640, 220)
+shader_parameter/source = Vector2(470, 47)
+
+[sub_resource type="ShaderMaterial" id="valley_mat"]
+shader = ExtResource("3_fog")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/density = 0.38
+shader_parameter/speed = 0.03
+shader_parameter/tint = Color(0.68, 0.68, 0.74, 1)
+shader_parameter/bottom_bias = 0.0
+shader_parameter/band = 1.0
+
+[sub_resource type="Gradient" id="mist_fade"]
+offsets = PackedFloat32Array(0, 0.3, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0)
+
 [node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -89,6 +116,23 @@ texture = ExtResource("2_background")
 centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 640, 340)
+
+[node name="Clouds" type="ColorRect" parent="Layers"]
+material = SubResource("sky_mat")
+offset_right = 640.0
+offset_bottom = 160.0
+mouse_filter = 2
+
+[node name="Rays" type="ColorRect" parent="Layers"]
+material = SubResource("rays_mat")
+offset_right = 640.0
+offset_bottom = 220.0
+mouse_filter = 2
+
+[node name="Sky" type="Node2D" parent="Layers" node_paths=PackedStringArray("clouds", "rays")]
+script = ExtResource("12_menu_sky")
+clouds = NodePath("../Clouds")
+rays = NodePath("../Rays")
 
 [node name="Beam" type="Sprite2D" parent="Layers"]
 material = SubResource("add_mat")
@@ -114,6 +158,13 @@ offset_right = 640.0
 offset_bottom = 360.0
 mouse_filter = 2
 
+[node name="FogValley" type="ColorRect" parent="Layers"]
+material = SubResource("valley_mat")
+offset_top = 150.0
+offset_right = 640.0
+offset_bottom = 270.0
+mouse_filter = 2
+
 [node name="Rain" type="CPUParticles2D" parent="Layers"]
 position = Vector2(320, -20)
 amount = 140
@@ -133,32 +184,138 @@ color = Color(0.75, 0.8, 0.95, 0.35)
 
 [node name="Lantern" type="Sprite2D" parent="Layers"]
 material = SubResource("add_mat")
-position = Vector2(38, 262)
-scale = Vector2(0.7, 0.7)
+position = Vector2(42, 236)
+scale = Vector2(0.4, 0.4)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.75
+variation = 0.3
+speed = 12.0
+
+[node name="Hearth" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(43, 252)
+scale = Vector2(0.6, 0.6)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.7
+variation = 0.35
+speed = 14.0
+
+[node name="GallowsLantern" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(303, 213)
+scale = Vector2(0.32, 0.32)
 texture = SubResource("warm_glow")
 script = ExtResource("5_flicker")
 base_alpha = 0.7
 variation = 0.3
-speed = 12.0
+speed = 11.0
 
-[node name="Window" type="Sprite2D" parent="Layers"]
+[node name="VillageWindow1" type="Sprite2D" parent="Layers"]
 material = SubResource("add_mat")
-position = Vector2(300, 352)
-scale = Vector2(0.5, 0.4)
+position = Vector2(177, 157)
+scale = Vector2(0.09, 0.09)
 texture = SubResource("warm_glow")
 script = ExtResource("5_flicker")
-base_alpha = 0.5
-variation = 0.35
-speed = 10.0
+base_alpha = 0.55
+variation = 0.45
+speed = 3.0
+
+[node name="VillageWindow2" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(186, 155)
+scale = Vector2(0.09, 0.09)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.55
+variation = 0.45
+speed = 3.7
+
+[node name="VillageWindow3" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(199, 158)
+scale = Vector2(0.09, 0.09)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.55
+variation = 0.45
+speed = 4.4
+
+[node name="VillageWindow4" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(213, 160)
+scale = Vector2(0.09, 0.09)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.55
+variation = 0.45
+speed = 5.1
+
+[node name="VillageWindow5" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(237, 167)
+scale = Vector2(0.09, 0.09)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.55
+variation = 0.45
+speed = 5.8
+
+[node name="VillageWindow6" type="Sprite2D" parent="Layers"]
+material = SubResource("add_mat")
+position = Vector2(250, 172)
+scale = Vector2(0.09, 0.09)
+texture = SubResource("warm_glow")
+script = ExtResource("5_flicker")
+base_alpha = 0.55
+variation = 0.45
+speed = 6.5
+
+[node name="FallsMist" type="CPUParticles2D" parent="Layers"]
+position = Vector2(553, 233)
+amount = 12
+lifetime = 4.0
+preprocess = 4.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(6, 2)
+direction = Vector2(-0.4, -1)
+spread = 50.0
+gravity = Vector2(0, -2)
+initial_velocity_min = 3.0
+initial_velocity_max = 7.0
+scale_amount_min = 3.0
+scale_amount_max = 6.0
+color = Color(0.82, 0.86, 0.92, 0.16)
+color_ramp = SubResource("mist_fade")
+
+[node name="UpperFallsMist" type="CPUParticles2D" parent="Layers"]
+position = Vector2(601, 163)
+amount = 12
+lifetime = 4.0
+preprocess = 4.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(5, 2)
+direction = Vector2(-0.4, -1)
+spread = 50.0
+gravity = Vector2(0, -2)
+initial_velocity_min = 3.0
+initial_velocity_max = 7.0
+scale_amount_min = 3.0
+scale_amount_max = 6.0
+color = Color(0.82, 0.86, 0.92, 0.16)
+color_ramp = SubResource("mist_fade")
 
 [node name="Embers" type="CPUParticles2D" parent="Layers"]
-position = Vector2(40, 262)
+position = Vector2(43, 250)
 amount = 14
 lifetime = 3.0
 preprocess = 3.0
 texture = SubResource("dot")
 emission_shape = 1
-emission_sphere_radius = 6.0
+emission_sphere_radius = 4.0
 direction = Vector2(0.3, -1)
 spread = 30.0
 gravity = Vector2(0, -20)

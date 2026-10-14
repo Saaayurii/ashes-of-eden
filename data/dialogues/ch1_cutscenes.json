@@ -160,6 +160,12 @@
     }
   },
   {
+    "id": "ch1_finale_versions",
+    "blocking": false,
+    "start": "l",
+    "nodes": {"l": {"speaker": "SPEAKER_ELIAN", "text": "DLG_CH1_FINALE_VERSIONS"}}
+  },
+  {
     "id": "ch1_finale_book",
     "blocking": false,
     "start": "e",

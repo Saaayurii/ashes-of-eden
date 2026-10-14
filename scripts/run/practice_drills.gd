@@ -106,7 +106,8 @@ func spawn() -> void:
 
 
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("interact") and not Game.cutscene:
+	# a weapon on the yard's rack under his feet takes the button (WeaponDrop)
+	if Input.is_action_just_pressed("interact") and not Game.cutscene and not WeaponDrop.any_at_hand(get_tree()):
 		next()
 		return
 	if drill != "stalk" or not is_instance_valid(_foe) or _foe.is_dead():

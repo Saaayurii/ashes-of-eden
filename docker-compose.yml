@@ -57,3 +57,16 @@ services:
     volumes:
       - ./build/web:/usr/share/nginx/html:ro
       - ./tools/docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  # The opt-in telemetry receiver (docs/PLAYTEST.md): appends what players
+  # send to ./build/telemetry. Plain http here; put Caddy in front for the
+  # https a page on GitHub Pages or itch.io must send to.
+  telemetry:
+    build: tools/telemetry
+    ports:
+      - "8930:8930"
+    environment:
+      - TELEMETRY_TOKEN=${TELEMETRY_TOKEN:-}
+    volumes:
+      - ./build/telemetry:/data
+    restart: unless-stopped

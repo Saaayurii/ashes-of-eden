@@ -1,0 +1,9 @@
+{
+  "id": "abyss",
+  "name": "ENDING_ABYSS",
+  "description": "ENDING_ABYSS_DESC",
+  "line": "ENDING_ABYSS_LINE",
+  "cutscene": "ending_abyss",
+  "order": 3,
+  "when": {"path": "temptation", "lead": 2}
+}

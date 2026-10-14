@@ -27,7 +27,9 @@ ALWAYS_EXCLUDE = ["tools/*", "build/*", "docs/*", "*_source.png",
                   "assets/sprites/source/*", "assets/sprites/projectiles/source/*",
                   # what the art tools cut the game's strips and props from, never loaded
                   "assets/sprites/enemy_atlases/*", "assets/props/source/*",
-                  "assets/portraits/enemies_atlas.png", "assets/portraits/people_atlas.png"]
+                  "assets/portraits/enemies_atlas.png", "assets/portraits/people_atlas.png",
+                  # new paintings a composed room is stitched from (assets/levels/composed)
+                  "assets/levels/panels/*"]
 
 
 def unused_art():

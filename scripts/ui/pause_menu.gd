@@ -45,6 +45,11 @@ func _ready() -> void:
 	open_carried.owner = self
 	open_carried.pressed.connect(func() -> void: panel.visible = false; carried.open())
 	carried.closed.connect(func() -> void: panel.visible = true; open_carried.grab_focus())
+	# "Send feedback" under the gifts, when the build names where (docs/PLAYTEST.md).
+	var feedback := FeedbackButton.make()
+	if feedback != null:
+		feedback.flat = false  # a menu button among menu buttons
+		open_carried.add_sibling(feedback)
 	# Saving is solo: a session's rooms are the host's (see Saves).
 	%SaveRow.visible = not Net.active and Game.daily == ""  # the night of the day is played once through
 	%OpenSave.pressed.connect(_open_saves.bind("save"))

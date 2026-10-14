@@ -1,0 +1,17 @@
+{
+  "id": "voice_catacombs_more",
+  "start": "more",
+  "nodes": {
+    "more": {
+      "speaker": "SPEAKER_VOICE",
+      "text": "DLG_VOICE_MORE",
+      "choices": [
+        {"id": "tell", "text": "DLG_VOICE_TELL", "effect": {"set_flags": ["version_abyss"]}, "next": "v_version_1"},
+        {"id": "keep", "text": "DLG_VOICE_KEEP", "next": "v_keep"}
+      ]
+    },
+    "v_version_1": {"speaker": "SPEAKER_VOICE", "text": "DLG_VOICE_VERSION_1", "next": "v_version_2"},
+    "v_version_2": {"speaker": "SPEAKER_VOICE", "text": "DLG_VOICE_VERSION_2"},
+    "v_keep": {"speaker": "SPEAKER_VOICE", "text": "DLG_VOICE_R_KEEP"}
+  }
+}

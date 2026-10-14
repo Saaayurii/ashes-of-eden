@@ -11,6 +11,8 @@ tools/audio/.cache/
 # and the Web build is the one paying. Without these lines a fresh checkout
 # re-imports them lossless and the saving silently disappears in CI.
 !assets/levels/depth/*_wide.png.import
+# …and the pictures a composed room is stitched into (tools/rooms/compose.py)
+!assets/levels/composed/*.png.import
 !assets/portraits/*.png.import
 !assets/sprites/enemy_atlases/*.png.import
 # …and the other painted plates the size of a screen: the cutscene stills, the

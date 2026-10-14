@@ -64,6 +64,12 @@ jobs:
       - name: Validate data & localization
         run: docker compose run --rm validate
 
+      - name: Telemetry server and feedback form (repository variables, docs/PLAYTEST.md)
+        env:
+          TELEMETRY_URL: ${{ vars.TELEMETRY_URL }}
+          FEEDBACK_URL: ${{ vars.FEEDBACK_URL }}
+        run: python3 tools/telemetry/set_urls.py
+
       - name: Export Web
         run: docker compose run --rm build build Web
 

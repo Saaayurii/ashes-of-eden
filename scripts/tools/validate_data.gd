@@ -73,6 +73,8 @@ const REQUIRED := {
 	"relics": ["id", "name", "description", "cost", "effects"],
 	"omens": ["id", "name", "description", "rules"],
 	"affixes": ["id", "name", "color", "mods"],
+	"weapons": ["id", "name", "description", "icon", "chain"],
+	"endings": ["id", "name", "description", "line", "cutscene", "order", "when"],
 }
 
 var errors: PackedStringArray = []
@@ -85,6 +87,9 @@ var _npc_ids := {}
 var _prop_ids := {}
 var _enemy_ids := {}
 var _cutscene_ids := {}
+## Every ending (data/endings) and those marked "fallback", for the finale and the deeds.
+var _ending_ids := {}
+var _ending_fallbacks: Array = []
 var _note_ids := {}
 var _chapter_ids := {}
 var _ability_paths := {}  # gift id -> its path
@@ -122,11 +127,14 @@ func _init() -> void:
 	_check_action_fx()
 	_check_gore()
 	_check_player_actions()
+	_check_weapons()
 	_check_hero()
 	_check_game()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	var game: Dictionary = _game()
+	for entry in _game_entries("endings"):  # a deed may name one before they are checked
+		_ending_ids[str(entry.get("id", ""))] = true
 	for collection in REQUIRED:
 		var entries := _game_entries(collection)
 		counts[collection] = entries.size()
@@ -140,6 +148,7 @@ func _init() -> void:
 					_error("%s: duplicate id \"%s\"" % [collection, entry.id])
 				ids[entry.id] = true
 	_check_game_rooms(game)
+	_check_finale(game)
 	for key in used_keys:
 		if not strings.has(key):
 			_error("missing localization key %s (used in %s)" % [key, used_keys[key]])
@@ -152,6 +161,7 @@ func _init() -> void:
 	_check_glyphs(strings)
 	_check_story_flags()
 	_check_backdrops()
+	_check_telemetry_urls()
 
 	for w in warnings:
 		print("WARNING: " + w)
@@ -165,6 +175,16 @@ func _init() -> void:
 			printerr("ERROR: " + e)
 		printerr("%d error(s)" % errors.size())
 		quit(1)
+
+
+## The telemetry server and the feedback form a build ships with (docs/PLAYTEST.md):
+## empty (off, hidden) or an address. A typo would only be found by a player's
+## silence; https, because the Web build is served over it and may send nowhere else.
+func _check_telemetry_urls() -> void:
+	for setting in ["ashes/telemetry/url", "ashes/telemetry/feedback_url"]:
+		var url := str(ProjectSettings.get_setting(setting, "")).strip_edges()
+		if url != "" and not url.begins_with("https://"):
+			_error("%s must be empty or an https:// address, not \"%s\"" % [setting, url])
 
 
 func _check_entry(collection: String, entry: Dictionary) -> void:
@@ -303,6 +323,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_use_key(entry.prompt, where)
 			if entry.has("interact") and not (entry.interact is bool and entry.get("kind") == "chest"):
 				_error("%s: interact is true or false, on a chest" % where)
+			if entry.has("weapon") and not (entry.weapon is bool and entry.get("kind") == "chest"):
+				_error("%s: weapon is true or false, on a chest (it lays the night's weapon)" % where)
 			if entry.has("requires_flag"):
 				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
 			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
@@ -360,6 +382,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: an item's effect is one of the item mechanics %s" % [where, ITEM_STATS])
 		"forks":
 			_check_fork(entry, where)
+		"weapons":
+			_check_weapon(entry, where)
 		"techniques":
 			_use_key(entry.get("name", ""), where)
 			_use_key(entry.get("input", ""), where)
@@ -376,6 +400,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_relic(entry, where)
 		"omens":
 			_check_omen(entry, where)
+		"endings":
+			_check_ending(entry, where)
 		"affixes":
 			_use_key(entry.get("name", ""), where)
 			for key in entry.get("mods", {}):
@@ -467,10 +493,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
 						if branch.has("vial") and (int(branch.vial) < 1 or int(branch.vial) > 5):
 							_error("%s: branch vial is 1..5" % node_where)
+						if branch.has("nights") and int(branch.nights) < 1:
+							_error("%s: branch nights is at least 1 (nights already lived)" % node_where)
 						if branch.has("omen") and not _omen_ids().has(str(branch.omen)):
 							_error("%s: branch omen \"%s\" names no omen in data/omens" % [node_where, branch.omen])
-						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen")):
-							_error("%s: a branch needs a flag, a path, a habit, a vial or an omen to test" % node_where)
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen") or branch.has("nights")):
+							_error("%s: a branch needs a flag, a path, a habit, a vial, an omen or nights to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
@@ -980,7 +1008,7 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 	if int(entry.get("ash", 0)) < 0 or int(entry.get("ash", 0)) > 50:
 		_error("%s: ash is 0..50 (docs/BALANCE.md: permanent power stays small)" % where)
 	for key in unlock:
-		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "items", "affixes", "moves", "deeds", "fast"].has(key):
+		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "items", "affixes", "moves", "deeds", "fast", "endings"].has(key):
 			_error("%s: unlock.%s is not a condition Achievements reads" % [where, key])
 	for key in ["nights", "wins", "total_kills"]:
 		if unlock.has(key) and int(unlock[key]) < 1:
@@ -1001,6 +1029,11 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 			_error("%s: unlock.fast names no boss: %s" % [where, boss])
 		elif float(unlock.fast[boss]) <= 0.0:
 			_error("%s: unlock.fast.%s is a time in seconds" % [where, boss])
+	var endings = unlock.get("endings", [])
+	if str(endings) != "all":
+		for ending in endings:
+			if not _ending_ids.has(str(ending)):
+				_error("%s: unlock.endings names no ending: %s" % [where, ending])
 	for counter in unlock.get("deeds", {}):
 		if not counters.has(counter):
 			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])
@@ -1104,6 +1137,69 @@ func _check_vial(entry: Dictionary, where: String) -> void:
 			_error("%s: promote %s -> %s names no enemy" % [where, from, to])
 	if float(rules.get("promote_chance", 0.0)) > 1.0 or float(rules.get("rest_heal", 1.0)) <= 0.0:
 		_error("%s: promote_chance is 0..1 and rest_heal above 0" % where)
+
+
+## An ending (data/endings, scripts/run/endings.gd): its words, a cutscene
+## that exists, and a "when" in the terms Endings.holds reads. Its flags count
+## as read — the ending is what answers them.
+func _check_ending(entry: Dictionary, where: String) -> void:
+	for key in ["name", "description", "line"]:
+		_use_key(entry.get(key, ""), where)
+	_ending_ids[str(entry.get("id", ""))] = true
+	if not str(entry.get("id", "")).is_valid_identifier():
+		_error("%s: the id names a deed and a record: letters, digits, _" % where)
+	if not _cutscene_ids.has(entry.get("cutscene", "")):
+		_error("%s: unknown cutscene %s" % [where, entry.get("cutscene", "")])
+	if not entry.get("order") is float:
+		_error("%s: order is a number (lower is tried first)" % where)
+	if entry.get("fallback", false):
+		_ending_fallbacks.append(entry.id)
+	var when = entry.get("when", {})
+	if not when is Dictionary or when.is_empty():
+		_error("%s: when is {path, lead, balanced, flags, unless}, not empty" % where)
+		return
+	for key in when:
+		match key:
+			"path":
+				if not PATHS.has(when.path):
+					_error("%s: when.path must be one of %s" % [where, PATHS])
+			"lead", "balanced":
+				if not when[key] is float or int(when[key]) < 0 or int(when[key]) > 20:
+					_error("%s: when.%s is a whole number of the hidden counters, 0..20" % [where, key])
+			"flags", "unless":
+				if not when[key] is Array:
+					_error("%s: when.%s is a list of flags" % [where, key])
+				else:
+					for flag in when[key]:
+						flags_read[str(flag)] = where
+			_:
+				_error("%s: when.%s is not path, lead, balanced, flags or unless" % [where, key])
+	if when.has("lead") and not when.has("path"):
+		_error("%s: when.lead needs a path to lead" % where)
+	if when.has("balanced") and when.has("path"):
+		_error("%s: a balanced night leans no way: when.path and when.balanced cannot meet" % where)
+
+
+## data/game.json "finale" (Endings.finale): the room after which the campaign
+## would end, the scene there that comes before an ending, and whether it ends
+## yet. Endings need exactly one fallback, so every night has one.
+func _check_finale(game: Dictionary) -> void:
+	if not _ending_ids.is_empty() and _ending_fallbacks.size() != 1:
+		_error("data/endings: exactly one ending is the \"fallback\" (has %s)" % [_ending_fallbacks])
+	if not game.has("finale"):
+		if not _ending_ids.is_empty():
+			_error("data/game.json: endings exist but no \"finale\" says where the campaign ends")
+		return
+	var finale = game.finale
+	if not finale is Dictionary:
+		_error("data/game.json: finale is {room, cutscene, ends_campaign}")
+		return
+	if not game.get("rooms", []).has(finale.get("room", "")):
+		_error("data/game.json: finale.room must be one of the rooms: %s" % finale.get("room", ""))
+	if finale.has("cutscene") and not _cutscene_ids.has(finale.cutscene):
+		_error("data/game.json: finale.cutscene names no cutscene: %s" % finale.cutscene)
+	if not finale.get("ends_campaign", false) is bool:
+		_error("data/game.json: finale.ends_campaign is true or false")
 
 
 ## An omen (data/omens, scripts/run/omens.gd): a trade — at least one rule
@@ -1657,6 +1753,108 @@ func _check_hero() -> void:
 			_error("hero.json stats.%s must be above zero" % key)
 	if stats.has("max_jumps") and (int(stats.max_jumps) != stats.max_jumps or stats.max_jumps < 1):
 		_error("hero.json stats.max_jumps needs a whole number, at least 1")
+
+
+## A weapon (data/weapons, docs/WEAPONS.md): every number bounded, every pose
+## one Elian has, and a step that leaves a number out only on the sword, whose
+## steps are the hero's own swings (hero.json, player_actions.json).
+const WEAPON_STEP_BOUNDS := {"multiplier": [0.2, 4.0], "recovery": [0.15, 2.0], "wind": [0.0, 0.3],
+	"knockback": [0.0, 4.0], "stagger": [0.0, 1.0], "animation_time": [0.1, 0.6], "speed": [0.5, 2.0]}
+const WEAPON_BOUNDS := {"damage": [0.5, 2.0], "backstab": [0.0, 2.0], "poise": [0.0, 0.5],
+	"combo_window": [0.4, 2.0], "pitch": [0.5, 1.5], "auto_reach": [24.0, 80.0]}
+const WEAPON_STEP_NEEDS := ["multiplier", "recovery", "knockback", "heavy"]
+const WEAPON_ANIMATIONS := ["attack", "attack2", "attack3", "thrust", "rising", "dash_strike"]
+const WEAPON_ARCS := ["white", "gold", "red", "heavy", "path"]
+
+
+func _check_weapon(entry: Dictionary, where: String) -> void:
+	_use_key(entry.get("name", ""), where)
+	_use_key(entry.get("description", ""), where)
+	if not ResourceLoader.exists(str(entry.get("icon", ""))):
+		_error("%s: icon not found: %s" % [where, entry.get("icon", "")])
+	for key in WEAPON_BOUNDS:
+		if entry.has(key):
+			_bounded(entry[key], WEAPON_BOUNDS[key], "%s.%s" % [where, key])
+	for key in ["hitbox", "offset", "slash_scale"]:
+		if entry.has(key):
+			_weapon_pair(entry[key], key, where)
+	var chain = entry.get("chain", [])
+	if not chain is Array or chain.is_empty() or chain.size() > 5:
+		_error("%s: chain is 1–5 steps" % where)
+		return
+	var own: bool = entry.get("id", "") == "sword"
+	for i in chain.size():
+		var step = chain[i]
+		var at := "%s.chain[%d]" % [where, i]
+		if not step is Dictionary:
+			_error("%s must be an object" % at)
+			continue
+		if not WEAPON_ANIMATIONS.has(step.get("animation", "")):
+			_error("%s: animation is a pose Elian has: %s" % [at, WEAPON_ANIMATIONS])
+		if not own:
+			for key in WEAPON_STEP_NEEDS:
+				if not step.has(key):
+					_error("%s: needs \"%s\" (only the sword's steps fall back on the hero's own)" % [at, key])
+		for key in WEAPON_STEP_BOUNDS:
+			if step.has(key):
+				_bounded(step[key], WEAPON_STEP_BOUNDS[key], "%s.%s" % [at, key])
+		if step.has("heavy") and not step.heavy is bool:
+			_error("%s.heavy is true or false" % at)
+		if step.has("arc") and not WEAPON_ARCS.has(step.arc):
+			_error("%s.arc is one of %s" % [at, WEAPON_ARCS])
+		for key in ["hitbox", "offset"]:
+			if step.has(key):
+				_weapon_pair(step[key], key, at)
+	var moves = entry.get("techniques", {})
+	if not moves is Dictionary:
+		_error("%s: techniques is an object of move -> overrides" % where)
+	else:
+		for move in moves:
+			if not move in ["lunge", "cleave", "sweep"] or not moves[move] is Dictionary:
+				_error("%s: techniques.%s: only lunge, cleave and sweep, each an object" % [where, move])
+				continue
+			for key in moves[move]:
+				if key in ["hitbox", "offset"]:
+					_weapon_pair(moves[move][key], key, "%s.techniques.%s" % [where, move])
+				elif key == "multiplier":
+					_bounded(moves[move][key], [0.2, 5.0], "%s.techniques.%s.multiplier" % [where, move])
+				elif key in WEAPON_STEP_BOUNDS:
+					_bounded(moves[move][key], WEAPON_STEP_BOUNDS[key], "%s.techniques.%s.%s" % [where, move, key])
+				else:
+					_error("%s.techniques.%s: unknown key %s" % [where, move, key])
+
+
+func _bounded(value, bounds: Array, label: String) -> void:
+	if not (value is float or value is int) or not is_finite(float(value)) \
+			or float(value) < float(bounds[0]) or float(value) > float(bounds[1]):
+		_error("%s must be a number in %s–%s" % [label, bounds[0], bounds[1]])
+
+
+## A hitbox is at most 96×64 and starts in front of the body; an offset keeps
+## the box near him; slash_scale stretches the drawn arc 0.4–2×.
+func _weapon_pair(pair, key: String, where: String) -> void:
+	if not pair is Array or pair.size() != 2 or not ((pair[0] is float or pair[0] is int) and (pair[1] is float or pair[1] is int)):
+		_error("%s.%s needs two numbers" % [where, key])
+		return
+	var x := float(pair[0])
+	var y := float(pair[1])
+	match key:
+		"hitbox":
+			if x < 8.0 or x > 96.0 or y < 8.0 or y > 64.0:
+				_error("%s.hitbox is 8–96 wide and 8–64 high" % where)
+		"offset":
+			if x < 0.0 or x > 60.0 or absf(y) > 40.0:
+				_error("%s.offset is 0–60 ahead and within 40 up or down" % where)
+		"slash_scale":
+			if x < 0.4 or x > 2.0 or y < 0.4 or y > 2.0:
+				_error("%s.slash_scale is 0.4–2 each way" % where)
+
+
+## The game must have the sword: every night's first weapon (Weapons.DEFAULT).
+func _check_weapons() -> void:
+	var ids: Array = _game_entries("weapons").map(func(w: Dictionary) -> String: return str(w.get("id", "")))
+	if not ids.has("sword"):
+		_error("weapons: the sword (Weapons.DEFAULT) is every night's first and must exist")
 
 
 func _check_player_actions() -> void:

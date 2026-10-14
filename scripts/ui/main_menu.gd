@@ -41,7 +41,10 @@ func _ready() -> void:
 	var picture := str(Data.game.get("menu", {}).get("background", ""))
 	if picture != "" and ResourceLoader.exists(picture):
 		($Layers/Background as Sprite2D).texture = load(picture)
-	BackdropLife.attach_picture($Layers/Background as Sprite2D, "main_menu")
+	var background := $Layers/Background as Sprite2D
+	var life := BackdropLife.attach_picture(background, "main_menu")
+	# held the way a room holds its picture, so the sky's lightning (menu_sky.gd) lights it too
+	set_meta(BackdropLife.META, {"painting": background, "materials": life})
 	_fit_layers()
 	get_viewport().size_changed.connect(_fit_layers)
 	_characters.assign([HERO])
@@ -124,6 +127,14 @@ func _ready() -> void:
 	# column stood taller than the 360-pixel screen and pushed the title off it
 	_pair(%OpenSettings, quit_button, "SystemRow")
 	(%Continue if %Continue.visible else play_button).grab_focus()
+	# the one question about telemetry, on the first launch of a build that
+	# has a server to send to (docs/PLAYTEST.md)
+	if TelemetryConsent.wanted():
+		var consent := TelemetryConsent.new()
+		consent.name = "TelemetryConsent"
+		add_child(consent)
+		consent.closed.connect(func() -> void: (%Continue if %Continue.visible else play_button).grab_focus())
+		consent.open()
 
 
 ## Puts [param first] and [param second] side by side in one row of the menu,

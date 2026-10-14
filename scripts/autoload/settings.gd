@@ -105,6 +105,11 @@ var mouse_aim := true
 ## as in project.godot.
 var keys: Dictionary = {}
 var mouse_keys: Dictionary = {}
+## Anonymous night summaries sent to the project's server (the Telemetry
+## autoload): off until the player says yes, asked once on the first launch
+## (telemetry_asked), never asked at all by a build with no server set.
+var telemetry := false
+var telemetry_asked := false
 
 
 func _ready() -> void:
@@ -154,6 +159,8 @@ func _ready() -> void:
 	if not CONTROL_SCHEMES.has(control_scheme):
 		control_scheme = "keyboard"
 	mouse_aim = bool(cfg.get_value("controls", "mouse_aim", true))
+	telemetry = bool(cfg.get_value("privacy", "telemetry", false))
+	telemetry_asked = bool(cfg.get_value("privacy", "telemetry_asked", false))
 	for action in BINDABLE_ACTIONS:
 		if cfg.has_section_key("keys", action):
 			keys[action] = int(cfg.get_value("keys", action))
@@ -201,6 +208,8 @@ func save() -> void:
 	cfg.set_value("audio", "speech", speech)
 	cfg.set_value("controls", "scheme", control_scheme)
 	cfg.set_value("controls", "mouse_aim", mouse_aim)
+	cfg.set_value("privacy", "telemetry", telemetry)
+	cfg.set_value("privacy", "telemetry_asked", telemetry_asked)
 	for action in keys:
 		cfg.set_value("keys", action, keys[action])
 	for action in mouse_keys:
@@ -341,6 +350,21 @@ func set_vibration(enabled: bool) -> void:
 	vibration = enabled
 	save()
 	changed.emit()
+
+
+## Yes or no to the anonymous night summaries; either answer is the answer to
+## the first-launch question too. No also forgets what was waiting to be sent.
+func set_telemetry(enabled: bool) -> void:
+	telemetry = enabled
+	telemetry_asked = true
+	save()
+	changed.emit()
+
+
+## Only for a tool script putting back what it found (telemetry_test.gd).
+func set_telemetry_asked(asked: bool) -> void:
+	telemetry_asked = asked
+	save()
 
 
 func set_speech(enabled: bool) -> void:
