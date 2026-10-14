@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3]
+[gd_scene load_steps=40 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/euphrates_scriptorium_wide.png" id="2_backdrop"]
@@ -17,7 +17,9 @@
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_1.png" id="piece_ledge_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_6.png" id="piece_ledge_6"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_7.png" id="piece_ledge_7"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_8.png" id="piece_ledge_8"]
 
 [sub_resource type="Gradient" id="fade"]
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
@@ -79,6 +81,9 @@ size = Vector2(1600, 83)
 size = Vector2(50, 10)
 
 [sub_resource type="RectangleShape2D" id="Platform2_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform3_shape"]
 size = Vector2(50, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
@@ -156,13 +161,18 @@ collision_layer = 16
 collision_mask = 0
 
 [node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(625.0, 580.0)
+position = Vector2(445.0, 593.0)
 shape = SubResource("Platform1_shape")
 one_way_collision = true
 
 [node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(555.0, 513.0)
+position = Vector2(365.0, 545.0)
 shape = SubResource("Platform2_shape")
+one_way_collision = true
+
+[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(445.0, 495.0)
+shape = SubResource("Platform3_shape")
 one_way_collision = true
 
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
@@ -178,26 +188,38 @@ one_way_collision = true
 [node name="Terrain" type="Node2D" parent="."]
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(600, 575)
+position = Vector2(420, 588)
 texture = ExtResource("piece_ledge_2")
 centered = false
-modulate = Color(0.961, 0.961, 0.962, 1)
+modulate = Color(0.985, 0.985, 0.985, 1)
 region_enabled = true
 region_rect = Rect2(0, 0, 50, 46)
 
 [node name="Platform2_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(530, 508)
+position = Vector2(340, 540)
 texture = ExtResource("piece_ledge_7")
 centered = false
 flip_h = true
-modulate = Color(0.956, 0.956, 0.957, 1)
+modulate = Color(0.915, 0.915, 0.917, 1)
 
 [node name="Platform2_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(535, 508)
+position = Vector2(345, 540)
 texture = ExtResource("piece_ledge_1")
 centered = false
 flip_h = true
-modulate = Color(0.947, 0.947, 0.948, 1)
+modulate = Color(0.913, 0.913, 0.915, 1)
+
+[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(420, 490)
+texture = ExtResource("piece_ledge_8")
+centered = false
+flip_h = true
+modulate = Color(0.92, 0.92, 0.922, 1)
+
+[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(427, 490)
+texture = ExtResource("piece_ledge_6")
+centered = false
 
 [node name="DecorMid" type="Node2D" parent="."]
 

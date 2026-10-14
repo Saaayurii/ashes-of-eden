@@ -119,7 +119,9 @@ func _run() -> void:
 	church.queue_free()
 	await _settle(0.1)
 	# Seir's caches have no wall yet (docs/CHAPTER2_ART.md): they stand open
-	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn"]:
+	# and so do the Euphrates' (docs/CHAPTER6_ART.md)
+	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn",
+			"res://scenes/rooms/euphrates_gate.tscn", "res://scenes/rooms/euphrates_bell_tower.tscn", "res://scenes/rooms/euphrates_river_stair.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room

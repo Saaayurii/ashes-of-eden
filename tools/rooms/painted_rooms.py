@@ -741,7 +741,8 @@ PAINTED = {
         ledges=[(45, 438, 475, 14), (565, 333, 670, 14)],
         ramps=[(470, 438, 570, 333)],
         stone_steps=True,
-        platforms=[(600, 575, 50, 10), (530, 508, 50, 10)],
+        # steps under the lower walk (it is jumped through), clear of the stair
+        platforms=[(420, 588, 50, 10), (340, 540, 50, 10), (420, 490, 50, 10)],
         spawns=[("censer_monk", 250, 426), ("censer_monk", 800, 321), ("censer_monk", 1000, 625), ("flagellant", 400, 625),
                 ("chained_penitent", 740, 625)],
         props=[("chain", 718, 637)],
@@ -783,8 +784,12 @@ PAINTED = {
         painting="euphrates_crypt_of_chains", width=1280, height=720, weather="none", fog=0.12, intro="", music="graveyard", void_kill_y=700,
         ground=[(0, 565, 1280, 155)],
         ledges=[(595, 432, 130, 12), (880, 290, 360, 14)],
-        ramps=[(725, 432, 872, 565), (725, 432, 885, 290)],
+        ramps=[(725, 432, 872, 565)],
         stone_steps=True,
+        # the painted upper flight starts where the lower one ends: no body passes
+        # that pinch, so timber steps climb from the landing to the upper shelf;
+        # two more under the landing are a second way up beside the stair
+        platforms=[(600, 520, 50, 10), (660, 476, 50, 10), (740, 385, 50, 10), (805, 338, 50, 10)],
         spawns=[("chained_penitent", 255, 553), ("chained_penitent", 490, 553), ("chained_penitent", 950, 553),
                 ("chained_penitent", 1100, 553), ("chained_penitent", 400, 553), ("fettered_angel", 1000, 220),
                 ("fettered_angel", 620, 330), ("censer_monk", 1100, 278)],

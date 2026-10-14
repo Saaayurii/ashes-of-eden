@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=42 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/euphrates_crypt_of_chains_wide.png" id="2_backdrop"]
@@ -15,6 +15,12 @@
 [ext_resource type="Script" path="res://scripts/fx/ambient_light.gd" id="13_ambient"]
 [ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
 [ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_1.png" id="piece_ledge_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_3.png" id="piece_ledge_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_4.png" id="piece_ledge_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_5.png" id="piece_ledge_5"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_6.png" id="piece_ledge_6"]
 
 [sub_resource type="Gradient" id="fade"]
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
@@ -71,6 +77,18 @@ size = Vector2(20, 56)
 
 [sub_resource type="RectangleShape2D" id="Ground1_shape"]
 size = Vector2(1600, 155)
+
+[sub_resource type="RectangleShape2D" id="Platform1_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform2_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform3_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform4_shape"]
+size = Vector2(50, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(130, 12)
@@ -142,12 +160,29 @@ shape = SubResource("Wall3_shape")
 [node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
 polygon = PackedVector2Array(885.0, 432.0, 893.65, 432.0, 893.65, 439.82, 902.29, 439.82, 902.29, 447.65, 910.94, 447.65, 910.94, 455.47, 919.59, 455.47, 919.59, 463.29, 928.24, 463.29, 928.24, 471.12, 936.88, 471.12, 936.88, 478.94, 945.53, 478.94, 945.53, 486.76, 954.18, 486.76, 954.18, 494.59, 962.82, 494.59, 962.82, 502.41, 971.47, 502.41, 971.47, 510.24, 980.12, 510.24, 980.12, 518.06, 988.76, 518.06, 988.76, 525.88, 997.41, 525.88, 997.41, 533.71, 1006.06, 533.71, 1006.06, 541.53, 1014.71, 541.53, 1014.71, 549.35, 1023.35, 549.35, 1023.35, 557.18, 1032.0, 557.18, 1032.0, 565.0, 1032.0, 581.0, 1032.0, 573.18, 1023.35, 573.18, 1023.35, 565.35, 1014.71, 565.35, 1014.71, 557.53, 1006.06, 557.53, 1006.06, 549.71, 997.41, 549.71, 997.41, 541.88, 988.76, 541.88, 988.76, 534.06, 980.12, 534.06, 980.12, 526.24, 971.47, 526.24, 971.47, 518.41, 962.82, 518.41, 962.82, 510.59, 954.18, 510.59, 954.18, 502.76, 945.53, 502.76, 945.53, 494.94, 936.88, 494.94, 936.88, 487.12, 928.24, 487.12, 928.24, 479.29, 919.59, 479.29, 919.59, 471.47, 910.94, 471.47, 910.94, 463.65, 902.29, 463.65, 902.29, 455.82, 893.65, 455.82, 893.65, 448.0, 885.0, 448.0)
 
-[node name="Ramp2" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(885.0, 432.0, 893.89, 432.0, 893.89, 424.11, 902.78, 424.11, 902.78, 416.22, 911.67, 416.22, 911.67, 408.33, 920.56, 408.33, 920.56, 400.44, 929.44, 400.44, 929.44, 392.56, 938.33, 392.56, 938.33, 384.67, 947.22, 384.67, 947.22, 376.78, 956.11, 376.78, 956.11, 368.89, 965.0, 368.89, 965.0, 361.0, 973.89, 361.0, 973.89, 353.11, 982.78, 353.11, 982.78, 345.22, 991.67, 345.22, 991.67, 337.33, 1000.56, 337.33, 1000.56, 329.44, 1009.44, 329.44, 1009.44, 321.56, 1018.33, 321.56, 1018.33, 313.67, 1027.22, 313.67, 1027.22, 305.78, 1036.11, 305.78, 1036.11, 297.89, 1045.0, 297.89, 1045.0, 290.0, 1045.0, 306.0, 1045.0, 313.89, 1036.11, 313.89, 1036.11, 321.78, 1027.22, 321.78, 1027.22, 329.67, 1018.33, 329.67, 1018.33, 337.56, 1009.44, 337.56, 1009.44, 345.44, 1000.56, 345.44, 1000.56, 353.33, 991.67, 353.33, 991.67, 361.22, 982.78, 361.22, 982.78, 369.11, 973.89, 369.11, 973.89, 377.0, 965.0, 377.0, 965.0, 384.89, 956.11, 384.89, 956.11, 392.78, 947.22, 392.78, 947.22, 400.67, 938.33, 400.67, 938.33, 408.56, 929.44, 408.56, 929.44, 416.44, 920.56, 416.44, 920.56, 424.33, 911.67, 424.33, 911.67, 432.22, 902.78, 432.22, 902.78, 440.11, 893.89, 440.11, 893.89, 448.0, 885.0, 448.0)
-
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
 collision_mask = 0
+
+[node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(785.0, 525.0)
+shape = SubResource("Platform1_shape")
+one_way_collision = true
+
+[node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(845.0, 481.0)
+shape = SubResource("Platform2_shape")
+one_way_collision = true
+
+[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(925.0, 390.0)
+shape = SubResource("Platform3_shape")
+one_way_collision = true
+
+[node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(990.0, 343.0)
+shape = SubResource("Platform4_shape")
+one_way_collision = true
 
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(820.0, 438.0)
@@ -160,6 +195,47 @@ shape = SubResource("Ledge2_shape")
 one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
+
+[node name="Platform1_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(760, 520)
+texture = ExtResource("piece_ledge_4")
+centered = false
+modulate = Color(0.922, 0.922, 0.924, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 50, 46)
+
+[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(820, 476)
+texture = ExtResource("piece_ledge_1")
+centered = false
+modulate = Color(0.953, 0.953, 0.954, 1)
+
+[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(820, 476)
+texture = ExtResource("piece_ledge_3")
+centered = false
+flip_h = true
+modulate = Color(0.953, 0.953, 0.954, 1)
+
+[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(900, 385)
+texture = ExtResource("piece_ledge_2")
+centered = false
+modulate = Color(0.94, 0.94, 0.941, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 50, 46)
+
+[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(965, 338)
+texture = ExtResource("piece_ledge_5")
+centered = false
+modulate = Color(0.95, 0.95, 0.951, 1)
+
+[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(972, 338)
+texture = ExtResource("piece_ledge_6")
+centered = false
+modulate = Color(0.943, 0.943, 0.944, 1)
 
 [node name="DecorMid" type="Node2D" parent="."]
 

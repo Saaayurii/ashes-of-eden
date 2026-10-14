@@ -1,7 +1,7 @@
 # Глава VI — заказ картин
 
 *Картины главы «Зависть» (docs/CHAPTER6.md): обитель на Евфрате, монахи, цепи, четверо связанных.
-Ничего ещё не нарисовано: этот файл — заказ. Рисует Codex CLI (`codex exec`, встроенная генерация
+Панели и атлас босса нарисованы; остальное — заказ. Рисует Codex CLI (`codex exec`, встроенная генерация
 картинок) по промптам ниже, как Сеир (`CHAPTER2_ART.md`); слабое — художнице (её ChatGPT, навык
 `ashes-art`). Источник правды для палитры — `docs/CAMPAIGN.md` §10.*
 
@@ -9,8 +9,9 @@
 
 | Что | Статус | Что стоит пока |
 |---|---|---|
-| 12 комнат: 11 панелей 1280×720 + колокольня из двух (`euphrates_bell_tower` + `panels/euphrates_bell_tower_top`) — 13 картин | **не нарисовано** | ничего: комнаты ждут картин (`drafts/chapter_6/rooms.json`, валидатор считает их «ждущими») |
-| Атласы `flagellant`, `censer_monk`, `chained_penitent`, `horseman`, `river_wraith`, `fettered_angel`, `lion_horse`, `four_bound` | **не нарисовано** | `cultist` (тон `#c8b8a0`), `preacher_acolyte`, `possessed_villager` (тон `#b8a898`), `fallen_champion`, `wraith` (тон `#9fb8a8`), `elder_wraith` (тон `#cfe6ff`), `fallen_champion` (тон `#e0b070`), `knight_of_ash` (тон `#cfe6ff`) |
+| 12 комнат: 11 панелей 1280×720 + колокольня из двух (`euphrates_bell_tower` + `panels/euphrates_bell_tower_top`) — 13 картин | **нарисовано** (Codex), трассировано в `painted_rooms.py`, расширено `generate_rooms.py`; колокольня — живая составная | — |
+| Атлас `four_bound` | **нарисовано** (Codex), полосы `four_bound_v2_*` | — |
+| Атласы `flagellant`, `censer_monk`, `chained_penitent`, `horseman`, `river_wraith`, `fettered_angel`, `lion_horse` | **не нарисовано** | `cultist` (тон `#c8b8a0`), `preacher_acolyte`, `possessed_villager` (тон `#b8a898`), `fallen_champion`, `wraith` (тон `#9fb8a8`), `elder_wraith` (тон `#cfe6ff`), `fallen_champion` (тон `#e0b070`), `knight_of_ash` (тон `#cfe6ff`) |
 | Портреты врагов (8) | **не нарисовано** | портреты подменных |
 | Листы людей `saul`, `euphrates_reveller`, `witness` | **не нарисовано** | `matthew_v2`, `villager_v2`, `severin_v2` (лёжа — первый кадр `death`) |
 | `malchus_far` | лист Малха из главы III | — |

@@ -41,6 +41,10 @@ const FAR_WINDOWS := {
 	"seir_road": [], "seir_gate": [], "seir_street": [], "seir_square": [],
 	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
+	# the Euphrates: no plates behind its openings yet (docs/CHAPTER6_ART.md)
+	"euphrates_bank": [], "euphrates_town": [], "euphrates_gate": [], "euphrates_cloister": [],
+	"euphrates_scriptorium": [], "euphrates_refectory": [], "euphrates_bell_tower": [], "euphrates_altar_court": [],
+	"euphrates_crypt_of_chains": [], "euphrates_cistern": [], "euphrates_river_stair": [], "euphrates_bound": [],
 }
 
 

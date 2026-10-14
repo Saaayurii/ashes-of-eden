@@ -89,7 +89,9 @@ func _walk(run, dialogue, picker, cut, game, first: bool) -> int:
 		var room = run.room
 		var quiet: bool = _holders(room) == 0
 		_assert(quiet or not room.door.open, "door starts locked")
-		for attempt in 10:  # bosses summon reinforcements mid-fight: keep killing
+		# bosses summon reinforcements mid-fight, and the Four Bound holds its next
+		# threshold through each pillar change (bound_phases.swap): keep killing
+		for attempt in 24:
 			# The run parents spawned enemies under Entities (the session replicates
 			# them from there); a room played straight from the editor keeps its own.
 			for enemy in run.entities.get_children() + room.get_children():
