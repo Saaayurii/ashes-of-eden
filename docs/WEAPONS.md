@@ -4,10 +4,12 @@ A night used to differ only by its gifts: the hero had one weapon, the sword.
 In a game of this kind a new weapon is what makes a night feel new, so the hero
 now finds them — four in all, the sword among them — and every one is data.
 
-No weapon has frames of its own yet. Each is a chain of the poses Elian already
-has (`attack`, `attack2`, `attack3`, `thrust`, `rising`, `dash_strike`), its own
-reach (the hitbox), the arc the `Slash` sprite draws over it (`white`, `gold`,
-`red`, `heavy`, or `path` — the lean's colour) and a handful of numbers.
+Each is a chain of the poses Elian has (`attack`, `attack2`, `attack3`,
+`thrust`, `rising`, `dash_strike`), its own reach (the hitbox), the arc the
+`Slash` sprite draws over it (`white`, `gold`, `red`, `heavy`, or `path` — the
+lean's colour), a handful of numbers, and — the spear, the headsman's blade and
+the knives — frames of its own: Elian holding that weapon in every pose that
+shows the sword (see [Frames](#frames)).
 
 Their icons are their own: the sword keeps the realm pack's (`gear_1`), the
 other three are cut from one generated sheet on a magenta key
@@ -30,6 +32,54 @@ straw man and fails if it strays more than a fifth from the data, or if any
 weapon strays more than a quarter from the sword. No weapon is simply better:
 each pays for what it is good at.
 
+## Frames
+
+The sword in Elian's strips is a grey line two pixels wide in a figure 43 px
+tall, so a weapon's frames are drawn from his own rather than generated anew:
+`tools/art/make_weapon_frames.py` finds that line in every frame that shows it
+(the grip, where it leaves the hand, and the tip; the few frames the detector
+gets wrong — a blade lost in its own arc, a sheathed sword, a speed line — are
+put right by hand in its `LINES` and `ERASE`), lifts the blade and the drawn-in
+arc off the body, fills the pin-holes the blade left where it crossed it, and
+rasterises the weapon along the same line, each pixel's colour decided by where
+its centre falls in the weapon's own shape — clean 1:1 pixels at any angle:
+
+- **spear** — an ash shaft through the hands (lit edge, dark edge), an iron
+  socket and a leaf-shaped steel head ahead, an iron heel behind; 1.75× the
+  sword's blade, stopped a pixel short of the cell;
+- **headsman** — a broad blade 1.2× the sword's, square-ended with eased
+  corners (an executioner's sword has no point), lit edge, dark spine and
+  fuller, a bar guard, a long two-hand grip and a brass pommel;
+- **daggers** — a short knife forward along the old blade, and a second held
+  point-down in the other hand on the grip.
+
+The grip goes only where the body is not, so the hand stays over it. The
+swing's white arc is laid back scaled about the grip to the weapon's reach
+(×1.15 spear, ×1.22 headsman, ×0.6 knives). The body is never redrawn, so it
+cannot double; a frame with the sword out of sight (the thrust's wind-up, under
+the roll, still in the scabbard, a smear) is the hero's own. The strips it
+writes: `elian_<weapon>_<strip>.png` for the slash, overhead, slam, thrust,
+rising, dash strike, draw, the guard's base strip, hurt, knockback and land;
+`make_elian_moves.py` draws each weapon's lunge, charge, cleave and sweep from
+those; `build_elian_frames.py` lists them as `<weapon>_<pose>` (`spear_attack`,
+`spear_guard`, …) at the sword's speed. All three are generators in
+`check_generators.py` and pass through `patched()` (the studio may retouch).
+`--contact` writes `tools/art/contact/weapons.png`, every weapon's strips under
+the sword's; `--debug` the lines it found. `scripts/tools/weapon_shot.gd` (needs
+a display) swings each weapon in the practice yard and saves what is on screen
+(`tools/art/contact/weapons_ingame.png`).
+
+In play, `"frames": "spear"` names the set. `Player._play` draws a pose with
+`<frames>_<pose>` when the hero's SpriteFrames has it and his own otherwise
+(`Player._pose`); the pose's own name stays in the sprite's `pose` meta, which
+`ActionFx` reads, and in `net_anim`, so with the weapon replicated a peer draws
+the same frames. Hit frames, swing times and gore keep reading the pose. The
+validator (`_check_weapon_frames`) wants a weapon with `frames` to have its
+chain's poses and draw, guard, thrust, rising, dash strike, lunge, charge,
+cleave and sweep (`Weapons.FRAMED`), each as many frames as the hero's own;
+`weapon_test.gd` checks every chain is drawn with its set. The sword has no
+`frames`: it is the hero's own drawing.
+
 ## The format (`data/weapons/<id>.json`)
 
 ```json
@@ -37,6 +87,7 @@ each pays for what it is good at.
   "id": "spear",
   "name": "WEAPON_SPEAR", "description": "WEAPON_SPEAR_DESC",
   "icon": "res://assets/icons/weapons/spear.png",
+  "frames": "spear",
   "hitbox": [54, 16], "offset": [36, -6],
   "slash_scale": [1.35, 0.6],
   "pitch": 0.9, "auto_reach": 62, "combo_window": 1.1,
@@ -50,7 +101,8 @@ each pays for what it is good at.
 }
 ```
 
-Weapon-wide: `hitbox` / `offset` (the box every chain step uses unless the step
+Weapon-wide: `frames` (the prefix of its own animations, above; left out, it
+is drawn with the hero's), `hitbox` / `offset` (the box every chain step uses unless the step
 has its own), `slash_scale` (the drawn arc, x and y), `pitch` (the swing sound),
 `auto_reach` (how far the auto-attack assist looks), `combo_window`, and three
 numbers on every blow, techniques included: `damage` (×), `backstab` (added to
@@ -99,6 +151,10 @@ edits it in the one place it always did. Any other weapon must give
 
 1. `data/weapons/<id>.json` with a chain of poses Elian has, and an icon: a fourth
    shape on the sheet (and its id in `IDS`), then `make_weapon_icons.py`.
+   Frames: a shape function in `make_weapon_frames.py` (`SHAPES`, `REACH`,
+   `ARC_SCALE`, its id in `WEAPONS`), the id in `WEAPONS` of `make_elian_moves.py`
+   and `build_elian_frames.py`, its paths in `check_generators.py`; run the three
+   and look at `--contact`; then `"frames": "<id>"`.
 2. `WEAPON_<ID>` and `WEAPON_<ID>_DESC` in `localization/strings.csv`, all four
    columns; new Chinese characters → `python3 tools/art/make_cjk_font.py`.
 3. `validate_data.gd`, then `weapon_test.gd`; keep it within a quarter of the

@@ -13,7 +13,9 @@ like him, not like somebody else's sheet:
 - sweep   down to the ground, the low cut out of the roll, and up again
           (down + attack on the ground).
 
-Deterministic; 128x64 cells like every other hero strip, feet where they are.
+The same four are drawn for every weapon from its own strips
+(make_weapon_frames.py runs first). Deterministic; 128x64 cells like every
+other hero strip, feet where they are.
 Run tools/art/build_elian_frames.py afterwards (check_generators runs both).
 
     python3 tools/art/make_elian_moves.py
@@ -106,8 +108,18 @@ def speed_lines(frame, count, length):
     return out
 
 
+## The weapons drawn in his hands by make_weapon_frames.py: each gets the
+## same moves from its own strips (elian_<weapon>_lunge, ...).
+WEAPONS = ["spear", "headsman", "daggers"]
+
+
 def main():
-    thrust = frames("elian_thrust")
+    for weapon in [""] + WEAPONS:
+        moves(weapon + "_" if weapon else "")
+
+
+def moves(prefix):
+    thrust = frames("elian_%sthrust" % prefix)
     lunge = []
     for index, trail in ((0, 0), (1, 1), (2, 2), (2, 2), (3, 1), (4, 0)):
         frame = thrust[index]
@@ -118,15 +130,15 @@ def main():
         if trail:
             canvas = speed_lines(canvas, 3, 10 + 6 * trail)
         lunge.append(canvas)
-    save("elian_lunge", lunge)
+    save("elian_%slunge" % prefix, lunge)
 
-    slam = frames("elian_slam")
-    save("elian_charge", [edge_glow(slam[0], s) for s in (0.35, 0.65, 1.0, 0.65)])
-    save("elian_cleave", [edge_glow(slam[0], 1.0), edge_glow(hot_arc(slam[1], 0.6), 0.6),
-                          hot_arc(slam[2], 0.85), hot_arc(slam[3], 0.7), slam[4]])
+    slam = frames("elian_%sslam" % prefix)
+    save("elian_%scharge" % prefix, [edge_glow(slam[0], s) for s in (0.35, 0.65, 1.0, 0.65)])
+    save("elian_%scleave" % prefix, [edge_glow(slam[0], 1.0), edge_glow(hot_arc(slam[1], 0.6), 0.6),
+                                      hot_arc(slam[2], 0.85), hot_arc(slam[3], 0.7), slam[4]])
 
-    land, dash = frames("elian_land"), frames("elian_dash_strike")
-    save("elian_sweep", [land[1], dash[1], dash[2], dash[3], land[2], land[3]])
+    land, dash = frames("elian_%sland" % prefix), frames("elian_%sdash_strike" % prefix)
+    save("elian_%ssweep" % prefix, [land[1], dash[1], dash[2], dash[3], land[2], land[3]])
 
 
 if __name__ == "__main__":

@@ -75,7 +75,10 @@ func _ready() -> void:
 
 
 func _on_animation() -> void:
-	_now = rules(key).get(str(sprite.animation), [])
+	# a weapon's own frames (spear_attack) fire what the pose they stand for
+	# does: the hero names it in the sprite's "pose" meta (Player._play)
+	var table := rules(key)
+	_now = table.get(str(sprite.animation), table.get(str(sprite.get_meta(&"pose", "")), []))
 	_every.clear()
 	_last_frame = -1
 	for spec: Dictionary in _now:

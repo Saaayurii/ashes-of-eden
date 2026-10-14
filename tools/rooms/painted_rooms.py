@@ -561,6 +561,7 @@ PAINTED = {
         # The gatehouse: the wardens stand under the portcullis and wait, so the
         # way on is open from the start; the gallery above is reached by the stair.
         painting="seir_gate", width=1280, height=720, weather="none", fog=0.12, intro="", music="road", void_kill_y=690,
+        quiet_outro="seir_gate_left_waiting",  # nobody woken on the way through
         ground=[(0, 545, 1280, 175)],
         # the gallery stops short of the stair's head, which rises under it
         ledges=[(28, 253, 352, 14), (511, 272, 339, 14)],
@@ -574,6 +575,7 @@ PAINTED = {
         # A street of doorsteps over the canal, a waiter on each, and the
         # wailer among them; two shades in the windows above are the only ones who move.
         painting="seir_street", width=1280, height=720, weather="ash", fog=0.18, intro="", music="village_night", void_kill_y=690,
+        quiet_outro="seir_street_left_waiting",  # nobody woken on the way through
         ground=[(0, 535, 1280, 185)],
         spawns=[("waiting_townsman", 50, 523), ("waiting_townsman", 165, 523), ("waiting_townsman", 565, 523),
                 ("waiting_townsman", 660, 523), ("waiting_townsman", 905, 523), ("waiting_townsman", 1010, 523),
@@ -586,6 +588,7 @@ PAINTED = {
         # The square of the stopped clock. The dry fountain is the rest point;
         # Jonah preaches from the terrace on the east side, up its stair.
         painting="seir_square", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night", void_kill_y=690,
+        quiet_outro="seir_square_left_waiting",  # nobody woken on the way through
         ground=[(0, 577, 1280, 143)],
         ledges=[(482, 527, 281, 12), (607, 487, 61, 10), (860, 362, 180, 14), (1097, 363, 143, 14)],
         ramps=[(885, 362, 1130, 577)],

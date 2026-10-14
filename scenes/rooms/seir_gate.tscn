@@ -91,6 +91,7 @@ size = Vector2(1600, 16)
 script = ExtResource("1_room")
 width = 1600
 height = 720
+quiet_outro = "seir_gate_left_waiting"
 void_kill_y = 690
 intro_dialogue = ""
 intro_cutscene = ""
