@@ -44,6 +44,7 @@ const FAR_WINDOWS := {
 	# Engedi (chapter V): no inpainted plates yet
 	"engedi_smoke_road": [], "engedi_vineyard_gate": [], "engedi_terraces": [], "engedi_spring": [],
 	"engedi_orchard": [], "engedi_pit_rim": [], "engedi_abyss_mouth": [],
+	"engedi_arbor": [], "engedi_feast_hall": [], "engedi_hives": [], "engedi_wine_press": [], "engedi_pit_stair": [],
 }
 
 

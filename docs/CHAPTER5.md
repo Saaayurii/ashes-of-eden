@@ -507,11 +507,9 @@ key_kept]`; пока E1 не влит, тесты кладут флаги рук
 
 ### Как сделано: отступления от плана
 
-- **Ночь пока из семи комнат**: smoke_road, vineyard_gate, terraces, spring, orchard, pit_rim,
-  abyss_mouth. Остальные пять (arbor, feast_hall, hives, wine_press, pit_stair) ждут панелей;
-  до тех пор развилки (`drafts/chapter_5/data/forks`) и области (`drafts/chapter_5/data/chapters`)
-  лежат в черновиках, и у ночи нет карточек глав. В ночи нет `"after": "tyre"`, пока ночи Тира нет.
-  План всех двенадцати — `drafts/chapter_5/rooms.json`.
+- **Все двенадцать комнат нарисованы** (Codex), но в ночи нет `"after": "tyre"`, пока ночи Тира нет.
+  У сот (`engedi_hives`) метка роя берёт `swarm_per_surfeit` 1.0 из таблицы комнаты
+  (`swarm_per_surfeit=` в `painted_rooms.py` пишется на каждый маркер).
 - **Верёвки Ахитофела — декор** (`engedi_broken_ropes`, лежат на земле, без хитбокса), не реквизит.
 - **Ключ от бездны — сценический NPC** (`pit_key`, `"scripted": true`, появляется в финале).
 - **Сытость ночи — `Game.surfeit`**: сохраняется и показывается на экране конца ночи (`RUN_SURFEIT`).

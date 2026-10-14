@@ -67,7 +67,12 @@
         "res://scenes/rooms/engedi_terraces.tscn",
         "res://scenes/rooms/engedi_spring.tscn",
         "res://scenes/rooms/engedi_orchard.tscn",
+        "res://scenes/rooms/engedi_arbor.tscn",
+        "res://scenes/rooms/engedi_feast_hall.tscn",
         "res://scenes/rooms/engedi_pit_rim.tscn",
+        "res://scenes/rooms/engedi_hives.tscn",
+        "res://scenes/rooms/engedi_wine_press.tscn",
+        "res://scenes/rooms/engedi_pit_stair.tscn",
         "res://scenes/rooms/engedi_abyss_mouth.tscn"
       ]
     }

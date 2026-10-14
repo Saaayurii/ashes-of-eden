@@ -123,6 +123,15 @@ func _run() -> void:
 	_check(thick == swarm.size_for("locust") and thick > swarm.size_for("locust", 0.0),
 		"after six fruit the cloud is thicker (%d -> %d)" % [int(swarm.spec("locust").base), thick])
 
+	# the hives thicken their clouds faster: the room's table writes it on every marker
+	var hives = load("res://scenes/rooms/engedi_hives.tscn").instantiate()
+	var markers: Array = hives.get_node("Spawns").get_children().filter(func(m): return m.enemy_id == "locust")
+	_check(not markers.is_empty() and markers.all(func(m): return is_equal_approx(float(m.get_meta(&"swarm_per_surfeit", -1.0)), 1.0)),
+		"the hives' markers thicken by one a fruit")
+	game.surfeit = 4
+	_check(swarm.size_for("locust", 1.0) > swarm.size_for("locust"), "and so their clouds outgrow the garden's")
+	hives.free()
+
 	game.surfeit = 0
 	game.flags = flags_were
 	game.night = night_was

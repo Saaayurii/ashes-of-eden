@@ -782,4 +782,69 @@ PAINTED = {
         props=[],
         decor=[], npcs=[], ambient="#d0a888", lights="auto",
         player=(40, 420), door=(1240, 408)),
+    "engedi_arbor": dict(
+        # The vine gallery (the garden fork's second way): the path under the
+        # pergola and the walk along its beams, reached by the painted stair.
+        painting="engedi_arbor", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night",
+        void_kill_y=690,
+        ground=[(0, 575, 1280, 145)],
+        ledges=[(80, 365, 540, 14), (726, 365, 462, 14)],
+        platforms=[(80, 540, 45, 8), (60, 505, 45, 8), (80, 470, 45, 8), (110, 436, 45, 8), (145, 402, 45, 8)],
+        painted_platforms=[(80, 540, 45, 8), (60, 505, 45, 8), (80, 470, 45, 8), (110, 436, 45, 8), (145, 402, 45, 8)],
+        spawns=[("vine_husk", 450, 563), ("vine_husk", 900, 563), ("vine_husk", 1000, 353),
+                ("pit_smoke", 500, 250), ("pit_smoke", 950, 250)],
+        props=[("engedi_grapes", 300, 575), ("engedi_grapes", 850, 365)],
+        decor=[], npcs=[], ambient="#c8b8a0", lights="auto",
+        player=(40, 555), door=(1240, 543)),
+    "engedi_feast_hall": dict(
+        # The feast without end: six feasters wait at the long table and do not
+        # lift their heads; the swollen two and a rider hold the door.
+        painting="engedi_feast_hall", width=1280, height=720, weather="none", fog=0.1, intro="", music="church",
+        intro_cutscene="feast_without_end", void_kill_y=690,
+        ground=[(0, 582, 1280, 138)],
+        ledges=[(263, 518, 708, 14)],
+        spawns=[("feaster", 300, 570), ("feaster", 420, 570), ("feaster", 540, 570), ("feaster", 700, 570),
+                ("feaster", 820, 570), ("feaster", 940, 570),
+                ("swollen_feaster", 180, 570), ("swollen_feaster", 1060, 570), ("locust_rider", 1120, 570)],
+        props=[("engedi_feast_dish", 620, 518), ("engedi_cache_endless_menu", 130, 582)],
+        decor=[], npcs=[], ambient="#d0b090", lights="auto",
+        player=(40, 562), door=(1225, 550)),
+    "engedi_hives": dict(
+        # The combs of the locusts in the rock (the pit fork's first way): honey
+        # in the hollows of the floor, and every cloud thicker for each fruit.
+        painting="engedi_hives", width=1280, height=720, weather="ash", fog=0.15, intro="", music="dead_bridge",
+        void_kill_y=690, swarm_per_surfeit=1.0,
+        ground=[(0, 587, 216, 133), (216, 617, 290, 103), (506, 587, 240, 133), (746, 617, 130, 103),
+                (876, 587, 404, 133)],
+        spawns=[("locust", 300, 350), ("locust", 650, 300), ("locust", 1000, 350), ("locust_herald", 900, 575)],
+        props=[("engedi_grapes", 600, 587)],
+        decor=[], npcs=[], ambient="#c8a880", lights="auto",
+        player=(40, 567), door=(1225, 555)),
+    "engedi_wine_press": dict(
+        # The press and its vat (the pit fork's second way): a close fight on
+        # the floor and on the wine.
+        painting="engedi_wine_press", width=1280, height=720, weather="ash", fog=0.15, intro="", music="dead_bridge",
+        void_kill_y=690,
+        ground=[(0, 533, 1280, 187)],
+        ledges=[(700, 476, 360, 14)],
+        spawns=[("vine_husk", 300, 521), ("vine_husk", 600, 521), ("swollen_feaster", 850, 464),
+                ("swollen_feaster", 450, 521), ("locust_rider", 1150, 521), ("locust_herald", 650, 521)],
+        props=[("engedi_grapes", 200, 533)],
+        decor=[], npcs=[], ambient="#c8a890", lights="auto",
+        player=(40, 513), door=(1225, 501)),
+    "engedi_pit_stair": dict(
+        # Down the shaft of the pit: from the arch at the top by the painted
+        # stairs to the floor; the page about the key lies in the niche.
+        painting="engedi_pit_stair", width=1280, height=720, weather="ash", fog=0.2, intro="", music="dead_bridge",
+        void_kill_y=690,
+        ground=[(0, 603, 1280, 117)],
+        ledges=[(0, 148, 265, 14), (441, 284, 401, 14), (52, 422, 410, 14), (834, 500, 237, 14)],
+        ramps=[(265, 148, 441, 284), (462, 422, 715, 603), (1071, 500, 1170, 603)],
+        platforms=[(395, 355, 40, 8)],
+        painted_platforms=[(395, 355, 40, 8)],
+        spawns=[("locust", 600, 200), ("locust", 950, 350), ("pit_smoke", 300, 300), ("pit_smoke", 800, 420),
+                ("locust_rider", 650, 272), ("locust_herald", 900, 591)],
+        props=[("engedi_cache_key_page", 745, 284)],
+        decor=[], npcs=[], ambient="#c8a080", lights="auto",
+        player=(40, 128), door=(1225, 571)),
 }

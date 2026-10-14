@@ -52,6 +52,11 @@ ROOM_EXPANSION_CUTS = {
     "engedi_smoke_road": (560, 820), "engedi_vineyard_gate": (350, 800), "engedi_terraces": (400, 1100),
     "engedi_spring": (300, 650), "engedi_orchard": (430, 1000), "engedi_pit_rim": (300, 950),
     "engedi_abyss_mouth": (280, 960),
+    "engedi_arbor": (448, 832),
+    "engedi_feast_hall": (448, 832),
+    "engedi_hives": (400, 1100),
+    "engedi_wine_press": (560, 1120),
+    "engedi_pit_stair": (200, 900),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -128,6 +133,7 @@ SEAM_STORIES = {
     "seir_lighthouse": ("", ""),
     "engedi_smoke_road": ("", ""), "engedi_vineyard_gate": ("", ""), "engedi_terraces": ("", ""), "engedi_spring": ("", ""),
     "engedi_orchard": ("", ""), "engedi_pit_rim": ("", ""), "engedi_abyss_mouth": ("", ""),
+    "engedi_arbor": ("", ""), "engedi_feast_hall": ("", ""), "engedi_hives": ("", ""), "engedi_wine_press": ("", ""), "engedi_pit_stair": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -165,6 +171,7 @@ ROOM_PROP_MOTIFS = {
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
     "engedi_smoke_road": {}, "engedi_vineyard_gate": {}, "engedi_terraces": {}, "engedi_spring": {},
     "engedi_orchard": {}, "engedi_pit_rim": {}, "engedi_abyss_mouth": {},
+    "engedi_arbor": {}, "engedi_feast_hall": {}, "engedi_hives": {}, "engedi_wine_press": {}, "engedi_pit_stair": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -249,6 +256,7 @@ DEPTH_WINDOWS = {
     # nor Engedi (docs/CHAPTER5_ART.md)
     "engedi_smoke_road": (0.02, []), "engedi_vineyard_gate": (0.02, []), "engedi_terraces": (0.02, []), "engedi_spring": (0.02, []),
     "engedi_orchard": (0.02, []), "engedi_pit_rim": (0.02, []), "engedi_abyss_mouth": (0.02, []),
+    "engedi_arbor": (0.02, []), "engedi_feast_hall": (0.02, []), "engedi_hives": (0.02, []), "engedi_wine_press": (0.02, []), "engedi_pit_stair": (0.02, []),
 }
 
 
@@ -1628,8 +1636,11 @@ def build(name, r, scene=None):
         bx, by = r["bell"]
         text += f'[node name="Bell" type="Node2D" parent="."]\nposition = Vector2({bx}, {by})\nscript = ExtResource("14_bell")\n\n'
     text += '[node name="Spawns" type="Node2D" parent="."]\n\n'
+    # a room's own thickening of the locusts' clouds (scripts/enemies/swarm.gd), on every marker
+    swarm_meta = (f'metadata/swarm_per_surfeit = {float(r["swarm_per_surfeit"])}\n'
+                  if r.get("swarm_per_surfeit") is not None else '')
     for i, (eid, x, y) in enumerate(r["spawns"], 1):
-        text += f'[node name="Spawn{i}" type="Marker2D" parent="Spawns"]\nposition = Vector2({x}, {y})\nscript = ExtResource("5_spawn")\nenemy_id = "{eid}"\n\n'
+        text += f'[node name="Spawn{i}" type="Marker2D" parent="Spawns"]\nposition = Vector2({x}, {y})\nscript = ExtResource("5_spawn")\nenemy_id = "{eid}"\n{swarm_meta}\n'
     px, py = r["player"]
     dx, dy = r["door"]
     motes = MOTES.format(cx=width / 2, cy=height / 2, ex=width / 2, ey=height / 2, amount=int(36 * area))
