@@ -9,6 +9,12 @@ has (`attack`, `attack2`, `attack3`, `thrust`, `rising`, `dash_strike`), its own
 reach (the hitbox), the arc the `Slash` sprite draws over it (`white`, `gold`,
 `red`, `heavy`, or `path` — the lean's colour) and a handful of numbers.
 
+Their icons are their own: the sword keeps the realm pack's (`gear_1`), the
+other three are cut from one generated sheet on a magenta key
+(`tools/art/weapons/weapon_icons_raw.png`) by `tools/art/make_weapon_icons.py`
+into `assets/icons/weapons/` — regenerate, don't hand-edit (it passes them
+through `patched()`, so the studio's touch-ups survive).
+
 ## The four
 
 | Weapon | Chain (poses) | Per blow (× `attack_damage`) | Recovery (× `attack_cooldown`) | Reach | Per second | What it is for |
@@ -30,7 +36,7 @@ each pays for what it is good at.
 {
   "id": "spear",
   "name": "WEAPON_SPEAR", "description": "WEAPON_SPEAR_DESC",
-  "icon": "res://assets/icons/realm/gear_4.png",
+  "icon": "res://assets/icons/weapons/spear.png",
   "hitbox": [54, 16], "offset": [36, -6],
   "slash_scale": [1.35, 0.6],
   "pitch": 0.9, "auto_reach": 62, "combo_window": 1.1,
