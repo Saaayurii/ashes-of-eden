@@ -41,6 +41,9 @@ const FAR_WINDOWS := {
 	"seir_road": [], "seir_gate": [], "seir_street": [], "seir_square": [],
 	"seir_roofs": [], "seir_canal": [], "seir_quay": [], "seir_wrecks": [],
 	"seir_warehouses": [], "seir_breakwater": [], "seir_lighthouse_stair": [], "seir_lighthouse": [],
+	# Engedi (chapter V): no inpainted plates yet
+	"engedi_smoke_road": [], "engedi_vineyard_gate": [], "engedi_terraces": [], "engedi_spring": [],
+	"engedi_orchard": [], "engedi_pit_rim": [], "engedi_abyss_mouth": [],
 }
 
 

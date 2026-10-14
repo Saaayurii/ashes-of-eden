@@ -2253,8 +2253,12 @@ func _check_nights(game: Dictionary) -> void:
 			owner[str(path)] = str(night.id)
 	for fork in _game_entries("forks"):
 		var in_nights := {}
+		var planned := false
 		for path in [fork.get("after", ""), fork.get("then", "")] + (fork.get("options", {}) as Dictionary).values():
 			in_nights[owner.get(str(path), "?")] = true
+			planned = planned or (fork.has("_draft") and not FileAccess.file_exists(str(path)))
+		if planned:
+			continue  # a draft's fork waits for its paintings (_room_missing)
 		if in_nights.size() != 1 or in_nights.has("?"):
 			_error("data/forks/%s: its rooms must all be one night's" % fork.get("id", "?"))
 

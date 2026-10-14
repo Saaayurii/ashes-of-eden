@@ -9,7 +9,9 @@
     ["stranger_killed", "stranger_heard", "stranger_refused"],
     "mara_saved",
     ["lazarus_helped", "lazarus_asked", "lazarus_passed"],
-    ["watchman_sent_down", "watchman_relieved", "watchman_dark"]
+    ["watchman_sent_down", "watchman_relieved", "watchman_dark"],
+    "tirzah_herbs",
+    ["pit_locked", "key_thrown", "key_kept"]
   ],
   "rooms": [
     "res://scenes/rooms/village_night.tscn",
@@ -53,6 +55,20 @@
         "res://scenes/rooms/seir_breakwater.tscn",
         "res://scenes/rooms/seir_lighthouse_stair.tscn",
         "res://scenes/rooms/seir_lighthouse.tscn"
+      ]
+    },
+    {
+      "id": "engedi",
+      "after_dawns": 4,
+      "opening": {"wake": false},
+      "rooms": [
+        "res://scenes/rooms/engedi_smoke_road.tscn",
+        "res://scenes/rooms/engedi_vineyard_gate.tscn",
+        "res://scenes/rooms/engedi_terraces.tscn",
+        "res://scenes/rooms/engedi_spring.tscn",
+        "res://scenes/rooms/engedi_orchard.tscn",
+        "res://scenes/rooms/engedi_pit_rim.tscn",
+        "res://scenes/rooms/engedi_abyss_mouth.tscn"
       ]
     }
   ],

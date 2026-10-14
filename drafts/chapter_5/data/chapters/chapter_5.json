@@ -1,0 +1,70 @@
+[
+  {
+    "id": "engedi_road",
+    "chapter": "CHAPTER_V",
+    "title": "AREA_ENGEDI_ROAD",
+    "subtitle": "AREA_ENGEDI_ROAD_SUB",
+    "color": "#b89a70",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/engedi_smoke_road.tscn"
+    ]
+  },
+  {
+    "id": "engedi_vineyards",
+    "chapter": "CHAPTER_V",
+    "title": "AREA_ENGEDI_VINEYARDS",
+    "subtitle": "AREA_ENGEDI_VINEYARDS_SUB",
+    "color": "#9fb070",
+    "rooms": [
+      "res://scenes/rooms/engedi_vineyard_gate.tscn",
+      "res://scenes/rooms/engedi_terraces.tscn"
+    ]
+  },
+  {
+    "id": "engedi_garden",
+    "chapter": "CHAPTER_V",
+    "title": "AREA_ENGEDI_GARDEN",
+    "subtitle": "AREA_ENGEDI_GARDEN_SUB",
+    "color": "#c8d8c0",
+    "rooms": [
+      "res://scenes/rooms/engedi_spring.tscn",
+      "res://scenes/rooms/engedi_orchard.tscn",
+      "res://scenes/rooms/engedi_arbor.tscn"
+    ]
+  },
+  {
+    "id": "engedi_feast",
+    "chapter": "CHAPTER_V",
+    "title": "AREA_ENGEDI_FEAST",
+    "subtitle": "AREA_ENGEDI_FEAST_SUB",
+    "color": "#d8b070",
+    "rooms": [
+      "res://scenes/rooms/engedi_feast_hall.tscn"
+    ]
+  },
+  {
+    "id": "engedi_rim",
+    "chapter": "CHAPTER_V",
+    "title": "AREA_ENGEDI_RIM",
+    "subtitle": "AREA_ENGEDI_RIM_SUB",
+    "color": "#a07850",
+    "rooms": [
+      "res://scenes/rooms/engedi_pit_rim.tscn",
+      "res://scenes/rooms/engedi_hives.tscn",
+      "res://scenes/rooms/engedi_wine_press.tscn"
+    ]
+  },
+  {
+    "id": "engedi_pit",
+    "chapter": "CHAPTER_V",
+    "title": "AREA_ENGEDI_PIT",
+    "subtitle": "AREA_ENGEDI_PIT_SUB",
+    "color": "#e0a050",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/engedi_pit_stair.tscn",
+      "res://scenes/rooms/engedi_abyss_mouth.tscn"
+    ]
+  }
+]

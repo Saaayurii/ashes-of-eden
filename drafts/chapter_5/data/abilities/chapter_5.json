@@ -1,0 +1,116 @@
+[
+  {
+    "id": "seal_on_the_brow",
+    "name": "ABILITY_SEAL_ON_THE_BROW_NAME",
+    "description": "ABILITY_SEAL_ON_THE_BROW_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/weather_3.png",
+    "rarity": "epic",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "torment_immune",
+        "op": "add",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "fasting",
+    "name": "ABILITY_FASTING_NAME",
+    "description": "ABILITY_FASTING_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/potion_3.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "fasting",
+        "op": "add",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "id": "glut",
+    "name": "ABILITY_GLUT_NAME",
+    "description": "ABILITY_GLUT_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/potion_3.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "glut",
+        "op": "add",
+        "value": 0.05
+      }
+    ]
+  },
+  {
+    "id": "honeyed_sting",
+    "name": "ABILITY_HONEYED_STING_NAME",
+    "description": "ABILITY_HONEYED_STING_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/weather_3.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "torment_damage",
+        "op": "add",
+        "value": 0.3
+      }
+    ]
+  },
+  {
+    "id": "seeking_death",
+    "name": "ABILITY_SEEKING_DEATH_NAME",
+    "description": "ABILITY_SEEKING_DEATH_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/potion_3.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "death_refused",
+        "op": "add",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "pruning_hook",
+    "name": "ABILITY_PRUNING_HOOK_NAME",
+    "description": "ABILITY_PRUNING_HOOK_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/weather_3.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_scale",
+        "op": "add",
+        "value": 0.1
+      }
+    ]
+  }
+]

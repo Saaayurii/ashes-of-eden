@@ -49,6 +49,9 @@ ROOM_EXPANSION_CUTS = {
     "seir_square": (380, 820), "seir_roofs": (300, 1020), "seir_canal": (200, 1000),
     "seir_quay": (250, 1050), "seir_wrecks": (250, 470), "seir_warehouses": (320, 1000),
     "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
+    "engedi_smoke_road": (560, 820), "engedi_vineyard_gate": (350, 800), "engedi_terraces": (400, 1100),
+    "engedi_spring": (300, 650), "engedi_orchard": (430, 1000), "engedi_pit_rim": (300, 950),
+    "engedi_abyss_mouth": (280, 960),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -76,6 +79,11 @@ FOCAL_RANGES = {
     "seir_warehouses": ((890, 960),),          # the clock on the post
     "seir_breakwater": ((740, 820),),          # moon
     "seir_lighthouse": ((540, 640), (900, 1130)),  # moon in its window, the lamp
+    "engedi_smoke_road": ((150, 460),),        # Ahithophel's fig tree
+    "engedi_spring": ((900, 1160),),           # the fall and the white basin
+    "engedi_orchard": ((780, 900),),           # the little fall
+    "engedi_pit_rim": ((700, 800),),           # the boundary stone
+    "engedi_abyss_mouth": ((420, 880),),       # the fire in the pit
 }
 
 TRAVERSAL_PATCHES = {
@@ -118,6 +126,8 @@ SEAM_STORIES = {
     "seir_roofs": ("", ""), "seir_canal": ("", ""), "seir_quay": ("", ""), "seir_wrecks": ("", ""),
     "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
     "seir_lighthouse": ("", ""),
+    "engedi_smoke_road": ("", ""), "engedi_vineyard_gate": ("", ""), "engedi_terraces": ("", ""), "engedi_spring": ("", ""),
+    "engedi_orchard": ("", ""), "engedi_pit_rim": ("", ""), "engedi_abyss_mouth": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -153,6 +163,8 @@ ROOM_PROP_MOTIFS = {
     "seir_road": {}, "seir_gate": {}, "seir_street": {}, "seir_square": {}, "seir_roofs": {},
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
+    "engedi_smoke_road": {}, "engedi_vineyard_gate": {}, "engedi_terraces": {}, "engedi_spring": {},
+    "engedi_orchard": {}, "engedi_pit_rim": {}, "engedi_abyss_mouth": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -234,6 +246,9 @@ DEPTH_WINDOWS = {
     "seir_roofs": (0.02, []), "seir_canal": (0.02, []), "seir_quay": (0.02, []), "seir_wrecks": (0.02, []),
     "seir_warehouses": (0.02, []), "seir_breakwater": (0.02, []), "seir_lighthouse_stair": (0.02, []),
     "seir_lighthouse": (0.02, []),
+    # nor Engedi (docs/CHAPTER5_ART.md)
+    "engedi_smoke_road": (0.02, []), "engedi_vineyard_gate": (0.02, []), "engedi_terraces": (0.02, []), "engedi_spring": (0.02, []),
+    "engedi_orchard": (0.02, []), "engedi_pit_rim": (0.02, []), "engedi_abyss_mouth": (0.02, []),
 }
 
 
