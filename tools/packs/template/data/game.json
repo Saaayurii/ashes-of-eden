@@ -3,7 +3,7 @@
   "name": "__NAME__",
   "version": "0.1.0",
   "engine": __ENGINE__,
-  "inherit": ["abilities", "enemies", "enemy_archetypes", "affixes", "items", "resonances", "vials", "relics", "omens", "skins", "techniques", "props"],
+  "inherit": ["abilities", "enemies", "enemy_archetypes", "affixes", "items", "resonances", "vials", "relics", "omens", "weapons", "skins", "techniques", "props"],
   "exclude": {"props": ["altar_book", "cult_letters", "gate_cache", "reliquary_names", "secret_wall_catacombs", "secret_wall_swamp", "secret_wall_village"]},
   "rooms": [
     "res://scenes/rooms/graveyard_arches.tscn",

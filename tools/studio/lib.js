@@ -1063,6 +1063,7 @@ async function filesFingerprint(entries) {
 // ---- the room composer: tools/rooms/composed_rooms.json (tools/rooms/compose.py, js/composer.js) ----
 
 // Walkable surfaces [x, top, w] of a room and the pairs a ramp joins (painted_rooms._surfaces).
+// A crumbling platform is not one: it gives way, so the route never counts on it.
 function composeSurfaces(room) {
   const out = [], links = [];
   for (const k of ['ground', 'ledges', 'platforms']) for (const [x, y, w] of room[k] || []) out.push([x, y, w]);
@@ -1150,11 +1151,12 @@ function traceLedges(lum, w, h, minLen = 44, gap = 6) {
   return merged.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
 }
 // A painted room's own geometry (panel pixels) moved into cell (col, row) of a composed room.
-const COMPOSE_LISTS = ['ground', 'ledges', 'platforms', 'ramps', 'hazards', 'spawns', 'props', 'npcs'];
+// A crumbling platform is [x, y, w] or [x, y, w, kind] (compose.py, crumbling_platform.gd).
+const COMPOSE_LISTS = ['ground', 'ledges', 'platforms', 'crumbling_platforms', 'ramps', 'hazards', 'spawns', 'props', 'npcs'];
 function composeShift(geom, dx, dy) {
   const out = {};
   for (const k of COMPOSE_LISTS) out[k] = (geom[k] || []).map(v => k === 'ramps' ? [v[0] + dx, v[1] + dy, v[2] + dx, v[3] + dy]
-    : typeof v[0] === 'string' ? [v[0], v[1] + dx, v[2] + dy] : [v[0] + dx, v[1] + dy, v[2], v[3]]);
+    : typeof v[0] === 'string' ? [v[0], v[1] + dx, v[2] + dy] : [v[0] + dx, v[1] + dy, ...v.slice(2)]);
   for (const k of ['player', 'door']) if (geom[k]) out[k] = [geom[k][0] + dx, geom[k][1] + dy];
   return out;
 }
@@ -1171,6 +1173,10 @@ function composeClip(entry, w, h) {
     const x0 = Math.max(0, x), y0 = Math.max(0, y), x1 = Math.min(w, x + rw), y1 = Math.min(h, y + rh);
     return [x0, y0, x1 - x0, y1 - y0];
   }).filter(r => r[2] > 0 && r[3] > 0);
+  if (out.crumbling_platforms) out.crumbling_platforms = out.crumbling_platforms.map(([x, y, rw, ...kind]) => {
+    const x0 = Math.max(0, x), x1 = Math.min(w, x + rw);
+    return [x0, Math.max(0, y), x1 - x0, ...kind];
+  }).filter(r => r[2] > 0 && r[1] < h);
   out.ramps = (out.ramps || []).filter(r => r.every((v, i) => v >= 0 && v <= (i % 2 ? h : w)));
   for (const k of ['spawns', 'props', 'npcs']) out[k] = (out[k] || []).filter(([, x, y]) => x >= 0 && x <= w && y >= 0 && y <= h);
   for (const k of ['player', 'door']) if (out[k]) out[k] = [Math.min(w, Math.max(0, out[k][0])), Math.min(h, Math.max(0, out[k][1]))];

@@ -1,6 +1,9 @@
-[gd_scene load_steps=66 format=3]
+[gd_scene load_steps=68 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scripts/rooms/front_layer.gd" id="front_layer"]
+[ext_resource type="Texture2D" path="res://assets/levels/front/swamp_crypt_1.png" id="front_1"]
+
 [ext_resource type="Texture2D" path="res://assets/levels/swamp_crypt_wide.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
 [ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
@@ -916,3 +919,14 @@ energy = 0.5
 script = ExtResource("12_light")
 radius = 36.0
 flicker = 0.3
+
+[node name="Front" type="Node2D" parent="."]
+z_index = 3
+script = ExtResource("front_layer")
+depths = PackedFloat32Array(1.3)
+
+[node name="Piece1" type="Sprite2D" parent="Front"]
+light_mask = 0
+texture_filter = 2
+texture = ExtResource("front_1")
+position = Vector2(767.0, 131.5)

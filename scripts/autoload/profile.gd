@@ -109,6 +109,9 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 		_codex("res:" + str(id))
 	for id in Game.items:
 		_codex("item:" + str(id))
+	# and every weapon held tonight (data/weapons), the sword included
+	for id in Game.weapons_used:
+		_codex("weapon:" + str(id))
 	# an omen drawn is a page in the book (bestiary "omen:<id>"): its nights, its dawns
 	if Game.omen != "":
 		var drawn: Dictionary = data.bestiary.get("omen:" + Game.omen, {"seen": true, "met": true, "kills": 0})
@@ -159,6 +162,7 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 		"omen": Game.omen,
 		"daily": Game.daily != "",
 		"gifts": Game.abilities.map(func(a: Dictionary) -> String: return str(a.get("id", ""))),
+		"weapon": Game.weapon,
 		"resonances": Game.resonances.duplicate(),
 		"slain_by": "" if won else Game.slain_by,
 		"dealt": roundi(Game.dealt),

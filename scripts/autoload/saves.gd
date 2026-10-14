@@ -210,6 +210,8 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"flags": Game.flags.duplicate(),
 			"abilities": Game.abilities.map(func(a: Dictionary) -> String: return a.id),
 			"items": Game.items.duplicate(),
+			"weapons_used": Game.weapons_used.duplicate(),
+			"weapon_found": Game.weapon_found,
 			"rested": Game.rested.keys(),
 			"walked": Game.walked.duplicate(),
 			"vial": Game.vial,
@@ -233,6 +235,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"stats": body.stats.duplicate(),
 			"skill": body.skill.duplicate(),
 			"curse": body.curse,
+			"weapon": body.weapon,
 		},
 	}
 
@@ -283,6 +286,15 @@ func restore(data: Dictionary, body: Player) -> void:
 	var saved_skill = data.player.get("skill", {})
 	body.skill = saved_skill.duplicate() if saved_skill is Dictionary else {}
 	body.curse = maxi(0, int(data.player.get("curse", 0)))
+	# what was in hand (data/weapons): an old save, or a weapon since removed, is the sword
+	body.weapon = Weapons.known(str(data.player.get("weapon", Weapons.DEFAULT)))
+	Game.weapon = body.weapon
+	for id in state.get("weapons_used", []):
+		if id is String and Data.weapons.has(id) and not Game.weapons_used.has(id):
+			Game.weapons_used.append(id)
+	if not Game.weapons_used.has(body.weapon):
+		Game.weapons_used.append(body.weapon)
+	Game.weapon_found = bool(state.get("weapon_found", false))
 	body.heal_charges = clampi(int(data.player.get("heal_charges", body.heal_charges)), 0, int(body.stats.heal_charges))
 	body.hp = clampf(float(data.player.get("hp", body.stats.max_hp)), 1.0, float(body.stats.max_hp))
 	body.refresh_stats()

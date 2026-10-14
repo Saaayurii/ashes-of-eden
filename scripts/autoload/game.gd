@@ -18,6 +18,12 @@ var abilities: Array[Dictionary] = []
 var resonances: Array[String] = []
 ## Items found this run, by id (ItemSystem): each at most once.
 var items: Array[String] = []
+## The weapon our own body holds (Player.weapon, data/weapons), and every one
+## it held tonight, in the order taken: the codex, the chronicle, Playtest.
+var weapon := Weapons.DEFAULT
+var weapons_used: Array[String] = [Weapons.DEFAULT]
+## A night lays one weapon beside a chest (Prop._pay_out); this says it has.
+var weapon_found := false
 ## Rest points used this night, by room scene path: each once.
 var rested: Dictionary = {}
 ## Rooms entered this night, by scene path, in order: the way the map draws
@@ -92,6 +98,9 @@ func new_run() -> void:
 	abilities = []
 	resonances = []
 	items = []
+	weapon = Weapons.DEFAULT
+	weapons_used = [Weapons.DEFAULT]
+	weapon_found = false
 	rested = {}
 	walked = []
 	wave = 0

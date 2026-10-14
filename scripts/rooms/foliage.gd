@@ -445,14 +445,15 @@ func _float(leaf: Leaf, moving: Array, delta: float) -> bool:
 	return true
 
 
-## The pool whose surface the step [param from] → [param to] goes down through.
+## The pool whose surface the step [param from] → [param to] goes down through,
+## or whose body it is already in (a swell can rise past a leaf between frames).
 func _pool_crossed(from: Vector2, to: Vector2) -> Dictionary:
 	for pool in _pools:
 		var rect: Rect2 = pool.rect
 		if from.x < rect.position.x or from.x > rect.end.x or not is_instance_valid(pool.node):
 			continue
 		var top := float(pool.node.surface_y(from.x))
-		if from.y <= top and to.y >= top:
+		if to.y >= top and from.y <= rect.end.y:
 			return pool
 	return {}
 

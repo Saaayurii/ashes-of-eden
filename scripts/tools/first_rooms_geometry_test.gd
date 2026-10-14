@@ -29,7 +29,7 @@ func _drawn_bottom(texture: Texture2D) -> int:
 func _run() -> void:
 	var floor_probes := {
 		"village_night": [[1450, 655], [1390, 560], [1500, 520], [1220, 625]],
-		"graveyard_cross": [[70, 655], [1340, 388], [1300, 220]],
+		"graveyard_cross": [[70, 655], [1340, 388], [1300, 224], [1850, 498], [2400, 302]],  # composed: its panel, then the hill
 		"graveyard_arches": [[150, 220], [660, 350], [610, 552], [790, 420], [870, 484], [1120, 594], [1540, 387]],
 		"graveyard_tree": [[110, 289], [510, 312], [660, 419], [920, 635], [1500, 241]],
 		"swamp_moon": [[410, 264], [520, 304], [760, 338], [860, 415], [1295, 413], [1468, 478], [1520, 554], [1550, 413]],
@@ -85,7 +85,7 @@ func _run() -> void:
 				"%s floor %s does not match physical feet: %s" % [key, probe, hero.position])
 		if key == "graveyard_cross":
 			for direction in [1, -1]:
-				hero.position = Vector2(1125, 530) if direction > 0 else Vector2(1330, 373)
+				hero.position = Vector2(965, 530) if direction > 0 else Vector2(1170, 373)
 				hero.velocity = Vector2.ZERO
 				hero.controls_enabled = true
 				await _frames(4)
@@ -93,10 +93,10 @@ func _run() -> void:
 				Input.action_press(action)
 				for frame in 240:
 					await physics_frame
-					if (direction > 0 and hero.position.x >= 1320) or (direction < 0 and hero.position.x <= 1130):
+					if (direction > 0 and hero.position.x >= 1160) or (direction < 0 and hero.position.x <= 970):
 						break
 				Input.action_release(action)
-				_check((hero.position.x >= 1320 and hero.position.y < 380) if direction > 0 else (hero.position.x <= 1130 and hero.position.y > 500),
+				_check((hero.position.x >= 1160 and hero.position.y < 380) if direction > 0 else (hero.position.x <= 970 and hero.position.y > 500),
 					"graveyard staircase landing blocks direction %d at %s" % [direction, hero.position])
 				hero.controls_enabled = false
 		if key == "graveyard_arches":

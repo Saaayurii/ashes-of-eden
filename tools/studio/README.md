@@ -545,6 +545,26 @@ validator would refuse is refused here: change one, change the other
 `{command: "gift"}`: `Run._studio_gift` hands the hero a skill and casts it at the
 nearest foe, or takes any other gift once (`studio_live_test.gd`).
 
+**A room's pictures by hand** (`js/textures.js`, «Текстуры»). The room as the
+scene has it, every Sprite2D with its node (`node` in each item of
+`import/rooms/room_<name>.bg.json`: path, rotation, crop, flips, z). Any picture
+the generator laid — decor, terrain pieces, cornice crops, the front plane, the
+seam — can be dragged, stretched by eight handles (Shift keeps the proportions),
+turned by the knob (Shift: 15° steps), mirrored, tinted, faded, blended, cropped,
+swapped for another picture or hidden: a `retouch` of its node path, keeping only
+what differs and `was`, the picture the generator laid there. Any picture of the
+game's library, or her own PNG (sent as `assets/decor/studio/<name>.png`), can be
+laid on four layers (`back` behind the terraces, `mid` with the decor, `front`
+over the feet, `top` over everything): her `textures`. A crop wider than its
+picture with `repeat: tile` lays a strip; the handles in «наращивают область» mode
+grow the crop instead of the scale. Both live in `tools/rooms/studio_rooms.json`
+and are laid over the scene by `tools/rooms/studio_textures.py` each time the room
+is generated, so a regeneration keeps them; an edit whose node is gone or holds
+another picture is left off with a warning, in the generator's log and on the tab.
+Colliders are never touched. `txProblems` mirrors `studio_textures.validate`
+(`tests/textures.test.js` runs both on the same entries; `test_studio_textures.py`
+checks what lands in the scene).
+
 All editor tabs support undo/redo. The workspace bar exports/imports one portable
 JSON project with source images, sounds and drafts; credentials are excluded.
 «Проверить всё» previews the combined changed files, and «Отправить всё» reviews

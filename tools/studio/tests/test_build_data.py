@@ -27,7 +27,7 @@ class LivingBackdrops(unittest.TestCase):
             self.assertTrue(pictures[key]["has_rule"])
         for key in ("church", "preacher_nave"):   # painted in code, not in the scene
             self.assertIn("interior", pictures[key]["res"])
-        self.assertEqual(pictures["graveyard_cross"]["res"], "res://assets/levels/graveyard_cross_wide.png")
+        self.assertEqual(pictures["graveyard_arches"]["res"], "res://assets/levels/graveyard_arches_wide.png")
         self.assertEqual(set(life["kinds"]), {"falls", "water", "sway", "glow", "lava", "haze", "stars", "pulse"})
         self.assertEqual(life["kinds"]["glow"], {"index": 3, "strength": 0.12, "speed": 0.8})
         self.assertEqual(life["max_zones"], 24)

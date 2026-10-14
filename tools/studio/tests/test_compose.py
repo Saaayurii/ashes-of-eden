@@ -80,6 +80,35 @@ class Validate(unittest.TestCase):
         self.assertNotIn("void_kill_y", room)   # the edge of the map: a floor may run down to it
 
 
+class Crumbling(unittest.TestCase):
+    """`crumbling_platforms`: written as a painted room's are, never counted on by the route."""
+
+    def test_they_are_checked(self):
+        compose.validate("t", entry(crumbling_platforms=[[300, 400, 80], [900, 300, 60, "timber"]]))
+        for piece, words in (([2500, 400, 200], "not inside"), ([10, 720 * 1, 40], "not inside"),
+                             ([10, 10, 0], "not inside"), ([10, 10, 40, "glass"], "not one of"),
+                             ([10, 10], "not [x, y, w]"), (["a", 10, 40], "not [x, y, w]")):
+            with self.assertRaises(SystemExit) as caught:
+                compose.validate("t", entry(crumbling_platforms=[piece]))
+            self.assertIn(words, str(caught.exception))
+
+    def test_the_room_table_carries_them_as_generate_rooms_writes_them(self):
+        room = compose.room_table(PANEL, entry(crumbling_platforms=[[300, 400, 80], [900, 300, 60, "timber"]]), {"painting": PANEL})
+        self.assertEqual(room["crumbling_platforms"], [(300, 400, 80, "stone"), (900, 300, 60, "timber")])
+        self.assertEqual(compose.room_table(PANEL, entry(), {"painting": PANEL})["crumbling_platforms"], [])
+
+    def test_the_route_never_counts_on_them(self):
+        import painted_rooms
+        # two floors a gap apart, bridged only by a crumbling platform: the door is not reached
+        gap = entry(ground=[[0, 600, 1000, 120], [1600, 600, 960, 120]], spawns=[], props=[],
+                    crumbling_platforms=[[1000, 600, 600]])
+        room = compose.room_table(PANEL, gap, {"painting": PANEL})
+        self.assertNotIn((1000, 600, 600), painted_rooms._surfaces(room)[0])
+        self.assertFalse(painted_rooms.check_reach("t", room))
+        bridged = compose.room_table(PANEL, dict(gap, platforms=[[1000, 600, 600, 10]]), {"painting": PANEL})
+        self.assertTrue(painted_rooms.check_reach("t", bridged))
+
+
 class Hole(unittest.TestCase):
     def test_night_is_the_darkest_tenth(self):
         tile = np.zeros((10, 10, 4), np.float32)
