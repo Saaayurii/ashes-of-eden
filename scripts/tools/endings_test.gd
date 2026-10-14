@@ -4,7 +4,10 @@ extends SceneTree
 ##     its path's ending, the fourth only a level night that heard all three
 ##     versions and read the book, and anything else falls back to man;
 ##   - Endings.seed lays a night each ending accepts, `--ending=` is parsed;
-##   - the finale ends the campaign only when game.json says so, or when forced;
+##   - the finale is the Heavenly Hall's gate and ends the campaign (E4); every
+##     other night's dawn is "to be continued"; its scene closes on an epilogue
+##     line for every answer the campaign keeps, and the cherub does not fall;
+##   - the fourth wants the register read as well (chapter VII);
 ##   - each ending plays end to end in the run: its scene, the dawn, its line
 ##     on the night's end, a page in the book, a line in the chronicle, its deed.
 ##     The first plays through; the others are skipped like a player would.
@@ -46,7 +49,7 @@ func _run() -> void:
 	var end_screen = load("res://scripts/ui/end_screen.gd")
 	var achievements = load("res://scripts/meta/achievements.gd")
 	var saved: Dictionary = profile.data.duplicate(true)
-	var all_versions := ["version_heaven", "version_abyss", "version_man", "book_read"]
+	var all_versions := ["version_heaven", "version_abyss", "version_man", "book_read", "register_read"]
 
 	print("chooser")
 	_check(endings.ids() == ["fourth", "heaven", "abyss", "man"], "endings are tried in order: %s" % [endings.ids()])
@@ -66,7 +69,9 @@ func _run() -> void:
 	_check(endings.choose() == "fourth", "level, three versions heard and the book read: the fourth")
 	_night(game, {"grace": 2, "temptation": 2, "will": 3}, all_versions)
 	_check(endings.choose() == "fourth", "  a lead of 1 is still level")
-	_night(game, {"grace": 2, "temptation": 2, "will": 2}, ["version_heaven", "version_abyss", "version_man"])
+	_night(game, {"grace": 2, "temptation": 2, "will": 2}, ["version_heaven", "version_abyss", "version_man", "book_read"])
+	_check(endings.choose() == "man", "  three versions and the book, the register unread: not the fourth")
+	_night(game, {"grace": 2, "temptation": 2, "will": 2}, ["version_heaven", "version_abyss", "version_man", "register_read"])
 	_check(endings.choose() == "man", "  the versions without the book: not the fourth")
 	_night(game, {"grace": 2, "temptation": 2, "will": 2}, ["version_heaven", "version_man", "book_read"])
 	_check(endings.choose() == "man", "  two versions of three: not the fourth")
@@ -79,15 +84,64 @@ func _run() -> void:
 	var finale: Dictionary = endings.finale()
 	var gate := str(finale.get("room", ""))
 	_check(gate != "" and data.cutscenes.has(str(finale.get("cutscene", ""))), "game.json names the finale room and its scene")
-	_check(not finale.get("ends_campaign", true), "chapter I does not end the campaign yet (to be continued)")
-	_check(not endings.closes_campaign(gate), "  so its door leads to the dawn, not an ending")
-	_check(endings.closes_campaign(gate, "fourth"), "  unless an ending is asked for")
+	_check(gate == "res://scenes/rooms/hall_eden_gate.tscn", "the finale is the gate of Eden (%s)" % gate)
+	_check(data.night_of(gate) == "hall", "  in the Heavenly Hall's night")
+	_check(finale.get("ends_campaign", false), "  and it ends the campaign")
+	_check(endings.closes_campaign(gate), "  so its door leads to an ending, not the dawn")
+	_check(not endings.closes_campaign("res://scenes/rooms/hell_gate.tscn"), "chapter I's gate leads to the dawn")
 	_check(not endings.closes_campaign("res://scenes/rooms/church.tscn", "fourth"), "  and only from the finale's room")
 	_check(endings.from_args(PackedStringArray(["room=3", "--ending=abyss"])) == "abyss", "--ending=abyss is read")
 	_check(endings.from_args(PackedStringArray(["--ending=paradise"])) == "", "  an ending that does not exist is not")
 	game.ending = ""
 	game.new_run()
 	_check(end_screen.ending_title("") == "", "no ending, no ending title")
+
+	print("the epilogue")
+	var steps: Array = data.cutscenes[str(finale.cutscene)].get("steps", [])
+	var told := {}
+	for step in steps:
+		if str(step.get("do", "")) == "dialogue" and step.has("if"):
+			told[str(step["if"])] = true
+	# CAMPAIGN.md §7: a line for every answer of Lazarus, the watchman, Malchus,
+	# Marah, Tyre's light, Tirzah, the pit, the four, the witnesses, Mara,
+	# Matthew and Enoch
+	for group in [["lazarus_helped", "lazarus_asked", "lazarus_passed"],
+			["watchman_sent_down", "watchman_relieved", "watchman_dark"],
+			["prisoner_cut", "malchus_asked", "malchus_hanged"], ["marah_sweetened", "marah_bitter"],
+			["wormwood_drunk"], ["light_returned", "light_shared", "light_taken"], ["tirzah_herbs"],
+			["pit_locked", "key_thrown", "key_kept"], ["angels_kept_bound", "angels_loosed", "angels_left_to_men"],
+			["witnesses_covered", "witnesses_asked", "witnesses_robbed"], ["mara_saved"],
+			["matthew_confessed", "matthew_judged", "matthew_released"],
+			["enoch_wrote_names", "enoch_struck", "enoch_left"]]:
+		var missing: Array = group.filter(func(flag): return not told.has(flag))
+		_check(missing.is_empty(), "an epilogue line for each of %s%s" % [group, "" if missing.is_empty() else " — missing %s" % [missing]])
+	var slain := false
+	for step in steps:
+		if str(step.get("who", "")) == "boss" and str(step.get("do", "")) in ["vanish", "anim"] and str(step.get("anim", "")) in ["", "death"]:
+			slain = true
+	_check(not slain, "the cherub lowers its sword: it does not die in the finale")
+
+	print("pictures")
+	var life = load("res://scripts/rooms/backdrop_life.gd")
+	for id in endings.ids():
+		var scene := str(endings.spec(id).get("cutscene", ""))
+		for step in data.cutscenes[scene].get("steps", []):
+			if str(step.get("do", "")) == "panel":
+				var key := str(step.image).get_file().get_basename()
+				_check(not life.rule(key).is_empty(), "%s: the picture %s has a rule" % [id, key])
+
+	print("another night's dawn")
+	change_scene_to_file("res://scenes/run/run.tscn")
+	await _settle(0.5)
+	game.night = "seir"
+	game.new_run()
+	game.ending = ""
+	current_scene.cutscene.abort()
+	current_scene.run_end.show_result(true, 12, 30, 600.0)
+	_check(game.ending == "" and current_scene.run_end.line.text.ends_with(TranslationServer.translate("RUN_TO_BE_CONTINUED")),
+		"seir's dawn: no ending, the road goes on (%s)" % current_scene.run_end.line.text.get_slice("\n", 1))
+	game.night = "hall"
+	data.use_night("hall")
 
 	print("each ending, end to end")
 	for id in endings.ids():
@@ -114,6 +168,8 @@ func _run() -> void:
 	_check(book.hint_label.text == TranslationServer.translate("ENDING_HINT"), "  an unreached one gives a hint")
 	book.queue_free()
 
+	game.night = ""
+	data.use_night("")
 	profile.data = saved
 	profile.save()
 	_check(profile.data == saved, "the profile is put back")
