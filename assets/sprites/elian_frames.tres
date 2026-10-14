@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=193 format=3]
+[gd_resource type="SpriteFrames" load_steps=484 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_idle.png" id="tex_elian_idle"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_rest.png" id="tex_elian_rest"]
@@ -27,6 +27,51 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_heal_v2.png" id="tex_elian_heal_v2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_talk.png" id="tex_elian_talk"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_talk2.png" id="tex_elian_talk2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_draw.png" id="tex_elian_spear_draw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_slash.png" id="tex_elian_spear_slash"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_overhead.png" id="tex_elian_spear_overhead"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_slam.png" id="tex_elian_spear_slam"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_thrust.png" id="tex_elian_spear_thrust"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_rising.png" id="tex_elian_spear_rising"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_dash_strike.png" id="tex_elian_spear_dash_strike"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_lunge.png" id="tex_elian_spear_lunge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_charge.png" id="tex_elian_spear_charge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_cleave.png" id="tex_elian_spear_cleave"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_sweep.png" id="tex_elian_spear_sweep"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_hurt.png" id="tex_elian_spear_hurt"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_knockback.png" id="tex_elian_spear_knockback"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_land.png" id="tex_elian_spear_land"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_draw.png" id="tex_elian_headsman_draw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_slash.png" id="tex_elian_headsman_slash"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_overhead.png" id="tex_elian_headsman_overhead"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_slam.png" id="tex_elian_headsman_slam"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_thrust.png" id="tex_elian_headsman_thrust"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_rising.png" id="tex_elian_headsman_rising"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_dash_strike.png" id="tex_elian_headsman_dash_strike"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_lunge.png" id="tex_elian_headsman_lunge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_charge.png" id="tex_elian_headsman_charge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_cleave.png" id="tex_elian_headsman_cleave"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_sweep.png" id="tex_elian_headsman_sweep"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_hurt.png" id="tex_elian_headsman_hurt"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_knockback.png" id="tex_elian_headsman_knockback"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_land.png" id="tex_elian_headsman_land"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_draw.png" id="tex_elian_daggers_draw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_slash.png" id="tex_elian_daggers_slash"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_overhead.png" id="tex_elian_daggers_overhead"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_slam.png" id="tex_elian_daggers_slam"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_thrust.png" id="tex_elian_daggers_thrust"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_rising.png" id="tex_elian_daggers_rising"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_dash_strike.png" id="tex_elian_daggers_dash_strike"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_lunge.png" id="tex_elian_daggers_lunge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_charge.png" id="tex_elian_daggers_charge"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_cleave.png" id="tex_elian_daggers_cleave"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_sweep.png" id="tex_elian_daggers_sweep"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_hurt.png" id="tex_elian_daggers_hurt"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_knockback.png" id="tex_elian_daggers_knockback"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_land.png" id="tex_elian_daggers_land"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_spear_attack.png" id="tex_elian_spear_attack"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_daggers_attack.png" id="tex_elian_daggers_attack"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elian_headsman_attack.png" id="tex_elian_headsman_attack"]
 [ext_resource type="Texture2D" path="res://assets/sprites/elian_attack.png" id="tex_elian_attack"]
 
 [sub_resource type="AtlasTexture" id="elian_idle_0"]
@@ -665,6 +710,990 @@ region = Rect2(768, 0, 128, 64)
 atlas = ExtResource("tex_elian_talk2")
 region = Rect2(896, 0, 128, 64)
 
+[sub_resource type="AtlasTexture" id="elian_spear_draw_0"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_draw_1"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_draw_2"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_draw_3"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_draw_4"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_draw_5"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_draw_6"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_draw_7"]
+atlas = ExtResource("tex_elian_spear_draw")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slash_0"]
+atlas = ExtResource("tex_elian_spear_slash")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slash_1"]
+atlas = ExtResource("tex_elian_spear_slash")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slash_2"]
+atlas = ExtResource("tex_elian_spear_slash")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slash_3"]
+atlas = ExtResource("tex_elian_spear_slash")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slash_4"]
+atlas = ExtResource("tex_elian_spear_slash")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slash_5"]
+atlas = ExtResource("tex_elian_spear_slash")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_overhead_0"]
+atlas = ExtResource("tex_elian_spear_overhead")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_overhead_1"]
+atlas = ExtResource("tex_elian_spear_overhead")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_overhead_2"]
+atlas = ExtResource("tex_elian_spear_overhead")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_overhead_3"]
+atlas = ExtResource("tex_elian_spear_overhead")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_overhead_4"]
+atlas = ExtResource("tex_elian_spear_overhead")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_overhead_5"]
+atlas = ExtResource("tex_elian_spear_overhead")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slam_0"]
+atlas = ExtResource("tex_elian_spear_slam")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slam_1"]
+atlas = ExtResource("tex_elian_spear_slam")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slam_2"]
+atlas = ExtResource("tex_elian_spear_slam")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slam_3"]
+atlas = ExtResource("tex_elian_spear_slam")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_slam_4"]
+atlas = ExtResource("tex_elian_spear_slam")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_thrust_0"]
+atlas = ExtResource("tex_elian_spear_thrust")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_thrust_1"]
+atlas = ExtResource("tex_elian_spear_thrust")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_thrust_2"]
+atlas = ExtResource("tex_elian_spear_thrust")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_thrust_3"]
+atlas = ExtResource("tex_elian_spear_thrust")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_thrust_4"]
+atlas = ExtResource("tex_elian_spear_thrust")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_rising_0"]
+atlas = ExtResource("tex_elian_spear_rising")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_rising_1"]
+atlas = ExtResource("tex_elian_spear_rising")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_rising_2"]
+atlas = ExtResource("tex_elian_spear_rising")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_rising_3"]
+atlas = ExtResource("tex_elian_spear_rising")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_rising_4"]
+atlas = ExtResource("tex_elian_spear_rising")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_dash_strike_0"]
+atlas = ExtResource("tex_elian_spear_dash_strike")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_dash_strike_1"]
+atlas = ExtResource("tex_elian_spear_dash_strike")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_dash_strike_2"]
+atlas = ExtResource("tex_elian_spear_dash_strike")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_dash_strike_3"]
+atlas = ExtResource("tex_elian_spear_dash_strike")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_dash_strike_4"]
+atlas = ExtResource("tex_elian_spear_dash_strike")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_lunge_0"]
+atlas = ExtResource("tex_elian_spear_lunge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_lunge_1"]
+atlas = ExtResource("tex_elian_spear_lunge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_lunge_2"]
+atlas = ExtResource("tex_elian_spear_lunge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_lunge_3"]
+atlas = ExtResource("tex_elian_spear_lunge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_lunge_4"]
+atlas = ExtResource("tex_elian_spear_lunge")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_lunge_5"]
+atlas = ExtResource("tex_elian_spear_lunge")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_charge_0"]
+atlas = ExtResource("tex_elian_spear_charge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_charge_1"]
+atlas = ExtResource("tex_elian_spear_charge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_charge_2"]
+atlas = ExtResource("tex_elian_spear_charge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_charge_3"]
+atlas = ExtResource("tex_elian_spear_charge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_cleave_0"]
+atlas = ExtResource("tex_elian_spear_cleave")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_cleave_1"]
+atlas = ExtResource("tex_elian_spear_cleave")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_cleave_2"]
+atlas = ExtResource("tex_elian_spear_cleave")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_cleave_3"]
+atlas = ExtResource("tex_elian_spear_cleave")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_cleave_4"]
+atlas = ExtResource("tex_elian_spear_cleave")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_sweep_0"]
+atlas = ExtResource("tex_elian_spear_sweep")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_sweep_1"]
+atlas = ExtResource("tex_elian_spear_sweep")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_sweep_2"]
+atlas = ExtResource("tex_elian_spear_sweep")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_sweep_3"]
+atlas = ExtResource("tex_elian_spear_sweep")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_sweep_4"]
+atlas = ExtResource("tex_elian_spear_sweep")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_sweep_5"]
+atlas = ExtResource("tex_elian_spear_sweep")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_hurt_0"]
+atlas = ExtResource("tex_elian_spear_hurt")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_hurt_1"]
+atlas = ExtResource("tex_elian_spear_hurt")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_hurt_2"]
+atlas = ExtResource("tex_elian_spear_hurt")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_hurt_3"]
+atlas = ExtResource("tex_elian_spear_hurt")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_0"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_1"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_2"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_3"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_4"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_5"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_6"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_knockback_7"]
+atlas = ExtResource("tex_elian_spear_knockback")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_land_0"]
+atlas = ExtResource("tex_elian_spear_land")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_land_1"]
+atlas = ExtResource("tex_elian_spear_land")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_land_2"]
+atlas = ExtResource("tex_elian_spear_land")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_land_3"]
+atlas = ExtResource("tex_elian_spear_land")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_0"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_1"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_2"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_3"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_4"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_5"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_6"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_draw_7"]
+atlas = ExtResource("tex_elian_headsman_draw")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slash_0"]
+atlas = ExtResource("tex_elian_headsman_slash")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slash_1"]
+atlas = ExtResource("tex_elian_headsman_slash")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slash_2"]
+atlas = ExtResource("tex_elian_headsman_slash")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slash_3"]
+atlas = ExtResource("tex_elian_headsman_slash")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slash_4"]
+atlas = ExtResource("tex_elian_headsman_slash")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slash_5"]
+atlas = ExtResource("tex_elian_headsman_slash")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_overhead_0"]
+atlas = ExtResource("tex_elian_headsman_overhead")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_overhead_1"]
+atlas = ExtResource("tex_elian_headsman_overhead")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_overhead_2"]
+atlas = ExtResource("tex_elian_headsman_overhead")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_overhead_3"]
+atlas = ExtResource("tex_elian_headsman_overhead")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_overhead_4"]
+atlas = ExtResource("tex_elian_headsman_overhead")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_overhead_5"]
+atlas = ExtResource("tex_elian_headsman_overhead")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slam_0"]
+atlas = ExtResource("tex_elian_headsman_slam")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slam_1"]
+atlas = ExtResource("tex_elian_headsman_slam")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slam_2"]
+atlas = ExtResource("tex_elian_headsman_slam")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slam_3"]
+atlas = ExtResource("tex_elian_headsman_slam")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_slam_4"]
+atlas = ExtResource("tex_elian_headsman_slam")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_thrust_0"]
+atlas = ExtResource("tex_elian_headsman_thrust")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_thrust_1"]
+atlas = ExtResource("tex_elian_headsman_thrust")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_thrust_2"]
+atlas = ExtResource("tex_elian_headsman_thrust")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_thrust_3"]
+atlas = ExtResource("tex_elian_headsman_thrust")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_thrust_4"]
+atlas = ExtResource("tex_elian_headsman_thrust")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_rising_0"]
+atlas = ExtResource("tex_elian_headsman_rising")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_rising_1"]
+atlas = ExtResource("tex_elian_headsman_rising")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_rising_2"]
+atlas = ExtResource("tex_elian_headsman_rising")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_rising_3"]
+atlas = ExtResource("tex_elian_headsman_rising")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_rising_4"]
+atlas = ExtResource("tex_elian_headsman_rising")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_dash_strike_0"]
+atlas = ExtResource("tex_elian_headsman_dash_strike")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_dash_strike_1"]
+atlas = ExtResource("tex_elian_headsman_dash_strike")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_dash_strike_2"]
+atlas = ExtResource("tex_elian_headsman_dash_strike")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_dash_strike_3"]
+atlas = ExtResource("tex_elian_headsman_dash_strike")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_dash_strike_4"]
+atlas = ExtResource("tex_elian_headsman_dash_strike")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_lunge_0"]
+atlas = ExtResource("tex_elian_headsman_lunge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_lunge_1"]
+atlas = ExtResource("tex_elian_headsman_lunge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_lunge_2"]
+atlas = ExtResource("tex_elian_headsman_lunge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_lunge_3"]
+atlas = ExtResource("tex_elian_headsman_lunge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_lunge_4"]
+atlas = ExtResource("tex_elian_headsman_lunge")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_lunge_5"]
+atlas = ExtResource("tex_elian_headsman_lunge")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_charge_0"]
+atlas = ExtResource("tex_elian_headsman_charge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_charge_1"]
+atlas = ExtResource("tex_elian_headsman_charge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_charge_2"]
+atlas = ExtResource("tex_elian_headsman_charge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_charge_3"]
+atlas = ExtResource("tex_elian_headsman_charge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_cleave_0"]
+atlas = ExtResource("tex_elian_headsman_cleave")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_cleave_1"]
+atlas = ExtResource("tex_elian_headsman_cleave")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_cleave_2"]
+atlas = ExtResource("tex_elian_headsman_cleave")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_cleave_3"]
+atlas = ExtResource("tex_elian_headsman_cleave")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_cleave_4"]
+atlas = ExtResource("tex_elian_headsman_cleave")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_sweep_0"]
+atlas = ExtResource("tex_elian_headsman_sweep")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_sweep_1"]
+atlas = ExtResource("tex_elian_headsman_sweep")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_sweep_2"]
+atlas = ExtResource("tex_elian_headsman_sweep")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_sweep_3"]
+atlas = ExtResource("tex_elian_headsman_sweep")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_sweep_4"]
+atlas = ExtResource("tex_elian_headsman_sweep")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_sweep_5"]
+atlas = ExtResource("tex_elian_headsman_sweep")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_hurt_0"]
+atlas = ExtResource("tex_elian_headsman_hurt")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_hurt_1"]
+atlas = ExtResource("tex_elian_headsman_hurt")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_hurt_2"]
+atlas = ExtResource("tex_elian_headsman_hurt")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_hurt_3"]
+atlas = ExtResource("tex_elian_headsman_hurt")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_0"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_1"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_2"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_3"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_4"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_5"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_6"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_knockback_7"]
+atlas = ExtResource("tex_elian_headsman_knockback")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_land_0"]
+atlas = ExtResource("tex_elian_headsman_land")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_land_1"]
+atlas = ExtResource("tex_elian_headsman_land")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_land_2"]
+atlas = ExtResource("tex_elian_headsman_land")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_land_3"]
+atlas = ExtResource("tex_elian_headsman_land")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_0"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_1"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_2"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_3"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_4"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_5"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_6"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_draw_7"]
+atlas = ExtResource("tex_elian_daggers_draw")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slash_0"]
+atlas = ExtResource("tex_elian_daggers_slash")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slash_1"]
+atlas = ExtResource("tex_elian_daggers_slash")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slash_2"]
+atlas = ExtResource("tex_elian_daggers_slash")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slash_3"]
+atlas = ExtResource("tex_elian_daggers_slash")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slash_4"]
+atlas = ExtResource("tex_elian_daggers_slash")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slash_5"]
+atlas = ExtResource("tex_elian_daggers_slash")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_overhead_0"]
+atlas = ExtResource("tex_elian_daggers_overhead")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_overhead_1"]
+atlas = ExtResource("tex_elian_daggers_overhead")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_overhead_2"]
+atlas = ExtResource("tex_elian_daggers_overhead")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_overhead_3"]
+atlas = ExtResource("tex_elian_daggers_overhead")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_overhead_4"]
+atlas = ExtResource("tex_elian_daggers_overhead")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_overhead_5"]
+atlas = ExtResource("tex_elian_daggers_overhead")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slam_0"]
+atlas = ExtResource("tex_elian_daggers_slam")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slam_1"]
+atlas = ExtResource("tex_elian_daggers_slam")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slam_2"]
+atlas = ExtResource("tex_elian_daggers_slam")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slam_3"]
+atlas = ExtResource("tex_elian_daggers_slam")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_slam_4"]
+atlas = ExtResource("tex_elian_daggers_slam")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_thrust_0"]
+atlas = ExtResource("tex_elian_daggers_thrust")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_thrust_1"]
+atlas = ExtResource("tex_elian_daggers_thrust")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_thrust_2"]
+atlas = ExtResource("tex_elian_daggers_thrust")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_thrust_3"]
+atlas = ExtResource("tex_elian_daggers_thrust")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_thrust_4"]
+atlas = ExtResource("tex_elian_daggers_thrust")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_rising_0"]
+atlas = ExtResource("tex_elian_daggers_rising")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_rising_1"]
+atlas = ExtResource("tex_elian_daggers_rising")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_rising_2"]
+atlas = ExtResource("tex_elian_daggers_rising")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_rising_3"]
+atlas = ExtResource("tex_elian_daggers_rising")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_rising_4"]
+atlas = ExtResource("tex_elian_daggers_rising")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_dash_strike_0"]
+atlas = ExtResource("tex_elian_daggers_dash_strike")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_dash_strike_1"]
+atlas = ExtResource("tex_elian_daggers_dash_strike")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_dash_strike_2"]
+atlas = ExtResource("tex_elian_daggers_dash_strike")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_dash_strike_3"]
+atlas = ExtResource("tex_elian_daggers_dash_strike")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_dash_strike_4"]
+atlas = ExtResource("tex_elian_daggers_dash_strike")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_lunge_0"]
+atlas = ExtResource("tex_elian_daggers_lunge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_lunge_1"]
+atlas = ExtResource("tex_elian_daggers_lunge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_lunge_2"]
+atlas = ExtResource("tex_elian_daggers_lunge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_lunge_3"]
+atlas = ExtResource("tex_elian_daggers_lunge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_lunge_4"]
+atlas = ExtResource("tex_elian_daggers_lunge")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_lunge_5"]
+atlas = ExtResource("tex_elian_daggers_lunge")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_charge_0"]
+atlas = ExtResource("tex_elian_daggers_charge")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_charge_1"]
+atlas = ExtResource("tex_elian_daggers_charge")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_charge_2"]
+atlas = ExtResource("tex_elian_daggers_charge")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_charge_3"]
+atlas = ExtResource("tex_elian_daggers_charge")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_cleave_0"]
+atlas = ExtResource("tex_elian_daggers_cleave")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_cleave_1"]
+atlas = ExtResource("tex_elian_daggers_cleave")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_cleave_2"]
+atlas = ExtResource("tex_elian_daggers_cleave")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_cleave_3"]
+atlas = ExtResource("tex_elian_daggers_cleave")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_cleave_4"]
+atlas = ExtResource("tex_elian_daggers_cleave")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_sweep_0"]
+atlas = ExtResource("tex_elian_daggers_sweep")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_sweep_1"]
+atlas = ExtResource("tex_elian_daggers_sweep")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_sweep_2"]
+atlas = ExtResource("tex_elian_daggers_sweep")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_sweep_3"]
+atlas = ExtResource("tex_elian_daggers_sweep")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_sweep_4"]
+atlas = ExtResource("tex_elian_daggers_sweep")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_sweep_5"]
+atlas = ExtResource("tex_elian_daggers_sweep")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_hurt_0"]
+atlas = ExtResource("tex_elian_daggers_hurt")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_hurt_1"]
+atlas = ExtResource("tex_elian_daggers_hurt")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_hurt_2"]
+atlas = ExtResource("tex_elian_daggers_hurt")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_hurt_3"]
+atlas = ExtResource("tex_elian_daggers_hurt")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_0"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_1"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_2"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_3"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_4"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_5"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_6"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_knockback_7"]
+atlas = ExtResource("tex_elian_daggers_knockback")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_land_0"]
+atlas = ExtResource("tex_elian_daggers_land")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_land_1"]
+atlas = ExtResource("tex_elian_daggers_land")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_land_2"]
+atlas = ExtResource("tex_elian_daggers_land")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_land_3"]
+atlas = ExtResource("tex_elian_daggers_land")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_attack_0"]
+atlas = ExtResource("tex_elian_spear_attack")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_attack_1"]
+atlas = ExtResource("tex_elian_spear_attack")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_attack_2"]
+atlas = ExtResource("tex_elian_spear_attack")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_attack_3"]
+atlas = ExtResource("tex_elian_spear_attack")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_spear_attack_4"]
+atlas = ExtResource("tex_elian_spear_attack")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_attack_0"]
+atlas = ExtResource("tex_elian_daggers_attack")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_attack_1"]
+atlas = ExtResource("tex_elian_daggers_attack")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_attack_2"]
+atlas = ExtResource("tex_elian_daggers_attack")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_attack_3"]
+atlas = ExtResource("tex_elian_daggers_attack")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_daggers_attack_4"]
+atlas = ExtResource("tex_elian_daggers_attack")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_attack_0"]
+atlas = ExtResource("tex_elian_headsman_attack")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_attack_1"]
+atlas = ExtResource("tex_elian_headsman_attack")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_attack_2"]
+atlas = ExtResource("tex_elian_headsman_attack")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_attack_3"]
+atlas = ExtResource("tex_elian_headsman_attack")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elian_headsman_attack_4"]
+atlas = ExtResource("tex_elian_headsman_attack")
+region = Rect2(512, 0, 128, 64)
+
 [sub_resource type="AtlasTexture" id="elian_attack_0"]
 atlas = ExtResource("tex_elian_attack")
 region = Rect2(0, 0, 128, 64)
@@ -1301,6 +2330,909 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("elian_spear_draw_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_draw_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_draw_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_draw_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_draw_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_draw_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_draw_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_draw_7")
+}],
+"loop": false,
+"name": &"spear_draw",
+"speed": 14.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_slash_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slash_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slash_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slash_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slash_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slash_5")
+}],
+"loop": false,
+"name": &"spear_attack",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_overhead_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_overhead_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_overhead_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_overhead_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_overhead_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_overhead_5")
+}],
+"loop": false,
+"name": &"spear_attack2",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_slam_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slam_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slam_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slam_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_slam_4")
+}],
+"loop": false,
+"name": &"spear_attack3",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_thrust_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_thrust_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_thrust_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_thrust_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_thrust_4")
+}],
+"loop": false,
+"name": &"spear_thrust",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_rising_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_rising_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_rising_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_rising_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_rising_4")
+}],
+"loop": false,
+"name": &"spear_rising",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_dash_strike_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_dash_strike_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_dash_strike_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_dash_strike_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_dash_strike_4")
+}],
+"loop": false,
+"name": &"spear_dash_strike",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_lunge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_lunge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_lunge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_lunge_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_lunge_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_lunge_5")
+}],
+"loop": false,
+"name": &"spear_lunge",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_charge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_charge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_charge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_charge_3")
+}],
+"loop": true,
+"name": &"spear_charge",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_cleave_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_cleave_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_cleave_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_cleave_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_cleave_4")
+}],
+"loop": false,
+"name": &"spear_cleave",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_sweep_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_sweep_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_sweep_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_sweep_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_sweep_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_sweep_5")
+}],
+"loop": false,
+"name": &"spear_sweep",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_hurt_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_hurt_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_hurt_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_hurt_3")
+}],
+"loop": false,
+"name": &"spear_hurt",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_knockback_7")
+}],
+"loop": false,
+"name": &"spear_knockback",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_land_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_land_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_land_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_land_3")
+}],
+"loop": false,
+"name": &"spear_land",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_draw_7")
+}],
+"loop": false,
+"name": &"headsman_draw",
+"speed": 14.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slash_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slash_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slash_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slash_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slash_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slash_5")
+}],
+"loop": false,
+"name": &"headsman_attack",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_overhead_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_overhead_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_overhead_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_overhead_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_overhead_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_overhead_5")
+}],
+"loop": false,
+"name": &"headsman_attack2",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slam_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slam_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slam_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slam_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_slam_4")
+}],
+"loop": false,
+"name": &"headsman_attack3",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_thrust_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_thrust_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_thrust_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_thrust_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_thrust_4")
+}],
+"loop": false,
+"name": &"headsman_thrust",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_rising_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_rising_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_rising_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_rising_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_rising_4")
+}],
+"loop": false,
+"name": &"headsman_rising",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_dash_strike_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_dash_strike_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_dash_strike_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_dash_strike_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_dash_strike_4")
+}],
+"loop": false,
+"name": &"headsman_dash_strike",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_lunge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_lunge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_lunge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_lunge_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_lunge_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_lunge_5")
+}],
+"loop": false,
+"name": &"headsman_lunge",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_charge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_charge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_charge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_charge_3")
+}],
+"loop": true,
+"name": &"headsman_charge",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_cleave_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_cleave_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_cleave_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_cleave_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_cleave_4")
+}],
+"loop": false,
+"name": &"headsman_cleave",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_sweep_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_sweep_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_sweep_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_sweep_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_sweep_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_sweep_5")
+}],
+"loop": false,
+"name": &"headsman_sweep",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_hurt_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_hurt_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_hurt_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_hurt_3")
+}],
+"loop": false,
+"name": &"headsman_hurt",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_knockback_7")
+}],
+"loop": false,
+"name": &"headsman_knockback",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_land_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_land_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_land_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_land_3")
+}],
+"loop": false,
+"name": &"headsman_land",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_draw_7")
+}],
+"loop": false,
+"name": &"daggers_draw",
+"speed": 14.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slash_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slash_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slash_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slash_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slash_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slash_5")
+}],
+"loop": false,
+"name": &"daggers_attack",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_overhead_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_overhead_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_overhead_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_overhead_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_overhead_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_overhead_5")
+}],
+"loop": false,
+"name": &"daggers_attack2",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slam_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slam_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slam_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slam_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_slam_4")
+}],
+"loop": false,
+"name": &"daggers_attack3",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_thrust_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_thrust_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_thrust_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_thrust_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_thrust_4")
+}],
+"loop": false,
+"name": &"daggers_thrust",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_rising_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_rising_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_rising_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_rising_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_rising_4")
+}],
+"loop": false,
+"name": &"daggers_rising",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_dash_strike_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_dash_strike_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_dash_strike_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_dash_strike_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_dash_strike_4")
+}],
+"loop": false,
+"name": &"daggers_dash_strike",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_lunge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_lunge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_lunge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_lunge_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_lunge_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_lunge_5")
+}],
+"loop": false,
+"name": &"daggers_lunge",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_charge_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_charge_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_charge_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_charge_3")
+}],
+"loop": true,
+"name": &"daggers_charge",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_cleave_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_cleave_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_cleave_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_cleave_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_cleave_4")
+}],
+"loop": false,
+"name": &"daggers_cleave",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_sweep_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_sweep_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_sweep_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_sweep_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_sweep_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_sweep_5")
+}],
+"loop": false,
+"name": &"daggers_sweep",
+"speed": 22.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_hurt_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_hurt_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_hurt_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_hurt_3")
+}],
+"loop": false,
+"name": &"daggers_hurt",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_knockback_7")
+}],
+"loop": false,
+"name": &"daggers_knockback",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_land_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_land_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_land_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_land_3")
+}],
+"loop": false,
+"name": &"daggers_land",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("elian_attack_0")
 }, {
 "duration": 1.0,
@@ -1308,5 +3240,38 @@ animations = [{
 }],
 "loop": false,
 "name": &"guard",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_spear_attack_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_spear_attack_4")
+}],
+"loop": false,
+"name": &"spear_guard",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_headsman_attack_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_headsman_attack_4")
+}],
+"loop": false,
+"name": &"headsman_guard",
+"speed": 16.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elian_daggers_attack_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elian_daggers_attack_4")
+}],
+"loop": false,
+"name": &"daggers_guard",
 "speed": 16.0
 }]
