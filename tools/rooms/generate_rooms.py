@@ -1638,6 +1638,9 @@ texture = SubResource("glow_tex")
 
 ## Every front piece written this run, so a full run can sweep the rest away.
 FRONT_WRITTEN = set()
+# A game pack's room borrows its engine room's pieces as they are (build_pack):
+# baking them again would only rewrite the engine's files by a pixel.
+BAKE_FRONT = True
 
 
 def front_nodes(key, pieces):
@@ -1650,13 +1653,14 @@ def front_nodes(key, pieces):
              + "depths = PackedFloat32Array(" + ", ".join(str(float(p.get("depth", 1.35))) for p in pieces) + ")\n\n")
     for i, piece in enumerate(pieces, 1):
         path = os.path.join(front.OUT, f"{key}_{i}.png")
-        image = patched(path, front.bake(piece))
-        pending = path + ".pending.png"
-        image.save(pending)
-        if os.path.exists(path) and filecmp.cmp(pending, path, shallow=False):
-            os.unlink(pending)
-        else:
-            os.replace(pending, path)
+        if BAKE_FRONT or not os.path.exists(path):
+            image = patched(path, front.bake(piece))
+            pending = path + ".pending.png"
+            image.save(pending)
+            if os.path.exists(path) and filecmp.cmp(pending, path, shallow=False):
+                os.unlink(pending)
+            else:
+                os.replace(pending, path)
         FRONT_WRITTEN.add(os.path.basename(path))
         ext += f'[ext_resource type="Texture2D" path="res://assets/levels/front/{key}_{i}.png" id="front_{i}"]\n'
         cx, cy = front.placed(piece)
@@ -1830,6 +1834,8 @@ def _mark_base(path, base):
 
 def build_pack():
     """Every room the pack makes; False when one's route does not hold."""
+    global BAKE_FRONT
+    BAKE_FRONT = False
     ok = True
     rooms = json.load(open(PACK_ROOMS, encoding="utf-8")) if os.path.exists(PACK_ROOMS) else {}
     composed = compose.load(compose.PACK_TABLE)
