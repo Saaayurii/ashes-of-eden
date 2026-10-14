@@ -90,9 +90,9 @@ func _run() -> void:
 	_check(not dark.doused, "the wind-up comes first: the room is still lit")
 	_check(bought.lit, "and the lamp still burns over it")
 	var waited := 0.0
-	while not dark.doused and waited < 4.0:
-		await _settle(0.1)
-		waited += 0.1
+	while not dark.doused and waited < 4.0:  # game time, in frames: a timer runs on the wall clock under --fixed-fps
+		await physics_frame
+		waited += 1.0 / 60.0
 	_check(dark.doused, "then the room goes out (after %.1f s)" % waited)
 	_check(waited >= float(phase.windup) - 0.15, "no sooner than the wind-up")
 	_check(is_equal_approx(dark.dark, float(phase.dark)), "it sinks to %.2f" % dark.dark)

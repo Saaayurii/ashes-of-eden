@@ -80,7 +80,7 @@ size = Vector2(717, 124)
 size = Vector2(180, 137)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
-size = Vector2(191, 12)
+size = Vector2(35, 12)
 
 [sub_resource type="RectangleShape2D" id="Ledge2_shape"]
 size = Vector2(351, 14)
@@ -176,7 +176,7 @@ collision_layer = 16
 collision_mask = 0
 
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(484.5, 509.0)
+position = Vector2(562.5, 509.0)
 shape = SubResource("Ledge1_shape")
 one_way_collision = true
 
@@ -209,7 +209,7 @@ position = Vector2(120, 573)
 prop_id = "tyre_lamp_25"
 
 [node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(460, 503)
+position = Vector2(410, 573)
 prop_id = "tyre_lamp_25"
 
 [node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
