@@ -15,7 +15,8 @@ code and its tools, with this repository's own story, places and pictures laid o
   written from them (`tools/rooms/generate_rooms.py --pack`, and by CI on a push): edit
   the tables, not the scenes.
 - `assets/fonts/NotoSerifSC-Subset.ttf` — the Chinese the game's words use
-  (`tools/art/make_cjk_font.py --pack`), when it has words of its own.
+  (`tools/art/make_cjk_font.py --pack`, cut from the engine's strings and the game's together),
+  when it has words of its own; laying the game over the engine puts it in the engine's place.
 - `localization/strings.csv` — keys the game adds or retells (`GAME_TITLE`, …).
 - `assets/`, `scenes/` — the game's pictures and rooms, named `res://content/...`.
 

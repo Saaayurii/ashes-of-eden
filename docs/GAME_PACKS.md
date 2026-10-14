@@ -53,11 +53,13 @@ over the engine's by key (an empty cell keeps the engine's text, new keys go to
 the end); `--restore` puts the tracked file back.
 
 Every Chinese character must be in a CJK subset. A pack with words of its own
-cuts its own: `python3 tools/art/make_cjk_font.py --pack` reads
-`content/localization/strings.csv` and writes `content/assets/fonts/NotoSerifSC-Subset.ttf`
-(with the OFL text beside it); `Data` puts it into the theme's fallback chain
-ahead of the system font (`_lay_pack_font`), and the validator accepts a
-character in either subset.
+cuts its own: with the pack laid, `python3 tools/art/make_cjk_font.py --pack`
+cuts it from the merged strings (the engine's and the pack's) and writes it to
+`content/assets/fonts/NotoSerifSC-Subset.ttf` (commit it in the pack, with the
+OFL text beside it) and over the engine's copy. From then on `apply_pack.py`
+puts the pack's subset in the engine's place and `--restore` takes it back: the
+theme names the font by path, and laying a font into the theme's fallbacks at
+run time crashes Godot on exit under Linux, so it is a file, not code.
 
 ### Combat
 

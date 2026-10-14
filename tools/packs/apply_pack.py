@@ -15,9 +15,13 @@ here, in the working tree:
     names is its own in every column it fills, a new key is added — because
     Godot imports one CSV of strings, and the engine's code asks for keys like
     GAME_TITLE whatever the game;
-  * project.godot takes the pack's name (game.json "name") and version.
+  * project.godot takes the pack's name (game.json "name") and version;
+  * the pack's CJK subset (tools/art/make_cjk_font.py --pack, cut from the
+    merged strings) takes the place of the engine's, because the theme names
+    the font by path — and changing the theme's fallbacks at run time crashes
+    Godot on exit under Linux.
 
-Both files are tracked in the engine's repository, so --restore puts them back
+All three are tracked in the engine's repository, so --restore puts them back
 with git and drops ./content. A pack made for a newer engine than this one
 (game.json "engine" > DataDoc.ENGINE) is refused before anything changes.
 """
@@ -37,7 +41,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CONTENT = ROOT / "content"
 STRINGS = ROOT / "localization" / "strings.csv"
 PROJECT = ROOT / "project.godot"
-TOUCHED = [STRINGS, PROJECT]
+CJK_FONT = ROOT / "assets" / "fonts" / "NotoSerifSC-Subset.ttf"
+TOUCHED = [STRINGS, PROJECT, CJK_FONT]
 
 
 def engine_version(root: Path = ROOT) -> int:
@@ -102,7 +107,7 @@ def restore() -> None:
     elif CONTENT.is_dir() and (CONTENT / "data" / "game.json").exists():
         shutil.rmtree(CONTENT)
     subprocess.run(["git", "checkout", "--"] + [str(p.relative_to(ROOT)) for p in TOUCHED], cwd=ROOT, check=True)
-    print("engine back to its own game (content/ removed, strings and project restored)")
+    print("engine back to its own game (content/ removed, strings, project and CJK font restored)")
 
 
 def apply(pack: Path, copy: bool, force: bool) -> None:
@@ -135,6 +140,11 @@ def apply(pack: Path, copy: bool, force: bool) -> None:
     engine_project = subprocess.run(["git", "show", "HEAD:project.godot"], cwd=ROOT, capture_output=True,
                                     text=True, check=True).stdout
     PROJECT.write_text(set_project(engine_project, game.get("name"), game.get("version")), encoding="utf-8")
+    pack_font = pack / CJK_FONT.relative_to(ROOT)
+    if pack_font.exists():
+        shutil.copyfile(pack_font, CJK_FONT)
+    else:
+        subprocess.run(["git", "checkout", "--", str(CJK_FONT.relative_to(ROOT))], cwd=ROOT, check=True)
     print(f"{game.get('name', game.get('id'))}: pack {pack} laid over engine {have} "
           f"({'copied' if copy else 'linked'} as content/). Re-import before running: make import")
 
