@@ -14,7 +14,7 @@
     "elite"
   ],
   "sprite": {
-    "like": "fallen_champion",
+    "like": "locust_rider",
     "tint": "#f0c860",
     "scale": 1.15
   },

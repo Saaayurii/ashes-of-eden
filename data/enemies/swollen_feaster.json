@@ -10,7 +10,7 @@
   "waits": false,
   "color": "#c0b090",
   "sprite": {
-    "like": "possessed_villager",
+    "like": "feaster",
     "tint": "#e0d0b0",
     "scale": 1.15
   },

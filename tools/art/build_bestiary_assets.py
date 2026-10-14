@@ -28,6 +28,9 @@ PEOPLE = ["knight", "mara", "matthew", "nun", "severin", "villager"]
 # the sixth cell, a sea wraith, came out teal; ours is the red tide's, so it keeps the wraith's
 SEIR_ENEMIES = ["watchman", "waiting_townsman", "gate_warden", "drowned", "drowned_bosun"]
 SEIR_PEOPLE = ["lazarus", "jonah", "naomi"]
+# Engedi (chapter V), the same way: docs/CHAPTER5_ART.md
+ENGEDI_ENEMIES = ["locust", "locust_rider", "feaster", "vine_husk", "pit_smoke", "abaddon"]
+ENGEDI_PEOPLE = ["ahithophel", "tirzah", "abaddon_face"]
 
 STRIPS = {
     "possessed_villager": ("possessed_idle.png", (40, 36)),
@@ -59,6 +62,9 @@ GAME_CELLS = {
     # Seir (chapter II), drawn by Codex's image generation (assets/CREDITS.md)
     "waiting_townsman": (52, 52), "drowned": (60, 60), "gate_warden": (72, 72),
     "drowned_bosun": (96, 84), "watchman": (88, 88),
+    # Engedi (chapter V); the feaster's idle is seated, so its cell is a sitting man's
+    "locust": (22, 18), "locust_rider": (76, 52), "feaster": (48, 40),
+    "vine_husk": (48, 45), "pit_smoke": (40, 49), "abaddon": (72, 74),
 }
 
 
@@ -458,7 +464,7 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     """Every creature's seven strips; returns the strip cell of each and how
     many rows were added above a flyer's drawing (its "pad_y")."""
     atlas_dir = SPRITES / "enemy_atlases"
-    flyers = {"raven", "shade", "wraith", "ophanim"}
+    flyers = {"raven", "shade", "wraith", "ophanim", "locust", "pit_smoke", "abaddon"}
     cells: dict[str, tuple[tuple[int, int], int]] = {}
     for enemy, target_cell in GAME_CELLS.items():
         source = atlas_dir / f"{enemy}.png"
@@ -571,6 +577,8 @@ def main() -> None:
     split_atlas(PORTRAITS / "people_atlas.png", PEOPLE, 3, 2)
     split_atlas(PORTRAITS / "seir_enemies_atlas.png", SEIR_ENEMIES, 3, 2)
     split_atlas(PORTRAITS / "seir_people_atlas.png", SEIR_PEOPLE, 3, 1)
+    split_atlas(PORTRAITS / "engedi_enemies_atlas.png", ENGEDI_ENEMIES, 3, 2)
+    split_atlas(PORTRAITS / "engedi_people_atlas.png", ENGEDI_PEOPLE, 3, 1)
     build_strips()
     write_cells(build_generated_animation_strips())
 

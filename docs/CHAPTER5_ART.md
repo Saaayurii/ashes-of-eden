@@ -10,12 +10,12 @@ Codex слаб — художница (её ChatGPT, навык `ashes-art`). П
 
 | Что | Статус | Что стоит пока |
 |---|---|---|
-| 12 панелей 1280×720 `assets/levels/engedi_*.png` | **не нарисовано** | ничего: комнаты ночи `engedi` не входят в игру без картин (валидатор считает их ждущими) |
-| Атласы `locust`, `locust_rider`, `feaster`, `vine_husk`, `pit_smoke`, `abaddon` | **не нарисовано** | `locust` — `raven` (тонирован в золото, `scale` 0,4); `locust_rider` — `fallen_champion`; `feaster` — `possessed_villager`; `vine_husk` — `cultist`; `pit_smoke` — `wraith` (тон `#a07850`); `abaddon` — `ophanim` нельзя (другая форма): `fallen_champion` ×1,4 с тоном меди |
+| 12 панелей 1280×720 `assets/levels/engedi_*.png` | **нарисовано** (Codex) | — |
+| Атласы `locust`, `locust_rider`, `feaster`, `vine_husk`, `pit_smoke`, `abaddon` | **нарисовано** (Codex; у всадника, пирующего и Аваддона ряды атак разведены по клеткам) | — |
 | `locust_herald`, `swollen_feaster` | варианты (`extends` + `sprite.like` + тон) — своей картины **не нужно** | атлас всадника / пирующего |
-| Портреты врагов (6) | **не нарисовано** | портреты стоящих тел |
+| Портреты врагов (6) | **нарисовано** (`engedi_enemies_atlas.png`) | — |
 | Листы людей `ahithophel`, `tirzah` | **не нарисовано** | `severin_v2` (Ахитофел), `villager_v2` (Фирца) |
-| Портреты `ahithophel`, `tirzah`, `abaddon` (для диалога) | **не нарисовано** | `matthew`, `mara`, без портрета |
+| Портреты `ahithophel`, `tirzah`, `abaddon` (для диалога) | **нарисовано** (`engedi_people_atlas.png`; Аваддон — `abaddon_face`, в `speakers`) | — |
 | Пропы: плоды (смоква, гроздь, гранат, блюдо), оборванные верёвки, ключ кладезя | **не нарисовано** | `barrel_apples` вместо плода, верёвки — без спрайта, ключ — `fx` искры |
 | Пластины глубины `depth/engedi_*_backfill.png`, `FAR_WINDOWS` | **не нарисовано** | проёмы стоят |
 | Передний план (`front_layers.json`) | **нет** | — |

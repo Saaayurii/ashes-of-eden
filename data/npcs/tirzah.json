@@ -1,8 +1,8 @@
 {
   "id": "tirzah",
-  "_art": "stand-in body (the village girl); own sheet in docs/CHAPTER5_ART.md",
+  "_art": "stand-in body (the village girl); own sheet in docs/CHAPTER5_ART.md (the portrait is drawn)",
   "name": "NPC_TIRZAH",
-  "avatar": "res://assets/portraits/mara.png",
+  "avatar": "res://assets/portraits/tirzah.png",
   "dialogue": "npc_tirzah",
   "face": "left",
   "sprite": {

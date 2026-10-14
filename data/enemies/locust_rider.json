@@ -3,7 +3,6 @@
   "name": "ENEMY_LOCUST_RIDER",
   "lore": "ENEMY_LOCUST_RIDER_LORE",
   "tip": "TIP_LOCUST_RIDER",
-  "_art": "placeholder until the Codex atlas: the fallen champion's strips, bronze",
   "hp": 90,
   "speed": 70,
   "damage": 0,
@@ -18,8 +17,21 @@
   ],
   "armor": 0.1,
   "sprite": {
-    "like": "fallen_champion",
-    "tint": "#d0a868"
+    "cell": [
+      128,
+      63
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/locust_rider_v2_idle.png",
+      "walk": "res://assets/sprites/locust_rider_v2_walk.png",
+      "attack": "res://assets/sprites/locust_rider_v2_attack.png",
+      "attack_alt": "res://assets/sprites/locust_rider_v2_attack_alt.png",
+      "special": "res://assets/sprites/locust_rider_v2_special.png",
+      "hurt": "res://assets/sprites/locust_rider_v2_hurt.png",
+      "death": "res://assets/sprites/locust_rider_v2_death.png"
+    },
+    "scale": 1.0
   },
   "attacks": [
     {
