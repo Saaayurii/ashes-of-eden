@@ -2,7 +2,10 @@
   "id": "npc_matthew",
   "start": "book",
   "nodes": {
-    "book": {"branches": [{"flag": "book_read", "next": "t_book"}], "next": "blood"},
+    "book": {"branches": [{"flag": "book_read", "next": "t_book"}], "next": "again"},
+    "again": {"branches": [{"nights": 3, "next": "t_again"}], "next": "blood"},
+    "t_again": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_AGAIN", "next": "t_again2"},
+    "t_again2": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_AGAIN_2", "next": "blood"},
     "blood": {"branches": [{"flag": "blood_paid", "next": "t_blood"}], "next": "route"},
     "t_blood": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BLOOD", "next": "t_blood2"},
     "t_blood2": {"speaker": "NPC_MATTHEW", "text": "DLG_MATTHEW_BLOOD_2", "next": "route"},
@@ -62,7 +65,8 @@
           "effect": {
             "grace": 1,
             "set_flags": [
-              "matthew_confessed"
+              "matthew_confessed",
+              "version_man"
             ]
           },
           "next": "t_confess"

@@ -5,8 +5,10 @@
     "v1": {
       "speaker": "SPEAKER_VOICE",
       "text": "DLG_VOICE_1",
-      "next": "v2"
+      "next": "again"
     },
+    "again": {"branches": [{"nights": 3, "next": "v_again"}], "next": "v2"},
+    "v_again": {"speaker": "SPEAKER_VOICE", "text": "DLG_VOICE_AGAIN", "next": "v2"},
     "v2": {
       "speaker": "SPEAKER_VOICE",
       "text": "DLG_VOICE_2",

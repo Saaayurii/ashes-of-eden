@@ -74,6 +74,7 @@ const REQUIRED := {
 	"omens": ["id", "name", "description", "rules"],
 	"affixes": ["id", "name", "color", "mods"],
 	"weapons": ["id", "name", "description", "icon", "chain"],
+	"endings": ["id", "name", "description", "line", "cutscene", "order", "when"],
 }
 
 var errors: PackedStringArray = []
@@ -86,6 +87,9 @@ var _npc_ids := {}
 var _prop_ids := {}
 var _enemy_ids := {}
 var _cutscene_ids := {}
+## Every ending (data/endings) and those marked "fallback", for the finale and the deeds.
+var _ending_ids := {}
+var _ending_fallbacks: Array = []
 var _note_ids := {}
 var _chapter_ids := {}
 var _ability_paths := {}  # gift id -> its path
@@ -129,6 +133,8 @@ func _init() -> void:
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	var game: Dictionary = _game()
+	for entry in _game_entries("endings"):  # a deed may name one before they are checked
+		_ending_ids[str(entry.get("id", ""))] = true
 	for collection in REQUIRED:
 		var entries := _game_entries(collection)
 		counts[collection] = entries.size()
@@ -142,6 +148,7 @@ func _init() -> void:
 					_error("%s: duplicate id \"%s\"" % [collection, entry.id])
 				ids[entry.id] = true
 	_check_game_rooms(game)
+	_check_finale(game)
 	for key in used_keys:
 		if not strings.has(key):
 			_error("missing localization key %s (used in %s)" % [key, used_keys[key]])
@@ -370,6 +377,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_relic(entry, where)
 		"omens":
 			_check_omen(entry, where)
+		"endings":
+			_check_ending(entry, where)
 		"affixes":
 			_use_key(entry.get("name", ""), where)
 			for key in entry.get("mods", {}):
@@ -461,10 +470,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
 						if branch.has("vial") and (int(branch.vial) < 1 or int(branch.vial) > 5):
 							_error("%s: branch vial is 1..5" % node_where)
+						if branch.has("nights") and int(branch.nights) < 1:
+							_error("%s: branch nights is at least 1 (nights already lived)" % node_where)
 						if branch.has("omen") and not _omen_ids().has(str(branch.omen)):
 							_error("%s: branch omen \"%s\" names no omen in data/omens" % [node_where, branch.omen])
-						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen")):
-							_error("%s: a branch needs a flag, a path, a habit, a vial or an omen to test" % node_where)
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen") or branch.has("nights")):
+							_error("%s: a branch needs a flag, a path, a habit, a vial, an omen or nights to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
@@ -974,7 +985,7 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 	if int(entry.get("ash", 0)) < 0 or int(entry.get("ash", 0)) > 50:
 		_error("%s: ash is 0..50 (docs/BALANCE.md: permanent power stays small)" % where)
 	for key in unlock:
-		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "items", "affixes", "moves", "deeds", "fast"].has(key):
+		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "items", "affixes", "moves", "deeds", "fast", "endings"].has(key):
 			_error("%s: unlock.%s is not a condition Achievements reads" % [where, key])
 	for key in ["nights", "wins", "total_kills"]:
 		if unlock.has(key) and int(unlock[key]) < 1:
@@ -995,6 +1006,11 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 			_error("%s: unlock.fast names no boss: %s" % [where, boss])
 		elif float(unlock.fast[boss]) <= 0.0:
 			_error("%s: unlock.fast.%s is a time in seconds" % [where, boss])
+	var endings = unlock.get("endings", [])
+	if str(endings) != "all":
+		for ending in endings:
+			if not _ending_ids.has(str(ending)):
+				_error("%s: unlock.endings names no ending: %s" % [where, ending])
 	for counter in unlock.get("deeds", {}):
 		if not counters.has(counter):
 			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])
@@ -1098,6 +1114,69 @@ func _check_vial(entry: Dictionary, where: String) -> void:
 			_error("%s: promote %s -> %s names no enemy" % [where, from, to])
 	if float(rules.get("promote_chance", 0.0)) > 1.0 or float(rules.get("rest_heal", 1.0)) <= 0.0:
 		_error("%s: promote_chance is 0..1 and rest_heal above 0" % where)
+
+
+## An ending (data/endings, scripts/run/endings.gd): its words, a cutscene
+## that exists, and a "when" in the terms Endings.holds reads. Its flags count
+## as read — the ending is what answers them.
+func _check_ending(entry: Dictionary, where: String) -> void:
+	for key in ["name", "description", "line"]:
+		_use_key(entry.get(key, ""), where)
+	_ending_ids[str(entry.get("id", ""))] = true
+	if not str(entry.get("id", "")).is_valid_identifier():
+		_error("%s: the id names a deed and a record: letters, digits, _" % where)
+	if not _cutscene_ids.has(entry.get("cutscene", "")):
+		_error("%s: unknown cutscene %s" % [where, entry.get("cutscene", "")])
+	if not entry.get("order") is float:
+		_error("%s: order is a number (lower is tried first)" % where)
+	if entry.get("fallback", false):
+		_ending_fallbacks.append(entry.id)
+	var when = entry.get("when", {})
+	if not when is Dictionary or when.is_empty():
+		_error("%s: when is {path, lead, balanced, flags, unless}, not empty" % where)
+		return
+	for key in when:
+		match key:
+			"path":
+				if not PATHS.has(when.path):
+					_error("%s: when.path must be one of %s" % [where, PATHS])
+			"lead", "balanced":
+				if not when[key] is float or int(when[key]) < 0 or int(when[key]) > 20:
+					_error("%s: when.%s is a whole number of the hidden counters, 0..20" % [where, key])
+			"flags", "unless":
+				if not when[key] is Array:
+					_error("%s: when.%s is a list of flags" % [where, key])
+				else:
+					for flag in when[key]:
+						flags_read[str(flag)] = where
+			_:
+				_error("%s: when.%s is not path, lead, balanced, flags or unless" % [where, key])
+	if when.has("lead") and not when.has("path"):
+		_error("%s: when.lead needs a path to lead" % where)
+	if when.has("balanced") and when.has("path"):
+		_error("%s: a balanced night leans no way: when.path and when.balanced cannot meet" % where)
+
+
+## data/game.json "finale" (Endings.finale): the room after which the campaign
+## would end, the scene there that comes before an ending, and whether it ends
+## yet. Endings need exactly one fallback, so every night has one.
+func _check_finale(game: Dictionary) -> void:
+	if not _ending_ids.is_empty() and _ending_fallbacks.size() != 1:
+		_error("data/endings: exactly one ending is the \"fallback\" (has %s)" % [_ending_fallbacks])
+	if not game.has("finale"):
+		if not _ending_ids.is_empty():
+			_error("data/game.json: endings exist but no \"finale\" says where the campaign ends")
+		return
+	var finale = game.finale
+	if not finale is Dictionary:
+		_error("data/game.json: finale is {room, cutscene, ends_campaign}")
+		return
+	if not game.get("rooms", []).has(finale.get("room", "")):
+		_error("data/game.json: finale.room must be one of the rooms: %s" % finale.get("room", ""))
+	if finale.has("cutscene") and not _cutscene_ids.has(finale.cutscene):
+		_error("data/game.json: finale.cutscene names no cutscene: %s" % finale.cutscene)
+	if not finale.get("ends_campaign", false) is bool:
+		_error("data/game.json: finale.ends_campaign is true or false")
 
 
 ## An omen (data/omens, scripts/run/omens.gd): a trade — at least one rule

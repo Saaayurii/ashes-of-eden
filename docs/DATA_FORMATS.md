@@ -177,7 +177,9 @@ so once in a caption (`UNLOCKED_TONIGHT`).
   automatically if a blocking dialogue starts.
 - A **router** node has `branches` instead of text: `{"branches": [{"flag": "stranger_killed", "next": "m_killed"}], "next": "m_default"}`.
   The first branch whose flag is in `Game.flags` wins; `next` is the fallback. This is how NPCs react to
-  choices made rooms earlier (see `docs/CHAPTER1.md` §3).
+  choices made rooms earlier (see `docs/CHAPTER1.md` §3). A branch may instead ask `path`, `vial`, `omen`,
+  `habit`, or `nights` (`{"nights": 3}`: the profile has finished at least that many nights — the world
+  noticing the night repeats; never online, where two profiles disagree).
 - A node without `next` and without `choices` ends the dialogue.
 - `effect` accepts `grace` / `temptation` / `will` (integers) and `set_flags` (list of story flags stored in `Game.flags`).
 - Dialogues are started from code: `await $UI/DialogueBox.play("ch1_stranger")`. They pause the game and are always skippable.
@@ -265,6 +267,26 @@ Where the chapter's way splits and joins again (scripts/run/route.gd, docs/CHAPT
   which ones a night walks. `Route.step` numbers the rooms along the way walked, with no gap.
 - An option must carry no story — no `intro_cutscene`/`outro_cutscene`/`intro_dialogue`, no NPC, no
   rest point — or the night that took the other way would lose it; the validator refuses one.
+
+## Endings — `data/endings/`
+
+How the campaign ends (`scripts/run/endings.gd`, `docs/GDD.md` §9, `docs/STORY_BIBLE.md`):
+
+```json
+{"id": "fourth", "name": "ENDING_FOURTH", "description": "ENDING_FOURTH_DESC", "line": "ENDING_FOURTH_LINE",
+ "cutscene": "ending_fourth", "order": 1,
+ "when": {"balanced": 1, "flags": ["version_heaven", "version_abyss", "version_man", "book_read"]}}
+```
+
+- `when`: `path` + `lead` (that path leads the others by at least `lead`, `Game.lead()`), `balanced` (no
+  path leads by more), `flags` (all set), `unless` (none set). Every key must hold. Its flags count as read.
+- Endings are tried by `order`; the first whose `when` holds is the night's. Exactly one carries
+  `"fallback": true` and ends any night the others do not claim.
+- `cutscene` plays after the finale (`data/game.json` `finale`: `room`, `cutscene`, `ends_campaign`);
+  `line` stands on the night's end under "Ending: <name>"; the bestiary keeps `ending:<id>` (times reached),
+  the chronicle the night's `ending`, and a deed may ask for it (`"unlock": {"endings": [...]}`).
+- While `ends_campaign` is false (chapter I) a dawn says "to be continued"; a debug build plays one with
+  `-- --ending=<id>`. `endings_test.gd`.
 
 ## Chapters — `data/chapters/`
 
