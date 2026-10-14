@@ -8,13 +8,36 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate:
-    name: Validate data & localization
+  # The Godot side, split so the slow parts run side by side: the validator,
+  # the two runs that play a whole night, three shares of the other tests
+  # (`entrypoint test K/N` deals them out), and the crossplay stand in two
+  # halves. Each job pulls the same image from the GitHub Actions cache.
+  godot:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     # Ordinary insurance: GitHub otherwise lets a stuck job hold a runner for
-    # six hours. The whole job takes about fifteen minutes when the image has
-    # to be rebuilt from scratch, so this is generous and still finite.
-    timeout-minutes: 45
+    # six hours. A share takes a few minutes, a rebuilt image about ten more.
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Validate data & localization
+            run: validate
+          - name: Smoke test game loop
+            # It plays the whole chapter at 4x and every night after it.
+            run: test smoke
+          - name: Tests 1/3
+            run: test 1/3
+          - name: Tests 2/3
+            run: test 2/3
+          - name: Tests 3/3
+            run: test 3/3
+          - name: Crossplay stand (direct, dedicated)
+            # Two Godot processes finding each other over a socket.
+            run: net-test coop pvp coop-dedicated pvp-dedicated
+          - name: Crossplay stand (relay, rejoin)
+            run: net-test coop-relay pvp-relay coop-rejoin
     steps:
       - uses: actions/checkout@v4
 
@@ -29,27 +52,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
 
-      - name: Validate data & localization
-        run: docker compose run --rm validate
+      - name: ${{ matrix.name }}
+        run: docker compose run --rm godot ${{ matrix.run }}
 
-      - name: Smoke test game loop
-        # It plays the whole chapter at 4x and lands around two minutes;
-        # twelve is a slow runner, not a stuck one.
-        timeout-minutes: 12
-        run: docker compose run --rm test
-
-      - name: Crossplay stand (co-op and duel)
-        # Two Godot processes finding each other over a socket — the most
-        # likely place for this to stick, even though it has not yet. Around
-        # two minutes in practice, about five with the relay modes.
-        timeout-minutes: 18
-        run: docker compose run --rm net-test
-
-      # The Godot container runs as root: the .import files and .godot/ it left
-      # in the checkout belong to root, and the studio's local server below
-      # (running as the runner) could not roll a write back over them.
-      - name: Hand the checkout back to the runner
-        run: sudo chown -R "$(id -u):$(id -g)" .
+  tools:
+    name: Generators, web page, telemetry, studio
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
 
       # Half the repository is written by scripts that promise byte-identical
       # output. Only the quick ones here: the audio generators take minutes and
