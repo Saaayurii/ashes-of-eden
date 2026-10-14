@@ -200,7 +200,9 @@ static func wake(body: Enemy, who: Player) -> void:
 		return
 	for other in members(body):
 		var e := other as Enemy
-		if e != body and e.is_unaware():
+		# PATROL, not is_unaware(): ALERT is "unaware" too, and a member already
+		# alerted would wake the rest again, and they it, without end
+		if e != body and e.state == Enemy.State.PATROL:
 			e._notice(who, false)
 
 

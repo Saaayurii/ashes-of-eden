@@ -722,8 +722,16 @@ PAINTED = {
         void_kill_y=700,
         ground=[(0, 626, 1280, 94)],
         ledges=[(0, 488, 800, 14), (250, 350, 1030, 14), (640, 150, 640, 14)],
-        ramps=[(180, 626, 10, 488), (805, 488, 655, 350), (900, 350, 700, 150)],
-        stone_steps=True,
+        # The painted stairs rise to the left, back under the terrace they reach,
+        # so they are treads to jump (one-way ledges let him up through and
+        # down again), not ramps: a ramp's head under its own floor is a trap.
+        platforms=[(110, 598, 45, 8), (75, 566, 45, 8), (45, 537, 45, 8), (15, 510, 40, 8),
+                   (770, 454, 40, 8), (735, 419, 40, 8), (700, 384, 40, 8),
+                   (850, 316, 40, 8), (810, 282, 40, 8), (775, 248, 40, 8), (740, 214, 40, 8), (705, 180, 40, 8)],
+        painted_platforms=[(110, 598, 45, 8), (75, 566, 45, 8), (45, 537, 45, 8), (15, 510, 40, 8),
+                           (770, 454, 40, 8), (735, 419, 40, 8), (700, 384, 40, 8),
+                           (850, 316, 40, 8), (810, 282, 40, 8), (775, 248, 40, 8), (740, 214, 40, 8),
+                           (705, 180, 40, 8)],
         spawns=[("locust", 300, 400), ("locust", 1050, 250), ("vine_husk", 450, 476), ("vine_husk", 1050, 338),
                 ("pit_smoke", 450, 200)],
         props=[("engedi_grapes", 330, 626), ("engedi_grapes", 520, 488), ("engedi_grapes", 1120, 350),

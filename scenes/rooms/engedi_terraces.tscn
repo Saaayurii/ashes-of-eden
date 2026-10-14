@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=45 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/engedi_terraces_wide.png" id="2_backdrop"]
@@ -72,6 +72,42 @@ size = Vector2(20, 56)
 [sub_resource type="RectangleShape2D" id="Ground1_shape"]
 size = Vector2(1600, 94)
 
+[sub_resource type="RectangleShape2D" id="Platform1_shape"]
+size = Vector2(45, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform2_shape"]
+size = Vector2(45, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform3_shape"]
+size = Vector2(45, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform4_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform5_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform6_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform7_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform8_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform9_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform10_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform11_shape"]
+size = Vector2(40, 8)
+
+[sub_resource type="RectangleShape2D" id="Platform12_shape"]
+size = Vector2(40, 8)
+
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(960, 14)
 
@@ -142,18 +178,69 @@ shape = SubResource("Wall2_shape")
 position = Vector2(800.0, -8.0)
 shape = SubResource("Wall3_shape")
 
-[node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(10.0, 488.0, 19.44, 488.0, 19.44, 495.67, 28.89, 495.67, 28.89, 503.33, 38.33, 503.33, 38.33, 511.0, 47.78, 511.0, 47.78, 518.67, 57.22, 518.67, 57.22, 526.33, 66.67, 526.33, 66.67, 534.0, 76.11, 534.0, 76.11, 541.67, 85.56, 541.67, 85.56, 549.33, 95.0, 549.33, 95.0, 557.0, 104.44, 557.0, 104.44, 564.67, 113.89, 564.67, 113.89, 572.33, 123.33, 572.33, 123.33, 580.0, 132.78, 580.0, 132.78, 587.67, 142.22, 587.67, 142.22, 595.33, 151.67, 595.33, 151.67, 603.0, 161.11, 603.0, 161.11, 610.67, 170.56, 610.67, 170.56, 618.33, 180.0, 618.33, 180.0, 626.0, 180.0, 642.0, 180.0, 634.33, 170.56, 634.33, 170.56, 626.67, 161.11, 626.67, 161.11, 619.0, 151.67, 619.0, 151.67, 611.33, 142.22, 611.33, 142.22, 603.67, 132.78, 603.67, 132.78, 596.0, 123.33, 596.0, 123.33, 588.33, 113.89, 588.33, 113.89, 580.67, 104.44, 580.67, 104.44, 573.0, 95.0, 573.0, 95.0, 565.33, 85.56, 565.33, 85.56, 557.67, 76.11, 557.67, 76.11, 550.0, 66.67, 550.0, 66.67, 542.33, 57.22, 542.33, 57.22, 534.67, 47.78, 534.67, 47.78, 527.0, 38.33, 527.0, 38.33, 519.33, 28.89, 519.33, 28.89, 511.67, 19.44, 511.67, 19.44, 504.0, 10.0, 504.0)
-
-[node name="Ramp2" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(815.0, 350.0, 823.33, 350.0, 823.33, 357.67, 831.67, 357.67, 831.67, 365.33, 840.0, 365.33, 840.0, 373.0, 848.33, 373.0, 848.33, 380.67, 856.67, 380.67, 856.67, 388.33, 865.0, 388.33, 865.0, 396.0, 873.33, 396.0, 873.33, 403.67, 881.67, 403.67, 881.67, 411.33, 890.0, 411.33, 890.0, 419.0, 898.33, 419.0, 898.33, 426.67, 906.67, 426.67, 906.67, 434.33, 915.0, 434.33, 915.0, 442.0, 923.33, 442.0, 923.33, 449.67, 931.67, 449.67, 931.67, 457.33, 940.0, 457.33, 940.0, 465.0, 948.33, 465.0, 948.33, 472.67, 956.67, 472.67, 956.67, 480.33, 965.0, 480.33, 965.0, 488.0, 965.0, 504.0, 965.0, 496.33, 956.67, 496.33, 956.67, 488.67, 948.33, 488.67, 948.33, 481.0, 940.0, 481.0, 940.0, 473.33, 931.67, 473.33, 931.67, 465.67, 923.33, 465.67, 923.33, 458.0, 915.0, 458.0, 915.0, 450.33, 906.67, 450.33, 906.67, 442.67, 898.33, 442.67, 898.33, 435.0, 890.0, 435.0, 890.0, 427.33, 881.67, 427.33, 881.67, 419.67, 873.33, 419.67, 873.33, 412.0, 865.0, 412.0, 865.0, 404.33, 856.67, 404.33, 856.67, 396.67, 848.33, 396.67, 848.33, 389.0, 840.0, 389.0, 840.0, 381.33, 831.67, 381.33, 831.67, 373.67, 823.33, 373.67, 823.33, 366.0, 815.0, 366.0)
-
-[node name="Ramp3" type="CollisionPolygon2D" parent="Geometry"]
-polygon = PackedVector2Array(860.0, 150.0, 868.0, 150.0, 868.0, 158.0, 876.0, 158.0, 876.0, 166.0, 884.0, 166.0, 884.0, 174.0, 892.0, 174.0, 892.0, 182.0, 900.0, 182.0, 900.0, 190.0, 908.0, 190.0, 908.0, 198.0, 916.0, 198.0, 916.0, 206.0, 924.0, 206.0, 924.0, 214.0, 932.0, 214.0, 932.0, 222.0, 940.0, 222.0, 940.0, 230.0, 948.0, 230.0, 948.0, 238.0, 956.0, 238.0, 956.0, 246.0, 964.0, 246.0, 964.0, 254.0, 972.0, 254.0, 972.0, 262.0, 980.0, 262.0, 980.0, 270.0, 988.0, 270.0, 988.0, 278.0, 996.0, 278.0, 996.0, 286.0, 1004.0, 286.0, 1004.0, 294.0, 1012.0, 294.0, 1012.0, 302.0, 1020.0, 302.0, 1020.0, 310.0, 1028.0, 310.0, 1028.0, 318.0, 1036.0, 318.0, 1036.0, 326.0, 1044.0, 326.0, 1044.0, 334.0, 1052.0, 334.0, 1052.0, 342.0, 1060.0, 342.0, 1060.0, 350.0, 1060.0, 366.0, 1060.0, 358.0, 1052.0, 358.0, 1052.0, 350.0, 1044.0, 350.0, 1044.0, 342.0, 1036.0, 342.0, 1036.0, 334.0, 1028.0, 334.0, 1028.0, 326.0, 1020.0, 326.0, 1020.0, 318.0, 1012.0, 318.0, 1012.0, 310.0, 1004.0, 310.0, 1004.0, 302.0, 996.0, 302.0, 996.0, 294.0, 988.0, 294.0, 988.0, 286.0, 980.0, 286.0, 980.0, 278.0, 972.0, 278.0, 972.0, 270.0, 964.0, 270.0, 964.0, 262.0, 956.0, 262.0, 956.0, 254.0, 948.0, 254.0, 948.0, 246.0, 940.0, 246.0, 940.0, 238.0, 932.0, 238.0, 932.0, 230.0, 924.0, 230.0, 924.0, 222.0, 916.0, 222.0, 916.0, 214.0, 908.0, 214.0, 908.0, 206.0, 900.0, 206.0, 900.0, 198.0, 892.0, 198.0, 892.0, 190.0, 884.0, 190.0, 884.0, 182.0, 876.0, 182.0, 876.0, 174.0, 868.0, 174.0, 868.0, 166.0, 860.0, 166.0)
-
 [node name="Ledges" type="StaticBody2D" parent="."]
 collision_layer = 16
 collision_mask = 0
+
+[node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(132.5, 602.0)
+shape = SubResource("Platform1_shape")
+one_way_collision = true
+
+[node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(97.5, 570.0)
+shape = SubResource("Platform2_shape")
+one_way_collision = true
+
+[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(67.5, 541.0)
+shape = SubResource("Platform3_shape")
+one_way_collision = true
+
+[node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(35.0, 514.0)
+shape = SubResource("Platform4_shape")
+one_way_collision = true
+
+[node name="Platform5Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(950.0, 458.0)
+shape = SubResource("Platform5_shape")
+one_way_collision = true
+
+[node name="Platform6Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(915.0, 423.0)
+shape = SubResource("Platform6_shape")
+one_way_collision = true
+
+[node name="Platform7Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(880.0, 388.0)
+shape = SubResource("Platform7_shape")
+one_way_collision = true
+
+[node name="Platform8Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1030.0, 320.0)
+shape = SubResource("Platform8_shape")
+one_way_collision = true
+
+[node name="Platform9Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(990.0, 286.0)
+shape = SubResource("Platform9_shape")
+one_way_collision = true
+
+[node name="Platform10Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(955.0, 252.0)
+shape = SubResource("Platform10_shape")
+one_way_collision = true
+
+[node name="Platform11Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(920.0, 218.0)
+shape = SubResource("Platform11_shape")
+one_way_collision = true
+
+[node name="Platform12Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(885.0, 184.0)
+shape = SubResource("Platform12_shape")
+one_way_collision = true
 
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(480.0, 495.0)

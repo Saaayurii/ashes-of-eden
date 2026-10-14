@@ -82,6 +82,8 @@ TESTS=(
     "--headless -s scripts/tools/room_jump_test.gd"
     "--headless -s scripts/tools/relay_test.gd"
     "--headless -s scripts/tools/telemetry_test.gd"
+    "--headless -s scripts/tools/fruit_test.gd"
+    "--headless --fixed-fps 60 -s scripts/tools/swarm_test.gd"
 )
 
 case "${1:-validate}" in
