@@ -49,6 +49,8 @@ ROOM_EXPANSION_CUTS = {
     "seir_square": (380, 820), "seir_roofs": (300, 1020), "seir_canal": (200, 1000),
     "seir_quay": (250, 1050), "seir_wrecks": (250, 470), "seir_warehouses": (320, 1000),
     "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
+    "tyre_causeway": (330, 860), "tyre_counting_house": (300, 960), "tyre_dark_quarter": (230, 860),
+    "tyre_bright_quay": (400, 780), "tyre_dyeworks": (460, 1160),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -76,6 +78,11 @@ FOCAL_RANGES = {
     "seir_warehouses": ((890, 960),),          # the clock on the post
     "seir_breakwater": ((740, 820),),          # moon
     "seir_lighthouse": ((540, 640), (900, 1130)),  # moon in its window, the lamp
+    "tyre_causeway": ((980, 1060), (0, 300)),  # moon, Zacchaeus's sycamore
+    "tyre_counting_house": ((395, 445), (860, 915)),  # the two windows
+    "tyre_dark_quarter": ((790, 830),),        # moon
+    "tyre_bright_quay": ((340, 390),),         # moon
+    "tyre_dyeworks": ((840, 895),),            # moon
 }
 
 TRAVERSAL_PATCHES = {
@@ -118,6 +125,9 @@ SEAM_STORIES = {
     "seir_roofs": ("", ""), "seir_canal": ("", ""), "seir_quay": ("", ""), "seir_wrecks": ("", ""),
     "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
     "seir_lighthouse": ("", ""),
+    # Tyre's too.
+    "tyre_causeway": ("", ""), "tyre_counting_house": ("", ""), "tyre_dark_quarter": ("", ""),
+    "tyre_bright_quay": ("", ""), "tyre_dyeworks": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -153,6 +163,8 @@ ROOM_PROP_MOTIFS = {
     "seir_road": {}, "seir_gate": {}, "seir_street": {}, "seir_square": {}, "seir_roofs": {},
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
+    "tyre_causeway": {}, "tyre_counting_house": {}, "tyre_dark_quarter": {}, "tyre_bright_quay": {},
+    "tyre_dyeworks": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -234,6 +246,9 @@ DEPTH_WINDOWS = {
     "seir_roofs": (0.02, []), "seir_canal": (0.02, []), "seir_quay": (0.02, []), "seir_wrecks": (0.02, []),
     "seir_warehouses": (0.02, []), "seir_breakwater": (0.02, []), "seir_lighthouse_stair": (0.02, []),
     "seir_lighthouse": (0.02, []),
+    # Tyre has no inpainted plates yet (docs/CHAPTER4_ART.md) either.
+    "tyre_causeway": (0.02, []), "tyre_counting_house": (0.02, []), "tyre_dark_quarter": (0.02, []),
+    "tyre_bright_quay": (0.02, []), "tyre_dyeworks": (0.02, []),
 }
 
 
@@ -473,6 +488,10 @@ def expand_painted_room(name, room):
     for key in ("ground", "ledges", "platforms", "painted_platforms", "hazards"):
         out[key] = [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts), h)
                     for x, y, w, h in room.get(key, [])]
+    # a table's own pools ([kind, x, surface y, w, depth(, options)], docs/LIQUIDS.md), widened like the floor
+    out["liquids"] = [[pool[0], _map_x(pool[1], inserts), pool[2],
+                       _map_x(pool[1] + pool[3], inserts) - _map_x(pool[1], inserts), pool[4]] + list(pool[5:])
+                      for pool in room.get("liquids", [])]
     out["crumbling_platforms"] = [(_map_x(piece[0], inserts), piece[1],
                                     _map_x(piece[0] + piece[2], inserts) - _map_x(piece[0], inserts),
                                     piece[3] if len(piece) > 3 else "stone")
@@ -1670,6 +1689,11 @@ texture = SubResource("glow_tex")
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
                             '[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]')
+    if r.get("dark"):  # bought light (docs/CHAPTER4.md §2): the room sinks to this share of black
+        text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
+                            '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
+                            '[ext_resource type="Script" path="res://scripts/rooms/darkness.gd" id="darkness"]')
+        text = text.rstrip() + f'\n\n[node name="Darkness" type="Node" parent="."]\nscript = ExtResource("darkness")\ndark = {float(r["dark"])}\n'
     if scene is None:  # a composed draft is another room's geometry: her textures wait for the room itself
         text, warnings = studio_textures.apply(text, STUDIO_TEXTURES.get(name), name)
         for warning in warnings:
@@ -1761,7 +1785,7 @@ if os.path.exists(STUDIO_ROOMS):
                     raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a liquid is [kind of data/liquids.json, x, y, w, h(, options)]")
                 if _pool[3] < 16 or _pool[4] < 8:
                     raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a liquid is at least 16x8 px")
-            ROOMS[_name]["liquids"] = [list(p) for p in _extra.get("liquids", [])]
+            ROOMS[_name]["liquids"] = list(ROOMS[_name].get("liquids", [])) + [list(p) for p in _extra.get("liquids", [])]
             if "textures" in _extra or "retouch" in _extra:
                 studio_textures.validate(f"tools/rooms/studio_rooms.json: {_name}", _extra)
                 STUDIO_TEXTURES[_name] = {k: _extra[k] for k in ("textures", "retouch") if k in _extra}

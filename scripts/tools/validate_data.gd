@@ -1373,6 +1373,11 @@ func _check_omen(entry: Dictionary, where: String) -> void:
 			"enemy_sight":
 				helps = helps or float(value) < 1.0
 				hurts = hurts or float(value) > 1.0
+			"dark", "lamp_price":  # docs/CHAPTER4.md §7: deeper dark, dearer lamps
+				hurts = hurts or float(value) > 1.0
+				helps = helps or float(value) < 1.0
+				if float(value) <= 0.0 or float(value) > 2.0:
+					_error("%s: rules.%s is 0..2" % [where, key])
 			"promote_chance":
 				hurts = hurts or float(value) > 0.0
 				if float(value) > 1.0:

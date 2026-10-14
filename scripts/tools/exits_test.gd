@@ -38,6 +38,11 @@ const DOORWAYS := {
 	"seir_breakwater": [1523, 1573, 432],       # the lighthouse door
 	"seir_lighthouse_stair": [1485, 1535, 119], # the arch at the top of the stair
 	"seir_lighthouse": [1545, 1595, 495],       # the arch past the lamp room
+	"tyre_causeway": [1550, 1600, 498],         # the gate's arch at the causeway's end
+	"tyre_counting_house": [1510, 1560, 574],   # the arch past the tellers' tables
+	"tyre_dark_quarter": [1535, 1585, 546],     # the alley mouth at the street's end
+	"tyre_bright_quay": [1535, 1585, 485],      # the lit arch over the quay
+	"tyre_dyeworks": [1530, 1580, 505],         # the arch past the last vat
 }
 
 var failures := 0

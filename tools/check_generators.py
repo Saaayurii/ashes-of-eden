@@ -68,6 +68,8 @@ GENERATORS = [
       "assets/sprites/training_dummy_idle.png", "assets/sprites/training_dummy_hurt.png"], False),
     ("web gate", ["tools/art/make_web_gate.py"],
      ["tools/web/shell.html"], False),
+    ("tyre lamp", ["tools/art/make_tyre_lamp.py"],
+     ["assets/props/tyre_lamp.png"], False),
     ("cjk subset", ["tools/art/make_cjk_font.py"],
      ["assets/fonts/NotoSerifSC-Subset.ttf"], True),
 ]

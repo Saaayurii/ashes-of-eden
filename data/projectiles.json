@@ -472,6 +472,38 @@
           "count": 6
         }
       ]
+    },
+    "coin": {
+      "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",
+      "frames": 4,
+      "fps": 14,
+      "shader": 4,
+      "scale": 0.38,
+      "light": 18,
+      "trail": 6,
+      "spin": 18,
+      "bob": [
+        0,
+        0
+      ],
+      "echo": {
+        "offset": 6,
+        "sway": [
+          0,
+          0
+        ],
+        "color": "#ffd870",
+        "alpha": 0.3,
+        "scale": 0.8
+      },
+      "burst": [
+        {
+          "fx": "sparkle",
+          "color": "#ffd870",
+          "count": 8,
+          "size": 3
+        }
+      ]
     }
   }
 }

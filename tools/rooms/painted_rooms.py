@@ -690,4 +690,78 @@ PAINTED = {
         props=[],
         decor=[], npcs=[], ambient="#ccc0b8", lights="auto",
         player=(40, 475), door=(1250, 463)),
+    # Chapter IV, Tyre (docs/CHAPTER4.md §1): bought light. "dark" sinks the
+    # room's night toward black (scripts/rooms/darkness.gd); the lamps are
+    # tyre_lamp props at their price, and the painting's own lanterns light
+    # themselves (lights="auto"): paid for long ago, never for sale.
+    "tyre_causeway": dict(
+        # The causeway to the island: toll booths with paid lamps, and over the
+        # road a dead sycamore with Zacchaeus in it. The near booth's stair
+        # climbs to its roof; the sea beyond the parapet is the backdrop.
+        painting="tyre_causeway", width=1280, height=720, weather="ash", fog=0.2, intro="", music="road",
+        intro_cutscene="zacchaeus_in_the_sycamore", dark=0.35,
+        ground=[(0, 498, 1280, 222)],
+        ledges=[(440, 455, 48, 12), (478, 420, 45, 12), (512, 385, 30, 12), (542, 347, 210, 14)],
+        spawns=[("woe_eagle", 700, 250), ("woe_eagle", 1050, 320), ("cutpurse", 880, 486)],
+        props=[],
+        decor=[], npcs=[("zacchaeus", 262, 262)], ambient="#c4bcb0", lights="auto",
+        player=(20, 478), door=(1255, 466)),
+    "tyre_counting_house": dict(
+        # The counting house: the scales and ledgers on the floor, the strongroom
+        # cage up on the left gallery (the ledger's cache), a stair at each side.
+        painting="tyre_counting_house", width=1280, height=720, weather="none", fog=0.1, intro="", music="dead_bridge",
+        dark=0.6,
+        ground=[(0, 574, 1280, 146)],
+        ledges=[(330, 500, 45, 12), (280, 445, 45, 12), (234, 411, 61, 12), (180, 350, 45, 12), (140, 300, 40, 12), (36, 260, 337, 14),
+                (935, 525, 40, 12), (965, 480, 40, 12), (993, 431, 69, 12)],
+        spawns=[("tyre_guard", 520, 562), ("tyre_guard", 820, 562), ("debt_wraith", 600, 250),
+                ("debt_wraith", 1000, 200), ("tyre_treasurer", 700, 562)],
+        props=[("tyre_lamp", 470, 574), ("tyre_lamp", 760, 574), ("tyre_lamp", 1110, 574),
+               ("tyre_cache_ledger", 250, 260)],
+        decor=[], npcs=[], ambient="#c8bca8", lights="auto",
+        player=(60, 554), door=(1215, 542)),
+    "tyre_dark_quarter": dict(
+        # The lower city (the city's fork): stairs and balconies with no lamp
+        # lit; four empty hooks burn for nothing once Zacchaeus came down.
+        painting="tyre_dark_quarter", width=1280, height=720, weather="ash", fog=0.25, intro="", music="graveyard",
+        dark=0.9,
+        ground=[(0, 546, 1280, 174)],
+        ledges=[(387, 488, 50, 12), (387, 432, 64, 12), (430, 375, 35, 12), (462, 333, 94, 12), (558, 307, 94, 12), (158, 373, 229, 14),
+                (1040, 500, 45, 12), (1005, 455, 40, 12), (965, 400, 40, 12), (950, 332, 208, 14)],
+        spawns=[("cutpurse", 300, 534), ("cutpurse", 650, 534), ("cutpurse", 900, 534), ("cutpurse", 1100, 320),
+                ("cutpurse", 250, 361), ("dim_star", 700, 220)],
+        props=[("tyre_lamp_hook", 230, 546), ("tyre_lamp_hook", 560, 546), ("tyre_lamp_hook", 820, 546),
+               ("tyre_lamp_hook", 1150, 546)],
+        decor=[], npcs=[], ambient="#b8b4bc", lights="auto",
+        player=(20, 526), door=(1240, 514)),
+    "tyre_bright_quay": dict(
+        # The bright quay (the city's fork): a galley moored on the left, its
+        # gangway up to the deck; every lamp lit and paid. The gap in the quay
+        # is the harbour — a fall.
+        painting="tyre_bright_quay", width=1280, height=720, weather="none", fog=0.15, intro="", music="arena",
+        dark=0.15, void_kill_y=690,
+        ground=[(0, 485, 887, 235), (939, 485, 341, 235)],
+        ledges=[(320, 445, 40, 12), (285, 400, 40, 12), (250, 362, 40, 12), (0, 327, 360, 14), (416, 474, 157, 14), (474, 436, 310, 14),
+                (1027, 431, 76, 12)],
+        spawns=[("tyre_guard", 300, 473), ("tyre_guard", 620, 424), ("tyre_guard", 800, 473), ("tyre_guard", 1050, 473),
+                ("ash_archer", 100, 315), ("ash_archer", 1060, 419)],
+        props=[("crate", 700, 436)],
+        decor=[], npcs=[], ambient="#c8c0b4", lights="auto",
+        player=(20, 465), door=(1240, 453)),
+    "tyre_dyeworks": dict(
+        # The dyeworks: three vats of purple sunk in the floor, the dyers'
+        # scaffold over them (up by its ladders). Lydia stands between the
+        # first two vats; the purple-drowned climb out of them.
+        painting="tyre_dyeworks", width=1280, height=720, weather="none", fog=0.2, intro="", music="dead_bridge",
+        dark=0.65,
+        ground=[(0, 505, 150, 215), (365, 505, 185, 215), (765, 505, 155, 215), (1150, 505, 130, 215),
+                (150, 568, 215, 152), (550, 568, 215, 152), (920, 568, 230, 152)],
+        ledges=[(452, 432, 34, 12), (812, 432, 34, 12), (483, 358, 320, 14)],
+        liquids=[["dye", 150, 510, 215, 58, {"painted": True}], ["dye", 550, 510, 215, 58, {"painted": True}],
+                 ["dye", 920, 510, 230, 58, {"painted": True}]],
+        spawns=[("dye_drowned", 257, 498), ("dye_drowned", 650, 498), ("dye_drowned", 1030, 498),
+                ("dye_drowned", 860, 493), ("debt_wraith", 600, 250), ("debt_wraith", 1000, 250)],
+        props=[("tyre_lamp", 520, 505), ("tyre_lamp", 880, 505), ("tyre_lamp", 1200, 505)],
+        decor=[], npcs=[("lydia", 410, 505)], ambient="#c0b4c4", lights="auto",
+        player=(20, 485), door=(1235, 473)),
 }

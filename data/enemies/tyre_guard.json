@@ -1,0 +1,54 @@
+{
+  "id": "tyre_guard",
+  "name": "ENEMY_TYRE_GUARD",
+  "lore": "ENEMY_TYRE_GUARD_LORE",
+  "tip": "TIP_TYRE_GUARD",
+  "_art": "stand-in: the fallen guard gilded, until its own atlas (docs/CHAPTER4_ART.md)",
+  "hp": 96,
+  "speed": 42,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "behaviour": "walker",
+  "aggro_range": 400,
+  "size": 14,
+  "color": "#b89a50",
+  "material": "gold",
+  "tags": [
+    "human",
+    "tyre"
+  ],
+  "stagger_chance": 0.1,
+  "armor": 0.15,
+  "shield": 0.5,
+  "sprite": {
+    "like": "fallen_guard",
+    "tint": "#e8c870"
+  },
+  "attacks": [
+    {
+      "name": "Halberd Thrust",
+      "type": "melee",
+      "range": 56,
+      "reach": 70,
+      "windup": 0.9,
+      "damage": 18,
+      "cooldown": 2.4,
+      "recover": 0.8,
+      "weight": 3,
+      "animation": "attack"
+    },
+    {
+      "name": "Overhead Chop",
+      "type": "melee",
+      "range": 60,
+      "reach": 80,
+      "windup": 1.15,
+      "damage": 24,
+      "cooldown": 3.6,
+      "recover": 1.0,
+      "weight": 2,
+      "animation": "attack_alt"
+    }
+  ],
+  "essence": 32
+}

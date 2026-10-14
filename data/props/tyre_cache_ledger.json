@@ -1,0 +1,27 @@
+{
+  "id": "tyre_cache_ledger",
+  "_art": "a chest left in a corner of the painting; a bricked-up wall over it once make_secret_walls.py cuts one",
+  "kind": "chest",
+  "essence": 30,
+  "ash": 15,
+  "note": "note_tyre_ledger",
+  "glow": "#e0c890",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_wooden.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/realm/document_4.png"
+  ],
+  "effect": {
+    "set_flags": [
+      "read_tyre_ledger"
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 {
   "id": "ashes_of_eden",
   "engine": 2,
-  "flags_read": ["voice_yes", "matthew_confessed", "matthew_judged", "matthew_released", "matthew_book_revealed", "read_letters"],
+  "flags_read": ["voice_yes", "matthew_confessed", "matthew_judged", "matthew_released", "matthew_book_revealed", "read_letters", "zacchaeus_sold"],
   "rooms": [
     "res://scenes/rooms/village_night.tscn",
     "res://scenes/rooms/graveyard_cross.tscn",
@@ -44,6 +44,25 @@
         "res://scenes/rooms/seir_breakwater.tscn",
         "res://scenes/rooms/seir_lighthouse_stair.tscn",
         "res://scenes/rooms/seir_lighthouse.tscn"
+      ]
+    },
+    {
+      "id": "tyre",
+      "after_dawns": 3,
+      "opening": {"wake": false},
+      "rooms": [
+        "res://scenes/rooms/tyre_causeway.tscn",
+        "res://scenes/rooms/tyre_gate.tscn",
+        "res://scenes/rooms/tyre_lamp_market.tscn",
+        "res://scenes/rooms/tyre_counting_house.tscn",
+        "res://scenes/rooms/tyre_dark_quarter.tscn",
+        "res://scenes/rooms/tyre_bright_quay.tscn",
+        "res://scenes/rooms/tyre_rich_gate.tscn",
+        "res://scenes/rooms/tyre_dyeworks.tscn",
+        "res://scenes/rooms/tyre_vaults.tscn",
+        "res://scenes/rooms/tyre_galleys.tscn",
+        "res://scenes/rooms/tyre_palace_stair.tscn",
+        "res://scenes/rooms/tyre_throne.tscn"
       ]
     }
   ],

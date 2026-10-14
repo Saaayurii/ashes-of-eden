@@ -159,6 +159,7 @@ func _net_light() -> void:
 
 func _light_up(bought: bool) -> void:
 	lit = true
+	_prop.remove_from_group("interactable")
 	if bought and Game.practice == "":
 		Game.lamps_lit[key()] = true
 	_show_frame(true)
@@ -182,6 +183,8 @@ func douse(again: float) -> void:
 	relight = again if price > 0 else 0.0
 	Game.lamps_lit.erase(key())
 	_show_frame(false)
+	if for_sale():
+		_prop.add_to_group("interactable")
 	if _light != null:
 		_light.remove_from_group("lamp_light")
 		_light.remove_from_group("lights")
