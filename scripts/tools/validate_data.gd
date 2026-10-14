@@ -103,6 +103,12 @@ var used_keys := {}  # localization key -> where it is used
 ## checked rather than noticed.
 var flags_set := {}
 var flags_read := {}
+## The same, by what holds them ("dialogues/<id>", "props/<id>", …): flag ->
+## {holder: true}. Which night a holder plays in says whether a flag read in
+## one night and written in another is one that outlives its night
+## (game.json "flags_kept", _check_kept_flags).
+var _flag_writers := {}
+var _flag_readers := {}
 ## Rooms a draft names that have no scene yet (scene -> draft), printed at the end.
 var _planned_rooms := {}
 
@@ -164,6 +170,7 @@ func _init() -> void:
 	_check_cjk_font(strings)
 	_check_glyphs(strings)
 	_check_story_flags()
+	_check_kept_flags(game)
 	_check_backdrops()
 	_check_foliage()
 	_check_telemetry_urls()
@@ -337,9 +344,9 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			if entry.has("weapon") and not (entry.weapon is bool and entry.get("kind") == "chest"):
 				_error("%s: weapon is true or false, on a chest (it lays the night's weapon)" % where)
 			if entry.has("requires_flag"):
-				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
+				_read_flag(str(entry.requires_flag), where)  # the prop waits for it
 			if entry.has("opens_with"):
-				flags_read[str(entry.opens_with)] = where  # a chain ring opens only with it (ChainRing)
+				_read_flag(str(entry.opens_with), where)  # a chain ring opens only with it (ChainRing)
 				if entry.get("kind") != "chain":
 					_error("%s: opens_with is a chain ring's (kind \"chain\")" % where)
 			elif entry.get("kind") == "chain":
@@ -503,7 +510,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				if node.has("branches"):  # a router node: flags -> next, no text
 					for branch in node.branches:
 						if branch.has("flag"):
-							flags_read[str(branch.flag)] = node_where
+							_read_flag(str(branch.flag), node_where)
 						for key in ["path", "habit"]:
 							if branch.has(key) and not PATHS.has(str(branch[key])):
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
@@ -1321,7 +1328,7 @@ func _check_ending(entry: Dictionary, where: String) -> void:
 					_error("%s: when.%s is a list of flags" % [where, key])
 				else:
 					for flag in when[key]:
-						flags_read[str(flag)] = where
+						_read_flag(str(flag), where)
 			_:
 				_error("%s: when.%s is not path, lead, balanced, flags or unless" % [where, key])
 	if when.has("lead") and not when.has("path"):
@@ -1526,7 +1533,7 @@ func _check_cutscene(entry: Dictionary, where: String) -> void:
 				_error("%s: step %s: %s must be a flag or a list of flags" % [where, kind, key])
 				continue
 			for flag in (([step[key]] if step[key] is String else step[key]) as Array):
-				flags_read[str(flag)] = where
+				_read_flag(str(flag), where)
 		if kind == "hold":
 			holds += 1
 		elif kind == "release":
@@ -1736,9 +1743,136 @@ func _check_story_flags() -> void:
 			% ", ".join(ghosts))
 
 
+func _read_flag(flag: String, where: String) -> void:
+	flags_read[flag] = where
+	_holders(_flag_readers, flag)[_holder(where)] = true
+
+
+func _set_flag(flag: String, where: String) -> void:
+	flags_set[flag] = where
+	_holders(_flag_writers, flag)[_holder(where)] = true
+
+
+static func _holders(table: Dictionary, flag: String) -> Dictionary:
+	if not table.has(flag):
+		table[flag] = {}
+	return table[flag]
+
+
+## "dialogues/ch3_malchus#ask" -> "dialogues/ch3_malchus".
+static func _holder(where: String) -> String:
+	return where.split("#")[0].split(":")[0].strip_edges()
+
+
+## Which nights (DataDoc.nights ids, "" the first) each holder of story plays
+## in: what a night's rooms name (people, props, scenes), its opening, its
+## forks' questions, the finale's endings, and every dialogue a scene, a
+## person, a note or a prop of it opens. A holder no night names (a dialogue
+## code opens) is in none — and is taken to be every night's.
+func _night_holders(game: Dictionary) -> Dictionary:
+	var owners := {}
+	var line := RegEx.create_from_string("^(\\w+) = \"([^\"]+)\"$")
+	var by_holder := {}
+	for collection in ["dialogues", "cutscenes", "npcs", "props", "notes", "forks", "endings"]:
+		for entry in _game_entries(collection):
+			by_holder["%s/%s" % [collection, entry.get("id", "")]] = entry
+	var finale_room := str(game.get("finale", {}).get("room", ""))
+	for night in DATA_DOC.nights(game):
+		var id := str(night.id)
+		var todo: Array = []
+		for key in night.get("opening", {}):
+			if key != "wake":
+				todo.append(("dialogues/" if key in ["intro", "last_fall"] else "cutscenes/") + str(night.opening[key]))
+		var rooms: Array = night.get("rooms", [])
+		for path in rooms:
+			if not ResourceLoader.exists(str(path)):
+				continue
+			for row in FileAccess.get_file_as_string(str(path)).split("\n"):
+				var hit := line.search(row)
+				if hit == null:
+					continue
+				match hit.get_string(1):
+					"npc_id": todo.append("npcs/" + hit.get_string(2))
+					"prop_id": todo.append("props/" + hit.get_string(2))
+					"intro_cutscene", "outro_cutscene": todo.append("cutscenes/" + hit.get_string(2))
+					"intro_dialogue": todo.append("dialogues/" + hit.get_string(2))
+			if str(path) == finale_room:
+				todo.append("cutscenes/" + str(game.finale.get("cutscene", "")))
+				for entry in _game_entries("endings"):
+					todo.append("endings/" + str(entry.get("id", "")))
+		for fork in _game_entries("forks"):
+			if rooms.has(fork.get("after", "")):
+				todo.append("forks/" + str(fork.get("id", "")))
+		while not todo.is_empty():
+			var holder := str(todo.pop_back())
+			if not owners.has(holder):
+				owners[holder] = {}
+			if owners[holder].has(id):
+				continue
+			owners[holder][id] = true
+			var entry = by_holder.get(holder)
+			if not entry is Dictionary:
+				continue
+			if entry.has("dialogue"):
+				todo.append("dialogues/" + str(entry.dialogue))
+			if entry.has("note"):
+				todo.append("notes/" + str(entry.note))
+			if entry.has("cutscene"):
+				todo.append("cutscenes/" + str(entry.cutscene))
+			for step in entry.get("steps", []):
+				if step is Dictionary and str(step.get("do", "")) == "dialogue":
+					todo.append("dialogues/" + str(step.get("id", "")))
+	return owners
+
+
+## game.json "flags_kept" (docs/CAMPAIGN.md §5, Campaign): each entry a flag or a
+## group of flags somebody writes; a flag read in one night and written only in
+## others must be in it, or the branch can never be reached.
+func _check_kept_flags(game: Dictionary) -> void:
+	var kept := {}
+	var listed = game.get("flags_kept", [])
+	if not listed is Array:
+		_error("data/game.json: flags_kept is a list of flags and groups (lists) of flags")
+		listed = []
+	for entry in listed:
+		var group: Array = [entry] if entry is String else (entry if entry is Array else [])
+		if group.is_empty() or (entry is Array and group.size() < 2):
+			_error("data/game.json: flags_kept: %s is a flag or a group of two or more" % [entry])
+		for flag in group:
+			if kept.has(str(flag)):
+				_error("data/game.json: flags_kept names %s twice" % flag)
+			kept[str(flag)] = true
+			if not flags_set.has(str(flag)):
+				_error("data/game.json: flags_kept: nobody writes %s" % flag)
+			elif not flags_read.has(str(flag)):
+				_warn("data/game.json: flags_kept: nobody reads %s yet" % flag)
+	var owners := _night_holders(game)
+	for flag in _flag_readers:
+		if kept.has(flag) or not _flag_writers.has(flag) or FLAGS_SET_IN_CODE.has(flag):
+			continue
+		var written := {}
+		var anywhere := false
+		for holder in _flag_writers[flag]:
+			if not owners.has(holder):
+				anywhere = true
+			else:
+				written.merge(owners[holder])
+		if anywhere:
+			continue
+		for holder in _flag_readers[flag]:
+			if not owners.has(holder):
+				continue
+			var shared := false
+			for night in owners[holder]:
+				shared = shared or written.has(night)
+			if not shared:
+				_error("%s reads %s, which only another night writes (%s): add it to game.json flags_kept"
+					% [holder, flag, ", ".join(written.keys().map(func(n) -> String: return "first" if n == "" else str(n)))])
+
+
 func _check_effect(effect: Dictionary, where: String) -> void:
 	for flag in effect.get("set_flags", []):
-		flags_set[str(flag)] = where
+		_set_flag(str(flag), where)
 	if effect.has("flask") and (not (effect.flask is float or effect.flask is int) or int(effect.flask) != float(effect.flask)
 			or absi(int(effect.flask)) > 3 or int(effect.flask) == 0):
 		_error("%s: flask is a whole number of flasks, -3..3 (negative: given away)" % where)
@@ -2047,6 +2181,17 @@ func _check_nights(game: Dictionary) -> void:
 			var dawns = night.get("after_dawns", 0)
 			if not (dawns is float or dawns is int) or int(dawns) < 1:
 				_error("%s: after_dawns must be 1 or more — the first night is the one always open" % where)
+			# "after" (docs/CAMPAIGN.md §6, Campaign.night_open): an earlier night, or the game's own id for the first
+			if night.has("after"):
+				var after := str(night.after)
+				var earlier: Array = [str(game.get("id", ""))]
+				for j in i:
+					if j > 0:
+						earlier.append(str(nights[j].id))
+				if not earlier.has(after):
+					_error("%s: after \"%s\" is not an earlier night (or the game's id, %s, for the first)" % [where, after, game.get("id", "")])
+		elif night.has("after"):
+			_error("data/game.json: the first night is always open — it comes after nothing")
 		for path in night.get("rooms", []):
 			owner[str(path)] = str(night.id)
 	for fork in _game_entries("forks"):
