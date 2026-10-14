@@ -65,6 +65,14 @@ func setup(pool_size: Vector2, kind_spec: Dictionary, is_painted: bool) -> void:
 	_apply_settings()
 
 
+## The pool grew or shrank (Hazard.set_level): same width, same springs.
+func resize(pool_size: Vector2) -> void:
+	size = pool_size
+	if _material != null:
+		_material.set_shader_parameter("pool", size)
+	queue_redraw()
+
+
 ## The body textures are made by tools/art/make_liquids.py; a checkout that has
 ## not imported them yet reads the PNG itself, and a missing one is a plain pool.
 static func _texture(path: String) -> Texture2D:

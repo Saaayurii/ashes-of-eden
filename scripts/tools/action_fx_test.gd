@@ -44,6 +44,9 @@ func _run() -> void:
 	sprite.play("run")
 	await process_frame
 	_check(action_fx.emitted - before == 2, "run starts: its start emitter and frame 0 (%d)" % (action_fx.emitted - before))
+	# a slow first frame may have carried the sprite past frame 0 on its own: start the lap there
+	sprite.pause()
+	sprite.frame = 0
 	before = action_fx.emitted
 	for i in 4:
 		sprite.frame = i

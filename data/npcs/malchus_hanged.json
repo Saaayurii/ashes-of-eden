@@ -1,0 +1,21 @@
+{
+  "id": "malchus_hanged",
+  "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn; shown only by malchus_at_the_tree when malchus_hanged",
+  "name": "NPC_MALCHUS",
+  "avatar": "res://assets/portraits/severin.png",
+  "dialogue": "ch3_malchus_hanged",
+  "scripted": true,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/severin_v2_idle.png",
+      "walk": "res://assets/sprites/severin_v2_walk.png",
+      "interact": "res://assets/sprites/severin_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  }
+}

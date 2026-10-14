@@ -1,0 +1,33 @@
+{
+  "id": "rizpah",
+  "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn (an old woman on sackcloth, a stick, a small fire)",
+  "name": "NPC_RIZPAH",
+  "avatar": "res://assets/portraits/nun.png",
+  "dialogue": "npc_rizpah",
+  "face": "right",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/nun_v2_idle.png",
+      "walk": "res://assets/sprites/nun_v2_walk.png",
+      "interact": "res://assets/sprites/nun_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_RIZPAH_LORE",
+  "role": "NPC_ROLE_RIZPAH",
+  "location": "LOC_MARAH_FIELD",
+  "light": {
+    "color": "#ffb060",
+    "radius": 48,
+    "energy": 0.6,
+    "flicker": 0.3
+  },
+  "lines": [
+    "NPC_RIZPAH_LINE_1",
+    "NPC_RIZPAH_LINE_2"
+  ]
+}

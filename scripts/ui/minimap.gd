@@ -289,6 +289,10 @@ func _draw_enemies(origin: Vector2, scale: float, room_origin: Vector2, t: float
 			_diamond(at, 3.0, BOSS)
 			draw_circle(at, 1.0, HUNTER)
 			continue
+		if enemy.spared:
+			# a soldier whose side spares him tonight (Faction): a hollow ring of its side's colour
+			draw_arc(at, 1.8, 0.0, TAU, 10, Faction.color(Faction.of(enemy)), 1.0)
+			continue
 		if enemy.aware:
 			var pulse := 0.5 + 0.5 * sin(t * 6.0 + enemy.get_instance_id() % 7)
 			_glow(at, 3.5 + pulse, HUNTER, 0.25 + 0.2 * pulse)

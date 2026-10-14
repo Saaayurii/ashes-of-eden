@@ -17,6 +17,9 @@ var visual_style := ""
 var size := 1.0
 ## The enemy id of whoever loosed it, so a death by it is blamed on them.
 var shooter_id := ""
+## The body that loosed it while sides are in play (Faction, chapter III): its
+## bolt also bites the bodies of a side hostile to it and passes its own.
+var shooter: Node = null
 const STYLES_PATH := "res://data/projectiles.json"
 ## Every key a style may leave out, at the value a plain bolt has.
 const LOOK := {"frames": 1, "fps": 10.0, "scale": 0.62, "light": 20.0, "trail": 8, "shader": 0,
@@ -59,6 +62,8 @@ func _ready() -> void:
 		collision_mask = 1 | 4  # walls and enemies (layer 3)
 	elif cosmetic:
 		collision_mask = 1  # walls only
+	elif shooter != null:
+		collision_mask |= 4  # a soldier's bolt: the bodies of the other side too
 	body_entered.connect(_on_body_entered)
 
 
@@ -129,9 +134,15 @@ func _on_body_entered(body: Node) -> void:
 		if not (body is Player) and body.has_method("take_damage"):
 			body.take_damage(damage, self, {"knockback": 0.8, "move": "bolt"})
 	elif body is Player and not cosmetic:
+		if is_instance_valid(shooter) and not shooter.call("_hostile_to", body):
+			return  # a side that spares him: the bolt flies past
 		body.take_damage(damage, self)
 		if _reflected:
 			return  # the player's parry turned it round (reflect): it flies on
+	elif body is Enemy:
+		if cosmetic or not is_instance_valid(shooter) or not shooter.call("_hostile_to", body):
+			return  # its own side, or nobody's quarrel: through
+		body.take_damage(damage * Faction.damage_between(), shooter, {"knockback": 0.6})
 	_burst()
 
 
