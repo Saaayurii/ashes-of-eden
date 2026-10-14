@@ -1308,6 +1308,12 @@ const FLAGS_SET_IN_CODE := ["blood_paid"]
 const FLAGS_FOR_TESTS := ["save_test"]
 
 
+## The engine room a game pack's room was made from (`base_room` in its scene), or "".
+func _base_room(path: String) -> String:
+	var found := RegEx.create_from_string('(?m)^base_room = "(\\w+)"').search(FileAccess.get_file_as_string(path))
+	return found.get_string(1) if found != null else ""
+
+
 ## data/backdrops.json (scripts/rooms/backdrop_life.gd): every room of the
 ## chapter is named, each names a family that exists, each zone a known kind
 ## and a rect. Whether a rect lies on its picture is backdrop_life_test.gd's.
@@ -1342,8 +1348,10 @@ func _check_backdrops() -> void:
 			_error("data/backdrops.json: lean needs a colour for %s" % path)
 	var rooms: Dictionary = parsed.get("rooms", {})
 	for path in _doc("game.json").get("rooms", []):
-		if not rooms.has(str(path).get_file().get_basename()):
-			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % str(path).get_file().get_basename())
+		# a game pack's room made from an engine room may take that room's rule (RoomLayers.look_key)
+		var own := str(path).get_file().get_basename()
+		if not rooms.has(own) and not rooms.has(_base_room(str(path))):
+			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % own)
 	# every picture a scene shows or a passage card carries breathes too
 	for picture in backdrop_pictures():
 		if not rooms.has(picture.get_file().get_basename()):

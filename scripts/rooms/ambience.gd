@@ -66,6 +66,16 @@ static func attach(room: Node2D, scene_name: String, room_width: float, room_hei
 	return ambience
 
 
+## Whether data/ambience.json has a rule of its own for [param scene_name] (not the default).
+static func has_rule(scene_name: String) -> bool:
+	var parsed = DataDoc.doc(RULES_PATH) if DataDoc.exists(RULES_PATH) else {}
+	for rule in (parsed as Dictionary).get("rules", []):
+		var needle := str(rule.get("match", ""))
+		if needle != "" and scene_name.contains(needle):
+			return true
+	return false
+
+
 static func _effects_for(scene_name: String) -> Array:
 	if not DataDoc.exists(RULES_PATH):
 		return []

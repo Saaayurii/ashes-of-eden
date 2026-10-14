@@ -1770,7 +1770,7 @@ func _enter_seal() -> void:
 	if Net.active:
 		_net_sealed.rpc(true, false)
 	var room := get_tree().get_first_node_in_group("room") as Node2D
-	var key := room.scene_file_path.get_file().get_basename() if room != null else ""
+	var key := RoomLayers.look_key(room, phase.get("points", {})) if room != null else ""
 	var points: Array = phase.get("points", {}).get(key, [])
 	if points.is_empty():
 		points = [[-140, 40], [0, -60], [140, 40]]  # an unlisted room: about the boss

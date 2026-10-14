@@ -73,7 +73,7 @@ static func rule(key: String) -> Dictionary:
 ## The key of a room's rule: its scene's name, or "composed/<name>" for a
 ## room put together from several panels, whose picture is another one.
 static func room_key(room: Node2D) -> String:
-	var key := room.scene_file_path.get_file().get_basename()
+	var key := RoomLayers.look_key(room, _load().get("rooms", {}))
 	return COMPOSED + key if str(room.get("painting_source")).contains("/levels/composed/") else key
 
 

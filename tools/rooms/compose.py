@@ -38,6 +38,12 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TABLE = os.path.join(ROOT, "tools", "rooms", "composed_rooms.json")
 LEVELS = os.path.join(ROOT, "assets", "levels")
+# A game pack laid over the engine (docs/GAME_PACKS.md) brings its own panels
+# and composes its own rooms: content/rooms/composed_rooms.json, its pictures
+# in content/assets/levels. A panel it names is its own first, else the engine's.
+PACK = os.path.join(ROOT, "content")
+PACK_TABLE = os.path.join(PACK, "rooms", "composed_rooms.json")
+PACK_LEVELS = os.path.join(PACK, "assets", "levels")
 ## One cell of the grid: the size every painted panel is traced at.
 CELL = (1280, 720)
 ## The widest a grid may grow, in cells: a room is walked, not toured.
@@ -56,15 +62,16 @@ ROOM_LAYERS = os.path.join(ROOT, "scripts", "rooms", "room_layers.gd")
 WINDOW_DEPTH = (0.0, 1.6)
 
 
-def load():
-    if not os.path.exists(TABLE):
+def load(table=TABLE):
+    if not os.path.exists(table):
         return {}
-    with open(TABLE, encoding="utf-8") as f:
+    with open(table, encoding="utf-8") as f:
         return json.load(f)
 
 
 def painting_path(stem):
-    return os.path.join(LEVELS, stem + ".png")
+    own = os.path.join(PACK_LEVELS, stem + ".png")
+    return own if os.path.exists(own) else os.path.join(LEVELS, stem + ".png")
 
 
 def grid(entry):
@@ -72,9 +79,9 @@ def grid(entry):
     return (max(c["col"] for c in cells) + 1, max(c["row"] for c in cells) + 1)
 
 
-def validate(name, entry):
+def validate(name, entry, where_file="tools/rooms/composed_rooms.json"):
     """Everything a composed room must hold before it is painted or built."""
-    where = f"tools/rooms/composed_rooms.json: {name}"
+    where = f"{where_file}: {name}"
     cells = entry.get("cells")
     if not isinstance(cells, list) or not cells:
         raise SystemExit(f"{where}: no cells")
@@ -111,7 +118,7 @@ def validate(name, entry):
             if len(item) != 3 or not (0 <= item[1] <= width and 0 <= item[2] <= height):
                 raise SystemExit(f"{where}: {key} {item} is not inside the room")
             folder = {"spawns": "enemies", "props": "props", "npcs": "npcs"}[key]
-            if not os.path.exists(os.path.join(ROOT, "data", folder, str(item[0]) + ".json")):
+            if not any(os.path.exists(os.path.join(root, "data", folder, str(item[0]) + ".json")) for root in (ROOT, PACK)):
                 raise SystemExit(f"{where}: no data/{folder}/{item[0]}.json")
     for i, window in enumerate(entry.get("windows", []), 1):
         points = window.get("points") if isinstance(window, dict) else None
@@ -313,7 +320,8 @@ def depth_parallax(entry, owned):
 def plate_path(stem):
     """What lies behind a painting's openings: its inpainted backfill, or for a
     new painting the painting itself."""
-    backfill = os.path.join(LEVELS, "depth", stem + "_backfill.png")
+    backfill = next((p for p in (os.path.join(PACK_LEVELS, "depth", stem + "_backfill.png"),
+                                  os.path.join(LEVELS, "depth", stem + "_backfill.png")) if os.path.exists(p)), "")
     return backfill if os.path.exists(backfill) else painting_path(stem)
 
 
