@@ -1,0 +1,9 @@
+{
+	"damage_between": 0.5,
+	"essence_between": 0.5,
+	"shout_radius": 160,
+	"factions": {
+		"host": {"name": "FACTION_HOST", "hostile": ["legion"], "spares_on": "sided_host", "color": "#e8f0ff"},
+		"legion": {"name": "FACTION_LEGION", "hostile": ["host"], "spares_on": "sided_legion", "color": "#ffb070"}
+	}
+}

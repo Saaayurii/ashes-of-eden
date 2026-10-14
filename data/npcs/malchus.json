@@ -1,0 +1,24 @@
+{
+  "id": "malchus",
+  "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn (the hangman, a cut ear)",
+  "name": "NPC_MALCHUS",
+  "avatar": "res://assets/portraits/severin.png",
+  "dialogue": "ch3_malchus",
+  "scripted": true,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/severin_v2_idle.png",
+      "walk": "res://assets/sprites/severin_v2_walk.png",
+      "interact": "res://assets/sprites/severin_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_MALCHUS_LORE",
+  "role": "NPC_ROLE_MALCHUS",
+  "location": "LOC_MARAH_GALLOWS"
+}

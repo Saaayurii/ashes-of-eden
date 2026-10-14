@@ -12,12 +12,13 @@ static func rooms() -> Array:
 
 
 ## The nights (game.json "nights") this profile may start: the first always,
-## a later one once it has seen its "after_dawns" dawns (Profile.data.wins).
+## a later one once it has seen its "after_dawns" dawns (Profile.data.wins)
+## and, if it names one, the dawn of the night it comes "after" (Campaign).
 ## The menu's Play asks which only when there is more than one.
 static func open_nights() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for night in Data.nights():
-		if int(Profile.data.get("wins", 0)) >= int(night.get("after_dawns", 0)):
+		if Campaign.night_open(night):
 			out.append(night)
 	return out
 

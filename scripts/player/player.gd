@@ -60,6 +60,11 @@ static var BASE_STATS := {
 	"covetous": 0.0,            # the chance a chest's common item is a rare one instead (Covetous Eye)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
+	# Chapter III's gifts (drafts/chapter_3, docs/CHAPTER3.md §7)
+	"liquid_mend": 0.0,         # health a second while he stands in a pool that does not burn (Sweetened Water)
+	"truce_hold": 0.0,          # a soldier that has just seen him holds its first blow this long (Standard of Peace, Enemy._notice)
+	"feud_damage": 0.0,         # blows on an enemy busy fighting another enemy are worth this much more (Blood Feud)
+	"crossfire_armor": 0.0,     # armour while soldiers of two sides are awake in the room (No Man's Land)
 }
 ## Where the item mechanics above reach.
 static var HEAL_BURST_RADIUS := 72.0
@@ -550,6 +555,7 @@ func _physics_process(delta: float) -> void:
 	_scripted_left = maxf(0.0, _scripted_left - delta)
 	_block_cd = maxf(0.0, _block_cd - delta)
 	_tick_rally(delta)
+	_mend_in_liquid(delta)
 	_hurt_grace_left = maxf(0.0, _hurt_grace_left - delta)
 	_wrath_left = maxf(0.0, _wrath_left - delta)
 	_dodge_counter_left = maxf(0.0, _dodge_counter_left - delta)
@@ -993,6 +999,22 @@ func heal(amount: float) -> void:
 	_emit_hp()
 
 
+## Sweetened Water: a pool that does not burn (water, bitter, bog) mends him.
+func _mend_in_liquid(delta: float) -> void:
+	if stats.liquid_mend <= 0.0 or not _is_mine() or hp >= stats.max_hp or _liquid_now() <= 0.0:
+		return
+	if bool(_liquid.spec.get("burns", false)):
+		return
+	heal(stats.liquid_mend * delta)
+
+
+## No Man's Land: armour while two sides are awake in the room (Faction).
+func _crossfire_armor() -> float:
+	if stats.crossfire_armor <= 0.0 or not Faction.two_sides_awake(get_tree()):
+		return 0.0
+	return stats.crossfire_armor
+
+
 func recoverable_hp() -> float:
 	return _rally_pool if _rally_left > 0.0 and not _dead else 0.0
 
@@ -1171,7 +1193,7 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		Juice.shake(2.0)
 		Audio.play(&"hit_crit", -6.0)
 		return
-	amount *= 1.0 - clampf(stats.armor, 0.0, 0.5)
+	amount *= 1.0 - clampf(stats.armor + _crossfire_armor(), 0.0, 0.5)
 	# a heavy weapon's poise: a body mid-swing pays less for standing its ground
 	if _attack_anim_left > 0.0:
 		amount *= 1.0 - Weapons.number(weapon, "poise", 0.0)
@@ -1577,6 +1599,8 @@ func _throw_wave() -> void:
 ## Health a kill is worth. Only our own body collects, and only while it is
 ## still standing.
 func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
+	if Faction.felled_by_soldier():
+		return  # felled by another body (chapter III): not his kill
 	if _is_mine() and not _dead and curse > 0:
 		curse = maxi(0, curse - 1 - int(stats.curse_relief))
 		if curse == 0:
@@ -1991,6 +2015,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Cruel Opening: the wind-up the player can read is also a door
 		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
 			damage *= 1.0 + stats.windup_bonus
+		# Blood Feud: a body busy with another body has turned its back on him
+		if live_enemy and stats.feud_damage > 0.0 and (target as Enemy).feuding():
+			damage *= 1.0 + stats.feud_damage
 		if live_enemy and stats.backstab_refresh > 0.0 and (target as Enemy).is_unaware():
 			_dash_cd = 0.0
 		if live_enemy and crit and stats.desperate_crit_heal > 0.0 and hp < stats.max_hp * DESPERATE_SHARE:

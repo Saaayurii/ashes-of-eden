@@ -2,6 +2,20 @@
   "id": "ashes_of_eden",
   "engine": 2,
   "flags_read": ["voice_yes", "matthew_confessed", "matthew_judged", "matthew_released", "matthew_book_revealed", "read_letters"],
+  "flags_kept": [
+    "version_heaven", "version_abyss", "version_man", "book_read",
+    ["matthew_confessed", "matthew_judged", "matthew_released"],
+    ["voice_yes", "voice_no", "voice_silent"],
+    ["stranger_killed", "stranger_heard", "stranger_refused"],
+    "mara_saved",
+    ["lazarus_helped", "lazarus_asked", "lazarus_passed"],
+    ["watchman_sent_down", "watchman_relieved", "watchman_dark"],
+    ["prisoner_cut", "malchus_asked", "malchus_hanged"],
+    "rope_paid_before",
+    ["sided_host", "sided_legion", "sided_none"],
+    ["rizpah_watched", "rizpah_told", "rizpah_left"],
+    ["marah_sweetened", "marah_bitter", "wormwood_drunk"]
+  ],
   "rooms": [
     "res://scenes/rooms/village_night.tscn",
     "res://scenes/rooms/graveyard_cross.tscn",
@@ -44,6 +58,26 @@
         "res://scenes/rooms/seir_breakwater.tscn",
         "res://scenes/rooms/seir_lighthouse_stair.tscn",
         "res://scenes/rooms/seir_lighthouse.tscn"
+      ]
+    },
+    {
+      "id": "marah",
+      "after": "seir",
+      "after_dawns": 2,
+      "opening": {"wake": false},
+      "rooms": [
+        "res://scenes/rooms/marah_gallows.tscn",
+        "res://scenes/rooms/marah_ford.tscn",
+        "res://scenes/rooms/marah_host_bank.tscn",
+        "res://scenes/rooms/marah_legion_bank.tscn",
+        "res://scenes/rooms/marah_field.tscn",
+        "res://scenes/rooms/marah_trench.tscn",
+        "res://scenes/rooms/marah_parley.tscn",
+        "res://scenes/rooms/marah_siege.tscn",
+        "res://scenes/rooms/marah_bitter_wells.tscn",
+        "res://scenes/rooms/marah_dry_bed.tscn",
+        "res://scenes/rooms/marah_springs_path.tscn",
+        "res://scenes/rooms/marah_wormwood_spring.tscn"
       ]
     }
   ],
