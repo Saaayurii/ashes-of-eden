@@ -119,6 +119,27 @@ async function step(name, fn) {
       assert.ok(v.windows >= 3 && v.owned === v.windows, 'the room brings its far openings: ' + JSON.stringify(v));
       assert.ok(v.lit === 1 && v.baked && v.back, JSON.stringify(v));
       assert.deepEqual(v.piece.at, [79, 72], 'a piece keeps its foot where the crop was');
+      // crumbling platforms: the table's come along, one is drawn with «+ Осыпь» and dragged, and the
+      // file the send writes carries them as [x, y, w]
+      const c = await page.evaluate(async () => {
+        const had = structuredClone(COMP.entry.crumbling_platforms);
+        document.querySelector('[data-comptool="crumbling_platforms"]').click();
+        const cv = document.getElementById('compCanvas'), b = cv.getBoundingClientRect();
+        const at = (px, py) => ({ clientX: b.left + COMP.ox + px * COMP.scale, clientY: b.top + COMP.oy + py * COMP.scale, pointerId: 1, button: 0, bubbles: true });
+        cv.dispatchEvent(new PointerEvent('pointerdown', at(600, 150))); cv.dispatchEvent(new PointerEvent('pointermove', at(700, 152))); cv.dispatchEvent(new PointerEvent('pointerup', at(700, 152)));
+        const drawn = structuredClone(COMP.entry.crumbling_platforms.at(-1)), sel = COMP.sel?.k;
+        cv.dispatchEvent(new PointerEvent('pointerdown', at(650, 152))); cv.dispatchEvent(new PointerEvent('pointermove', at(660, 162))); cv.dispatchEvent(new PointerEvent('pointerup', at(660, 162)));
+        const moved = structuredClone(COMP.entry.crumbling_platforms.at(-1));
+        const written = JSON.parse((await composerFiles()).files['tools/rooms/composed_rooms.json']).graveyard_cross.crumbling_platforms;
+        compUndo(false); compUndo(false);
+        return { had, drawn, sel, moved, written, back: COMP.entry.crumbling_platforms };
+      });
+      assert.ok(c.had.length >= 2 && c.had.every(p => p.length === 3), JSON.stringify(c));
+      assert.equal(c.sel, 'crumbling_platforms', JSON.stringify(c));
+      assert.deepEqual([c.drawn.length, c.drawn[2]], [3, 100], JSON.stringify(c));
+      assert.deepEqual(c.moved, [c.drawn[0] + 10, c.drawn[1] + 10, 100], JSON.stringify(c));
+      assert.deepEqual(c.written, [...c.had, c.moved]);
+      assert.deepEqual(c.back, c.had, 'undone');
       // the steps after this one work on characters, where 'every tab loads' left the page
       await page.evaluate(() => { try { localStorage.removeItem('ss_composer'); } catch {} setMode('chars'); });
     });
