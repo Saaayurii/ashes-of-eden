@@ -41,6 +41,8 @@ WRITABLE = ("assets/", "data/", "data/cutscenes/", "data/dialogues/", "data/enem
             "tools/rooms/front_layers.json", "tools/studio/overrides/")
 ## Tables the rooms generator reads: writing one regenerates the rooms.
 ROOM_TABLES = ("tools/rooms/studio_rooms.json", "tools/rooms/composed_rooms.json", "tools/rooms/front_layers.json")
+## A game pack's own (content/…, generate_rooms.py --pack); the studio writes the last two.
+PACK_TABLES = ("content/rooms/rooms.json", "content/rooms/composed_rooms.json", "content/rooms/studio_rooms.json")
 ## What the generator writes into assets/levels that a send means to change: a composed room's
 ## picture and plate, the pieces in front of the hero and what they were cut from. The panels it
 ## re-saves there otherwise only drift by a pixel on another zlib.
@@ -71,7 +73,8 @@ def safe_path(rel: str) -> Path:
     if PACK is not None and rel.startswith("content/"):
         base, inner = PACK, rel.removeprefix("content/")
     path = (base / inner).resolve()
-    if base not in path.parents or not any(inner == w or inner.startswith(w) for w in WRITABLE) or ".." in rel.split("/"):
+    writable = WRITABLE + (tuple(t.removeprefix("content/") for t in PACK_TABLES) if base == PACK else ())
+    if base not in path.parents or not any(inner == w or inner.startswith(w) for w in writable) or ".." in rel.split("/"):
         raise ValueError(f"not writable from the studio: {rel}")
     return path
 
@@ -147,7 +150,7 @@ def write_transaction(files, delete):
         targets, doomed = prepared_changes(files, delete)
         dirs = ["data", "localization", "tools/studio/overrides", "tools/studio/import", "tools/studio/projects", "tools/rooms"]
         if PACK is not None:
-            dirs += ["content/data", "content/localization"]
+            dirs += ["content/data", "content/localization", "content/rooms", "content/scenes/rooms", "content/assets/levels"]
         if any(f["path"].startswith("tools/studio/overrides/") or f["path"] in ROOM_TABLES for f in files):
             dirs += [p.relative_to(ROOT).as_posix() for p in (ROOT / "assets").iterdir() if p.is_dir() and p.name != "audio"] + ["scenes/rooms"]
         direct = [p for p, _ in targets] + [q for p in doomed for q in (p, p.with_name(p.name + ".import"))]
@@ -225,6 +228,11 @@ class Handler(SimpleHTTPRequestHandler):
                 with write_transaction(data.get("files", []), data.get("delete", [])) as before:
                     written, removed = apply_changes(data.get("files", []), data.get("delete", []))
                     regenerated = False
+                    if PACK is not None and any(t in written for t in PACK_TABLES):
+                        code, out = run([sys.executable, "tools/rooms/generate_rooms.py", "--pack"])
+                        if code:
+                            raise ValueError("генератор комнат игры не принял изменения:\n" + out)
+                        regenerated = True
                     if any(t in written for t in ROOM_TABLES):
                         code, out = run([sys.executable, "tools/rooms/generate_rooms.py"])
                         if code:
@@ -292,6 +300,8 @@ class Handler(SimpleHTTPRequestHandler):
                 room = str(data.get("room", ""))
                 if not room.replace("_", "").isalnum():
                     raise ValueError("bad room name")
+                if PACK is not None:
+                    raise ValueError("проверка ботом пока только для комнат Ashes; путь комнаты игры проверил генератор (--pack)")
                 if not (ROOT / "scenes/rooms/composed" / (room + ".tscn")).exists():
                     raise ValueError("у комнаты нет черновика: сначала «→ В игру»")
                 results = []

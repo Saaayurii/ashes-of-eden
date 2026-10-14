@@ -64,6 +64,36 @@ jobs:
       - name: Lay the pack over the engine
         run: python3 engine/tools/packs/apply_pack.py pack --copy
 
+      # A pack's rooms are its tables (rooms/rooms.json, rooms/composed_rooms.json,
+      # and what the studio adds in rooms/studio_rooms.json) over the engine's
+      # rooms: the scenes are written from them against this engine
+      # (tools/rooms/generate_rooms.py --pack). On a push the pack gets them back
+      # as a commit, so a studio pull request needs no generator of its own.
+      - name: The pack's rooms, from its tables
+        if: hashFiles('pack/rooms/*.json') != ''
+        run: |
+          set -eu
+          python3 -m pip install --quiet numpy pillow
+          (cd engine && python3 tools/rooms/generate_rooms.py --pack)
+          rsync -a --delete engine/content/scenes/rooms/ pack/scenes/rooms/
+          if [ -d engine/content/assets/levels/composed ]; then
+            mkdir -p pack/assets/levels/composed
+            rsync -a engine/content/assets/levels/composed/ pack/assets/levels/composed/
+          fi
+          cd pack
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --short
+            if [ "${GITHUB_EVENT_NAME}" = push ]; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add -A scenes/rooms assets/levels
+              git commit -qm "Rooms written from rooms/*.json (engine ${{ inputs.engine_ref }})"
+              git push origin "HEAD:${GITHUB_REF_NAME}"
+            else
+              echo "::warning::scenes/rooms differ from what rooms/*.json write; the push to ${GITHUB_REF_NAME} will commit them"
+            fi
+          fi
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Build Godot image (cached)
@@ -79,11 +109,17 @@ jobs:
         working-directory: engine
         run: docker compose run --rm godot game-test
 
+      # The loading page is the game's: its name, words and menu picture
+      # (game.json "name", "web", "menu"), not Ashes' (tools/web/pack_shell.py).
       - name: Export Web
         if: inputs.deploy_pages
         working-directory: engine
         run: |
           set -eu
+          python3 -m pip install --quiet pillow
+          owner="${GITHUB_REPOSITORY%%/*}"
+          python3 tools/web/pack_shell.py --repo "${GITHUB_REPOSITORY}" \
+            --url "https://$(echo "$owner" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}/"
           docker compose run --rm build build Web
           test -f build/web/index.html
           big=$(find build/web -type f -size +99M | head -1 || true)
@@ -99,11 +135,12 @@ jobs:
           set -eux
           python3 -m pip install --quiet pillow
           engine_sha=$(git rev-parse HEAD)
+          pack_sha=$(git -C ../pack rev-parse HEAD)  # the rooms' commit, when there was one
           python3 tools/studio/build_data.py \
             --asset-base "https://raw.githubusercontent.com/${{ inputs.engine_repository }}/${engine_sha}/" \
-            --content-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/" \
+            --content-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${pack_sha}/" \
             --engine-repo "${{ inputs.engine_repository }}" \
-            --repo "${GITHUB_REPOSITORY}" --content-sha "${GITHUB_SHA}" --branch "${GITHUB_REF_NAME}" --sha "${engine_sha}" \
+            --repo "${GITHUB_REPOSITORY}" --content-sha "${pack_sha}" --branch "${GITHUB_REF_NAME}" --sha "${engine_sha}" \
             --out "$RUNNER_TEMP/studio-data"
 
       - name: Publish it to the studio-data branch

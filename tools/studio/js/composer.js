@@ -150,6 +150,8 @@ function compKeep() {
 function compFresh(name) {
   const own = COMP.data.rooms[name];
   const { player, door, ...geom } = composeShift(own, 0, 0);
+  // another game keeps the ground and the room's creatures it has, not Ashes' people and story props
+  if (META.pack) for (const k of ['spawns', 'props', 'npcs']) geom[k] = (geom[k] || []).filter(([id]) => (COMP.data[k === 'spawns' ? 'enemies' : k] || []).includes(id));
   return { live: false, cells: [{ painting: own.painting, col: 0, row: 0 }], ...geom, player, door };
 }
 function compOpen(name) {
@@ -306,8 +308,8 @@ function renderComposer() {
       <div class="muted">Окон вдаль: ${nW}${e.windows ? '' : ' (из комнат клеток)'} · передний план: ${nF} · свечей: ${nL}${e.lights ? '' : ' (найдены сами)'}</div>
       ${e.windows || e.lights || e.front ? '<button class="sm" data-act="comp-layers-reset" title="Вернуть окна и свечи, какие дают комнаты клеток, и убрать передний план">↺ Слои как у клеток</button>' : ''}
     </div>
-    <div class="card"><label title="Пока выключено, это черновик: scenes/rooms/composed/${esc(COMP.name)}.tscn, открывается кнопкой «▶ В Godot». Включено — комната в игре заменяется собранной, и путь героя обязан сходиться."><input type="checkbox" id="compLive"${e.live ? ' checked' : ''}> В игре вместо комнаты ${esc(COMP.name)}</label>
-      ${e.live ? '<div class="warn">Собранная комната заменит настоящую. Проверь её в Godot до отправки.</div>' : '<div class="muted">Черновик: игра идёт по старой комнате.</div>'}
+    ${META.pack ? `<div class="card"><div class="muted">Комната этой игры: <code>content/scenes/rooms/${esc(COMP.name)}.tscn</code> (generate_rooms.py --pack, по образцу ${esc(COMP.name)} движка). Играется, когда её путь стоит в <code>rooms</code> в data/game.json; путь героя обязан сходиться.</div>` : `<div class="card"><label title="Пока выключено, это черновик: scenes/rooms/composed/${esc(COMP.name)}.tscn, открывается кнопкой «▶ В Godot». Включено — комната в игре заменяется собранной, и путь героя обязан сходиться."><input type="checkbox" id="compLive"${e.live ? ' checked' : ''}> В игре вместо комнаты ${esc(COMP.name)}</label>
+      ${e.live ? '<div class="warn">Собранная комната заменит настоящую. Проверь её в Godot до отправки.</div>' : '<div class="muted">Черновик: игра идёт по старой комнате.</div>'}`}
     </div>`;
   const send = $('#compSend'); send.textContent = COMP.dirty ? '→ В игру •' : '→ В игру';
   send.disabled = !COMP.dirty;
@@ -695,19 +697,20 @@ async function compTrace() {
 /* ---------- sending ---------- */
 async function composerFiles() {
   const fatal = COMP.reach.problems.filter(p => p.fatal);
-  if (COMP.entry.live && fatal.length) throw new Error('Комната в игре должна быть проходимой:\n' + fatal.map(p => p.text).join('\n'));
+  if ((COMP.entry.live || META.pack) && fatal.length) throw new Error('Комната в игре должна быть проходимой:\n' + fatal.map(p => p.text).join('\n'));
   const doc = JSON.parse((await repoText('tools/rooms/composed_rooms.json')) || '{}');
   const entry = structuredClone(COMP.entry);
   for (const k of COMPOSE_LISTS) if (!entry[k].length && k !== 'ground' && k !== 'ledges') delete entry[k];
   // the layers are written only once she made them hers; an empty front says nothing
   for (const k of Object.keys(COMP_LAYERS)) if (entry[k] == null || (k === 'front' && !entry[k].length)) delete entry[k];
+  if (META.pack) { delete entry.front; delete entry.live; }  // a game pack's rooms have no front plane yet (generate_rooms.py --pack)
   doc[COMP.name] = entry;
   const files = { 'tools/rooms/composed_rooms.json': fmtComposed(doc) };
   for (const cell of entry.cells) if (COMP.uploads[cell.painting]) files[`assets/levels/${cell.painting}.png`] = COMP.uploads[cell.painting];
   for (const piece of entry.front || []) if (COMP.uploads[piece.from]) files[`assets/levels/${piece.from}.png`] = COMP.uploads[piece.from];
   const { cols, rows } = composeGrid(entry, compCell());
   return { files, title: `Studio: composed room — ${COMP.name} (${cols}×${rows})`,
-    body: `The room composer («Конструктор»): ${COMP.name} from ${entry.cells.length} paintings, ${cols}×${rows} cells. ${entry.live ? 'Live: it replaces the room.' : 'A draft: `room=' + COMP.name + ' --composed`.'}`,
+    body: `The room composer («Конструктор»): ${COMP.name} from ${entry.cells.length} paintings, ${cols}×${rows} cells. ${META.pack ? 'A room of this game: content/scenes/rooms/' + COMP.name + '.tscn.' : entry.live ? 'Live: it replaces the room.' : 'A draft: `room=' + COMP.name + ' --composed`.'}`,
     notes: fatal.length ? ['Путь героя пока не сходится: ' + fatal.map(p => p.text).join('; ')] : [] };
 }
 
@@ -795,7 +798,7 @@ function composerInit() {
     }
     if (act === 'comp-run') {
       if (Writer.mode !== 'local') return dialog(`<h3>Сыграть собранную комнату</h3><p>Отправь её кнопкой «→ В игру»: робот соберёт сцену в pull request, и в «Мои отправки» появится ссылка «▶ Играть с моими правками» — браузерная сборка откроет именно этот черновик (<code>room=${esc(COMP.name)} --composed</code>).</p><p class="muted">Из папки игры (<code>python3 tools/studio/serve.py</code>) эта кнопка открывает Godot сразу.</p>`);
-      return runInGodot(COMP.name, !COMP.entry.live);
+      return runInGodot(COMP.name, META.pack || !COMP.entry.live);  // a pack's room opens by its own scene (run.gd pack_draft)
     }
     if (act === 'comp-send') {
       await sendToGame(composerFiles, null);

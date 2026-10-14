@@ -24,6 +24,10 @@ const ROOM_LAYERS := preload("res://scripts/rooms/room_layers.gd")
 ## Cutscenes (data/cutscenes) at the start of the room and once it is cleared. Empty = none.
 @export var intro_cutscene := ""
 @export var outro_cutscene := ""
+## A game pack's room made from an engine room (tools/rooms/generate_rooms.py
+## --pack, docs/GAME_PACKS.md): the engine room whose painting it shows, so its
+## openings, life, ambience and depth are that room's. Empty = itself.
+@export var base_room := ""
 ## File name in assets/audio/music, no extension. Empty = keep whatever is playing,
 ## which is what a room that shares its neighbour's bed wants.
 @export var music := ""
@@ -72,7 +76,8 @@ func _ready() -> void:
 	if music != "":
 		Audio.music(music)
 	# The living details of the place (ravens, wisps, fog, lightning): data/ambience.json.
-	Ambience.attach(self, scene_file_path.get_file().get_basename(), float(width), float(height))
+	var own := scene_file_path.get_file().get_basename()
+	Ambience.attach(self, own if Ambience.has_rule(own) else ROOM_LAYERS.look_key(self), float(width), float(height))
 	# its painted trees swing when struck and shed leaves: data/foliage.json
 	Foliage.attach(self)
 	# far, middle and front kept apart: after the clouds exist (Ambience)

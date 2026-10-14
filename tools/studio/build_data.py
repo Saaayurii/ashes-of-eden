@@ -813,15 +813,20 @@ def gore(root: Path, pfx, shots):
 def world(root, rooms):
     files = {p.relative_to(root).as_posix(): json.loads(p.read_text(encoding="utf-8"))
              for p in sorted((root / "data").rglob("*.json"))}
-    files["tools/rooms/studio_rooms.json"] = json.loads((root / "tools/rooms/studio_rooms.json").read_text())
+    # a game pack's rooms take the studio's additions from its own table (generate_rooms.py --pack)
+    own = root / "content/rooms/studio_rooms.json"
+    table = own if (root / "content/data/game.json").exists() else root / "tools/rooms/studio_rooms.json"
+    files["tools/rooms/studio_rooms.json"] = json.loads(table.read_text()) if table.exists() else {}
     return {"files": files, "enemies": sorted(p.stem for p in (root / "data/enemies").glob("*.json"))}
 
 
 def composer(root: Path):
     """The «Конструктор» (js/composer.js, tools/rooms/compose.py): the panels a room may be put
     together from, every painted room's own geometry in its panel's pixels, what is composed
-    already, and the numbers its preview needs (the grid, the hero's reach for check_reach)."""
-    sys.path.insert(0, str(root / "tools/rooms"))
+    already, and the numbers its preview needs (the grid, the hero's reach for check_reach).
+    The room tools run in the engine itself, never a game view: the engine's rooms name the
+    engine's people, which a pack need not inherit; content/ (the pack) is the same there."""
+    sys.path.insert(0, str(ROOT / "tools/rooms"))
     import compose
     import front
     import generate_rooms
@@ -857,7 +862,9 @@ def composer(root: Path):
     reach["FLYERS"] = sorted(painted_rooms.FLYERS)
     ids = lambda folder: sorted(p.stem for p in (root / "data" / folder).glob("*.json"))
     return {"cell": list(compose.CELL), "max": [compose.MAX_COLS, compose.MAX_ROWS], "seam": compose.SEAM,
-            "panels": panels, "rooms": rooms, "composed": compose.load(), "reach": reach,
+            "panels": panels, "rooms": rooms, "reach": reach,
+            # a game pack composes into its own table, starting from none of Ashes'
+            "composed": compose.load(compose.PACK_TABLE) if (root / "content/data/game.json").exists() else compose.load(),
             "enemies": ids("enemies"), "props": ids("props"), "npcs": ids("npcs"),
             "front": {"depth": list(front.DEPTH), "max": front.MAX_PIECES}, "window_depth": list(compose.WINDOW_DEPTH)}
 

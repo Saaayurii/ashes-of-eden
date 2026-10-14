@@ -557,6 +557,20 @@ test('heroPatch and actionsPatch change one value in the real files and nothing 
   assert.equal(JSON.parse(changed).actions.attack3.multiplier, 2); assert.deepEqual(JSON.parse(changed).actions.attack3.hitbox, [40, 30]);
 });
 
+test('heroPatch: moves and the enemies\' numbers in place, and a section a pack lacks is added', () => {
+  const fs = require('fs'), path = require('path'), root = path.join(__dirname, '../../..');
+  const hero = fs.readFileSync(path.join(root, 'data/hero.json'), 'utf8'), a = hero.split('\n');
+  const out = L.heroPatch(hero, { moves: { slam: false }, enemy_ai: { crowd_step: 30, attackers_per_side: 3, band_depth: [20, 60],
+    sight_defaults: { ...JSON.parse(hero).enemy_ai.sight_defaults, walker: [250, 70, 40] } } });
+  assert.equal(out.split('\n').length, a.length, 'tables stay on their lines');
+  assert.equal(out.split('\n').filter((l, i) => l !== a[i]).length, 5, 'five lines changed');
+  assert.match(out, /"slam": false,/); assert.match(out, /"crowd_step": 30\.0,/); assert.match(out, /"attackers_per_side": 3,/, 'a whole number stays whole');
+  assert.match(out, /"band_depth": \[20\.0, 60\.0\],/); assert.match(out, /"walker": \[250\.0, 70\.0, 40\.0\]\}/);
+  const pack = '{\n  "feel": {\n    "parry_window": 0.2\n  }\n}\n';
+  const grown = L.heroPatch(pack, { moves: { wall_jump: false }, enemy_ai: { personal_space: 50 } });
+  assert.deepEqual(JSON.parse(grown), { feel: { parry_window: 0.2 }, moves: { wall_jump: false }, enemy_ai: { personal_space: 50 } });
+});
+
 test('packFiles: a send into a game pack keeps data paths, owns new pictures, strips content/', () => {
   const L = require('../lib.js');
   const { files, del } = L.packFiles({
@@ -570,6 +584,22 @@ test('packFiles: a send into a game pack keeps data paths, owns new pictures, st
   assert.deepEqual(del, ['assets/old.png', 'data/x.json']);
   assert.ok(L.GAME_REPO.test('Saaayurii/saints-of-rust') && !L.GAME_REPO.test('../evil') && !L.GAME_REPO.test('a/b/c'));
   assert.equal(L.gameDataBase('o/r'), 'https://raw.githubusercontent.com/o/r/studio-data/');
+});
+
+test('drafts are kept per game, settings are the person\'s', () => {
+  const L = require('../lib.js');
+  assert.equal(L.storageKey('ss_combat', ''), 'ss_combat');
+  assert.equal(L.storageKey('ss_combat', 'o/undertow'), 'ss_combat@o/undertow');
+  assert.equal(L.storageKey('ss_github', 'o/undertow'), 'ss_github');
+  assert.equal(L.storageKey('other', 'o/undertow'), 'other');
+  assert.equal(L.studioDbName(''), 'sprite-studio');
+  assert.equal(L.studioDbName('o/undertow'), 'sprite-studio@o/undertow');
+});
+
+test('packFiles: the room tables a send writes are the pack\'s own (rooms/, generate_rooms.py --pack)', () => {
+  const L = require('../lib.js');
+  const { files } = L.packFiles({ 'tools/rooms/studio_rooms.json': '{}', 'tools/rooms/composed_rooms.json': '{}', 'assets/levels/panels/reef.png': 'PNG' });
+  assert.deepEqual(Object.keys(files).sort(), ['assets/levels/panels/reef.png', 'rooms/composed_rooms.json', 'rooms/studio_rooms.json']);
 });
 
 // --- the room composer (js/composer.js): the same reach and tracer as tools/rooms ---

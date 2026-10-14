@@ -25,6 +25,16 @@ if (OPEN_GAME) {
   const base = gameDataBase(OPEN_GAME), plain = window.fetch.bind(window);
   window.fetch = (u, o) => plain(typeof u === 'string' && u.startsWith('import/') ? base + u.slice(7) : u, o);
 }
+// The game whose drafts the page keeps (lib.js storageKey): known at once for
+// ?game=, after loadMeta for a pack served locally (serve.py --game), which is
+// before anything reads a draft.
+const studioGame = () => OPEN_GAME || (META.pack ? META.repo || META.game?.id || 'pack' : '');
+(() => {
+  const S = Storage.prototype, get = S.getItem, set = S.setItem, rm = S.removeItem;
+  S.getItem = function (k) { return get.call(this, storageKey(k, studioGame())); };
+  S.setItem = function (k, v) { return set.call(this, storageKey(k, studioGame()), v); };
+  S.removeItem = function (k) { return rm.call(this, storageKey(k, studioGame())); };
+})();
 async function loadMeta() {
   try { META = { ...META, ...(await (await fetch('import/meta.json', { cache: 'no-store' })).json()) }; }
   catch { if (OPEN_GAME) setTimeout(() => toast(`Нет данных студии у ${OPEN_GAME} (ветка studio-data): его CI ещё не собирал игру?`, 'err'), 0); }
@@ -121,7 +131,9 @@ let readRef = null;  // a pull request's branch while its fix is being built
 // In a game pack a file is the pack's own copy when it has one, else the engine's
 // (the one the pack inherits): a send then writes the pack's copy.
 async function repoText(path) {
-  const pack = META.pack, own = pack ? path.replace(/^content\//, '') : path;
+  const pack = META.pack;
+  if (pack && PACK_TABLES[path]) path = 'content/' + PACK_TABLES[path];  // the game's own room tables
+  const own = pack ? path.replace(/^content\//, '') : path;
   if (Writer.mode === 'github') {
     try { return await ghApi(`/repos/${META.repo}/contents/${own}?ref=${readRef || META.branch}`, { raw: true, headers: { Accept: 'application/vnd.github.raw' } }); }
     catch (e) { if (e.status !== 404) throw e; }

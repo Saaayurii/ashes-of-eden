@@ -533,6 +533,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 ## right — Godot falls back to a system font — while the Web build, which has
 ## no system fonts, draws tofu. Nobody would catch that until a player did, so
 ## it is checked here instead.
+## A game pack carries its own subset, cut from the merged strings
+## (`make_cjk_font.py --pack`), which apply_pack.py puts in the engine's place.
 const CJK_FONT := "res://assets/fonts/NotoSerifSC-Subset.ttf"
 
 
@@ -557,7 +559,7 @@ func _check_cjk_font(strings: Dictionary) -> void:
 	chars.sort()
 	_error("%d character(s) in the zh_CN text are not in the subsetted font: %s "
 		% [chars.size(), "".join(chars).left(40)]
-		+ "(first seen in %s) — run tools/art/make_cjk_font.py and commit the result"
+		+ "(first seen in %s) — run tools/art/make_cjk_font.py (in a game pack: --pack) and commit the result"
 		% missing[chars[0]])
 
 
@@ -1567,6 +1569,12 @@ const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck"]
 const FLAGS_FOR_TESTS := ["save_test"]
 
 
+## The engine room a game pack's room was made from (`base_room` in its scene), or "".
+func _base_room(path: String) -> String:
+	var found := RegEx.create_from_string('(?m)^base_room = "(\\w+)"').search(FileAccess.get_file_as_string(path))
+	return found.get_string(1) if found != null else ""
+
+
 ## data/backdrops.json (scripts/rooms/backdrop_life.gd): every room of the
 ## chapter is named, each names a family that exists, each zone a known kind
 ## and a rect. Whether a rect lies on its picture is backdrop_life_test.gd's.
@@ -1601,8 +1609,10 @@ func _check_backdrops() -> void:
 			_error("data/backdrops.json: lean needs a colour for %s" % path)
 	var rooms: Dictionary = parsed.get("rooms", {})
 	for path in DATA_DOC.all_rooms(_doc("game.json")):
-		if not rooms.has(str(path).get_file().get_basename()):
-			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % str(path).get_file().get_basename())
+		# a game pack's room made from an engine room may take that room's rule (RoomLayers.look_key)
+		var own := str(path).get_file().get_basename()
+		if not rooms.has(own) and not rooms.has(_base_room(str(path))):
+			_error("data/backdrops.json: no rule for %s — its backdrop would stand still" % own)
 	# every picture a scene shows or a passage card carries breathes too
 	for picture in backdrop_pictures():
 		if not rooms.has(picture.get_file().get_basename()):
@@ -1920,6 +1930,11 @@ func _room_missing(entry: Dictionary, scene: String, where: String, what: String
 
 ## A single-document file merged the way Data.load_doc merges it.
 func _doc(file_name: String) -> Dictionary:
+	# a root's copy that does not parse is left out of the merge in play: here it is an error
+	for data_root in _validated_roots():
+		var file: String = data_root.path_join(file_name)
+		if FileAccess.file_exists(file) and not JSON.parse_string(FileAccess.get_file_as_string(file)) is Dictionary:
+			_error("%s: not a JSON object" % file)
 	return DATA_DOC.doc(file_name, _validated_roots())
 
 
@@ -2049,13 +2064,26 @@ func _check_game_rooms(game: Dictionary) -> void:
 
 func _check_hero() -> void:
 	var known = JSON.parse_string(FileAccess.get_file_as_string("res://data/hero.json"))
-	if not known is Dictionary or not known.get("stats") is Dictionary or not known.get("feel") is Dictionary:
-		_error("data/hero.json needs \"stats\" and \"feel\" objects")
+	if not known is Dictionary or ["stats", "feel", "moves", "enemy_ai"].any(func(k): return not known.get(k) is Dictionary):
+		_error("data/hero.json needs \"stats\", \"feel\", \"moves\" and \"enemy_ai\" objects")
 		return
 	var hero := _doc("hero.json")
 	for key in hero:
-		if not key in ["stats", "feel"]:
+		if not key in ["stats", "feel", "moves", "enemy_ai"]:
 			_error("hero.json: unknown section %s" % key)
+	# the special moves this game's hero has (Player.MOVE_KEYS): on or off, no new ones
+	var moves = hero.get("moves", {})
+	for key in moves:
+		if not known.moves.has(key):
+			_error("hero.json moves.%s: the hero has no such move (%s)" % [key, ", ".join(known.moves.keys())])
+		elif not moves[key] is bool:
+			_error("hero.json moves.%s needs true or false" % key)
+	# how enemies fight (Enemy.AI_KEYS, docs/ENEMY_AI.md), and one enemy's own "ai"
+	_check_enemy_ai("hero.json enemy_ai", hero.get("enemy_ai", {}), known.enemy_ai)
+	for enemy in _game_entries("enemies"):
+		var own = enemy.get("ai")
+		if own != null:
+			_check_enemy_ai("enemy %s: ai" % enemy.get("id", "?"), own if own is Dictionary else {"": own}, known.enemy_ai)
 	var unit := ["block_reduction", "knockback_fraction", "desperate_share", "refuse_heal", "dodge_counter_bonus",
 		"rally_damage_share", "rally_hit_share", "rally_max_hp_share", "slam_damage_share", "crit_chance"]
 	for section in ["stats", "feel"]:
@@ -2092,6 +2120,42 @@ func _check_hero() -> void:
 			_error("hero.json stats.%s must be above zero" % key)
 	if stats.has("max_jumps") and (int(stats.max_jumps) != stats.max_jumps or stats.max_jumps < 1):
 		_error("hero.json stats.max_jumps needs a whole number, at least 1")
+
+
+## The AI numbers: each a key the engine knows, shaped like the engine's own
+## (a list as long, a table with its keys), never negative; shares within 0..1.
+func _check_enemy_ai(where: String, given: Dictionary, known: Dictionary) -> void:
+	for key: String in given:
+		if not known.has(key):
+			_error("%s.%s: enemies have no such value" % [where, key])
+			continue
+		_check_ai_value("%s.%s" % [where, key], given[key], known[key])
+		if key in ["execute_below", "repeat_attack_weight"] and (given[key] is float or given[key] is int) and given[key] > 1:
+			_error("%s.%s is a share: 0..1" % [where, key])
+		if key == "attackers_per_side" and (not (given[key] is float or given[key] is int) or int(given[key]) != given[key] or given[key] < 1):
+			_error("%s.%s needs a whole number, at least 1" % [where, key])
+		if key == "band_depth" and given[key] is Array and given[key].size() == 2 and given[key][0] > given[key][1]:
+			_error("%s.%s is [nearest, furthest]" % [where, key])
+
+
+func _check_ai_value(where: String, value, want) -> void:
+	if want is Array:
+		if not value is Array or value.size() != want.size():
+			_error("%s needs %d numbers" % [where, want.size()])
+			return
+		for v in value:
+			_check_ai_value(where, v, want[0])
+	elif want is Dictionary:
+		if not value is Dictionary:
+			_error("%s needs an object" % where)
+			return
+		for k in value:
+			if not want.has(k):
+				_error("%s.%s: no such key (%s)" % [where, k, ", ".join(want.keys())])
+			else:
+				_check_ai_value("%s.%s" % [where, k], value[k], want[k])
+	elif not (value is float or value is int) or not is_finite(float(value)) or value < 0:
+		_error("%s needs a number, zero or more" % where)
 
 
 ## A weapon (data/weapons, docs/WEAPONS.md): every number bounded, every pose
