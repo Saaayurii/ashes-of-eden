@@ -70,7 +70,7 @@
         "hurt": "res://assets/sprites/possessed_villager_v2_hurt.png",
         "death": "res://assets/sprites/possessed_villager_v2_death.png"
       },
-      "scale": 0.76
+      "scale": 1.05
     }
   },
   {
@@ -653,13 +653,13 @@
       ],
       "fps": 9,
       "animations": {
-        "idle": "res://assets/sprites/shade_v2_idle.png",
-        "walk": "res://assets/sprites/shade_v2_walk.png",
-        "attack": "res://assets/sprites/shade_v2_attack.png",
-        "attack_alt": "res://assets/sprites/shade_v2_attack_alt.png",
-        "special": "res://assets/sprites/shade_v2_special.png",
-        "hurt": "res://assets/sprites/shade_v2_hurt.png",
-        "death": "res://assets/sprites/shade_v2_death.png"
+        "idle": "res://assets/sprites/shade_studio_idle.png",
+        "walk": "res://assets/sprites/shade_studio_walk.png",
+        "attack": "res://assets/sprites/shade_studio_attack.png",
+        "attack_alt": "res://assets/sprites/shade_studio_attack_alt.png",
+        "special": "res://assets/sprites/shade_studio_special.png",
+        "hurt": "res://assets/sprites/shade_studio_hurt.png",
+        "death": "res://assets/sprites/shade_studio_death.png"
       },
       "scale": 0.74,
       "pad_y": 12

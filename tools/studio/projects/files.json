@@ -34,5 +34,33 @@
   "assets/sprites/projectiles/cult_page_studio.png": {
     "by": "Saaayurii",
     "at": "2026-10-10"
+  },
+  "assets/sprites/shade_studio_attack.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-13"
+  },
+  "assets/sprites/shade_studio_attack_alt.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-13"
+  },
+  "assets/sprites/shade_studio_death.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-13"
+  },
+  "assets/sprites/shade_studio_hurt.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-13"
+  },
+  "assets/sprites/shade_studio_idle.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-13"
+  },
+  "assets/sprites/shade_studio_special.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-13"
+  },
+  "assets/sprites/shade_studio_walk.png": {
+    "by": "Saaayurii",
+    "at": "2026-10-13"
   }
 }
