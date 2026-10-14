@@ -109,11 +109,13 @@ async function step(name, fn) {
         const lights = compLights().length;
         cv.dispatchEvent(new PointerEvent('pointerdown', at(640, 300))); cv.dispatchEvent(new PointerEvent('pointerup', at(640, 300)));
         const lit = COMP.entry.lights.length - lights, owned = COMP.entry.windows.length;
+        // the table may carry front pieces of its own: the new one is the last, and undo leaves them as they were
+        const fronts = JSON.stringify(COMP.entry.front);
         compAddFront(COMP.entry.cells[0], [100, 100, 120, 80]);
-        const piece = COMP.entry.front[0], baked = !!compPiece(piece);
+        const piece = COMP.entry.front[COMP.entry.front.length - 1], baked = !!compPiece(piece);
         compUndo(false); compUndo(false);
         document.querySelector('[data-compview="cells"]').click();
-        return { built, windows, lit, owned, piece, baked, back: !COMP.entry.lights && !COMP.entry.front };
+        return { built, windows, lit, owned, piece, baked, back: !COMP.entry.lights && JSON.stringify(COMP.entry.front) === fronts };
       });
       assert.equal(v.built, 2, 'the stitched picture and its plate: ' + JSON.stringify(v));
       assert.ok(v.windows >= 3 && v.owned === v.windows, 'the room brings its far openings: ' + JSON.stringify(v));
