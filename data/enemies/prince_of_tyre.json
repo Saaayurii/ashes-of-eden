@@ -17,8 +17,7 @@
   "material": "gold",
   "tags": [
     "human",
-    "boss",
-    "tyre"
+    "boss"
   ],
   "stagger_chance": 0.0,
   "armor": 0.2,

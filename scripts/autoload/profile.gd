@@ -58,14 +58,25 @@ static func _defaults() -> Dictionary:
 		# Cutscenes watched to their end or skipped (CutscenePlayer): id -> how
 		# many times. One seen before skips on a single press.
 		"scenes_seen": {},
+		# Flags that outlive their night (game.json "flags_kept", Campaign.keep):
+		# flag -> the id of the night that set it last.
+		"kept": {},
+		# Each night's last dawn (Campaign.record_dawn): night id -> the path
+		# that led by 2 then, or "level". A night "after" another waits for it.
+		"dawns": {},
 	}
 
 
 func _ready() -> void:
 	load_profile()
-	EventBus.enemy_died.connect(func(enemy_id: StringName, _pos: Vector2) -> void: record_kill(String(enemy_id)))
+	# a body felled by another (Faction, chapter III) is nobody's kill
+	EventBus.enemy_died.connect(func(enemy_id: StringName, _pos: Vector2) -> void:
+		if not Faction.felled_by_soldier():
+			record_kill(String(enemy_id)))
 	# the chosen of the dead laid low: an elite, never a boss (Hunter of the Chosen)
 	EventBus.enemy_died.connect(func(enemy_id: StringName, _pos: Vector2) -> void:
+		if Faction.felled_by_soldier():
+			return
 		var spec: Dictionary = Data.enemies.get(String(enemy_id), {})
 		if spec.get("tags", []).has("elite") and not spec.get("boss", false):
 			count("elites"))
@@ -137,6 +148,7 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 		data.bestiary[Game.slain_by] = entry
 	if won:
 		data.wins = int(data.get("wins", 0)) + 1
+		Campaign.record_dawn()
 		_bump("wins_" + Game.dominant_path())
 		if Settings.difficulty == "judgment":
 			_bump("wins_judgment")

@@ -15,8 +15,7 @@
   "material": "gold",
   "tags": [
     "human",
-    "elite",
-    "tyre"
+    "elite"
   ],
   "stagger_chance": 0.05,
   "armor": 0.15,

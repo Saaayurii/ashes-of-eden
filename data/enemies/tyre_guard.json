@@ -14,8 +14,7 @@
   "color": "#b89a50",
   "material": "gold",
   "tags": [
-    "human",
-    "tyre"
+    "human"
   ],
   "stagger_chance": 0.1,
   "armor": 0.15,

@@ -147,7 +147,8 @@ var _attack_cd := 0.0
 var _open_left := 0.0  # parried: the riposte window (see PARRY_OPENING)
 var _state_left := 0.0
 var _knockback := Vector2.ZERO
-var _target: Player
+## What it hunts: a player, or a body of a hostile side (Faction, chapter III).
+var _target: Node2D
 var _retarget := 0.0
 var _bob := randf() * TAU
 var _hover_side := 1.0 if randf() < 0.5 else -1.0
@@ -198,6 +199,17 @@ var _hex_bonus := 0.0
 ## A training dummy's quiet time left before it is whole again.
 var _dummy_rest := 0.0
 var _ward: Line2D
+## Two armies (scripts/enemies/faction.gd): spared = its side spares the hero
+## tonight and he has not struck it (replicated, for the minimap and the nod);
+## holds_door = it keeps the room's door shut (Room); felled_by_soldier = the
+## last blow on it came from another body, not a player.
+var spared := false
+var holds_door := true
+## Wormwood's water has risen ("flood"): once a fight.
+var _flooded := false
+var felled_by_soldier := false
+var _turned := false
+var _nod_at := -10000
 
 @onready var body: ColorRect = $Body
 @onready var sprite: AnimatedSprite2D = $Sprite
@@ -213,7 +225,7 @@ var _ward: Line2D
 ## enemy, before it enters the tree.
 func attach_net_sync() -> void:
 	if Net.active and not has_node("NetSync"):
-		Net.attach_sync(self, [".:position", ".:facing", ".:aware"])
+		Net.attach_sync(self, [".:position", ".:facing", ".:aware", ".:spared"])
 
 
 ## Lays the "enemy_ai" numbers over the script's own (a key it does not know is
@@ -313,6 +325,11 @@ func _ready() -> void:
 	# one that waits (chapter II) is never awake until struck, a boss included
 	aware = start_aware or (not waits() and (bool(stats.get("aware", false)) or bool(stats.get("boss", false))))
 	state = State.CHASE if aware else State.PATROL
+	if Faction.of(self) != "":
+		Faction.soldiers += 1
+		tree_exiting.connect(func() -> void: Faction.soldiers -= 1)
+	spared = Faction.spares(Faction.of(self))
+	holds_door = Room.holds_door(enemy_id) and not spared
 	if Net.active:
 		_simulated = multiplayer.is_server()
 		set_physics_process(_simulated)
@@ -578,7 +595,7 @@ func _physics_process(delta: float) -> void:
 		_patrol(delta)
 		_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
 		move_and_slide()
-		var seen: Player = null if waits() else _spot_player()
+		var seen: Node2D = null if waits() else _spot_player()
 		if seen != null:
 			_notice(seen)
 		return
@@ -589,11 +606,14 @@ func _physics_process(delta: float) -> void:
 			_set_state(State.CHASE, 0.0)
 		return
 	_retarget -= delta
-	if _target == null or not is_instance_valid(_target) or _target.is_dead() or _retarget <= 0.0:
+	if _target == null or not is_instance_valid(_target) or _target.call("is_dead") or _retarget <= 0.0 \
+			or not _hostile_to(_target):
 		_retarget = float(_ai("retarget_interval"))
 		_acquire_target()
 		_crowd_rank = _count_crowd()
 	if _target == null:
+		if Faction.of(self) != "" and state == State.CHASE:
+			_set_state(State.PATROL, 0.0)  # a soldier with nobody left to fight goes back to its watch
 		return
 
 	var to_target := _target.global_position - global_position
@@ -649,24 +669,123 @@ func _physics_process(delta: float) -> void:
 		contact_damage = float(_attack.get("damage", stats.get("damage", 5)))
 	if contact_damage > 0.0 and _contact_cd <= 0.0:
 		for touched in contact_area.get_overlapping_bodies():
-			if touched is Player and not touched.is_dead():
+			if touched is Player and not touched.is_dead() and _hostile_to(touched):
 				_contact_cd = float(stats.get("attack_interval", 0.8))
 				touched.take_damage(contact_damage, self)
+		# a lunge into a hostile soldier (Faction): the bodies collide, so touching is near
+		for other in _hostile_bodies():
+			if _contact_cd > 0.0:
+				break
+			var touch := (float(stats.get("size", 12)) + float(other.stats.get("size", 12))) * 0.5 + 8.0
+			if not other.is_dead() and global_position.distance_to(other.global_position) <= touch:
+				_contact_cd = float(stats.get("attack_interval", 0.8))
+				other.take_damage(contact_damage * Faction.damage_between(), self)
 
 
 ## The nearest player still on their feet. In co-op both of you are fair game.
+## A soldier (Faction) also hunts the bodies of a hostile side within its
+## aggro range that it can see, and passes over a player its side spares.
 func _acquire_target() -> void:
-	var best: Player = null
+	var best: Node2D = null
 	var best_distance := INF
 	for node in get_tree().get_nodes_in_group("player"):
 		var candidate := node as Player
-		if candidate == null or candidate.is_dead():
+		if candidate == null or candidate.is_dead() or not _hostile_to(candidate):
 			continue
 		var distance := candidate.global_position.distance_squared_to(global_position)
 		if distance < best_distance:
 			best_distance = distance
 			best = candidate
+	if Faction.soldiers > 0:
+		var aggro := float(stats.get("aggro_range", 380))
+		for node in get_tree().get_nodes_in_group("enemies"):
+			var other := node as Enemy
+			if other == null or other == self or not _hostile_to(other):
+				continue
+			var distance := other.global_position.distance_squared_to(global_position)
+			if distance < best_distance and distance <= aggro * aggro and (other == _target or _can_see(other)):
+				best_distance = distance
+				best = other
 	_target = best
+
+
+## Whether it fights [param other]: a player unless its side spares him, a body
+## of a hostile side (Faction.hostile); never a boss, and a boss only the players.
+func _hostile_to(other: Node) -> bool:
+	if other == null or not is_instance_valid(other) or other.call("is_dead"):
+		return false
+	if other is Player:
+		return not spared
+	if Faction.soldiers <= 0 or not other is Enemy or other == self:
+		return false
+	if stats.get("boss", false) or (other as Enemy).stats.get("boss", false):
+		return false
+	return Faction.hostile(Faction.of(self), Faction.of(other))
+
+
+## Whether it can see [param who] from where it stands (Faction.break_truce asks
+## which comrades saw the blow).
+func sees(who: Node2D) -> bool:
+	return _can_see(who)
+
+
+## The hero struck it while its side spared him (Faction.break_truce, host): it
+## hunts him for the rest of the room and keeps the door shut again.
+func turn_on_hero() -> void:
+	if not spared or is_dead():
+		return
+	spared = false
+	_turned = true
+	_retarget = 0.0
+	if not holds_door and Room.holds_door(enemy_id):
+		holds_door = true
+		EventBus.enemy_holds_changed.emit(self, true)
+	_turn_fx()
+	if Net.active:
+		_net_turn_fx.rpc()
+
+
+## A side was chosen (Faction.flag_set): whether it spares the hero now, on the
+## host, unless he has already broken the truce with it.
+func refresh_spared() -> void:
+	if not _simulated or is_dead() or _turned:
+		return
+	var now := Faction.spares(Faction.of(self))
+	if now == spared:
+		return
+	spared = now
+	var holds := Room.holds_door(enemy_id) and not spared
+	if holds != holds_door:
+		holds_door = holds
+		EventBus.enemy_holds_changed.emit(self, holds)
+	if spared and _target is Player:
+		_target = null
+		_retarget = 0.0
+
+
+func _turn_fx() -> void:
+	Fx.popup(global_position + Vector2(0, -28), "!", Faction.color(Faction.of(self)), 12)
+	visual.modulate = Color(1.8, 1.2, 1.0)
+	create_tween().tween_property(visual, "modulate", Color.WHITE, 0.3)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_turn_fx() -> void:
+	_turn_fx()
+
+
+## A spared soldier that sees the hero lowers its weapon for a beat: a dim mark
+## of its side's colour over the head, no "!" (docs/CHAPTER3.md §9).
+func _nod() -> void:
+	_play("idle")
+	var dim := Faction.color(Faction.of(self)).darkened(0.35)
+	dim.a = 0.6
+	Fx.popup(global_position + Vector2(0, -26), "·", dim, 10)
+
+
+@rpc("authority", "call_remote", "unreliable")
+func _net_nod() -> void:
+	_nod()
 
 
 # ------------------------------------------------------------- awareness ---
@@ -745,18 +864,30 @@ func _blocked_ahead() -> bool:
 
 ## The first player in sight: in the cone ahead with nothing solid between us,
 ## or close enough behind to be felt. Touching one counts as well.
-func _spot_player() -> Player:
+func _spot_player() -> Node2D:
 	for touched in contact_area.get_overlapping_bodies():
-		if touched is Player and not touched.is_dead():
+		if touched is Player and not touched.is_dead() and _hostile_to(touched):
 			return touched
 	for node in get_tree().get_nodes_in_group("player"):
 		var candidate := node as Player
-		if candidate != null and not candidate.is_dead() and _can_see(candidate):
+		if candidate == null or candidate.is_dead() or not _can_see(candidate):
+			continue
+		if _hostile_to(candidate):
 			return candidate
+		if spared and Time.get_ticks_msec() - _nod_at > 4000:
+			_nod_at = Time.get_ticks_msec()
+			_nod()
+			if Net.active:
+				_net_nod.rpc()
+	if Faction.soldiers > 0:
+		for node in get_tree().get_nodes_in_group("enemies"):
+			var other := node as Enemy
+			if other != null and _hostile_to(other) and _can_see(other):
+				return other
 	return null
 
 
-func _can_see(who: Player) -> bool:
+func _can_see(who: Node2D) -> bool:
 	var spec: Dictionary = stats.get("sight", {})
 	var defaults: Array = SIGHT_DEFAULTS["flyer" if _is_flying() else "walker"]
 	# an omen may thicken the dark (data/omens: "enemy_sight")
@@ -775,12 +906,15 @@ func _can_see(who: Player) -> bool:
 
 
 ## "!" — one readable beat, then the hunt. Sleepers nearby wake with us.
-func _notice(who: Player, shout := true) -> void:
-	if not is_unaware() or waits():
+func _notice(who: Node2D, shout := true) -> void:
+	if not is_unaware() or waits() or not _hostile_to(who):
 		return
 	_target = who
 	aware = true
 	_set_state(State.ALERT, float(_ai("alert_time")))
+	if who is Player:
+		# the gift Held Truce: the first blow waits at least this long
+		_attack_cd = maxf(_attack_cd, float((who as Player).stats.get("truce_hold", 0.0)))
 	var d := who.global_position - global_position
 	if absf(d.x) > 4.0:
 		facing = 1 if d.x > 0.0 else -1
@@ -873,7 +1007,7 @@ func _chase(to_target: Vector2, delta: float) -> void:
 					height += 26.0
 			else:
 				_peck_time = 0.0
-			var goal := to_target - Vector2(side * distance, height)
+			var goal := _leashed(to_target - Vector2(side * distance, height))
 			if goal.length() > 6.0:
 				chase = goal.normalized() * minf(speed, goal.length() * 3.0)
 			chase.y += sin(_bob) * 18.0
@@ -1348,8 +1482,23 @@ func _nova_hit() -> void:
 	var radius := float(_attack.get("radius", 90))
 	for node in get_tree().get_nodes_in_group("player"):
 		var victim := node as Player
-		if victim != null and not victim.is_dead() and victim.global_position.distance_to(global_position) <= radius:
+		if victim != null and not victim.is_dead() and _hostile_to(victim) and victim.global_position.distance_to(global_position) <= radius:
 			victim.take_damage(float(_attack.get("damage", 12)), self)
+	for victim in _hostile_bodies():
+		if victim.global_position.distance_to(global_position) <= radius:
+			victim.take_damage(float(_attack.get("damage", 12)) * Faction.damage_between(), self)
+
+
+## The bodies of hostile sides in the tree (none outside chapter III).
+func _hostile_bodies() -> Array[Enemy]:
+	var out: Array[Enemy] = []
+	if Faction.soldiers <= 0:
+		return out
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var other := node as Enemy
+		if other != null and _hostile_to(other):
+			out.append(other)
+	return out
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -1365,7 +1514,7 @@ func _fire_round(attack: Dictionary, aim: Vector2) -> void:
 	if is_dead() or not is_inside_tree():
 		return
 	if aim == Vector2.ZERO:
-		var target := _nearest_player()
+		var target := _target if _target != null and is_instance_valid(_target) and _hostile_to(_target) else _nearest_player()
 		if target == null:
 			return
 		aim = target.global_position - global_position
@@ -1379,6 +1528,8 @@ func _fire_round(attack: Dictionary, aim: Vector2) -> void:
 		var shot := direction.rotated(offset)
 		var speed := float(attack.get("projectile_speed", 170)) * (1.0 + randf_range(-jitter, jitter))
 		_spawn_projectile(origin, shot, false, attack, speed)
+		if attack.has("mark_landing"):
+			_mark_landing(origin, shot, speed, attack)
 		if Net.active:
 			_net_projectile.rpc(origin, shot, speed, str(attack.get("color", "#ffd27a")), _projectile_style(attack),
 				str(attack.get("projectile_motion", "straight")), float(attack.get("motion_amount", 0.0)),
@@ -1413,6 +1564,8 @@ func _spawn_projectile(origin: Vector2, direction: Vector2, cosmetic: bool, atta
 	projectile.max_distance = float(attack.get("projectile_range", 0.0))
 	projectile.cosmetic = cosmetic
 	projectile.shooter_id = enemy_id
+	if Faction.soldiers > 0 and not cosmetic:
+		projectile.shooter = self  # its bolt bites the bodies of a hostile side too (Faction)
 	get_parent().add_child(projectile)
 	projectile.global_position = origin
 	_cast_flare(origin, projectile.tint)
@@ -1499,14 +1652,19 @@ func _beam_tick() -> void:
 		line.default_color.a = clampf(line.default_color.a * randf_range(0.8, 1.15), 0.15, 1.0)
 	var half := float(_attack.get("thickness", 26)) / 2.0 + 6.0
 	var length := float(_attack.get("length", 420))
+	var victims: Array = []
 	for node in get_tree().get_nodes_in_group("player"):
-		var victim := node as Player
-		if victim == null or victim.is_dead() or _beam_hit.has(victim):
+		if node is Player and _hostile_to(node):
+			victims.append(node)
+	victims.append_array(_hostile_bodies())
+	for victim in victims:
+		if victim.call("is_dead") or _beam_hit.has(victim):
 			continue
-		var d := victim.global_position - global_position
+		var d: Vector2 = victim.global_position - global_position
 		if (absf(d.y - 10.0) < half and absf(d.x) < length) or (absf(d.x) < half and absf(d.y) < length):
 			_beam_hit[victim] = true
-			victim.take_damage(float(_attack.get("damage", 20)), self)
+			var share := 1.0 if victim is Player else Faction.damage_between()
+			victim.take_damage(float(_attack.get("damage", 20)) * share, self)
 
 
 func _clear_beam() -> void:
@@ -1516,14 +1674,18 @@ func _clear_beam() -> void:
 
 
 func _melee_hit() -> void:
+	# layer 3 (enemies) only while a side is in play: a blade between soldiers (Faction)
+	attack_area.collision_mask = 2 | (4 if Faction.soldiers > 0 else 0)
 	attack_area.monitoring = true
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	if not is_inside_tree() or state == State.DEAD:
 		return
 	for body_hit in attack_area.get_overlapping_bodies():
-		if body_hit is Player and not body_hit.is_dead():
+		if body_hit is Player and not body_hit.is_dead() and _hostile_to(body_hit):
 			body_hit.take_damage(float(_attack.get("damage", 10)), self)
+		elif body_hit is Enemy and _hostile_to(body_hit):
+			body_hit.take_damage(float(_attack.get("damage", 10)) * Faction.damage_between(), self)
 	attack_area.monitoring = false
 
 
@@ -1579,7 +1741,7 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 		if multiplayer.get_peers().has(1):
 			_net_hit.rpc_id(1, amount, from, crit, knockback, sneak, execute, move)
 		return
-	_apply_damage(amount, from, source != null, crit, knockback, sneak, execute, move)
+	_apply_damage(amount, from, source != null, crit, knockback, sneak, execute, move, source is Enemy)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -1590,10 +1752,19 @@ func _net_hit(amount: float, from: Vector2, crit: bool, knockback: float, sneak:
 ## [param sneak] is what the blow is worth on a body that never saw it coming;
 ## only the host knows whether this one did, so the multiplier is applied here.
 ## [param move] names the blow that landed (Gore.moves): how this body bleeds and tears.
+## [param soldier]: the blow came from another body (Faction) — no backstab, no
+## crit, no riposte, and nobody's numbers count it.
 func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knockback: float, sneak := 1.0,
-		execute := 0.0, move := "") -> void:
+		execute := 0.0, move := "", soldier := false) -> void:
 	if state == State.DEAD:
 		return
+	felled_by_soldier = soldier
+	if soldier:
+		crit = false
+		sneak = 1.0
+		execute = 0.0
+	elif spared:
+		Faction.break_truce(self)  # he struck one who was sparing him
 	if _sealed:
 		# warded: the blade rings off, nothing gets through
 		_warded_fx()
@@ -1614,7 +1785,7 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	if execute > 0.0 and hp <= _max_hp * EXECUTE_BELOW:
 		amount *= 1.0 + execute
 		crit = true
-	var riposte := _open_left > 0.0 and Player.can_move("riposte")
+	var riposte := not soldier and _open_left > 0.0 and Player.can_move("riposte")
 	if riposte:
 		_open_left = 0.0  # one riposte per parry
 		EventBus.technique_performed.emit("riposte")
@@ -1638,15 +1809,15 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	var away := signf(global_position.x - from.x)
 	if away == 0.0:
 		away = float(facing)
-	_hit_fx(amount, crit, hp, away, backstab, move)
+	_hit_fx(amount, crit, hp, away, backstab, move, soldier)
 	if Net.active:
-		_net_hit_fx.rpc(amount, crit, hp, _max_hp, away, backstab, move)
+		_net_hit_fx.rpc(amount, crit, hp, _max_hp, away, backstab, move, soldier)
 	if riposte:
 		_riposte_fx()
 		if Net.active:
 			_net_riposte_fx.rpc()
 	if is_unaware():
-		if waits():
+		if waits() and not soldier:
 			Game.flags["waiter_struck"] = true  # somebody who was only waiting (read in chapter II)
 		# Whoever it was, it is awake now; the nearest player is picked up on the next tick.
 		aware = true
@@ -1681,9 +1852,11 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	if stats.get("boss", false) and not _summoned and stats.has("summons") \
 			and hp <= _max_hp * float(stats.summons.get("at_hp", 0.5)):
 		_summon()
+	if stats.has("flood") and not _flooded and hp > 0.0 and hp <= _max_hp * float(stats.flood.get("at_hp", 0.5)):
+		_flood(stats.flood)
 	if hp <= 0.0:
 		if Net.active:
-			_net_die.rpc()
+			_net_die.rpc(felled_by_soldier)
 		_die()
 
 
@@ -1828,8 +2001,9 @@ func _net_riposte_fx() -> void:
 ## What a hit looks like from the receiving end: a white blow-out, a squash that
 ## springs back, sparks thrown the way the blade was going, and the number.
 ## [param away] is -1 or 1: the direction the hit came from, pointing outwards.
-func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := false, move := "") -> void:
-	Game.note_dealt(amount)  # the night's numbers (every peer sees every blow)
+func _hit_fx(amount: float, crit: bool, new_hp: float, away := 1.0, backstab := false, move := "", soldier := false) -> void:
+	if not soldier:
+		Game.note_dealt(amount)  # the night's numbers (every peer sees every blow); a soldier's blow is not ours
 	Fx.damage_number(global_position, amount, Color(1.0, 0.8, 0.3) if crit else Color(1, 0.95, 0.8))
 	if backstab:
 		# The one hit that is meant to feel like a decision: name it and let it land.
@@ -1875,10 +2049,10 @@ func _punch(crit: bool) -> void:
 ## The host also sends its own max: difficulty is a per-player setting, so the
 ## numbers a client computed at spawn are not the numbers being fought.
 @rpc("authority", "call_remote", "unreliable_ordered")
-func _net_hit_fx(amount: float, crit: bool, new_hp: float, max_hp: float, away: float, backstab: bool, move := "") -> void:
+func _net_hit_fx(amount: float, crit: bool, new_hp: float, max_hp: float, away: float, backstab: bool, move := "", soldier := false) -> void:
 	hp = new_hp
 	_max_hp = maxf(max_hp, 1.0)
-	_hit_fx(amount, crit, new_hp, away, backstab, move)
+	_hit_fx(amount, crit, new_hp, away, backstab, move, soldier)
 
 
 ## Attack type "summon": after its wind-up, calls "count" of "id" out of the
@@ -1888,9 +2062,160 @@ func _call_up(attack: Dictionary) -> void:
 	_summon_fx()
 	var wanted := mini(int(attack.get("count", 1)), int(attack.get("max_alive", 2)) - _summons_near(attack))
 	for i in wanted:
-		var offset := Vector2(randf_range(24.0, 60.0) * (1 if i % 2 == 0 else -1), -18.0)
-		EventBus.enemy_spawn_requested.emit(str(attack.get("id", "shade")), global_position + offset)
-		Fx.puff(global_position + offset, 1.0, Color(0.6, 0.4, 0.8))
+		var at := global_position + Vector2(randf_range(24.0, 60.0) * (1 if i % 2 == 0 else -1), -18.0)
+		# "where": "liquid" — they rise out of the room's water instead (Wormwood)
+		if str(attack.get("where", "")) == "liquid":
+			var risen := _liquid_point()
+			if risen != Vector2.INF:
+				at = risen
+		if attack.has("essence"):
+			# what the risen pay is the summoner's to say ("essence": 0 — nothing)
+			var room := _room()
+			if room != null:
+				var body := room.spawn_enemy(str(attack.get("id", "shade")), at, true)
+				if body != null:
+					body.stats.essence = float(attack.essence)
+		else:
+			EventBus.enemy_spawn_requested.emit(str(attack.get("id", "shade")), at)
+		Fx.puff(at, 1.0, Color(attack.get("color", "#9966cc")))
+
+
+## The room this body fights in (the newest, while an old one is being freed).
+func _room() -> Room:
+	var rooms := get_tree().get_nodes_in_group("room")
+	return null if rooms.is_empty() else rooms.back() as Room
+
+
+## A random point just over the surface of the room's water ("liquids": Hazard),
+## Vector2.INF when the room has none.
+func _liquid_point() -> Vector2:
+	var pools := get_tree().get_nodes_in_group("liquids").filter(func(p) -> bool: return not (p as Hazard).burns())
+	if pools.is_empty():
+		return Vector2.INF
+	var pool := pools[randi() % pools.size()] as Hazard
+	var x := pool.global_position.x + randf_range(12.0, maxf(13.0, pool.size.x - 12.0))
+	return Vector2(x, pool.surface_y(x) - 18.0)
+
+
+## A flyer with an "anchor" (finished-room pixels) never goes further than its
+## "leash" from it, and with "hover_floor" never lower than that many px over the
+## floor or the water under it — a boss that keeps over its own spring (Wormwood;
+## generic, for any flying boss). Takes and returns the move it wanted.
+func _leashed(goal: Vector2) -> Vector2:
+	if not stats.has("anchor") and not stats.has("hover_floor"):
+		return goal
+	var want := global_position + goal
+	if stats.has("anchor"):
+		var room := _room()
+		var origin := room.global_position if room != null else Vector2.ZERO
+		var anchor := origin + Vector2(float(stats.anchor[0]), float(stats.anchor[1]))
+		var leash := float(stats.get("leash", 150.0))
+		if want.distance_to(anchor) > leash:
+			want = anchor + (want - anchor).limit_length(leash)
+	if stats.has("hover_floor"):
+		var ground := _ground_under(want.x)
+		want.y = minf(want.y, ground - float(stats.hover_floor))
+	return want - global_position
+
+
+## The first floor (world or ledge) or water surface under [param x], looking
+## down from this body; far below when there is none.
+func _ground_under(x: float) -> float:
+	var from := Vector2(x, global_position.y - 40.0)
+	var query := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 1200), SOLID_MASK)
+	query.exclude = [get_rid()]
+	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	var ground: float = (hit.position as Vector2).y if not hit.is_empty() else from.y + 1200.0
+	for node in get_tree().get_nodes_in_group("liquids"):
+		var pool := node as Hazard
+		if pool != null and x >= pool.global_position.x and x <= pool.global_position.x + pool.size.x:
+			ground = minf(ground, pool.surface_y(x))
+	return ground
+
+
+## "mark_landing" on an arcing bolt: where it will come down glows that many
+## seconds before it does (Wormwood's embers). The curve is the projectile's own
+## (motion "arc": y += amount·t·dt), stepped until it meets the world or water.
+func _mark_landing(origin: Vector2, direction: Vector2, speed: float, attack: Dictionary) -> void:
+	var amount := float(attack.get("motion_amount", 0.0))
+	var step := 1.0 / 30.0
+	var t := 0.0
+	var at := origin
+	var space := get_world_2d().direct_space_state
+	while t < 4.0:
+		t += step
+		var next := origin + direction * speed * t + Vector2(0, amount * t * t * 0.5)
+		var query := PhysicsRayQueryParameters2D.create(at, next, 1)
+		var hit := space.intersect_ray(query)
+		if not hit.is_empty():
+			at = hit.position
+			break
+		var wet := false
+		for node in get_tree().get_nodes_in_group("liquids"):
+			var pool := node as Hazard
+			if pool != null and next.x >= pool.global_position.x and next.x <= pool.global_position.x + pool.size.x \
+					and next.y >= pool.surface_y(next.x):
+				wet = true
+		at = next
+		if wet:
+			break
+	if t >= 4.0:
+		return
+	var lead := float(attack.mark_landing)
+	var color := str(attack.get("color", "#d8ecff"))
+	_mark(at, maxf(0.0, t - lead), minf(lead, t), color)
+	if Net.active:
+		_net_mark.rpc(at, maxf(0.0, t - lead), minf(lead, t), color)
+
+
+## The glow on the ground where a bolt will fall, from [param delay] for [param time].
+func _mark(at: Vector2, delay: float, time: float, color: String) -> void:
+	if delay > 0.0:
+		await get_tree().create_timer(delay, false).timeout
+	if not is_inside_tree():
+		return
+	Fx.flash(at + Vector2(0, -2), Color(color), 34.0, time, 0.8)
+	Fx.ring(at + Vector2(0, -2), 18.0, Color(color), time)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_mark(at: Vector2, delay: float, time: float, color: String) -> void:
+	_mark(at, delay, time, color)
+
+
+## "flood": {"at_hp", "liquid": the pool's node name, "rise", "warn", "time"} —
+## at that share of its health the water of the named pool rises: a warning
+## (bubbles all over it, a rumble, a shake) and then the surface lifts "rise" px
+## over "time" s (Hazard.set_level). Once. Every peer raises its own pool.
+func _flood(spec: Dictionary) -> void:
+	_flooded = true
+	_raise_water(str(spec.get("liquid", "")), float(spec.get("rise", 64)), float(spec.get("warn", 1.5)),
+		float(spec.get("time", 3.0)))
+	if Net.active:
+		_net_flood.rpc(str(spec.get("liquid", "")), float(spec.get("rise", 64)), float(spec.get("warn", 1.5)),
+			float(spec.get("time", 3.0)))
+
+
+func _raise_water(pool_name: String, rise: float, warn: float, time: float) -> void:
+	var room := _room()
+	var pool := room.find_child(pool_name, true, false) as Hazard if room != null else null
+	if pool == null:
+		push_warning("%s: no pool named %s to flood" % [enemy_id, pool_name])
+		return
+	Juice.shake(5.0)
+	Audio.play(&"summon", -4.0, 0.0)
+	var bubbles := int(maxf(6.0, pool.size.x / 24.0))
+	for i in bubbles:
+		var x := pool.global_position.x + randf_range(0.0, pool.size.x)
+		LiquidFx.bubble(pool.spec, Vector2(x, pool.surface_y(x)))
+	await get_tree().create_timer(warn, false).timeout
+	if is_instance_valid(pool):
+		pool.set_level(rise, time)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_flood(pool_name: String, rise: float, warn: float, time: float) -> void:
+	_raise_water(pool_name, rise, warn, time)
 
 
 func _summons_near(attack: Dictionary) -> int:
@@ -2094,7 +2419,8 @@ func _time_fight(delta: float) -> void:
 ## Counts as dead immediately; the body plays its death strip or an "ash" squash.
 ## On a client this is the mirror of the host's death: same theatre, no bookkeeping.
 @rpc("authority", "call_remote", "reliable")
-func _net_die() -> void:
+func _net_die(by_soldier := false) -> void:
+	felled_by_soldier = by_soldier
 	_die()
 
 
@@ -2102,19 +2428,22 @@ func _die() -> void:
 	if state == State.DEAD:
 		return
 	state = State.DEAD
+	Faction.dying = self  # the listeners may ask whose kill it was (Faction.felled_by_soldier)
 	EventBus.enemy_died.emit(StringName(enemy_id), global_position)
-	if affix != "":
+	Faction.dying = null
+	if affix != "" and not felled_by_soldier:
 		Profile.record_affix(enemy_id, affix)  # the bestiary page lists the affixes laid low
 	var is_boss: bool = stats.get("boss", false)
 	Darkness.clear_telegraph(self)
 	if _simulated and Game.practice == "":  # practice pays nothing
-		Game.add_essence(float(stats.get("essence", 10)))
+		# a body felled by another pays a share (Faction): not his victory
+		Game.add_essence(float(stats.get("essence", 10)) * (Faction.essence_between() if felled_by_soldier else 1.0))
 		EnemyDark.give_back(self)  # a thief's takings
 		if is_boss:
 			Game.ash_earned += int(stats.get("ash", 10))
 			if fight_time >= 0.0:
 				Profile.record_boss_time(enemy_id, fight_time)
-	if not is_boss and stats.get("tags", []).has("elite") and Game.practice == "":
+	if not is_boss and stats.get("tags", []).has("elite") and Game.practice == "" and not felled_by_soldier:
 		_leave_cache.call_deferred()
 	if _simulated:  # but a corpse that bursts still bursts: that is what is practised
 		match stats.get("on_death", {}).get("type", ""):

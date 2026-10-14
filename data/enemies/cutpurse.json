@@ -14,8 +14,7 @@
   "color": "#3a3640",
   "material": "cloth",
   "tags": [
-    "human",
-    "tyre"
+    "human"
   ],
   "stagger_chance": 0.25,
   "dark_adapted": true,
