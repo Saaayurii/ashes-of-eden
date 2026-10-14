@@ -57,6 +57,14 @@ CELL = (1280, 720)
 MAX_COLS, MAX_ROWS = 6, 4
 ## How far each side of a seam the stitch may reach.
 SEAM = 96
+## How far each side of a seam its light is evened out (`_tone`): wide and soft,
+## so two paintings of another light (a torch-lit vault beside a cold crypt)
+## meet at one light without a line, and keep their own beyond it.
+TONE = 320
+## The rows a seam's light is averaged over: the light, not the things in it.
+TONE_ROWS = 48
+## How far apart two lights may be evened out; past it, a seam keeps the rest.
+TONE_LIMIT = 2.0
 ## What the room keeps of the painted room it is made for.
 ATMOSPHERE = ("ambient", "fog", "intro", "music", "weather", "intro_cutscene", "outro_cutscene")
 RECTS = ("ground", "ledges", "platforms", "hazards")
@@ -207,11 +215,36 @@ def _stitch(first, second, lo, hi, feather=8):
     return first * (1.0 - weight) + second * weight
 
 
+def _tone(left, right, tone):
+    """`left`'s last and `right`'s first `tone` columns bent toward one light:
+    row by row (averaged over TONE_ROWS), each side is multiplied halfway to
+    the other's, fully at the seam and not at all `tone` px away. A gain, not
+    an offset, so a dark stays dark."""
+    k = TONE_ROWS
+    kernel = np.ones(2 * k + 1) / (2 * k + 1)
+
+    def light(part):
+        mean = part[..., :3].astype(np.float64).mean(axis=1)
+        return np.stack([np.convolve(np.pad(mean[:, c], k, mode="edge"), kernel, mode="valid")
+                         for c in range(3)], axis=1)
+
+    ratio = np.clip((light(left[:, -tone:]) + 8.0) / (light(right[:, :tone]) + 8.0), 1.0 / TONE_LIMIT, TONE_LIMIT)
+    ramp = np.arange(1, tone + 1, dtype=np.float64) / tone
+    ramp = ramp * ramp * (3.0 - 2.0 * ramp)
+    left, right = left.copy(), right.copy()
+    left[:, -tone:, :3] *= (ratio[:, None, :] ** (-0.5 * ramp[None, :, None])).astype(np.float32)
+    right[:, :tone, :3] *= (ratio[:, None, :] ** (0.5 * ramp[::-1][None, :, None])).astype(np.float32)
+    return left, right
+
+
 def _join(left, right, seam=SEAM):
-    """`left` and `right` side by side, the seam between them stitched. Each is
-    carried past the seam by its own mirror, so the stitch has both pictures
-    over the same band; the path keeps to the middle half of it."""
+    """`left` and `right` side by side, the seam between them stitched. Their
+    light is evened out first (`_tone`), then each is carried past the seam by
+    its own mirror, so the stitch has both pictures over the same band; the
+    path keeps to the middle half of it."""
     x = left.shape[1]
+    tone = min(TONE, x // 2, right.shape[1] // 2)
+    left, right = _tone(left, right, tone)
     a = left[:, x - seam:]
     b = right[:, :seam]
     first = np.concatenate([a, a[:, ::-1]], axis=1)
