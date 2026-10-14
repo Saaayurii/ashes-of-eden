@@ -2,7 +2,7 @@
  * hit_frame is zero-based in JSON, one-based in the UI. No timer approximates the hit:
  * Enemy waits for AnimatedSprite2D.frame_changed. Particle rules remain in «Частицы». */
 'use strict';
-const ATTACK_TYPES = { melee: 'Удар', lunge: 'Рывок', ranged: 'Снаряды', beam: 'Луч', nova: 'По площади', summon: 'Призыв' };
+const ATTACK_TYPES = { melee: 'Удар', lunge: 'Рывок', ranged: 'Снаряды', beam: 'Луч', nova: 'По площади', summon: 'Призыв', hail: 'Град' };
 const ATTACKS = { data: null, enemy: 0, index: 0, work: {}, position: 0, raf: 0, started: 0, playing: false };
 function attackDiff(base, changed) {
   return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(changed)])]
@@ -17,6 +17,11 @@ function attackProblems(a, frames) {
   if (a.hit_frame !== undefined && (!Number.isInteger(a.hit_frame) || a.hit_frame < 0 || a.hit_frame >= frames)) errors.push(`Кадр удара: от 1 до ${frames} (в JSON от 0).`);
   if (a.telegraph_fx !== undefined && !['glow', 'none'].includes(a.telegraph_fx)) errors.push('Предупреждение: glow или none.');
   if (a.impact_fx !== undefined && (!['magic', 'dust', 'none'].includes(a.impact_fx) || a.type !== 'nova')) errors.push('Эффект площади: magic, dust или none; только для nova.');
+  if (a.type === 'hail') {   // validate_data.gd: the stones fall where he can stand between them, after a wind-up he can read
+    if (!Number.isInteger(a.count) || a.count < 1 || a.count > 8) errors.push('Град: камней от 1 до 8.');
+    if (!(a.spacing >= 70)) errors.push('Град: между камнями не меньше 70 px — он должен уместиться.');
+    if (!(a.windup >= 1) || !(a.fall_time > 0)) errors.push('Град: подготовка не меньше 1 с и время падения.');
+  }
   return errors;
 }
 const attackRoster = () => ATTACKS.data.roster[ATTACKS.enemy];
@@ -48,6 +53,7 @@ function renderAttacks() {
     (a.type === 'nova' ? select('impact_fx', 'Эффект удара', { magic: 'Вспышка и кольцо', dust: 'Пыль по земле', none: 'Без эффекта' }, 'magic') + num('radius', 'Радиус, px', 90, 1, 1) : '') +
     (a.type === 'melee' ? num('reach', 'Размах, px', 38, 1, 1) : '') +
     (a.type === 'lunge' ? num('lunge_speed', 'Скорость рывка, px/с', 400, 1, 10) + num('lunge_time', 'Длительность рывка, с', 0.45, 0.01) : '') +
+    (a.type === 'hail' ? num('count', 'Камней', 5, 1, 1) + num('spacing', 'Между камнями, px', 90, 1, 5) + num('fall_time', 'Время падения, с', 0.5, 0.01) : '') +
     (a.type === 'beam' ? num('length', 'Длина луча, px', 420, 1, 1) + num('thickness', 'Толщина луча, px', 26, 1, 1) + num('duration', 'Длительность луча, с', 0.45, 0.01) : '') +
     (a.type === 'summon' ? select('id', 'Кого призвать', Object.fromEntries(ATTACKS.data.roster.map(r => [r.id, r.name.ru || r.id])), 'shade') + num('count', 'Сколько призвать', 1, 1, 1) + num('max_alive', 'Максимум живых', 2, 1, 1) : '') +
     (a.type === 'ranged' ? num('projectile_speed', 'Скорость снаряда, px/с', 170, 1, 5) + num('projectiles', 'Снарядов за раз', 1, 1, 1) + num('spread', 'Разброс, °', 0, 0, 1) + `<label>Стиль снаряда<input data-attack="projectile_style" value="${esc(a.projectile_style || '')}"></label>` : '') +
