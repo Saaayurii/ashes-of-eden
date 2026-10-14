@@ -1,6 +1,7 @@
-[gd_scene load_steps=72 format=3]
+[gd_scene load_steps=69 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]
 [ext_resource type="Texture2D" path="res://assets/levels/composed/graveyard_cross.png" id="2_backdrop"]
 [ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
 [ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
@@ -20,8 +21,6 @@
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/float_1.png" id="piece_float_1"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/float_2.png" id="piece_float_2"]
 [ext_resource type="Texture2D" path="res://assets/decor/platforms/float_3.png" id="piece_float_3"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_3.png" id="piece_ledge_3"]
-[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_5.png" id="piece_ledge_5"]
 
 [sub_resource type="Gradient" id="fade"]
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
@@ -121,12 +120,6 @@ size = Vector2(56, 10)
 
 [sub_resource type="RectangleShape2D" id="Platform2_shape"]
 size = Vector2(70, 10)
-
-[sub_resource type="RectangleShape2D" id="Platform3_shape"]
-size = Vector2(80, 10)
-
-[sub_resource type="RectangleShape2D" id="Platform4_shape"]
-size = Vector2(68, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(280, 14)
@@ -629,16 +622,6 @@ position = Vector2(2005.0, 385.0)
 shape = SubResource("Platform2_shape")
 one_way_collision = true
 
-[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(341.0, 269.0)
-shape = SubResource("Platform3_shape")
-one_way_collision = true
-
-[node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
-position = Vector2(1642.0, 222.0)
-shape = SubResource("Platform4_shape")
-one_way_collision = true
-
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(140.0, 261.0)
 shape = SubResource("Ledge1_shape")
@@ -734,6 +717,16 @@ position = Vector2(2385.0, 270.0)
 shape = SubResource("Ledge19_shape")
 one_way_collision = true
 
+[node name="CrumblingPlatform1" type="StaticBody2D" parent="."]
+position = Vector2(301, 264)
+script = ExtResource("crumbling_platform")
+walk_width = 80.0
+
+[node name="CrumblingPlatform2" type="StaticBody2D" parent="."]
+position = Vector2(1608, 217)
+script = ExtResource("crumbling_platform")
+walk_width = 68.0
+
 [node name="Terrain" type="Node2D" parent="."]
 
 [node name="Platform1_1" type="Sprite2D" parent="Terrain"]
@@ -767,40 +760,6 @@ position = Vector2(2012, 378)
 texture = ExtResource("piece_float_3")
 centered = false
 modulate = Color(0.941, 0.941, 0.942, 1)
-
-[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(301, 264)
-texture = ExtResource("piece_ledge_3")
-centered = false
-modulate = Color(0.992, 0.992, 0.992, 1)
-
-[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(348, 264)
-texture = ExtResource("piece_ledge_5")
-centered = false
-modulate = Color(0.937, 0.937, 0.938, 1)
-region_enabled = true
-region_rect = Rect2(0, 0, 33, 46)
-
-[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
-position = Vector2(1608, 216)
-texture = ExtResource("piece_float_2")
-centered = false
-flip_h = true
-modulate = Color(0.966, 0.966, 0.967, 1)
-
-[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
-position = Vector2(1637, 216)
-texture = ExtResource("piece_float_1")
-centered = false
-flip_h = true
-modulate = Color(0.993, 0.993, 0.993, 1)
-
-[node name="Platform4_3" type="Sprite2D" parent="Terrain"]
-position = Vector2(1644, 216)
-texture = ExtResource("piece_float_2")
-centered = false
-modulate = Color(0.986, 0.986, 0.986, 1)
 
 [node name="DecorMid" type="Node2D" parent="."]
 
