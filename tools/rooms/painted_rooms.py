@@ -993,5 +993,5 @@ PAINTED = {
         spawns=[("four_bound", 640, 588)],
         props=[],
         decor=[], npcs=[], ambient="#c0c4d0", lights="auto",
-        player=(40, 580), door=(1240, 568)),
+        player=(40, 580), door=(1215, 543)),
 }
