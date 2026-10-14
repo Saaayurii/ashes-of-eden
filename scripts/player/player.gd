@@ -241,8 +241,9 @@ var versus := false
 var net_anim := "idle":
 	set(value):
 		net_anim = value
-		if not _is_mine() and body != null and body.sprite_frames.has_animation(value):
-			body.play(value)
+		if not _is_mine() and body != null and body.sprite_frames.has_animation(_pose(value)):
+			body.set_meta(&"pose", value)
+			body.play(_pose(value))
 
 var _jumps_left := 0
 var _coyote := 0.0
@@ -856,7 +857,7 @@ func _animate(on_floor: bool) -> void:
 	if _healing_left > 0.0:
 		return  # the flask animation owns the body until the heal completes
 	if _blocking:
-		if body.animation != "guard":
+		if not _posed("guard"):
 			_play("guard")  # raise, then hold on the braced frame
 		return
 	if _dash_left > 0.0:
@@ -886,8 +887,26 @@ func _animate(on_floor: bool) -> void:
 
 func _play(animation: String) -> void:
 	body.speed_scale = 1.0  # a weapon's swing may have hurried or slowed the last one
-	body.play(animation)
+	body.set_meta(&"pose", animation)  # what ActionFx reads for a weapon's own frames
+	body.play(_pose(animation))
 	net_anim = animation
+
+
+## The frames [param animation] is drawn with in the hand's weapon: its own
+## (`"frames"` in data/weapons: spear_attack, from make_weapon_frames.py) when
+## it has them, else the hero's. net_anim carries the pose and the weapon is replicated, so a peer
+## draws the same frames.
+func _pose(animation: String) -> String:
+	var drawn := Weapons.frames(weapon)
+	if drawn == "" or body == null:
+		return animation
+	var own := "%s_%s" % [drawn, animation]
+	return own if body.sprite_frames.has_animation(own) else animation
+
+
+## The pose on the body now is [param animation], whatever weapon draws it.
+func _posed(animation: String) -> bool:
+	return body.animation == _pose(animation)
 
 
 ## A one-shot the body finishes before anything else gets to pose it.
@@ -1839,10 +1858,10 @@ static func action_spec(id: String) -> Dictionary:
 func _action_hit_frame(spec: Dictionary, animation: String) -> bool:
 	if not body.sprite_frames.has_animation(animation):
 		return true
-	var frame := clampi(int(spec.get("hit_frame", 0)), 0, body.sprite_frames.get_frame_count(animation) - 1)
+	var frame := clampi(int(spec.get("hit_frame", 0)), 0, body.sprite_frames.get_frame_count(_pose(animation)) - 1)
 	while body.frame < frame:
 		await get_tree().process_frame
-		if not is_inside_tree() or _dead or body.animation != animation:
+		if not is_inside_tree() or _dead or not _posed(animation):
 			return false
 	return true
 
