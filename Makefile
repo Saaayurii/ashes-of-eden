@@ -1,4 +1,4 @@
-.PHONY: game ashes new-game game-test rooms pull-playtest android android-image validate test net-test build build-web web image editor server relay
+.PHONY: game ashes new-game game-test rooms pull-playtest telemetry telemetry-pull probe-field android android-image validate test net-test build build-web web image editor server relay
 
 image:      ## build the Docker image with headless Godot
 	docker compose build godot
@@ -67,3 +67,14 @@ pull-playtest: ## copy the playtest logs off a USB phone (debug APK) next to the
 	mkdir -p "$(PLAYTEST_DIR)"
 	adb exec-out run-as org.ashesofeden.game sh -c 'cd files/playtest && tar cf - .' | tar xf - -C "$(PLAYTEST_DIR)"
 	@ls "$(PLAYTEST_DIR)" | tail -5
+
+telemetry: ## the opt-in telemetry receiver on http://localhost:8930/collect, into build/telemetry (docs/PLAYTEST.md)
+	mkdir -p build/telemetry
+	docker compose up --build telemetry
+
+TELEMETRY_URL ?=
+telemetry-pull: ## what players sent -> build/telemetry/field (playtest logs + the four numbers); TELEMETRY_URL=… TELEMETRY_TOKEN=…, or the local build/telemetry
+	python3 tools/telemetry/pull.py $(if $(TELEMETRY_URL),--url "$(TELEMETRY_URL)",$(foreach f,$(wildcard build/telemetry/records-*.jsonl),--file "$(f)"))
+
+probe-field: telemetry-pull ## docs/BALANCE_PROBE.md from the nights players sent, not this machine's
+	"$(GODOT)" --headless --path "$(CURDIR)" -s scripts/tools/balance_probe.gd -- playtests="$(CURDIR)/build/telemetry/field/playtest"

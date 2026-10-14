@@ -597,6 +597,8 @@ func _on_continue() -> void:
 
 
 func _on_skip() -> void:
+	if _busy and _blocking and not _skipped:
+		EventBus.dialogue_skipped.emit(_dialogue_id)
 	_skipped = true
 	answered_locally.emit(-1)
 	_answered.emit(null)
