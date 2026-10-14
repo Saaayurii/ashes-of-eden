@@ -30,7 +30,7 @@ OUT = os.path.join(ROOT, "assets", "props")
 
 # place: (panel, sample box in panel pixels, frame width, frame height, seed)
 # The niche: how thick its stone ring is, or 0 when the painting has the arch.
-NICHE_RING = {"village": 7, "swamp": 7, "catacombs": 0}
+NICHE_RING = {"village": 7, "swamp": 7, "catacombs": 0, "tyre_stair": 7}
 WALLS = {
     "catacombs": ("catacombs_2", (1058, 575, 1098, 688), 64, 100, 7),
     "village": ("graveyard_moon", (1085, 560, 1135, 640), 48, 72, 11),
@@ -39,6 +39,8 @@ WALLS = {
     "tyre_counting": ("tyre_counting_house", (158, 175, 200, 250), 48, 84, 13),
     # the collectors' booth on the sea gate's gallery, its doorway bricked in the painting
     "tyre_gate": ("tyre_gate", (205, 150, 258, 248), 52, 92, 17),
+    # beside the laver on the palace stair's middle landing: plain masonry, so a niche of its own
+    "tyre_stair": ("tyre_palace_stair", (548, 282, 602, 372), 52, 92, 19),
 }
 GLOW = (255, 204, 120)
 

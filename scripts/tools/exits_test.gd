@@ -46,6 +46,10 @@ const DOORWAYS := {
 	"tyre_gate": [1510, 1560, 514],             # the inner arch into the city
 	"tyre_lamp_market": [1510, 1560, 518],      # the arcade's far passage
 	"tyre_rich_gate": [1510, 1560, 579],        # the side passage past the shrine
+	"tyre_vaults": [1515, 1565, 541],           # the arch past the cage
+	"tyre_galleys": [1525, 1570, 445],          # the harbour tower's lit door
+	"tyre_palace_stair": [1370, 1415, 176],     # the arch at the head of the stair
+	"tyre_throne": [1530, 1580, 521],           # the arch behind the throne
 }
 
 var failures := 0

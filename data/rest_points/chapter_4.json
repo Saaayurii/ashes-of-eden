@@ -6,5 +6,13 @@
       579
     ],
     "_comment": "the household shrine right of the rich man's gate, its bronze lamp and libation bowl"
+  },
+  {
+    "id": "tyre_palace_stair",
+    "at": [
+      815,
+      374
+    ],
+    "_comment": "the bronze laver on lion's feet, on the stair's middle cedar landing (widened pixels: the panel's 655 + the 160 cut left of it)"
   }
 ]

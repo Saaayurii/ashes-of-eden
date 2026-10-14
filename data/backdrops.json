@@ -516,6 +516,31 @@
       {"kind": "sway", "rect": [550, 180, 140, 160], "strength": 1.0, "speed": 0.8},
       {"kind": "sway", "rect": [1320, 250, 120, 200], "strength": 1.0, "speed": 0.8},
       {"kind": "haze", "rect": [1500, 420, 100, 160], "strength": 0.6}
+    ]},
+    "tyre_vaults": {"family": "tyre", "zones": [
+      {"kind": "sway", "rect": [675, 320, 20, 100], "strength": 0.6, "speed": 0.5},
+      {"kind": "sway", "rect": [1155, 170, 30, 130], "strength": 0.6, "speed": 0.5},
+      {"kind": "haze", "rect": [1515, 360, 50, 180], "strength": 0.7}
+    ]},
+    "tyre_galleys": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [625, 75, 50, 50], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5},
+      {"kind": "water", "rect": [0, 600, 1600, 120], "floor": 0.3},
+      {"kind": "sway", "rect": [60, 95, 190, 75], "strength": 0.9, "speed": 0.8},
+      {"kind": "sway", "rect": [730, 95, 190, 70], "strength": 0.9, "speed": 0.8},
+      {"kind": "sway", "rect": [1260, 170, 160, 60], "strength": 0.9, "speed": 0.8}
+    ]},
+    "tyre_palace_stair": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [480, 145, 55, 55], "tint": "#cfd8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "water", "rect": [1030, 400, 170, 60], "floor": 0.3},
+      {"kind": "sway", "rect": [730, 0, 45, 270], "strength": 0.6, "speed": 0.5},
+      {"kind": "sway", "rect": [1320, 220, 55, 250], "strength": 0.6, "speed": 0.5},
+      {"kind": "sway", "rect": [100, 280, 45, 170], "strength": 0.6, "speed": 0.5}
+    ]},
+    "tyre_throne": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [465, 165, 45, 50], "tint": "#cfd8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "water", "rect": [240, 370, 1250, 90], "floor": 0.3},
+      {"kind": "sway", "rect": [55, 0, 70, 230], "strength": 0.5, "speed": 0.4},
+      {"kind": "sway", "rect": [1520, 0, 55, 230], "strength": 0.5, "speed": 0.4}
     ]}
   }
 }

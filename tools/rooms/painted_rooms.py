@@ -810,4 +810,63 @@ PAINTED = {
         props=[("tyre_lamp", 520, 505), ("tyre_lamp", 880, 505), ("tyre_lamp", 1200, 505)],
         decor=[], npcs=[("lydia", 410, 505)], ambient="#c0b4c4", lights="auto",
         player=(20, 485), door=(1235, 473)),
+    "tyre_vaults": dict(
+        # The vaults under the embankment (the harbour's fork): cellars of
+        # amphorae and chests, a gallery over them up the switchback stair on
+        # the left. Four lamps at the price of a day's dye, free if Lydia gave.
+        painting="tyre_vaults", width=1280, height=720, weather="none", fog=0.15, intro="", music="graveyard",
+        dark=0.85,
+        ground=[(0, 541, 1280, 179)],
+        ledges=[(225, 515, 40, 12), (195, 487, 40, 12), (165, 458, 40, 12), (60, 428, 105, 12),
+                (105, 398, 45, 12), (145, 370, 45, 12), (185, 342, 45, 12), (222, 318, 45, 12), (262, 301, 509, 14)],
+        spawns=[("cutpurse", 420, 529), ("cutpurse", 900, 529), ("cutpurse", 520, 289),
+                ("debt_wraith", 600, 200), ("debt_wraith", 1000, 250), ("tyre_treasurer", 720, 529)],
+        props=[("tyre_lamp_lydia_25", 330, 541), ("tyre_lamp_lydia_25", 560, 541), ("tyre_lamp_lydia_25", 980, 541),
+               ("tyre_lamp_lydia_25", 640, 301)],
+        decor=[], npcs=[], ambient="#bcb4ac", lights="auto",
+        player=(20, 521), door=(1215, 509)),
+    "tyre_galleys": dict(
+        # Across the galleys' decks (the harbour's fork): three hulls moored
+        # bow to stern, gangways between them, rain off the sea. Over the side
+        # is the harbour — a fall. The poop of the middle galley is climbed by
+        # its rail.
+        painting="tyre_galleys", width=1280, height=720, weather="rain", fog=0.15, intro="", music="arena",
+        dark=0.45, void_kill_y=690,
+        ground=[(0, 430, 300, 290), (300, 433, 160, 287), (460, 423, 312, 297), (772, 432, 122, 288),
+                (894, 446, 282, 274), (1176, 445, 104, 275)],
+        ledges=[(458, 398, 90, 12), (558, 334, 201, 14)],
+        spawns=[("tyre_guard", 650, 411), ("tyre_guard", 1000, 434), ("woe_eagle", 300, 250),
+                ("woe_eagle", 700, 200), ("woe_eagle", 1050, 250), ("dim_star", 850, 300)],
+        props=[("tyre_lamp_lydia_20", 150, 430), ("tyre_lamp_lydia_20", 520, 423), ("tyre_lamp_lydia_20", 980, 446)],
+        decor=[], npcs=[], ambient="#b4b8c8", lights="auto",
+        player=(20, 410), door=(1225, 413)),
+    "tyre_palace_stair": dict(
+        # The prince's stair: three flights of cedar and marble up to his
+        # hall, the bronze laver on the middle landing is the rest point; the
+        # lamplighter's letter is bricked up beside it. The lower hall runs
+        # under the whole stair.
+        painting="tyre_palace_stair", width=1280, height=720, weather="none", fog=0.1, intro="", music="church",
+        dark=0.5,
+        ground=[(0, 573, 383, 147), (383, 596, 717, 124), (1100, 583, 180, 137)],
+        ledges=[(229, 503, 191, 12), (535, 374, 351, 14), (898, 270, 172, 14), (1107, 176, 173, 14)],
+        ramps=[(325, 573, 385, 502), (420, 502, 540, 374), (800, 374, 898, 272), (995, 270, 1105, 177)],
+        stone_steps=True,
+        spawns=[("tyre_guard", 200, 561), ("tyre_guard", 720, 362), ("tyre_guard", 1180, 164),
+                ("dim_star", 450, 250), ("dim_star", 1000, 450), ("tyre_treasurer", 950, 584)],
+        props=[("tyre_lamp_25", 120, 573), ("tyre_lamp_25", 300, 503), ("tyre_lamp_25", 760, 374),
+               ("tyre_lamp_25", 950, 270), ("secret_wall_tyre_stair", 575, 374)],
+        decor=[], npcs=[], ambient="#c8bca8", lights="auto",
+        player=(20, 553), door=(1240, 144)),
+    "tyre_throne": dict(
+        # The throne room over the sea: the prince's four lamps burn (his),
+        # two by the door are for sale. The sea is behind glass — no fall.
+        painting="tyre_throne", width=1280, height=720, weather="none", fog=0.08, intro="", music="boss_knight",
+        intro_cutscene="prince_of_tyre_arrival", outro_cutscene="ch4_finale", dark=0.3,
+        ground=[(0, 521, 1280, 199)],
+        ledges=[(1010, 470, 228, 12)],
+        spawns=[("prince_of_tyre", 700, 509)],
+        props=[("tyre_lamp_30", 140, 521), ("tyre_lamp_30", 210, 521), ("tyre_lamp_lit", 400, 521),
+               ("tyre_lamp_lit", 640, 521), ("tyre_lamp_lit", 860, 521), ("tyre_lamp_lit", 1050, 470)],
+        decor=[], npcs=[], ambient="#c8c0b0", lights="auto",
+        player=(20, 501), door=(1250, 489)),
 }

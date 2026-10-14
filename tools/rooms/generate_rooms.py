@@ -52,6 +52,7 @@ ROOM_EXPANSION_CUTS = {
     "tyre_causeway": (330, 860), "tyre_counting_house": (300, 960), "tyre_dark_quarter": (230, 860),
     "tyre_bright_quay": (400, 780), "tyre_dyeworks": (460, 1160),
     "tyre_gate": (660, 870), "tyre_lamp_market": (470, 700), "tyre_rich_gate": (520, 1115),
+    "tyre_vaults": (420, 800), "tyre_galleys": (360, 850), "tyre_palace_stair": (180,), "tyre_throne": (640, 850),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -87,6 +88,9 @@ FOCAL_RANGES = {
     "tyre_gate": ((500, 610),),                # the barred slot with the moon
     "tyre_lamp_market": ((355, 410),),         # moon
     "tyre_rich_gate": ((180, 230), (660, 790)),  # moon, the studded door
+    "tyre_galleys": ((455, 505),),             # moon
+    "tyre_palace_stair": ((300, 360), (605, 695)),  # moon, the laver
+    "tyre_throne": ((455, 510), (1080, 1180)),  # moon, the throne
 }
 
 TRAVERSAL_PATCHES = {
@@ -131,7 +135,7 @@ SEAM_STORIES = {
     "seir_lighthouse": ("", ""),
     # Tyre's too.
     "tyre_causeway": ("", ""), "tyre_counting_house": ("", ""), "tyre_dark_quarter": ("", ""),
-    "tyre_bright_quay": ("", ""), "tyre_dyeworks": ("", ""), "tyre_gate": ("", ""), "tyre_lamp_market": ("", ""), "tyre_rich_gate": ("", ""),
+    "tyre_bright_quay": ("", ""), "tyre_dyeworks": ("", ""), "tyre_gate": ("", ""), "tyre_lamp_market": ("", ""), "tyre_rich_gate": ("", ""), "tyre_vaults": ("", ""), "tyre_galleys": ("", ""), "tyre_palace_stair": ("", ""), "tyre_throne": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -168,7 +172,7 @@ ROOM_PROP_MOTIFS = {
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
     "tyre_causeway": {}, "tyre_counting_house": {}, "tyre_dark_quarter": {}, "tyre_bright_quay": {},
-    "tyre_dyeworks": {}, "tyre_gate": {}, "tyre_lamp_market": {}, "tyre_rich_gate": {},
+    "tyre_dyeworks": {}, "tyre_gate": {}, "tyre_lamp_market": {}, "tyre_rich_gate": {}, "tyre_vaults": {}, "tyre_galleys": {}, "tyre_palace_stair": {}, "tyre_throne": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -252,7 +256,7 @@ DEPTH_WINDOWS = {
     "seir_lighthouse": (0.02, []),
     # Tyre has no inpainted plates yet (docs/CHAPTER4_ART.md) either.
     "tyre_causeway": (0.02, []), "tyre_counting_house": (0.02, []), "tyre_dark_quarter": (0.02, []),
-    "tyre_bright_quay": (0.02, []), "tyre_dyeworks": (0.02, []), "tyre_gate": (0.02, []), "tyre_lamp_market": (0.02, []), "tyre_rich_gate": (0.02, []),
+    "tyre_bright_quay": (0.02, []), "tyre_dyeworks": (0.02, []), "tyre_gate": (0.02, []), "tyre_lamp_market": (0.02, []), "tyre_rich_gate": (0.02, []), "tyre_vaults": (0.02, []), "tyre_galleys": (0.02, []), "tyre_palace_stair": (0.02, []), "tyre_throne": (0.02, []),
 }
 
 

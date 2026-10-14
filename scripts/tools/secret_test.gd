@@ -21,7 +21,8 @@ func _run() -> void:
 	var heard := []
 	root.get_node("EventBus").note_found.connect(func(note_id: String, first: bool) -> void: heard.append([note_id, first]))
 	for scene in ["res://scenes/rooms/village_night.tscn", "res://scenes/rooms/swamp_crypt.tscn", "res://scenes/rooms/catacombs_2.tscn",
-			"res://scenes/rooms/tyre_counting_house.tscn", "res://scenes/rooms/tyre_gate.tscn"]:
+			"res://scenes/rooms/tyre_counting_house.tscn", "res://scenes/rooms/tyre_gate.tscn",
+			"res://scenes/rooms/tyre_palace_stair.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room
