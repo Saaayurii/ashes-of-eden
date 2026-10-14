@@ -96,6 +96,8 @@ func _run() -> void:
 	_check(dark.doused, "then the room goes out (after %.1f s)" % waited)
 	_check(waited >= float(phase.windup) - 0.15, "no sooner than the wind-up")
 	_check(is_equal_approx(dark.dark, float(phase.dark)), "it sinks to %.2f" % dark.dark)
+	var box = get_first_node_in_group("dialogue_box")
+	_check(box != null and box._dialogue_id == str(phase.caption), "and the caption says so (%s)" % [box._dialogue_id if box else "no box"])
 	_check(not bought.lit and not game.lamps_lit.has(bought.key()), "the bought lamp is out")
 	var out := true
 	for lamp in lamps:
@@ -119,6 +121,35 @@ func _run() -> void:
 	await _settle(1.0)
 	_check(is_equal_approx(dark.dark, 0.3), "he does it only once")
 	prince.queue_free()
+	await _frames(2)
+
+	# --- the ray and the tithe come only in the second half
+	var fresh = room.spawn_enemy("prince_of_tyre", player.global_position + Vector2(60, 0))
+	await _frames(2)
+	var late := []
+	for i in fresh._attacks.size():
+		if float(fresh._attacks[i].get("from_hp", 1.0)) < 1.0:
+			late.append(i)
+	_check(late.size() == 2, "two of his blows wait for the second half (%d)" % late.size())
+	var picked := {}
+	fresh.hp = fresh._max_hp * 0.9
+	for n in 200:
+		fresh._repeats = 0
+		picked[fresh._choose_attack(Vector2(50, 0))] = true
+	var early_late := false
+	for i in late:
+		early_late = early_late or picked.has(i)
+	_check(not early_late, "above half: never the ray or the tithe (%s)" % [picked.keys()])
+	picked = {}
+	fresh.hp = fresh._max_hp * 0.4
+	for n in 400:
+		fresh._repeats = 0
+		picked[fresh._choose_attack(Vector2(50, 0))] = true
+	var all_late := true
+	for i in late:
+		all_late = all_late and picked.has(i)
+	_check(all_late, "below half: both come (%s)" % [picked.keys()])
+	fresh.queue_free()
 
 	# --- his fall: the light, returned, shared or taken, read by the finale
 	var fall: Dictionary = data.dialogues.get("ch4_prince_fall", {})

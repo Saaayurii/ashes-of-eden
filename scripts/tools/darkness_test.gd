@@ -120,6 +120,59 @@ func _run() -> void:
 	var saves = root.get_node("Saves")
 	var state: Dictionary = saves.capture(room.scene_file_path, 0, 0.0, player)
 	_check(var_to_str(state).find(lamp.key()) >= 0, "a checkpoint keeps the lamps lit")
+	_check(not lamp.buy(player) and is_equal_approx(game.essence, 50.0 - cost), "a lit lamp is not sold twice")
+
+	# --- the other ways to pay
+	var other = lamps[1]
+	game.essence = 7.0
+	player.stats["mite"] = 1.0
+	_check(other.payment(player) == "mite", "the widow's mite: too poor, but it pays all there is")
+	_check(other.buy(player) and other.lit and game.essence == 0.0, "and lights it with the 7 there were")
+	player.stats["mite"] = 0.0
+	var third = lamps[2]
+	var max_hp: float = player.stats.max_hp
+	game.essence = 100.0
+	player.stats["lamp_blood"] = 0.1
+	_check(third.payment(player) == "blood", "a body that pays in blood")
+	third.buy(player)
+	_check(third.lit and is_equal_approx(game.essence, 100.0) and player.stats.max_hp < max_hp,
+		"pays no essence and loses %.0f of its health" % (max_hp - player.stats.max_hp))
+	player.stats["lamp_blood"] = 0.0
+	player.stats.max_hp = max_hp
+
+	# --- free_if: burns for nothing once the story set it
+	var data = root.get_node("Data")
+	game.flags["zacchaeus_down"] = true
+	var hook = load("res://scenes/props/prop.tscn").instantiate()
+	hook.prop_id = "tyre_lamp_hook"
+	room.add_child(hook)
+	hook.global_position = player.global_position + Vector2(-400, 0)
+	await _frames(2)
+	var hook_lamp = hook.get_node_or_null("Lamp")
+	_check(hook_lamp != null and hook_lamp.lit, "a hook lamp burns from the start when Zacchaeus came down")
+	_check(is_equal_approx(game.essence, 100.0), "for nothing")
+	game.flags.erase("zacchaeus_down")
+	hook.queue_free()
+
+	# --- an omen's lamp_price and dark
+	data.omens["test_dear_light"] = {"id": "test_dear_light", "rules": {"lamp_price": 1.5, "dark": 1.25}}
+	var had_omen: String = game.omen
+	game.omen = "test_dear_light"
+	var fresh = load("res://scenes/props/prop.tscn").instantiate()
+	fresh.prop_id = "tyre_lamp"
+	room.add_child(fresh)
+	fresh.global_position = player.global_position + Vector2(-500, 0)
+	await _frames(2)
+	_check(fresh.get_node("Lamp").cost() == 30, "an omen's lamp_price makes a lamp of 20 cost 30 (%d)" % fresh.get_node("Lamp").cost())
+	_check(is_equal_approx(darkness_class.depth(self), 0.75), "and its dark deepens the room to 0.75 (%.2f)" % darkness_class.depth(self))
+	game.omen = had_omen
+	data.omens.erase("test_dear_light")
+	fresh.queue_free()
+
+	# --- dark_sight thins what we see, not what play reads
+	player.stats["dark_sight"] = 0.2
+	_check(not settings.lighting or is_equal_approx(dark._target(), 0.4), "dark_sight 0.2 shows a room of 0.6 as 0.4")
+	player.stats["dark_sight"] = 0.0
 
 	# --- wind-ups light themselves
 	var guard = room.spawn_enemy("tyre_guard", player.global_position + Vector2(200, 0))
@@ -135,6 +188,32 @@ func _run() -> void:
 	await _frames(2)
 	_check(guard.get_node_or_null("WindupLight") == null or guard.get_node("WindupLight").is_queued_for_deletion(),
 		"the blow takes the light with it")
+
+	# --- every attack of every enemy of the chapter lights itself, and is as long as in the light
+	var unlit := Vector2.INF
+	for x in range(40, int(room.width) - 40, 20):
+		var spot := Vector2(x, player.global_position.y)
+		if not darkness_class.lit_at(self, spot) and not darkness_class.lit_at(self, spot + Vector2(0, -20)):
+			unlit = spot
+			break
+	_check(unlit != Vector2.INF, "somewhere in the counting house is dark")
+	for id in ["tyre_guard", "cutpurse", "debt_wraith", "dim_star", "woe_eagle", "dye_drowned", "tyre_treasurer", "prince_of_tyre"]:
+		var body = room.spawn_enemy(id, unlit)
+		await _frames(2)
+		var all_lit := true
+		var all_long := true
+		for attack in body._attacks:
+			body.global_position = unlit
+			body._attack = attack
+			body._begin_windup(Vector2(1, 0))
+			all_long = all_long and is_equal_approx(body._state_left, float(attack.get("windup", 0.5)))
+			all_lit = all_lit and darkness_class.lit_at(self, body.global_position)
+			darkness_class.clear_telegraph(body)
+			await _frames(1)
+		_check(all_lit, "%s: every wind-up lights itself where it is dark" % id)
+		_check(all_long, "%s: and none is shorter than its JSON" % id)
+		body.queue_free()
+		await _frames(1)
 
 	# --- eyes in the dark
 	guard.global_position = lamp.get_parent().global_position + Vector2(600, 0)
@@ -180,6 +259,25 @@ func _run() -> void:
 	darkness_class.telegraph(guard, 0.8)
 	_check(guard.get_node_or_null("WindupLight") == null, "in a lit room a wind-up adds no light")
 	dark.add_to_group("darkness")
+
+	# --- the playtest log hears a lamp, the probe counts it among the trades
+	var probe = load("res://scripts/tools/balance_probe.gd")
+	DirAccess.make_dir_recursive_absolute("user://playtest_tools")
+	var log_path := "user://playtest_tools/lamps.jsonl"
+	var file := FileAccess.open(log_path, FileAccess.WRITE)
+	file.store_string('{"e":"lamp","price":20,"how":"essence"}\n{"e":"lamp","price":40,"how":"blood"}\n{"e":"lamp","price":10,"how":"mite"}\n{"e":"run_end","won":true}\n')
+	file = null
+	var rows := "\n".join(probe.trade_rows([log_path]))
+	_check(rows.contains("| lamp bought | 2 | 1 | 1 |") and rows.contains("| lamp in blood | 1 | 1 | 1 |"),
+		"the probe counts lamps bought and lamps paid in blood:\n%s" % rows)
+	DirAccess.remove_absolute(log_path)
+
+	# --- the lamps lit survive a load
+	game.lamps_lit = {"tyre_counting_house:Prop2": true}
+	var snapshot: Dictionary = saves.capture(room.scene_file_path, 0, 0.0, player)
+	game.lamps_lit = {}
+	saves.restore(snapshot, player)
+	_check(game.lamps_lit.has("tyre_counting_house:Prop2"), "Game.lamps_lit comes back with a loaded checkpoint")
 
 	game.lamps_lit = {}
 	game.night = had_night
