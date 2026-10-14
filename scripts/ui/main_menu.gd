@@ -166,12 +166,13 @@ func _open_night_pick(open: Array[Dictionary]) -> void:
 		_night_pick.mouse_filter = Control.MOUSE_FILTER_STOP
 		add_child(_night_pick)
 		var panel := PanelContainer.new()
+		panel.name = "Panel"
 		_night_pick.add_child(panel)
 		var column := VBoxContainer.new()
 		column.name = "Nights"
 		column.add_theme_constant_override("separation", 6)
 		panel.add_child(column)
-	var column := _night_pick.get_node("PanelContainer/Nights") as VBoxContainer
+	var column := _night_pick.get_node("Panel/Nights") as VBoxContainer
 	for child in column.get_children():
 		child.queue_free()
 	var heading := Label.new()
