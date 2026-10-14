@@ -266,8 +266,10 @@ async function step(name, fn) {
         let builds = 0;
         const slow = async () => { builds++; await new Promise(r => setTimeout(r, 600)); return { files: {}, title: 'e2e twice' }; };
         const first = sendToGame(slow), second = sendToGame(slow);
-        await Promise.all([first, second]);
+        // read the refusal now: its toast lives 8 s, and the first send can take longer on a slow runner
+        await second;
         const toasts = [...document.querySelectorAll('#toasts *')].map(t => t.textContent).join(' | ');
+        await first;
         const d = document.querySelector('#dlg'); d.close(); d.replaceChildren();
         return { builds, toasts };
       });
