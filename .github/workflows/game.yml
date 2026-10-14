@@ -109,11 +109,17 @@ jobs:
         working-directory: engine
         run: docker compose run --rm godot game-test
 
+      # The loading page is the game's: its name, words and menu picture
+      # (game.json "name", "web", "menu"), not Ashes' (tools/web/pack_shell.py).
       - name: Export Web
         if: inputs.deploy_pages
         working-directory: engine
         run: |
           set -eu
+          python3 -m pip install --quiet pillow
+          owner="${GITHUB_REPOSITORY%%/*}"
+          python3 tools/web/pack_shell.py --repo "${GITHUB_REPOSITORY}" \
+            --url "https://$(echo "$owner" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}/"
           docker compose run --rm build build Web
           test -f build/web/index.html
           big=$(find build/web -type f -size +99M | head -1 || true)

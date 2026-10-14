@@ -42,7 +42,8 @@ CONTENT = ROOT / "content"
 STRINGS = ROOT / "localization" / "strings.csv"
 PROJECT = ROOT / "project.godot"
 CJK_FONT = ROOT / "assets" / "fonts" / "NotoSerifSC-Subset.ttf"
-TOUCHED = [STRINGS, PROJECT, CJK_FONT]
+SHELL = ROOT / "tools" / "web" / "shell.html"  # tools/web/pack_shell.py writes the pack's
+TOUCHED = [STRINGS, PROJECT, CJK_FONT, SHELL]
 
 
 def engine_version(root: Path = ROOT) -> int:
@@ -107,7 +108,7 @@ def restore() -> None:
     elif CONTENT.is_dir() and (CONTENT / "data" / "game.json").exists():
         shutil.rmtree(CONTENT)
     subprocess.run(["git", "checkout", "--"] + [str(p.relative_to(ROOT)) for p in TOUCHED], cwd=ROOT, check=True)
-    print("engine back to its own game (content/ removed, strings, project and CJK font restored)")
+    print("engine back to its own game (content/ removed, strings, project, CJK font and web page restored)")
 
 
 def apply(pack: Path, copy: bool, force: bool) -> None:

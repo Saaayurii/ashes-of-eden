@@ -41,6 +41,7 @@ engine's, which is Ashes'), `res://content/data` (the pack), `user://mods/*/data
 | `exclude` | `{collection: [id, …]}` — inherited entries to leave out (props that carry Ashes' story) |
 | `opening` | ids of the `prologue`, `prologue_short`, `intro` and `last_fall` scenes/dialogues; any may be absent |
 | `flags_read` | story flags only code reads, for the validator's both-ways check |
+| `web` | the loading page's `tagline` and `description` (`tools/web/pack_shell.py`, run by `game.yml` before the Web export: the game's name, words and menu picture instead of Ashes'; `apply_pack.py --restore` checks `shell.html` out again) |
 
 The validator (`validate_data.gd`) checks the merged game: every id a room
 places (`enemy_id`, `npc_id`, `prop_id`, the intro/outro scenes) must exist in
