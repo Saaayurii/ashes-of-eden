@@ -11,12 +11,20 @@
  * generator will paint (lib.js composeTiles, a port of compose.py). «Объём»: the room as the game's
  * camera sees it, the mouse being the camera — the far plates slide in their openings, the pieces in
  * front of the hero (tools/rooms/front.py) run ahead of it — and its layers are edited there: the
- * openings onto the far plate, the front pieces, the candles. */
+ * openings onto the far plate, the front pieces, the candles.
+ *
+ * A crumbling platform (crumbling_platform.gd) is drawn, moved and stretched like a rectangle but kept
+ * as [x, y, w] or [x, y, w, kind]: its height is the plank's own. It is dashed, never on the route. */
 'use strict';
 
-const COMP_RECTS = { ground: ['Земля', '#6fae5a'], ledges: ['Уступ', '#e0b54a'], platforms: ['Платформа', '#5fb3d9'], hazards: ['Опасность', '#e0503c'] };
+const COMP_RECTS = { ground: ['Земля', '#6fae5a'], ledges: ['Уступ', '#e0b54a'], platforms: ['Платформа', '#5fb3d9'],
+  crumbling_platforms: ['Осыпь', '#d98a4a'], hazards: ['Опасность', '#e0503c'] };
 const COMP_THINGS = { spawns: ['Враг', '#ff6b6b'], props: ['Предмет', '#c9a0ff'], npcs: ['Человек', '#7fe0c0'] };
-const COMP_THICK = { ground: 120, ledges: 14, platforms: 10, hazards: 40 };
+const COMP_THICK = { ground: 120, ledges: 14, platforms: 10, crumbling_platforms: 8, hazards: 40 };
+// A rectangle's [x, y, w, h] as drawn, and back: a crumbling platform keeps no height, only its kind.
+const COMP_CRUMBLE = 'crumbling_platforms';
+const compRect = (k, r) => k === COMP_CRUMBLE ? [r[0], r[1], r[2], COMP_THICK[k]] : r;
+const compUnrect = (k, rect, was = []) => k === COMP_CRUMBLE ? [rect[0], rect[1], rect[2], ...was.slice(3)] : rect;
 const COMP_LAYERS = { windows: ['Окно вдаль', '#7fb2ff'], front: ['Передний план', '#4ee0e0'], lights: ['Свеча', '#ffb060'] };
 // What the game's camera shows, in room pixels (640×360 at the hero's zoom, player.gd).
 const COMP_VIEW = [640 / 1.14, 360 / 1.14];
@@ -66,7 +74,7 @@ function compInSeams() {
   const e = COMP.entry, bands = compSeams(), out = [];
   const inBand = (x, y) => bands.some(([bx, by, bw, bh]) => x >= bx && x <= bx + bw && y >= by && y <= by + bh);
   const hits = (x, y, w, h) => bands.some(([bx, by, bw, bh]) => x < bx + bw && bx < x + w && y < by + bh && by < y + h);
-  for (const k of ['ground', 'ledges', 'platforms']) e[k].forEach((r, i) => {
+  for (const k of ['ground', 'ledges', 'platforms', COMP_CRUMBLE]) e[k].forEach((r, i) => {
     // a floor running on through the seam is expected; an edge of one ending in it is what to look at
     const across = bands.some(([, by, bw, bh]) => bw === compSize().width && r[1] >= by && r[1] <= by + bh);
     const end = across ? r[0] + r[2] / 2 : [r[0], r[0] + r[2]].find(ex => inBand(ex, r[1]));
@@ -225,7 +233,7 @@ function compRemoveCell(col, row) {
   compEdit(e => {
     e.cells = e.cells.filter(c => c.col !== col || c.row !== row);
     // what stood in the cell goes with it; what only crossed it is cut back to the rest of the room
-    for (const k of Object.keys(COMP_RECTS)) e[k] = e[k].filter(([x, y, w, h]) => !(inside(x, y) && inside(x + w - 1, y + h - 1)));
+    for (const k of Object.keys(COMP_RECTS)) e[k] = e[k].filter(r => { const [x, y, w, h] = compRect(k, r); return !(inside(x, y) && inside(x + w - 1, y + h - 1)); });
     for (const k of Object.keys(COMP_THINGS)) e[k] = e[k].filter(([, x, y]) => !inside(x, y));
     e.ramps = e.ramps.filter(([x0, y0, x1, y1]) => !inside(x0, y0) && !inside(x1, y1));
     // the grid may have lost a whole column or row on the left or top: the room starts at the first one left
@@ -269,6 +277,9 @@ function renderComposer() {
     const name = s.k === 'player' ? 'Вход' : s.k === 'door' ? 'Дверь' : (COMP_RECTS[s.k] || COMP_THINGS[s.k] || COMP_LAYERS[s.k] || ['Наклон'])[0];
     const num = (i, label) => `<label>${label}<input type="number" data-compv="${i}" value="${Math.round(v[i])}"></label>`;
     const fields = s.k === 'ramps' ? [num(0, 'x₀'), num(1, 'y₀'), num(2, 'x₁'), num(3, 'y₁')]
+      : s.k === COMP_CRUMBLE ? [num(0, 'x'), num(1, 'y'), num(2, 'ширина'),
+        `<label title="Как она выглядит в игре (crumbling_platform.gd)">Из<select data-compsurf>${[['stone', 'камня'], ['timber', 'досок']].map(([id, l]) => `<option value="${id}"${(v[3] || 'stone') === id ? ' selected' : ''}>${l}</option>`).join('')}</select></label>`,
+        '<div class="muted">Осыпается под героем и вырастает снова; путь на неё не рассчитывает.</div>']
       : COMP_RECTS[s.k] ? [num(0, 'x'), num(1, 'y'), num(2, 'ширина'), num(3, 'высота')]
       : COMP_THINGS[s.k] ? [`<label>Кто<select data-compid>${COMP.data[s.k === 'spawns' ? 'enemies' : s.k].map(id => `<option${id === v[0] ? ' selected' : ''}>${esc(id)}</option>`).join('')}</select></label>`, num(1, 'x'), num(2, 'y')]
       : [num(0, 'x'), num(1, 'y')];
@@ -361,12 +372,15 @@ function compPaint() {
   // what the route reaches: a surface off it is grey
   const surf = COMP.reach.surfaces, idx = new Map(); let n = 0;
   for (const k of ['ground', 'ledges', 'platforms']) e[k].forEach((_, i) => idx.set(k + i, n++));
-  for (const [k, [, col]] of Object.entries(COMP_RECTS)) e[k].forEach((r, i) => {
-    const on = COMP.sel && COMP.sel.k === k && COMP.sel.i === i, lost = idx.has(k + i) && !COMP.reach.seen.has(idx.get(k + i));
+  for (const [k, [, col]] of Object.entries(COMP_RECTS)) e[k].forEach((raw, i) => {
+    const r = compRect(k, raw), on = COMP.sel && COMP.sel.k === k && COMP.sel.i === i, lost = idx.has(k + i) && !COMP.reach.seen.has(idx.get(k + i));
     x.fillStyle = (lost ? '#888888' : col) + (k === 'hazards' ? '44' : '55'); x.fillRect(r[0], r[1], r[2], r[3]);
+    // a crumbling platform is dashed: it gives way, the route does not count on it
+    if (k === COMP_CRUMBLE) x.setLineDash([5 / S, 3 / S]);
     x.strokeStyle = on ? '#fff' : lost ? '#999' : col; x.lineWidth = (on ? 2.5 : 1.5) / S; x.strokeRect(r[0], r[1], r[2], r[3]);
+    x.setLineDash([]);
     if (k !== 'hazards') { x.fillStyle = lost ? '#aaa' : col; x.fillRect(r[0], r[1] - 1 / S, r[2], 3 / S); }
-    if (on) for (const [hx, hy] of [[r[0], r[1] + r[3] / 2], [r[0] + r[2], r[1] + r[3] / 2], [r[0] + r[2], r[1] + r[3]]]) { x.fillStyle = '#fff'; x.fillRect(hx - 4 / S, hy - 4 / S, 8 / S, 8 / S); }
+    if (on) for (const [hx, hy] of [[r[0], r[1] + r[3] / 2], [r[0] + r[2], r[1] + r[3] / 2], ...(k === COMP_CRUMBLE ? [] : [[r[0] + r[2], r[1] + r[3]]])]) { x.fillStyle = '#fff'; x.fillRect(hx - 4 / S, hy - 4 / S, 8 / S, 8 / S); }
   });
   e.ramps.forEach((r, i) => {
     const on = COMP.sel && COMP.sel.k === 'ramps' && COMP.sel.i === i;
@@ -480,12 +494,12 @@ function compHit(rx, ry) {
     const t = Math.max(0, Math.min(1, ((rx - r[0]) * (r[2] - r[0]) + (ry - r[1]) * (r[3] - r[1])) / Math.max(1, (r[2] - r[0]) ** 2 + (r[3] - r[1]) ** 2)));
     if (Math.hypot(r[0] + t * (r[2] - r[0]) - rx, r[1] + t * (r[3] - r[1]) - ry) < near / 2) return { k: 'ramps', i, part: 'move' };
   }
-  for (const k of ['hazards', 'platforms', 'ledges', 'ground']) for (let i = e[k].length - 1; i >= 0; i--) {
-    const [x, y, w, h] = e[k][i];
+  for (const k of ['hazards', COMP_CRUMBLE, 'platforms', 'ledges', 'ground']) for (let i = e[k].length - 1; i >= 0; i--) {
+    const [x, y, w, h] = compRect(k, e[k][i]);
     if (COMP.sel?.k === k && COMP.sel.i === i) {
       // the handles never cover more than a quarter of it: the middle always moves it
       const grip = Math.min(near, w / 4), gy = Math.min(near, h / 2);
-      if (Math.abs(rx - (x + w)) < grip && Math.abs(ry - (y + h)) < gy) return { k, i, part: 'corner' };
+      if (k !== COMP_CRUMBLE && Math.abs(rx - (x + w)) < grip && Math.abs(ry - (y + h)) < gy) return { k, i, part: 'corner' };
       if (Math.abs(rx - (x + w)) < grip && ry > y - gy && ry < y + h) return { k, i, part: 'right' };
       if (Math.abs(rx - x) < grip && ry > y - gy && ry < y + h) return { k, i, part: 'left' };
     }
@@ -554,8 +568,11 @@ function compMove(ev) {
   else if (k === 'player' || k === 'door') e[k] = [w[0] + dx, w[1] + dy];
   else if (COMP_THINGS[k]) e[k][i] = [w[0], w[1] + dx, w[2] + dy];
   else if (k === 'ramps') e[k][i] = part === 'a' ? [w[0] + dx, w[1] + dy, w[2], w[3]] : part === 'b' ? [w[0], w[1], w[2] + dx, w[3] + dy] : [w[0] + dx, w[1] + dy, w[2] + dx, w[3] + dy];
-  else e[k][i] = part === 'move' ? [w[0] + dx, w[1] + dy, w[2], w[3]] : part === 'right' ? [w[0], w[1], Math.max(4, w[2] + dx), w[3]]
-    : part === 'left' ? [Math.min(w[0] + dx, w[0] + w[2] - 4), w[1], Math.max(4, w[2] - dx), w[3]] : [w[0], w[1], Math.max(4, w[2] + dx), Math.max(2, w[3] + dy)];
+  else {
+    const r = compRect(k, w);
+    e[k][i] = compUnrect(k, part === 'move' ? [r[0] + dx, r[1] + dy, r[2], r[3]] : part === 'right' ? [r[0], r[1], Math.max(4, r[2] + dx), r[3]]
+      : part === 'left' ? [Math.min(r[0] + dx, r[0] + r[2] - 4), r[1], Math.max(4, r[2] - dx), r[3]] : [r[0], r[1], Math.max(4, r[2] + dx), Math.max(2, r[3] + dy)], w);
+  }
   COMP.reach = composeReach(e, COMP.data.reach); compDraw();
 }
 function compUp() {
@@ -575,7 +592,7 @@ function compUp() {
     }
     compEdit(e => {
       if (tool === 'ramps') e.ramps.push([d.rx, d.ry, d.ex, d.ey].map(Math.round));
-      else e[tool].push([x, y, Math.max(4, w), Math.max(2, tool === 'hazards' || h > 6 ? h : COMP_THICK[tool])]);
+      else e[tool].push(compUnrect(tool, [x, y, Math.max(4, w), Math.max(2, tool === 'hazards' || h > 6 ? h : COMP_THICK[tool])]));
     });
     COMP.sel = { k: tool, i: COMP.entry[tool].length - 1 }; COMP.tool = 'select'; return renderComposer();
   }
@@ -728,7 +745,12 @@ function composerInit() {
     });
     if (el.dataset.compv !== undefined) return compEdit(en => { const v = s.k === 'player' || s.k === 'door' ? en[s.k] : en[s.k][s.i]; v[+el.dataset.compv] = Math.round(+el.value); });
     if (el.dataset.compid !== undefined) { (COMP.lastId ??= {})[s.k] = el.value; return compEdit(en => { en[s.k][s.i][0] = el.value; }); }
-    if (el.dataset.compkind !== undefined) return compEdit(en => { const [r] = en[s.k].splice(s.i, 1); en[el.value].push(r); COMP.sel = { k: el.value, i: en[el.value].length - 1 }; });
+    if (el.dataset.compsurf !== undefined) return compEdit(en => { const v = en[s.k][s.i]; v.length = 3; if (el.value !== 'stone') v.push(el.value); });
+    if (el.dataset.compkind !== undefined) return compEdit(en => {
+      const [r] = en[s.k].splice(s.i, 1), rect = compRect(s.k, r);
+      en[el.value].push(compUnrect(el.value, s.k === COMP_CRUMBLE ? [rect[0], rect[1], rect[2], COMP_THICK[el.value]] : rect));
+      COMP.sel = { k: el.value, i: en[el.value].length - 1 };
+    });
   });
   document.addEventListener('keydown', e => {
     if (mode !== 'comp' || /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName || '') || document.getElementById('dlg')?.open) return;

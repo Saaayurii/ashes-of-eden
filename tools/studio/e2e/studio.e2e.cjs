@@ -109,16 +109,39 @@ async function step(name, fn) {
         const lights = compLights().length;
         cv.dispatchEvent(new PointerEvent('pointerdown', at(640, 300))); cv.dispatchEvent(new PointerEvent('pointerup', at(640, 300)));
         const lit = COMP.entry.lights.length - lights, owned = COMP.entry.windows.length;
+        // the table may carry front pieces of its own: the new one is the last, and undo leaves them as they were
+        const fronts = JSON.stringify(COMP.entry.front);
         compAddFront(COMP.entry.cells[0], [100, 100, 120, 80]);
-        const piece = COMP.entry.front[0], baked = !!compPiece(piece);
+        const piece = COMP.entry.front[COMP.entry.front.length - 1], baked = !!compPiece(piece);
         compUndo(false); compUndo(false);
         document.querySelector('[data-compview="cells"]').click();
-        return { built, windows, lit, owned, piece, baked, back: !COMP.entry.lights && !COMP.entry.front };
+        return { built, windows, lit, owned, piece, baked, back: !COMP.entry.lights && JSON.stringify(COMP.entry.front) === fronts };
       });
       assert.equal(v.built, 2, 'the stitched picture and its plate: ' + JSON.stringify(v));
       assert.ok(v.windows >= 3 && v.owned === v.windows, 'the room brings its far openings: ' + JSON.stringify(v));
       assert.ok(v.lit === 1 && v.baked && v.back, JSON.stringify(v));
       assert.deepEqual(v.piece.at, [79, 72], 'a piece keeps its foot where the crop was');
+      // crumbling platforms: the table's come along, one is drawn with «+ Осыпь» and dragged, and the
+      // file the send writes carries them as [x, y, w]
+      const c = await page.evaluate(async () => {
+        const had = structuredClone(COMP.entry.crumbling_platforms);
+        document.querySelector('[data-comptool="crumbling_platforms"]').click();
+        const cv = document.getElementById('compCanvas'), b = cv.getBoundingClientRect();
+        const at = (px, py) => ({ clientX: b.left + COMP.ox + px * COMP.scale, clientY: b.top + COMP.oy + py * COMP.scale, pointerId: 1, button: 0, bubbles: true });
+        cv.dispatchEvent(new PointerEvent('pointerdown', at(600, 150))); cv.dispatchEvent(new PointerEvent('pointermove', at(700, 152))); cv.dispatchEvent(new PointerEvent('pointerup', at(700, 152)));
+        const drawn = structuredClone(COMP.entry.crumbling_platforms.at(-1)), sel = COMP.sel?.k;
+        cv.dispatchEvent(new PointerEvent('pointerdown', at(650, 152))); cv.dispatchEvent(new PointerEvent('pointermove', at(660, 162))); cv.dispatchEvent(new PointerEvent('pointerup', at(660, 162)));
+        const moved = structuredClone(COMP.entry.crumbling_platforms.at(-1));
+        const written = JSON.parse((await composerFiles()).files['tools/rooms/composed_rooms.json']).graveyard_cross.crumbling_platforms;
+        compUndo(false); compUndo(false);
+        return { had, drawn, sel, moved, written, back: COMP.entry.crumbling_platforms };
+      });
+      assert.ok(c.had.length >= 1 && c.had.every(p => p.length === 3), JSON.stringify(c));
+      assert.equal(c.sel, 'crumbling_platforms', JSON.stringify(c));
+      assert.deepEqual([c.drawn.length, c.drawn[2]], [3, 100], JSON.stringify(c));
+      assert.deepEqual(c.moved, [c.drawn[0] + 10, c.drawn[1] + 10, 100], JSON.stringify(c));
+      assert.deepEqual(c.written, [...c.had, c.moved]);
+      assert.deepEqual(c.back, c.had, 'undone');
       // the steps after this one work on characters, where 'every tab loads' left the page
       await page.evaluate(() => { try { localStorage.removeItem('ss_composer'); } catch {} setMode('chars'); });
     });
@@ -268,7 +291,7 @@ async function step(name, fn) {
       await page.selectOption('#ewBase', 'cultist');
       await page.selectOption('.rp-room', 'graveyard_cross');
       await page.waitForTimeout(1500);
-      const placed = await page.evaluate(() => { const map = document.querySelector('.rp-map'); map.onclick({ offsetX: 420 * map.clientWidth / 1440, offsetY: 430 * map.clientWidth / 1440 }); return document.querySelector('.rp-info').textContent; });
+      const placed = await page.evaluate(async () => { const map = document.querySelector('.rp-map'), w = (await loadRoom('graveyard_cross')).width; map.onclick({ offsetX: 420 * map.clientWidth / w, offsetY: 430 * map.clientWidth / w }); return document.querySelector('.rp-info').textContent; });
       assert.match(placed, /graveyard_cross: 420, 506/);
       await page.click('#dlg [data-dlg="0"]');
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });

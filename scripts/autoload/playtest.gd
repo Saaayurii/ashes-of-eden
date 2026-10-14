@@ -44,6 +44,7 @@ func _ready() -> void:
 	EventBus.boss_hp_changed.connect(_on_boss_hp)
 	EventBus.boss_died.connect(_on_boss_died)
 	EventBus.ability_acquired.connect(_on_gift)
+	EventBus.weapon_taken.connect(_on_weapon)
 	EventBus.gift_refused.connect(func() -> void: _write("refuse", {}))
 	EventBus.blood_settled.connect(func(paid: bool) -> void: _write("altar", {"room": _room, "paid": paid}))
 	EventBus.chest_opened.connect(func(id: String) -> void: _write("chest", {"room": _room, "id": id}))
@@ -87,7 +88,7 @@ func _begin() -> void:
 	_clock = 0.0
 	_active = true
 	_write("run_start", {"version": ProjectSettings.get_setting("application/config/version", ""),
-		"difficulty": str(Settings.get("difficulty")), "platform": OS.get_name()})
+		"difficulty": str(Settings.get("difficulty")), "platform": OS.get_name(), "weapon": Game.weapon})
 	var run := _run_scene()
 	if run != null and int(run.get("room_index")) >= 0:
 		_on_room_started(int(run.room_index) + 1)  # the first room began before we did
@@ -97,7 +98,8 @@ func _end(won: bool) -> void:
 	if not _active:
 		return
 	_write("run_end", {"won": won, "seconds": snappedf(_clock, 0.1), "level": Game.level,
-		"gifts": Game.abilities.size(), "alignment": Game.alignment, "omen": Game.omen, "vial": Game.vial})
+		"gifts": Game.abilities.size(), "alignment": Game.alignment, "omen": Game.omen, "vial": Game.vial,
+		"weapon": Game.weapon, "weapons": Game.weapons_used})
 	_active = false
 	_file = null
 
@@ -133,7 +135,7 @@ func _on_died() -> void:
 		if node.is_multiplayer_authority():
 			at = node.global_position
 	# by: what laid him low (Game.slain_by: an enemy id, "lava", "fall")
-	_write("death", {"room": _room, "x": int(at.x), "y": int(at.y), "by": Game.slain_by})
+	_write("death", {"room": _room, "x": int(at.x), "y": int(at.y), "by": Game.slain_by, "weapon": Game.weapon})
 	_end(false)
 
 
@@ -149,6 +151,11 @@ func _on_boss_died() -> void:
 	var run := _run_scene()
 	if run and run.get("room_index") != null and int(run.room_index) + 1 >= Data.rooms.size():
 		_end(true)
+
+
+## A weapon taken in hand (WeaponDrop): which, and the one laid down.
+func _on_weapon(id: String, dropped: String) -> void:
+	_write("weapon", {"room": _room, "id": id, "dropped": dropped})
 
 
 func _on_gift(ability: Dictionary) -> void:

@@ -216,6 +216,15 @@ func _run() -> void:
 	await process_frame
 	var sky = menu.get_node("Layers/Background")
 	_check(sky.material is ShaderMaterial and int(sky.material.get_shader_parameter("life_count")) > 0, "main_menu: the village stands still")
+	# its sky: clouds drift, the light under the cross turns, lightning reaches the painting
+	var drift = menu.get_node_or_null("Layers/Sky")
+	_check(drift != null and drift.clouds.material is ShaderMaterial and drift.rays.material is ShaderMaterial, "main_menu: no clouds or light over the village")
+	_check(menu.has_meta(&"backdrop_life"), "main_menu: the lightning cannot reach the painting")
+	if drift != null:
+		var was: float = drift.clock
+		await process_frame
+		await process_frame
+		_check(drift.clock > was or not root.get_node("Settings").backdrop_motion, "main_menu: the sky's clock stands still")
 	menu.queue_free()
 	await process_frame
 	# the frame meter's line, as a phone's log will show it

@@ -126,6 +126,10 @@ func show_result(won: bool, area: int, kills: int, seconds: float, place := "") 
 	for id in Game.resonances:
 		names.append("◆ " + tr(str(Resonances.spec(id).get("name", id))))
 	gifts.text = "%s: %s" % [tr("RUN_GIFTS"), ", ".join(names)] if not names.is_empty() else ""
+	# the weapon the night ended with (data/weapons), when it was not the first one
+	if Game.weapon != Weapons.DEFAULT:
+		var weapon := tr("RUN_WEAPON") % tr(str(Weapons.spec(Game.weapon).get("name", Game.weapon)))
+		gifts.text = weapon + ("\n" + gifts.text if gifts.text != "" else "")
 	Audio.music("end")
 	Audio.play(&"victory" if won else &"defeat", -2.0, 0.0)
 	backdrop.texture = BACKDROP_WON if won else BACKDROP_DEAD

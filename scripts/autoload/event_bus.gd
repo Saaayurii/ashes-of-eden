@@ -35,6 +35,8 @@ signal chest_opened(prop_id: String)
 ## Gifts taken together woke something none does alone (data/resonances).
 signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)
+## Our own body took a weapon in hand (Player.equip): its id and the one it laid down.
+signal weapon_taken(id: String, dropped: String)
 ## Our own body rested at a rest point (scripts/rooms/rest_point.gd), in this room.
 signal player_rested(room_path: String)
 signal alignment_changed(alignment: Dictionary)

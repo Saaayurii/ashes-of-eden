@@ -1240,11 +1240,32 @@ func _practice_begin() -> void:
 		drills = PracticeDrills.new(self)
 		add_child(drills)
 	_practice_spawn()
+	_practice_rack()
 	if $UI.get_node_or_null("MoveList") == null:
 		var moves := MoveList.new()
 		moves.name = "MoveList"
 		moves.drills = drills
 		$UI.add_child(moves)
+
+
+## The yard's rack (docs/WEAPONS.md): every weapon the hero is not holding lies
+## on the floor behind the gate; standing at one, `interact` takes it in hand
+## and lays the held one in its place (WeaponDrop), so all of them stay there.
+const PRACTICE_RACK_STEP := 26.0
+
+
+func _practice_rack() -> void:
+	if room == null or room.get_node_or_null("WeaponRack") != null:
+		return
+	var rack := Node2D.new()
+	rack.name = "WeaponRack"
+	room.add_child(rack)
+	var held := player.weapon if player != null else Weapons.DEFAULT
+	var ids: Array = Data.weapons.keys().filter(func(id: String) -> bool: return id != held)
+	ids.sort()
+	var at := room.to_local(room.player_spawn.global_position)
+	for i in ids.size():
+		WeaponDrop.lay(rack, str(ids[i]), at + Vector2(40.0 + PRACTICE_RACK_STEP * i, 0.0))
 
 
 ## What stands there is the drill's to say (PracticeDrills: spar, guard, stalk).

@@ -14,6 +14,7 @@ The art studio's «Конструктор» writes tools/rooms/composed_rooms.js
         "cells": [{"painting": "graveyard_cross", "col": 0, "row": 0},
                   {"painting": "panels/graveyard_hill", "col": 1, "row": 0}],
         "ground": [[x, y, w, h]], "ledges": [...], "platforms": [...],
+        "crumbling_platforms": [[x, y, w], [x, y, w, "timber"]],
         "ramps": [[x0, y0, x1, y1]], "hazards": [[x, y, w, h]],
         "player": [x, y], "door": [x, y],
         "spawns": [[id, x, y]], "props": [[id, x, y]], "npcs": [[id, x, y]],
@@ -27,6 +28,12 @@ weather, fog, light, music and cutscenes it keeps. A draft ("live": false)
 is written to scenes/rooms/composed/<name>.tscn, beside the room it may
 replace, and opened with `room=<name> --composed`; once "live", it is the room
 the night walks through and check_reach must prove it.
+
+A crumbling platform (scripts/rooms/crumbling_platform.gd) is [x, y, w] or
+[x, y, w, kind]: a foothold that gives way under the hero and grows back, the
+same as a painted room's `crumbling_platforms`. Like there, the route never
+counts on it (check_reach, the studio's composeReach and reach_test.gd all
+leave it out): it is a shortcut over a gap, not the way.
 """
 import json
 import os
@@ -48,6 +55,8 @@ SEAM = 96
 ATMOSPHERE = ("ambient", "fog", "intro", "music", "weather", "intro_cutscene", "outro_cutscene")
 RECTS = ("ground", "ledges", "platforms", "hazards")
 PLACED = ("spawns", "props", "npcs")
+## What a crumbling platform may be drawn as: crumbling_platform.gd's surface_kind.
+CRUMBLING_KINDS = ("stone", "timber")
 PAINTING = re.compile(r"^(panels/)?[a-z0-9_]+$")
 ## The far openings of each painted room (scripts/rooms/room_layers.gd), read
 ## from the script so the two never disagree.
@@ -99,6 +108,15 @@ def validate(name, entry):
             x, y, w, h = rect
             if w <= 0 or h <= 0 or x < 0 or y < 0 or x + w > width or y + h > height:
                 raise SystemExit(f"{where}: {key} {rect} is not inside the {width}x{height} room")
+    for piece in entry.get("crumbling_platforms", []):
+        if not (isinstance(piece, list) and len(piece) in (3, 4)
+                and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in piece[:3])):
+            raise SystemExit(f"{where}: crumbling platform {piece} is not [x, y, w] or [x, y, w, kind]")
+        x, y, w = piece[:3]
+        if w <= 0 or x < 0 or y < 0 or x + w > width or y >= height:
+            raise SystemExit(f"{where}: crumbling platform {piece} is not inside the {width}x{height} room")
+        if len(piece) == 4 and piece[3] not in CRUMBLING_KINDS:
+            raise SystemExit(f"{where}: crumbling platform {piece} is not one of {', '.join(CRUMBLING_KINDS)}")
     for x0, y0, x1, y1 in entry.get("ramps", []):
         if not all(0 <= v <= lim for v, lim in ((x0, width), (x1, width), (y0, height), (y1, height))):
             raise SystemExit(f"{where}: ramp {[x0, y0, x1, y1]} leaves the room")
@@ -369,6 +387,9 @@ def room_table(name, entry, base, owned=None):
     )
     for key in RECTS:
         room[key] = [tuple(r) for r in entry.get(key, [])]
+    # as generate_rooms.widen hands a painted room's to build: (x, y, w, kind)
+    room["crumbling_platforms"] = [(p[0], p[1], p[2], p[3] if len(p) > 3 else "stone")
+                                   for p in entry.get("crumbling_platforms", [])]
     for key in PLACED:
         room[key] = [tuple(item) for item in entry.get(key, [])]
     return room

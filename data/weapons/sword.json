@@ -1,0 +1,12 @@
+{
+  "id": "sword",
+  "name": "WEAPON_SWORD",
+  "description": "WEAPON_SWORD_DESC",
+  "icon": "res://assets/icons/realm/gear_1.png",
+  "chain": [
+    {"animation": "attack"},
+    {"animation": "attack2"},
+    {"animation": "attack3"}
+  ],
+  "notes": "The hero's own blade and every night's first. A step that names only its animation swings with the hero's own numbers for that step - hero.json combo_multipliers / combo_recovery / combo_window and player_actions.json attack, attack2, attack3 - which the studio's combat tab tunes; so the sword plays exactly as it did before there were weapons."
+}

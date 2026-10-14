@@ -24,6 +24,8 @@ var props: Dictionary = {}
 var notes: Dictionary = {}
 ## What a chest can hold besides essence (data/items, scripts/combat/item_system.gd).
 var items: Dictionary = {}
+## What the hero swings (data/weapons, scripts/combat/weapons.gd); the sword is the default.
+var weapons: Dictionary = {}
 ## Rest points, one per room at most, by room scene name (data/rest_points).
 var rest_points: Dictionary = {}
 ## The hero's cloaks (data/skins): free ones unlock by play, a "sku" one only by a store.
@@ -81,6 +83,7 @@ func reload() -> void:
 	npcs = _load_collection("npcs", roots)
 	notes = _load_collection("notes", roots)
 	items = _load_collection("items", roots)
+	weapons = _load_collection("weapons", roots)
 	rest_points = _load_collection("rest_points", roots)
 	skins = _load_collection("skins", roots)
 	techniques = _load_collection("techniques", roots)
