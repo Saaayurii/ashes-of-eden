@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
 [ext_resource type="Texture2D" path="res://assets/levels/hall_gallery_of_lamps_wide.png" id="2_backdrop"]
@@ -71,6 +71,9 @@ size = Vector2(20, 56)
 
 [sub_resource type="RectangleShape2D" id="Ground1_shape"]
 size = Vector2(1600, 215)
+
+[sub_resource type="RectangleShape2D" id="GalleryStep_shape"]
+size = Vector2(60, 10)
 
 [sub_resource type="RectangleShape2D" id="Ledge1_shape"]
 size = Vector2(520, 12)
@@ -149,6 +152,11 @@ polygon = PackedVector2Array(1275.0, 393.0, 1280.36, 393.0, 1280.36, 401.0, 1285
 collision_layer = 16
 collision_mask = 0
 
+[node name="GalleryStepShape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(985.0, 453.0)
+shape = SubResource("GalleryStep_shape")
+one_way_collision = true
+
 [node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
 position = Vector2(320.0, 312.0)
 shape = SubResource("Ledge1_shape")
@@ -165,6 +173,13 @@ shape = SubResource("Ledge3_shape")
 one_way_collision = true
 
 [node name="Terrain" type="Node2D" parent="."]
+
+[node name="GalleryStepCornice" type="Sprite2D" parent="Terrain"]
+position = Vector2(955, 448)
+texture = ExtResource("2_backdrop")
+centered = false
+region_enabled = true
+region_rect = Rect2(1040, 393, 60, 12)
 
 [node name="DecorMid" type="Node2D" parent="."]
 

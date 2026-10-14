@@ -110,6 +110,10 @@ TRAVERSAL_PATCHES = {
     "crypt_lava": [(730, 610, 100, 12, "LowerReturn"), (700, 315, 85, 12, "GalleryReturn")],  # treasure terrace and gallery return
     "hell_gate": [(1525, 563, 75, 12, "Return1"), (1550, 493, 50, 12, "Return2"),
                   (265, 315, 125, 12, "LeftReturn"), (225, 405, 65, 12, "LeftReturnLower")],  # upper left lip clears the stair underside
+    # the seven lamps' right gallery is 112 px over the floor, out of a double
+    # jump, and its stair rises the other way: a step off the wall between the
+    # gold column and the gallery's pier, coming from the entrance
+    "hall_gallery_of_lamps": [(955, 448, 60, 10, "GalleryStep")],
 }
 
 # One visual thought per new seam, not another random barrel on the route.
@@ -642,6 +646,9 @@ def expand_painted_room(name, room):
         # The chains end at its uneven 256/268 px underside, like the cages
         # already present in this chamber, instead of leaving bare bars in air.
         out["hanging_supports"] = {1: (42, 38), 2: (31, 18)}
+    if name == "hall_gallery_of_lamps":
+        out["painted_cornices"] = True
+        out["cornice_crop"] = (1040, 393)  # the gallery's own marble slab, clear of the seams
     if name == "swamp_crypt":
         out["painted_cornices"] = True
         out["cornice_crop"] = (150, 319)
