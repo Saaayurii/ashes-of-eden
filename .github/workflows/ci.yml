@@ -118,11 +118,11 @@ jobs:
 
       # the container wrote these as root
       - name: Hand the import to the cache
-        if: github.event_name == 'push' && matrix.run == 'validate' && steps.import.outputs.cache-hit != 'true'
+        if: matrix.run == 'validate' && steps.import.outputs.cache-hit != 'true'
         run: sudo chown -R "$(id -u):$(id -g)" .
 
       - name: Save Godot's import
-        if: github.event_name == 'push' && matrix.run == 'validate' && steps.import.outputs.cache-hit != 'true'
+        if: matrix.run == 'validate' && steps.import.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
