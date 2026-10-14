@@ -23,7 +23,7 @@ export_presets.cfg.bak
 .editor/
 
 # Official content overlay (private ashes-of-eden-content repo, see docs/MONETIZATION.md)
-content/
+/content
 
 # Builds
 build/
