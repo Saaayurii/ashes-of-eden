@@ -887,6 +887,12 @@ def _gd_list(source: str, name: str):
     return re.findall(r'"([^"]+)"', m.group(1)) if m else []
 
 
+def _gd_bounds(source: str, name: str):
+    """A const dictionary of [low, high] pairs from a GDScript source (`const NAME := {"k": [a, b], ...}`)."""
+    m = re.search(r"const %s := \{(.*?)\}" % name, source, re.S)
+    return {k: [float(a), float(b)] for k, a, b in re.findall(r'"(\w+)": \[(-?[\d.]+), (-?[\d.]+)\]', m.group(1))} if m else {}
+
+
 def gamedata(root: Path, strings):
     """What the studio's later editors read beside world.json (js/gamedata.js): every line of
     strings.csv, the lists the validator checks against (so a draft is refused in the browser
@@ -921,6 +927,13 @@ def gamedata(root: Path, strings):
         "music": {"existing": existing, "tracks": [{k: t[k] for k in ("slug", "title", "author", "license", "playlists")} for t in manifest["tracks"]],
                   "files": {p.stem: p.name for p in sorted(music.iterdir()) if p.suffix in (".mp3", ".ogg", ".wav")}},
         "rooms": rooms,
+        # what _check_weapon bounds a weapon by (the studio's «Оружие»), the icons one may wear,
+        # and every room scene the game has (the «Ночи» tab adds one to a night)
+        "weapon": {"bounds": _gd_bounds(validator, "WEAPON_BOUNDS"), "step_bounds": _gd_bounds(validator, "WEAPON_STEP_BOUNDS"),
+                   "needs": _gd_list(validator, "WEAPON_STEP_NEEDS"), "animations": _gd_list(validator, "WEAPON_ANIMATIONS"),
+                   "arcs": _gd_list(validator, "WEAPON_ARCS")},
+        "icons": sorted("res://" + p.relative_to(root).as_posix() for p in (root / "assets/icons").rglob("*.png")),
+        "scenes": ["res://" + p.relative_to(root).as_posix() for p in room_scenes(root)],
     }
 
 

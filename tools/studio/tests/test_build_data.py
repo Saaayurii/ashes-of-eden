@@ -203,6 +203,24 @@ class Build(unittest.TestCase):
             self.assertTrue(all(not t["url"].startswith(("http", "/")) for e in audio for t in e["takes"]))
 
 
+class Campaign(unittest.TestCase):
+    """What the «Оружие», «Концовки» and «Ночи» tabs read (js/campaign.js)."""
+
+    def test_weapon_bounds_icons_and_scenes(self):
+        data = build_data.gamedata(ROOT, {})
+        weapon = data["weapon"]
+        self.assertEqual(weapon["step_bounds"]["multiplier"], [0.2, 4.0])
+        self.assertEqual(weapon["bounds"]["poise"], [0.0, 0.5])
+        self.assertIn("thrust", weapon["animations"])
+        self.assertIn("path", weapon["arcs"])
+        self.assertIn("heavy", weapon["needs"])
+        for path in (ROOT / "data/weapons").glob("*.json"):
+            self.assertIn(json.loads(path.read_text())["icon"], data["icons"], path.name)
+        game = json.loads((ROOT / "data/game.json").read_text())
+        for room in build_data.game_rooms(game) + [game["practice_room"]]:
+            self.assertIn(room, data["scenes"])
+
+
 class Enemies(unittest.TestCase):
     def test_wizard_bases(self):
         listed = {e["id"]: e for e in build_data.enemies(ROOT, build_data.load_strings(ROOT))}
