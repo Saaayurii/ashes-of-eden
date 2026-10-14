@@ -1,0 +1,6 @@
+[
+  {"id": "ending_heaven", "name": "DEED_ENDING_HEAVEN", "description": "DEED_ENDING_HEAVEN_DESC", "ash": 25, "unlock": {"endings": ["heaven"]}},
+  {"id": "ending_abyss", "name": "DEED_ENDING_ABYSS", "description": "DEED_ENDING_ABYSS_DESC", "ash": 25, "unlock": {"endings": ["abyss"]}},
+  {"id": "ending_man", "name": "DEED_ENDING_MAN", "description": "DEED_ENDING_MAN_DESC", "ash": 25, "unlock": {"endings": ["man"]}},
+  {"id": "ending_fourth", "name": "DEED_ENDING_FOURTH", "description": "DEED_ENDING_FOURTH_DESC", "ash": 40, "unlock": {"endings": ["fourth"]}}
+]

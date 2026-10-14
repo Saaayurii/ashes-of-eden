@@ -198,6 +198,26 @@ static func painting_of(room: Node) -> Sprite2D:
 	return null
 
 
+## The room's zones of one [param kind] ("water", "lava", …) as world-space
+## rectangles: they are drawn in painting pixels. Gore asks for the water.
+static func zones_in_world(room: Node, kind: String) -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	var painting := painting_of(room)
+	if painting == null or painting.texture == null:
+		return out
+	var local := painting.get_rect()
+	var pixels := painting.region_rect.size if painting.region_enabled else painting.texture.get_size()
+	var to_world := painting.get_global_transform()
+	for zone in rule(room_key(room as Node2D)).get("zones", []):
+		if str(zone.get("kind", "")) != kind:
+			continue
+		var r: Array = zone.rect
+		var corner := local.position + Vector2(r[0], r[1]) * local.size / pixels
+		var size := Vector2(r[2], r[3]) * local.size / pixels
+		out.append(to_world * Rect2(corner, size))
+	return out
+
+
 ## The shader's noise: NOISE x NOISE random values, the same every run (a
 ## seed), shared by every picture. Bilinear filtering makes it value noise.
 static func noise_texture() -> ImageTexture:

@@ -66,18 +66,29 @@
         {"flag": "severin_told", "next": "a_severin_told"},
         {"flag": "severin_knew", "next": "a_severin_knew"}
       ],
-      "next": "a3"
+      "next": "a_why"
     },
     "a_severin_told": {
       "speaker": "NPC_NUN",
       "text": "DLG_AGNES_SEVERIN_TOLD",
-      "next": "a3"
+      "next": "a_why"
     },
     "a_severin_knew": {
       "speaker": "NPC_NUN",
       "text": "DLG_AGNES_SEVERIN_KNEW",
-      "next": "a3"
+      "next": "a_why"
     },
+    "a_why": {
+      "speaker": "NPC_NUN",
+      "text": "DLG_AGNES_WHY_OFFER",
+      "choices": [
+        {"id": "why", "text": "DLG_AGNES_WHY", "effect": {"set_flags": ["version_heaven"]}, "next": "a_version_1"},
+        {"id": "not_now", "text": "DLG_AGNES_NOT_NOW", "next": "a3"}
+      ]
+    },
+    "a_version_1": {"speaker": "NPC_NUN", "text": "DLG_AGNES_VERSION_1", "next": "a_version_2"},
+    "a_version_2": {"speaker": "NPC_NUN", "text": "DLG_AGNES_VERSION_2", "next": "a_version_3"},
+    "a_version_3": {"speaker": "NPC_NUN", "text": "DLG_AGNES_VERSION_3", "next": "a3"},
     "a3": {
       "speaker": "NPC_NUN",
       "text": "DLG_AGNES_3",

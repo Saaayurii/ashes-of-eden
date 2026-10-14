@@ -20,15 +20,18 @@ class_name Gore
 ## and stick to the painted wall behind — never to the sky or a far opening
 ## (`back`) — a fine mist hangs a moment (`mist`), and every mark soaks into
 ## the painting under it rather than lying on top (`soak`, a multiply pass).
+## Blood that falls in water clouds and thins away (`cloud`, the room's
+## `water` zones of BackdropLife); on lava it hisses off as steam (`hiss`, the
+## room's Hazards). Reduced blood throws no mist and no splashes.
 ## Pixels drawn 1:1 like Fx.PIXELS, never a soft dot scaled up. All of it is
 ## cosmetic and local: every peer throws its own, and Settings.gore (full,
 ## reduced, off) decides how much.
 
 const PATH := "res://data/gore.json"
 const KEYS := ["blood", "shade", "drops", "spray", "mist", "stain", "stain_life", "soak", "splash", "run", "drip",
-	"back", "gush", "pool", "bleed", "spurt", "limbs", "chance", "fling", "cuts"]
+	"back", "cloud", "hiss", "gush", "pool", "bleed", "spurt", "limbs", "chance", "fling", "cuts"]
 const DEFAULTS := {"blood": "#7a0c10", "shade": 0.15, "drops": 6, "spray": 140.0, "mist": 0, "stain": 1.0,
-	"stain_life": 25.0, "soak": 0.5, "splash": 1.0, "run": 10.0, "drip": 0.3, "back": 0.1,
+	"stain_life": 25.0, "soak": 0.5, "splash": 1.0, "run": 10.0, "drip": 0.3, "back": 0.1, "cloud": 10.0, "hiss": 0.5,
 	"gush": 12, "pool": 10.0, "bleed": 0.6, "spurt": 1.2, "limbs": 0, "chance": 0.0, "fling": 150.0,
 	"cuts": {"all": 3, "head": 2, "half": 1, "limb": 1}}
 ## The ways a body tears (`cuts` weighs them): to pieces; the head off; in half
@@ -39,10 +42,27 @@ const RAGGED := 0.07
 ## What a drop is stopped by: the world (layer 1), and a ledge (layer 5) from above.
 const WORLD_MASK := 1
 const LEDGE_MASK := 16
+## How far from a wall, a pillar or a ledge overhead blood thrown into the depth still finds
+## the painting behind (from a little under the drop up): beyond it the painting is far away
+const BACK_REACH := Vector2(56, 64)
 const GRAVITY := 560.0
 const MAX_DROPS := 260
 const MAX_STAINS := 520
 const MAX_PIECES := 28
+## The blows a body can be opened by (Player's swings and techniques, its
+## skills, a friendly bolt): each bleeds and tears its own way, from `moves`
+## in data/gore.json laid over MOVE_DEFAULTS. A blow with no name is "attack".
+const MOVES := ["attack", "attack2", "attack3", "rising", "thrust", "dash_strike", "lunge", "cleave", "sweep",
+	"slam", "dash", "blink", "nova", "bolt", "drain", "toll", "hex", "burst"]
+## aim — degrees the spray turns from the blow's line (negative up); spread,
+## force, drops — × the fan, the speed and the count; height — px the wound
+## sits above (or below) the middle; fling, lift — × how hard the pieces fly and
+## how much of it goes up; scatter — share of pieces thrown back the other way;
+## chance — × the tear's chance; pool — × the pool; jet — how often the spray
+## comes as a jet; cuts — the ways a tear goes for this blow (else the body's own).
+const MOVE_KEYS := ["aim", "spread", "force", "drops", "height", "fling", "lift", "scatter", "chance", "pool", "jet", "cuts"]
+const MOVE_DEFAULTS := {"aim": 0.0, "spread": 1.0, "force": 1.0, "drops": 1.0, "height": 0.0, "fling": 1.0, "lift": 0.0,
+	"scatter": 0.0, "chance": 1.0, "pool": 1.0, "jet": 0.35}
 const MAX_DRIPS := 40
 ## A drop's flags: thrown off another (it does not splash again), a speck of
 ## mist (no mark), bound for the painted wall behind.
@@ -55,6 +75,7 @@ const NODE_NAME := "Gore"
 
 static var _materials: Dictionary = {}
 static var _bodies: Dictionary = {}
+static var _moves: Dictionary = {}
 static var _loaded := false
 ## The drawn part of each frame cut so far (_opaque).
 static var _bounds := {}
@@ -62,12 +83,19 @@ static var _bounds := {}
 static var thrown := 0
 static var torn := 0
 static var marked := 0
+static var hissed := 0
 
 var _drops: Array = []  # [position, velocity, colour, ink, age, pixels, flags, lands (BACK: the age it sticks at)]
 var _stains: Array = []  # {p, w, spot, face, c, born, grow, life, seed, kind, soak, lo, hi}
 var _drips: Array = []  # {p, left, tick, c, ink}: blood gathering under a ledge or off an edge, falling a drop at a time
 var _openings: Array = []  # the painting's openings (sky, far windows), global polygons: nothing sticks there
 var _openings_read := false
+var _reach_shape := RectangleShape2D.new()
+var _water: Array[Rect2] = []  # the painting's water, world space: blood clouds in it
+var _lava: Array[Rect2] = []  # the room's burning ground: blood hisses off it
+var _liquids_read := false
+var _pools: Array = []  # the room's pools (Hazard): a drop stops on the surface, stirs it, clouds or hisses
+var _hissed := 0.0
 var _air: Node2D
 var _soak: Node2D
 var _clock := 0.0
@@ -85,10 +113,19 @@ static func spec(key: String, material := "") -> Dictionary:
 	return out
 
 
+## How [param move] (one of MOVES; "" or an unknown one is "attack") opens a body.
+static func move_spec(move: String) -> Dictionary:
+	_load()
+	var out := MOVE_DEFAULTS.duplicate()
+	out.merge(_moves.get(move if _moves.has(move) else "attack", {}), true)
+	return out
+
+
 ## Lets a test (or the studio's live game) hand over its own table.
-static func use(materials: Dictionary, bodies := {}) -> void:
+static func use(materials: Dictionary, bodies := {}, moves := {}) -> void:
 	_materials = materials
 	_bodies = bodies
+	_moves = moves
 	_loaded = true
 
 
@@ -101,6 +138,7 @@ static func _load() -> void:
 		if parsed is Dictionary:
 			_materials = parsed.get("materials", {})
 			_bodies = parsed.get("bodies", {})
+			_moves = parsed.get("moves", {})
 
 
 ## 1 at full, 0.5 reduced, 0 off (Settings.gore).
@@ -111,7 +149,10 @@ static func amount() -> float:
 ## A blow lands on [param body]: drops thrown along [param direction] (away
 ## from whoever swung) and a wound that drips for a while. [param weight] is
 ## how heavy the blow was: 1 a plain one, more for a crit, a backstab, a big share.
-static func hit(body: Node2D, key: String, material: String, at: Vector2, direction: Vector2, weight := 1.0) -> void:
+## [param move] is the blow (MOVES): an uppercut throws it up, a sweep low along
+## the floor, a thrust in one jet straight through.
+static func hit(body: Node2D, key: String, material: String, at: Vector2, direction: Vector2, weight := 1.0,
+		move := "") -> void:
 	var scale := amount()
 	if scale <= 0.0 or body == null or not body.is_inside_tree():
 		return
@@ -119,8 +160,10 @@ static func hit(body: Node2D, key: String, material: String, at: Vector2, direct
 	var layer := of(body)
 	if layer == null:
 		return
-	var count := int(round(float(s.drops) * clampf(weight, 0.5, 2.5) * scale * randf_range(0.75, 1.25)))
-	layer.spray(at, direction, count, s, 38.0)
+	var m := move_spec(move)
+	var count := int(round(float(s.drops) * float(m.drops) * clampf(weight, 0.5, 2.5) * scale * randf_range(0.75, 1.25)))
+	at.y -= float(m.height)
+	layer.spray(at, aimed(direction, m), count, forced(s, m), 38.0 * float(m.spread), float(m.jet))
 	var bleed := float(s.bleed) * clampf(weight, 0.6, 2.0)
 	if bleed > 0.0:
 		Bleed.wound(body, layer, s, bleed, at - body.global_position)
@@ -129,7 +172,8 @@ static func hit(body: Node2D, key: String, material: String, at: Vector2, direct
 ## The body falls: a gush, a pool that grows under it, and — when its table
 ## allows and the dice say so — its own drawing torn into pieces. Returns true
 ## when it was torn: the caller hides the body, the pieces are what is left.
-static func death(body: Node2D, key: String, material: String, sprite: AnimatedSprite2D, direction: Vector2, violent := false) -> bool:
+static func death(body: Node2D, key: String, material: String, sprite: AnimatedSprite2D, direction: Vector2, violent := false,
+		move := "") -> bool:
 	var scale := amount()
 	if scale <= 0.0 or body == null or not body.is_inside_tree():
 		return false
@@ -137,16 +181,33 @@ static func death(body: Node2D, key: String, material: String, sprite: AnimatedS
 	var layer := of(body)
 	if layer == null:
 		return false
-	var centre := body.global_position + Vector2(0, -10)
-	layer.spray(centre, direction + Vector2(0, randf_range(-0.9, -0.3)),
-		int(round(float(s.gush) * scale * randf_range(0.75, 1.25))), s, randf_range(55.0, 90.0))
-	if float(s.pool) > 0.0:
-		layer.pool(body.global_position + Vector2(0, -6), float(s.pool), s)
+	var m := move_spec(move)
+	var centre := body.global_position + Vector2(0, -10.0 - float(m.height))
+	layer.spray(centre, aimed(direction + Vector2(0, randf_range(-0.9, -0.3)), m),
+		int(round(float(s.gush) * float(m.drops) * scale * randf_range(0.75, 1.25))), forced(s, m),
+		randf_range(55.0, 90.0) * float(m.spread), float(m.jet))
+	if float(s.pool) * float(m.pool) > 0.0:
+		layer.pool(body.global_position + Vector2(0, -6), float(s.pool) * float(m.pool), s)
 	var limbs := int(s.limbs)
-	var chance := float(s.chance) * (2.0 if violent else 1.0)
+	var chance := float(s.chance) * float(m.chance) * (2.0 if violent else 1.0)
 	if scale < 1.0 or limbs < 2 or sprite == null or not sprite.visible or randf() >= chance:
 		return false
-	return layer.tear(sprite, limbs, direction, s, pick_cut(s.get("cuts", {}), limbs)) > 0
+	return layer.tear(sprite, limbs, direction, s, pick_cut(m.get("cuts", s.get("cuts", {})), limbs), m) > 0
+
+
+## [param direction] turned by the blow's aim, up or down on the side it went.
+static func aimed(direction: Vector2, m: Dictionary) -> Vector2:
+	var side := signf(direction.x) if absf(direction.x) > 0.01 else 1.0
+	return direction.rotated(deg_to_rad(float(m.get("aim", 0.0))) * side)
+
+
+## The body's table with the blow's force in its spray.
+static func forced(s: Dictionary, m: Dictionary) -> Dictionary:
+	if is_equal_approx(float(m.get("force", 1.0)), 1.0):
+		return s
+	var out := s.duplicate()
+	out.spray = float(s.spray) * float(m.force)
+	return out
 
 
 ## One of CUTS, by the weights in [param weights] (a missing one weighs nothing;
@@ -189,6 +250,7 @@ func _ready() -> void:
 	# the marks lie on the room (z 0, after its terrain, under the bodies the run
 	# holds); the drops in flight are over everything but the numbers
 	z_index = 0
+	_reach_shape.size = BACK_REACH
 	_air = Node2D.new()
 	_air.name = "Air"
 	_air.z_index = 5
@@ -207,13 +269,13 @@ func _ready() -> void:
 
 ## Throws [param count] drops out of [param at] along [param direction], fanned
 ## by [param spread] degrees.
-func spray(at: Vector2, direction: Vector2, count: int, s: Dictionary, spread := 40.0) -> void:
+func spray(at: Vector2, direction: Vector2, count: int, s: Dictionary, spread := 40.0, jet_chance := 0.35) -> void:
 	var colour := Color(str(s.blood))
 	var shade := float(s.get("shade", 0.0))
 	# every blow its own tilt; now and then the spray breaks into a jet and a mist
 	var dir := (direction.normalized() if direction.length() > 0.01 else Vector2.UP).rotated(randf_range(-0.22, 0.22))
 	var speed := float(s.spray) * randf_range(0.85, 1.15)
-	var jet := randf() < 0.35
+	var jet := randf() < jet_chance
 	var how := ink(s)
 	for i in count:
 		var in_jet := jet and i < count / 3.0
@@ -224,7 +286,8 @@ func spray(at: Vector2, direction: Vector2, count: int, s: Dictionary, spread :=
 	# a fine mist: faint specks, slow, gone before they land
 	var faint := colour
 	faint.a *= 0.45
-	for i in int(round(float(s.get("mist", 0)) * clampf(count / maxf(float(s.drops), 1.0), 0.5, 2.0))):
+	var mist := float(s.get("mist", 0)) if amount() >= 1.0 else 0.0
+	for i in int(round(mist * clampf(count / maxf(float(s.drops), 1.0), 0.5, 2.0))):
 		drop(at + Vector2(randf_range(-4, 4), randf_range(-4, 4)),
 			dir.rotated(deg_to_rad(randf_range(-spread, spread) * 1.4)) * speed * randf_range(0.1, 0.45), shaded(faint, shade), how, MISTY)
 
@@ -242,7 +305,8 @@ func shaded(colour: Color, amount: float) -> Color:
 static func ink(s: Dictionary, size := 1.0) -> Dictionary:
 	return {"stain": float(s.get("stain", 1.0)) * size, "life": float(s.get("stain_life", 25.0)),
 		"soak": float(s.get("soak", 0.0)), "splash": float(s.get("splash", 0.0)), "run": float(s.get("run", 0.0)),
-		"drip": float(s.get("drip", 0.0)), "back": float(s.get("back", 0.0))}
+		"drip": float(s.get("drip", 0.0)), "back": float(s.get("back", 0.0)),
+		"cloud": float(s.get("cloud", 0.0)), "hiss": float(s.get("hiss", 0.0))}
 
 
 func drop(at: Vector2, velocity: Vector2, colour: Color, how: Dictionary, flags := 0) -> void:
@@ -252,7 +316,7 @@ func drop(at: Vector2, velocity: Vector2, colour: Color, how: Dictionary, flags 
 		flags = BACK
 	# most drops a pixel, some a clot of two; mist and splashes a pixel
 	var pixels := 2 if flags & (SPLASHED | MISTY) == 0 and randf() < 0.18 else 1
-	_drops.append([at, velocity, colour, how, 0.0, pixels, flags, randf_range(0.06, 0.32)])
+	_drops.append([at, velocity, colour, how, 0.0, pixels, flags, randf_range(0.04, 0.18)])
 	Gore.thrown += 1
 	_busy = true
 
@@ -311,10 +375,29 @@ func mark(at: Vector2, width: float, face: int, colour: Color, how: Dictionary, 
 	if kind < 0:
 		kind = [0, 0, 1, 2].pick_random()
 	at = at.round()
+	var soak := float(how.get("soak", 0.0))
+	if face == 0 and _in_liquid(at):
+		if _on_lava(at):
+			# lava takes it: a hiss of steam now and then, no mark
+			_hiss(at, float(how.get("hiss", 0.0)))
+			return
+		# water: a faint cloud that spreads and thins away, nothing soaks into it
+		width = float(how.get("cloud", 0.0)) * randf_range(0.6, 1.2) * clampf(width / 2.0, 0.6, 1.6)
+		if width < 1.0:
+			return
+		face = 4
+		soak = 0.0
+		grow = randf_range(1.5, 3.0)
+		life = minf(life, randf_range(5.0, 9.0))
+	elif face == 0:
+		# a floor's top face is a band a few px deep where the feet stand: marks lie across it, not on one row
+		at.y -= float(randi_range(0, 2))
 	var length := width
 	if face == 1 or face == 3:
 		# blood runs down a wall: some streaks a pixel, some a long way, never past the wall's foot
-		length = width * randf_range(0.7, 1.4) + float(how.get("run", 0.0)) * randf_range(0.2, 1.2) * (0.4 if face == 3 else 1.0)
+		# on the painting behind it seldom runs and never far: long threads there read as rain
+		var runs := 1.0 if face == 1 else (0.25 if randf() < 0.35 else 0.0)
+		length = width * randf_range(0.7, 1.4) + float(how.get("run", 0.0)) * randf_range(0.2, 1.2) * runs
 		if face == 1:
 			length = minf(length, span.y - at.y)
 		grow = maxf(grow, length / randf_range(6.0, 16.0))
@@ -327,7 +410,7 @@ func mark(at: Vector2, width: float, face: int, colour: Color, how: Dictionary, 
 	elif face == 2 and randf() < float(how.get("drip", 0.0)) * 2.0:
 		_drip_from(at + Vector2(0, 1), colour, how, randi_range(1, 4))
 	_stains.append({"p": at, "w": length, "spot": width, "face": face, "c": colour, "born": _clock, "grow": grow,
-		"life": life * randf_range(0.8, 1.2), "seed": randi(), "kind": kind, "soak": float(how.get("soak", 0.0)),
+		"life": life * randf_range(0.8, 1.2), "seed": randi(), "kind": kind, "soak": soak,
 		"lo": span.x, "hi": span.y})
 	Gore.marked += 1
 	_busy = true
@@ -338,6 +421,66 @@ func _drip_from(at: Vector2, colour: Color, how: Dictionary, count: int) -> void
 		_drips.pop_front()
 	_drips.append({"p": at, "left": count, "tick": randf_range(0.2, 0.9), "c": colour, "ink": how})
 	_busy = true
+
+
+## Water or lava under [param at] (a floor's point).
+func _in_liquid(at: Vector2) -> bool:
+	if not _liquids_read:
+		_liquids_read = true
+		var room := get_parent() as Node2D
+		if room != null:
+			_water = BackdropLife.zones_in_world(room, "water")
+			for area in room.find_children("*", "Area2D", true, false):
+				if area is Hazard:
+					var rect := Rect2(area.global_position, (area as Hazard).size)
+					var burns := bool(Hazard.spec_of(str(area.get("kind"))).get("burns", true))
+					(_lava if burns else _water).append(rect.grow(2.0))
+					_pools.append({"node": area, "rect": rect})
+	if _water.is_empty() and _lava.is_empty():
+		return false
+	for rect in _water:
+		if rect.grow(1.0).has_point(at):
+			return true
+	return _on_lava(at)
+
+
+func _on_lava(at: Vector2) -> bool:
+	for rect in _lava:
+		if rect.has_point(at):
+			return true
+	return false
+
+
+## A falling drop that crosses a pool's surface stops on it: the surface takes a
+## small ripple, and the mark (a cloud in water, steam off lava) is laid there.
+func _into_pool(from: Vector2, to: Vector2, d: Array) -> bool:
+	if not _liquids_read:
+		_in_liquid(from)
+	for pool in _pools:
+		var rect: Rect2 = pool.rect
+		if from.x < rect.position.x or from.x > rect.end.x or not is_instance_valid(pool.node):
+			continue
+		var node: Node2D = pool.node
+		var top := float(node.call("surface_y", from.x)) if node.has_method("surface_y") else rect.position.y
+		if from.y > top or to.y < top:
+			continue
+		var at := Vector2(from.x, top)
+		var surface = node.get("surface")
+		if surface != null and is_instance_valid(surface) and surface.has_method("disturb"):
+			surface.disturb(from.x - rect.position.x, 0.25 * float(d[5]), 4.0)
+		var how: Dictionary = d[3]
+		mark(at + Vector2(0, 1), randf_range(1.0, 3.0) * float(how.stain) * float(d[5]), 0, d[2], how, 0.25)
+		return true
+	return false
+
+
+## Blood on lava: a wisp of steam, at most one every few frames however much falls.
+func _hiss(at: Vector2, chance: float) -> void:
+	if randf() >= chance or _clock - _hissed < 0.06:
+		return
+	_hissed = _clock
+	Fx.ash(at + Vector2(0, -1), Color(0.78, 0.74, 0.72, 0.7), 3, 22.0, 2.0)
+	Gore.hissed += 1
 
 
 ## The painting's openings — the sky, a far window — where nothing can stick.
@@ -361,7 +504,7 @@ func _in_opening(at: Vector2) -> bool:
 
 ## Cuts the frame [param sprite] shows into pieces, [param way] (one of CUTS),
 ## and throws what flies; what is left stands a beat and topples the way the blow went.
-func tear(sprite: AnimatedSprite2D, limbs: int, direction: Vector2, s: Dictionary, way := "all") -> int:
+func tear(sprite: AnimatedSprite2D, limbs: int, direction: Vector2, s: Dictionary, way := "all", m := MOVE_DEFAULTS) -> int:
 	if sprite.sprite_frames == null:
 		return 0
 	var texture := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame) as AtlasTexture
@@ -403,9 +546,12 @@ func tear(sprite: AnimatedSprite2D, limbs: int, direction: Vector2, s: Dictionar
 			piece.setup(self, Vector2(side * randf_range(5.0, 25.0), 0.0), 0.0, s, bleed, half)
 			piece.stand(hold + randf_range(0.0, 0.08), side * PI / 2.0 * randf_range(0.85, 1.0))
 		else:
-			var launch := (out.normalized() * randf_range(0.5, 0.9) + away * randf_range(0.6, 1.0)
-				+ Vector2(randf_range(-0.2, 0.2), -1.0)).normalized()
-			var fling := float(s.fling) * randf_range(0.55, 1.15) * (randf_range(1.1, 1.35) if part.name == "head" else 1.0)
+			# the blow's way: an uppercut throws them up, a slam both ways, a sweep low
+			var along := away * (-1.0 if randf() < float(m.get("scatter", 0.0)) else 1.0)
+			var launch := (out.normalized() * randf_range(0.5, 0.9) + along * randf_range(0.6, 1.0)
+				+ Vector2(randf_range(-0.2, 0.2), -1.0 - float(m.get("lift", 0.0)) * 1.5)).normalized()
+			var fling := float(s.fling) * float(m.get("fling", 1.0)) * randf_range(0.55, 1.15) \
+				* (randf_range(1.1, 1.35) if part.name == "head" else 1.0)
 			piece.setup(self, launch * fling, randf_range(-14.0, 14.0) * (1.0 + away.length()), s, bleed, half)
 		var stump: Vector2 = part.stump
 		if stump != Vector2.ZERO and float(s.get("spurt", 0.0)) > 0.0:
@@ -522,8 +668,13 @@ func _physics_process(delta: float) -> void:
 			continue
 		if flags & BACK and d[4] >= d[7]:
 			# it flew into the depth and met the painted wall behind
-			if not _in_opening(from):
+			if not _in_opening(from) and _near_solid(from):
 				mark(from, randf_range(1.0, 2.5) * float(how.stain) * float(d[5]), 3, d[2], how, 0.25, [1, 1, 0].pick_random())
+				continue
+			# nothing near to stick to (a far hill, open air): it was only thrown wide, and falls
+			flags &= ~BACK
+			d[6] = flags
+		if v.y > 0.0 and _into_pool(from, to, d):
 			continue
 		var hit := _ray(from, to, WORLD_MASK | (LEDGE_MASK if v.y > 0.0 else 0))
 		if not hit.is_empty():
@@ -536,7 +687,7 @@ func _physics_process(delta: float) -> void:
 			else:
 				mark(hit.position, randf_range(1.0, 3.5) * size, 0, d[2], how, 0.25, -1, surface(hit))
 				# a heavy drop splashes: a few droplets thrown back up off the floor
-				if flags & SPLASHED == 0 and v.length() > SPLASH_SPEED:
+				if flags & SPLASHED == 0 and v.length() > SPLASH_SPEED and amount() >= 1.0 and not _in_liquid(hit.position):
 					var force := clampf(v.length() / 320.0, 0.3, 1.0)
 					for i in int(round(float(how.splash) * randf_range(0.3, 1.3) * force)):
 						born.append([hit.position + Vector2(0, -1), Vector2(randf_range(-55.0, 55.0) + v.x * 0.2,
@@ -627,6 +778,15 @@ func _paint(canvas: CanvasItem, soaked: bool) -> void:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = st.seed
 		match face:
+			4:
+				# a cloud in water: faint, spreading, thinning as it goes
+				var faint := c
+				faint.a *= 0.6 * (1.0 - 0.5 * grown)
+				canvas.draw_rect(Rect2(p.x - floorf(w / 2.0), p.y - 1, w, 1), faint)
+				faint.a *= 0.6
+				canvas.draw_rect(Rect2(p.x - floorf(w / 4.0), p.y, maxf(1.0, floorf(w / 2.0)), 1), faint)
+				for k in int(w / 2.0):
+					canvas.draw_rect(Rect2(p.x + rng.randf_range(-w * 0.6, w * 0.6), p.y + rng.randi_range(-2, 2), 1, 1), faint)
 			1:
 				# a streak running down, a drop gathering at its end; some streaks fork
 				canvas.draw_rect(Rect2(p.x, p.y - 1, 1, w), c)
@@ -663,16 +823,23 @@ func _paint(canvas: CanvasItem, soaked: bool) -> void:
 						var at := p.x - floorf(w / 2.0)
 						while at < p.x + w / 2.0:
 							var dash := float(rng.randi_range(1, 3))
-							_span(canvas, Rect2(at, p.y - 1, dash, 1), c, lo, hi)
+							_span(canvas, Rect2(at, p.y - 1 - rng.randi_range(0, 1), dash, 1), c, lo, hi)
 							at += dash + float(rng.randi_range(1, 2))
 					_:
-						# a smear along the floor's lip, thicker in the middle, a few spatters beside
-						_span(canvas, Rect2(p.x - floorf(w / 2.0), p.y - 1, w, 1), c, lo, hi)
-						if w >= 4.0:
-							_span(canvas, Rect2(p.x - floorf(w / 4.0), p.y - 2, maxf(1.0, floorf(w / 2.0)), 1), c.darkened(0.2), lo, hi)
-						if w >= 7.0:
+						# a smear across the floor's face: ragged rows, widest nearest us, broken here and there
+						var rows := clampi(int(round(w / 5.0)), 1, 3)
+						for row in rows:
+							var row_w := maxf(1.0, round(w * (1.0 - float(row) / (rows + 0.5)) * rng.randf_range(0.75, 1.0)))
+							var at := p.x - floorf(row_w / 2.0) + float(rng.randi_range(-1, 1))
+							var end := at + row_w
+							var shade := c.darkened(0.12 * row)
+							while at < end:
+								var piece := minf(float(rng.randi_range(2, 6)), end - at)
+								_span(canvas, Rect2(at, p.y - 1 - row, piece, 1), shade, lo, hi)
+								at += piece + (1.0 if rng.randf() < 0.25 else 0.0)
+						if w >= 6.0:
 							for k in int(w / 5.0):
-								_span(canvas, Rect2(p.x + rng.randf_range(-w * 0.8, w * 0.8), p.y - 1 - rng.randi_range(0, 1), 1, 1), c, lo, hi)
+								_span(canvas, Rect2(p.x + rng.randf_range(-w * 0.8, w * 0.8), p.y - 1 - rng.randi_range(0, rows), 1, 1), c, lo, hi)
 
 
 ## A row of a mark, cut to the surface it lies on (local x from [param lo] to [param hi]).
@@ -696,6 +863,17 @@ func _draw_air() -> void:
 		if d[6] & BACK:
 			c.a *= 1.0 - 0.5 * clampf(d[4] / maxf(d[7], 0.01), 0.0, 1.0)
 		_air.draw_rect(Rect2(p, Vector2(size, (2 if absf(v.y) > 120.0 else 1) + size - 1)), c)
+
+
+## Whether something solid stands near enough behind [param at] for blood to reach it: the
+## painting is flat, and a splat on a mountain a mile off reads as a blot on the picture.
+func _near_solid(at: Vector2) -> bool:
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = _reach_shape
+	query.transform = Transform2D(0.0, at + Vector2(0, -BACK_REACH.y * 0.5 + 6.0))
+	query.collision_mask = WORLD_MASK | LEDGE_MASK
+	query.collide_with_areas = false
+	return not get_world_2d().direct_space_state.intersect_shape(query, 1).is_empty()
 
 
 func _ray(from: Vector2, to: Vector2, mask: int) -> Dictionary:

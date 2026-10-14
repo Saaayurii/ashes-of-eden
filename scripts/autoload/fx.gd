@@ -462,6 +462,16 @@ func popup(position: Vector2, text: String, color := Color(1, 0.95, 0.8), font_s
 	tween.tween_callback(label.queue_free)
 
 
+## One of PIXELS as its texture, for an emitter made elsewhere (the liquids').
+func pixel(shape: String) -> Texture2D:
+	return _pixel.get(shape, _pixel.mote)
+
+
+## The alpha ramps the one-shot effects share: "out" fades, "in_out" swells and fades.
+func ramp(kind := "out") -> Gradient:
+	return _fade_in_out if kind == "in_out" else _fade_out
+
+
 ## One-shot emitter in the current scene, freed when the last particle dies.
 func _burst(position: Vector2, amount: int, lifetime: float, explosiveness := 1.0) -> CPUParticles2D:
 	var parent := get_tree().current_scene

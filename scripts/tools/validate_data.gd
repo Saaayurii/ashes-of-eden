@@ -74,6 +74,7 @@ const REQUIRED := {
 	"omens": ["id", "name", "description", "rules"],
 	"affixes": ["id", "name", "color", "mods"],
 	"weapons": ["id", "name", "description", "icon", "chain"],
+	"endings": ["id", "name", "description", "line", "cutscene", "order", "when"],
 }
 
 var errors: PackedStringArray = []
@@ -86,6 +87,9 @@ var _npc_ids := {}
 var _prop_ids := {}
 var _enemy_ids := {}
 var _cutscene_ids := {}
+## Every ending (data/endings) and those marked "fallback", for the finale and the deeds.
+var _ending_ids := {}
+var _ending_fallbacks: Array = []
 var _note_ids := {}
 var _chapter_ids := {}
 var _ability_paths := {}  # gift id -> its path
@@ -122,6 +126,7 @@ func _init() -> void:
 	_check_dialogue_looks()
 	_check_action_fx()
 	_check_gore()
+	_check_liquids()
 	_check_player_actions()
 	_check_weapons()
 	_check_hero()
@@ -129,6 +134,8 @@ func _init() -> void:
 	_check_enemy_archetypes()
 	_check_enemy_strips()
 	var game: Dictionary = _game()
+	for entry in _game_entries("endings"):  # a deed may name one before they are checked
+		_ending_ids[str(entry.get("id", ""))] = true
 	for collection in REQUIRED:
 		var entries := _game_entries(collection)
 		counts[collection] = entries.size()
@@ -142,6 +149,7 @@ func _init() -> void:
 					_error("%s: duplicate id \"%s\"" % [collection, entry.id])
 				ids[entry.id] = true
 	_check_game_rooms(game)
+	_check_finale(game)
 	for key in used_keys:
 		if not strings.has(key):
 			_error("missing localization key %s (used in %s)" % [key, used_keys[key]])
@@ -154,6 +162,7 @@ func _init() -> void:
 	_check_glyphs(strings)
 	_check_story_flags()
 	_check_backdrops()
+	_check_foliage()
 	_check_telemetry_urls()
 
 	for w in warnings:
@@ -370,6 +379,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_relic(entry, where)
 		"omens":
 			_check_omen(entry, where)
+		"endings":
+			_check_ending(entry, where)
 		"affixes":
 			_use_key(entry.get("name", ""), where)
 			for key in entry.get("mods", {}):
@@ -461,10 +472,12 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
 						if branch.has("vial") and (int(branch.vial) < 1 or int(branch.vial) > 5):
 							_error("%s: branch vial is 1..5" % node_where)
+						if branch.has("nights") and int(branch.nights) < 1:
+							_error("%s: branch nights is at least 1 (nights already lived)" % node_where)
 						if branch.has("omen") and not _omen_ids().has(str(branch.omen)):
 							_error("%s: branch omen \"%s\" names no omen in data/omens" % [node_where, branch.omen])
-						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen")):
-							_error("%s: a branch needs a flag, a path, a habit, a vial or an omen to test" % node_where)
+						if not (branch.has("flag") or branch.has("path") or branch.has("habit") or branch.has("vial") or branch.has("omen") or branch.has("nights")):
+							_error("%s: a branch needs a flag, a path, a habit, a vial, an omen or nights to test" % node_where)
 						if not nodes.has(branch.get("next", "")):
 							_error("%s: branch -> unknown node \"%s\"" % [node_where, branch.get("next", "")])
 					if node.has("next") and not nodes.has(node.next):
@@ -906,7 +919,9 @@ func _check_action_fx() -> void:
 ## room can stand (drops are simulated one by one; a body tears into 2–6 pieces).
 const GORE_BOUNDS := {"shade": [0, 0.5], "spurt": [0, 4], "drops": [0, 40], "spray": [0, 400], "stain": [0, 3], "stain_life": [0, 120],
 	"gush": [0, 80], "pool": [0, 60], "bleed": [0, 5], "limbs": [0, 6], "chance": [0, 1], "fling": [0, 400],
-	"mist": [0, 20], "soak": [0, 1], "splash": [0, 6], "run": [0, 40], "drip": [0, 1], "back": [0, 0.6]}
+	"mist": [0, 20], "soak": [0, 1], "splash": [0, 6], "run": [0, 40], "drip": [0, 1], "back": [0, 0.6], "cloud": [0, 30], "hiss": [0, 1]}
+const GORE_MOVE_BOUNDS := {"aim": [-90, 90], "spread": [0.1, 3], "force": [0, 3], "drops": [0, 3], "height": [-20, 20], "fling": [0, 3],
+	"lift": [0, 1], "scatter": [0, 1], "chance": [0, 3], "pool": [0, 3], "jet": [0, 1]}
 
 
 func _check_gore() -> void:
@@ -928,6 +943,28 @@ func _check_gore() -> void:
 		var own: Dictionary = parsed.bodies[body_key]
 		if own.has("material") and not parsed.materials.has(str(own.material)):
 			_error("gore/bodies/%s: material %s has no table" % [body_key, own.material])
+	var moves = parsed.get("moves", {})
+	if not moves is Dictionary:
+		_error("gore/moves: must be an object")
+		moves = {}
+	# the blows the game names, read from gore.gd's MOVES (Gore cannot be compiled before the autoloads)
+	var named: Array = []
+	var found := RegEx.create_from_string("const MOVES := \\[([^\\]]*)\\]").search(FileAccess.get_file_as_string("res://scripts/fx/gore.gd"))
+	if found != null:
+		for word in RegEx.create_from_string("\"(\\w+)\"").search_all(found.get_string(1)):
+			named.append(word.get_string(1))
+	for move in moves:
+		if not named.has(move):
+			_error("gore/moves/%s: not a blow the game names (%s)" % [move, named])
+			continue
+		var m: Dictionary = moves[move]
+		for key in m:
+			if key == "cuts":
+				tables["moves/" + move] = {"cuts": m.cuts}
+			elif not GORE_MOVE_BOUNDS.has(key):
+				_error("gore/moves/%s: unknown key %s (%s)" % [move, key, GORE_MOVE_BOUNDS.keys() + ["cuts"]])
+			elif not (m[key] is float or m[key] is int) or float(m[key]) < GORE_MOVE_BOUNDS[key][0] or float(m[key]) > GORE_MOVE_BOUNDS[key][1]:
+				_error("gore/moves/%s: %s must be %s..%s" % [move, key, GORE_MOVE_BOUNDS[key][0], GORE_MOVE_BOUNDS[key][1]])
 	for where in tables:
 		var table: Dictionary = tables[where]
 		for key in table:
@@ -962,6 +999,110 @@ func _check_gore() -> void:
 			_error("gore/%s: limbs is 0 (never torn) or 2..6" % where)
 
 
+## Pools (data/liquids.json, scripts/rooms/hazard.gd, docs/LIQUIDS.md): every
+## kind has its colours, a body that can be stood in, numbers in bounds, the
+## pictures and sounds it names, and every studio pool names a kind.
+const LIQUID_BOUNDS := {
+	"opacity": [0.0, 1.0], "painted_opacity": [0.0, 1.0], "flow": [0.0, 1.0], "shimmer": [0.0, 1.0], "damage": [0.0, 100.0],
+	"waves/amplitude": [0.0, 4.0], "waves/speed": [0.0, 6.0], "waves/length": [8.0, 400.0], "waves/spring": [0.001, 0.2],
+	"waves/damping": [0.0, 0.5], "waves/spread": [0.0, 0.45], "waves/splash": [0.0, 4.0],
+	"body/drag": [0.1, 1.0], "body/buoyancy": [0.0, 1.0], "body/sink_speed": [10.0, 600.0], "body/swim": [0.0, 500.0],
+	"body/swim_cooldown": [0.05, 3.0], "body/jump": [0.2, 1.5],
+	"enemy/drag": [0.1, 1.0], "enemy/heal_per_second": [0.0, 20.0],
+	"particles/ambient_every": [0.05, 10.0], "particles/trail_time": [0.0, 5.0],
+	"light/radius": [8.0, 400.0], "light/energy": [0.0, 3.0], "light/every": [16.0, 1000.0], "light/flicker": [0.0, 1.0],
+}
+const LIQUID_AMBIENT := ["", "none", "glints", "bubbles", "embers", "gas", "clots"]
+const LIQUID_SPLASH := ["drops", "magma", "mud", "blood"]
+const LIQUID_TRAIL := ["", "none", "drips", "smoke", "mud"]
+
+
+func _check_liquids() -> void:
+	var parsed = _doc("liquids.json")
+	if not parsed is Dictionary or not parsed.get("kinds") is Dictionary or (parsed.kinds as Dictionary).is_empty():
+		_error("data/liquids.json: needs a \"kinds\" object")
+		return
+	var kinds: Dictionary = parsed.kinds
+	if not kinds.has("lava"):
+		_error("liquids: needs lava — a painted room's hazards are lava pools")
+	for id in kinds:
+		var spec = kinds[id]
+		var where := "liquids/%s" % id
+		if not spec is Dictionary:
+			_error("%s: must be an object" % where)
+			continue
+		var colors = spec.get("colors", {})
+		for key in ["surface", "body", "deep", "foam"]:
+			if not colors is Dictionary or not Color.html_is_valid(str(colors.get(key, ""))):
+				_error("%s: colors.%s must be a #colour" % [where, key])
+		for path in LIQUID_BOUNDS:
+			var parts: PackedStringArray = path.split("/")
+			var holder = spec
+			if parts.size() == 2:
+				holder = spec.get(parts[0], {})
+			if not holder is Dictionary or not holder.has(parts[-1]):
+				continue
+			var v := float(holder[parts[-1]])
+			if v < LIQUID_BOUNDS[path][0] or v > LIQUID_BOUNDS[path][1]:
+				_error("%s: %s must be %s..%s" % [where, path, LIQUID_BOUNDS[path][0], LIQUID_BOUNDS[path][1]])
+		if not spec.get("body") is Dictionary or not spec.body.has("sink_speed"):
+			_error("%s: body needs sink_speed (how fast a body sinks in it)" % where)
+		var texture := str(spec.get("texture", ""))
+		if texture != "" and not ResourceLoader.exists(texture) and not FileAccess.file_exists(texture):
+			_error("%s: texture %s does not exist (tools/art/make_liquids.py)" % [where, texture])
+		var particles = spec.get("particles", {})
+		if particles is Dictionary:
+			if not str(particles.get("ambient", "")) in LIQUID_AMBIENT:
+				_error("%s: particles.ambient is one of %s" % [where, LIQUID_AMBIENT])
+			if not str(particles.get("splash", "drops")) in LIQUID_SPLASH:
+				_error("%s: particles.splash is one of %s" % [where, LIQUID_SPLASH])
+			if not str(particles.get("trail", "")) in LIQUID_TRAIL:
+				_error("%s: particles.trail is one of %s" % [where, LIQUID_TRAIL])
+		var enemy = spec.get("enemy", {})
+		if enemy is Dictionary and enemy.get("harms") is Dictionary:
+			for material in enemy.harms:
+				if not MATERIALS.has(material):
+					_error("%s: enemy.harms.%s is not a material (%s)" % [where, material, MATERIALS])
+		var heal = spec.get("heal", {})
+		if heal is Dictionary and heal.has("path") and not ["grace", "temptation", "will"].has(str(heal.path)):
+			_error("%s: heal.path is grace, temptation or will" % where)
+		if bool(spec.get("burns", false)) and float(spec.get("damage", 0.0)) <= 0.0:
+			_error("%s: a liquid that burns needs damage" % where)
+		var sounds = spec.get("sounds", {})
+		if sounds is Dictionary:
+			for key in sounds:
+				var cue := str(sounds[key])
+				if cue != "" and not _sfx_exists(cue):
+					_warn("%s: sounds.%s names %s, which has no clip in assets/audio/sfx" % [where, key, cue])
+	# the studio's pools: [kind, x, y, w, h, {painted}?] in finished-room pixels
+	var studio_path := "res://tools/rooms/studio_rooms.json"
+	if FileAccess.file_exists(studio_path):
+		var studio = JSON.parse_string(FileAccess.get_file_as_string(studio_path))
+		if studio is Dictionary:
+			for room in studio:
+				var extra = studio[room]
+				if not extra is Dictionary or not extra.has("liquids"):
+					continue
+				for pool in extra.liquids:
+					if not pool is Array or pool.size() < 5 or not kinds.has(str(pool[0])):
+						_error("studio_rooms/%s/liquids: %s is not [kind, x, y, w, h] with a kind from data/liquids.json" % [room, pool])
+					elif float(pool[3]) < 16.0 or float(pool[4]) < 8.0:
+						_error("studio_rooms/%s/liquids: %s is smaller than 16×8" % [room, pool])
+
+
+func _sfx_exists(cue: String) -> bool:
+	var dir := DirAccess.open("res://assets/audio/sfx")
+	if dir == null:
+		return false
+	for file in dir.get_files():
+		if file.ends_with(".import"):
+			continue
+		var stem := file.get_basename()
+		if stem == cue or (stem.begins_with(cue + "_") and stem.trim_prefix(cue + "_").is_valid_int()):
+			return true
+	return false
+
+
 ## A deed (data/achievements, scripts/meta/achievements.gd): every condition is
 ## one Achievements reads, names what exists, and asks for at least one.
 func _check_achievement(entry: Dictionary, where: String) -> void:
@@ -976,7 +1117,7 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 	if int(entry.get("ash", 0)) < 0 or int(entry.get("ash", 0)) > 50:
 		_error("%s: ash is 0..50 (docs/BALANCE.md: permanent power stays small)" % where)
 	for key in unlock:
-		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "items", "affixes", "moves", "deeds", "fast"].has(key):
+		if not ["nights", "wins", "total_kills", "kills", "known", "notes", "items", "affixes", "moves", "deeds", "fast", "endings"].has(key):
 			_error("%s: unlock.%s is not a condition Achievements reads" % [where, key])
 	for key in ["nights", "wins", "total_kills"]:
 		if unlock.has(key) and int(unlock[key]) < 1:
@@ -997,6 +1138,11 @@ func _check_achievement(entry: Dictionary, where: String) -> void:
 			_error("%s: unlock.fast names no boss: %s" % [where, boss])
 		elif float(unlock.fast[boss]) <= 0.0:
 			_error("%s: unlock.fast.%s is a time in seconds" % [where, boss])
+	var endings = unlock.get("endings", [])
+	if str(endings) != "all":
+		for ending in endings:
+			if not _ending_ids.has(str(ending)):
+				_error("%s: unlock.endings names no ending: %s" % [where, ending])
 	for counter in unlock.get("deeds", {}):
 		if not counters.has(counter):
 			_error("%s: unlock.deeds.%s is not counted (Achievements.COUNTERS: %s)" % [where, counter, counters])
@@ -1100,6 +1246,69 @@ func _check_vial(entry: Dictionary, where: String) -> void:
 			_error("%s: promote %s -> %s names no enemy" % [where, from, to])
 	if float(rules.get("promote_chance", 0.0)) > 1.0 or float(rules.get("rest_heal", 1.0)) <= 0.0:
 		_error("%s: promote_chance is 0..1 and rest_heal above 0" % where)
+
+
+## An ending (data/endings, scripts/run/endings.gd): its words, a cutscene
+## that exists, and a "when" in the terms Endings.holds reads. Its flags count
+## as read — the ending is what answers them.
+func _check_ending(entry: Dictionary, where: String) -> void:
+	for key in ["name", "description", "line"]:
+		_use_key(entry.get(key, ""), where)
+	_ending_ids[str(entry.get("id", ""))] = true
+	if not str(entry.get("id", "")).is_valid_identifier():
+		_error("%s: the id names a deed and a record: letters, digits, _" % where)
+	if not _cutscene_ids.has(entry.get("cutscene", "")):
+		_error("%s: unknown cutscene %s" % [where, entry.get("cutscene", "")])
+	if not entry.get("order") is float:
+		_error("%s: order is a number (lower is tried first)" % where)
+	if entry.get("fallback", false):
+		_ending_fallbacks.append(entry.id)
+	var when = entry.get("when", {})
+	if not when is Dictionary or when.is_empty():
+		_error("%s: when is {path, lead, balanced, flags, unless}, not empty" % where)
+		return
+	for key in when:
+		match key:
+			"path":
+				if not PATHS.has(when.path):
+					_error("%s: when.path must be one of %s" % [where, PATHS])
+			"lead", "balanced":
+				if not when[key] is float or int(when[key]) < 0 or int(when[key]) > 20:
+					_error("%s: when.%s is a whole number of the hidden counters, 0..20" % [where, key])
+			"flags", "unless":
+				if not when[key] is Array:
+					_error("%s: when.%s is a list of flags" % [where, key])
+				else:
+					for flag in when[key]:
+						flags_read[str(flag)] = where
+			_:
+				_error("%s: when.%s is not path, lead, balanced, flags or unless" % [where, key])
+	if when.has("lead") and not when.has("path"):
+		_error("%s: when.lead needs a path to lead" % where)
+	if when.has("balanced") and when.has("path"):
+		_error("%s: a balanced night leans no way: when.path and when.balanced cannot meet" % where)
+
+
+## data/game.json "finale" (Endings.finale): the room after which the campaign
+## would end, the scene there that comes before an ending, and whether it ends
+## yet. Endings need exactly one fallback, so every night has one.
+func _check_finale(game: Dictionary) -> void:
+	if not _ending_ids.is_empty() and _ending_fallbacks.size() != 1:
+		_error("data/endings: exactly one ending is the \"fallback\" (has %s)" % [_ending_fallbacks])
+	if not game.has("finale"):
+		if not _ending_ids.is_empty():
+			_error("data/game.json: endings exist but no \"finale\" says where the campaign ends")
+		return
+	var finale = game.finale
+	if not finale is Dictionary:
+		_error("data/game.json: finale is {room, cutscene, ends_campaign}")
+		return
+	if not game.get("rooms", []).has(finale.get("room", "")):
+		_error("data/game.json: finale.room must be one of the rooms: %s" % finale.get("room", ""))
+	if finale.has("cutscene") and not _cutscene_ids.has(finale.cutscene):
+		_error("data/game.json: finale.cutscene names no cutscene: %s" % finale.cutscene)
+	if not finale.get("ends_campaign", false) is bool:
+		_error("data/game.json: finale.ends_campaign is true or false")
 
 
 ## An omen (data/omens, scripts/run/omens.gd): a trade — at least one rule
@@ -1388,6 +1597,70 @@ func _check_backdrops() -> void:
 			var rect = zone.get("rect", [])
 			if not rect is Array or rect.size() != 4 or float(rect[2]) <= 0.0 or float(rect[3]) <= 0.0:
 				_error("data/backdrops.json: %s: a %s zone needs rect [x, y, w, h]" % [key, zone.get("kind", "")])
+
+
+## data/foliage.json (scripts/rooms/foliage.gd): every style is bounded so a
+## room can stand it (leaves are simulated one by one, MAX_LEAVES at once),
+## and a backdrop zone's "tree" is a sway zone naming a style that exists.
+const FOLIAGE_BOUNDS := {"twigs": [0, 1], "stiff": [0.2, 4], "damp": [0.02, 1], "bend": [0, 4], "drift": [0, 0.5],
+	"shed": [0, 4], "burst": [0, 40], "fall": [5, 80], "flutter": [0, 40], "rest": [0.5, 30]}
+const FOLIAGE_SHAPES := ["leaf", "strand"]
+## data/foliage.json "birds": the ravens a tree zone's "birds" seats (Foliage.MAX_BIRDS at most).
+const FOLIAGE_BIRD_BOUNDS := {"scare": [16, 200], "flock": [0, 300], "away": [3, 120], "speed": [40, 400]}
+const FOLIAGE_BIRD_COLORS := ["body", "rim", "beak"]
+const FOLIAGE_MAX_BIRDS := 4
+
+
+func _check_foliage() -> void:
+	var parsed = _doc("foliage.json")
+	var styles = parsed.get("styles", {}) if parsed is Dictionary else null
+	if not styles is Dictionary or styles.is_empty():
+		_error("data/foliage.json: needs a \"styles\" object")
+		styles = {}
+	for id in styles:
+		var style: Dictionary = styles[id]
+		for key in style:
+			if key == "colors":
+				if not style.colors is Array or style.colors.is_empty():
+					_error("foliage/%s: colors must be a non-empty list" % id)
+				else:
+					for each in style.colors:
+						if not Color.html_is_valid(str(each)):
+							_error("foliage/%s: %s is not a colour" % [id, each])
+			elif key == "shape":
+				if not FOLIAGE_SHAPES.has(str(style.shape)):
+					_error("foliage/%s: shape must be one of %s" % [id, FOLIAGE_SHAPES])
+			elif not FOLIAGE_BOUNDS.has(key):
+				_error("foliage/%s: unknown key %s (%s)" % [id, key, FOLIAGE_BOUNDS.keys() + ["colors", "shape"]])
+			elif not (style[key] is float or style[key] is int) or float(style[key]) < FOLIAGE_BOUNDS[key][0] or float(style[key]) > FOLIAGE_BOUNDS[key][1]:
+				_error("foliage/%s: %s must be %s..%s" % [id, key, FOLIAGE_BOUNDS[key][0], FOLIAGE_BOUNDS[key][1]])
+	var ravens = parsed.get("birds", {}) if parsed is Dictionary else {}
+	if not ravens is Dictionary:
+		_error("data/foliage.json: \"birds\" must be an object")
+		ravens = {}
+	for key in ravens:
+		if FOLIAGE_BIRD_COLORS.has(key):
+			if not Color.html_is_valid(str(ravens[key])):
+				_error("foliage/birds: %s %s is not a colour" % [key, ravens[key]])
+		elif not FOLIAGE_BIRD_BOUNDS.has(key):
+			_error("foliage/birds: unknown key %s (%s)" % [key, FOLIAGE_BIRD_BOUNDS.keys() + FOLIAGE_BIRD_COLORS])
+		elif not (ravens[key] is float or ravens[key] is int) or float(ravens[key]) < FOLIAGE_BIRD_BOUNDS[key][0] or float(ravens[key]) > FOLIAGE_BIRD_BOUNDS[key][1]:
+			_error("foliage/birds: %s must be %s..%s" % [key, FOLIAGE_BIRD_BOUNDS[key][0], FOLIAGE_BIRD_BOUNDS[key][1]])
+	var rooms: Dictionary = _doc("backdrops.json").get("rooms", {})
+	for key in rooms:
+		for zone in rooms[key].get("zones", []):
+			if zone.has("birds"):
+				var count = zone.birds
+				if not zone.has("tree"):
+					_error("data/backdrops.json: %s: ravens (\"birds\") sit only on a tree zone" % key)
+				elif not (count is float or count is int) or float(count) != floorf(float(count)) or int(count) < 0 or int(count) > FOLIAGE_MAX_BIRDS:
+					_error("data/backdrops.json: %s: birds must be a whole number 0..%d" % [key, FOLIAGE_MAX_BIRDS])
+			if not zone.has("tree"):
+				continue
+			if str(zone.get("kind", "")) != "sway":
+				_error("data/backdrops.json: %s: only a sway zone can be a tree (a %s zone names \"%s\")" % [key, zone.get("kind", ""), zone.tree])
+			elif not styles.has(str(zone.tree)):
+				_error("data/backdrops.json: %s: tree \"%s\" is not a style of data/foliage.json (%s)" % [key, zone.tree, styles.keys()])
 
 
 func _check_story_flags() -> void:

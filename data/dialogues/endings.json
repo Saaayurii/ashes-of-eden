@@ -1,0 +1,44 @@
+[
+  {
+    "id": "ending_heaven",
+    "blocking": false,
+    "start": "h1",
+    "nodes": {
+      "h1": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_HEAVEN_1", "next": "h2"},
+      "h2": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_HEAVEN_2", "next": "h3"},
+      "h3": {"speaker": "SPEAKER_ANGEL", "text": "DLG_END_HEAVEN_3"}
+    }
+  },
+  {
+    "id": "ending_abyss",
+    "blocking": false,
+    "start": "a1",
+    "nodes": {
+      "a1": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_ABYSS_1", "next": "a2"},
+      "a2": {"speaker": "SPEAKER_VOICE", "text": "DLG_END_ABYSS_2", "next": "a3"},
+      "a3": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_ABYSS_3"}
+    }
+  },
+  {
+    "id": "ending_man",
+    "blocking": false,
+    "start": "m1",
+    "nodes": {
+      "m1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_END_MAN_1", "next": "m2"},
+      "m2": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_MAN_2", "next": "m3"},
+      "m3": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_MAN_3"}
+    }
+  },
+  {
+    "id": "ending_fourth",
+    "blocking": false,
+    "start": "f1",
+    "nodes": {
+      "f1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_END_FOURTH_1", "next": "f2"},
+      "f2": {"speaker": "SPEAKER_ANGEL", "text": "DLG_END_FOURTH_2", "next": "f3"},
+      "f3": {"speaker": "SPEAKER_VOICE", "text": "DLG_END_FOURTH_3", "next": "f4"},
+      "f4": {"speaker": "SPEAKER_ELIAN", "text": "DLG_END_FOURTH_4", "next": "f5"},
+      "f5": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_FOURTH_5"}
+    }
+  }
+]

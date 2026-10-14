@@ -29,6 +29,7 @@ hold:
 | `items` | items found at least once (codex pages `item:<id>`), N or `"all"` | `{"items": "all"}` |
 | `affixes` | elite affixes beaten on any elite (bestiary `affixes`), N or `"all"` | `{"affixes": "all"}` |
 | `fast` | a boss laid low within that many seconds (its best fight, `Profile.record_boss_time`) | `{"fast": {"ophanim": 90}}` |
+| `endings` | the campaign ended so at least once (bestiary `ending:<id>`, `data/endings`), a list or `"all"` | `{"endings": ["fourth"]}` |
 
 The counters (`Achievements.COUNTERS`): `parries`, `backstabs`, `ripostes`, `unscathed` (rooms cleared without a
 wound), `rests`, `curses_lifted` (a cursed chest's price paid off), `wins_omen` (a dawn under an omen), `refusals` (a hand of gifts turned down), `elites` (an elite laid low), `blood_paid` (a blood altar's price paid), `daily_streak` (the longest run of nights of the day), and at dawn `wins_<path>` for the path the night leaned to (`Game.dominant_path`) and

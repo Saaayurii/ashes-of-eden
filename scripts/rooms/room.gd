@@ -78,6 +78,8 @@ func _ready() -> void:
 	# The living details of the place (ravens, wisps, fog, lightning): data/ambience.json.
 	var own := scene_file_path.get_file().get_basename()
 	Ambience.attach(self, own if Ambience.has_rule(own) else ROOM_LAYERS.look_key(self), float(width), float(height))
+	# its painted trees swing when struck and shed leaves: data/foliage.json
+	Foliage.attach(self)
 	# far, middle and front kept apart: after the clouds exist (Ambience)
 	ROOM_LAYERS.arrange(self)
 	door.entered.connect(exited.emit)

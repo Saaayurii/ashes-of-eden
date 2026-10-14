@@ -86,7 +86,7 @@ function gdFlags(files, code = {}) {
 }
 /* validate_data.gd, entry by entry: what the validator would refuse ({error}) or only say ({warn}) */
 const GD_RULES = {
-  achievements: ['nights', 'wins', 'total_kills', 'kills', 'known', 'notes', 'items', 'affixes', 'moves', 'deeds', 'fast'],
+  achievements: ['nights', 'wins', 'total_kills', 'kills', 'known', 'notes', 'items', 'affixes', 'moves', 'deeds', 'fast', 'endings'],
   vials: ['flasks', 'enemy_damage', 'enemy_hp', 'promote_chance', 'rest_heal', 'promote'],
   omens: ['essence', 'ash', 'flasks', 'enemy_damage', 'enemy_hp', 'skill_cooldown', 'enemy_sight', 'promote_chance', 'rest_heal', 'promote'],
   affixes: ['hp', 'damage', 'speed', 'cooldown', 'armor'],
@@ -238,7 +238,7 @@ async function gdFiles(tab) {
     if (!tab.paths(p)) continue;
     const text = await repoText(p), latest = JSON.parse(text);
     const merged = await resolveDraft(draftBase('world', WORLD.data.files)[p], mine, latest, p, BASES.world?.uncertain);
-    if (!sameDraft(merged, latest)) { files[p] = gdText(text, merged); what.push(p); }
+    if (!sameDraft(merged, latest)) { files[p] = tab.text?.(p, merged, text) ?? (p === GD_ROOMS ? fmtStudioRooms(merged) : gdText(text, merged)); what.push(p); }
   }
   const extra = await gdExtraFiles(tab.strings, tab.music), own = tab.extraFiles ? await tab.extraFiles() : { files: {}, what: [] };
   Object.assign(files, extra.files, own.files); what.push(...extra.what, ...own.what);

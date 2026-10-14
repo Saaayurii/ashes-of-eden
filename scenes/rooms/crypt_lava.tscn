@@ -562,7 +562,9 @@ prop_id = "chest_gold"
 [node name="Hazard1" type="Area2D" parent="."]
 position = Vector2(750, 694)
 script = ExtResource("15_hazard")
+kind = "lava"
 size = Vector2(720, 26)
+painted = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

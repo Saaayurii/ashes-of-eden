@@ -3,5 +3,19 @@
     "spawns": [
       ["ash_archer", 420, 506]
     ]
+  },
+  "swamp_crypt": {
+    "liquids": [
+      ["blood", 114, 598, 49, 8, {"painted": true}],
+      ["blood", 227, 578, 250, 8, {"painted": true}],
+      ["blood", 531, 532, 162, 8, {"painted": true}],
+      ["blood", 589, 575, 46, 8, {"painted": true}],
+      ["blood", 1103, 647, 86, 8, {"painted": true}]
+    ]
+  },
+  "swamp_moon": {
+    "liquids": [
+      ["water", 1074, 542, 53, 8, {"painted": true}]
+    ]
   }
 }

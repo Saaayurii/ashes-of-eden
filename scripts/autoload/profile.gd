@@ -118,6 +118,10 @@ func record_run(wave: int, kills: int, seconds: float, ash := 0, won := false) -
 		drawn["nights"] = int(drawn.get("nights", 0)) + 1
 		drawn["dawns"] = int(drawn.get("dawns", 0)) + (1 if won else 0)
 		data.bestiary["omen:" + Game.omen] = drawn
+	# an ending reached is a page in the book (bestiary "ending:<id>"), the
+	# first night it came and how many have come to it since
+	if won and Game.ending != "":
+		record_ending(Game.ending)
 	# the bestiary remembers who laid this player low, and how often
 	if not won and Data.enemies.has(Game.slain_by):
 		var entry: Dictionary = data.bestiary.get(Game.slain_by, {})
@@ -168,6 +172,7 @@ func _chronicle(area: int, kills: int, seconds: float, won: bool) -> void:
 		"dealt": roundi(Game.dealt),
 		"taken": roundi(Game.taken),
 		"parries": Game.parries,
+		"ending": Game.ending if won else "",
 	})
 	while data.history.size() > HISTORY:
 		data.history.pop_front()
@@ -283,6 +288,24 @@ func record_kill(enemy_id: String) -> void:
 		save()
 		EventBus.bestiary_unlocked.emit(enemy_id)
 	check_achievements()
+
+
+## The campaign ended in [param id] (data/endings, Endings): its page in the
+## book, the night it first came and the times since. Saved by record_run.
+func record_ending(id: String) -> void:
+	if Net.dedicated or id == "" or Game.practice != "" or not Data.endings.has(id):
+		return
+	var key := "ending:" + id
+	var page: Dictionary = data.bestiary.get(key, {"seen": true, "met": true, "kills": 0})
+	page["times"] = int(page.get("times", 0)) + 1
+	if not page.has("first"):
+		page["first"] = int(data.nights)
+	data.bestiary[key] = page
+
+
+## Every ending reached at least once.
+func endings_seen() -> Array:
+	return Endings.ids().filter(func(id: String) -> bool: return data.bestiary.has("ending:" + id))
 
 
 ## An elite laid low with [param affix] (Enemy.affix): its bestiary page keeps

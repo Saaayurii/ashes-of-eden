@@ -45,6 +45,8 @@ var vials: Dictionary = {}
 var relics: Dictionary = {}
 ## The omens a night may be drawn under (data/omens, scripts/run/omens.gd).
 var omens: Dictionary = {}
+## How the campaign may end (data/endings, scripts/run/endings.gd).
+var endings: Dictionary = {}
 ## What an elite may rise with (data/affixes, Enemy.affix): a name over its
 ## head and a change to its numbers, never to its wind-ups.
 var affixes: Dictionary = {}
@@ -93,6 +95,7 @@ func reload() -> void:
 	vials = _load_collection("vials", roots)
 	relics = _load_collection("relics", roots)
 	omens = _load_collection("omens", roots)
+	endings = _load_collection("endings", roots)
 	affixes = _load_collection("affixes", roots)
 	print("[Data] abilities=%d enemies=%d dialogues=%d props=%d npcs=%d chapters=%d (roots: %s)" % [abilities.size(), enemies.size(), dialogues.size(), props.size(), npcs.size(), chapters.size(), roots])
 
