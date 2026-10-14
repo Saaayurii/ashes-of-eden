@@ -3,14 +3,14 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { goreSpec, goreText, goreCut, gorePickCut, goreProblems } = require('../js/gore.js');
+const { goreSpec, goreText, goreCut, gorePickCut, goreProblems, goreMoveSpec, goreAimed, GORE_MOVES, GORE_MOVE_KEYS, GORE_MOVE_DEFAULTS } = require('../js/gore.js');
 
 const FILE = path.join(__dirname, '../../../data/gore.json');
 const text = fs.readFileSync(FILE, 'utf8');
 const doc = JSON.parse(text);
 
 test('the studio writes data/gore.json byte for byte when nothing changed', () => {
-  assert.equal(goreText(doc._comment, { materials: doc.materials, bodies: doc.bodies }), text);
+  assert.equal(goreText(doc._comment, { materials: doc.materials, bodies: doc.bodies, moves: doc.moves }), text);
 });
 test('a body lays its own keys over its material (Gore.spec)', () => {
   const work = { materials: { flesh: { drops: 9, limbs: 5 }, spirit: { drops: 5, limbs: 0 } }, bodies: { elian: { limbs: 0 }, odd: { material: 'spirit' } } };
@@ -89,7 +89,7 @@ test('a streak runs down the wall no further than its foot; the underside drips'
 });
 test('a heavy drop splashes; drops into the depth stick to the wall behind, never in the sky', () => {
   const st = G.goreStage(480, 270); fresh();
-  G.goreDrop(40, st.ground - 60, 0, 300, [200, 0, 0, 1], ink);
+  G.goreDrop(150, st.ground - 60, 0, 300, [200, 0, 0, 1], ink);
   G.GORE.drops[0].flags = 0;
   run(st, 0.25);
   assert.ok(G.GORE.drops.length + G.GORE.stains.length >= 3, 'droplets thrown back up');
@@ -105,4 +105,38 @@ test('mist leaves no mark', () => {
   for (let i = 0; i < 20; i++) G.goreDrop(100, st.ground - 4, 0, 50, [200, 0, 0, 0.4], ink, G.MISTY);
   run(st, 1);
   assert.equal(G.GORE.stains.length, 0);
+});
+
+const GD = fs.readFileSync(path.join(__dirname, '../../../scripts/fx/gore.gd'), 'utf8');
+test('the studio knows every blow gore.gd names, with its keys and defaults', () => {
+  const list = name => [...GD.match(new RegExp(`const ${name} := \\[([^\\]]*)\\]`))[1].matchAll(/"(\w+)"/g)].map(m => m[1]);
+  assert.deepEqual(Object.keys(GORE_MOVES), list('MOVES'));
+  assert.deepEqual([...Object.keys(GORE_MOVE_KEYS), 'cuts'].sort(), list('MOVE_KEYS').sort());
+  const defaults = JSON.parse(GD.match(/const MOVE_DEFAULTS := (\{[^}]*\})/)[1].replace(/\s+/g, ' '));
+  assert.deepEqual(GORE_MOVE_DEFAULTS, defaults);
+  for (const k of Object.keys(doc.moves)) assert.ok(GORE_MOVES[k], k);
+});
+test('a blow lays its keys over a plain one, and turns the spray up or down on the side it went (Gore.move_spec, aimed)', () => {
+  const moves = { attack: { aim: -7 }, rising: { aim: -90, spread: 0.5 } };
+  assert.equal(goreMoveSpec(moves, 'nope').aim, -7);
+  assert.equal(goreMoveSpec(moves, 'rising').spread, 0.5);
+  assert.equal(goreMoveSpec(moves, 'rising').force, 1);
+  const up = goreAimed([1, 0], { aim: -90 }), upLeft = goreAimed([-1, 0], { aim: -90 });
+  assert.ok(Math.abs(up[0]) < 1e-9 && up[1] < -0.99 && Math.abs(upLeft[0]) < 1e-9 && upLeft[1] < -0.99, `${up} ${upLeft}`);
+});
+test('a bad blow is caught before it goes to the game', () => {
+  const work = { materials: { flesh: {} }, bodies: {}, moves: { nope: {}, slam: { aim: 200, foo: 1, cuts: { all: 0 } } } };
+  const p = goreProblems(work, null).join(' | ');
+  assert.match(p, /nope/); assert.match(p, /aim/); assert.match(p, /foo/); assert.match(p, /cuts/);
+  assert.deepEqual(goreProblems({ materials: doc.materials, bodies: doc.bodies, moves: doc.moves }, null), []);
+});
+test('in the water blood clouds and spreads, on the lava it hisses off and leaves nothing', () => {
+  const st = G.goreStage(480, 270), wet = { ...ink, cloud: 10, hiss: 1, back: 0 };
+  fresh();
+  for (let i = 0; i < 8; i++) G.goreDrop((st.water[0] + st.water[1]) / 2 + i - 4, st.ground - 30, 0, 120, [200, 0, 0, 1], wet, G.SPLASHED);
+  for (let i = 0; i < 8; i++) G.goreDrop((st.lava[0] + st.lava[1]) / 2 + i - 4, st.ground - 30, 0, 120, [200, 0, 0, 1], wet, G.SPLASHED);
+  run(st, 0.5);
+  const inWater = G.GORE.stains.filter(s => s.x >= st.water[0] && s.x <= st.water[1]);
+  assert.ok(inWater.length >= 4 && inWater.every(s => s.face === 4 && s.soak === 0), `clouds ${inWater.length}`);
+  assert.ok(!G.GORE.stains.some(s => s.x >= st.lava[0] && s.x <= st.lava[1]) && G.GORE.steam.length > 0, 'lava');
 });

@@ -112,9 +112,10 @@ func _every_open_column(only: Array = []) -> bool:
 			if not space.intersect_ray(ray).is_empty():
 				continue
 			# lava is not the edge of the map: it burns and puts the body back
+			# (a pool of water, bog or blood is: a body sinks through it)
 			var over_lava := false
 			for child in room.get_children():
-				if child is Area2D and child.has_method("danger_rect") and child.danger_rect().has_point(Vector2(x, child.danger_rect().position.y + 1.0)):
+				if child is Area2D and child.has_method("burns") and child.burns() and child.danger_rect().has_point(Vector2(x, child.danger_rect().position.y + 1.0)):
 					over_lava = true
 			if over_lava:
 				continue

@@ -299,8 +299,20 @@ def room_project(root: Path, path: Path):
             (cx, cy), (w, h) = _vec(c["props"].get("position")), rects[shape[1]]
             if w >= 16 and cy - h / 2 >= 0:
                 surfaces.append([round(cx - w / 2, 1), round(cy - h / 2, 1), round(w, 1)])
+    # what burns or drowns already (scripts/rooms/hazard.gd): the painted rooms' lava, and whatever
+    # liquids the generator laid from tools/rooms/studio_rooms.json; «Жидкости» shows them on the map
+    hazard_ids = set(re.findall(r'\[ext_resource type="Script"[^\]]*?path="res://scripts/rooms/hazard\.gd"[^\]]*?id="([^"]+)"\]', text))
+    hazards = []
+    for n in nodes:
+        script = re.match(r'ExtResource\("([^"]+)"\)', n["props"].get("script", ""))
+        if n["type"] == "Area2D" and script and script[1] in hazard_ids:
+            hx, hy = _vec(n["props"].get("position"))
+            hw, hh = _vec(n["props"].get("size"), (100, 30))
+            kind = (n["props"].get("kind") or n["props"].get("liquid") or '"lava"').strip('"&')
+            hazards.append([kind, round(hx, 1), round(hy, 1), round(hw, 1), round(hh, 1),
+                            {"painted": n["props"].get("painted", "true") != "false", "name": n["name"]}])
     return {
-        "spawns": spawns, "surfaces": surfaces,
+        "spawns": spawns, "surfaces": surfaces, "hazards": hazards,
         "id": "room_" + path.stem, "kind": "bg", "name": path.stem,
         "width": int(float(top.get("width", 1280))), "height": int(float(top.get("height", 360))),
         "viewW": round(640 / VIEW_ZOOM), "viewH": round(360 / VIEW_ZOOM), "ambient": ambient,
@@ -711,7 +723,7 @@ def projectiles(root: Path, strings):
         for i, a in enumerate(at["items"]):
             if a.get("type") == "ranged":
                 users.append({"kind": "enemy", "id": eid, "name": name(e.get("name", "")), "index": i,
-                              "file": at["file"], "path": at["path"] + [at["key"], i] if not at["inherited"] and not at["single"] else None,
+                              "file": at["file"], "path": None if at["inherited"] else at["path"] + ([at["key"]] if at["single"] else [at["key"], i]),
                               "attack": a, "boss": bool(resolved[eid].get("boss")), "body": b})
     for f in sorted((root / "data/abilities").glob("*.json")):
         for gi, g in enumerate(json.loads(f.read_text(encoding="utf-8"))):
@@ -726,7 +738,7 @@ def projectiles(root: Path, strings):
 def attack_source(eid, raw, tree_entries):
     """Where the attacks an enemy fights with are written (data_loader.gd: extends, then the
     archetype overlay, whose "attacks" replace the file's and drop its single "attack").
-    {file, path, key, items, single, inherited}: path is the object holding `key` in `file`;
+    {file, path, key, items, single, inherited, over?}: path is the object holding `key` in `file`;
     an inherited list (extends, nothing of its own) is written into the enemy's own file."""
     for i, over in enumerate(tree_entries):
         if over.get("id") == eid and "attacks" in over:
@@ -735,9 +747,15 @@ def attack_source(eid, raw, tree_entries):
     e, own = raw[eid], f"data/enemies/{eid}.json"
     if "attacks" in e:
         return {"file": own, "path": [], "key": "attacks", "items": e["attacks"], "single": False, "inherited": False}
-    if "attack" in e:
-        return {"file": own, "path": [], "key": "attack", "items": [e["attack"]], "single": True, "inherited": False}
     base = raw.get(e.get("extends"))
+    if "attack" in e:
+        # a single "attack" over a base's single "attack" is laid over it key by key
+        # (data_loader.gd merges a dictionary one level deep): the studio shows and edits
+        # the attack the game fights with, and writes back only what differs ("over")
+        if base is not None and isinstance(base.get("attack"), dict) and isinstance(e["attack"], dict):
+            return {"file": own, "path": [], "key": "attack", "items": [{**base["attack"], **e["attack"]}], "single": True,
+                    "inherited": False, "over": f"data/enemies/{e['extends']}.json"}
+        return {"file": own, "path": [], "key": "attack", "items": [e["attack"]], "single": True, "inherited": False}
     if base is not None:
         items = base.get("attacks") or ([base["attack"]] if "attack" in base else [])
         if items:
@@ -782,10 +800,14 @@ def gore(root: Path, pfx, shots):
         if depth == 0:
             break
     defaults = json.loads(src[start:end + 1].replace("\n", " ").replace("\t", ""))
-    material = {r["id"]: r.get("material", "cloth") for r in shots["roster"]}
+    # the blows (Gore.MOVES) and what a blow the table leaves out does (MOVE_DEFAULTS)
+    moves = re.findall(r'"(\w+)"', re.search(r"const MOVES := \[(.*?)\]", src, re.S)[1])
+    move_defaults = json.loads(re.search(r"const MOVE_DEFAULTS := (\{.*?\})", src, re.S)[1].replace("\n", " ").replace("\t", ""))
+    material ={r["id"]: r.get("material", "cloth") for r in shots["roster"]}
     bodies = [{**b, "material": "flesh" if b["key"] == "elian" else material.get(b["key"], "cloth")} for b in pfx["bodies"]]
     return {"materials": doc.get("materials", {}), "bodies_rules": doc.get("bodies", {}), "keys": keys,
-            "defaults": defaults, "bodies": bodies}
+            "defaults": defaults, "bodies": bodies, "moves": doc.get("moves", {}), "move_names": moves,
+            "move_defaults": move_defaults}
 
 
 def world(root, rooms):

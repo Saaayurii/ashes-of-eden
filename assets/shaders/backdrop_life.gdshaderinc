@@ -44,6 +44,10 @@ uniform float life_rage = 0.0;
 uniform vec4 life_lean = vec4(1.0, 1.0, 1.0, 0.0);
 uniform float life_dread = 0.0;       // 0..1 as our own body nears death: the veins beat harder
 uniform float life_beat_clock = -1.0; // the heartbeat's own clock (it quickens); < 0 = TIME
+// A tree's crown on its spring (scripts/rooms/foliage.gd): pixels at the free
+// end of a sway zone, + leans left. Struck, brushed or caught in a gust, the
+// crown swings and settles; Foliage integrates it, the shader only bends.
+uniform float life_bend[LIFE_ZONES];
 const float LIFE_GUST_REACH = 260.0;
 
 // Value noise read from a small tileable texture of random values
@@ -166,6 +170,7 @@ Life life_gather(vec2 px, float t) {
 			float near = life_wind.z * clamp(1.0 - distance(r.xy + r.zw * 0.5, life_wind.xy) / LIFE_GUST_REACH, 0.0, 1.0);
 			float push = life_wind.w + (1.0 - abs(life_wind.w)) * sin(t * 8.0 + phase * 5.0);
 			l.offset.x -= push * near * k * 1.8 * along * along * w;
+			l.offset.x += life_bend[i] * along * along * w;
 		} else if (kind == 3) {
 			vec2 d = (local - 0.5) * 2.0;
 			float fall = clamp(1.0 - dot(d, d), 0.0, 1.0);

@@ -157,6 +157,7 @@ script = ExtResource("1_room")
 width = 1600
 height = 720
 void_kill_y = 690
+waves_json = "[[[\"cultist\", 910, 403], [\"possessed_villager\", 680, 326], [\"cult_slinger\", 1470, 401], [\"possessed_villager\", 740, 556], [\"hollow_wraith\", 460, 600]]]"
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
@@ -508,6 +509,13 @@ prop_id = "pot"
 [node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
 position = Vector2(630, 474)
 npc_id = "villager"
+
+[node name="Liquid1" type="Area2D" parent="."]
+position = Vector2(1074, 542)
+script = ExtResource("15_hazard")
+kind = "water"
+size = Vector2(53, 8)
+painted = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

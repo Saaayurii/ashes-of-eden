@@ -23,7 +23,7 @@ const FEET := 15.0          # body origin to the soles
 const MAX_RISE := 110.0     # no surface higher than this is worth a try
 const MAX_GAP := 230.0
 const HOP_FRAMES := 200
-const FLYERS := ["shade", "wraith", "raven", "ophanim", "sea_wraith"]
+const FLYERS := ["shade", "wraith", "elder_wraith", "hollow_wraith", "raven", "ophanim", "sea_wraith"]
 ## (first jump frame, second jump frame or -1, walk off without jumping)
 const STRATEGIES := [[0, 18], [0, 28], [0, -1], [0, 10], [-1, -1]]
 
@@ -114,12 +114,20 @@ func _test_room(index: int, path: String, from_crypt: Variant = null) -> bool:
 		goals[door] = "door"
 	if from_crypt != null and entrance >= 0:
 		goals[entrance] = "return to entrance"
+	var standing := []  # [enemy id, where]
 	for spawn in run.room.get_node("Spawns").get_children():
-		if FLYERS.has(spawn.get("enemy_id")):
+		standing.append([str(spawn.get("enemy_id")), spawn.global_position])
+	# the reinforcements rise where the room's waves say (room.gd waves_json)
+	var waves = JSON.parse_string(str(run.room.get("waves_json")))
+	for wave in (waves if waves is Array else []):
+		for row in wave:
+			standing.append([str(row[0]), run.room.global_position + Vector2(float(row[1]), float(row[2]))])
+	for pair in standing:
+		if FLYERS.has(pair[0]):
 			continue
-		var s := _surface_under(spawn.global_position, 40.0)
+		var s := _surface_under(pair[1], 40.0)
 		if s >= 0:
-			goals[s] = str(spawn.get("enemy_id"))
+			goals[s] = pair[0]
 	# props too: a secret wall and its cache are places to get to and back from
 	for prop in run.room.get_node("Props").get_children():
 		if prop is Area2D:

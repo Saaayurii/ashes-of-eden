@@ -1,6 +1,9 @@
 {
   "id": "reliquary_names",
   "kind": "chest",
+  "guarded": 320,
+  "item": "rare",
+  "prompt": "CHEST_RELIQUARY_PROMPT",
   "essence": 40,
   "ash": 25,
   "note": "note_crypt_names",

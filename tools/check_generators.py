@@ -41,6 +41,9 @@ GENERATORS = [
      ["assets/props/altar_book.png"], False),
     ("blood altar", ["tools/art/make_blood_altar.py"],
      ["assets/props/blood_altar.png"], False),
+    # the living liquids' body textures and strips (data/liquids.json, scripts/rooms/hazard.gd)
+    ("liquids", ["tools/art/make_liquids.py"],
+     ["assets/fx/liquids", "tools/art/contact/liquids.png"], False),
     ("weapon icons", ["tools/art/make_weapon_icons.py"],
      ["assets/icons/weapons"], False),
     # The bestiary's strips, cut from the generated atlases, and the cell each

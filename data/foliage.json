@@ -1,0 +1,34 @@
+{
+  "_comment": "What a painted tree is made of (scripts/rooms/foliage.gd, docs/BACKDROP_LIFE.md «Деревья»). A sway zone in data/backdrops.json becomes a tree with \"tree\": <style>: its crown hangs on a spring (stiff: how many swings a second, damp: how soon it settles, bend: the most pixels it leans) that a blow, a body passing through, a gust or a landing sets swinging, and it sheds what it is made of. colors: the leaves' shades (the room's Ambient tints them like the painting); shape leaf (a tumbling 2x1 pixel) | strand (a hanging 1xN thread of moss) | twig (a stick that bounces once); twigs: the share that are twigs; drift: leaves a second per 100 px of crown on a still night; shed: how many a gust or a body tears loose; burst: leaves a blow throws; fall: the speed a leaf settles at in still air; flutter: how wide it swings as it falls; rest: seconds a leaf lies before it fades. birds: the ravens a sway zone's \"birds\" (1-4) seats on its branch tops — body, rim (the sky on their backs) and beak colours; scare: how near a fast body (or a third of that, any body) sends them off, px; flock: how near one leaving takes the others with it, px; away: seconds before they come back; speed: how fast they fly off, px/s.",
+  "birds": {"body": "#0e0c12", "rim": "#5a5670", "beak": "#2a2830", "scare": 64, "flock": 90, "away": 20, "speed": 150},
+  "styles": {
+    "willow": {
+      "colors": ["#7d8c4c", "#94a05a", "#66743e", "#a8ac68"],
+      "shape": "strand", "twigs": 0.0,
+      "stiff": 0.8, "damp": 0.14, "bend": 2.2,
+      "drift": 0.05, "shed": 1.0, "burst": 12,
+      "fall": 28, "flutter": 10, "rest": 9
+    },
+    "oak": {
+      "colors": ["#b9813a", "#9a6630", "#d29c4c", "#7e5a2c", "#8e8a46"],
+      "shape": "leaf", "twigs": 0.08,
+      "stiff": 1.2, "damp": 0.18, "bend": 2.5,
+      "drift": 0.06, "shed": 1.2, "burst": 16,
+      "fall": 24, "flutter": 16, "rest": 10
+    },
+    "dead": {
+      "colors": ["#8e6a48", "#a47c52", "#76583c", "#b48c5c"],
+      "shape": "leaf", "twigs": 0.55,
+      "stiff": 2.0, "damp": 0.22, "bend": 1.6,
+      "drift": 0.015, "shed": 0.5, "burst": 7,
+      "fall": 30, "flutter": 14, "rest": 10
+    },
+    "ivy": {
+      "colors": ["#6e8044", "#86964e", "#5a6a3a"],
+      "shape": "leaf", "twigs": 0.0,
+      "stiff": 1.5, "damp": 0.2, "bend": 2.0,
+      "drift": 0.03, "shed": 0.8, "burst": 9,
+      "fall": 22, "flutter": 12, "rest": 8
+    }
+  }
+}

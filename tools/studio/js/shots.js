@@ -350,15 +350,21 @@ async function shotsFiles() {
     if (u.kind === 'enemy') {
       const r = SHOTS.data.roster.find(r => r.id === u.id), src = r.source;
       if (src.path.length && Array.isArray(currentDoc)) path[0] = currentDoc.findIndex(x => x.id === u.id);
-      const listPath = path.slice(0, -1), list = listPath.reduce((o, k) => o[k], currentDoc);
-      path[path.length - 1] = locateAction(list, baseUser.attack, u.index, draftBase('shots', SHOTS.data).roster.find(r => r.id === u.id).source.items);
+      if (!src.single) {   // a single "attack" is where it is; a list's item may have moved
+        const listPath = path.slice(0, -1), list = listPath.reduce((o, k) => o[k], currentDoc);
+        path[path.length - 1] = locateAction(list, baseUser.attack, u.index, draftBase('shots', SHOTS.data).roster.find(r => r.id === u.id).source.items);
+      }
     }
-    const latest = path.reduce((o, k) => o[k], currentDoc);
+    let latest = path.reduce((o, k) => o[k], currentDoc);
+    if (u.kind === 'enemy') { const src = SHOTS.data.roster.find(r => r.id === u.id).source;
+      if (src.over) latest = { ...JSON.parse(await text(src.over)).attack, ...latest }; }   // laid over its base's
     const merged = await resolveDraft(baseUser.attack, { ...baseUser.attack, ...edit }, latest, label(u));
     texts[u.file] = patchJson(original, path, attackDiff(latest, merged)); touched.add(label(u));
   }
   for (const id of reshaped) {
     const r = SHOTS.data.roster.find(x => x.id === id), src = r.source;
+    // the base's own "attack" would still win over a list written here (enemy.gd)
+    if (src.over) throw new Error(`«${r.name.ru || id}» дерётся атакой, наложенной на атаку ${src.over}: её можно править, но не добавлять и не убирать атаки — сначала опиши атаку целиком в его файле.`);
     const original = await text(src.file), doc = JSON.parse(original);
     const path = src.path.length && Array.isArray(doc) ? [doc.findIndex(x => x.id === id)] : src.path;
     const own = path.reduce((o, k) => o[k], doc);

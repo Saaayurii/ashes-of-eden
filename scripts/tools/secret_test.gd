@@ -57,6 +57,19 @@ func _run() -> void:
 			if cache == null:
 				continue
 			_assert(cache.global_position.distance_to(at) < 1.0, "%s: stands where the wall stood" % hidden)
+			if wall.stats.has("guardians"):
+				# the reliquary's keepers: rounds that rise where the wall broke,
+				# and a lid that stays shut while any of them stands
+				var rounds: Array = wall.stats.guardians
+				for i in rounds.size():
+					await _settle(1.2)
+					var keepers := _keepers(room)
+					_assert(keepers.size() == (rounds[i] as Array).size(), "%s: round %d rises (%d)" % [wall.prop_id, i + 1, keepers.size()])
+					_assert(cache._keepers_near(), "%s: shut while round %d stands" % [hidden, i + 1])
+					for keeper in keepers:
+						keeper.take_damage(100000.0)
+				await _settle(1.5)
+				_assert(_keepers(room).is_empty() and not cache._keepers_near(), "%s: opens once the last keeper is down" % hidden)
 			var note: String = cache.stats.note
 			profile.data.bestiary.erase("note:" + note)
 			var ash_before: int = game.ash_earned
@@ -135,6 +148,14 @@ func _run() -> void:
 	profile.save()
 	print("SECRET TEST PASSED" if failures == 0 else "SECRET TEST FAILED (%d)" % failures)
 	quit(1 if failures > 0 else 0)
+
+
+func _keepers(room) -> Array:
+	var out := []
+	for enemy in get_nodes_in_group("enemies"):
+		if room.is_ancestor_of(enemy) and not enemy.is_dead():
+			out.append(enemy)
+	return out
 
 
 func _settle(seconds: float) -> void:

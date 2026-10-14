@@ -13,6 +13,7 @@ const LIFE_KIND_TIP = {
   sway: 'знамя, мох, клетка, люстра, дерево; «стоит» — качается верх', glow: 'луна, витраж, окно, врата: свет дышит цветом',
   lava: 'течёт только раскалённое, камень вокруг стоит', haze: 'дрожание воздуха над огнём, сильнее внизу',
   stars: 'мерцают только яркие точки неба', pulse: 'красные вены бьются как сердце: два удара — пауза' };
+const LIFE_TREE_RU = { willow: 'ива, мох', oak: 'лиственное', dead: 'сухое', ivy: 'плющ' };
 const LIFE_COLOR = { falls: '#7fc4ff', water: '#4aa3ff', sway: '#9be27a', glow: '#ffe07a', lava: '#ff7a3a', haze: '#ffb36b', stars: '#d6e0ff', pulse: '#ff4f6a' };
 
 /* ---------- data ---------- */
@@ -20,6 +21,8 @@ async function lifeLoad() {
   if (LIFE.data) return;
   LIFE.data = await (await fetch('import/life.json')).json();
   LIFE.rules = JSON.parse(await repoText('data/backdrops.json')).rooms || {};
+  // the leaves a tree sheds (data/foliage.json, scripts/rooms/foliage.gd): a sway zone may name one
+  try { LIFE.trees = Object.keys(JSON.parse(await repoText('data/foliage.json')).styles || {}); } catch { LIFE.trees = []; }
   draftBase('life', LIFE.rules, !!localStorage.getItem('ss_life'));
   // an edit the game now has (her pull request was merged) is no longer hers to send
   try { for (const [k, v] of Object.entries(JSON.parse(localStorage.getItem('ss_life') || '{}'))) if (JSON.stringify(v) !== JSON.stringify(LIFE.rules[k])) LIFE.edits.set(k, v); } catch {}
@@ -45,6 +48,7 @@ uniform vec4 life_rect[24], life_shape[24], life_tint[24];
 uniform int life_count;
 uniform float t, life_flame, life_flame_floor, life_light, life_motion, life_exhale, life_flash, life_rage, life_dread;
 uniform vec4 life_wind, life_lean;
+uniform float life_bend[24];
 uniform vec3 life_flash_tint;
 in vec2 uv; out vec4 o;
 const float REACH = 260.0;
@@ -72,7 +76,8 @@ void main() {
     else if (kind == 2) { float along = s.w < 0.5 ? loc.y : 1.0 - loc.y; float ph = r.x * 0.013 + r.y * 0.007;
       float gust = 0.75 + 0.25 * sin(t * sp * 0.37 + ph * 3.0); off.x -= sin(t * sp + ph + loc.y * 1.4) * k * along * along * gust * w;
       float near = life_wind.z * clamp(1.0 - distance(r.xy + r.zw * 0.5, life_wind.xy) / REACH, 0.0, 1.0);
-      float push = life_wind.w + (1.0 - abs(life_wind.w)) * sin(t * 8.0 + ph * 5.0); off.x -= push * near * k * 1.8 * along * along * w; }
+      float push = life_wind.w + (1.0 - abs(life_wind.w)) * sin(t * 8.0 + ph * 5.0); off.x -= push * near * k * 1.8 * along * along * w;
+      off.x += life_bend[i] * along * along * w; }
     else if (kind == 3) { vec2 d = (loc - 0.5) * 2.0; float fall = clamp(1.0 - dot(d, d), 0.0, 1.0);
       float br = 0.55 + 0.3 * sin(t * sp) + 0.15 * nz(vec2(t * sp * 0.7, float(i)));
       glow += life_tint[i].rgb * (w * k * fall * (br * (1.0 + life_rage * 1.5) + life_exhale * 1.5)); }
@@ -288,7 +293,9 @@ function renderLifeSide() {
       <div class="note">${esc(LIFE_KIND_TIP[z.kind] || '')}</div>
       ${num('z.strength', z.strength ?? k.strength, 0.01, 0, z.kind === 'glow' || z.kind === 'stars' ? 1 : 4, 'Сила')}
       ${num('z.speed', z.speed ?? k.speed, 0.01, 0, 4, 'Скорость')}
-      ${z.kind === 'sway' ? `<label>Качается<select data-life="z.anchor"><option value="hangs"${z.anchor !== 'stands' ? ' selected' : ''}>низ (висит)</option><option value="stands"${z.anchor === 'stands' ? ' selected' : ''}>верх (стоит)</option></select></label>` : ''}
+      ${z.kind === 'sway' ? `<label>Качается<select data-life="z.anchor"><option value="hangs"${z.anchor !== 'stands' ? ' selected' : ''}>низ (висит)</option><option value="stands"${z.anchor === 'stands' ? ' selected' : ''}>верх (стоит)</option></select></label>
+        <label>Дерево (листва, удар, порыв)<select data-life="z.tree"><option value="">— не дерево</option>${(LIFE.trees || []).map(n => `<option value="${n}"${z.tree === n ? ' selected' : ''}>${esc(LIFE_TREE_RU[n] || n)}</option>`).join('')}</select></label>
+        ${z.tree ? `<label>Вороны на кроне (садятся на ветки сами)<select data-life="z.birds">${[0, 1, 2, 3, 4].map(n => `<option value="${n}"${(z.birds || 0) === n ? ' selected' : ''}>${n || '— нет'}</option>`).join('')}</select></label>` : ''}` : ''}
       ${z.kind === 'water' ? num('z.floor', z.floor ?? 0.12, 0.01, 0, 0.6, 'Порог воды (что темнее — стоит)') : ''}
       ${z.kind === 'glow' ? `<label>Цвет света<input type="color" data-life="z.tint" value="${esc(z.tint || '#ffffff')}"></label>` : ''}
       <div class="muted">x ${z.rect[0]}, y ${z.rect[1]}, ${z.rect[2]}×${z.rect[3]}</div></div>`;
@@ -301,7 +308,7 @@ function lifeInput(e) {
   if (el.type === 'range' && el.previousElementSibling) el.previousElementSibling.textContent = (+v).toFixed(2);
   const commit = e.type === 'change' || el.type !== 'range';
   const apply = r => {
-    if (f.startsWith('z.')) { const z = r.zones[LIFE.sel], k = f.slice(2); z[k] = v; if (k === 'kind') { delete z.anchor; delete z.floor; if (v === 'glow' && !z.tint) z.tint = '#ffe0a0'; else if (v !== 'glow') delete z.tint; delete z.strength; delete z.speed; } }
+    if (f.startsWith('z.')) { const z = r.zones[LIFE.sel], k = f.slice(2); z[k] = v; if (k === 'tree' && !v) { delete z.tree; delete z.birds; } if (k === 'birds') { if (+v) z.birds = +v; else delete z.birds; } if (k === 'kind') { delete z.anchor; delete z.tree; delete z.birds; delete z.floor; if (v === 'glow' && !z.tint) z.tint = '#ffe0a0'; else if (v !== 'glow') delete z.tint; delete z.strength; delete z.speed; } }
     else if (f === 'family') { r.family = v; delete r.flame; delete r.flame_floor; }
     else { const fam = LIFE.data.families[r.family] || {}; if (Math.abs(v - (fam[f] ?? -1)) < 1e-6) delete r[f]; else r[f] = v; }
   };

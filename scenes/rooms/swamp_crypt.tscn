@@ -192,6 +192,7 @@ script = ExtResource("1_room")
 width = 1600
 height = 720
 void_kill_y = 690
+waves_json = "[[[\"shield_bearer\", 760, 439], [\"cultist\", 100, 402], [\"cult_slinger\", 1280, 302], [\"possessed_villager\", 610, 528]], [[\"fallen_champion\", 1520, 299], [\"hollow_wraith\", 1020, 400], [\"cultist\", 760, 439], [\"cult_slinger\", 760, 244]]]"
 intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
@@ -607,6 +608,41 @@ prop_id = "bone_reliquary"
 [node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
 position = Vector2(790, 451)
 prop_id = "secret_wall_swamp"
+
+[node name="Liquid1" type="Area2D" parent="."]
+position = Vector2(114, 598)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(49, 8)
+painted = true
+
+[node name="Liquid2" type="Area2D" parent="."]
+position = Vector2(227, 578)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(250, 8)
+painted = true
+
+[node name="Liquid3" type="Area2D" parent="."]
+position = Vector2(531, 532)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(162, 8)
+painted = true
+
+[node name="Liquid4" type="Area2D" parent="."]
+position = Vector2(589, 575)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(46, 8)
+painted = true
+
+[node name="Liquid5" type="Area2D" parent="."]
+position = Vector2(1103, 647)
+script = ExtResource("15_hazard")
+kind = "blood"
+size = Vector2(86, 8)
+painted = true
 
 [node name="Spawns" type="Node2D" parent="."]
 

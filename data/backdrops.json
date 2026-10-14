@@ -1,5 +1,5 @@
 {
-  "_comment": "The life of each painted backdrop: scripts/rooms/backdrop_life.gd, docs/BACKDROP_LIFE.md. A family sets how painted flames burn (flame: flicker strength; flame_floor: how bright a warm pixel must be to count as a flame — raise it where whole walls glow). A room may override both and lists zones in painting pixels (the texture the room draws, wide panels included): kind falls | water (floor: how bright its lit water is — darker pixels, posts and reeds, keep still) | sway (anchor hangs/stands; strength = pixels) | glow (tint) | lava | haze | stars | pulse; strength and speed are optional.",
+  "_comment": "The life of each painted backdrop: scripts/rooms/backdrop_life.gd, docs/BACKDROP_LIFE.md. A family sets how painted flames burn (flame: flicker strength; flame_floor: how bright a warm pixel must be to count as a flame — raise it where whole walls glow). A room may override both and lists zones in painting pixels (the texture the room draws, wide panels included): kind falls | water (floor: how bright its lit water is — darker pixels, posts and reeds, keep still) | sway (anchor hangs/stands; strength = pixels; tree: a style of data/foliage.json makes it a tree that swings when struck and sheds leaves, scripts/rooms/foliage.gd) | glow (tint) | lava | haze | stars | pulse; strength and speed are optional.",
   "lean": {"grace": "#ffeec4", "temptation": "#ff5038", "will": "#a9a7b0"},
   "families": {
     "graveyard": {"flame": 0.55, "flame_floor": 0.6},
@@ -113,7 +113,8 @@
       {"kind": "sway", "rect": [1435, 400, 45, 80]},
       {"kind": "sway", "rect": [1470, 125, 35, 75]},
       {"kind": "sway", "rect": [1100, 270, 400, 75], "strength": 1.0},
-      {"kind": "water", "rect": [1335, 610, 90, 110], "strength": 0.8}
+      {"kind": "water", "rect": [1335, 610, 90, 110], "strength": 0.8},
+      {"kind": "sway", "rect": [85, 0, 150, 185], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "dead", "birds": 2}
     ]},
     "graveyard_cross": {"family": "graveyard", "zones": [
       {"kind": "glow", "rect": [515, 55, 90, 70], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
@@ -128,7 +129,7 @@
       {"kind": "sway", "rect": [80, 400, 45, 100]},
       {"kind": "sway", "rect": [420, 370, 45, 100]},
       {"kind": "sway", "rect": [1115, 135, 50, 110]},
-      {"kind": "sway", "rect": [955, 180, 150, 210], "anchor": "stands", "strength": 1.0, "speed": 1.1}
+      {"kind": "sway", "rect": [955, 180, 150, 210], "anchor": "stands", "strength": 1.0, "speed": 1.1, "tree": "dead", "birds": 3}
     ]},
     "graveyard_arches": {"family": "graveyard", "zones": [
       {"kind": "glow", "rect": [715, 55, 90, 70], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
@@ -140,7 +141,7 @@
       {"kind": "falls", "rect": [1190, 200, 30, 75]},
       {"kind": "sway", "rect": [195, 115, 50, 80]},
       {"kind": "sway", "rect": [273, 395, 35, 75]},
-      {"kind": "sway", "rect": [1100, 0, 500, 125], "strength": 1.2, "speed": 1.2},
+      {"kind": "sway", "rect": [1100, 0, 500, 125], "strength": 1.2, "speed": 1.2, "tree": "willow"},
       {"kind": "sway", "rect": [735, 375, 65, 75], "strength": 1.0}
     ]},
     "graveyard_tree": {"family": "graveyard", "zones": [
@@ -154,23 +155,24 @@
       {"kind": "falls", "rect": [805, 185, 35, 65]},
       {"kind": "sway", "rect": [160, 405, 40, 90]},
       {"kind": "sway", "rect": [315, 405, 40, 90]},
-      {"kind": "sway", "rect": [0, 0, 450, 145], "strength": 1.2, "speed": 1.2},
-      {"kind": "sway", "rect": [850, 0, 750, 155], "strength": 0.8, "speed": 0.9}
+      {"kind": "sway", "rect": [0, 0, 450, 145], "strength": 1.2, "speed": 1.2, "tree": "willow", "birds": 2},
+      {"kind": "sway", "rect": [850, 0, 750, 155], "strength": 0.8, "speed": 0.9, "tree": "oak", "birds": 3},
+      {"kind": "sway", "rect": [755, 225, 150, 130], "anchor": "stands", "strength": 0.6, "speed": 0.8, "tree": "dead", "birds": 3}
     ]},
     "swamp_threshold": {"family": "swamp", "zones": [
       {"kind": "glow", "rect": [490, 10, 180, 170], "tint": "#d6e0ff", "strength": 0.13, "speed": 0.5},
       {"kind": "stars", "rect": [0, 0, 1672, 110]},
       {"kind": "water", "rect": [0, 560, 1672, 381]},
-      {"kind": "sway", "rect": [1525, 0, 147, 210], "strength": 1.3, "speed": 1.2},
-      {"kind": "sway", "rect": [1135, 215, 130, 210], "strength": 1.0, "speed": 1.0}
+      {"kind": "sway", "rect": [1525, 0, 147, 210], "strength": 1.3, "speed": 1.2, "tree": "willow"},
+      {"kind": "sway", "rect": [1135, 215, 130, 210], "strength": 1.0, "speed": 1.0, "tree": "willow"}
     ]},
     "swamp_moon": {"family": "swamp", "zones": [
       {"kind": "glow", "rect": [760, 30, 70, 60], "tint": "#d6e0ff", "strength": 0.14, "speed": 0.5},
       {"kind": "falls", "rect": [775, 155, 35, 45]},
       {"kind": "falls", "rect": [865, 160, 30, 40]},
       {"kind": "water", "rect": [700, 380, 900, 300]},
-      {"kind": "sway", "rect": [0, 0, 600, 95], "strength": 1.2, "speed": 1.1},
-      {"kind": "sway", "rect": [1050, 0, 550, 205], "strength": 1.2, "speed": 1.1},
+      {"kind": "sway", "rect": [0, 0, 600, 95], "strength": 1.2, "speed": 1.1, "tree": "willow"},
+      {"kind": "sway", "rect": [1050, 0, 550, 205], "strength": 1.2, "speed": 1.1, "tree": "willow"},
       {"kind": "sway", "rect": [1490, 305, 45, 75], "strength": 1.6, "speed": 1.3}
     ]},
     "swamp_red": {"family": "swamp", "zones": [
@@ -180,8 +182,8 @@
       {"kind": "water", "rect": [380, 320, 820, 400]},
       {"kind": "water", "rect": [0, 560, 380, 140]},
       {"kind": "water", "rect": [1200, 600, 400, 120]},
-      {"kind": "sway", "rect": [0, 0, 560, 205], "strength": 1.2, "speed": 1.1},
-      {"kind": "sway", "rect": [1000, 0, 600, 285], "strength": 1.2, "speed": 1.1},
+      {"kind": "sway", "rect": [0, 0, 560, 205], "strength": 1.2, "speed": 1.1, "tree": "willow"},
+      {"kind": "sway", "rect": [1000, 0, 600, 285], "strength": 1.2, "speed": 1.1, "tree": "willow"},
       {"kind": "sway", "rect": [950, 235, 40, 95], "strength": 1.8, "speed": 1.2},
       {"kind": "sway", "rect": [135, 235, 30, 55]},
       {"kind": "sway", "rect": [290, 235, 30, 55]}
@@ -198,8 +200,8 @@
       {"kind": "sway", "rect": [1335, 35, 45, 105], "strength": 1.8, "speed": 1.2},
       {"kind": "sway", "rect": [85, 195, 45, 75], "strength": 1.6},
       {"kind": "sway", "rect": [515, 265, 35, 55], "strength": 1.6},
-      {"kind": "sway", "rect": [875, 0, 255, 205], "strength": 1.1},
-      {"kind": "sway", "rect": [1195, 0, 255, 105], "strength": 1.1},
+      {"kind": "sway", "rect": [875, 0, 255, 205], "strength": 1.1, "tree": "willow"},
+      {"kind": "sway", "rect": [1195, 0, 255, 105], "strength": 1.1, "tree": "willow"},
       {"kind": "sway", "rect": [870, 95, 60, 85]}
     ]},
     "catacombs_threshold": {"family": "blood", "zones": [
@@ -207,8 +209,8 @@
       {"kind": "water", "rect": [0, 500, 700, 441]},
       {"kind": "falls", "rect": [335, 245, 35, 65]},
       {"kind": "falls", "rect": [425, 255, 25, 45]},
-      {"kind": "sway", "rect": [0, 0, 230, 185], "strength": 1.2, "speed": 1.1},
-      {"kind": "sway", "rect": [700, 195, 280, 160], "strength": 1.0},
+      {"kind": "sway", "rect": [0, 0, 230, 185], "strength": 1.2, "speed": 1.1, "tree": "willow"},
+      {"kind": "sway", "rect": [700, 195, 280, 160], "strength": 1.0, "tree": "ivy"},
       {"kind": "pulse", "rect": [960, 0, 450, 520], "strength": 0.6},
       {"kind": "pulse", "rect": [1150, 600, 350, 300], "strength": 0.6},
       {"kind": "sway", "rect": [1180, 195, 55, 95], "strength": 1.6},
@@ -269,7 +271,7 @@
       {"kind": "sway", "rect": [595, 245, 55, 95], "strength": 1.6},
       {"kind": "sway", "rect": [340, 285, 60, 145]},
       {"kind": "sway", "rect": [635, 375, 65, 145]},
-      {"kind": "sway", "rect": [830, 195, 350, 205], "strength": 1.1}
+      {"kind": "sway", "rect": [830, 195, 350, 205], "strength": 1.1, "tree": "ivy"}
     ]},
     "crypt_skulls": {"family": "crypt", "zones": [
       {"kind": "falls", "rect": [740, 85, 80, 225]},

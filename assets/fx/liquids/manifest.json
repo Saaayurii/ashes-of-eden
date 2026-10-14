@@ -1,0 +1,128 @@
+{
+  "body_water": {
+    "cell": [
+      64,
+      64
+    ],
+    "frames": 1,
+    "fps": 0,
+    "tint": false
+  },
+  "body_lava": {
+    "cell": [
+      64,
+      64
+    ],
+    "frames": 1,
+    "fps": 0,
+    "tint": false
+  },
+  "body_bog": {
+    "cell": [
+      64,
+      64
+    ],
+    "frames": 1,
+    "fps": 0,
+    "tint": false
+  },
+  "body_blood": {
+    "cell": [
+      64,
+      64
+    ],
+    "frames": 1,
+    "fps": 0,
+    "tint": false
+  },
+  "splash": {
+    "cell": [
+      32,
+      32
+    ],
+    "frames": 8,
+    "fps": 16,
+    "tint": true
+  },
+  "splash_big": {
+    "cell": [
+      48,
+      48
+    ],
+    "frames": 8,
+    "fps": 14,
+    "tint": true
+  },
+  "lava_splash": {
+    "cell": [
+      48,
+      48
+    ],
+    "frames": 8,
+    "fps": 12,
+    "tint": false
+  },
+  "ripple": {
+    "cell": [
+      32,
+      8
+    ],
+    "frames": 6,
+    "fps": 10,
+    "tint": true
+  },
+  "bubble": {
+    "cell": [
+      8,
+      8
+    ],
+    "frames": 5,
+    "fps": 10,
+    "tint": true
+  },
+  "lava_pop": {
+    "cell": [
+      16,
+      16
+    ],
+    "frames": 6,
+    "fps": 10,
+    "tint": false
+  },
+  "gas_pop": {
+    "cell": [
+      16,
+      16
+    ],
+    "frames": 6,
+    "fps": 9,
+    "tint": false
+  },
+  "steam": {
+    "cell": [
+      24,
+      24
+    ],
+    "frames": 8,
+    "fps": 9,
+    "tint": true
+  },
+  "drip": {
+    "cell": [
+      4,
+      8
+    ],
+    "frames": 4,
+    "fps": 12,
+    "tint": true
+  },
+  "surface_glint": {
+    "cell": [
+      8,
+      3
+    ],
+    "frames": 4,
+    "fps": 12,
+    "tint": true
+  }
+}
