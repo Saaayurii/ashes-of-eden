@@ -128,10 +128,10 @@ class Overrides(unittest.TestCase):
         self.assertEqual(so.settle(), [], "settled once, nothing more to do")
 
     def test_a_rooms_painting_keeps_her_repaint(self):
-        rel = "assets/levels/graveyard_cross_wide.png"
+        rel = "assets/levels/graveyard_arches_wide.png"   # a painted room (graveyard_cross is composed)
         self.touched += ["assets/levels", "scenes/rooms"]
         self.override(rel, x=100, y=100, w=6, h=3)
-        r = self.run_gen("tools/rooms/generate_rooms.py", "graveyard_cross")
+        r = self.run_gen("tools/rooms/generate_rooms.py", "graveyard_arches")
         self.assertEqual(r.returncode, 0, r.stderr[-2000:])
         self.assertTrue(self.red_at(rel, 103, 101))
 
