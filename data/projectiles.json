@@ -472,6 +472,123 @@
           "count": 6
         }
       ]
+    },
+    "host_arrow": {
+      "sheet": "res://assets/sprites/projectiles/zealot_flight_v3.png",
+      "frames": 4,
+      "fps": 15,
+      "shader": 1,
+      "scale": 0.7,
+      "squash": [
+        0.7,
+        0.05,
+        21
+      ],
+      "pulse": 0.02,
+      "bob": [
+        0,
+        0
+      ],
+      "echo": {
+        "offset": 18,
+        "sway": [
+          1,
+          10
+        ],
+        "color": "#ffffff",
+        "alpha": 0.28,
+        "scale": 0.6
+      },
+      "burst": [
+        {
+          "fx": "spark",
+          "color": "#f4f6ff",
+          "count": 8
+        },
+        {
+          "fx": "sparkle",
+          "color": "#ffffff",
+          "count": 5,
+          "size": 4
+        }
+      ]
+    },
+    "wormwood": {
+      "sheet": "res://assets/sprites/projectiles/wraith_flight_v3.png",
+      "frames": 4,
+      "fps": 12,
+      "shader": 2,
+      "scale": 0.85,
+      "squash": [
+        1,
+        0.14,
+        13
+      ],
+      "wiggle": [
+        0.3,
+        19
+      ],
+      "echo": {
+        "offset": 8,
+        "sway": [
+          3,
+          22
+        ],
+        "color": "#c8e6a0",
+        "alpha": 0.3
+      },
+      "burst": [
+        {
+          "fx": "debris",
+          "color": "#a8c870",
+          "count": 9
+        },
+        {
+          "fx": "sparkle",
+          "color": "#f0ffe0",
+          "count": 4,
+          "size": 4
+        }
+      ]
+    },
+    "wormwood_ember": {
+      "sheet": "res://assets/sprites/projectiles/ophanim_flight_v3.png",
+      "frames": 4,
+      "fps": 12,
+      "shader": 3,
+      "scale": 0.4,
+      "trail": 10,
+      "light": 22,
+      "bob": [
+        0,
+        0
+      ],
+      "spin": 6,
+      "echo": {
+        "offset": 12,
+        "sway": [
+          2,
+          20
+        ],
+        "color": "#d8ecff",
+        "alpha": 0.35,
+        "scale": 0.6
+      },
+      "burst": [
+        {
+          "fx": "ash",
+          "color": "#cfe2ff",
+          "count": 12,
+          "spread": 40,
+          "size": 3
+        },
+        {
+          "fx": "sparkle",
+          "color": "#ffffff",
+          "count": 5,
+          "size": 5
+        }
+      ]
     }
   }
 }

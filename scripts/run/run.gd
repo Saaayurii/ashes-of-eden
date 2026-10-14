@@ -119,7 +119,9 @@ func _ready() -> void:
 	run_end.retry.connect(_restart)
 	run_end.to_menu.connect(_to_menu)
 	run_end.spar.connect(_spar)
-	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void: kills += 1)
+	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void:
+		if not Faction.felled_by_soldier():
+			kills += 1)
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
 	EventBus.player_rested.connect(_on_player_rested)

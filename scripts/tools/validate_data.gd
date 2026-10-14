@@ -141,6 +141,7 @@ func _init() -> void:
 	_check_game()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
+	_check_factions()
 	var game: Dictionary = _game()
 	for entry in _game_entries("endings"):  # a deed may name one before they are checked
 		_ending_ids[str(entry.get("id", ""))] = true
@@ -277,6 +278,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: on_death.count is 1–4" % where)
 			if not BEHAVIOURS.has(entry.get("behaviour", "walker")):
 				_error("%s: behaviour must be one of %s" % [where, BEHAVIOURS])
+			_check_enemy_side(entry, where)
 			if entry.has("sprite"):
 				_check_sprite(entry.sprite, where)
 			var attacks: Array = entry.get("attacks", [])
@@ -912,6 +914,8 @@ func _check_volley(attack: Dictionary, where: String, style: String, motion: Str
 		_error("%s: return must turn before the projectile expires" % where)
 	elif motion == "home" and amount > 4.0:
 		_error("%s: a bolt that turns faster than 4 rad/s cannot be dodged" % where)
+	if attack.has("mark_landing") and (motion != "arc" or float(attack.mark_landing) <= 0.0 or float(attack.mark_landing) > 1.2):
+		_error("%s: mark_landing is (0, 1.2] seconds of glow, only on an arcing bolt (projectile_motion arc)" % where)
 	var volley := int(attack.get("volley", 1))
 	if volley < 1 or volley > 5:
 		_error("%s: volley must be 1..5 rounds" % where)
@@ -1571,7 +1575,7 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 ## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
-const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck"]
+const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "truce_broken"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
 
@@ -1701,6 +1705,72 @@ func _check_foliage() -> void:
 				_error("data/backdrops.json: %s: only a sway zone can be a tree (a %s zone names \"%s\")" % [key, zone.get("kind", ""), zone.tree])
 			elif not styles.has(str(zone.tree)):
 				_error("data/backdrops.json: %s: tree \"%s\" is not a style of data/foliage.json (%s)" % [key, zone.tree, styles.keys()])
+
+
+## Chapter III's keys on an enemy (docs/CHAPTER3.md §9): its side, a flying
+## boss's anchor / leash / hover_floor, Wormwood's flood, and on a summon
+## "where" and "essence". The bolts' mark_landing is checked with the volley.
+func _check_enemy_side(entry: Dictionary, where: String) -> void:
+	if entry.has("faction"):
+		var sides: Dictionary = _doc("factions.json").get("factions", {})
+		if not sides.has(str(entry.faction)):
+			_error("%s: faction %s is not in data/factions.json (%s)" % [where, entry.faction, sides.keys()])
+		if entry.get("boss", false):
+			_error("%s: a boss has no side (no army comes near the star)" % where)
+	if entry.has("anchor") and not (entry.anchor is Array and entry.anchor.size() == 2):
+		_error("%s: anchor is [x, y] in finished-room pixels" % where)
+	if entry.has("leash") and (not entry.has("anchor") or float(entry.leash) <= 0.0):
+		_error("%s: leash is a positive radius around an anchor" % where)
+	if entry.has("hover_floor") and float(entry.hover_floor) < 0.0:
+		_error("%s: hover_floor is px over the floor, not negative" % where)
+	if (entry.has("anchor") or entry.has("hover_floor")) and not str(entry.get("behaviour", "walker")) in ["flyer", "boss_ophanim"]:
+		_error("%s: anchor and hover_floor hold a flyer" % where)
+	if entry.has("flood"):
+		var flood: Dictionary = entry.flood
+		if str(flood.get("liquid", "")) == "":
+			_error("%s: flood.liquid names the pool (its node name, a liquid's \"name\" in studio_rooms.json)" % where)
+		if float(flood.get("at_hp", 0.5)) <= 0.0 or float(flood.get("at_hp", 0.5)) >= 1.0:
+			_error("%s: flood.at_hp is a share of health, in (0, 1)" % where)
+		if float(flood.get("rise", 64)) <= 0.0 or float(flood.get("rise", 64)) > 200.0:
+			_error("%s: flood.rise is (0, 200] px" % where)
+		if float(flood.get("warn", 1.5)) < 0.8:
+			_error("%s: flood.warn must leave at least 0.8 s to read it" % where)
+		if float(flood.get("time", 3.0)) <= 0.0:
+			_error("%s: flood.time must be positive" % where)
+	var attacks: Array = entry.get("attacks", []) + ([entry.attack] if entry.has("attack") else [])
+	for attack in attacks:
+		if attack.has("where") and (attack.get("type") != "summon" or str(attack.where) != "liquid"):
+			_error("%s: \"where\": \"liquid\" is the only place a summon may rise" % where)
+		if attack.has("essence") and (attack.get("type") != "summon" or float(attack.essence) < 0.0):
+			_error("%s: essence on an attack is what a summon's risen pay, not negative" % where)
+
+
+## data/factions.json (scripts/enemies/faction.gd): sides that hate each other
+## both ways, the flag that spares the hero is somebody's to set (and counts as
+## read), shares of a blow and of essence between bodies in (0, 1].
+func _check_factions() -> void:
+	var parsed := _doc("factions.json")
+	if parsed.is_empty():
+		return
+	for key in ["damage_between", "essence_between"]:
+		if float(parsed.get(key, 0.5)) <= 0.0 or float(parsed.get(key, 0.5)) > 1.0:
+			_error("data/factions.json: %s must be in (0, 1]" % key)
+	if float(parsed.get("shout_radius", 160)) <= 0.0:
+		_error("data/factions.json: shout_radius must be positive")
+	var sides: Dictionary = parsed.get("factions", {})
+	for id in sides:
+		var side: Dictionary = sides[id]
+		used_keys[str(side.get("name", ""))] = "data/factions.json"
+		for other in side.get("hostile", []):
+			if not sides.has(str(other)) or str(other) == str(id):
+				_error("data/factions.json: %s is hostile to %s, which is not another side" % [id, other])
+			elif not sides[other].get("hostile", []).has(id):
+				_error("data/factions.json: %s is hostile to %s but not the other way round" % [id, other])
+		var flag := str(side.get("spares_on", ""))
+		if flag != "":
+			_read_flag(flag, "data/factions.json")
+		if side.has("color") and not Color.html_is_valid(str(side.color)):
+			_error("data/factions.json: %s.color is not a colour" % id)
 
 
 func _check_story_flags() -> void:

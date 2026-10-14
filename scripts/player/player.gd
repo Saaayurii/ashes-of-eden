@@ -1558,6 +1558,8 @@ func _throw_wave() -> void:
 ## Health a kill is worth. Only our own body collects, and only while it is
 ## still standing.
 func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
+	if Faction.felled_by_soldier():
+		return  # felled by another body (chapter III): not his kill
 	if _is_mine() and not _dead and curse > 0:
 		curse = maxi(0, curse - 1 - int(stats.curse_relief))
 		if curse == 0:

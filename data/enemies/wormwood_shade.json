@@ -1,0 +1,39 @@
+{
+  "id": "wormwood_shade",
+  "extends": "wraith",
+  "name": "ENEMY_WORMWOOD_SHADE",
+  "lore": "ENEMY_WORMWOOD_SHADE_LORE",
+  "tip": "TIP_WORMWOOD_SHADE",
+  "_comment": "Chapter III: a spirit risen from the bitter water. No side: every banner's enemy, and his.",
+  "hp": 30,
+  "essence": 12,
+  "color": "#8aa860",
+  "tags": [
+    "spirit"
+  ],
+  "light": {
+    "color": "#b8d888",
+    "radius": 52,
+    "energy": 0.75,
+    "flicker": 0.12
+  },
+  "sprite": {
+    "like": "wraith",
+    "tint": "#b8d888"
+  },
+  "attack": {
+    "type": "ranged",
+    "range": 240,
+    "reach": 0,
+    "windup": 0.75,
+    "damage": 9,
+    "cooldown": 2.4,
+    "recover": 0.4,
+    "projectile_speed": 150,
+    "projectile_motion": "wave",
+    "motion_amount": 10,
+    "projectile_style": "wormwood",
+    "color": "#c8e6a0"
+  },
+  "voice": "wraith"
+}
