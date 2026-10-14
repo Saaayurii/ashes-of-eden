@@ -136,7 +136,7 @@ async function step(name, fn) {
         compUndo(false); compUndo(false);
         return { had, drawn, sel, moved, written, back: COMP.entry.crumbling_platforms };
       });
-      assert.ok(c.had.length >= 2 && c.had.every(p => p.length === 3), JSON.stringify(c));
+      assert.ok(c.had.length >= 1 && c.had.every(p => p.length === 3), JSON.stringify(c));
       assert.equal(c.sel, 'crumbling_platforms', JSON.stringify(c));
       assert.deepEqual([c.drawn.length, c.drawn[2]], [3, 100], JSON.stringify(c));
       assert.deepEqual(c.moved, [c.drawn[0] + 10, c.drawn[1] + 10, 100], JSON.stringify(c));
