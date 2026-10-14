@@ -22,6 +22,7 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
 	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
 	"cursed_damage", "chosen_damage", "curse_relief", "covetous",
+	"liquid_mend", "truce_hold", "feud_damage", "crossfire_armor",
 	"torment_immune", "fasting", "glut", "torment_damage", "death_refused"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
@@ -29,7 +30,7 @@ const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh
 ## The moves Player reports through EventBus.technique_performed.
 const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy", "swarm"]
-const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
+const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon", "wail"]
 ## How a bolt may fly (scripts/fx/projectile.gd _advance_motion).
 const PROJECTILE_MOTIONS := ["straight", "wave", "accelerate", "arc", "surge", "return", "home"]
 const BURST_FX := ["sparkle", "ash", "debris", "spark"]
@@ -142,6 +143,7 @@ func _init() -> void:
 	_check_game()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
+	_check_factions()
 	var game: Dictionary = _game()
 	for entry in _game_entries("endings"):  # a deed may name one before they are checked
 		_ending_ids[str(entry.get("id", ""))] = true
@@ -278,6 +280,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: on_death.count is 1–4" % where)
 			if not BEHAVIOURS.has(entry.get("behaviour", "walker")):
 				_error("%s: behaviour must be one of %s" % [where, BEHAVIOURS])
+			_check_enemy_side(entry, where)
 			if entry.has("sprite"):
 				_check_sprite(entry.sprite, where)
 			var attacks: Array = entry.get("attacks", [])
@@ -288,9 +291,17 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			for attack in attacks:
 				if not ATTACK_TYPES.has(attack.get("type")):
 					_error("%s: attack.type must be one of %s" % [where, ATTACK_TYPES])
-				for field in ["windup", "damage", "cooldown"]:
+				# a wail hurts nobody: it wakes the ones who wait (Enemy.hear_wail)
+				for field in (["windup", "cooldown"] if attack.get("type") == "wail" else ["windup", "damage", "cooldown"]):
 					if float(attack.get(field, 0)) <= 0.0:
 						_error("%s: attack.%s must be positive" % [where, field])
+				if attack.get("type") == "wail":
+					if float(attack.get("windup", 0)) < 0.8:
+						_error("%s: a wail's windup is at least 0.8 s — the breath before it is the warning" % where)
+					if float(attack.get("radius", 0)) < 60.0 or float(attack.get("radius", 0)) > 400.0:
+						_error("%s: a wail's radius is 60–400 px" % where)
+					if float(attack.get("damage", 0)) != 0.0:
+						_error("%s: a wail hurts nobody (no damage)" % where)
 				# chapter V (docs/CHAPTER5.md §9): the sting, the swarm's call, the dive
 				if attack.has("torment") and (float(attack.torment) < 0.5 or float(attack.torment) > 12.0):
 					_error("%s: attack.torment is seconds of the sting, 0.5..12" % where)
@@ -300,6 +311,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: dive_to_floor is true or false, on a nova" % where)
 				if entry.get("behaviour") == "swarm" and float(attack.get("windup", 0)) < 0.5:
 					_error("%s: a locust's dive winds up at least 0.5 s" % where)
+			if entry.has("patience"):
+				_check_patience(entry, where)
 			if entry.has("swarm"):
 				_check_swarm(entry, where)
 			elif entry.get("behaviour") == "swarm":
@@ -745,6 +758,34 @@ func _check_awareness(entry: Dictionary, where: String) -> void:
 				_error("%s: unknown patrol.%s" % [where, field])
 
 
+## "patience" (Enemy._begin_tend, the Watchman): the turn to the fire and what
+## a blow in it costs him. The quickened wind-up stays readable.
+func _check_patience(entry: Dictionary, where: String) -> void:
+	var spec = entry.patience
+	if not (spec is Dictionary):
+		_error("%s: patience must be an object" % where)
+		return
+	for key in spec:
+		if not ["every", "turn", "animation", "quicken", "min_windup"].has(key):
+			_error("%s: unknown patience.%s" % [where, key])
+	var every = spec.get("every", [8.0, 10.0])
+	if not (every is Array) or every.size() != 2 or float(every[0]) < 4.0 or float(every[1]) < float(every[0]) \
+			or float(every[1]) > 30.0:
+		_error("%s: patience.every is [min, max] seconds, 4–30" % where)
+	var turn := float(spec.get("turn", 1.2))
+	if turn < 0.6 or turn > 2.5:
+		_error("%s: patience.turn is 0.6–2.5 s" % where)
+	var quicken := float(spec.get("quicken", 0.6))
+	if quicken < 0.4 or quicken > 1.0:
+		_error("%s: patience.quicken is a share of the wind-up, 0.4–1" % where)
+	if float(spec.get("min_windup", 0.5)) < 0.45:
+		_error("%s: patience.min_windup under 0.45 s is an unreadable blow" % where)
+	var animation := str(spec.get("animation", "special"))
+	var anims: Dictionary = entry.get("sprite", {}).get("animations", {}) if entry.get("sprite") is Dictionary else {}
+	if not anims.is_empty() and not anims.has(animation):
+		_error("%s: patience.animation %s is not one of its strips" % [where, animation])
+
+
 func _check_enemy_archetypes() -> void:
 	for entry in _game_entries("enemy_archetypes"):
 		var where := "enemy_archetypes/%s" % entry.get("id", "?")
@@ -928,6 +969,8 @@ func _check_volley(attack: Dictionary, where: String, style: String, motion: Str
 		_error("%s: return must turn before the projectile expires" % where)
 	elif motion == "home" and amount > 4.0:
 		_error("%s: a bolt that turns faster than 4 rad/s cannot be dodged" % where)
+	if attack.has("mark_landing") and (motion != "arc" or float(attack.mark_landing) <= 0.0 or float(attack.mark_landing) > 1.2):
+		_error("%s: mark_landing is (0, 1.2] seconds of glow, only on an arcing bolt (projectile_motion arc)" % where)
 	var volley := int(attack.get("volley", 1))
 	if volley < 1 or volley > 5:
 		_error("%s: volley must be 1..5 rounds" % where)
@@ -1513,7 +1556,7 @@ func _check_fork(entry: Dictionary, where: String) -> void:
 			continue
 		var scene := FileAccess.get_file_as_string(path)
 		var story := []
-		for field in ["intro_cutscene", "outro_cutscene", "intro_dialogue"]:
+		for field in ["intro_cutscene", "outro_cutscene", "quiet_outro", "intro_dialogue"]:
 			var at := scene.find(field + " = \"")
 			if at >= 0 and scene.substr(at + field.length() + 4, 1) != "\"":
 				story.append(field)
@@ -1641,7 +1684,7 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 ## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
-const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "fruit_eaten"]
+const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "fruit_eaten", "truce_broken"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
 
@@ -1771,6 +1814,72 @@ func _check_foliage() -> void:
 				_error("data/backdrops.json: %s: only a sway zone can be a tree (a %s zone names \"%s\")" % [key, zone.get("kind", ""), zone.tree])
 			elif not styles.has(str(zone.tree)):
 				_error("data/backdrops.json: %s: tree \"%s\" is not a style of data/foliage.json (%s)" % [key, zone.tree, styles.keys()])
+
+
+## Chapter III's keys on an enemy (docs/CHAPTER3.md §9): its side, a flying
+## boss's anchor / leash / hover_floor, Wormwood's flood, and on a summon
+## "where" and "essence". The bolts' mark_landing is checked with the volley.
+func _check_enemy_side(entry: Dictionary, where: String) -> void:
+	if entry.has("faction"):
+		var sides: Dictionary = _doc("factions.json").get("factions", {})
+		if not sides.has(str(entry.faction)):
+			_error("%s: faction %s is not in data/factions.json (%s)" % [where, entry.faction, sides.keys()])
+		if entry.get("boss", false):
+			_error("%s: a boss has no side (no army comes near the star)" % where)
+	if entry.has("anchor") and not (entry.anchor is Array and entry.anchor.size() == 2):
+		_error("%s: anchor is [x, y] in finished-room pixels" % where)
+	if entry.has("leash") and (not entry.has("anchor") or float(entry.leash) <= 0.0):
+		_error("%s: leash is a positive radius around an anchor" % where)
+	if entry.has("hover_floor") and float(entry.hover_floor) < 0.0:
+		_error("%s: hover_floor is px over the floor, not negative" % where)
+	if (entry.has("anchor") or entry.has("hover_floor")) and not str(entry.get("behaviour", "walker")) in ["flyer", "boss_ophanim"]:
+		_error("%s: anchor and hover_floor hold a flyer" % where)
+	if entry.has("flood"):
+		var flood: Dictionary = entry.flood
+		if str(flood.get("liquid", "")) == "":
+			_error("%s: flood.liquid names the pool (its node name, a liquid's \"name\" in studio_rooms.json)" % where)
+		if float(flood.get("at_hp", 0.5)) <= 0.0 or float(flood.get("at_hp", 0.5)) >= 1.0:
+			_error("%s: flood.at_hp is a share of health, in (0, 1)" % where)
+		if float(flood.get("rise", 64)) <= 0.0 or float(flood.get("rise", 64)) > 200.0:
+			_error("%s: flood.rise is (0, 200] px" % where)
+		if float(flood.get("warn", 1.5)) < 0.8:
+			_error("%s: flood.warn must leave at least 0.8 s to read it" % where)
+		if float(flood.get("time", 3.0)) <= 0.0:
+			_error("%s: flood.time must be positive" % where)
+	var attacks: Array = entry.get("attacks", []) + ([entry.attack] if entry.has("attack") else [])
+	for attack in attacks:
+		if attack.has("where") and (attack.get("type") != "summon" or str(attack.where) != "liquid"):
+			_error("%s: \"where\": \"liquid\" is the only place a summon may rise" % where)
+		if attack.has("essence") and (attack.get("type") != "summon" or float(attack.essence) < 0.0):
+			_error("%s: essence on an attack is what a summon's risen pay, not negative" % where)
+
+
+## data/factions.json (scripts/enemies/faction.gd): sides that hate each other
+## both ways, the flag that spares the hero is somebody's to set (and counts as
+## read), shares of a blow and of essence between bodies in (0, 1].
+func _check_factions() -> void:
+	var parsed := _doc("factions.json")
+	if parsed.is_empty():
+		return
+	for key in ["damage_between", "essence_between"]:
+		if float(parsed.get(key, 0.5)) <= 0.0 or float(parsed.get(key, 0.5)) > 1.0:
+			_error("data/factions.json: %s must be in (0, 1]" % key)
+	if float(parsed.get("shout_radius", 160)) <= 0.0:
+		_error("data/factions.json: shout_radius must be positive")
+	var sides: Dictionary = parsed.get("factions", {})
+	for id in sides:
+		var side: Dictionary = sides[id]
+		used_keys[str(side.get("name", ""))] = "data/factions.json"
+		for other in side.get("hostile", []):
+			if not sides.has(str(other)) or str(other) == str(id):
+				_error("data/factions.json: %s is hostile to %s, which is not another side" % [id, other])
+			elif not sides[other].get("hostile", []).has(id):
+				_error("data/factions.json: %s is hostile to %s but not the other way round" % [id, other])
+		var flag := str(side.get("spares_on", ""))
+		if flag != "":
+			_read_flag(flag, "data/factions.json")
+		if side.has("color") and not Color.html_is_valid(str(side.color)):
+			_error("data/factions.json: %s.color is not a colour" % id)
 
 
 func _check_story_flags() -> void:
@@ -2255,6 +2364,8 @@ func _check_nights(game: Dictionary) -> void:
 		var in_nights := {}
 		var planned := false
 		for path in [fork.get("after", ""), fork.get("then", "")] + (fork.get("options", {}) as Dictionary).values():
+			if fork.has("_draft") and not FileAccess.file_exists(str(path)):
+				continue  # a draft's room still waiting for its painting (_room_missing)
 			in_nights[owner.get(str(path), "?")] = true
 			planned = planned or (fork.has("_draft") and not FileAccess.file_exists(str(path)))
 		if planned:
@@ -2266,6 +2377,7 @@ func _check_nights(game: Dictionary) -> void:
 func _check_game_rooms(game: Dictionary) -> void:
 	var wants := {"enemy_id": [_enemy_ids, "enemy"], "npc_id": [_npc_ids, "npc"], "prop_id": [_prop_ids, "prop"],
 		"intro_cutscene": [_cutscene_ids, "cutscene"], "outro_cutscene": [_cutscene_ids, "cutscene"],
+		"quiet_outro": [_cutscene_ids, "cutscene"],
 		"intro_dialogue": [_dialogue_ids, "dialogue"]}
 	var line := RegEx.create_from_string("^(\\w+) = \"([^\"]+)\"$")
 	for path in DATA_DOC.all_rooms(game) + [game.get("practice_room", "")]:
@@ -2387,6 +2499,11 @@ const WEAPON_BOUNDS := {"damage": [0.5, 2.0], "backstab": [0.0, 2.0], "poise": [
 const WEAPON_STEP_NEEDS := ["multiplier", "recovery", "knockback", "heavy"]
 const WEAPON_ANIMATIONS := ["attack", "attack2", "attack3", "thrust", "rising", "dash_strike"]
 const WEAPON_ARCS := ["white", "gold", "red", "heavy", "path"]
+## A weapon's own frames (`"frames"`, make_weapon_frames.py) must be drawn for
+## its chain's poses and for these, which any weapon in hand may be put in
+## (Weapons.FRAMED).
+const WEAPON_FRAMED := ["draw", "guard", "thrust", "rising", "dash_strike", "lunge", "charge", "cleave", "sweep"]
+const HERO_FRAMES := "res://assets/sprites/elian_frames.tres"
 
 
 func _check_weapon(entry: Dictionary, where: String) -> void:
@@ -2405,6 +2522,8 @@ func _check_weapon(entry: Dictionary, where: String) -> void:
 		_error("%s: chain is 1–5 steps" % where)
 		return
 	var own: bool = entry.get("id", "") == "sword"
+	if entry.has("frames"):
+		_check_weapon_frames(str(entry.frames), chain, where)
 	for i in chain.size():
 		var step = chain[i]
 		var at := "%s.chain[%d]" % [where, i]
@@ -2444,6 +2563,29 @@ func _check_weapon(entry: Dictionary, where: String) -> void:
 					_bounded(moves[move][key], WEAPON_STEP_BOUNDS[key], "%s.techniques.%s.%s" % [where, move, key])
 				else:
 					_error("%s.techniques.%s: unknown key %s" % [where, move, key])
+
+
+## Every pose the weapon's chain names, and every one the body may take with
+## it in hand, drawn as <frames>_<pose> in the hero's SpriteFrames.
+func _check_weapon_frames(prefix: String, chain: Array, where: String) -> void:
+	if prefix == "" or not prefix.is_valid_identifier():
+		_error("%s: frames is the prefix of its animations in %s (spear -> spear_attack)" % [where, HERO_FRAMES])
+		return
+	var hero = load(HERO_FRAMES)
+	if hero == null:
+		_error("%s: cannot load %s" % [where, HERO_FRAMES])
+		return
+	var poses: Array = WEAPON_FRAMED.duplicate()
+	for step in chain:
+		if step is Dictionary and not poses.has(str(step.get("animation", ""))):
+			poses.append(str(step.get("animation", "")))
+	for pose in poses:
+		var own := "%s_%s" % [prefix, pose]
+		if not hero.has_animation(own):
+			_error("%s: no \"%s\" in %s (tools/art/make_weapon_frames.py, build_elian_frames.py)" % [where, own, HERO_FRAMES])
+		elif hero.has_animation(pose) and hero.get_frame_count(own) != hero.get_frame_count(pose):
+			# a hit frame, a hold, the touch of a technique are counted in the hero's frames
+			_error("%s: %s has %d frames, %s has %d" % [where, own, hero.get_frame_count(own), pose, hero.get_frame_count(pose)])
 
 
 func _bounded(value, bounds: Array, label: String) -> void:

@@ -3,6 +3,7 @@
   "name": "WEAPON_DAGGERS",
   "description": "WEAPON_DAGGERS_DESC",
   "icon": "res://assets/icons/weapons/daggers.png",
+  "frames": "daggers",
   "hitbox": [24, 26],
   "offset": [20, -4],
   "slash_scale": [0.8, 0.8],

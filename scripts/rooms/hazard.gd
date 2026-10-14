@@ -53,6 +53,11 @@ var _blades := {}
 var _wakes := {}
 var _ambient_left := 0.0
 var _loop: AudioStreamPlayer2D
+var _shape: CollisionShape2D
+## How far the surface has been lifted over where the room put it (set_level).
+var risen := 0.0
+var _rest_top := 0.0
+var _rest_height := 0.0
 
 
 ## Every kind as the game has it (every data root merged).
@@ -76,12 +81,12 @@ func _ready() -> void:
 	collision_mask = 2 | 4  # players, enemies
 	monitorable = false
 	var shape := CollisionShape2D.new()
-	var rect := RectangleShape2D.new()
-	# a little above the surface too: feet in the swell, a bolt skimming it
-	rect.size = size + Vector2(0, REACH + 2.0)
-	shape.position = size / 2.0 - Vector2(0, (REACH + 2.0) / 2.0)
-	shape.shape = rect
+	shape.shape = RectangleShape2D.new()
 	add_child(shape)
+	_shape = shape
+	_fit_shape()
+	_rest_top = position.y
+	_rest_height = size.y
 	surface = LiquidSurface.new()
 	surface.name = "Surface"
 	surface.z_index = 1  # over the feet that stand in it, like DecorFront
@@ -89,6 +94,30 @@ func _ready() -> void:
 	surface.setup(size, spec, painted)
 	_dress()
 	_ambient_left = randf() * float(spec.get("particles", {}).get("ambient_every", 1.0))
+
+
+## A little above the surface too: feet in the swell, a bolt skimming it.
+func _fit_shape() -> void:
+	(_shape.shape as RectangleShape2D).size = size + Vector2(0, REACH + 2.0)
+	_shape.position = size / 2.0 - Vector2(0, (REACH + 2.0) / 2.0)
+
+
+## Lifts the surface [param rise] px over where the room put it (negative lowers
+## it) in [param seconds]: the pool keeps its floor and grows upward (Wormwood's
+## "flood"). Each peer lifts its own; EventBus.liquid_level_changed says so.
+func set_level(rise: float, seconds: float) -> void:
+	var tween := create_tween()
+	tween.tween_method(_lift, risen, rise, maxf(0.01, seconds))
+	EventBus.liquid_level_changed.emit(self, rise)
+
+
+func _lift(level: float) -> void:
+	risen = level
+	position.y = _rest_top - level
+	size.y = maxf(4.0, _rest_height + level)
+	_fit_shape()
+	if surface != null:
+		surface.resize(size)
 
 
 func burns() -> bool:

@@ -60,6 +60,11 @@ static var BASE_STATS := {
 	"covetous": 0.0,            # the chance a chest's common item is a rare one instead (Covetous Eye)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
+	# Chapter III's gifts (drafts/chapter_3, docs/CHAPTER3.md §7)
+	"liquid_mend": 0.0,         # health a second while he stands in a pool that does not burn (Sweetened Water)
+	"truce_hold": 0.0,          # a soldier that has just seen him holds its first blow this long (Standard of Peace, Enemy._notice)
+	"feud_damage": 0.0,         # blows on an enemy busy fighting another enemy are worth this much more (Blood Feud)
+	"crossfire_armor": 0.0,     # armour while soldiers of two sides are awake in the room (No Man's Land)
 	# Chapter V's gifts (docs/CHAPTER5.md §7): the sting and the fruit.
 	"torment_immune": 0.0,      # 1 = the locust's sting never takes hold (Seal on the Brow)
 	"fasting": 0.0,             # a cleared room heals this much while the night's surfeit is nil (Fasting)
@@ -242,8 +247,9 @@ var versus := false
 var net_anim := "idle":
 	set(value):
 		net_anim = value
-		if not _is_mine() and body != null and body.sprite_frames.has_animation(value):
-			body.play(value)
+		if not _is_mine() and body != null and body.sprite_frames.has_animation(_pose(value)):
+			body.set_meta(&"pose", value)
+			body.play(_pose(value))
 
 var _jumps_left := 0
 var _coyote := 0.0
@@ -561,6 +567,7 @@ func _physics_process(delta: float) -> void:
 	_scripted_left = maxf(0.0, _scripted_left - delta)
 	_block_cd = maxf(0.0, _block_cd - delta)
 	_tick_rally(delta)
+	_mend_in_liquid(delta)
 	Torment.tick(self, delta)
 	_hurt_grace_left = maxf(0.0, _hurt_grace_left - delta)
 	_wrath_left = maxf(0.0, _wrath_left - delta)
@@ -866,7 +873,7 @@ func _animate(on_floor: bool) -> void:
 	if _healing_left > 0.0:
 		return  # the flask animation owns the body until the heal completes
 	if _blocking:
-		if body.animation != "guard":
+		if not _posed("guard"):
 			_play("guard")  # raise, then hold on the braced frame
 		return
 	if _dash_left > 0.0:
@@ -896,8 +903,26 @@ func _animate(on_floor: bool) -> void:
 
 func _play(animation: String) -> void:
 	body.speed_scale = 1.0  # a weapon's swing may have hurried or slowed the last one
-	body.play(animation)
+	body.set_meta(&"pose", animation)  # what ActionFx reads for a weapon's own frames
+	body.play(_pose(animation))
 	net_anim = animation
+
+
+## The frames [param animation] is drawn with in the hand's weapon: its own
+## (`"frames"` in data/weapons: spear_attack, from make_weapon_frames.py) when
+## it has them, else the hero's. net_anim carries the pose and the weapon is replicated, so a peer
+## draws the same frames.
+func _pose(animation: String) -> String:
+	var drawn := Weapons.frames(weapon)
+	if drawn == "" or body == null:
+		return animation
+	var own := "%s_%s" % [drawn, animation]
+	return own if body.sprite_frames.has_animation(own) else animation
+
+
+## The pose on the body now is [param animation], whatever weapon draws it.
+func _posed(animation: String) -> bool:
+	return body.animation == _pose(animation)
 
 
 ## A one-shot the body finishes before anything else gets to pose it.
@@ -994,6 +1019,20 @@ func heal(amount: float) -> void:
 	_emit_hp()
 
 
+## Sweetened Water: a pool that does not burn (water, bitter, bog) mends him.
+func _mend_in_liquid(delta: float) -> void:
+	if stats.liquid_mend <= 0.0 or not _is_mine() or hp >= stats.max_hp or _liquid_now() <= 0.0:
+		return
+	if bool(_liquid.spec.get("burns", false)):
+		return
+	heal(stats.liquid_mend * delta)
+
+
+## No Man's Land: armour while two sides are awake in the room (Faction).
+func _crossfire_armor() -> float:
+	if stats.crossfire_armor <= 0.0 or not Faction.two_sides_awake(get_tree()):
+		return 0.0
+	return stats.crossfire_armor
 ## The one question every heal asks (docs/CHAPTER5.md §2): not while stung.
 func can_heal() -> bool:
 	return torment <= 0.0
@@ -1196,7 +1235,7 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		Juice.shake(2.0)
 		Audio.play(&"hit_crit", -6.0)
 		return
-	amount *= 1.0 - clampf(stats.armor, 0.0, 0.5)
+	amount *= 1.0 - clampf(stats.armor + _crossfire_armor(), 0.0, 0.5)
 	# a heavy weapon's poise: a body mid-swing pays less for standing its ground
 	if _attack_anim_left > 0.0:
 		amount *= 1.0 - Weapons.number(weapon, "poise", 0.0)
@@ -1608,6 +1647,8 @@ func _throw_wave() -> void:
 ## Health a kill is worth. Only our own body collects, and only while it is
 ## still standing.
 func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
+	if Faction.felled_by_soldier():
+		return  # felled by another body (chapter III): not his kill
 	if _is_mine() and not _dead and curse > 0:
 		curse = maxi(0, curse - 1 - int(stats.curse_relief))
 		if curse == 0:
@@ -1867,10 +1908,10 @@ static func action_spec(id: String) -> Dictionary:
 func _action_hit_frame(spec: Dictionary, animation: String) -> bool:
 	if not body.sprite_frames.has_animation(animation):
 		return true
-	var frame := clampi(int(spec.get("hit_frame", 0)), 0, body.sprite_frames.get_frame_count(animation) - 1)
+	var frame := clampi(int(spec.get("hit_frame", 0)), 0, body.sprite_frames.get_frame_count(_pose(animation)) - 1)
 	while body.frame < frame:
 		await get_tree().process_frame
-		if not is_inside_tree() or _dead or body.animation != animation:
+		if not is_inside_tree() or _dead or not _posed(animation):
 			return false
 	return true
 
@@ -2024,6 +2065,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Cruel Opening: the wind-up the player can read is also a door
 		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
 			damage *= 1.0 + stats.windup_bonus
+		# Blood Feud: a body busy with another body has turned its back on him
+		if live_enemy and stats.feud_damage > 0.0 and (target as Enemy).feuding():
+			damage *= 1.0 + stats.feud_damage
 		# Glut and Honeyed Sting (docs/CHAPTER5.md §7): what was eaten, what stings
 		if live_enemy:
 			damage *= Torment.damage_factor(self)

@@ -246,6 +246,47 @@ func _run() -> void:
 	player.stats.chosen_damage = 0.0
 	_assert(common_loss > 0.0 and absf(chosen_loss / common_loss - 1.25) < 0.05,
 		"trophy hunter: an elite takes a quarter more (%.1f vs %.1f)" % [chosen_loss, common_loss])
+	# Blood Feud: a body fighting another body takes more; one after him does not
+	player.stats.feud_damage = 0.35
+	var rival = run.room.spawn_enemy("legion_possessed", enemy.global_position + Vector2(0, -400), true)
+	await _frames(2)
+	var plain_feud: float = await swing_loss.call(false)
+	enemy._target = rival
+	var feud_loss: float = await swing_loss.call(false)
+	enemy._target = null
+	player.stats.feud_damage = 0.0
+	_assert(plain_feud > 0.0 and absf(feud_loss / plain_feud - 1.35) < 0.05,
+		"blood feud: a body fighting another takes 35%% more (%.1f vs %.1f)" % [feud_loss, plain_feud])
+	# No Man's Land: armour only while two sides are awake
+	player.stats.crossfire_armor = 0.12
+	var lone: float = player._crossfire_armor()
+	var other_side = run.room.spawn_enemy("host_spearman", rival.global_position + Vector2(40, 0), true)
+	await _frames(2)
+	var crossfire: float = player._crossfire_armor()
+	other_side.queue_free()
+	rival.queue_free()
+	await _frames(2)
+	player.stats.crossfire_armor = 0.0
+	_assert(is_zero_approx(lone) and is_equal_approx(crossfire, 0.12),
+		"no man's land: armour only while two sides are awake (%.2f alone, %.2f between)" % [lone, crossfire])
+	# Sweetened Water: a sweet_pool that does not burn mends him, lava does not
+	player.stats.liquid_mend = 2.0
+	var sweet_pool = load("res://scripts/rooms/hazard.gd").new()
+	sweet_pool.spec = {"burns": false}
+	player.hp = 50.0
+	player.liquid_touch(sweet_pool, 0.5)
+	player._mend_in_liquid(1.0)
+	var mended: float = player.hp - 50.0
+	sweet_pool.spec = {"burns": true}
+	player.liquid_touch(sweet_pool, 0.5)
+	player._mend_in_liquid(1.0)
+	var burned: float = player.hp - 50.0 - mended
+	player._liquid = null
+	sweet_pool.free()
+	player.stats.liquid_mend = 0.0
+	player.hp = base_hp
+	_assert(is_equal_approx(mended, 2.0) and is_zero_approx(burned),
+		"sweetened water: 2 hp a second in water, nothing in lava (%.1f, %.1f)" % [mended, burned])
 	enemy.state = enemy.State.CHASE
 	await _frames(30)
 	# Benediction: a special move that lands heals; a plain swing does not

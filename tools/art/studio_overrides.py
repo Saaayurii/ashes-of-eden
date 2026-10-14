@@ -41,7 +41,7 @@ MANIFEST = os.path.join(DIR, "overrides.json")
 ## The generators of tools/check_generators.py that pass what they write through `patched`,
 ## and so whose pictures the studio may edit (tools/studio/build_data.py lists them for it).
 OVERRIDABLE = {"secret walls", "altar book", "blood altar", "weapon icons", "bestiary strips", "ophanim seals",
-               "rooms", "hero moves", "practice yard", "liquids",
+               "rooms", "weapon frames", "hero moves", "practice yard", "liquids",
                "engedi props"}
 
 _cache = None

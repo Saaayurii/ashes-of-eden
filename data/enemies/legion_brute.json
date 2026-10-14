@@ -1,0 +1,55 @@
+{
+  "id": "legion_brute",
+  "name": "ENEMY_LEGION_BRUTE",
+  "lore": "ENEMY_LEGION_BRUTE_LORE",
+  "tip": "TIP_LEGION_BRUTE",
+  "_comment": "Chapter III. Stub art: the shield-bearer's strips, scorched.",
+  "faction": "legion",
+  "hp": 100,
+  "speed": 42,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 380,
+  "size": 15,
+  "color": "#6a4a32",
+  "material": "plate",
+  "tags": [
+    "fallen"
+  ],
+  "armor": 0.1,
+  "shield": 0.6,
+  "stagger_chance": 0.1,
+  "flinch": 0.08,
+  "hit_retreat": 0.0,
+  "essence": 28,
+  "voice": "fallen_guard",
+  "sprite": {
+    "like": "shield_bearer",
+    "tint": "#c8a080"
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 52,
+      "reach": 72,
+      "windup": 1.0,
+      "damage": 18,
+      "cooldown": 2.6,
+      "recover": 0.9,
+      "weight": 2,
+      "animation": "attack"
+    },
+    {
+      "type": "melee",
+      "range": 30,
+      "reach": 40,
+      "windup": 0.6,
+      "damage": 8,
+      "cooldown": 3.2,
+      "recover": 0.6,
+      "weight": 1,
+      "animation": "attack_alt"
+    }
+  ]
+}

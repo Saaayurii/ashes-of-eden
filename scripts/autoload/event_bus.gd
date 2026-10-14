@@ -74,6 +74,11 @@ signal lighting_changed
 signal run_restored
 ## "Again" on the night's end: another night begins (Telemetry counts it).
 signal night_retried
+## A soldier's truce with the hero broke (Faction.break_truce, host) or a side was
+## chosen (Faction.flag_set): whether the body keeps the door shut changed.
+signal enemy_holds_changed(enemy: Node, holds: bool)
+## A pool's surface was lifted or lowered (Hazard.set_level: Wormwood's flood).
+signal liquid_level_changed(pool: Node, rise: float)
 ## A fruit was eaten (scripts/rooms/fruit.gd): its prop id and the night's
 ## surfeit after it. Playtest logs it as "eat".
 signal fruit_eaten(id: String, surfeit: int)

@@ -49,10 +49,23 @@ ANIMATIONS = [
     ("talk", "elian_talk", True, 6.0),
     ("talk2", "elian_talk2", True, 6.0),
 ]
+## Each weapon's own frames (make_weapon_frames.py, make_elian_moves.py):
+## <weapon>_<animation> for every pose that shows what is in his hand, at the
+## sword's speed. Player._play takes them when the weapon has them.
+WEAPONS = ["spear", "headsman", "daggers"]
+ARMED = ["draw", "attack", "attack2", "attack3", "thrust", "rising", "dash_strike",
+         "lunge", "charge", "cleave", "sweep", "hurt", "knockback", "land"]
+_STRIP = {name: (strip, loop, speed) for name, strip, loop, speed in ANIMATIONS}
+for _weapon in WEAPONS:
+    for _name in ARMED:
+        _strip, _loop, _speed = _STRIP[_name]
+        ANIMATIONS.append(("%s_%s" % (_weapon, _name), "elian_%s_%s" % (_weapon, _strip[len("elian_"):]), _loop, _speed))
+
 ## Animations that borrow single frames from another strip instead of their own.
 ## The guard is the braced stance and the blade up across the body, two frames
 ## of the short base swing, held on the second.
-BORROWED = [("guard", "elian_attack", [0, 4], False, 16.0)]
+BORROWED = [("guard", "elian_attack", [0, 4], False, 16.0)] + \
+    [("%s_guard" % w, "elian_%s_attack" % w, [0, 4], False, 16.0) for w in WEAPONS]
 
 ## The sword's effects (scenes/player/player.tscn, Hitbox/Slash): one arc per
 ## colour, the finisher's heavy arc, and what a hit throws off a body.
@@ -78,7 +91,7 @@ def build():
 
 def write(file_name, animations, borrowed, cell):
     strips = sorted({strip for _, strip, _, _ in animations} | {strip for _, strip, _, _, _ in borrowed},
-                    key=lambda s: [a[1] for a in animations].index(s) if any(a[1] == s for a in animations) else 99)
+                    key=lambda s: ([a[1] for a in animations].index(s) if any(a[1] == s for a in animations) else 999, s))
     counts = {strip: frame_count(strip, cell) for strip in strips}
 
     ext = "".join(f'[ext_resource type="Texture2D" path="res://assets/sprites/{s}.png" id="tex_{s}"]\n' for s in strips)

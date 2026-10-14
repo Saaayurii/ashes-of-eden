@@ -170,6 +170,7 @@ func apply_effect(effect: Dictionary) -> void:
 func set_flag(flag: String) -> void:
 	flags[flag] = true
 	Campaign.keep(flag)
+	Faction.flag_set(flag)  # a side chosen takes hold at once (chapter III)
 
 
 ## The path the player leans towards. Ties resolve to Will: the human default.

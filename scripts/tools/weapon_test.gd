@@ -101,17 +101,23 @@ func _run() -> void:
 		# the chain, step by step, close in
 		await _place(hero, dummy, 18.0)
 		var poses: Array = []
+		var drawn: Array = []
 		var blows: Array = []
 		var steps: int = weapons.chain(id).size()
 		for i in steps:
 			var before: float = dummy.hp
 			await _tap("attack")
-			poses.append(str(hero.body.animation))
+			poses.append(str(hero.body.get_meta(&"pose", "")))
+			drawn.append(str(hero.body.animation))
 			while hero._attack_cd > 0.0:
 				await physics_frame
 			await _frames(1)
 			blows.append(snappedf((before - dummy.hp) / swing, 0.01))
 		_check(hero._combo == 0, "%s: the chain has %d steps and starts again" % [id, steps])
+		# drawn with its own frames (data/weapons "frames"), the sword with the hero's
+		var prefix: String = weapons.frames(id)
+		var want_drawn: Array = poses.map(func(p: String) -> String: return p if prefix == "" else "%s_%s" % [prefix, p])
+		_check(drawn == want_drawn, "%s: drawn with %s (%s)" % [id, "its own frames" if prefix != "" else "the hero's own", drawn])
 		# six seconds of attack pressed as soon as it is back
 		await _place(hero, dummy, 18.0)
 		var dealt := 0.0

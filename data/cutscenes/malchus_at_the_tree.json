@@ -1,0 +1,26 @@
+{
+  "id": "malchus_at_the_tree",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.4},
+    {"do": "camera", "between": ["npc:malchus", "npc:marah_scout"], "zoom": 1.15, "time": 1.4},
+    {"do": "wait", "time": 0.4},
+    {"do": "camera", "between": ["player", "npc:malchus"], "zoom": 1.15, "time": 1.0},
+    {"do": "dialogue", "id": "ch3_malchus", "cast": {"NPC_MALCHUS": "npc:malchus", "NPC_MARAH_SCOUT": "npc:marah_scout", "SPEAKER_ELIAN": "player"}, "zoom": 1.3},
+    {"do": "fx", "kind": "sparkle", "at": "npc:marah_scout", "offset": [0, -20], "color": "#e8e0c8", "amount": 10, "if": "prisoner_cut"},
+    {"do": "dialogue", "id": "ch3_malchus_cut", "cast": {"NPC_MALCHUS": "npc:malchus", "NPC_MARAH_SCOUT": "npc:marah_scout", "SPEAKER_ELIAN": "player"}, "zoom": 1.3, "if": "prisoner_cut"},
+    {"do": "vanish", "who": "npc:marah_scout", "time": 0.8, "if": "prisoner_cut"},
+    {"do": "dialogue", "id": "ch3_malchus_asked", "cast": {"NPC_MALCHUS": "npc:malchus", "NPC_MARAH_SCOUT": "npc:marah_scout", "SPEAKER_ELIAN": "player"}, "zoom": 1.3, "if": "malchus_asked"},
+    {"do": "dialogue", "id": "ch3_malchus_hanged", "cast": {"NPC_MALCHUS": "npc:malchus", "NPC_MARAH_SCOUT": "npc:marah_scout", "SPEAKER_ELIAN": "player"}, "zoom": 1.3, "if": "malchus_hanged"},
+    {"do": "fade", "to": 1.0, "time": 0.8, "if": "malchus_hanged"},
+    {"do": "shake", "strength": 2, "time": 0.3, "if": "malchus_hanged"},
+    {"do": "appear", "who": "npc:malchus_hanged", "time": 0.1, "if": "malchus_hanged"},
+    {"do": "vanish", "who": "npc:malchus", "time": 0.1},
+    {"do": "fade", "to": 0.0, "time": 0.8, "if": "malchus_hanged"},
+    {"do": "dialogue", "id": "ch3_malchus_hanged_after", "cast": {"SPEAKER_ELIAN": "player"}, "if": "malchus_hanged"},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.8},
+    {"do": "dialogue", "id": "ch3_gallows_branch", "cast": {"SPEAKER_ELIAN": "player"}},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
+  ]
+}

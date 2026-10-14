@@ -1,0 +1,61 @@
+[
+  {
+    "id": "marah_gallows",
+    "chapter": "CHAPTER_III",
+    "title": "AREA_MARAH_GALLOWS",
+    "subtitle": "AREA_MARAH_GALLOWS_SUB",
+    "color": "#c8c4b0",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/marah_gallows.tscn"
+    ]
+  },
+  {
+    "id": "marah_ford",
+    "chapter": "CHAPTER_III",
+    "title": "AREA_MARAH_FORD",
+    "subtitle": "AREA_MARAH_FORD_SUB",
+    "color": "#a8b88a",
+    "rooms": [
+      "res://scenes/rooms/marah_ford.tscn",
+      "res://scenes/rooms/marah_host_bank.tscn",
+      "res://scenes/rooms/marah_legion_bank.tscn"
+    ]
+  },
+  {
+    "id": "marah_field",
+    "chapter": "CHAPTER_III",
+    "title": "AREA_MARAH_FIELD",
+    "subtitle": "AREA_MARAH_FIELD_SUB",
+    "color": "#b8a890",
+    "rooms": [
+      "res://scenes/rooms/marah_field.tscn",
+      "res://scenes/rooms/marah_trench.tscn"
+    ]
+  },
+  {
+    "id": "marah_lines",
+    "chapter": "CHAPTER_III",
+    "title": "AREA_MARAH_LINES",
+    "subtitle": "AREA_MARAH_LINES_SUB",
+    "color": "#c0b8a8",
+    "rooms": [
+      "res://scenes/rooms/marah_parley.tscn",
+      "res://scenes/rooms/marah_siege.tscn",
+      "res://scenes/rooms/marah_bitter_wells.tscn",
+      "res://scenes/rooms/marah_dry_bed.tscn"
+    ]
+  },
+  {
+    "id": "marah_spring",
+    "chapter": "CHAPTER_III",
+    "title": "AREA_MARAH_SPRING",
+    "subtitle": "AREA_MARAH_SPRING_SUB",
+    "color": "#d8ecff",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/marah_springs_path.tscn",
+      "res://scenes/rooms/marah_wormwood_spring.tscn"
+    ]
+  }
+]
