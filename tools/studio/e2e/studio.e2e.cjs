@@ -46,7 +46,8 @@ async function step(name, fn) {
   const browser = await chromium.launch();
   const errors = [];
   try {
-    for (let i = 0; i < 60; i++) { try { if ((await fetch(URL + 'import/meta.json')).ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
+    // read the body: an unread 70 KB answer on a socket the server then closes trips undici's own assert (Node 22) and kills the run
+    for (let i = 0; i < 60; i++) { try { const r = await fetch(URL + 'import/meta.json'); await r.arrayBuffer(); if (r.ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
     const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
     page.on('pageerror', e => errors.push(String(e)));
     page.on('dialog', d => d.accept(d.type() === 'prompt' ? 'e2e_archer' : undefined));
