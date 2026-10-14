@@ -139,6 +139,9 @@ func apply_effect(effect: Dictionary) -> void:
 		alignment[path] += int(effect.get(path, 0))
 	for flag in effect.get("set_flags", []):
 		flags[flag] = true
+	# a choice that costs something real (Lazarus on the road, docs/CHAPTER2.md)
+	if int(effect.get("flask", 0)) != 0:
+		EventBus.flasks_given.emit(-int(effect.flask))
 	EventBus.alignment_changed.emit(alignment.duplicate())
 
 

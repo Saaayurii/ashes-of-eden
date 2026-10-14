@@ -1,0 +1,23 @@
+[
+  {
+    "id": "note_jonah_sermon",
+    "name": "NOTE_JONAH_SERMON",
+    "dialogue": "note_jonah_sermon",
+    "place": "seir_gate",
+    "avatar": "res://assets/icons/quest/letter_1.png"
+  },
+  {
+    "id": "note_orpah_log",
+    "name": "NOTE_ORPAH_LOG",
+    "dialogue": "note_orpah_log",
+    "place": "seir_harbour",
+    "avatar": "res://assets/icons/quest/letter_6.png"
+  },
+  {
+    "id": "note_relief_order",
+    "name": "NOTE_RELIEF_ORDER",
+    "dialogue": "note_relief_order",
+    "place": "seir_lighthouse",
+    "avatar": "res://assets/icons/quest/letter_3.png"
+  }
+]

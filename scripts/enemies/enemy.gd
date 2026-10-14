@@ -245,7 +245,8 @@ func _ready() -> void:
 		collision_mask &= ~16  # ledges are for walkers; a flyer passes through them
 	_home = global_position
 	_patrol_wait = randf_range(0.2, 1.2)
-	aware = start_aware or bool(stats.get("aware", false)) or bool(stats.get("boss", false))
+	# one that waits (chapter II) is never awake until struck, a boss included
+	aware = start_aware or (not waits() and (bool(stats.get("aware", false)) or bool(stats.get("boss", false))))
 	state = State.CHASE if aware else State.PATROL
 	if Net.active:
 		_simulated = multiplayer.is_server()
@@ -345,6 +346,13 @@ func _fell_out_of_room() -> bool:
 ## True while it has not noticed anybody: a sword landing now is a backstab.
 func is_unaware() -> bool:
 	return state == State.PATROL or state == State.ALERT
+
+
+## "waits" in the JSON (docs/CHAPTER2.md): it sees nobody, feels no touch and
+## hears no shout — only a blow wakes it — and it never holds the door
+## (Room.holds_door). The city where nobody fights is made of these.
+func waits() -> bool:
+	return bool(stats.get("waits", false))
 
 
 func _setup_sprite(spec: Dictionary) -> void:
@@ -462,7 +470,7 @@ func _physics_process(delta: float) -> void:
 		_patrol(delta)
 		_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
 		move_and_slide()
-		var seen := _spot_player()
+		var seen: Player = null if waits() else _spot_player()
 		if seen != null:
 			_notice(seen)
 		return
@@ -656,7 +664,7 @@ func _can_see(who: Player) -> bool:
 
 ## "!" — one readable beat, then the hunt. Sleepers nearby wake with us.
 func _notice(who: Player, shout := true) -> void:
-	if not is_unaware():
+	if not is_unaware() or waits():
 		return
 	_target = who
 	aware = true
@@ -1485,6 +1493,8 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 		if Net.active:
 			_net_riposte_fx.rpc()
 	if is_unaware():
+		if waits():
+			Game.flags["waiter_struck"] = true  # somebody who was only waiting (read in chapter II)
 		# Whoever it was, it is awake now; the nearest player is picked up on the next tick.
 		aware = true
 		_target = null

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "seir_cache_jonah_sermon",
+    "_art": "the chest behind a bricked-up doorway; the wall itself is cut from the room's painting by tools/art/make_secret_walls.py once it exists",
+    "kind": "chest",
+    "essence": 30,
+    "ash": 10,
+    "note": "note_jonah_sermon",
+    "glow": "#e0c890",
+    "hitbox": [
+      24,
+      20
+    ],
+    "sprite": {
+      "path": "res://assets/props/chest_wooden.png",
+      "frame_w": 40,
+      "frame_h": 32,
+      "frames": 4
+    },
+    "icon": [
+      "res://assets/icons/quest/letter_1.png"
+    ]
+  },
+  {
+    "id": "seir_cache_orpah_log",
+    "_art": "the chest behind a bricked-up doorway; the wall itself is cut from the room's painting by tools/art/make_secret_walls.py once it exists",
+    "kind": "chest",
+    "essence": 30,
+    "ash": 15,
+    "note": "note_orpah_log",
+    "glow": "#e0c890",
+    "hitbox": [
+      24,
+      20
+    ],
+    "sprite": {
+      "path": "res://assets/props/chest_wooden.png",
+      "frame_w": 40,
+      "frame_h": 32,
+      "frames": 4
+    },
+    "icon": [
+      "res://assets/icons/quest/letter_6.png"
+    ],
+    "effect": {
+      "set_flags": [
+        "read_orpah_log"
+      ]
+    }
+  },
+  {
+    "id": "seir_cache_relief_order",
+    "_art": "the chest behind a bricked-up doorway; the wall itself is cut from the room's painting by tools/art/make_secret_walls.py once it exists",
+    "kind": "chest",
+    "essence": 30,
+    "ash": 15,
+    "note": "note_relief_order",
+    "glow": "#e0c890",
+    "hitbox": [
+      24,
+      20
+    ],
+    "sprite": {
+      "path": "res://assets/props/chest_wooden.png",
+      "frame_w": 40,
+      "frame_h": 32,
+      "frames": 4
+    },
+    "icon": [
+      "res://assets/icons/quest/letter_3.png"
+    ],
+    "effect": {
+      "set_flags": [
+        "read_relief_order"
+      ]
+    }
+  }
+]

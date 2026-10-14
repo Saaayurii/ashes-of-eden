@@ -98,6 +98,8 @@ var used_keys := {}  # localization key -> where it is used
 ## checked rather than noticed.
 var flags_set := {}
 var flags_read := {}
+## Rooms a draft names that have no scene yet (scene -> draft), printed at the end.
+var _planned_rooms := {}
 
 
 func _init() -> void:
@@ -140,6 +142,7 @@ func _init() -> void:
 					_error("%s: duplicate id \"%s\"" % [collection, entry.id])
 				ids[entry.id] = true
 	_check_game_rooms(game)
+	_check_draft_plans()
 	for key in used_keys:
 		if not strings.has(key):
 			_error("missing localization key %s (used in %s)" % [key, used_keys[key]])
@@ -155,6 +158,12 @@ func _init() -> void:
 
 	for w in warnings:
 		print("WARNING: " + w)
+	if not _planned_rooms.is_empty():
+		var by_draft := {}
+		for scene in _planned_rooms:
+			by_draft[_planned_rooms[scene]] = int(by_draft.get(_planned_rooms[scene], 0)) + 1
+		for draft in by_draft:
+			print("drafts/%s: checked; %d room(s) wait for their paintings" % [draft, by_draft[draft]])
 	if errors.is_empty():
 		print("OK: %s, %d localization keys x %d locales%s"
 			% [counts, strings.size(), LOCALES.size(),
@@ -278,8 +287,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			if rooms.is_empty():
 				_error("%s: a chapter with no rooms is never shown" % where)
 			for scene in rooms:
-				if not FileAccess.file_exists(str(scene)):
-					_error("%s: room scene not found: %s" % [where, scene])
+				_room_missing(entry, str(scene), where, "room scene")
 				if _room_chapter.has(scene):
 					_error("%s: room %s is already claimed by %s" % [where, scene, _room_chapter[scene]])
 				_room_chapter[scene] = entry.get("id", "?")
@@ -385,8 +393,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: armor must be #rrggbb" % where)
 		"rest_points":
 			# the id is the room it stands in
-			if not FileAccess.file_exists("res://scenes/rooms/%s.tscn" % entry.get("id", "")):
-				_error("%s: no room scene of that name" % where)
+			_room_missing(entry, "res://scenes/rooms/%s.tscn" % entry.get("id", ""), where, "no room scene of that name")
 			var at = entry.get("at", [])
 			if not at is Array or at.size() != 2:
 				_error("%s: at is [x, y] on the room's floor" % where)
@@ -633,6 +640,10 @@ func _exits(node: Dictionary) -> Array:
 func _check_awareness(entry: Dictionary, where: String) -> void:
 	if entry.has("aware") and not (entry.aware is bool):
 		_error("%s: aware must be true or false" % where)
+	if entry.has("waits") and not (entry.waits is bool):
+		_error("%s: waits must be true or false" % where)
+	if entry.get("waits", false) and entry.get("aware", false):
+		_error("%s: one that waits is never awake from the start" % where)
 	var sight: Dictionary = entry.get("sight", {})
 	for field in sight:
 		if not ["range", "height", "behind"].has(field):
@@ -1147,8 +1158,7 @@ func _deed_counters() -> Array:
 ## person, a rest point — the night that did not take that way would lose it.
 func _check_fork(entry: Dictionary, where: String) -> void:
 	for key in ["after", "then"]:
-		if not FileAccess.file_exists(str(entry.get(key, ""))):
-			_error("%s: %s room not found: %s" % [where, key, entry.get(key, "")])
+		_room_missing(entry, str(entry.get(key, "")), where, key + " room")
 	var options: Dictionary = entry.get("options", {})
 	if options.size() < 2:
 		_error("%s: a fork needs two ways at least" % where)
@@ -1171,8 +1181,7 @@ func _check_fork(entry: Dictionary, where: String) -> void:
 		rested[str(point.get("id", ""))] = true
 	for key in options:
 		var path := str(options[key])
-		if not FileAccess.file_exists(path):
-			_error("%s: option %s not found: %s" % [where, key, path])
+		if _room_missing(entry, path, where, "option " + key):
 			continue
 		var scene := FileAccess.get_file_as_string(path)
 		var story := []
@@ -1303,7 +1312,8 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
-const FLAGS_SET_IN_CODE := ["blood_paid"]
+## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
+const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
 
@@ -1393,8 +1403,11 @@ func _check_story_flags() -> void:
 func _check_effect(effect: Dictionary, where: String) -> void:
 	for flag in effect.get("set_flags", []):
 		flags_set[str(flag)] = where
+	if effect.has("flask") and (not (effect.flask is float or effect.flask is int) or int(effect.flask) != float(effect.flask)
+			or absi(int(effect.flask)) > 3 or int(effect.flask) == 0):
+		_error("%s: flask is a whole number of flasks, -3..3 (negative: given away)" % where)
 	for key in effect:
-		if not PATHS.has(key) and key != "set_flags":
+		if not PATHS.has(key) and not key in ["set_flags", "flask"]:
 			_error("%s: unknown effect key \"%s\"" % [where, key])
 
 
@@ -1417,9 +1430,12 @@ func _game_entries(collection: String) -> Array:
 	var game := _game()
 	var entries := []
 	var at := {}
+	var drafts := _draft_roots()
 	for data_root in DATA_DOC.collection_roots(collection, _validated_roots(), game):
 		var mine := {}
 		for entry in _load_entries(data_root.path_join(collection), data_root != DATA_ROOTS[0]):
+			if drafts.has(data_root):
+				entry["_draft"] = data_root.get_base_dir().get_file()
 			if entry.has("id") and at.has(entry.id) and not mine.has(entry.id):
 				entries[at[entry.id]] = entry  # the pack's own replaces the engine's
 				mine[entry.id] = true
@@ -1493,15 +1509,100 @@ func _warn(message: String) -> void:
 ## own, then a game pack checked out into ./content (docs/GAME_PACKS.md).
 const DATA_DOC := preload("res://scripts/data/data_doc.gd")
 const DATA_ROOTS := ["res://data", "res://content/data"]
+const DRAFTS := "res://drafts"
 
 
 ## The engine's data and the game pack's, if one is checked out; never a player's mods.
+## Then every draft (res://drafts/<name>/data, docs/CHAPTER2.md): a chapter
+## written ahead of its paintings. The game never reads a draft (it is not in
+## DataDoc.ROOTS, and drafts/.gdignore keeps it out of the import and the
+## export); the validator checks it with the rest, so its strings, flags and
+## people stay true to the game it will join.
 func _validated_roots() -> Array[String]:
 	var out: Array[String] = []
 	for data_root in DATA_ROOTS:
 		if DirAccess.dir_exists_absolute(data_root):
 			out.append(data_root)
+	return out + _draft_roots()
+
+
+func _draft_roots() -> Array[String]:
+	var out: Array[String] = []
+	var drafts := DirAccess.open(DRAFTS)
+	if drafts:
+		var names := drafts.get_directories()
+		names.sort()
+		for draft in names:
+			if DirAccess.dir_exists_absolute(DRAFTS.path_join(draft).path_join("data")):
+				out.append(DRAFTS.path_join(draft).path_join("data"))
 	return out
+
+
+
+## A draft's room plan (`drafts/<name>/rooms.json`, docs/CHAPTER2.md): every
+## room is a scene some chapter area of the drafts lists, and every enemy,
+## person, prop, cutscene, rest point, fork and stand-in painting it names
+## exists — so the plan the artist works from is the one the data can play.
+func _check_draft_plans() -> void:
+	var rests := {}
+	for rest in _game_entries("rest_points"):
+		rests[rest.get("id", "")] = true
+	var forks := {}
+	for fork in _game_entries("forks"):
+		forks[fork.get("id", "")] = true
+	for data_root in _draft_roots():
+		var path := data_root.get_base_dir().path_join("rooms.json")
+		if not FileAccess.file_exists(path):
+			continue
+		var plan = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not plan is Dictionary or not plan.get("rooms") is Array:
+			_error("%s: wants {\"rooms\": [...]}" % path)
+			continue
+		var seen := {}
+		for room in plan.rooms:
+			var where := "%s: %s" % [path, room.get("id", "?")]
+			var scene := "res://scenes/rooms/%s.tscn" % room.get("id", "")
+			if seen.has(scene):
+				_error(where + ": listed twice")
+			seen[scene] = true
+			if not _planned_rooms.has(scene) and not ResourceLoader.exists(scene):
+				_error(where + ": no chapter area of the drafts lists this room")
+			if not _chapter_ids.has(room.get("area", "")):
+				_error("%s: unknown area \"%s\"" % [where, room.get("area", "")])
+			for id in room.get("enemies", {}):
+				if not _enemy_ids.has(id):
+					_error("%s: unknown enemy \"%s\"" % [where, id])
+			for id in room.get("npcs", []):
+				if not _npc_ids.has(id):
+					_error("%s: unknown npc \"%s\"" % [where, id])
+			for id in room.get("props", []):
+				if not _prop_ids.has(id):
+					_error("%s: unknown prop \"%s\"" % [where, id])
+			for key in ["intro", "outro"]:
+				if room.has(key) and not _cutscene_ids.has(room[key]):
+					_error("%s: unknown cutscene \"%s\"" % [where, room[key]])
+			if room.has("rest") and not rests.has(room.rest):
+				_error("%s: unknown rest point \"%s\"" % [where, room.rest])
+			if room.has("fork") and not forks.has(room.fork):
+				_error("%s: unknown fork \"%s\"" % [where, room.fork])
+			for other in room.get("stand_in", []):
+				if not ResourceLoader.exists("res://scenes/rooms/%s.tscn" % other):
+					_error("%s: stand-in \"%s\" is not a room" % [where, other])
+		for scene in _planned_rooms:
+			if _planned_rooms[scene] == data_root.get_base_dir().get_file() and not seen.has(scene):
+				_error("%s: %s is in the drafts' data but not in the plan" % [path, scene])
+
+## A room a draft names is allowed not to exist yet: its painting is still to
+## come. Counted and printed, never an error — the moment the scene exists it
+## is checked like any other.
+func _room_missing(entry: Dictionary, scene: String, where: String, what: String) -> bool:
+	if FileAccess.file_exists(scene):
+		return false
+	if entry.has("_draft"):
+		_planned_rooms[scene] = entry._draft
+	else:
+		_error("%s: %s not found: %s" % [where, what, scene])
+	return true
 
 
 ## A single-document file merged the way Data.load_doc merges it.
