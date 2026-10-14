@@ -1,78 +1,18 @@
 {
   "id": "wormwood_arrival",
   "steps": [
-    {
-      "do": "hold"
-    },
-    {
-      "do": "letterbox",
-      "on": true,
-      "time": 0.4
-    },
-    {
-      "do": "camera",
-      "to": "boss",
-      "zoom": 1.15,
-      "time": 1.4
-    },
-    {
-      "do": "fx",
-      "kind": "light",
-      "at": "boss",
-      "offset": [
-        0,
-        -20
-      ],
-      "color": "#d8ecff",
-      "radius": 110,
-      "time": 2.0,
-      "energy": 1
-    },
-    {
-      "do": "sound",
-      "name": "bell",
-      "volume": -14
-    },
-    {
-      "do": "wait",
-      "time": 0.6
-    },
-    {
-      "do": "title",
-      "who": "boss",
-      "time": 1.6
-    },
-    {
-      "do": "dialogue",
-      "id": "ch3_wormwood",
-      "cast": {
-        "SPEAKER_WORMWOOD": "boss",
-        "SPEAKER_ELIAN": "player"
-      },
-      "zoom": 1.3
-    },
-    {
-      "do": "camera",
-      "to": "player",
-      "zoom": 1.0,
-      "time": 0.7
-    },
-    {
-      "do": "anim",
-      "who": "player",
-      "anim": "draw"
-    },
-    {
-      "do": "wait",
-      "time": 0.4
-    },
-    {
-      "do": "letterbox",
-      "on": false,
-      "time": 0.3
-    },
-    {
-      "do": "release"
-    }
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.4},
+    {"do": "camera", "to": "boss", "zoom": 1.15, "time": 1.4},
+    {"do": "fx", "kind": "light", "at": "boss", "offset": [0, -20], "color": "#d8ecff", "radius": 110, "time": 2.0, "energy": 1},
+    {"do": "sound", "name": "bell", "volume": -14},
+    {"do": "wait", "time": 0.6},
+    {"do": "title", "who": "boss", "time": 1.6},
+    {"do": "dialogue", "id": "ch3_wormwood", "cast": {"SPEAKER_WORMWOOD": "boss", "SPEAKER_ELIAN": "player"}, "zoom": 1.3},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.7},
+    {"do": "anim", "who": "player", "anim": "draw"},
+    {"do": "wait", "time": 0.4},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
   ]
 }

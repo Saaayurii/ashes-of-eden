@@ -4,6 +4,17 @@
       ["ash_archer", 420, 506]
     ]
   },
+  "marah_bitter_wells": {
+    "liquids": [
+      ["bitter", 440, 490, 305, 70, {"painted": true}],
+      ["bitter", 860, 490, 300, 70, {"painted": true}]
+    ]
+  },
+  "marah_ford": {
+    "liquids": [
+      ["bitter", 235, 536, 1235, 24, {"painted": true}]
+    ]
+  },
   "swamp_crypt": {
     "liquids": [
       ["blood", 114, 598, 49, 8, {"painted": true}],
@@ -16,17 +27,6 @@
   "swamp_moon": {
     "liquids": [
       ["water", 1074, 542, 53, 8, {"painted": true}]
-    ]
-  },
-  "marah_ford": {
-    "liquids": [
-      ["bitter", 235, 536, 1235, 24, {"painted": true}]
-    ]
-  },
-  "marah_bitter_wells": {
-    "liquids": [
-      ["bitter", 440, 490, 305, 70, {"painted": true}],
-      ["bitter", 860, 490, 300, 70, {"painted": true}]
     ]
   }
 }
