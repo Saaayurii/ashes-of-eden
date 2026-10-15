@@ -134,6 +134,19 @@ func has_night(id: String) -> bool:
 	return nights().any(func(entry: Dictionary) -> bool: return str(entry.id) == id)
 
 
+## Whether a gift or an omen may turn up tonight: one that names its "nights"
+## (game.json night ids, "" the first) belongs to those alone — chapter V's
+## sting and fruit mean nothing where no locust flies and no fig hangs.
+func of_tonight(entry: Dictionary) -> bool:
+	return of_night(entry, night)
+
+
+## [method of_tonight] for a night that may not be the one in play ([param id]).
+static func of_night(entry: Dictionary, id: String) -> bool:
+	var only = entry.get("nights", [])
+	return not (only is Array) or only.is_empty() or only.has(id)
+
+
 ## The night a room is played in, or "" when none lists it — rooms are never
 ## shared between nights (the validator), so the answer is one.
 func night_of(scene_path: String) -> String:

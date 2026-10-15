@@ -25,9 +25,10 @@ static func rules(id := "") -> Dictionary:
 	return spec(id).get("rules", {})
 
 
-## One omen or none, drawn with [param rng]: CHANCE of one, then each the same.
-static func roll(rng: RandomNumberGenerator) -> String:
-	var ids: Array = Data.omens.keys()
+## One omen or none, drawn with [param rng]: CHANCE of one, then each the same
+## among those of [param night] (an omen with "nights" belongs to those alone).
+static func roll(rng: RandomNumberGenerator, night := "") -> String:
+	var ids: Array = Data.omens.keys().filter(func(id) -> bool: return Data.of_night(Data.omens[id], night))
 	ids.sort()  # the same seed draws the same omen on every machine
 	if ids.is_empty() or rng.randf() >= CHANCE:
 		return ""
@@ -57,4 +58,4 @@ static func for_new_night(in_tools := false) -> String:
 	if int(Profile.data.get("nights", 0)) < FROM_NIGHT or not Settings.omens:
 		return ""
 	rng.randomize()
-	return roll(rng)
+	return roll(rng, Data.night)

@@ -48,6 +48,13 @@ func _run() -> void:
 		if id != "":
 			with_one += 1
 			drawn[id] = true
+	for night in data.nights():  # an omen of one night's own comes up on that night
+		for seed in 400:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = seed
+			var id: String = omens.roll(rng, str(night.id))
+			if id != "":
+				drawn[id] = true
 	var share := with_one / 2000.0
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
 	_check(drawn.size() == data.omens.size(), "every omen can come up (%d of %d)" % [drawn.size(), data.omens.size()])
@@ -97,6 +104,28 @@ func _run() -> void:
 	_check(omens.of_day("2026-10-01") == first, "  and the menu can name it before the night begins")
 	game.daily = ""
 
+	# --- omens of one night's own ("nights": chapter V's) ------------------------
+	var of_engedi: Array = data.omens.keys().filter(func(id): return (data.omens[id].get("nights", []) as Array).has("engedi"))
+	_check(of_engedi.size() == 3, "Engedi has its three omens (%d)" % of_engedi.size())
+	var night_was: String = data.night
+	profile.data.nights = omens.FROM_NIGHT
+	data.use_night("")
+	var foreign := false
+	for i in 200:
+		foreign = foreign or of_engedi.has(omens.for_new_night(true))
+	_check(not foreign, "the first night never draws Engedi's omens")
+	data.use_night("engedi")
+	var own := false
+	for i in 200:
+		own = own or of_engedi.has(omens.for_new_night(true))
+	_check(own, "  the Engedi night does")
+	var day_foreign := false
+	for day in range(1, 29):
+		day_foreign = day_foreign or of_engedi.has(omens.of_day("2026-02-%02d" % day))
+	_check(not day_foreign, "  the night of the day is the first night's, wherever the menu was")
+	data.use_night(night_was)
+	profile.data.nights = 0
+
 	# --- the rules ---------------------------------------------------------------
 	game.vial = 0
 	game.omen = "blood_moon"
@@ -128,6 +157,8 @@ func _run() -> void:
 	var crone: Dictionary = data.dialogues["npc_villager"].nodes
 	var said := {}
 	for id in data.omens:
+		if not data.of_night(data.omens[id], ""):
+			continue  # the crone is the first night's; another night's omen is not hers
 		game.omen = id
 		var next := ""
 		for branch in crone["omen"].branches:

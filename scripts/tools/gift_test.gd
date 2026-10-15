@@ -373,11 +373,31 @@ func _run() -> void:
 
 		# A gift with no night named has always been available.
 		var ungated: Array = data.abilities.values().filter(
-			func(a): return int(a.get("unlock_nights", 0)) == 0)
+			func(a): return int(a.get("unlock_nights", 0)) == 0 and not a.has("nights"))
 		profile.data.nights = 0
 		_assert(not ungated.is_empty() and not run.gift_locked(ungated[0]),
 			"a gift with no night named is never held back")
 		profile.data.nights = nights_before
+
+	# --- gifts of one night's own ("nights": chapter V's sting and fruit) -------
+	var of_engedi: Array = data.abilities.values().filter(func(a): return (a.get("nights", []) as Array).has("engedi"))
+	_assert(of_engedi.size() == 6, "Engedi has its six gifts (%d)" % of_engedi.size())
+	var night_was: String = data.night
+	data.use_night("")
+	_assert(of_engedi.all(func(a): return run.gift_locked(a)), "the first night deals none of Engedi's")
+	data.use_night("engedi")
+	_assert(not of_engedi.any(func(a): return run.gift_locked(a)), "the Engedi night deals them all")
+	_assert(not run.gift_locked(data.abilities["mending_light"]), "  and the gifts of every night beside them")
+	var fasting: Dictionary = data.abilities["fasting"]
+	_assert(is_equal_approx(run.gift_weight(fasting), run.RARITY_WEIGHT.common * run.NIGHT_GIFT_WEIGHT),
+		"  a night's own gift weighs %.0f× its rarity" % run.NIGHT_GIFT_WEIGHT)
+	var engedi_pool: Array = data.abilities.values().filter(func(a): return a.path == "grace" and not run.gift_locked(a))
+	var own := 0
+	for i in 2000:
+		if (run._weighted_pick(engedi_pool).get("nights", []) as Array).has("engedi"):
+			own += 1
+	_assert(own > 300 and own < 1100, "  Engedi's grace is offered on %d of 2000 deals" % own)
+	data.use_night(night_was)
 	_finish()
 
 
