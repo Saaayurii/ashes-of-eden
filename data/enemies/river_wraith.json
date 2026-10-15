@@ -4,15 +4,28 @@
   "name": "ENEMY_RIVER_WRAITH",
   "lore": "ENEMY_RIVER_WRAITH_LORE",
   "tip": "TIP_RIVER_WRAITH",
-  "_art": "the wraith's own strips, silt-green — a spirit of the river",
+  "_art": "its own atlas, silt-green — a spirit of the river (Codex)",
   "hp": 46,
   "speed": 70,
   "aggro_range": 460,
   "color": "#5a7a6a",
   "material": "spirit",
   "sprite": {
-    "like": "wraith",
-    "tint": "#9fb8a8"
+    "cell": [
+      92,
+      49
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/river_wraith_v2_idle.png",
+      "walk": "res://assets/sprites/river_wraith_v2_walk.png",
+      "attack": "res://assets/sprites/river_wraith_v2_attack.png",
+      "attack_alt": "res://assets/sprites/river_wraith_v2_attack_alt.png",
+      "special": "res://assets/sprites/river_wraith_v2_special.png",
+      "hurt": "res://assets/sprites/river_wraith_v2_hurt.png",
+      "death": "res://assets/sprites/river_wraith_v2_death.png"
+    },
+    "pad_y": 3
   },
   "attacks": [
     {

@@ -3,7 +3,7 @@
   "name": "ENEMY_CENSER_MONK",
   "lore": "ENEMY_CENSER_MONK_LORE",
   "tip": "TIP_CENSER_MONK",
-  "_art": "stand-in: the blind preacher's strips, hooded grey, until its own atlas is drawn",
+  "_art": "its own atlas, hooded, a censer on its chain (Codex, docs/CHAPTER6_ART.md)",
   "hp": 54,
   "speed": 50,
   "damage": 0,
@@ -18,9 +18,20 @@
     "human"
   ],
   "sprite": {
-    "like": "blind_preacher",
-    "tint": "#b0a898",
-    "scale": 0.8
+    "cell": [
+      72,
+      57
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/censer_monk_v2_idle.png",
+      "walk": "res://assets/sprites/censer_monk_v2_walk.png",
+      "attack": "res://assets/sprites/censer_monk_v2_attack.png",
+      "attack_alt": "res://assets/sprites/censer_monk_v2_attack_alt.png",
+      "special": "res://assets/sprites/censer_monk_v2_special.png",
+      "hurt": "res://assets/sprites/censer_monk_v2_hurt.png",
+      "death": "res://assets/sprites/censer_monk_v2_death.png"
+    }
   },
   "attacks": [
     {

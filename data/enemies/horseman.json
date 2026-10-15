@@ -3,7 +3,7 @@
   "name": "ENEMY_HORSEMAN",
   "lore": "ENEMY_HORSEMAN_LORE",
   "tip": "TIP_HORSEMAN",
-  "_art": "stand-in: the fallen champion's strips in dull fire, hyacinth and brimstone, until its own atlas is drawn",
+  "_art": "its own atlas, hyacinth and brimstone breastplate (Codex, docs/CHAPTER6_ART.md)",
   "hp": 100,
   "speed": 62,
   "damage": 0,
@@ -18,8 +18,20 @@
     "undead"
   ],
   "sprite": {
-    "like": "fallen_champion",
-    "tint": "#c8a888"
+    "cell": [
+      120,
+      73
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/horseman_v2_idle.png",
+      "walk": "res://assets/sprites/horseman_v2_walk.png",
+      "attack": "res://assets/sprites/horseman_v2_attack.png",
+      "attack_alt": "res://assets/sprites/horseman_v2_attack_alt.png",
+      "special": "res://assets/sprites/horseman_v2_special.png",
+      "hurt": "res://assets/sprites/horseman_v2_hurt.png",
+      "death": "res://assets/sprites/horseman_v2_death.png"
+    }
   },
   "attacks": [
     {
