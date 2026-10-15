@@ -18,6 +18,10 @@ static var ROOMS: Array:
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 ## How often each rarity is offered, relative to the others (docs/BALANCE.md).
 const RARITY_WEIGHT := {"common": 55.0, "rare": 30.0, "epic": 12.0, "legendary": 3.0}
+## A gift of tonight's own chapter (`"nights"`, see gift_locked) weighs this
+## many times its rarity: two of them among fifteen of the first night's would
+## hardly ever be seen, and they are the reason the night is not the first.
+const NIGHT_GIFT_WEIGHT := 3.0
 ## Ash for a room cleared without a wound, and for one where a boss stood.
 ## Chests pay 15, a boss 10–25: this is a tip for clean play, not a wage.
 const UNSCATHED_ASH := 3
@@ -1107,8 +1111,15 @@ func _announce_omen() -> void:
 ## Nothing is locked by default: a gift with no `unlock_nights` has always
 ## been available and still is. Locks are also ignored in a duel, where both
 ## players must be offered the same cards whatever they have played before.
+##
+## A chapter's own gifts name their night (`"nights": ["marah"]`, the ids of
+## data/game.json `nights`) and are dealt only in it: Blood Feud means nothing
+## where no two armies fight. The first night, the daily, co-op and the yard
+## play night "", so they never see them.
 static func gift_locked(ability: Dictionary) -> bool:
 	var needs := int(ability.get("unlock_nights", 0))
+	if ability.has("nights") and not (ability.nights as Array).has(Game.night):
+		return true
 	if needs <= 0 or Net.mode == Net.Mode.PVP or Game.daily != "" or Relics.early(str(ability.get("id", ""))):
 		return false
 	return int(Profile.data.get("nights", 0)) < needs
@@ -1135,15 +1146,21 @@ static func gifts_unlocked_tonight() -> Array:
 var _gift_rng := RandomNumberGenerator.new()
 
 
+## How often [param ability] is dealt against the rest of its path's pool.
+static func gift_weight(ability: Dictionary) -> float:
+	var weight := float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+	return weight * (NIGHT_GIFT_WEIGHT if ability.has("nights") else 1.0)
+
+
 func _weighted_pick(pool: Array) -> Dictionary:
 	var total := 0.0
 	for ability in pool:
-		total += float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+		total += gift_weight(ability)
 	if total <= 0.0:
 		return {}
 	var roll := (_gift_rng.randf() if Game.daily != "" else randf()) * total
 	for ability in pool:
-		roll -= float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+		roll -= gift_weight(ability)
 		if roll <= 0.0:
 			return ability
 	return pool.back()

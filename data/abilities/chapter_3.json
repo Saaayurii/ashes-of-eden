@@ -6,6 +6,7 @@
     "path": "grace",
     "icon": "res://assets/icons/realm/potion_2.png",
     "rarity": "common",
+    "nights": ["marah"],
     "alignment": {
       "grace": 1
     },
@@ -25,6 +26,7 @@
     "path": "grace",
     "icon": "res://assets/icons/realm/banner_1.png",
     "rarity": "rare",
+    "nights": ["marah"],
     "alignment": {
       "grace": 1
     },
@@ -44,6 +46,7 @@
     "path": "temptation",
     "icon": "res://assets/icons/realm/potion_5.png",
     "rarity": "rare",
+    "nights": ["marah"],
     "alignment": {
       "temptation": 1
     },
@@ -69,6 +72,7 @@
     "path": "temptation",
     "icon": "res://assets/icons/realm/trophy_2.png",
     "rarity": "common",
+    "nights": ["marah"],
     "alignment": {
       "temptation": 1
     },
@@ -88,6 +92,7 @@
     "path": "will",
     "icon": "res://assets/icons/realm/badge_2.png",
     "rarity": "common",
+    "nights": ["marah"],
     "alignment": {
       "will": 1
     },
@@ -107,6 +112,7 @@
     "path": "will",
     "icon": "res://assets/icons/realm/marker_2.png",
     "rarity": "rare",
+    "nights": ["marah"],
     "alignment": {
       "will": 1
     },

@@ -26,8 +26,12 @@ static func rules(id := "") -> Dictionary:
 
 
 ## One omen or none, drawn with [param rng]: CHANCE of one, then each the same.
-static func roll(rng: RandomNumberGenerator) -> String:
-	var ids: Array = Data.omens.keys()
+## A chapter's own omens name their night (`"nights": ["marah"]`) and are drawn
+## only in it; [param night] is "" for the first night and the daily.
+static func roll(rng: RandomNumberGenerator, night := "") -> String:
+	var ids: Array = Data.omens.keys().filter(
+		func(id: String) -> bool: return of_night(spec(id), night)
+	)
 	ids.sort()  # the same seed draws the same omen on every machine
 	if ids.is_empty() or rng.randf() >= CHANCE:
 		return ""
@@ -57,4 +61,10 @@ static func for_new_night(in_tools := false) -> String:
 	if int(Profile.data.get("nights", 0)) < FROM_NIGHT or not Settings.omens:
 		return ""
 	rng.randomize()
-	return roll(rng)
+	return roll(rng, Game.night)
+
+
+## Whether [param omen] may be drawn in [param night]: one without "nights"
+## belongs to every night.
+static func of_night(omen: Dictionary, night: String) -> bool:
+	return not omen.has("nights") or (omen.nights as Array).has(night)

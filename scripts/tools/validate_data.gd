@@ -223,6 +223,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			if not RARITIES.has(entry.get("rarity", "common")):
 				_error("%s: rarity must be one of %s" % [where, RARITIES])
 			_use_key("RARITY_" + str(entry.get("rarity", "common")).to_upper(), where)
+			_check_entry_nights(entry, where)
 			for effect in entry.get("effects", []):
 				if not EFFECT_TYPES.has(effect.get("type")):
 					_error("%s: unknown effect type \"%s\"" % [where, effect.get("type")])
@@ -458,6 +459,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_relic(entry, where)
 		"omens":
 			_check_omen(entry, where)
+			_check_entry_nights(entry, where)
 		"endings":
 			_check_ending(entry, where)
 		"affixes":
@@ -1469,6 +1471,23 @@ func _check_finale(game: Dictionary) -> void:
 ## An omen (data/omens, scripts/run/omens.gd): a trade — at least one rule
 ## that helps and one that hurts — in rules Vials stacks, plus "essence" and
 ## "ash", never a pay below a plain night.
+## A gift's or an omen's `"nights"` (Run.gift_locked, Omens.of_night): the ids
+## of data/game.json `nights` it is dealt in — a typo would hide it for good.
+func _check_entry_nights(entry: Dictionary, where: String) -> void:
+	if not entry.has("nights"):
+		return
+	var known := []
+	for night in _game().get("nights", []):
+		if night is Dictionary:
+			known.append(night.get("id", ""))
+	if not entry.nights is Array or (entry.nights as Array).is_empty():
+		_error("%s: nights is a list of night ids" % where)
+		return
+	for night in entry.nights:
+		if not known.has(night):
+			_error("%s: nights names \"%s\", not a night of data/game.json" % [where, night])
+
+
 func _check_omen(entry: Dictionary, where: String) -> void:
 	_use_key(entry.get("name", ""), where)
 	_use_key(entry.get("description", ""), where)
