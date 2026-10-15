@@ -1060,7 +1060,7 @@ func _roll_gifts() -> Array[Dictionary]:
 	for path in Game.PATHS:
 		var pool := Data.abilities.values().filter(
 			func(a: Dictionary) -> bool:
-				return a.path == path and not taken.has(a.id) and not gift_locked(a)
+				return a.path == path and not taken.has(a.id) and not gift_locked(a) and Data.plays_in(a)
 		)
 		var pick := _weighted_pick(pool)
 		if not pick.is_empty():

@@ -39,18 +39,28 @@ func _run() -> void:
 	var saved: Dictionary = profile.data.duplicate(true)
 
 	# --- the draw ----------------------------------------------------------------
+	# A chapter's own omens ("nights", Data.plays_in) are drawn only on their
+	# night, so every night is drawn from, and each omen must turn up somewhere.
 	var drawn := {}
 	var with_one := 0
-	for seed in 2000:
-		var rng := RandomNumberGenerator.new()
-		rng.seed = seed
-		var id: String = omens.roll(rng)
-		if id != "":
-			with_one += 1
-			drawn[id] = true
+	var strays := []
+	for entry in data.nights():
+		var night_id := str(entry.id)
+		for seed in 2000:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = seed
+			var id: String = omens.roll(rng, night_id)
+			if id != "":
+				with_one += 1 if night_id == "" else 0
+				drawn[id] = true
+				if not data.plays_in(data.omens[id], night_id):
+					strays.append("%s on %s" % [id, night_id if night_id != "" else "first"])
 	var share := with_one / 2000.0
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
 	_check(drawn.size() == data.omens.size(), "every omen can come up (%d of %d)" % [drawn.size(), data.omens.size()])
+	_check(strays.is_empty(), "and only on its own night (%s)" % [strays.slice(0, 4)])
+	var tyre_only: Array = data.omens.values().filter(func(o): return o.get("nights", []).has("tyre"))
+	_check(tyre_only.size() == 3, "Tyre has three omens of its own (%d)" % tyre_only.size())
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
@@ -122,12 +132,25 @@ func _run() -> void:
 	game.omen = ""
 	_check(is_equal_approx(vials.ash_multiplier(), 1.0) and float(vials.rule("promote_chance")) == 0.0,
 		"a plain night is a plain night")
+	# Tyre's own (docs/CHAPTER4.md §7): the dark and the lamps are rules too
+	game.omen = "third_of_the_day"
+	_check(is_equal_approx(float(vials.rule("dark")), 1.33) and is_equal_approx(float(vials.rule("essence")), 1.3),
+		"A Third of the Day: a deeper dark, more essence")
+	game.omen = "debt_called_in"
+	_check(is_equal_approx(float(vials.rule("lamp_price")), 1.5) and int(vials.rule("flasks")) == 1,
+		"The Debt Called In: dearer lamps, one more flask")
+	game.omen = "woe_woe_woe"
+	_check(is_equal_approx(float(vials.rule("enemy_damage")), 1.2) and is_equal_approx(vials.ash_multiplier(), 1.45),
+		"Woe, Woe, Woe: harder blows, richer Ash")
+	game.omen = ""
 
 	# --- the world says it: the crone's router has a line per omen ------------------
 	var box = load("res://scripts/ui/dialogue_box.gd")
 	var crone: Dictionary = data.dialogues["npc_villager"].nodes
 	var said := {}
 	for id in data.omens:
+		if not data.plays_in(data.omens[id], ""):
+			continue  # the crone lives in the first night; another's omens are not hers
 		game.omen = id
 		var next := ""
 		for branch in crone["omen"].branches:

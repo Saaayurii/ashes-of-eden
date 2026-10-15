@@ -25,9 +25,10 @@ static func rules(id := "") -> Dictionary:
 	return spec(id).get("rules", {})
 
 
-## One omen or none, drawn with [param rng]: CHANCE of one, then each the same.
-static func roll(rng: RandomNumberGenerator) -> String:
-	var ids: Array = Data.omens.keys()
+## One omen or none, drawn with [param rng]: CHANCE of one, then each the same
+## of those that belong to [param night] (Data.plays_in).
+static func roll(rng: RandomNumberGenerator, night: String = Data.night) -> String:
+	var ids: Array = Data.omens.keys().filter(func(id) -> bool: return Data.plays_in(Data.omens[id], night))
 	ids.sort()  # the same seed draws the same omen on every machine
 	if ids.is_empty() or rng.randf() >= CHANCE:
 		return ""
@@ -39,7 +40,7 @@ static func roll(rng: RandomNumberGenerator) -> String:
 static func of_day(date: String) -> String:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = Daily.seed_of(date) + 1
-	return roll(rng)
+	return roll(rng, "")  # the night of the day is the first night
 
 
 ## The omen a new night is played under. A tool script (`godot -s`) draws

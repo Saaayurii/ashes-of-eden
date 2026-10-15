@@ -3,6 +3,7 @@
     "id": "woe_woe_woe",
     "name": "OMEN_WOE_WOE_WOE",
     "description": "OMEN_WOE_WOE_WOE_DESC",
+    "nights": ["tyre"],
     "rules": {
       "enemy_damage": 1.2,
       "ash": 1.45
@@ -12,6 +13,7 @@
     "id": "third_of_the_day",
     "name": "OMEN_THIRD_OF_THE_DAY",
     "description": "OMEN_THIRD_OF_THE_DAY_DESC",
+    "nights": ["tyre"],
     "rules": {
       "dark": 1.33,
       "essence": 1.3
@@ -21,6 +23,7 @@
     "id": "debt_called_in",
     "name": "OMEN_DEBT_CALLED_IN",
     "description": "OMEN_DEBT_CALLED_IN_DESC",
+    "nights": ["tyre"],
     "rules": {
       "lamp_price": 1.5,
       "flasks": 1

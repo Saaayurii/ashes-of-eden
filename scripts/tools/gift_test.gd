@@ -331,6 +331,61 @@ func _run() -> void:
 	_assert(is_equal_approx(player._parry_left, player.PARRY_WINDOW + 0.06), "watchman's patience: the parry lasts 0.06 s longer")
 	player._lower_block()
 	player.stats.parry_window = 0.0
+	# Tyre (docs/CHAPTER4.md §7): the six that answer the dark and its lamps
+	var darkness_class = load("res://scripts/rooms/darkness.gd")
+	var plain_lantern: float = darkness_class.lantern_radius(player)
+	player.stats.lantern = 32.0
+	_assert(is_equal_approx(darkness_class.lantern_radius(player) - plain_lantern, 32.0),
+		"a lamp for the poor: the lantern reaches 32 px further (%.0f)" % darkness_class.lantern_radius(player))
+	player.stats.lantern = 0.0
+	var stall = load("res://scripts/rooms/lamp.gd").new()
+	stall.price = 20
+	root.get_node("Game").essence = 7.0
+	var poor: String = stall.payment(player)
+	player.stats.mite = 1.0
+	var widow: String = stall.payment(player)
+	player.stats.mite = 0.0
+	root.get_node("Game").essence = 100.0
+	player.stats.lamp_blood = 0.05
+	var bled: String = stall.payment(player)
+	player.stats.lamp_blood = 0.0
+	root.get_node("Game").essence = 0.0
+	stall.free()
+	_assert(poor == "" and widow == "mite", "the widow's mite: a lamp she cannot afford takes all there is (%s, %s)" % [poor, widow])
+	_assert(bled == "blood", "bought light: a lamp takes blood, not essence (%s)" % bled)
+	var lit_loss: float = await swing_loss.call(false)
+	var night = darkness_class.new()
+	night.dark = 0.9
+	run.room.add_child(night)
+	await _frames(2)  # it hangs his lantern
+	var lights: Array = get_nodes_in_group("lights")
+	for light in lights:
+		light.remove_from_group("lights")  # nothing near him or it: the blow falls in the dark
+	player.stats.dark_damage = 0.35
+	var dark_loss: float = await swing_loss.call(false)
+	var shallow: float = night._target()
+	player.stats.dark_sight = 0.3
+	var sight: float = shallow - night._target()
+	player.stats.dark_sight = 0.0
+	night.queue_free()
+	await _frames(1)
+	var lit_with_edge: float = await swing_loss.call(false)
+	player.stats.dark_damage = 0.0
+	for light in lights:
+		if is_instance_valid(light):
+			light.add_to_group("lights")
+	_assert(lit_loss > 0.0 and absf(dark_loss / lit_loss - 1.35) < 0.05 and absf(lit_with_edge / lit_loss - 1.0) < 0.05,
+		"usurer's edge: a body in the dark takes 35 %% more, in a lit room nothing (%.1f, %.1f vs %.1f)" % [dark_loss, lit_with_edge, lit_loss])
+	_assert(not root.get_node("Settings").lighting or is_equal_approx(sight, 0.3),
+		"eyes of the dark: a room of 0.9 looks 0.3 shallower (%.2f)" % sight)
+	player.stats.parry_flare = 3.0
+	player._parry(null, player.global_position.x + 10.0)
+	var flare = player.get_node_or_null("ParryFlare")
+	player.stats.parry_flare = 0.0
+	_assert(flare != null and is_equal_approx(flare.radius, darkness_class.FLARE_RADIUS),
+		"honest scales: a parry lights %d px around him" % int(darkness_class.FLARE_RADIUS))
+	if flare != null:
+		flare.queue_free()
 	for body in frozen:
 		if is_instance_valid(body):
 			body.set_physics_process(true)
@@ -378,6 +433,30 @@ func _run() -> void:
 		_assert(not ungated.is_empty() and not run.gift_locked(ungated[0]),
 			"a gift with no night named is never held back")
 		profile.data.nights = nights_before
+
+	# --- gifts of one night ----------------------------------------------------
+	# A chapter's own gifts ("nights": [...], Data.plays_in) are built on what
+	# only its rooms have — Tyre's on its lamps — and are dealt nowhere else.
+	var own: Array = data.abilities.values().filter(func(a): return not a.get("nights", []).is_empty())
+	_assert(not own.is_empty(), "some gifts belong to one night")
+	if not own.is_empty():
+		var night_was: String = data.night
+		var home := str(own[0].nights[0])
+		var dealt := func(night_id: String) -> bool:
+			data.night = night_id
+			for i in 300:
+				for gift in run._roll_gifts():
+					if own.has(gift):
+						return true
+			return false
+		var at_home: bool = dealt.call(home)
+		var elsewhere: bool = dealt.call("")
+		data.night = night_was
+		_assert(at_home, "%s's own gifts are dealt there" % home)
+		_assert(not elsewhere, "and never on the first night")
+		var everywhere: Array = data.abilities.values().filter(func(a): return a.get("nights", []).is_empty())
+		_assert(data.plays_in(everywhere[0], home) and data.plays_in(everywhere[0], ""),
+			"a gift that names no night is dealt on every one")
 	_finish()
 
 

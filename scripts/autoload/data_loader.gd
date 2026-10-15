@@ -143,6 +143,17 @@ func night_of(scene_path: String) -> String:
 	return ""
 
 
+## Whether a gift or an omen [param spec] belongs to [param id] (the night
+## being played by default). One that names `"nights"` — a chapter's own,
+## built on what only its rooms have, such as Tyre's lamps — is dealt only
+## there ("first" is the first night); one that names none, every night.
+func plays_in(spec: Dictionary, id: String = night) -> bool:
+	var only = spec.get("nights", [])
+	if not only is Array or (only as Array).is_empty():
+		return true
+	return (only as Array).has(id if id != "" else "first")
+
+
 ## A path's colour from game.json: "color" for its text and cards, "aura" for
 ## the light round the hero who leans to it. White for a path the game lacks.
 func path_color(path: String, key := "color") -> Color:

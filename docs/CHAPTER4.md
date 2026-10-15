@@ -331,8 +331,9 @@
 
 ## 7. Дары, знамения, места отдыха, области
 
-### Дары (`drafts/chapter_4/data/abilities/chapter_4.json`)
-Как в Сеире: ждут в черновике, вводит сессия баланса. Каждый — новый стат в
+### Дары (`data/abilities/chapter_4.json`)
+Даются только в ночь Тира: `"nights": ["tyre"]` (`Data.plays_in`, `Run._roll_gifts`) — фонарь и лампы
+есть только в его комнатах, в другой ночи такой дар — пустая карта. Каждый — новый стат в
 `Player.BASE_STATS` (0 — ничего не меняет), строка в `STATS` валидатора, предел в
 `AbilitySystem.CAPS`, проверка в `gift_test.gd` (§9).
 
@@ -347,8 +348,8 @@
 
 Строки: `ABILITY_<ID>_NAME`, `ABILITY_<ID>_DESC` (в §10). Резонансы — не в этой главе.
 
-### Знамения (`drafts/chapter_4/data/omens/chapter_4.json`)
-Каждое — торг. `dark` и `lamp_price` — новые ключи правил (`Vials.DEFAULTS`: 1,0, §9).
+### Знамения (`data/omens/chapter_4.json`)
+Тянутся только в ночь Тира (`"nights": ["tyre"]`, `Omens.roll`). Каждое — торг. `dark` и `lamp_price` — новые ключи правил (`Vials.DEFAULTS`: 1,0, §9).
 
 | id | Правила | Что сказано |
 |---|---|---|
@@ -416,7 +417,7 @@ ambient `glints`, splash `drops`, trail `drips`, trail_time 2,5, tint `#8a3aa0`;
   4 кадра 96×128, или пока `ash_flight_v3.png` с тоном; `spin`, `scale` 0,38, `light` 18,
   `trail` 6, `burst` sparkle `#ffd870`);
 - `data/liquids.json` — вид `dye`; `data/backdrops.json` — правила 12 комнат (`CHAPTER4_ART.md` §4);
-- `drafts/chapter_4/data/{abilities,omens}/chapter_4.json` — дары и знамения §7;
+- `data/{abilities,omens}/chapter_4.json` — дары и знамения §7 (только в ночь `tyre`);
 - `tools/rooms/painted_rooms.py` — 12 таблиц `tyre_*` (с `dark`), `generate_rooms.py` — `FOCAL_RANGES`;
 - строки §10 и §6 во всех 4 колонках (`uk`, `zh_CN` — сессия перевода; знаки — `make_cjk_font.py`);
 - `assets/audio`: `woe_eagle_cry_1..3`, `coin_*` удары (`generate_voices.py`), `lamp_light` (свеча

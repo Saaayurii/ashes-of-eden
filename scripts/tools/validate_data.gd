@@ -214,6 +214,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 	for field in REQUIRED[collection]:
 		if not entry.has(field):
 			_error("%s: missing field \"%s\"" % [where, field])
+	if collection in ["abilities", "omens"]:
+		_check_plays_in(entry, where)
 	match collection:
 		"abilities":
 			_use_key(entry.get("name", ""), where)
@@ -2189,6 +2191,21 @@ func _use_key(key: String, where: String) -> void:
 		_error("%s: empty localization key" % where)
 		return
 	used_keys[key] = where
+
+
+## A gift's or an omen's "nights" (Data.plays_in): the nights it is dealt in,
+## by id, "first" for the first; none named = every night.
+func _check_plays_in(entry: Dictionary, where: String) -> void:
+	if not entry.has("nights"):
+		return
+	var only = entry.nights
+	if not only is Array or (only as Array).is_empty():
+		_error("%s: nights is a list of night ids (\"first\" the first)" % where)
+		return
+	var known := DATA_DOC.nights(_game()).map(func(n: Dictionary) -> String: return str(n.id) if str(n.id) != "" else "first")
+	for id in only:
+		if not known.has(str(id)):
+			_error("%s: nights names \"%s\", which is not a night (%s)" % [where, id, known])
 
 
 func _game() -> Dictionary:
