@@ -7,37 +7,77 @@ on:
   # the studio robot starts CI on a branch it has just pushed regenerated rooms to
   workflow_dispatch:
 
+# Many sessions push to many pull requests: a new push to one makes its
+# running CI moot, so that one is cancelled. A push to main is never grouped
+# with another (its run id is in the key) — every commit there gets its run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # What the Godot side has to run: nothing on a pull request that touches
+  # only docs/ and Markdown, and otherwise the jobs below, with one smoke job
+  # per night in data/game.json — the first and every one of `nights` — so the
+  # smoke stays as long as one night however many chapters land.
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      godot: ${{ steps.plan.outputs.godot }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: data/game.json
+          filter: blob:none
+
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          godot=true
+          if [ "$EVENT" = pull_request ]; then
+            changed=$(git diff --name-only "$BASE...$HEAD")
+            echo "$changed"
+            if [ -n "$changed" ] && ! echo "$changed" | grep -qvE '^docs/|\.md$'; then
+              godot=false
+              echo "::notice::Only docs and Markdown changed: the Godot jobs are skipped."
+            fi
+          fi
+          echo "godot=$godot" >> "$GITHUB_OUTPUT"
+          python3 - >> "$GITHUB_OUTPUT" <<'PY'
+          import json
+          nights = ["first"] + [n["id"] for n in json.load(open("data/game.json")).get("nights", []) if n.get("id")]
+          jobs = [{"name": "Validate data & localization", "run": "validate"}]
+          # each walks one night at 4x; the first also opens every room of the game
+          jobs += [{"name": f"Smoke test (night {n})", "run": f"test smoke {n}"} for n in nights]
+          jobs += [{"name": f"Tests {k}/3", "run": f"test {k}/3"} for k in (1, 2, 3)]
+          # two Godot processes finding each other over a socket
+          jobs += [{"name": "Crossplay stand (direct, dedicated)", "run": "net-test coop pvp coop-dedicated pvp-dedicated"},
+                   {"name": "Crossplay stand (relay, rejoin)", "run": "net-test coop-relay pvp-relay coop-rejoin"}]
+          print("matrix=" + json.dumps({"include": jobs}))
+          PY
+
   # The Godot side, split so the slow parts run side by side: the validator,
-  # the two runs that play a whole night, three shares of the other tests
-  # (`entrypoint test K/N` deals them out), and the crossplay stand in two
-  # halves. Each job pulls the same image from the GitHub Actions cache.
+  # a night's walk per night, three shares of the other tests (`entrypoint
+  # test K/N` deals them out), and the crossplay stand in two halves. Each job
+  # pulls the same image from the GitHub Actions cache.
   godot:
     name: ${{ matrix.name }}
+    needs: plan
+    if: needs.plan.outputs.godot == 'true'
     runs-on: ubuntu-latest
     # Ordinary insurance: GitHub otherwise lets a stuck job hold a runner for
     # six hours. A share takes a few minutes, a rebuilt image about ten more.
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Validate data & localization
-            run: validate
-          - name: Smoke test game loop
-            # It plays the whole chapter at 4x and every night after it.
-            run: test smoke
-          - name: Tests 1/3
-            run: test 1/3
-          - name: Tests 2/3
-            run: test 2/3
-          - name: Tests 3/3
-            run: test 3/3
-          - name: Crossplay stand (direct, dedicated)
-            # Two Godot processes finding each other over a socket.
-            run: net-test coop pvp coop-dedicated pvp-dedicated
-          - name: Crossplay stand (relay, rejoin)
-            run: net-test coop-relay pvp-relay coop-rejoin
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -52,8 +92,44 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
 
+      # Godot's import of the assets (.godot/, the .import sidecars, the
+      # compiled translations), from main's last run: Godot compares each
+      # source's checksum with what it imported and redoes only what changed,
+      # so a stale cache costs time, never correctness. Only main saves it —
+      # 400 MB a pull request would push the image's layers out of the cache.
+      - name: Restore Godot's import
+        id: import
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .godot
+            **/*.import
+            localization/*.translation
+          key: godot-import-${{ hashFiles('assets/**', '**/*.import', 'project.godot') }}
+          restore-keys: godot-import-
+
+      # a few .import files are tracked (lossy panels, .gitignore): an older
+      # cache must not stand in for this commit's
+      - name: Put back the tracked .import files
+        run: git checkout -- .
+
       - name: ${{ matrix.name }}
         run: docker compose run --rm godot ${{ matrix.run }}
+
+      # the container wrote these as root
+      - name: Hand the import to the cache
+        if: github.event_name == 'push' && matrix.run == 'validate' && steps.import.outputs.cache-hit != 'true'
+        run: sudo chown -R "$(id -u):$(id -g)" .
+
+      - name: Save Godot's import
+        if: github.event_name == 'push' && matrix.run == 'validate' && steps.import.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .godot
+            **/*.import
+            localization/*.translation
+          key: ${{ steps.import.outputs.cache-primary-key }}
 
   tools:
     name: Generators, web page, telemetry, studio units
@@ -65,6 +141,12 @@ jobs:
       # Half the repository is written by scripts that promise byte-identical
       # output. Only the quick ones here: the audio generators take minutes and
       # the font one downloads 25 MB, so those are for `--all` by hand.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: .github/workflows/ci.yml
+
       - name: Generators still reproduce what is committed
         run: |
           python3 -m pip install --quiet numpy pillow
@@ -112,6 +194,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: .github/workflows/ci.yml
+
       - name: Playwright and Chromium
         working-directory: tools/studio/e2e
         run: |
@@ -126,3 +214,21 @@ jobs:
           # any server builds it, and it used to be left by the script before it
           python3 ../../../tools/studio/build_data.py
           node ${{ matrix.script }}.e2e.cjs
+
+  # One check that stands for the whole run, for branch protection to require:
+  # the Godot jobs' names come from the plan, and on a docs-only pull request
+  # they do not run at all. Skipped is a pass; failed or cancelled is not.
+  ci:
+    name: CI passed
+    if: always()
+    needs: [plan, godot, tools, studio-browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          for r in $RESULTS; do
+            case "$r" in success|skipped) ;; *) exit 1 ;; esac
+          done

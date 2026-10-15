@@ -10,8 +10,11 @@ whose .import is missing (a fresh checkout re-imports it lossless) or says
 puts megabytes back. This fails on either, naming the file.
 
 Run from the repository root: python3 tools/export/check_lossy.py
+`--fix` rewrites a lossless .import to lossy in place (a missing one still has to
+come from Godot's import: run it, then --fix, then commit the .import).
 """
 import fnmatch
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -26,7 +29,13 @@ def lossy_globs(gitignore: Path) -> list[str]:
     return out
 
 
+def make_lossy(text: str) -> str:
+    text = re.sub(r"(?m)^compress/mode=.*$", "compress/mode=1", text)
+    return re.sub(r"(?m)^compress/lossy_quality=.*$", "compress/lossy_quality=0.85", text)
+
+
 def main() -> int:
+    fix = "--fix" in sys.argv[1:]
     root = Path(__file__).resolve().parents[2]
     globs = lossy_globs(root / ".gitignore")
     tracked = set(subprocess.run(["git", "ls-files"], cwd=root, capture_output=True,
@@ -42,9 +51,15 @@ def main() -> int:
             continue
         params = (root / imp).read_text(encoding="utf-8")
         if "compress/mode=1" not in params.splitlines():
+            if fix:
+                (root / imp).write_text(make_lossy(params), encoding="utf-8")
+                print(f"{imp}: made lossy")
+                continue
             problems.append(f"{imp}: compress/mode is not 1 (lossy WebP)")
     for p in problems:
         print(p)
+    if problems and not fix:
+        print("python3 tools/export/check_lossy.py --fix rewrites them; commit the .import files")
     print(f"{len(problems)} painted picture(s) not lossy" if problems else "every painted picture is lossy WebP")
     return 1 if problems else 0
 
