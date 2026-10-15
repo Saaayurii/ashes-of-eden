@@ -43,7 +43,7 @@ const LOOK_COLORS := ["bg", "border", "speaker", "text", "caption", "portrait_bg
 const LOOK_NUMBERS := {"border_width": [0, 4], "radius": [0, 12], "speaker_size": [8, 24],
 	"text_size": [10, 28], "caption_size": [9, 24]}  # DialogueLook.NUMBERS
 const LOOK_KEYS := ["style", "panel", "caption", "portrait", "face"]
-const ANIMATIONS := ["idle", "walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
+const ANIMATIONS := ["idle", "walk", "idle_to_walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
 const PROP_KINDS := ["destructible", "chest", "lamp", "fruit"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
 const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold"]
@@ -804,7 +804,10 @@ func _check_enemy_archetypes() -> void:
 				if float(attack.get(field, 0)) <= 0.0:
 					_error("%s: attack.%s must be positive" % [where, field])
 		if entry.has("sprite"):
-			for path in entry.sprite.get("animations", {}).values():
+			for anim in entry.sprite.get("animations", {}):
+				var path = entry.sprite.animations[anim]
+				if not ANIMATIONS.has(anim):
+					_error("%s: unknown animation \"%s\" (known: %s)" % [where, anim, ANIMATIONS])
 				if not FileAccess.file_exists(str(path)):
 					_error("%s: sprite file not found: %s" % [where, path])
 

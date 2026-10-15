@@ -3,10 +3,7 @@
   "engine": 2,
   "flags_read": ["voice_yes", "matthew_confessed", "matthew_judged", "matthew_released", "matthew_book_revealed", "read_letters", "zacchaeus_sold"],
   "flags_kept": [
-    "version_heaven",
-    "version_abyss",
-    "version_man",
-    "book_read",
+    "version_heaven", "version_abyss", "version_man", "book_read",
     ["matthew_confessed", "matthew_judged", "matthew_released"],
     ["voice_yes", "voice_no", "voice_silent"],
     ["stranger_killed", "stranger_heard", "stranger_refused"],
