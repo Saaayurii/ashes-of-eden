@@ -3,7 +3,8 @@
 
 It is the game's own index.html with three changes:
   * its own data pack (preview/<n>.pck) on the main build's engine, so a
-    preview costs one .pck, not another 40 MB of wasm;
+    preview costs one .pck, not another 40 MB of wasm (not the main pack's
+    parts: pages.yml splits the preview's own with tools/web/split_pack.py);
   * nothing kept between visits (persistentPaths = []): a preview must not
     write into the profile and saves of the real game on the same site;
   * `--studio-preview` with `room=` or `practice=` from the address
@@ -32,6 +33,8 @@ import sys
 from pathlib import Path
 
 ENGINE = re.compile(r"new Engine\((\{.*?\})\)", re.S)
+# the main pack's parts (tools/web/split_pack.py): a preview's pack is its own
+PARTS = re.compile(r"^(\s*)const PACK_PARTS = .*;$", re.M)
 FULL = re.compile(r"const canFull = [^;]*;")
 
 
@@ -101,6 +104,7 @@ def preview_page(html: str, number: int, pack_size: int, keep: dict | None = Non
     banner = (f'<div style="position:fixed;top:0;left:0;right:0;z-index:99;padding:4px 10px;background:#5a4a1a;'
               f'color:#f0d68a;font:13px system-ui;text-align:center">Превью отправки #{number} из студии — '
               f'игра ничего не сохраняет. Сразу в комнату: <code>?room=hell_gate</code>, в собранную в конструкторе: <code>&amp;composed=1</code>, на тренировку с врагом: <code>?practice=cultist</code></div>')
+    page = PARTS.sub(lambda p: f"{p[1]}const PACK_PARTS = null;", page, count=1)
     return _with_keep(page.replace("</body>", banner + "</body>", 1), keep or {})
 
 

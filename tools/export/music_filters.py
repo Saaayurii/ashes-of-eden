@@ -14,8 +14,13 @@ tools cut from, the narrow painted panels the wide ones replaced, and the
 tools/docs/build folders.
 
     python3 tools/export/music_filters.py
+    python3 tools/export/music_filters.py --check   (CI: fails if the presets are stale)
+
+The narrow panels are listed by name, so a chapter's new rooms bring theirs
+into the Web pack until this is run again (Marah's twelve put ~15 MB on it);
+--check is what notices.
 """
-import json, os, re
+import json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PLAYLISTS = os.path.join(ROOT, "data", "music", "playlists.json")
@@ -69,7 +74,7 @@ def lite_set():
     return keep
 
 
-def main():
+def main(check=False):
     keep = lite_set()
     every = sorted(f for f in os.listdir(MUSIC) if f.endswith((".mp3", ".ogg", ".wav")))
     drop = [f"assets/audio/music/{f}" for f in every if f not in keep]
@@ -87,10 +92,16 @@ def main():
             value = ", ".join(fixed + other + drop)
             section = re.sub(r'(?m)^exclude_filter="[^"]*"$', f'exclude_filter="{value}"', section, count=1)
         out.append(section)
+    if check:
+        if "".join(out) != text:
+            print("export_presets.cfg: the Android/Web exclude_filter is stale — run python3 tools/export/music_filters.py")
+            return 1
+        print("export_presets.cfg: the light presets' exclude_filter is current")
+        return 0
     open(PRESETS, "w").write("".join(out))
     kept_mb = sum(os.path.getsize(os.path.join(MUSIC, f)) for f in keep) / 1e6
     print(f"light builds keep {len(keep)} tracks, one per mood ({kept_mb:.1f} MB); {len(drop)} excluded")
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(check="--check" in sys.argv[1:]))
