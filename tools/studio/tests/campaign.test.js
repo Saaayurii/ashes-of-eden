@@ -99,7 +99,7 @@ test('today\'s endings pass the browser\'s _check_ending and _check_finale, and 
   assert.ok(bad({ cutscene: 'nope' }).length, 'a cutscene the game has not got');
   assert.ok(bad({ line: 'NO_SUCH_KEY' }).length, 'a line with no string');
   assert.ok(C.cpEndingsProblems(endings.map(e => ({ ...e, fallback: true })), game, endingCtx).length, 'four fallbacks');
-  assert.ok(C.cpEndingsProblems(endings, { ...game, finale: { ...game.finale, room: game.nights[0].rooms[0] } }, endingCtx).length, 'a finale in another night');
+  assert.ok(C.cpEndingsProblems(endings, { ...game, finale: { ...game.finale, room: game.practice_room } }, endingCtx).length, 'a finale in no night');
 });
 
 test('the chooser picks as Endings.choose does', () => {
@@ -107,8 +107,9 @@ test('the chooser picks as Endings.choose does', () => {
   assert.strictEqual(pick({ grace: 4 }), 'heaven');
   assert.strictEqual(pick({ temptation: 3, grace: 1 }), 'abyss');
   assert.strictEqual(pick({ grace: 2, temptation: 1 }), 'man', 'a lead of 1 earns none: the fallback');
-  assert.strictEqual(pick({ grace: 1, will: 1 }, ['version_heaven', 'version_abyss', 'version_man', 'book_read']), 'fourth');
-  assert.strictEqual(pick({ grace: 1, will: 1 }, ['version_heaven', 'version_abyss', 'version_man']), 'man', 'the book not read');
+  assert.strictEqual(pick({ grace: 1, will: 1 }, ['version_heaven', 'version_abyss', 'version_man', 'book_read', 'register_read']), 'fourth');
+  assert.strictEqual(pick({ grace: 1, will: 1 }, ['version_heaven', 'version_abyss', 'version_man', 'book_read']), 'man', 'the register not read');
+  assert.strictEqual(pick({ grace: 1, will: 1 }, ['version_heaven', 'version_abyss', 'version_man', 'register_read']), 'man', 'the book not read');
   assert.strictEqual(C.cpLead({ grace: 3, temptation: 1, will: 2 }), 1);
   assert.strictEqual(C.cpDominant({ grace: 1, temptation: 1, will: 1 }), 'will', 'a tie goes to will');
 });
