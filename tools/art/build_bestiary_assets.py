@@ -66,6 +66,11 @@ GAME_CELLS = {
     # Engedi (chapter V); the feaster's idle is seated, so its cell is a sitting man's
     "locust": (22, 18), "locust_rider": (76, 52), "feaster": (48, 40),
     "vine_husk": (48, 45), "pit_smoke": (40, 49), "abaddon": (72, 74),
+    # the Euphrates (chapter VI), drawn by Codex's image generation (assets/CREDITS.md)
+    "four_bound": (72, 72),
+    "flagellant": (52, 49), "censer_monk": (52, 47), "chained_penitent": (56, 36),
+    "horseman": (96, 70), "river_wraith": (52, 43), "fettered_angel": (52, 49),
+    "lion_horse": (100, 62),
 }
 
 
@@ -472,6 +477,7 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     many rows were added above a flyer's drawing (its "pad_y")."""
     atlas_dir = SPRITES / "enemy_atlases"
     flyers = {"raven", "shade", "wraith", "ophanim", "locust", "pit_smoke", "abaddon"}
+    flyers = {"raven", "shade", "wraith", "ophanim", "river_wraith", "fettered_angel"}
     cells: dict[str, tuple[tuple[int, int], int]] = {}
     for enemy, target_cell in GAME_CELLS.items():
         if not wanted(enemy):

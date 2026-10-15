@@ -66,6 +66,18 @@ ROOM_EXPANSION_CUTS = {
     "engedi_hives": (400, 1100),
     "engedi_wine_press": (560, 1120),
     "engedi_pit_stair": (200, 900),
+    # chapter VI, the Euphrates
+    "euphrates_bank": (300, 540),
+    "euphrates_town": (540, 760),
+    "euphrates_gate": (320, 460),
+    "euphrates_cloister": (480, 800),
+    "euphrates_scriptorium": (660, 900),
+    "euphrates_refectory": (560, 760),
+    "euphrates_altar_court": (250, 1010),
+    "euphrates_crypt_of_chains": (330, 1000),
+    "euphrates_cistern": (200, 1080),
+    "euphrates_river_stair": (200, 1140),
+    "euphrates_bound": (360, 920),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -121,6 +133,10 @@ FOCAL_RANGES = {
     "engedi_orchard": ((780, 900),),           # the little fall
     "engedi_pit_rim": ((700, 800),),           # the boundary stone
     "engedi_abyss_mouth": ((420, 880),),       # the fire in the pit
+    "euphrates_bank": ((640, 800),),           # the mighty angel with the little book
+    "euphrates_town": ((655, 705),),           # moon
+    "euphrates_altar_court": ((560, 745),),    # the golden altar with four horns
+    "euphrates_bound": ((120, 210), (500, 780), (1065, 1160)),  # the pillars and their rings
 }
 
 TRAVERSAL_PATCHES = {
@@ -173,6 +189,18 @@ SEAM_STORIES = {
     "engedi_smoke_road": ("", ""), "engedi_vineyard_gate": ("", ""), "engedi_terraces": ("", ""), "engedi_spring": ("", ""),
     "engedi_orchard": ("", ""), "engedi_pit_rim": ("", ""), "engedi_abyss_mouth": ("", ""),
     "engedi_arbor": ("", ""), "engedi_feast_hall": ("", ""), "engedi_hives": ("", ""), "engedi_wine_press": ("", ""), "engedi_pit_stair": ("", ""),
+    "euphrates_bank": ("", ""),
+    "euphrates_town": ("", ""),
+    "euphrates_gate": ("", ""),
+    "euphrates_cloister": ("", ""),
+    "euphrates_scriptorium": ("", ""),
+    "euphrates_refectory": ("", ""),
+    "euphrates_altar_court": ("", ""),
+    "euphrates_crypt_of_chains": ("", ""),
+    "euphrates_cistern": ("", ""),
+    "euphrates_river_stair": ("", ""),
+    "euphrates_bound": ("", ""),
+    "euphrates_bell_tower": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -215,6 +243,18 @@ ROOM_PROP_MOTIFS = {
     "engedi_smoke_road": {}, "engedi_vineyard_gate": {}, "engedi_terraces": {}, "engedi_spring": {},
     "engedi_orchard": {}, "engedi_pit_rim": {}, "engedi_abyss_mouth": {},
     "engedi_arbor": {}, "engedi_feast_hall": {}, "engedi_hives": {}, "engedi_wine_press": {}, "engedi_pit_stair": {},
+    "euphrates_bank": {},
+    "euphrates_town": {},
+    "euphrates_gate": {},
+    "euphrates_cloister": {},
+    "euphrates_scriptorium": {},
+    "euphrates_refectory": {},
+    "euphrates_altar_court": {},
+    "euphrates_crypt_of_chains": {},
+    "euphrates_cistern": {},
+    "euphrates_river_stair": {},
+    "euphrates_bound": {},
+    "euphrates_bell_tower": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -308,6 +348,18 @@ DEPTH_WINDOWS = {
     "engedi_smoke_road": (0.02, []), "engedi_vineyard_gate": (0.02, []), "engedi_terraces": (0.02, []), "engedi_spring": (0.02, []),
     "engedi_orchard": (0.02, []), "engedi_pit_rim": (0.02, []), "engedi_abyss_mouth": (0.02, []),
     "engedi_arbor": (0.02, []), "engedi_feast_hall": (0.02, []), "engedi_hives": (0.02, []), "engedi_wine_press": (0.02, []), "engedi_pit_stair": (0.02, []),
+    "euphrates_bank": (0.02, []),
+    "euphrates_town": (0.02, []),
+    "euphrates_gate": (0.02, []),
+    "euphrates_cloister": (0.02, []),
+    "euphrates_scriptorium": (0.02, []),
+    "euphrates_refectory": (0.02, []),
+    "euphrates_altar_court": (0.02, []),
+    "euphrates_crypt_of_chains": (0.02, []),
+    "euphrates_cistern": (0.02, []),
+    "euphrates_river_stair": (0.02, []),
+    "euphrates_bound": (0.02, []),
+    "euphrates_bell_tower": (0.02, []),
 }
 
 

@@ -1189,4 +1189,145 @@ PAINTED = {
         props=[("secret_wall_engedi_key", 748, 284)],
         decor=[], npcs=[], ambient="#c8a080", lights="auto",
         player=(40, 128), door=(1225, 571)),
+    # Chapter VI, the abbey on the Euphrates (docs/CHAPTER6.md), painted by Codex.
+    "euphrates_bank": dict(
+        # The bank under the storm: the mighty angel stands in the depth with the
+        # little book. The ford is shallow water to wade, not a fall.
+        painting="euphrates_bank", width=1280, height=720, weather="rain", fog=0.25, intro="", music="road",
+        intro_cutscene="little_book", void_kill_y=700,
+        ground=[(0, 522, 745, 198), (745, 576, 262, 144), (1005, 526, 275, 194)],
+        liquids=[["water", 745, 540, 262, 36]],
+        spawns=[("river_wraith", 820, 420), ("river_wraith", 930, 380), ("horseman", 1120, 514)],
+        props=[("pot", 480, 522)],
+        decor=[], npcs=[], ambient="#b8bccc", lights="auto",
+        player=(30, 502), door=(1238, 494)),
+    "euphrates_town": dict(
+        # The feast in the street; the two witnesses lie in the middle of it.
+        painting="euphrates_town", width=1280, height=720, weather="none", fog=0.15, intro="", music="village_night",
+        intro_cutscene="witnesses_in_the_street", void_kill_y=700,
+        ground=[(0, 503, 1280, 217)],
+        spawns=[("flagellant", 300, 491), ("flagellant", 860, 491), ("flagellant", 1000, 491), ("river_wraith", 700, 380)],
+        props=[("barrel", 1010, 503)],
+        decor=[], npcs=[("euphrates_reveller", 420, 503), ("witness_left", 610, 503), ("witness_right", 690, 503),
+                        ("malchus_far", 1100, 503)], ambient="#c8bcb4", lights="auto",
+        player=(30, 483), door=(1185, 471)),
+    "euphrates_gate": dict(
+        # Inside the abbey gate: the porter's balcony up the stair, and the
+        # chain-keepers' roll behind the bricked door on it.
+        painting="euphrates_gate", width=1280, height=720, weather="none", fog=0.12, intro="", music="church", void_kill_y=700,
+        ground=[(0, 600, 1280, 120)],
+        ledges=[(825, 358, 400, 14)],
+        ramps=[(500, 600, 828, 358)],
+        stone_steps=True,
+        spawns=[("flagellant", 300, 588), ("flagellant", 1000, 588), ("censer_monk", 950, 346), ("censer_monk", 640, 588)],
+        props=[("euphrates_cache_chain_roll", 1120, 358)],
+        decor=[], npcs=[], ambient="#c8bcb0", lights="auto",
+        player=(40, 580), door=(1170, 568)),
+    "euphrates_cloister": dict(
+        # The cloister round its garth (the gate's fork). No story here.
+        painting="euphrates_cloister", width=1280, height=720, weather="none", fog=0.15, intro="", music="church", void_kill_y=700,
+        ground=[(0, 565, 1280, 155)],
+        spawns=[("flagellant", 330, 553), ("flagellant", 650, 553), ("flagellant", 900, 553), ("censer_monk", 1050, 553),
+                ("horseman", 520, 553)],
+        props=[("pot", 980, 565)],
+        decor=[], npcs=[], ambient="#c0bccc", lights="auto",
+        player=(90, 545), door=(1205, 533)),
+    "euphrates_scriptorium": dict(
+        # The scriptorium (the gate's fork): walkways along the shelves, a
+        # copyist chained to the ring by the desk. No story here.
+        painting="euphrates_scriptorium", width=1280, height=720, weather="none", fog=0.08, intro="", music="church", void_kill_y=700,
+        ground=[(0, 637, 1280, 83)],
+        ledges=[(45, 438, 475, 14), (565, 333, 670, 14)],
+        ramps=[(470, 438, 570, 333)],
+        stone_steps=True,
+        # steps under the lower walk (it is jumped through), clear of the stair
+        platforms=[(420, 588, 50, 10), (340, 540, 50, 10), (420, 490, 50, 10)],
+        spawns=[("censer_monk", 250, 426), ("censer_monk", 800, 321), ("censer_monk", 1000, 625), ("flagellant", 400, 625),
+                ("chained_penitent", 740, 625)],
+        props=[("chain", 718, 637)],
+        decor=[], npcs=[], ambient="#ccbcac", lights="auto",
+        player=(85, 617), door=(1200, 605)),
+    "euphrates_refectory": dict(
+        # The refectory: the table laid for forty, the bread untouched; Saul by
+        # the oven, which is the rest point.
+        painting="euphrates_refectory", width=1280, height=720, weather="none", fog=0.1, intro="", music="church",
+        intro_cutscene="refectory_arrival", void_kill_y=700,
+        ground=[(0, 568, 1280, 152)],
+        ledges=[(290, 505, 650, 12), (940, 503, 190, 12)],
+        spawns=[("flagellant", 200, 556), ("flagellant", 600, 493), ("censer_monk", 140, 556)],
+        props=[],
+        decor=[], npcs=[("saul", 900, 568)], ambient="#ccbcac", lights="auto",
+        player=(90, 548), door=(1215, 536)),
+    "euphrates_bell_tower": dict(
+        # The bell tower: two paintings, one over the other — the room is
+        # tools/rooms/composed_rooms.json (live); this is its look and its lower picture.
+        painting="euphrates_bell_tower", width=1280, height=720, weather="none", fog=0.1, intro="", music="church", void_kill_y=700,
+        ground=[(0, 637, 1280, 83)],
+        spawns=[], props=[],
+        decor=[], npcs=[], ambient="#c4bcb4", lights="auto",
+        player=(40, 617), door=(1200, 605)),
+    "euphrates_altar_court": dict(
+        # The golden altar with four horns; the voice speaks from them, and the
+        # lion-headed horse wakes beside it.
+        painting="euphrates_altar_court", width=1280, height=720, weather="none", fog=0.15, intro="", music="church",
+        intro_cutscene="voice_from_the_horns", void_kill_y=700,
+        ground=[(0, 535, 1280, 185)],
+        ledges=[(380, 500, 515, 12), (455, 458, 365, 12)],
+        spawns=[("lion_horse", 980, 523), ("flagellant", 250, 523), ("flagellant", 1100, 523), ("censer_monk", 560, 446),
+                ("censer_monk", 760, 446), ("chained_penitent", 300, 523), ("chained_penitent", 1000, 523)],
+        props=[("chain", 287, 535), ("chain", 985, 535)],
+        decor=[], npcs=[], ambient="#c4bccc", lights="auto",
+        player=(30, 515), door=(1240, 503)),
+    "euphrates_crypt_of_chains": dict(
+        # The crypt of chains (the altar's fork): rings at every height. No story here.
+        painting="euphrates_crypt_of_chains", width=1280, height=720, weather="none", fog=0.12, intro="", music="graveyard", void_kill_y=700,
+        ground=[(0, 565, 1280, 155)],
+        ledges=[(595, 432, 130, 12), (880, 290, 360, 14)],
+        ramps=[(725, 432, 872, 565)],
+        stone_steps=True,
+        # the painted upper flight starts where the lower one ends: no body passes
+        # that pinch, so timber steps climb from the landing to the upper shelf;
+        # two more under the landing are a second way up beside the stair
+        platforms=[(600, 520, 50, 10), (660, 476, 50, 10), (740, 385, 50, 10), (805, 338, 50, 10)],
+        spawns=[("chained_penitent", 255, 553), ("chained_penitent", 490, 553), ("chained_penitent", 950, 553),
+                ("chained_penitent", 1100, 553), ("chained_penitent", 400, 553), ("fettered_angel", 1000, 220),
+                ("fettered_angel", 620, 330), ("censer_monk", 1100, 278)],
+        props=[("chain", 235, 565), ("chain", 510, 565), ("chain", 930, 565), ("chain", 1085, 565), ("chain", 380, 565)],
+        decor=[], npcs=[], ambient="#bcbcc8", lights="auto",
+        player=(75, 545), door=(1205, 533)),
+    "euphrates_cistern": dict(
+        # The cistern (the altar's fork): two walkways and three plinths over deep water.
+        painting="euphrates_cistern", width=1280, height=720, weather="none", fog=0.2, intro="", music="dead_bridge", void_kill_y=715,
+        ground=[(0, 522, 390, 198), (890, 522, 390, 198), (390, 710, 500, 10)],
+        ledges=[(440, 500, 65, 12), (607, 500, 68, 12), (778, 500, 62, 12)],
+        liquids=[["water", 390, 580, 500, 130]],
+        spawns=[("river_wraith", 500, 400), ("river_wraith", 700, 380), ("river_wraith", 300, 350), ("river_wraith", 1000, 380),
+                ("flagellant", 200, 510), ("flagellant", 1050, 510)],
+        props=[],
+        decor=[], npcs=[], ambient="#b8c0c8", lights="auto",
+        player=(30, 502), door=(1210, 490)),
+    "euphrates_river_stair": dict(
+        # Down into the dry riverbed: the shrine on the middle landing is the
+        # rest point; the novice's letter is in the bricked niche beside it.
+        painting="euphrates_river_stair", width=1280, height=720, weather="none", fog=0.15, intro="", music="dead_bridge", void_kill_y=700,
+        ground=[(0, 187, 255, 533), (255, 600, 1025, 120)],
+        ledges=[(555, 370, 160, 14)],
+        ramps=[(255, 187, 560, 370), (715, 370, 1030, 600)],
+        stone_steps=True,
+        spawns=[("horseman", 700, 588), ("horseman", 1000, 588), ("lion_horse", 450, 588), ("river_wraith", 800, 250),
+                ("river_wraith", 1050, 300), ("chained_penitent", 650, 358)],
+        props=[("chain", 690, 370), ("euphrates_cache_novice_envy", 745, 370)],
+        decor=[], npcs=[], ambient="#bcb8c0", lights="auto",
+        player=(30, 167), door=(1215, 568)),
+    "euphrates_bound": dict(
+        # Under the river: four pillars banded with gold, a ring at each foot.
+        # The Four Bound stands at the first and swaps as each falls.
+        painting="euphrates_bound", width=1280, height=720, weather="none", fog=0.12, intro="", music="boss_ophanim",
+        intro_cutscene="the_four_bound", outro_cutscene="ch6_finale", void_kill_y=700,
+        ground=[(0, 600, 1280, 120)],
+        ledges=[(0, 575, 80, 12), (1200, 575, 80, 12)],
+        spawns=[("four_bound", 640, 588)],
+        props=[],
+        decor=[], npcs=[], ambient="#c0c4d0", lights="auto",
+        player=(40, 580), door=(1215, 543)),
 }

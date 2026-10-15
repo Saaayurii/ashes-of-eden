@@ -1,0 +1,49 @@
+{
+  "id": "river_wraith",
+  "extends": "wraith",
+  "name": "ENEMY_RIVER_WRAITH",
+  "lore": "ENEMY_RIVER_WRAITH_LORE",
+  "tip": "TIP_RIVER_WRAITH",
+  "_art": "its own atlas, silt-green — a spirit of the river (Codex)",
+  "hp": 46,
+  "speed": 70,
+  "aggro_range": 460,
+  "color": "#5a7a6a",
+  "material": "spirit",
+  "sprite": {
+    "cell": [
+      92,
+      49
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/river_wraith_v2_idle.png",
+      "walk": "res://assets/sprites/river_wraith_v2_walk.png",
+      "attack": "res://assets/sprites/river_wraith_v2_attack.png",
+      "attack_alt": "res://assets/sprites/river_wraith_v2_attack_alt.png",
+      "special": "res://assets/sprites/river_wraith_v2_special.png",
+      "hurt": "res://assets/sprites/river_wraith_v2_hurt.png",
+      "death": "res://assets/sprites/river_wraith_v2_death.png"
+    },
+    "pad_y": 3
+  },
+  "attacks": [
+    {
+      "type": "ranged",
+      "range": 300,
+      "windup": 0.8,
+      "damage": 11,
+      "cooldown": 2.4,
+      "projectile_speed": 190,
+      "projectile_style": "wraith",
+      "color": "#9fc8b8"
+    }
+  ],
+  "essence": 16,
+  "light": {
+    "color": "#9fc8b8",
+    "radius": 50,
+    "energy": 0.6,
+    "flicker": 0.1
+  }
+}

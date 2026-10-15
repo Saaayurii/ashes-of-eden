@@ -7,20 +7,23 @@ class_name Vials
 ##   flasks                    flasks carried into the night (Player._ready)
 ##   enemy_damage / enemy_hp   on top of the difficulty (Game.enemy_*_multiplier)
 ##   rest_heal                 what an altar gives back (Player.rest)
+##   tether_length             every chain's length (Tether, chapter VI's omen)
 ## and the night's Ash is multiplied by the vial's own "ash". Solo only: online
 ## the two bodies would each carry their own, and the host's enemies one.
 
 const TIERS := 5
 ## How a rule stacks as the vials pile up.
 const ADD := ["flasks", "swarm"]
-const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown", "dark", "lamp_price", "torment", "fruit_heal"]
+const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown", "dark", "lamp_price", "torment", "fruit_heal",
+	"tether_length"]
 const MAX := ["promote_chance", "surfeit_per_fruit"]
 const MIN := ["rest_heal"]
 const DEFAULTS := {"flasks": 0, "enemy_damage": 1.0, "enemy_hp": 1.0, "promote_chance": 0.0, "rest_heal": 1.0,
 	"essence": 1.0, "enemy_sight": 1.0, "skill_cooldown": 1.0, "dark": 1.0, "lamp_price": 1.0,
 	# chapter V's omens (docs/CHAPTER5.md §7): the sting's length, extra locusts
 	# a cloud, what a fruit heals, and how much surfeit one is worth
-	"torment": 1.0, "swarm": 0, "fruit_heal": 1.0, "surfeit_per_fruit": 1}
+	"torment": 1.0, "swarm": 0, "fruit_heal": 1.0, "surfeit_per_fruit": 1,
+	"tether_length": 1.0}
 
 
 ## The vial of [param tier], {} for none.

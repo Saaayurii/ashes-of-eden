@@ -49,6 +49,10 @@ const FAR_WINDOWS := {
 	"engedi_smoke_road": [], "engedi_vineyard_gate": [], "engedi_terraces": [], "engedi_spring": [],
 	"engedi_orchard": [], "engedi_pit_rim": [], "engedi_abyss_mouth": [],
 	"engedi_arbor": [], "engedi_feast_hall": [], "engedi_hives": [], "engedi_wine_press": [], "engedi_pit_stair": [],
+	# the Euphrates: no plates behind its openings yet (docs/CHAPTER6_ART.md)
+	"euphrates_bank": [], "euphrates_town": [], "euphrates_gate": [], "euphrates_cloister": [],
+	"euphrates_scriptorium": [], "euphrates_refectory": [], "euphrates_bell_tower": [], "euphrates_altar_court": [],
+	"euphrates_crypt_of_chains": [], "euphrates_cistern": [], "euphrates_river_stair": [], "euphrates_bound": [],
 }
 
 

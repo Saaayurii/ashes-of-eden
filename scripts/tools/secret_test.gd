@@ -120,11 +120,12 @@ func _run() -> void:
 	game.flags.erase("book_read")
 	church.queue_free()
 	await _settle(0.1)
-	# Seir's, Marah's and two of Engedi's caches have no wall yet (docs/CHAPTER2_ART.md, CHAPTER3_ART.md, CHAPTER5.md): they stand open
+	# Seir's, Marah's, two of Engedi's and the Euphrates' caches have no wall yet (docs/CHAPTER2_ART.md, CHAPTER3_ART.md, CHAPTER5.md, CHAPTER6_ART.md): they stand open
 	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn",
 			"res://scenes/rooms/marah_gallows.tscn", "res://scenes/rooms/marah_field.tscn",
 			"res://scenes/rooms/marah_springs_path.tscn",
-			"res://scenes/rooms/engedi_terraces.tscn", "res://scenes/rooms/engedi_feast_hall.tscn"]:
+			"res://scenes/rooms/engedi_terraces.tscn", "res://scenes/rooms/engedi_feast_hall.tscn",
+			"res://scenes/rooms/euphrates_gate.tscn", "res://scenes/rooms/euphrates_bell_tower.tscn", "res://scenes/rooms/euphrates_river_stair.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room

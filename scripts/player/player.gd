@@ -78,6 +78,7 @@ static var BASE_STATS := {
 	"glut": 0.0,                # blows worth this much more for each surfeit, up to GLUT_COUNT (Glut)
 	"torment_damage": 0.0,      # blows worth this much more while tormented (Honeyed Sting)
 	"death_refused": 0.0,       # 1 = once a room a killing blow leaves 1 hp and a sting (Seeking Death)
+	"taut_damage": 0.0,         # a body hanging on its chain's end takes this much more (Loosened Chain)
 }
 ## Where the item mechanics above reach.
 static var HEAL_BURST_RADIUS := 72.0
@@ -2074,6 +2075,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Trophy Hunter: the chosen of the dead (an elite, a boss) are the prey
 		if live_enemy and stats.chosen_damage > 0.0 and (target as Enemy).is_chosen():
 			damage *= 1.0 + stats.chosen_damage
+		# Loosened Chain: a body hanging on its chain's end is open
+		if live_enemy and stats.taut_damage > 0.0 and (target as Enemy).is_taut():
+			damage *= 1.0 + stats.taut_damage
 		# Usurer's Edge: a blow struck where no light reaches (Darkness)
 		if live_enemy and stats.dark_damage > 0.0 and Darkness.unlit(target as Node2D):
 			damage *= 1.0 + stats.dark_damage

@@ -51,6 +51,7 @@
     "parry_window": 0.0,
     "slide_friction": 1400.0,
     "speed": 150.0,
+    "taut_damage": 0.0,
     "technique_heal": 0.0,
     "thorns": 0.0,
     "torment_damage": 0.0,

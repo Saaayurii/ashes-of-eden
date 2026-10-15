@@ -74,6 +74,18 @@ const DOORWAYS := {
 	"engedi_wine_press": [1520, 1570, 533],           # the arch beside the press
 	"engedi_pit_stair": [1520, 1570, 603],            # the arch at the stair's foot
 	"engedi_abyss_mouth": [1535, 1585, 440],          # the arch into the pit
+	"euphrates_bank": [1535, 1590, 526],         # the arch in the ruined wall by the reeds
+	"euphrates_town": [1460, 1540, 503],         # the open town gate onto the river
+	"euphrates_gate": [1465, 1520, 600],         # the arch beside the gatehouse beams
+	"euphrates_cloister": [1505, 1545, 565],     # the arch past the chained pillar
+	"euphrates_scriptorium": [1500, 1545, 637],  # the arch past the shelves
+	"euphrates_refectory": [1515, 1560, 568],    # the arch past the bread oven
+	"euphrates_bell_tower": [1160, 1210, 190],   # composed: the arch on the belfry gallery
+	"euphrates_altar_court": [1540, 1590, 535],  # the low arch under the stair
+	"euphrates_crypt_of_chains": [1500, 1555, 565], # the arch past the wall ring
+	"euphrates_cistern": [1510, 1555, 522],      # the arch on the cistern ledge
+	"euphrates_river_stair": [1505, 1570, 600],  # the arch the water runs out of
+	"euphrates_bound": [1510, 1560, 575],        # the arch behind the last pillar
 }
 
 var failures := 0

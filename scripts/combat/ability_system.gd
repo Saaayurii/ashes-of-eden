@@ -63,6 +63,8 @@ const CAPS := {
 	"glut": [0.0, 0.05],
 	"torment_damage": [0.0, 0.5],
 	"death_refused": [0.0, 1.0],
+	# chapter VI: a blow on a body hanging on its chain (Loosened Chain)
+	"taut_damage": [0.0, 1.0],
 }
 ## Caps expressed as multipliers of the base value rather than absolutes.
 const RELATIVE := ["attack_cooldown", "speed"]

@@ -1172,5 +1172,184 @@
       },
       "scale": 1.0
     }
+  },
+  {
+    "id": "four_bound",
+    "family": "heaven",
+    "tier": 3,
+    "avatar": "res://assets/portraits/ophanim.png",
+    "sprite": {
+      "cell": [
+        108,
+        77
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/four_bound_v2_idle.png",
+        "walk": "res://assets/sprites/four_bound_v2_walk.png",
+        "attack": "res://assets/sprites/four_bound_v2_attack.png",
+        "attack_alt": "res://assets/sprites/four_bound_v2_attack_alt.png",
+        "special": "res://assets/sprites/four_bound_v2_special.png",
+        "hurt": "res://assets/sprites/four_bound_v2_hurt.png",
+        "death": "res://assets/sprites/four_bound_v2_death.png"
+      },
+      "scale": 0.92
+    }
+  },
+  {
+    "id": "flagellant",
+    "family": "cult",
+    "tier": 2,
+    "avatar": "res://assets/portraits/cultist.png",
+    "sprite": {
+      "cell": [
+        52,
+        53
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/flagellant_v2_idle.png",
+        "walk": "res://assets/sprites/flagellant_v2_walk.png",
+        "attack": "res://assets/sprites/flagellant_v2_attack.png",
+        "attack_alt": "res://assets/sprites/flagellant_v2_attack_alt.png",
+        "special": "res://assets/sprites/flagellant_v2_special.png",
+        "hurt": "res://assets/sprites/flagellant_v2_hurt.png",
+        "death": "res://assets/sprites/flagellant_v2_death.png"
+      }
+    }
+  },
+  {
+    "id": "censer_monk",
+    "family": "cult",
+    "tier": 2,
+    "avatar": "res://assets/portraits/blind_preacher.png",
+    "sprite": {
+      "cell": [
+        72,
+        57
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/censer_monk_v2_idle.png",
+        "walk": "res://assets/sprites/censer_monk_v2_walk.png",
+        "attack": "res://assets/sprites/censer_monk_v2_attack.png",
+        "attack_alt": "res://assets/sprites/censer_monk_v2_attack_alt.png",
+        "special": "res://assets/sprites/censer_monk_v2_special.png",
+        "hurt": "res://assets/sprites/censer_monk_v2_hurt.png",
+        "death": "res://assets/sprites/censer_monk_v2_death.png"
+      }
+    }
+  },
+  {
+    "id": "chained_penitent",
+    "family": "possessed",
+    "tier": 2,
+    "avatar": "res://assets/portraits/possessed_villager.png",
+    "sprite": {
+      "cell": [
+        68,
+        41
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/chained_penitent_v2_idle.png",
+        "walk": "res://assets/sprites/chained_penitent_v2_walk.png",
+        "attack": "res://assets/sprites/chained_penitent_v2_attack.png",
+        "attack_alt": "res://assets/sprites/chained_penitent_v2_attack_alt.png",
+        "special": "res://assets/sprites/chained_penitent_v2_special.png",
+        "hurt": "res://assets/sprites/chained_penitent_v2_hurt.png",
+        "death": "res://assets/sprites/chained_penitent_v2_death.png"
+      }
+    }
+  },
+  {
+    "id": "horseman",
+    "family": "fallen",
+    "tier": 3,
+    "avatar": "res://assets/portraits/fallen_champion.png",
+    "sprite": {
+      "cell": [
+        120,
+        73
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/horseman_v2_idle.png",
+        "walk": "res://assets/sprites/horseman_v2_walk.png",
+        "attack": "res://assets/sprites/horseman_v2_attack.png",
+        "attack_alt": "res://assets/sprites/horseman_v2_attack_alt.png",
+        "special": "res://assets/sprites/horseman_v2_special.png",
+        "hurt": "res://assets/sprites/horseman_v2_hurt.png",
+        "death": "res://assets/sprites/horseman_v2_death.png"
+      }
+    }
+  },
+  {
+    "id": "river_wraith",
+    "family": "drowned",
+    "tier": 2,
+    "avatar": "res://assets/portraits/wraith.png",
+    "sprite": {
+      "cell": [
+        92,
+        49
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/river_wraith_v2_idle.png",
+        "walk": "res://assets/sprites/river_wraith_v2_walk.png",
+        "attack": "res://assets/sprites/river_wraith_v2_attack.png",
+        "attack_alt": "res://assets/sprites/river_wraith_v2_attack_alt.png",
+        "special": "res://assets/sprites/river_wraith_v2_special.png",
+        "hurt": "res://assets/sprites/river_wraith_v2_hurt.png",
+        "death": "res://assets/sprites/river_wraith_v2_death.png"
+      },
+      "pad_y": 3
+    }
+  },
+  {
+    "id": "fettered_angel",
+    "family": "heaven",
+    "tier": 2,
+    "avatar": "res://assets/portraits/ophanim.png",
+    "sprite": {
+      "cell": [
+        56,
+        55
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/fettered_angel_v2_idle.png",
+        "walk": "res://assets/sprites/fettered_angel_v2_walk.png",
+        "attack": "res://assets/sprites/fettered_angel_v2_attack.png",
+        "attack_alt": "res://assets/sprites/fettered_angel_v2_attack_alt.png",
+        "special": "res://assets/sprites/fettered_angel_v2_special.png",
+        "hurt": "res://assets/sprites/fettered_angel_v2_hurt.png",
+        "death": "res://assets/sprites/fettered_angel_v2_death.png"
+      },
+      "pad_y": 3
+    }
+  },
+  {
+    "id": "lion_horse",
+    "family": "fallen",
+    "tier": 2,
+    "avatar": "res://assets/portraits/fallen_champion.png",
+    "sprite": {
+      "cell": [
+        116,
+        75
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/lion_horse_v2_idle.png",
+        "walk": "res://assets/sprites/lion_horse_v2_walk.png",
+        "attack": "res://assets/sprites/lion_horse_v2_attack.png",
+        "attack_alt": "res://assets/sprites/lion_horse_v2_attack_alt.png",
+        "special": "res://assets/sprites/lion_horse_v2_special.png",
+        "hurt": "res://assets/sprites/lion_horse_v2_hurt.png",
+        "death": "res://assets/sprites/lion_horse_v2_death.png"
+      }
+    }
   }
 ]
