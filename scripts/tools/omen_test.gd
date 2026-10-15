@@ -50,7 +50,23 @@ func _run() -> void:
 			drawn[id] = true
 	var share := with_one / 2000.0
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
-	_check(drawn.size() == data.omens.size(), "every omen can come up (%d of %d)" % [drawn.size(), data.omens.size()])
+	var first_nights: Array = data.omens.keys().filter(func(id): return not data.omens[id].has("nights"))
+	_check(drawn.size() == first_nights.size(), "every omen of the first night can come up (%d of %d)" % [drawn.size(), first_nights.size()])
+	# A chapter's own omens ("nights") are drawn in their night only (Omens.of_night).
+	var by_night := {}
+	for id in data.omens:
+		for night in data.omens[id].get("nights", []):
+			by_night[night] = by_night.get(night, []) + [id]
+	for night in by_night:
+		var there := {}
+		for seed in 2000:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = seed
+			var id: String = omens.roll(rng, night)
+			if id != "":
+				there[id] = true
+		_check(by_night[night].all(func(id): return there.has(id)), "%s draws its own omens %s" % [night, by_night[night]])
+		_check(by_night[night].all(func(id): return not drawn.has(id)), "  and the first night never does")
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
