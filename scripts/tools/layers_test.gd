@@ -69,7 +69,7 @@ func _run() -> void:
 		await process_frame
 		room._process(0.0)
 		var far: Array = ROOM_LAYERS.FAR_WINDOWS.get(name, [])
-		if composed:
+		if composed or not room.window_depths.is_empty():   # a live composition too
 			far = range(1, room.window_depths.size() + 1)
 		var windows = room.get_node_or_null("DepthWindows")
 		var seen := {}

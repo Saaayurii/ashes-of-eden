@@ -1301,8 +1301,40 @@ function composeStitch(first, second, lo, hi, feather = 8) {
   }
   return out;
 }
-// compose._join: `left` and `right` side by side, each carried past the seam by its own mirror.
-function composeJoin(left, right, seam = 96) {
+// compose._tone: each side's light bent halfway toward the other's, row by row, by a gain that is
+// whole at the seam and gone `tone` px away (TONE, TONE_ROWS, TONE_LIMIT as there).
+function composeTone(left, right, tone, rows = 48, limit = 2) {
+  const h = left.h, light = (img, x0) => {
+    const mean = new Float64Array(h * 3);
+    for (let y = 0; y < h; y++) for (let c = 0; c < 3; c++) {
+      let sum = 0;
+      for (let x = x0; x < x0 + tone; x++) sum += img.d[(y * img.w + x) * 4 + c];
+      mean[y * 3 + c] = sum / tone;
+    }
+    const out = new Float64Array(h * 3);
+    for (let y = 0; y < h; y++) for (let c = 0; c < 3; c++) {
+      let sum = 0;
+      for (let k = -rows; k <= rows; k++) sum += mean[Math.min(h - 1, Math.max(0, y + k)) * 3 + c];
+      out[y * 3 + c] = sum / (2 * rows + 1);
+    }
+    return out;
+  };
+  const a = light(left, left.w - tone), b = light(right, 0);
+  const L = composeImage(left.w, h, left.d.slice()), R = composeImage(right.w, h, right.d.slice());
+  for (let y = 0; y < h; y++) for (let c = 0; c < 3; c++) {
+    const ratio = Math.min(limit, Math.max(1 / limit, (a[y * 3 + c] + 8) / (b[y * 3 + c] + 8)));
+    for (let i = 0; i < tone; i++) {
+      let r = (i + 1) / tone; r = r * r * (3 - 2 * r);
+      L.d[(y * left.w + left.w - tone + i) * 4 + c] *= Math.fround(ratio ** (-0.5 * r));
+      R.d[(y * right.w + tone - 1 - i) * 4 + c] *= Math.fround(ratio ** (0.5 * r));
+    }
+  }
+  return [L, R];
+}
+// compose._join: `left` and `right` side by side, their light evened out, each carried past the seam by its own mirror.
+function composeJoin(left, right, seam = 96, tone = 320) {
+  tone = Math.min(tone, left.w >> 1, right.w >> 1);
+  [left, right] = composeTone(left, right, tone);
   const a = composeCols(left, left.w - seam, left.w), b = composeCols(right, 0, seam);
   const first = composeBeside(a, composeCols(a, 0, seam, true)), second = composeBeside(composeCols(b, 0, seam, true), b);
   const band = composeStitch(first, second, seam >> 1, seam + (seam >> 1));
@@ -1465,5 +1497,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
 })(typeof module !== 'undefined' ? module.exports : window);

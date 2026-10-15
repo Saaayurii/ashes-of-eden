@@ -1,0 +1,2216 @@
+[gd_scene load_steps=118 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]
+[ext_resource type="Texture2D" path="res://assets/levels/composed/village_night.png" id="2_backdrop"]
+[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Shader" path="res://assets/shaders/depth_window.gdshader" id="depth_shader"]
+[ext_resource type="Texture2D" path="res://assets/levels/composed/village_night_backfill.png" id="depth_plate"]
+[ext_resource type="Script" path="res://scripts/rooms/door.gd" id="4_door"]
+[ext_resource type="Script" path="res://scripts/rooms/enemy_spawn.gd" id="5_spawn"]
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="7_prop"]
+[ext_resource type="Texture2D" path="res://assets/decor/door_gate.png" id="8_gate"]
+[ext_resource type="Texture2D" path="res://assets/decor/shrine.png" id="9_shrine"]
+[ext_resource type="Texture2D" path="res://assets/decor/barrier.png" id="11_barrier"]
+[ext_resource type="Script" path="res://scripts/rooms/room_fixture.gd" id="10_fixture"]
+[ext_resource type="PackedScene" path="res://scenes/npc/npc.tscn" id="11_npc"]
+[ext_resource type="Script" path="res://scripts/fx/glow_light.gd" id="12_light"]
+[ext_resource type="Script" path="res://scripts/fx/ambient_light.gd" id="13_ambient"]
+[ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
+[ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_1.png" id="piece_float_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_2.png" id="piece_float_2"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/float_3.png" id="piece_float_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_1.png" id="piece_ledge_1"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_3.png" id="piece_ledge_3"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_4.png" id="piece_ledge_4"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_6.png" id="piece_ledge_6"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_7.png" id="piece_ledge_7"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_8.png" id="piece_ledge_8"]
+
+[sub_resource type="Gradient" id="fade"]
+offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="FastNoiseLite" id="noise"]
+frequency = 0.012
+
+[sub_resource type="NoiseTexture2D" id="noise_tex"]
+seamless = true
+noise = SubResource("noise")
+
+[sub_resource type="ShaderMaterial" id="fog_mat"]
+shader = ExtResource("3_fog")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/density = 0.2
+
+[sub_resource type="ShaderMaterial" id="depth_window_mat"]
+shader = ExtResource("depth_shader")
+shader_parameter/plate_width = 5120.0
+
+[sub_resource type="Gradient" id="glow_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.85, 0.5, 0.7, 1, 0.85, 0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_tex"]
+gradient = SubResource("glow_grad")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="dot_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_grad")
+width = 4
+height = 4
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="drop"]
+gradient = SubResource("dot_grad")
+width = 2
+height = 10
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CanvasItemMaterial" id="add_mat"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="door_shape"]
+size = Vector2(20, 56)
+
+[sub_resource type="RectangleShape2D" id="Ground1_shape"]
+size = Vector2(310, 24)
+
+[sub_resource type="RectangleShape2D" id="Ground2_shape"]
+size = Vector2(80, 20)
+
+[sub_resource type="RectangleShape2D" id="Ground3_shape"]
+size = Vector2(40, 20)
+
+[sub_resource type="RectangleShape2D" id="Ground4_shape"]
+size = Vector2(80, 20)
+
+[sub_resource type="RectangleShape2D" id="Ground5_shape"]
+size = Vector2(320, 30)
+
+[sub_resource type="RectangleShape2D" id="Ground6_shape"]
+size = Vector2(40, 30)
+
+[sub_resource type="RectangleShape2D" id="Ground7_shape"]
+size = Vector2(200, 40)
+
+[sub_resource type="RectangleShape2D" id="Ground8_shape"]
+size = Vector2(120, 60)
+
+[sub_resource type="RectangleShape2D" id="Ground9_shape"]
+size = Vector2(90, 30)
+
+[sub_resource type="RectangleShape2D" id="Ground10_shape"]
+size = Vector2(185, 30)
+
+[sub_resource type="RectangleShape2D" id="Ground11_shape"]
+size = Vector2(50, 20)
+
+[sub_resource type="RectangleShape2D" id="Ground12_shape"]
+size = Vector2(220, 65)
+
+[sub_resource type="RectangleShape2D" id="Platform1_shape"]
+size = Vector2(56, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform2_shape"]
+size = Vector2(56, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform3_shape"]
+size = Vector2(56, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform4_shape"]
+size = Vector2(56, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform5_shape"]
+size = Vector2(80, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform6_shape"]
+size = Vector2(80, 10)
+
+[sub_resource type="RectangleShape2D" id="Platform7_shape"]
+size = Vector2(80, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge1_shape"]
+size = Vector2(195, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge2_shape"]
+size = Vector2(150, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge3_shape"]
+size = Vector2(96, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge4_shape"]
+size = Vector2(140, 16)
+
+[sub_resource type="RectangleShape2D" id="Ledge5_shape"]
+size = Vector2(350, 20)
+
+[sub_resource type="RectangleShape2D" id="Ledge6_shape"]
+size = Vector2(70, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge7_shape"]
+size = Vector2(280, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge8_shape"]
+size = Vector2(154, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge9_shape"]
+size = Vector2(148, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge10_shape"]
+size = Vector2(68, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge11_shape"]
+size = Vector2(88, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge12_shape"]
+size = Vector2(74, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge13_shape"]
+size = Vector2(596, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge14_shape"]
+size = Vector2(207, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge15_shape"]
+size = Vector2(257, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge16_shape"]
+size = Vector2(30, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge17_shape"]
+size = Vector2(189, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge18_shape"]
+size = Vector2(264, 16)
+
+[sub_resource type="RectangleShape2D" id="Ledge19_shape"]
+size = Vector2(155, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge20_shape"]
+size = Vector2(90, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge21_shape"]
+size = Vector2(265, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge22_shape"]
+size = Vector2(112, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge23_shape"]
+size = Vector2(61, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge24_shape"]
+size = Vector2(280, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge25_shape"]
+size = Vector2(70, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge26_shape"]
+size = Vector2(72, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge27_shape"]
+size = Vector2(47, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge28_shape"]
+size = Vector2(71, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge29_shape"]
+size = Vector2(346, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge30_shape"]
+size = Vector2(44, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge31_shape"]
+size = Vector2(165, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge32_shape"]
+size = Vector2(122, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge33_shape"]
+size = Vector2(72, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge34_shape"]
+size = Vector2(47, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge35_shape"]
+size = Vector2(44, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge36_shape"]
+size = Vector2(99, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge37_shape"]
+size = Vector2(112, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge38_shape"]
+size = Vector2(110, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge39_shape"]
+size = Vector2(60, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge40_shape"]
+size = Vector2(64, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge41_shape"]
+size = Vector2(240, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge42_shape"]
+size = Vector2(77, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge43_shape"]
+size = Vector2(480, 16)
+
+[sub_resource type="RectangleShape2D" id="Ledge44_shape"]
+size = Vector2(51, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge45_shape"]
+size = Vector2(95, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge46_shape"]
+size = Vector2(60, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge47_shape"]
+size = Vector2(71, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge48_shape"]
+size = Vector2(60, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge49_shape"]
+size = Vector2(56, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge50_shape"]
+size = Vector2(270, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge51_shape"]
+size = Vector2(150, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge52_shape"]
+size = Vector2(183, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge53_shape"]
+size = Vector2(63, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge54_shape"]
+size = Vector2(125, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge55_shape"]
+size = Vector2(176, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge56_shape"]
+size = Vector2(50, 12)
+
+[sub_resource type="RectangleShape2D" id="Ledge57_shape"]
+size = Vector2(120, 14)
+
+[sub_resource type="RectangleShape2D" id="Wall1_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall2_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall3_shape"]
+size = Vector2(5120, 16)
+
+[node name="Room" type="Node2D"]
+script = ExtResource("1_room")
+width = 5120
+height = 720
+waves_json = "[[[\"possessed_villager\", 1150, 508], [\"cultist\", 760, 548], [\"possessed_villager\", 1050, 248], [\"raven\", 700, 120]]]"
+intro_dialogue = ""
+intro_cutscene = ""
+outro_cutscene = ""
+painting_source = "res://assets/levels/composed/village_night.png"
+depth_parallax = 0.0255
+window_depths = PackedFloat32Array(0.68, 0.84, 1.0, 0.68, 0.84, 1.0, 0.68, 0.84, 1.0, 0.68, 0.84, 1.0)
+sky_windows = PackedInt32Array(1, 4, 7, 10)
+
+[node name="Ambient" type="CanvasModulate" parent="."]
+color = Color(0.753, 0.737, 0.8, 1)
+script = ExtResource("13_ambient")
+music = "village_night"
+
+[node name="Painting" type="Sprite2D" parent="."]
+texture_filter = 2
+texture = ExtResource("2_backdrop")
+centered = false
+
+[node name="DepthWindows" type="Node2D" parent="."]
+
+[node name="Window1Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 235, 8, 1050, 8)
+uv = PackedVector2Array(660, 144, 235, 8, 1050, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 1050, 8, 1045, 174)
+uv = PackedVector2Array(660, 144, 1050, 8, 1045, 174)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 1045, 174, 945, 205)
+uv = PackedVector2Array(660, 144, 1045, 174, 945, 205)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 945, 205, 770, 202)
+uv = PackedVector2Array(660, 144, 945, 205, 770, 202)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 770, 202, 600, 205)
+uv = PackedVector2Array(660, 144, 770, 202, 600, 205)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather6" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 600, 205, 400, 182)
+uv = PackedVector2Array(660, 144, 600, 205, 400, 182)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather7" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 400, 182, 235, 165)
+uv = PackedVector2Array(660, 144, 400, 182, 235, 165)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window1Feather8" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(660, 144, 235, 165, 235, 8)
+uv = PackedVector2Array(660, 144, 235, 165, 235, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 342, 241, 414, 240)
+uv = PackedVector2Array(379, 288, 342, 241, 414, 240)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 414, 240, 430, 307)
+uv = PackedVector2Array(379, 288, 414, 240, 430, 307)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 430, 307, 377, 336)
+uv = PackedVector2Array(379, 288, 430, 307, 377, 336)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 377, 336, 333, 317)
+uv = PackedVector2Array(379, 288, 377, 336, 333, 317)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window2Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(379, 288, 333, 317, 342, 241)
+uv = PackedVector2Array(379, 288, 333, 317, 342, 241)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(712, 329, 622, 282, 821, 268)
+uv = PackedVector2Array(712, 329, 622, 282, 821, 268)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(712, 329, 821, 268, 819, 365)
+uv = PackedVector2Array(712, 329, 821, 268, 819, 365)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(712, 329, 819, 365, 672, 374)
+uv = PackedVector2Array(712, 329, 819, 365, 672, 374)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(712, 329, 672, 374, 626, 355)
+uv = PackedVector2Array(712, 329, 672, 374, 626, 355)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window3Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(712, 329, 626, 355, 622, 282)
+uv = PackedVector2Array(712, 329, 626, 355, 622, 282)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 1470, 8, 2360, 8)
+uv = PackedVector2Array(1926, 142, 1470, 8, 2360, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 2360, 8, 2345, 173)
+uv = PackedVector2Array(1926, 142, 2360, 8, 2345, 173)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 2345, 173, 2195, 189)
+uv = PackedVector2Array(1926, 142, 2345, 173, 2195, 189)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 2195, 189, 2030, 195)
+uv = PackedVector2Array(1926, 142, 2195, 189, 2030, 195)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 2030, 195, 1872, 190)
+uv = PackedVector2Array(1926, 142, 2030, 195, 1872, 190)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather6" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 1872, 190, 1666, 195)
+uv = PackedVector2Array(1926, 142, 1872, 190, 1666, 195)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather7" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 1666, 195, 1470, 180)
+uv = PackedVector2Array(1926, 142, 1666, 195, 1470, 180)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window4Feather8" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1926, 142, 1470, 180, 1470, 8)
+uv = PackedVector2Array(1926, 142, 1470, 180, 1470, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window5Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1962, 281, 1853, 217, 2067, 205)
+uv = PackedVector2Array(1962, 281, 1853, 217, 2067, 205)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window5Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1962, 281, 2067, 205, 2068, 325)
+uv = PackedVector2Array(1962, 281, 2067, 205, 2068, 325)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window5Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1962, 281, 2068, 325, 1976, 339)
+uv = PackedVector2Array(1962, 281, 2068, 325, 1976, 339)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window5Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1962, 281, 1976, 339, 1848, 321)
+uv = PackedVector2Array(1962, 281, 1976, 339, 1848, 321)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window5Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1962, 281, 1848, 321, 1853, 217)
+uv = PackedVector2Array(1962, 281, 1848, 321, 1853, 217)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window6Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1974, 417, 1873, 365, 2077, 355)
+uv = PackedVector2Array(1974, 417, 1873, 365, 2077, 355)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window6Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1974, 417, 2077, 355, 2073, 477)
+uv = PackedVector2Array(1974, 417, 2077, 355, 2073, 477)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window6Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1974, 417, 2073, 477, 1872, 472)
+uv = PackedVector2Array(1974, 417, 2073, 477, 1872, 472)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window6Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(1974, 417, 1872, 472, 1873, 365)
+uv = PackedVector2Array(1974, 417, 1872, 472, 1873, 365)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window7Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3134, 123, 2780, 8, 3497, 8)
+uv = PackedVector2Array(3134, 123, 2780, 8, 3497, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window7Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3134, 123, 3497, 8, 3465, 155)
+uv = PackedVector2Array(3134, 123, 3497, 8, 3465, 155)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window7Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3134, 123, 3465, 155, 3324, 165)
+uv = PackedVector2Array(3134, 123, 3465, 155, 3324, 165)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window7Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3134, 123, 3324, 165, 3135, 160)
+uv = PackedVector2Array(3134, 123, 3324, 165, 3135, 160)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window7Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3134, 123, 3135, 160, 2950, 180)
+uv = PackedVector2Array(3134, 123, 3135, 160, 2950, 180)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window7Feather6" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3134, 123, 2950, 180, 2784, 183)
+uv = PackedVector2Array(3134, 123, 2950, 180, 2784, 183)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window7Feather7" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3134, 123, 2784, 183, 2780, 8)
+uv = PackedVector2Array(3134, 123, 2784, 183, 2780, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window8Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3183, 267, 2997, 187, 3361, 176)
+uv = PackedVector2Array(3183, 267, 2997, 187, 3361, 176)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window8Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3183, 267, 3361, 176, 3365, 303)
+uv = PackedVector2Array(3183, 267, 3361, 176, 3365, 303)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window8Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3183, 267, 3365, 303, 3260, 323)
+uv = PackedVector2Array(3183, 267, 3365, 303, 3260, 323)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window8Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3183, 267, 3260, 323, 3116, 305)
+uv = PackedVector2Array(3183, 267, 3260, 323, 3116, 305)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window8Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3183, 267, 3116, 305, 3000, 310)
+uv = PackedVector2Array(3183, 267, 3116, 305, 3000, 310)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window8Feather6" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3183, 267, 3000, 310, 2997, 187)
+uv = PackedVector2Array(3183, 267, 3000, 310, 2997, 187)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window9Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3356, 418, 3293, 353, 3447, 342)
+uv = PackedVector2Array(3356, 418, 3293, 353, 3447, 342)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window9Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3356, 418, 3447, 342, 3440, 465)
+uv = PackedVector2Array(3356, 418, 3447, 342, 3440, 465)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window9Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3356, 418, 3440, 465, 3308, 483)
+uv = PackedVector2Array(3356, 418, 3440, 465, 3308, 483)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window9Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3356, 418, 3308, 483, 3293, 447)
+uv = PackedVector2Array(3356, 418, 3308, 483, 3293, 447)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window9Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(3356, 418, 3293, 447, 3293, 353)
+uv = PackedVector2Array(3356, 418, 3293, 447, 3293, 353)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window10Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4449, 127, 4040, 8, 4870, 8)
+uv = PackedVector2Array(4449, 127, 4040, 8, 4870, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window10Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4449, 127, 4870, 8, 4855, 167)
+uv = PackedVector2Array(4449, 127, 4870, 8, 4855, 167)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window10Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4449, 127, 4855, 167, 4642, 174)
+uv = PackedVector2Array(4449, 127, 4855, 167, 4642, 174)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window10Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4449, 127, 4642, 174, 4451, 178)
+uv = PackedVector2Array(4449, 127, 4642, 174, 4451, 178)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window10Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4449, 127, 4451, 178, 4240, 177)
+uv = PackedVector2Array(4449, 127, 4451, 178, 4240, 177)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window10Feather6" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4449, 127, 4240, 177, 4043, 174)
+uv = PackedVector2Array(4449, 127, 4240, 177, 4043, 174)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window10Feather7" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4449, 127, 4043, 174, 4040, 8)
+uv = PackedVector2Array(4449, 127, 4043, 174, 4040, 8)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window11Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4349, 266, 4217, 191, 4462, 184)
+uv = PackedVector2Array(4349, 266, 4217, 191, 4462, 184)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window11Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4349, 266, 4462, 184, 4468, 304)
+uv = PackedVector2Array(4349, 266, 4462, 184, 4468, 304)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window11Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4349, 266, 4468, 304, 4380, 333)
+uv = PackedVector2Array(4349, 266, 4468, 304, 4380, 333)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window11Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4349, 266, 4380, 333, 4219, 318)
+uv = PackedVector2Array(4349, 266, 4380, 333, 4219, 318)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window11Feather5" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4349, 266, 4219, 318, 4217, 191)
+uv = PackedVector2Array(4349, 266, 4219, 318, 4217, 191)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window12Feather1" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4309, 370, 4228, 344, 4390, 344)
+uv = PackedVector2Array(4309, 370, 4228, 344, 4390, 344)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window12Feather2" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4309, 370, 4390, 344, 4389, 395)
+uv = PackedVector2Array(4309, 370, 4390, 344, 4389, 395)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window12Feather3" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4309, 370, 4389, 395, 4230, 397)
+uv = PackedVector2Array(4309, 370, 4389, 395, 4230, 397)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="Window12Feather4" type="Polygon2D" parent="DepthWindows"]
+texture_filter = 2
+texture = ExtResource("depth_plate")
+material = SubResource("depth_window_mat")
+polygon = PackedVector2Array(4309, 370, 4230, 397, 4228, 344)
+uv = PackedVector2Array(4309, 370, 4230, 397, 4228, 344)
+vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+antialiased = true
+
+[node name="FogFar" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.75, 0.75)
+
+[node name="Fog" type="ColorRect" parent="FogFar"]
+material = SubResource("fog_mat")
+offset_right = 5320.0
+offset_bottom = 1120.0
+mouse_filter = 2
+
+[node name="DecorBack" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.88, 1)
+
+[node name="Geometry" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(155.0, 207.0)
+shape = SubResource("Ground1_shape")
+
+[node name="Ground2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(40.0, 405.0)
+shape = SubResource("Ground2_shape")
+
+[node name="Ground3Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(100.0, 415.0)
+shape = SubResource("Ground3_shape")
+
+[node name="Ground4Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(160.0, 430.0)
+shape = SubResource("Ground4_shape")
+
+[node name="Ground5Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(440.0, 542.0)
+shape = SubResource("Ground5_shape")
+
+[node name="Ground6Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(620.0, 553.0)
+shape = SubResource("Ground6_shape")
+
+[node name="Ground7Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(740.0, 580.0)
+shape = SubResource("Ground7_shape")
+
+[node name="Ground8Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(900.0, 550.0)
+shape = SubResource("Ground8_shape")
+
+[node name="Ground9Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(985.0, 640.0)
+shape = SubResource("Ground9_shape")
+
+[node name="Ground10Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1187.5, 535.0)
+shape = SubResource("Ground10_shape")
+
+[node name="Ground11Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1070.0, 570.0)
+shape = SubResource("Ground11_shape")
+
+[node name="Ground12Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1170.0, 687.5)
+shape = SubResource("Ground12_shape")
+
+[node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-8.0, 352.0)
+shape = SubResource("Wall1_shape")
+
+[node name="Wall2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(5128.0, 352.0)
+shape = SubResource("Wall2_shape")
+
+[node name="Wall3Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(2560.0, -8.0)
+shape = SubResource("Wall3_shape")
+
+[node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(200.0, 420.0, 207.14, 420.0, 207.14, 427.64, 214.29, 427.64, 214.29, 435.29, 221.43, 435.29, 221.43, 442.93, 228.57, 442.93, 228.57, 450.57, 235.71, 450.57, 235.71, 458.21, 242.86, 458.21, 242.86, 465.86, 250.0, 465.86, 250.0, 473.5, 257.14, 473.5, 257.14, 481.14, 264.29, 481.14, 264.29, 488.79, 271.43, 488.79, 271.43, 496.43, 278.57, 496.43, 278.57, 504.07, 285.71, 504.07, 285.71, 511.71, 292.86, 511.71, 292.86, 519.36, 300.0, 519.36, 300.0, 527.0, 300.0, 543.0, 300.0, 535.36, 292.86, 535.36, 292.86, 527.71, 285.71, 527.71, 285.71, 520.07, 278.57, 520.07, 278.57, 512.43, 271.43, 512.43, 271.43, 504.79, 264.29, 504.79, 264.29, 497.14, 257.14, 497.14, 257.14, 489.5, 250.0, 489.5, 250.0, 481.86, 242.86, 481.86, 242.86, 474.21, 235.71, 474.21, 235.71, 466.57, 228.57, 466.57, 228.57, 458.93, 221.43, 458.93, 221.43, 451.29, 214.29, 451.29, 214.29, 443.64, 207.14, 443.64, 207.14, 436.0, 200.0, 436.0)
+
+[node name="Ramp2" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(2265.0, 545.0, 2272.75, 545.0, 2272.75, 537.15, 2280.5, 537.15, 2280.5, 529.3, 2288.25, 529.3, 2288.25, 521.45, 2296.0, 521.45, 2296.0, 513.6, 2303.75, 513.6, 2303.75, 505.75, 2311.5, 505.75, 2311.5, 497.9, 2319.25, 497.9, 2319.25, 490.05, 2327.0, 490.05, 2327.0, 482.2, 2334.75, 482.2, 2334.75, 474.35, 2342.5, 474.35, 2342.5, 466.5, 2350.25, 466.5, 2350.25, 458.65, 2358.0, 458.65, 2358.0, 450.8, 2365.75, 450.8, 2365.75, 442.95, 2373.5, 442.95, 2373.5, 435.1, 2381.25, 435.1, 2381.25, 427.25, 2389.0, 427.25, 2389.0, 419.4, 2396.75, 419.4, 2396.75, 411.55, 2404.5, 411.55, 2404.5, 403.7, 2412.25, 403.7, 2412.25, 395.85, 2420.0, 395.85, 2420.0, 388.0, 2420.0, 404.0, 2420.0, 411.85, 2412.25, 411.85, 2412.25, 419.7, 2404.5, 419.7, 2404.5, 427.55, 2396.75, 427.55, 2396.75, 435.4, 2389.0, 435.4, 2389.0, 443.25, 2381.25, 443.25, 2381.25, 451.1, 2373.5, 451.1, 2373.5, 458.95, 2365.75, 458.95, 2365.75, 466.8, 2358.0, 466.8, 2358.0, 474.65, 2350.25, 474.65, 2350.25, 482.5, 2342.5, 482.5, 2342.5, 490.35, 2334.75, 490.35, 2334.75, 498.2, 2327.0, 498.2, 2327.0, 506.05, 2319.25, 506.05, 2319.25, 513.9, 2311.5, 513.9, 2311.5, 521.75, 2303.75, 521.75, 2303.75, 529.6, 2296.0, 529.6, 2296.0, 537.45, 2288.25, 537.45, 2288.25, 545.3, 2280.5, 545.3, 2280.5, 553.15, 2272.75, 553.15, 2272.75, 561.0, 2265.0, 561.0)
+
+[node name="Ramp3" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(3445.0, 594.0, 3450.45, 594.0, 3450.45, 586.55, 3455.91, 586.55, 3455.91, 579.09, 3461.36, 579.09, 3461.36, 571.64, 3466.82, 571.64, 3466.82, 564.18, 3472.27, 564.18, 3472.27, 556.73, 3477.73, 556.73, 3477.73, 549.27, 3483.18, 549.27, 3483.18, 541.82, 3488.64, 541.82, 3488.64, 534.36, 3494.09, 534.36, 3494.09, 526.91, 3499.55, 526.91, 3499.55, 519.45, 3505.0, 519.45, 3505.0, 512.0, 3505.0, 528.0, 3505.0, 535.45, 3499.55, 535.45, 3499.55, 542.91, 3494.09, 542.91, 3494.09, 550.36, 3488.64, 550.36, 3488.64, 557.82, 3483.18, 557.82, 3483.18, 565.27, 3477.73, 565.27, 3477.73, 572.73, 3472.27, 572.73, 3472.27, 580.18, 3466.82, 580.18, 3466.82, 587.64, 3461.36, 587.64, 3461.36, 595.09, 3455.91, 595.09, 3455.91, 602.55, 3450.45, 602.55, 3450.45, 610.0, 3445.0, 610.0)
+
+[node name="Ledges" type="StaticBody2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2428.0, 267.0)
+shape = SubResource("Platform1_shape")
+one_way_collision = true
+
+[node name="Platform2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3718.0, 475.0)
+shape = SubResource("Platform2_shape")
+one_way_collision = true
+
+[node name="Platform3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3668.0, 355.0)
+shape = SubResource("Platform3_shape")
+one_way_collision = true
+
+[node name="Platform4Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(5018.0, 305.0)
+shape = SubResource("Platform4_shape")
+one_way_collision = true
+
+[node name="Platform5Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3774.0, 433.0)
+shape = SubResource("Platform5_shape")
+one_way_collision = true
+
+[node name="Platform6Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3800.0, 283.0)
+shape = SubResource("Platform6_shape")
+one_way_collision = true
+
+[node name="Platform7Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2330.0, 351.0)
+shape = SubResource("Platform7_shape")
+one_way_collision = true
+
+[node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(502.5, 227.0)
+shape = SubResource("Ledge1_shape")
+one_way_collision = true
+
+[node name="Ledge2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(315.0, 352.0)
+shape = SubResource("Ledge2_shape")
+one_way_collision = true
+
+[node name="Ledge3Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(674.0, 428.0)
+shape = SubResource("Ledge3_shape")
+one_way_collision = true
+
+[node name="Ledge4Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(890.0, 333.0)
+shape = SubResource("Ledge4_shape")
+one_way_collision = true
+
+[node name="Ledge5Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1105.0, 270.0)
+shape = SubResource("Ledge5_shape")
+one_way_collision = true
+
+[node name="Ledge6Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(725.0, 385.0)
+shape = SubResource("Ledge6_shape")
+one_way_collision = true
+
+[node name="Ledge7Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1420.0, 261.0)
+shape = SubResource("Ledge7_shape")
+one_way_collision = true
+
+[node name="Ledge8Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1761.0, 285.0)
+shape = SubResource("Ledge8_shape")
+one_way_collision = true
+
+[node name="Ledge9Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1602.0, 355.0)
+shape = SubResource("Ledge9_shape")
+one_way_collision = true
+
+[node name="Ledge10Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1374.0, 406.0)
+shape = SubResource("Ledge10_shape")
+one_way_collision = true
+
+[node name="Ledge11Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1324.0, 526.0)
+shape = SubResource("Ledge11_shape")
+one_way_collision = true
+
+[node name="Ledge12Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1399.0, 544.0)
+shape = SubResource("Ledge12_shape")
+one_way_collision = true
+
+[node name="Ledge13Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1766.0, 525.0)
+shape = SubResource("Ledge13_shape")
+one_way_collision = true
+
+[node name="Ledge14Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2168.5, 552.0)
+shape = SubResource("Ledge14_shape")
+one_way_collision = true
+
+[node name="Ledge15Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2212.5, 392.0)
+shape = SubResource("Ledge15_shape")
+one_way_collision = true
+
+[node name="Ledge16Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2356.0, 393.0)
+shape = SubResource("Ledge16_shape")
+one_way_collision = true
+
+[node name="Ledge17Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2465.5, 395.0)
+shape = SubResource("Ledge17_shape")
+one_way_collision = true
+
+[node name="Ledge18Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2428.0, 228.0)
+shape = SubResource("Ledge18_shape")
+one_way_collision = true
+
+[node name="Ledge19Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1357.5, 662.0)
+shape = SubResource("Ledge19_shape")
+one_way_collision = true
+
+[node name="Ledge20Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2330.0, 312.0)
+shape = SubResource("Ledge20_shape")
+one_way_collision = true
+
+[node name="Ledge21Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2692.5, 227.0)
+shape = SubResource("Ledge21_shape")
+one_way_collision = true
+
+[node name="Ledge22Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2839.0, 263.0)
+shape = SubResource("Ledge22_shape")
+one_way_collision = true
+
+[node name="Ledge23Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2963.5, 281.0)
+shape = SubResource("Ledge23_shape")
+one_way_collision = true
+
+[node name="Ledge24Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3093.0, 357.0)
+shape = SubResource("Ledge24_shape")
+one_way_collision = true
+
+[node name="Ledge25Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2601.0, 395.0)
+shape = SubResource("Ledge25_shape")
+one_way_collision = true
+
+[node name="Ledge26Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2810.0, 500.0)
+shape = SubResource("Ledge26_shape")
+one_way_collision = true
+
+[node name="Ledge27Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2859.5, 518.0)
+shape = SubResource("Ledge27_shape")
+one_way_collision = true
+
+[node name="Ledge28Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(2892.5, 530.0)
+shape = SubResource("Ledge28_shape")
+one_way_collision = true
+
+[node name="Ledge29Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3083.0, 559.0)
+shape = SubResource("Ledge29_shape")
+one_way_collision = true
+
+[node name="Ledge30Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3254.0, 577.0)
+shape = SubResource("Ledge30_shape")
+one_way_collision = true
+
+[node name="Ledge31Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3362.5, 601.0)
+shape = SubResource("Ledge31_shape")
+one_way_collision = true
+
+[node name="Ledge32Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3556.0, 610.0)
+shape = SubResource("Ledge32_shape")
+one_way_collision = true
+
+[node name="Ledge33Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3271.0, 491.0)
+shape = SubResource("Ledge33_shape")
+one_way_collision = true
+
+[node name="Ledge34Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3523.5, 518.0)
+shape = SubResource("Ledge34_shape")
+one_way_collision = true
+
+[node name="Ledge35Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3648.0, 534.0)
+shape = SubResource("Ledge35_shape")
+one_way_collision = true
+
+[node name="Ledge36Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3778.5, 394.0)
+shape = SubResource("Ledge36_shape")
+one_way_collision = true
+
+[node name="Ledge37Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3516.0, 323.0)
+shape = SubResource("Ledge37_shape")
+one_way_collision = true
+
+[node name="Ledge38Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3665.0, 299.0)
+shape = SubResource("Ledge38_shape")
+one_way_collision = true
+
+[node name="Ledge39Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3910.0, 271.0)
+shape = SubResource("Ledge39_shape")
+one_way_collision = true
+
+[node name="Ledge40Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3952.0, 295.0)
+shape = SubResource("Ledge40_shape")
+one_way_collision = true
+
+[node name="Ledge41Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4097.0, 319.0)
+shape = SubResource("Ledge41_shape")
+one_way_collision = true
+
+[node name="Ledge42Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3920.5, 395.0)
+shape = SubResource("Ledge42_shape")
+one_way_collision = true
+
+[node name="Ledge43Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4369.0, 427.0)
+shape = SubResource("Ledge43_shape")
+one_way_collision = true
+
+[node name="Ledge44Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(3966.5, 502.0)
+shape = SubResource("Ledge44_shape")
+one_way_collision = true
+
+[node name="Ledge45Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4007.5, 527.0)
+shape = SubResource("Ledge45_shape")
+one_way_collision = true
+
+[node name="Ledge46Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4050.0, 546.0)
+shape = SubResource("Ledge46_shape")
+one_way_collision = true
+
+[node name="Ledge47Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4100.5, 568.0)
+shape = SubResource("Ledge47_shape")
+one_way_collision = true
+
+[node name="Ledge48Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4305.0, 588.0)
+shape = SubResource("Ledge48_shape")
+one_way_collision = true
+
+[node name="Ledge49Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4349.0, 609.0)
+shape = SubResource("Ledge49_shape")
+one_way_collision = true
+
+[node name="Ledge50Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4513.0, 622.0)
+shape = SubResource("Ledge50_shape")
+one_way_collision = true
+
+[node name="Ledge51Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4647.0, 642.0)
+shape = SubResource("Ledge51_shape")
+one_way_collision = true
+
+[node name="Ledge52Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4730.5, 387.0)
+shape = SubResource("Ledge52_shape")
+one_way_collision = true
+
+[node name="Ledge53Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4862.5, 371.0)
+shape = SubResource("Ledge53_shape")
+one_way_collision = true
+
+[node name="Ledge54Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4950.5, 416.0)
+shape = SubResource("Ledge54_shape")
+one_way_collision = true
+
+[node name="Ledge55Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(5032.0, 452.0)
+shape = SubResource("Ledge55_shape")
+one_way_collision = true
+
+[node name="Ledge56Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4936.0, 345.0)
+shape = SubResource("Ledge56_shape")
+one_way_collision = true
+
+[node name="Ledge57Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(4997.0, 248.0)
+shape = SubResource("Ledge57_shape")
+one_way_collision = true
+
+[node name="CrumblingPlatform1" type="StaticBody2D" parent="."]
+position = Vector2(328, 217)
+script = ExtResource("crumbling_platform")
+walk_width = 68.0
+
+[node name="CrumblingPlatform2" type="StaticBody2D" parent="."]
+position = Vector2(1581, 264)
+script = ExtResource("crumbling_platform")
+walk_width = 80.0
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Platform1_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(2400, 260)
+texture = ExtResource("piece_float_3")
+centered = false
+modulate = Color(0.921, 0.921, 0.923, 1)
+
+[node name="Platform1_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(2425, 261)
+texture = ExtResource("piece_float_1")
+centered = false
+modulate = Color(0.934, 0.934, 0.935, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 31, 32)
+
+[node name="Platform2_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(3690, 469)
+texture = ExtResource("piece_float_2")
+centered = false
+flip_h = true
+modulate = Color(0.984, 0.984, 0.984, 1)
+
+[node name="Platform2_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(3719, 469)
+texture = ExtResource("piece_float_1")
+centered = false
+modulate = Color(0.953, 0.953, 0.954, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 27, 32)
+
+[node name="Platform3_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(3640, 348)
+texture = ExtResource("piece_float_3")
+centered = false
+modulate = Color(0.911, 0.911, 0.913, 1)
+
+[node name="Platform3_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(3665, 349)
+texture = ExtResource("piece_float_1")
+centered = false
+modulate = Color(0.921, 0.921, 0.923, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 31, 32)
+
+[node name="Platform4_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(4990, 299)
+texture = ExtResource("piece_float_1")
+centered = false
+modulate = Color(0.993, 0.993, 0.993, 1)
+
+[node name="Platform4_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(5019, 299)
+texture = ExtResource("piece_float_2")
+centered = false
+modulate = Color(0.939, 0.939, 0.94, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 27, 30)
+
+[node name="Platform5_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(3734, 428)
+texture = ExtResource("piece_ledge_7")
+centered = false
+flip_h = true
+modulate = Color(0.953, 0.953, 0.954, 1)
+
+[node name="Platform5_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(3775, 428)
+texture = ExtResource("piece_ledge_6")
+centered = false
+modulate = Color(0.983, 0.983, 0.983, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 39, 46)
+
+[node name="Platform6_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(3760, 278)
+texture = ExtResource("piece_ledge_3")
+centered = false
+modulate = Color(0.926, 0.926, 0.927, 1)
+
+[node name="Platform6_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(3807, 278)
+texture = ExtResource("piece_ledge_8")
+centered = false
+modulate = Color(0.951, 0.951, 0.952, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 33, 43)
+
+[node name="Platform7_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(2290, 346)
+texture = ExtResource("piece_ledge_1")
+centered = false
+flip_h = true
+modulate = Color(0.956, 0.956, 0.957, 1)
+
+[node name="Platform7_2" type="Sprite2D" parent="Terrain"]
+position = Vector2(2332, 346)
+texture = ExtResource("piece_ledge_4")
+centered = false
+modulate = Color(0.971, 0.971, 0.972, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 38, 46)
+
+[node name="DecorMid" type="Node2D" parent="."]
+
+[node name="DecorFront" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(280, 195)
+prop_id = "pot"
+
+[node name="Prop2" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(370, 345)
+prop_id = "rubble"
+
+[node name="Prop3" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(330, 527)
+prop_id = "village_supplies"
+
+[node name="Prop4" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(365, 527)
+prop_id = "village_supplies"
+
+[node name="Prop5" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(500, 527)
+prop_id = "rubble"
+
+[node name="Prop6" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(700, 560)
+prop_id = "pot"
+
+[node name="Prop7" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1000, 625)
+prop_id = "rubble"
+
+[node name="Prop8" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1200, 655)
+prop_id = "chest_wooden"
+
+[node name="Prop9" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1110, 655)
+prop_id = "secret_wall_village"
+
+[node name="Prop10" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1480, 254)
+prop_id = "pot"
+
+[node name="Prop11" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1580, 348)
+prop_id = "barrel"
+
+[node name="Prop12" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1980, 518)
+prop_id = "crate"
+
+[node name="Prop13" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(2140, 545)
+prop_id = "sack"
+
+[node name="Prop14" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1350, 655)
+prop_id = "chest_wooden"
+
+[node name="Prop15" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(2220, 385)
+prop_id = "village_supplies"
+
+[node name="Prop16" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(2710, 220)
+prop_id = "chest_iron"
+
+[node name="Prop17" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(2980, 350)
+prop_id = "barrel"
+
+[node name="Prop18" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(2940, 552)
+prop_id = "village_supplies"
+
+[node name="Prop19" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(3410, 594)
+prop_id = "sack"
+
+[node name="Prop20" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(3560, 603)
+prop_id = "village_supplies"
+
+[node name="Prop21" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(2802, 494)
+prop_id = "chest_gold"
+
+[node name="Prop22" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(3790, 387)
+prop_id = "pot"
+
+[node name="Prop23" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(3950, 289)
+prop_id = "pot"
+
+[node name="Prop24" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(4190, 312)
+prop_id = "barrel"
+
+[node name="Prop25" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(4340, 419)
+prop_id = "crate"
+
+[node name="Prop26" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(4560, 419)
+prop_id = "rubble"
+
+[node name="Prop27" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(4600, 635)
+prop_id = "chest_wooden"
+
+[node name="Prop28" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(4090, 563)
+prop_id = "pot"
+
+[node name="Prop29" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(5090, 445)
+prop_id = "crate"
+
+[node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
+position = Vector2(300, 345)
+npc_id = "severin"
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="Spawns"]
+position = Vector2(470, 515)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn2" type="Marker2D" parent="Spawns"]
+position = Vector2(760, 548)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn3" type="Marker2D" parent="Spawns"]
+position = Vector2(1150, 508)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn4" type="Marker2D" parent="Spawns"]
+position = Vector2(1050, 248)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn5" type="Marker2D" parent="Spawns"]
+position = Vector2(330, 333)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn6" type="Marker2D" parent="Spawns"]
+position = Vector2(500, 300)
+script = ExtResource("5_spawn")
+enemy_id = "shade"
+
+[node name="Spawn7" type="Marker2D" parent="Spawns"]
+position = Vector2(900, 200)
+script = ExtResource("5_spawn")
+enemy_id = "shade"
+
+[node name="Spawn8" type="Marker2D" parent="Spawns"]
+position = Vector2(700, 120)
+script = ExtResource("5_spawn")
+enemy_id = "raven"
+
+[node name="Spawn9" type="Marker2D" parent="Spawns"]
+position = Vector2(1680, 506)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn10" type="Marker2D" parent="Spawns"]
+position = Vector2(2160, 533)
+script = ExtResource("5_spawn")
+enemy_id = "cultist"
+
+[node name="Spawn11" type="Marker2D" parent="Spawns"]
+position = Vector2(2460, 376)
+script = ExtResource("5_spawn")
+enemy_id = "zealot"
+
+[node name="Spawn12" type="Marker2D" parent="Spawns"]
+position = Vector2(2080, 150)
+script = ExtResource("5_spawn")
+enemy_id = "raven"
+
+[node name="Spawn13" type="Marker2D" parent="Spawns"]
+position = Vector2(2280, 373)
+script = ExtResource("5_spawn")
+enemy_id = "cult_slinger"
+
+[node name="Spawn14" type="Marker2D" parent="Spawns"]
+position = Vector2(3060, 338)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn15" type="Marker2D" parent="Spawns"]
+position = Vector2(3160, 540)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn16" type="Marker2D" parent="Spawns"]
+position = Vector2(3780, 375)
+script = ExtResource("5_spawn")
+enemy_id = "zealot"
+
+[node name="Spawn17" type="Marker2D" parent="Spawns"]
+position = Vector2(3310, 250)
+script = ExtResource("5_spawn")
+enemy_id = "shade"
+
+[node name="Spawn18" type="Marker2D" parent="Spawns"]
+position = Vector2(2810, 620)
+script = ExtResource("5_spawn")
+enemy_id = "wraith"
+
+[node name="Spawn19" type="Marker2D" parent="Spawns"]
+position = Vector2(4240, 407)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn20" type="Marker2D" parent="Spawns"]
+position = Vector2(4720, 368)
+script = ExtResource("5_spawn")
+enemy_id = "cultist"
+
+[node name="Spawn21" type="Marker2D" parent="Spawns"]
+position = Vector2(4440, 603)
+script = ExtResource("5_spawn")
+enemy_id = "possessed_villager"
+
+[node name="Spawn22" type="Marker2D" parent="Spawns"]
+position = Vector2(4540, 250)
+script = ExtResource("5_spawn")
+enemy_id = "shade"
+
+[node name="Spawn23" type="Marker2D" parent="Spawns"]
+position = Vector2(4340, 150)
+script = ExtResource("5_spawn")
+enemy_id = "raven"
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(40, 175)
+
+[node name="Door" type="Area2D" parent="."]
+position = Vector2(5035, 209)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_door")
+painted_arch = true
+
+[node name="Shape" type="CollisionShape2D" parent="Door"]
+shape = SubResource("door_shape")
+
+[node name="Gate" type="Sprite2D" parent="Door"]
+texture = ExtResource("8_gate")
+hframes = 5
+
+[node name="Glow" type="Sprite2D" parent="Door"]
+visible = false
+material = SubResource("add_mat")
+scale = Vector2(1.6, 1.6)
+texture = SubResource("glow_tex")
+
+[node name="Weather" type="CPUParticles2D" parent="."]
+z_index = 2
+position = Vector2(2560.0, -20)
+amount = 320
+lifetime = 9.0
+preprocess = 9.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(2620.0, 4)
+direction = Vector2(0.2, 1)
+spread = 30.0
+gravity = Vector2(0, 14)
+initial_velocity_min = 8.0
+initial_velocity_max = 22.0
+angular_velocity_min = -40.0
+angular_velocity_max = 40.0
+scale_amount_min = 0.5
+scale_amount_max = 1.1
+color = Color(0.75, 0.75, 0.85, 0.7)
+color_ramp = SubResource("fade")
+
+[node name="Motes" type="CPUParticles2D" parent="."]
+z_index = 1
+position = Vector2(2560.0, 360.0)
+amount = 288
+lifetime = 9.0
+preprocess = 9.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(2560.0, 360.0)
+direction = Vector2(1, 0)
+spread = 180.0
+gravity = Vector2(0, -3)
+initial_velocity_min = 3.0
+initial_velocity_max = 9.0
+scale_amount_min = 0.3
+scale_amount_max = 0.6
+color = Color(1, 0.95, 0.85, 0.5)
+color_ramp = SubResource("fade")
+
+[node name="Lights" type="Node2D" parent="."]
+
+[node name="Light1" type="PointLight2D" parent="Lights"]
+position = Vector2(42, 178)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light2" type="PointLight2D" parent="Lights"]
+position = Vector2(49, 387)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light3" type="PointLight2D" parent="Lights"]
+position = Vector2(179, 400)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light4" type="PointLight2D" parent="Lights"]
+position = Vector2(331, 521)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light5" type="PointLight2D" parent="Lights"]
+position = Vector2(421, 497)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light6" type="PointLight2D" parent="Lights"]
+position = Vector2(533, 210)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light7" type="PointLight2D" parent="Lights"]
+position = Vector2(546, 528)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light8" type="PointLight2D" parent="Lights"]
+position = Vector2(603, 390)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light9" type="PointLight2D" parent="Lights"]
+position = Vector2(751, 562)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light10" type="PointLight2D" parent="Lights"]
+position = Vector2(850, 636)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light11" type="PointLight2D" parent="Lights"]
+position = Vector2(876, 540)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light12" type="PointLight2D" parent="Lights"]
+position = Vector2(933, 191)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light13" type="PointLight2D" parent="Lights"]
+position = Vector2(1084, 255)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light14" type="PointLight2D" parent="Lights"]
+position = Vector2(1193, 640)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light15" type="PointLight2D" parent="Lights"]
+position = Vector2(1209, 520)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light16" type="PointLight2D" parent="Lights"]
+position = Vector2(1227, 227)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light17" type="PointLight2D" parent="Lights"]
+position = Vector2(1233, 462)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light18" type="PointLight2D" parent="Lights"]
+position = Vector2(1286, 253)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light19" type="PointLight2D" parent="Lights"]
+position = Vector2(1289, 643)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light20" type="PointLight2D" parent="Lights"]
+position = Vector2(1312, 519)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light21" type="PointLight2D" parent="Lights"]
+position = Vector2(1376, 661)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light22" type="PointLight2D" parent="Lights"]
+position = Vector2(1458, 240)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light23" type="PointLight2D" parent="Lights"]
+position = Vector2(1546, 342)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light24" type="PointLight2D" parent="Lights"]
+position = Vector2(1554, 511)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light25" type="PointLight2D" parent="Lights"]
+position = Vector2(1740, 266)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light26" type="PointLight2D" parent="Lights"]
+position = Vector2(1845, 498)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light27" type="PointLight2D" parent="Lights"]
+position = Vector2(1939, 339)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light28" type="PointLight2D" parent="Lights"]
+position = Vector2(1962, 519)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light29" type="PointLight2D" parent="Lights"]
+position = Vector2(2089, 531)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light30" type="PointLight2D" parent="Lights"]
+position = Vector2(2189, 374)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light31" type="PointLight2D" parent="Lights"]
+position = Vector2(2219, 114)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light32" type="PointLight2D" parent="Lights"]
+position = Vector2(2237, 542)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light33" type="PointLight2D" parent="Lights"]
+position = Vector2(2410, 379)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light34" type="PointLight2D" parent="Lights"]
+position = Vector2(2451, 192)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light35" type="PointLight2D" parent="Lights"]
+position = Vector2(2520, 208)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light36" type="PointLight2D" parent="Lights"]
+position = Vector2(2570, 191)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light37" type="PointLight2D" parent="Lights"]
+position = Vector2(2630, 199)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light38" type="PointLight2D" parent="Lights"]
+position = Vector2(2746, 209)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light39" type="PointLight2D" parent="Lights"]
+position = Vector2(2748, 459)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light40" type="PointLight2D" parent="Lights"]
+position = Vector2(2833, 256)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light41" type="PointLight2D" parent="Lights"]
+position = Vector2(2852, 503)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light42" type="PointLight2D" parent="Lights"]
+position = Vector2(2895, 261)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light43" type="PointLight2D" parent="Lights"]
+position = Vector2(2978, 551)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light44" type="PointLight2D" parent="Lights"]
+position = Vector2(3092, 535)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light45" type="PointLight2D" parent="Lights"]
+position = Vector2(3098, 350)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light46" type="PointLight2D" parent="Lights"]
+position = Vector2(3151, 553)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light47" type="PointLight2D" parent="Lights"]
+position = Vector2(3154, 341)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light48" type="PointLight2D" parent="Lights"]
+position = Vector2(3359, 195)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light49" type="PointLight2D" parent="Lights"]
+position = Vector2(3473, 592)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light50" type="PointLight2D" parent="Lights"]
+position = Vector2(3558, 316)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light51" type="PointLight2D" parent="Lights"]
+position = Vector2(3656, 518)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3
+
+[node name="Light52" type="PointLight2D" parent="Lights"]
+position = Vector2(3658, 271)
+color = Color(1.0, 0.69, 0.376, 1)
+energy = 0.5
+script = ExtResource("12_light")
+radius = 36.0
+flicker = 0.3

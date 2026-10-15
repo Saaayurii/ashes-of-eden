@@ -28,8 +28,22 @@ class Stitch(unittest.TestCase):
         right = rng.uniform(0, 255, (60, 300, 4)).astype(np.float32)
         joined = compose._join(left, right, seam=32)
         self.assertEqual(joined.shape, (60, 600, 4))
-        np.testing.assert_array_equal(joined[:, :300 - 32], left[:, :300 - 32])
-        np.testing.assert_array_equal(joined[:, 300 + 32:], right[:, 32:])
+        tone = min(compose.TONE, 150)   # how far each side's light is evened out
+        np.testing.assert_array_equal(joined[:, :300 - tone], left[:, :300 - tone])
+        np.testing.assert_array_equal(joined[:, 300 + tone:], right[:, tone:])
+
+    def test_two_lights_meet_halfway_and_keep_their_own_away_from_the_seam(self):
+        # a torch-lit vault beside a cold crypt: no line where they meet
+        left = np.full((60, 800, 4), 60.0, np.float32)
+        right = np.full((60, 800, 4), 120.0, np.float32)
+        left[..., 3] = right[..., 3] = 255.0
+        joined = compose._join(left, right, seam=32)
+        meet = np.sqrt(68.0 * 128.0) - 8.0
+        self.assertLess(abs(joined[30, 800 - 8, 0] - meet), 3.0)
+        self.assertLess(abs(joined[30, 800 + 8, 0] - meet), 3.0)
+        np.testing.assert_array_equal(joined[:, :800 - compose.TONE], left[:, :800 - compose.TONE])
+        np.testing.assert_array_equal(joined[:, 800 + compose.TONE:], right[:, compose.TONE:])
+        self.assertTrue((joined[..., 3] == 255.0).all())   # the light, never the alpha
 
     def test_the_band_meets_its_neighbours_exactly(self):
         # the stitch bends each side's light toward the other, but not at its own edge
@@ -45,8 +59,8 @@ class Stitch(unittest.TestCase):
         bottom = np.full((100, 50, 4), 200, np.float32)
         out = compose._join_below(top, bottom, seam=16)
         self.assertEqual(out.shape, (200, 50, 4))
-        np.testing.assert_array_equal(out[:84], top[:84])
-        np.testing.assert_array_equal(out[116:], bottom[16:])
+        np.testing.assert_array_equal(out[:50], top[:50])
+        np.testing.assert_array_equal(out[150:], bottom[50:])   # past the light evened out (TONE, ≤ half)
 
 
 class Validate(unittest.TestCase):

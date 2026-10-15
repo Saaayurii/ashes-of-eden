@@ -69,12 +69,16 @@ The existing rooms are untouched until a composition of them is made live.
 
 ## How the seams are stitched
 
-See `compose._join`. Each side is carried past the seam by its own mirror, so
+See `compose._join`. First the two pictures' light is evened out (`_tone`):
+row by row, averaged over `TONE_ROWS`, each side is multiplied halfway toward
+the other's light — fully at the seam, not at all `TONE` (320) px away, never
+by more than `TONE_LIMIT` — so a torch-lit vault beside a cold crypt meets it
+at one light instead of along a line. A gain, not an offset: a dark stays dark.
+Then each side is carried past the seam by its own mirror, so
 both pictures cover the same 2×96 px band. A min-cost path runs through the
 middle half of the band, where the two agree best. Each side bends its light
-halfway toward the other's, fading out toward its own edge, so the pictures stay
-exact beyond the band and a change of light is spread across it rather than
-drawn as a line. A row of cells is joined first, then the rows are joined
+halfway toward the other's once more, for what the wide pass left, fading out
+toward its own edge. Beyond `TONE` each picture is exactly its own. A row of cells is joined first, then the rows are joined
 top to bottom the same way (transposed).
 
 Unless the studio placed them, candles come from each panel's own `.lights.json`,

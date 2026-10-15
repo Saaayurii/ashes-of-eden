@@ -156,7 +156,9 @@ class Overrides(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr[-2000:])
         self.assertTrue(self.red_at(rel, 103, 101))
         built = [line for line in out.stdout.splitlines() if line.startswith("wrote scenes/rooms/")]
-        self.assertEqual(built, ["wrote scenes/rooms/graveyard_arches.tscn"], "only the room the edit is in")
+        # the room and, when it has one, its composed draft (same name)
+        self.assertIn("wrote scenes/rooms/graveyard_arches.tscn", built)
+        self.assertEqual({line.rsplit("/", 1)[1] for line in built}, {"graveyard_arches.tscn"}, "only the room the edit is in")
         so.save_manifest({k: v for k, v in self.manifest().items() if k != rel})
         so._cache = None
         out = subprocess.run([sys.executable, "tools/art/studio_overrides.py", "regenerate", rel], cwd=ROOT, capture_output=True, text=True)
