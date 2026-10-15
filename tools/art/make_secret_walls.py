@@ -30,12 +30,18 @@ OUT = os.path.join(ROOT, "assets", "props")
 
 # place: (panel, sample box in panel pixels, frame width, frame height, seed)
 # The niche: how thick its stone ring is, or 0 when the painting has the arch.
-NICHE_RING = {"village": 7, "swamp": 7, "catacombs": 0,
+NICHE_RING = {"village": 7, "swamp": 7, "catacombs": 0, "tyre_stair": 7,
               "hall_stair": 6, "hall_court": 0, "hall_archive": 5}
 WALLS = {
     "catacombs": ("catacombs_2", (1058, 575, 1098, 688), 64, 100, 7),
     "village": ("graveyard_moon", (1085, 560, 1135, 640), 48, 72, 11),
     "swamp": ("swamp_crypt", (600, 330, 640, 420), 52, 76, 5),
+    # Tyre (docs/CHAPTER4_ART.md §4.7): the bricked arch inside the counting house's cage
+    "tyre_counting": ("tyre_counting_house", (158, 175, 200, 250), 48, 84, 13),
+    # the collectors' booth on the sea gate's gallery, its doorway bricked in the painting
+    "tyre_gate": ("tyre_gate", (205, 150, 258, 248), 52, 92, 17),
+    # beside the laver on the palace stair's middle landing: plain masonry, so a niche of its own
+    "tyre_stair": ("tyre_palace_stair", (548, 282, 602, 372), 52, 92, 19),
     # Chapter VII (docs/CHAPTER7.md, Тайники): white marble with gold in its
     # veins. The court's wall fills the niche the painting already has, on its sill.
     "hall_stair": ("hall_elders_stair", (560, 260, 640, 330), 32, 52, 23),

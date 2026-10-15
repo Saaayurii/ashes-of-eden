@@ -50,6 +50,18 @@ const DOORWAYS := {
 	"hall_hail_gallery": [1520, 1570, 552], # the arch past the hail
 	"hall_flaming_way": [1533, 1583, 580], # the arch past the lamps
 	"hall_eden_gate": [1525, 1575, 542], # the burning arch of the gate
+	"tyre_causeway": [1550, 1600, 498],         # the gate's arch at the causeway's end
+	"tyre_counting_house": [1510, 1560, 574],   # the arch past the tellers' tables
+	"tyre_dark_quarter": [1535, 1585, 546],     # the alley mouth at the street's end
+	"tyre_bright_quay": [1535, 1585, 485],      # the lit arch over the quay
+	"tyre_dyeworks": [1530, 1580, 505],         # the arch past the last vat
+	"tyre_gate": [1510, 1560, 514],             # the inner arch into the city
+	"tyre_lamp_market": [1510, 1560, 518],      # the arcade's far passage
+	"tyre_rich_gate": [1510, 1560, 579],        # the side passage past the shrine
+	"tyre_vaults": [1515, 1565, 541],           # the arch past the cage
+	"tyre_galleys": [1525, 1570, 445],          # the harbour tower's lit door
+	"tyre_palace_stair": [1370, 1415, 176],     # the arch at the head of the stair
+	"tyre_throne": [1530, 1580, 521],           # the arch behind the throne
 	"marah_gallows": [1320, 1350, 605],         # the path between the rocks
 	"marah_ford": [1530, 1580, 536],            # the dark arch in the far bank
 	"marah_host_bank": [1545, 1590, 540],       # the open flap of the last tent

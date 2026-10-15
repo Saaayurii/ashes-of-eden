@@ -32,6 +32,8 @@ signal blood_offered(body: Node, price: float)
 signal blood_settled(paid: bool)
 ## A chest opened by our own body (Prop): its prop id, for the playtest log.
 signal chest_opened(prop_id: String)
+## A lamp of Tyre was bought (Lamp): what it cost and how it was paid.
+signal lamp_lit(price: int, how: String)
 ## Gifts taken together woke something none does alone (data/resonances).
 signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)

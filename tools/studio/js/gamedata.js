@@ -77,6 +77,7 @@ function gdFlags(files, code = {}) {
       if (path.startsWith('data/cutscenes/')) for (const step of e.steps || []) for (const k of ['if', 'unless']) if (step[k] !== undefined) for (const f of [].concat(step[k])) put(f, 'read', where);
       if (path.startsWith('data/props/')) { if (e.requires_flag !== undefined) put(e.requires_flag, 'read', where); for (const f of e.effect?.set_flags || []) put(f, 'set', where); }
       if (path.startsWith('data/abilities/')) for (const f of e.alignment?.set_flags || []) put(f, 'set', where);
+      if (path.startsWith('data/endings/')) for (const k of ['flags', 'unless']) for (const f of [].concat(e.when?.[k] || [])) put(f, 'read', where);
     }
   }
   for (const f of code.read || []) put(f, 'read', 'scripts/');
@@ -238,9 +239,10 @@ async function gdFiles(tab) {
   const files = {}, what = [];
   for (const [p, mine] of Object.entries(WORLD.work)) {
     if (!tab.paths(p)) continue;
-    const text = await repoText(p), latest = JSON.parse(text);
+    // a file the studio makes (a new weapon, a new ending) is not in the game yet: nothing to merge with
+    const text = await repoText(p), latest = text.trim() ? JSON.parse(text) : undefined;
     const merged = await resolveDraft(draftBase('world', WORLD.data.files)[p], mine, latest, p, BASES.world?.uncertain);
-    if (!sameDraft(merged, latest)) { files[p] = tab.text?.(p, merged, text) ?? (p === GD_ROOMS ? fmtStudioRooms(merged) : gdText(text, merged)); what.push(p); }
+    if (!sameDraft(merged, latest)) { files[p] = (await tab.text?.(p, merged, text)) ?? (p === GD_ROOMS ? fmtStudioRooms(merged) : gdText(text, merged)); what.push(p); }
   }
   const extra = await gdExtraFiles(tab.strings, tab.music), own = tab.extraFiles ? await tab.extraFiles() : { files: {}, what: [] };
   Object.assign(files, extra.files, own.files); what.push(...extra.what, ...own.what);

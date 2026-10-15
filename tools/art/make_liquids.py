@@ -216,6 +216,26 @@ def body_blood(c):
     return img
 
 
+def body_dye(c):
+    """Tyre's murex vats (docs/CHAPTER4.md): thick, slow purple — long folds,
+    a skin of darker dye, now and then a glint where the scum catches light."""
+    r = rng("body_dye")
+    fold, skin = fbm(r, (2, 4)), fbm(r, (4, 8))
+    pal = ramp([c["deep"], c["body"], mix(c["body"], c["glow"], 0.5), c["glow"]], 5)
+    img = Image.new("RGBA", (S, S))
+    for y in range(S):
+        for x in range(S):
+            band = 0.5 + 0.5 * math.sin((y / S) * 2 * math.pi * 2 + fold(x, y) * 5.0)
+            v = 0.22 + band * 0.22
+            if skin(x, y) > 0.68:
+                v -= 0.14
+            img.putpixel((x, y), pick(pal, v))
+    gl = mix(c["glow"], c["foam"], 0.5)
+    for _ in range(8):
+        wrap_put(img, r.randrange(S), r.randrange(S), gl)
+    return img
+
+
 # ---------------------------------------------------------------- drawing helpers
 
 def disc(img, cx, cy, rad, col, ox=0):
@@ -490,7 +510,7 @@ def glint():
 def build():
     c = colours()
     out = {}  # name -> (image, cell, frames, fps, tint)
-    for kind, fn in (("water", body_water), ("lava", body_lava), ("bog", body_bog), ("blood", body_blood)):
+    for kind, fn in (("water", body_water), ("lava", body_lava), ("bog", body_bog), ("blood", body_blood), ("dye", body_dye)):
         out["body_" + kind] = (fn(c[kind]), (64, 64), 1, 0, False)
     out["splash"] = (splash_strip("splash", 32, 32, 13, 9, 11), (32, 32), 8, 16, True)
     out["splash_big"] = (splash_strip("splash_big", 48, 48, 26, 14, 18), (48, 48), 8, 14, True)

@@ -60,6 +60,13 @@ static var BASE_STATS := {
 	"covetous": 0.0,            # the chance a chest's common item is a rare one instead (Covetous Eye)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
+	# bought light (docs/CHAPTER4.md, scripts/rooms/darkness.gd, lamp.gd)
+	"lantern": 0.0,             # pixels added to the lantern a dark room gives him (A Lamp for the Poor)
+	"mite": 0.0,                # a lamp he cannot afford takes all the essence there is and burns (The Widow's Mite)
+	"lamp_blood": 0.0,          # lamps take this share of max_hp for the night instead of essence (Bought Light)
+	"dark_damage": 0.0,         # a blow on an enemy outside every light is worth this much more (Usurer's Edge)
+	"dark_sight": 0.0,          # a room's darkness is this much shallower for him (Eyes of the Dark)
+	"parry_flare": 0.0,         # a parry lights 110 px around him for this many seconds (Honest Scales)
 	# Chapter III's gifts (drafts/chapter_3, docs/CHAPTER3.md §7)
 	"liquid_mend": 0.0,         # health a second while he stands in a pool that does not burn (Sweetened Water)
 	"truce_hold": 0.0,          # a soldier that has just seen him holds its first blow this long (Standard of Peace, Enemy._notice)
@@ -206,7 +213,7 @@ static var WAVE_SPEED := 260.0
 ## Slot 1 wears a colder cloth so the two of you never lose each other.
 const SLOT_TINTS := [Color.WHITE, Color(0.72, 0.84, 1.05)]
 ## What the other peer needs to draw this body. The rest is local theatre.
-const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon",
+const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon", ".:lantern",
 	".:last_technique"]
 
 signal died(player: Player)
@@ -229,6 +236,8 @@ var weapon := Weapons.DEFAULT
 ## body writes it): what a reflection answers with (scripts/enemies/mirror.gd).
 ## Replicated, so the host's reflections read a guest's too.
 var last_technique := ""
+## His `lantern` stat, replicated so a partner draws his light as wide (Darkness).
+var lantern := 0.0
 
 var stats: Dictionary = BASE_STATS.duplicate()
 var hp: float
@@ -1218,6 +1227,7 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		_wounded_this_room = true
 		if _is_mine():  # what it took, not what it would have: a killing blow stops at the last hp
 			Game.note_blow(_blame(source, info), minf(amount, maxf(hp_before, 0.0)))
+			EnemyDark.steal(source, self)  # a cutpurse's cut (docs/CHAPTER4.md)
 		if _charging:
 			_cancel_charge()  # a wound breaks the charge; the blade was not ready
 		if stats.wrath_after_hit > 0.0:
@@ -1714,6 +1724,8 @@ func _parry(source: Node, from_x: float) -> void:
 			if enemy != null and not enemy.is_dead() and enemy.global_position.distance_to(global_position) <= PARRY_STUN_RADIUS:
 				enemy.stagger(stats.parry_stun)
 		Fx.flash(global_position + Vector2(0, -12), Color(0.95, 0.9, 0.7), PARRY_STUN_RADIUS, 0.4)
+	if stats.parry_flare > 0.0:
+		Darkness.flare(self, stats.parry_flare)  # Honest Scales
 
 
 ## Steel on steel: the block held, the blow is a thud and a few cold sparks.
@@ -2020,6 +2032,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Trophy Hunter: the chosen of the dead (an elite, a boss) are the prey
 		if live_enemy and stats.chosen_damage > 0.0 and (target as Enemy).is_chosen():
 			damage *= 1.0 + stats.chosen_damage
+		# Usurer's Edge: a blow struck where no light reaches (Darkness)
+		if live_enemy and stats.dark_damage > 0.0 and Darkness.unlit(target as Node2D):
+			damage *= 1.0 + stats.dark_damage
 		# Cruel Opening: the wind-up the player can read is also a door
 		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
 			damage *= 1.0 + stats.windup_bonus
