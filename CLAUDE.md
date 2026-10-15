@@ -120,7 +120,7 @@ Godot 4.7 / GDScript, 2D pixel action roguelite. Open source, community-driven, 
 - Tool scripts under `scripts/tools/` are the only place allowed to be untyped w.r.t. game classes.
 - `make validate` / `make test` / `make net-test` (Docker), or natively:
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/validate_data.gd`
-  `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/smoke_test.gd`
+  `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/smoke_test.gd` (every night; `-- night=first` or `-- night=seir` walks one — CI runs a job per night, its matrix written from `data/game.json` by ci.yml's `plan` job)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/parry_test.gd` (block / parry / riposte / reflect)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/gift_test.gd` (every gift mechanic, measured)
   `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s scripts/tools/save_test.gd` (save → load round-trip, export/import, bad files refused)
