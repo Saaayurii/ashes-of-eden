@@ -64,6 +64,12 @@ func _run() -> void:
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
 	_check(drawn.size() == data.omens.size(), "every omen can come up, each in its night (%d of %d)" % [drawn.size(), data.omens.size()])
 	_check(astray.is_empty(), "  and a chapter's omen never in another night %s" % [astray])
+	game.night = "euphrates"
+	var here: bool = omens.of_night(data.abilities.get("loosened_chain", {"nights": ["?"]}))
+	game.night = ""
+	var away: bool = omens.of_night(data.abilities.get("loosened_chain", {}))
+	_check(here and not away and omens.of_night(data.abilities.get("seal_of_order", {"nights": ["?"]})),
+		"Loosened Chain is dealt in the Euphrates night only; chapter I's gifts in every night")
 	var tyre_only: Array = data.omens.values().filter(func(o): return o.get("nights", []).has("tyre"))
 	_check(tyre_only.size() == 3, "Tyre has three omens of its own (%d)" % tyre_only.size())
 	var a := RandomNumberGenerator.new()
