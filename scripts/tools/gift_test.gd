@@ -403,7 +403,7 @@ func _run() -> void:
 	# Some cards name the night they start appearing on, so a fifth run can
 	# hold something the first could not (Run.gift_locked).
 	var gated: Array = data.abilities.values().filter(
-		func(a): return int(a.get("unlock_nights", 0)) > 0)
+		func(a): return int(a.get("unlock_nights", 0)) > 0 and not a.has("nights"))
 	_assert(not gated.is_empty(), "some gifts are held back for a later night")
 	if not gated.is_empty():
 		var profile = root.get_node("Profile")
@@ -428,38 +428,63 @@ func _run() -> void:
 
 		# A gift with no night named has always been available.
 		var ungated: Array = data.abilities.values().filter(
-			func(a): return int(a.get("unlock_nights", 0)) == 0)
+			func(a): return int(a.get("unlock_nights", 0)) == 0 and not a.has("nights"))
 		profile.data.nights = 0
 		_assert(not ungated.is_empty() and not run.gift_locked(ungated[0]),
 			"a gift with no night named is never held back")
 		profile.data.nights = nights_before
 
-	# --- gifts of one night ----------------------------------------------------
-	# A chapter's own gifts ("nights": [...]) are built on what
-	# only its rooms have — Tyre's on its lamps — and are dealt nowhere else
-	# (Omens.of_night).
-	var own: Array = data.abilities.values().filter(func(a): return not a.get("nights", []).is_empty())
-	_assert(not own.is_empty(), "some gifts belong to one night")
-	if not own.is_empty():
-		var omens = load("res://scripts/run/omens.gd")
-		var night_was: String = game.night
-		var home := str(own[0].nights[0])
-		var dealt := func(night_id: String) -> bool:
+	# --- gifts of one night ---------------------------------------------------
+	# A chapter's gifts carry "nights" (Omens.of_night): dealt in that
+	# chapter's night only, never in the first, the daily or a duel.
+	var night_was: String = game.night
+	var omens = load("res://scripts/run/omens.gd")
+	var seir: Array = data.abilities.values().filter(func(a): return a.get("nights", []).has("seir"))
+	_assert(seir.size() == 6, "Seir has its six gifts (%d)" % seir.size())
+	if not seir.is_empty():
+		game.night = ""
+		_assert(not seir.any(func(a): return omens.of_night(a)), "the first night is no night of Seir's gifts")
+		var first_hand: Array = []
+		for i in 200:
+			first_hand += run._roll_gifts().map(func(a): return a.id)
+		_assert(not seir.any(func(a): return first_hand.has(a.id)), "and no hand of the first night holds one")
+		game.night = "seir"
+		var seir_hand: Array = []
+		for i in 400:
+			seir_hand += run._roll_gifts().map(func(a): return a.id)
+		var dealt: Array = seir.filter(func(a): return not run.gift_locked(a))
+		_assert(dealt.all(func(a): return seir_hand.has(a.id)), "every open gift of Seir turns up in its hands")
+		_assert(seir_hand.any(func(id): return not data.abilities[id].has("nights")),
+			"and the gifts of every night still do")
+		var unrelieved: Dictionary = data.abilities["unrelieved"]
+		var profile_nights: int = root.get_node("Profile").data.nights
+		root.get_node("Profile").data.nights = int(unrelieved.unlock_nights)
+		game.night = ""
+		_assert(not run.gifts_unlocked_tonight().map(func(a): return a.id).has("unrelieved"),
+			"a night that never deals Seir's gift does not announce it")
+		game.night = "seir"
+		_assert(run.gifts_unlocked_tonight().map(func(a): return a.id).has("unrelieved"), "  Seir does")
+		root.get_node("Profile").data.nights = profile_nights
+		game.night = "marah"
+		_assert(not seir.any(func(a): return omens.of_night(a)), "another chapter's night deals none")
+	game.night = night_was
+	# Tyre's six are built on its lamps and its dark: dealt there, nowhere else.
+	var tyre: Array = data.abilities.values().filter(func(a): return a.get("nights", []).has("tyre"))
+	_assert(tyre.size() == 6, "Tyre has its six gifts (%d)" % tyre.size())
+	if not tyre.is_empty():
+		var dealt_in := func(night_id: String) -> bool:
 			game.night = night_id
 			for i in 300:
 				for gift in run._roll_gifts():
-					if own.has(gift):
+					if tyre.has(gift):
 						return true
 			return false
-		var at_home: bool = dealt.call(home)
-		var elsewhere: bool = dealt.call("")
-		var everywhere: Array = data.abilities.values().filter(func(a): return a.get("nights", []).is_empty())
-		game.night = home
-		var anywhere: bool = omens.of_night(everywhere[0])
-		game.night = night_was
-		_assert(at_home, "%s's own gifts are dealt there" % home)
-		_assert(not elsewhere, "and never on the first night")
-		_assert(anywhere and omens.of_night(everywhere[0]), "a gift that names no night is dealt on every one")
+		var at_tyre: bool = dealt_in.call("tyre")
+		var at_first: bool = dealt_in.call("")
+		var at_seir: bool = dealt_in.call("seir")
+		_assert(at_tyre, "Tyre's own gifts are dealt there")
+		_assert(not at_first and not at_seir, "and never on the first night or in Seir")
+	game.night = night_was
 	_finish()
 
 
