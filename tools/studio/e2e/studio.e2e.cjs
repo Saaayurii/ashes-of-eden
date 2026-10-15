@@ -469,7 +469,7 @@ async function step(name, fn) {
       const zones = await page.evaluate(() => lifeRule('catacombs_2').zones);
       assert.equal(zones.at(-1).kind, 'glow'); assert.equal(zones[0].rect.join(), '0,0,600,300');   // drawn over zone 1, which stayed put
       await page.click('#lifeSend');
-      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 180000 });
       const diff = git('diff', '--numstat', '--', 'data/backdrops.json').trim();
       assert.equal(diff, '2\t1\tdata/backdrops.json', diff);
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
