@@ -106,6 +106,34 @@ func _run() -> void:
 	_check(foes.size() == 1 and foes[0].showcase == "", "back to one, fighting")
 	_check(is_equal_approx(root.get_node("Juice").base_scale, 1.0), "at full speed (speed is clamped)")
 
+	# a drawn bridge from rest into the walk (idle_to_walk): once, from a rest it held, then the walk
+	run.studio_live.apply({"type": "ashes-live", "extends": "cultist", "cell": [cell.x, cell.y], "fps": 8,
+		"strips": {"idle": _strip(cell, 2), "walk": _strip(cell, 3), "idle_to_walk": _strip(cell, 2), "attack": _strip(cell, 2)}})
+	await _settle(0.4)
+	foes = _foes()
+	_check(foes.size() == 1 and foes[0].sprite.sprite_frames.has_animation("idle_to_walk")
+		and not foes[0].sprite.sprite_frames.get_animation_loop("idle_to_walk"), "idle_to_walk is laid in, played once")
+	if foes.size() == 1:
+		var foe = foes[0]
+		foe.set_physics_process(false)
+		foe._play("idle")
+		foe._rest_from -= 1000
+		foe._play("walk")
+		_check(foe.sprite.animation == "idle_to_walk", "a walk out of a held rest starts with the bridge")
+		foe._play("walk")
+		_check(foe.sprite.animation == "idle_to_walk" and foe.sprite.frame == 0, "asked to walk again, the bridge plays on")
+		await _settle(0.5)
+		_check(foe.sprite.animation == "walk" and foe.sprite.is_playing(), "and the walk follows it")
+		foe._play("idle")
+		foe._play("walk")
+		_check(foe.sprite.animation == "walk", "a frame of idle in a hover goes straight back to the walk")
+		foe._play("idle")
+		foe._rest_from -= 1000
+		foe._play("walk")
+		foe._play("attack")
+		_check(foe.sprite.animation != "idle_to_walk", "a blow cuts the bridge short")
+		foe.set_physics_process(true)
+
 	# Data-only posts preserve the real art and apply gameplay/FX immediately.
 	var draft_attack := {"type": "nova", "animation": "special", "range": 95, "radius": 72,
 		"windup": 0.4, "damage": 12, "cooldown": 4, "hit_frame": 1, "telegraph_fx": "none", "impact_fx": "dust"}

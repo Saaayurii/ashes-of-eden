@@ -47,7 +47,10 @@ function cpShape(text, node, like, v, level, force, inline) {
   };
   const out = entries.map(([k, x]) => { const [n, l] = pick(k, x); const s = cpShape(text, n, l, x, level + 1, force, !multi); return isArr ? s : JSON.stringify(k) + ': ' + s; });
   const [a, b] = isArr ? ['[', ']'] : ['{', '}'];
-  return multi ? a + '\n' + out.map(s => pad(level + 1) + s).join(',\n') + '\n' + pad(level) + b : a + out.join(', ') + b;
+  if (!multi) return a + out.join(', ') + b;
+  // a list the file packs several to a line ("version_heaven", "version_abyss", …) keeps its breaks where they were
+  const packed = i => isArr && same && kids[i] && kids[i - 1] && !text.slice(kids[i - 1].end, kids[i].start).includes('\n');
+  return a + '\n' + pad(level + 1) + out.map((s, i) => (i ? (packed(i) ? ', ' : ',\n' + pad(level + 1)) : '') + s).join('') + '\n' + pad(level) + b;
 }
 
 const cpNum = v => typeof v === 'number' && isFinite(v);

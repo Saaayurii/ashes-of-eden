@@ -47,6 +47,9 @@ test('one change changes that part only, in the shape it had', () => {
   assert.ok(gout.startsWith(g.slice(0, g.indexOf('"rooms"'))), 'what is above stays');
   assert.ok(gout.includes('    {\n      "id": "third",\n      "after_dawns": 2,\n      "opening": {"wake": false},\n      "rooms": [\n        "res://scenes/rooms/hell_gate.tscn"\n      ]\n    }'), 'a new night is shaped like Seir');
   assert.ok(gout.endsWith(g.slice(g.indexOf('  "practice_room"'))), 'what is below stays');
+
+  const kept = JSON.parse(g); kept.flags_kept[1] = 'version_hell';   // a list packed several to a line stays packed
+  assert.ok(C.gdShaped(g, kept).includes('\n    "version_heaven", "version_hell", "version_man", "book_read",\n    ["matthew_confessed"'));
 });
 
 test('a new file takes the shape of another of its kind', () => {

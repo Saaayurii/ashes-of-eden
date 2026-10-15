@@ -59,7 +59,7 @@ async function sandboxOpen() {
   });
 }
 // What it can show: fight, or stand and play one of its animations.
-const SLOT_RU = { idle: 'покой', walk: 'ходьба', attack: 'атака', attack_alt: 'вторая атака', special: 'особое', hurt: 'боль', death: 'смерть' };
+const SLOT_RU = { idle: 'покой', walk: 'ходьба', idle_to_walk: 'покой → ходьба', attack: 'атака', attack_alt: 'вторая атака', special: 'особое', hurt: 'боль', death: 'смерть' };
 function sandboxAnims() {
   const sel = sandbox.el?.querySelector('#sbAnim'); if (!sel || !P) return;
   const have = sandbox.actionMode && ATTACKS.data ? Object.keys(ATTACKS.data.roster.find(r => r.id === sandbox.base)?.body?.anims || {}) : ENEMY_SLOTS.map(([slot]) => slot).filter(slot => enemySlotFor(P.animations, slot));
