@@ -73,18 +73,22 @@ jobs:
       - name: Export Web
         run: docker compose run --rm build build Web
 
-      - name: Check the export is there and fits
+      # Pages refuses a single file over 100 MB and a site over 1 GB. The pack
+      # grows with every chapter, so it is served in parts the page puts back
+      # together (tools/web/split_pack.py); what it weighs is still the
+      # player's download, so the summary says it.
+      - name: Check the export is there, split the pack, check it fits
         run: |
           set -eu
           test -f build/web/index.html
           test -f build/web/index.pck
           echo "### Web build" >> "$GITHUB_STEP_SUMMARY"
+          echo "index.pck: $(du -h build/web/index.pck | cut -f1)" >> "$GITHUB_STEP_SUMMARY"
+          sudo python3 tools/web/split_pack.py build/web/index.html build/web/index.pck | tee -a "$GITHUB_STEP_SUMMARY"
           du -h build/web/* | sort -rh | head -10 >> "$GITHUB_STEP_SUMMARY"
-          # Pages refuses a single file over 100 MB and a site over 1 GB.
           big=$(find build/web -type f -size +99M | head -1 || true)
           if [ -n "$big" ]; then
             echo "::error::$big is over 100 MB — GitHub Pages will reject it."
-            echo "Trim the Web preset's exclude_filter (export_presets.cfg)."
             exit 1
           fi
 
@@ -133,6 +137,7 @@ jobs:
               bash -c 'godot --headless --import --quit >/dev/null 2>&1 || true; godot --headless --export-pack Web /project/preview.pck'
             sudo cp "/tmp/pr-$n/preview.pck" "build/web/preview/$n.pck"
             python3 tools/studio/make_preview_page.py build/web/index.html "$n" "build/web/preview/$n.pck" | sudo tee "build/web/preview-$n.html" >/dev/null
+            sudo python3 tools/web/split_pack.py "build/web/preview-$n.html" "build/web/preview/$n.pck"
             echo "{\"number\": $n, \"sha\": \"$sha\"}" | sudo tee "build/web/preview/$n.json" >/dev/null
             echo "preview #$n ($sha)" >> "$GITHUB_STEP_SUMMARY"
           done

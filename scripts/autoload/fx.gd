@@ -50,6 +50,9 @@ const REMAINS := {
 		["mote", Color(0.55, 0.12, 0.16), 3, 50.0, 200.0, 90.0, 0.0, 0.5]],
 	"gold": [["star", Color(1.0, 0.86, 0.5), 8, 70.0, -25.0, 180.0, 0.0, 1.1],
 		["mote", Color(1.0, 0.96, 0.8), 10, 110.0, -10.0, 180.0, 0.0, 0.7]],
+	# a reflection (chapter VII): it breaks, it does not bleed
+	"glass": [["shard", Color(0.94, 0.9, 0.78), 10, 160.0, 540.0, 70.0, 640.0, 0.9],
+		["star", Color(1.0, 0.95, 0.82), 6, 60.0, -20.0, 180.0, 0.0, 0.8]],
 }
 
 var _smoke_frames: SpriteFrames

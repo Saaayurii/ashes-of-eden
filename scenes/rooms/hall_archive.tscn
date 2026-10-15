@@ -1,0 +1,274 @@
+[gd_scene load_steps=34 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]
+[ext_resource type="Texture2D" path="res://assets/levels/hall_archive_wide.png" id="2_backdrop"]
+[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="3_fog"]
+[ext_resource type="Script" path="res://scripts/rooms/door.gd" id="4_door"]
+[ext_resource type="Script" path="res://scripts/rooms/enemy_spawn.gd" id="5_spawn"]
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="7_prop"]
+[ext_resource type="Texture2D" path="res://assets/decor/door_gate.png" id="8_gate"]
+[ext_resource type="Texture2D" path="res://assets/decor/shrine.png" id="9_shrine"]
+[ext_resource type="Texture2D" path="res://assets/decor/barrier.png" id="11_barrier"]
+[ext_resource type="Script" path="res://scripts/rooms/room_fixture.gd" id="10_fixture"]
+[ext_resource type="PackedScene" path="res://scenes/npc/npc.tscn" id="11_npc"]
+[ext_resource type="Script" path="res://scripts/fx/glow_light.gd" id="12_light"]
+[ext_resource type="Script" path="res://scripts/fx/ambient_light.gd" id="13_ambient"]
+[ext_resource type="Script" path="res://scripts/rooms/church_bell.gd" id="14_bell"]
+[ext_resource type="Script" path="res://scripts/rooms/hazard.gd" id="15_hazard"]
+[ext_resource type="Texture2D" path="res://assets/decor/platforms/ledge_2.png" id="piece_ledge_2"]
+
+[sub_resource type="Gradient" id="fade"]
+offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="FastNoiseLite" id="noise"]
+frequency = 0.012
+
+[sub_resource type="NoiseTexture2D" id="noise_tex"]
+seamless = true
+noise = SubResource("noise")
+
+[sub_resource type="ShaderMaterial" id="fog_mat"]
+shader = ExtResource("3_fog")
+shader_parameter/noise = SubResource("noise_tex")
+shader_parameter/density = 0.05
+
+[sub_resource type="Gradient" id="glow_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.85, 0.5, 0.7, 1, 0.85, 0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_tex"]
+gradient = SubResource("glow_grad")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="dot_grad"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_grad")
+width = 4
+height = 4
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="GradientTexture2D" id="drop"]
+gradient = SubResource("dot_grad")
+width = 2
+height = 10
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CanvasItemMaterial" id="add_mat"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="door_shape"]
+size = Vector2(20, 56)
+
+[sub_resource type="RectangleShape2D" id="Ground1_shape"]
+size = Vector2(1600, 112)
+
+[sub_resource type="RectangleShape2D" id="Platform1_shape"]
+size = Vector2(50, 10)
+
+[sub_resource type="RectangleShape2D" id="Ledge1_shape"]
+size = Vector2(1150, 14)
+
+[sub_resource type="RectangleShape2D" id="Ledge2_shape"]
+size = Vector2(250, 12)
+
+[sub_resource type="RectangleShape2D" id="Wall1_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall2_shape"]
+size = Vector2(16, 736)
+
+[sub_resource type="RectangleShape2D" id="Wall3_shape"]
+size = Vector2(1600, 16)
+
+[node name="Room" type="Node2D"]
+script = ExtResource("1_room")
+width = 1600
+height = 720
+void_kill_y = 700
+intro_dialogue = ""
+intro_cutscene = ""
+outro_cutscene = ""
+painting_source = "res://assets/levels/hall_archive_wide.png"
+
+[node name="Ambient" type="CanvasModulate" parent="."]
+color = Color(0.91, 0.878, 0.816, 1)
+script = ExtResource("13_ambient")
+music = "end"
+
+[node name="Painting" type="Sprite2D" parent="."]
+texture_filter = 2
+texture = ExtResource("2_backdrop")
+centered = false
+
+[node name="FogFar" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.75, 0.75)
+
+[node name="Fog" type="ColorRect" parent="FogFar"]
+material = SubResource("fog_mat")
+offset_right = 1800.0
+offset_bottom = 1120.0
+mouse_filter = 2
+
+[node name="DecorBack" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0.88, 1)
+
+[node name="Geometry" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Ground1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(800.0, 664.0)
+shape = SubResource("Ground1_shape")
+
+[node name="Wall1Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(-8.0, 352.0)
+shape = SubResource("Wall1_shape")
+
+[node name="Wall2Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(1608.0, 352.0)
+shape = SubResource("Wall2_shape")
+
+[node name="Wall3Shape" type="CollisionShape2D" parent="Geometry"]
+position = Vector2(800.0, -8.0)
+shape = SubResource("Wall3_shape")
+
+[node name="Ramp1" type="CollisionPolygon2D" parent="Geometry"]
+polygon = PackedVector2Array(1205.0, 608.0, 1210.95, 608.0, 1210.95, 600.0, 1216.9, 600.0, 1216.9, 592.0, 1222.86, 592.0, 1222.86, 584.0, 1228.81, 584.0, 1228.81, 576.0, 1234.76, 576.0, 1234.76, 568.0, 1240.71, 568.0, 1240.71, 560.0, 1246.67, 560.0, 1246.67, 552.0, 1252.62, 552.0, 1252.62, 544.0, 1258.57, 544.0, 1258.57, 536.0, 1264.52, 536.0, 1264.52, 528.0, 1270.48, 528.0, 1270.48, 520.0, 1276.43, 520.0, 1276.43, 512.0, 1282.38, 512.0, 1282.38, 504.0, 1288.33, 504.0, 1288.33, 496.0, 1294.29, 496.0, 1294.29, 488.0, 1300.24, 488.0, 1300.24, 480.0, 1306.19, 480.0, 1306.19, 472.0, 1312.14, 472.0, 1312.14, 464.0, 1318.1, 464.0, 1318.1, 456.0, 1324.05, 456.0, 1324.05, 448.0, 1330.0, 448.0, 1330.0, 440.0, 1330.0, 456.0, 1330.0, 464.0, 1324.05, 464.0, 1324.05, 472.0, 1318.1, 472.0, 1318.1, 480.0, 1312.14, 480.0, 1312.14, 488.0, 1306.19, 488.0, 1306.19, 496.0, 1300.24, 496.0, 1300.24, 504.0, 1294.29, 504.0, 1294.29, 512.0, 1288.33, 512.0, 1288.33, 520.0, 1282.38, 520.0, 1282.38, 528.0, 1276.43, 528.0, 1276.43, 536.0, 1270.48, 536.0, 1270.48, 544.0, 1264.52, 544.0, 1264.52, 552.0, 1258.57, 552.0, 1258.57, 560.0, 1252.62, 560.0, 1252.62, 568.0, 1246.67, 568.0, 1246.67, 576.0, 1240.71, 576.0, 1240.71, 584.0, 1234.76, 584.0, 1234.76, 592.0, 1228.81, 592.0, 1228.81, 600.0, 1222.86, 600.0, 1222.86, 608.0, 1216.9, 608.0, 1216.9, 616.0, 1210.95, 616.0, 1210.95, 624.0, 1205.0, 624.0)
+
+[node name="Ledges" type="StaticBody2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Platform1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1305.0, 397.0)
+shape = SubResource("Platform1_shape")
+one_way_collision = true
+
+[node name="Ledge1Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(635.0, 422.0)
+shape = SubResource("Ledge1_shape")
+one_way_collision = true
+
+[node name="Ledge2Shape" type="CollisionShape2D" parent="Ledges"]
+position = Vector2(1475.0, 351.0)
+shape = SubResource("Ledge2_shape")
+one_way_collision = true
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Platform1_1" type="Sprite2D" parent="Terrain"]
+position = Vector2(1280, 392)
+texture = ExtResource("piece_ledge_2")
+centered = false
+modulate = Color(0.949, 0.949, 0.95, 1)
+region_enabled = true
+region_rect = Rect2(0, 0, 50, 46)
+
+[node name="DecorMid" type="Node2D" parent="."]
+
+[node name="DecorFront" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
+position = Vector2(1572, 345)
+prop_id = "secret_wall_hall_archive"
+
+[node name="Npc1" parent="Props" instance=ExtResource("11_npc")]
+position = Vector2(1080, 415)
+npc_id = "enoch"
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="Spawns"]
+position = Vector2(200, 403)
+script = ExtResource("5_spawn")
+enemy_id = "archive_scribe"
+
+[node name="Spawn2" type="Marker2D" parent="Spawns"]
+position = Vector2(640, 403)
+script = ExtResource("5_spawn")
+enemy_id = "archive_scribe"
+
+[node name="Spawn3" type="Marker2D" parent="Spawns"]
+position = Vector2(460, 596)
+script = ExtResource("5_spawn")
+enemy_id = "archive_scribe"
+
+[node name="Spawn4" type="Marker2D" parent="Spawns"]
+position = Vector2(1020, 596)
+script = ExtResource("5_spawn")
+enemy_id = "archive_scribe"
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(30, 588)
+
+[node name="Door" type="Area2D" parent="."]
+position = Vector2(1532, 576)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_door")
+painted_arch = true
+
+[node name="Shape" type="CollisionShape2D" parent="Door"]
+shape = SubResource("door_shape")
+
+[node name="Gate" type="Sprite2D" parent="Door"]
+texture = ExtResource("8_gate")
+hframes = 5
+
+[node name="Glow" type="Sprite2D" parent="Door"]
+visible = false
+material = SubResource("add_mat")
+scale = Vector2(1.6, 1.6)
+texture = SubResource("glow_tex")
+
+
+[node name="Motes" type="CPUParticles2D" parent="."]
+z_index = 1
+position = Vector2(800.0, 360.0)
+amount = 90
+lifetime = 9.0
+preprocess = 9.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(800.0, 360.0)
+direction = Vector2(1, 0)
+spread = 180.0
+gravity = Vector2(0, -3)
+initial_velocity_min = 3.0
+initial_velocity_max = 9.0
+scale_amount_min = 0.3
+scale_amount_max = 0.6
+color = Color(1, 0.95, 0.85, 0.5)
+color_ramp = SubResource("fade")
+
+[node name="Lights" type="Node2D" parent="."]
+
+[node name="Light1" type="PointLight2D" parent="Lights"]
+position = Vector2(253, 350)
+color = Color(1.0, 0.847, 0.565, 1)
+energy = 0.6
+script = ExtResource("12_light")
+radius = 60.0
+flicker = 0.2
+
+[node name="Light2" type="PointLight2D" parent="Lights"]
+position = Vector2(1172, 298)
+color = Color(1.0, 0.847, 0.565, 1)
+energy = 0.65
+script = ExtResource("12_light")
+radius = 70.0
+flicker = 0.2

@@ -55,5 +55,9 @@
   ],
   "engedi_arbor": [
     {"from": "engedi_arbor_wide", "crop": [1520, 40, 60, 230], "at": [700, 240], "depth": 1.5, "dark": 0.9, "cut": 40, "flip": true}
+  ],
+  "hall_measured_temple": [
+    {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [140, 160], "depth": 1.4, "dark": 0.6, "key": "alpha"},
+    {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [1390, 160], "depth": 1.4, "dark": 0.6, "key": "alpha", "flip": true}
   ]
 }

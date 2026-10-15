@@ -36,10 +36,14 @@ class LivingBackdrops(unittest.TestCase):
         shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
         self.assertIn("ophanim", shots["styles"])
         for u in shots["users"]:
-            node = json.loads((ROOT / u["file"]).read_text(encoding="utf-8"))
-            for key in u["path"]:
-                node = node[key]
             source = next((r["source"] for r in shots["roster"] if r["id"] == u["id"]), {}) if u["kind"] == "enemy" else {}
+            if u["path"] is None:   # inherited whole (archive_scribe from register_scribe): read where it is written
+                node = json.loads((ROOT / source["from"]).read_text(encoding="utf-8"))[source["from_key"]]
+                node = node if source["from_key"] == "attack" else node[u["index"]]
+            else:
+                node = json.loads((ROOT / u["file"]).read_text(encoding="utf-8"))
+                for key in u["path"]:
+                    node = node[key]
             if source.get("over"):   # a single attack laid over its base's, key by key (data_loader.gd)
                 node = {**json.loads((ROOT / source["over"]).read_text(encoding="utf-8"))["attack"], **node}
             self.assertEqual(node, u["attack"], u["id"])
@@ -60,7 +64,7 @@ class LivingBackdrops(unittest.TestCase):
     def test_all_attack_types_and_frame_counts_are_available_to_the_actions_editor(self):
         shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
         types = {a["type"] for r in shots["roster"] for a in r["source"]["items"]}
-        self.assertEqual(types, {"melee", "lunge", "ranged", "beam", "nova", "summon", "wail"})
+        self.assertEqual(types, {"melee", "lunge", "ranged", "beam", "nova", "summon", "hail", "wail"})
         villager = next(r for r in shots["roster"] if r["id"] == "possessed_villager")
         self.assertEqual(villager["source"]["file"], "data/enemy_archetypes/tree.json")
         cry = villager["source"]["items"][2]
@@ -276,6 +280,15 @@ class PreviewPage(unittest.TestCase):
         self.assertIn("'practice'", page)
         self.assertIn("['--composed']", page)   # ?composed=1: the room's composed draft
         self.assertIn("Превью отправки #7", page)
+
+    def test_preview_does_not_load_the_main_packs_parts(self):
+        import make_preview_page
+        html = ('<body><script>const GAME = new Engine({"args":[],"executable":"index","fileSizes":{}});\n'
+                '\t\tconst PACK_PARTS = {"pack":"index.pck","parts":[["index.pck.0",64]]};\n</script></body>')
+        page = make_preview_page.preview_page(html, 7, 99)
+        self.assertIn("\t\tconst PACK_PARTS = null;", page)
+        self.assertNotIn("index.pck.0", page)
+        self.assertIn("index.pck.0", make_preview_page.live_page(html))
 
     def test_live_page_is_the_main_pack_in_studio_live(self):
         import make_preview_page

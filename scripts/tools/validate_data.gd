@@ -6,7 +6,7 @@ extends SceneTree
 
 ## Secret walls set into an arch the room's painting already has; every other
 ## one brings its own niche (tools/art/make_secret_walls.py).
-const NICHE_PAINTED := ["secret_wall_catacombs", "secret_wall_tyre_counting", "secret_wall_tyre_gate", "secret_wall_engedi_key"]
+const NICHE_PAINTED := ["secret_wall_catacombs", "secret_wall_hall_court", "secret_wall_tyre_counting", "secret_wall_tyre_gate", "secret_wall_engedi_key"]
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const PATHS := ["grace", "temptation", "will"]
 const EFFECT_TYPES := ["stat", "lifesteal", "extra_life", "heal", "skill"]
@@ -31,7 +31,7 @@ const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh
 ## The moves Player reports through EventBus.technique_performed.
 const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy", "swarm"]
-const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon", "wail"]
+const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon", "hail", "wail"]
 ## How a bolt may fly (scripts/fx/projectile.gd _advance_motion).
 const PROJECTILE_MOTIONS := ["straight", "wave", "accelerate", "arc", "surge", "return", "home"]
 const BURST_FX := ["sparkle", "ash", "debris", "spark"]
@@ -46,7 +46,7 @@ const LOOK_KEYS := ["style", "panel", "caption", "portrait", "face"]
 const ANIMATIONS := ["idle", "walk", "idle_to_walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
 const PROP_KINDS := ["destructible", "chest", "chain", "lamp", "fruit"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
-const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold"]
+const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold", "glass"]
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
 const CUTSCENE_STEPS := {
 	"hold": [], "release": [], "letterbox": [], "wait": ["time"], "camera": [],
@@ -342,6 +342,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: light.radius and light.energy must be positive" % where)
 			_check_awareness(entry, where)
 			_check_tether(entry, attacks, where)
+			_check_hall_keys(entry, attacks, where)
 			if entry.has("material") and not MATERIALS.has(entry.material):
 				_error("%s: material must be one of %s" % [where, MATERIALS])
 			if not entry.has("material") and not entry.has("extends"):
@@ -854,8 +855,10 @@ func _check_enemy_strips() -> void:
 		if enemies[id].has("attack"):
 			attacks = attacks + [enemies[id].attack]
 		for attack in attacks:
-			if attack.has("telegraph_fx") and not attack.telegraph_fx in ["glow", "none"]:
-				_error("enemies/%s: telegraph_fx must be glow or none" % id)
+			if attack.has("telegraph_fx") and not attack.telegraph_fx in ["glow", "none", "arc"]:
+				_error("enemies/%s: telegraph_fx must be glow, none or arc" % id)
+			if attack.get("telegraph_fx", "") == "arc" and float(attack.get("reach", 0)) <= 0.0:
+				_error("enemies/%s: an arc is drawn the length of the blade: it needs a reach" % id)
 			if attack.has("impact_fx") and (attack.get("type") != "nova" or not attack.impact_fx in ["magic", "dust", "none"]):
 				_error("enemies/%s: impact_fx must be magic, dust or none on a nova" % id)
 			if attack.has("hit_frame"):
@@ -1451,8 +1454,12 @@ func _check_finale(game: Dictionary) -> void:
 	if not finale is Dictionary:
 		_error("data/game.json: finale is {room, cutscene, ends_campaign}")
 		return
-	if not game.get("rooms", []).has(finale.get("room", "")):
-		_error("data/game.json: finale.room must be one of the rooms: %s" % finale.get("room", ""))
+	var every_room: Array = game.get("rooms", []).duplicate()
+	for night in game.get("nights", []):
+		if night is Dictionary:
+			every_room += night.get("rooms", [])
+	if not every_room.has(finale.get("room", "")):
+		_error("data/game.json: finale.room must be one of the rooms of a night: %s" % finale.get("room", ""))
 	if finale.has("cutscene") and not _cutscene_ids.has(finale.cutscene):
 		_error("data/game.json: finale.cutscene names no cutscene: %s" % finale.cutscene)
 	if not finale.get("ends_campaign", false) is bool:
@@ -1679,6 +1686,32 @@ func _check_actor(who: Variant, where: String) -> void:
 
 
 func _check_sprite(sprite: Dictionary, where: String) -> void:
+	if sprite.has("faces"):
+		# the cherub's heads (scripts/enemies/cherub_faces.gd): a strip per face
+		if not sprite.faces is Dictionary or sprite.faces.is_empty():
+			_error("%s: sprite.faces is {face: strip}" % where)
+		else:
+			for face in sprite.faces:
+				if not FileAccess.file_exists(str(sprite.faces[face])):
+					_error("%s: sprite.faces.%s not found: %s" % [where, face, sprite.faces[face]])
+			if not sprite.faces.has(str(sprite.get("face", ""))):
+				_error("%s: sprite.face must name one of sprite.faces" % where)
+	if sprite.get("frames") is String:
+		# a whole SpriteFrames (a reflection wears Elian's): it must load, and
+		# anim_map may only lend an animation it has
+		var frames = load(str(sprite.frames))
+		if not frames is SpriteFrames:
+			_error("%s: sprite.frames is not a SpriteFrames: %s" % [where, sprite.frames])
+			return
+		for anim in sprite.get("anim_map", {}):
+			if not ANIMATIONS.has(anim) or not frames.has_animation(str(sprite.anim_map[anim])):
+				_error("%s: sprite.anim_map.%s must lend an animation the frames have" % [where, anim])
+		for anim in ["idle", "walk", "hurt", "death"]:
+			if not frames.has_animation(anim):
+				_error("%s: sprite.frames has no \"%s\"" % [where, anim])
+		if sprite.has("glass") and (float(sprite.glass) < 0.0 or float(sprite.glass) > 1.0):
+			_error("%s: sprite.glass is the edge light's strength, 0..1" % where)
+		return
 	if sprite.has("like"):
 		if not _enemy_ids.has(str(sprite.like)):
 			_error("%s: sprite.like names unknown enemy \"%s\"" % [where, sprite.like])
@@ -1705,13 +1738,84 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 					_error("%s: sprite.%s must be a positive integer" % [where, field])
 
 
+## Chapter VII's keys (docs/CHAPTER7.md §9): "mirror", "turns", until_hp,
+## "around" and the hail. [param attacks] is the entry's own (none for one that
+## only extends another).
+const MIRROR_KEYS := ["windup_scale", "copies", "copies_count", "roll", "rise"]
+
+
+func _check_hall_keys(entry: Dictionary, attacks: Array, where: String) -> void:
+	if entry.has("mirror"):
+		var mirror = entry.mirror
+		if not mirror is Dictionary:
+			_error("%s: mirror is an object" % where)
+			return
+		for key in mirror:
+			if not MIRROR_KEYS.has(key):
+				_error("%s: mirror.%s is not a key (%s)" % [where, key, MIRROR_KEYS])
+		if entry.get("behaviour", "walker") != "walker":
+			_error("%s: only a walker can be a reflection" % where)
+		var scale := float(mirror.get("windup_scale", 1.6))
+		if scale < 1.5 or scale > 2.5:
+			_error("%s: mirror.windup_scale is 1.5–2.5 — his own blows, readable" % where)
+		if not ["last_technique", "none"].has(str(mirror.get("copies", "last_technique"))):
+			_error("%s: mirror.copies is last_technique or none" % where)
+		if int(mirror.get("copies_count", 1)) < 1 or int(mirror.get("copies_count", 1)) > 2:
+			_error("%s: mirror.copies_count is 1–2" % where)
+		var roll = mirror.get("roll")
+		if roll != null:
+			if not roll is Dictionary or float(roll.get("chance", 0)) < 0.0 or float(roll.get("chance", 0)) > 0.6 \
+					or float(roll.get("cooldown", 0)) < 2.0:
+				_error("%s: mirror.roll is null or {chance 0–0.6, cooldown ≥ 2}" % where)
+		if float(mirror.get("rise", 0)) < 0.0 or float(mirror.get("rise", 0)) > 400.0:
+			_error("%s: mirror.rise is 0–400" % where)
+		if not entry.has("extends") and not entry.get("sprite", {}).get("frames") is String:
+			_error("%s: a reflection wears the hero's frames (sprite.frames)" % where)
+	var last := 1.0
+	for turn in entry.get("turns", []):
+		var at := float(turn.get("at_hp", 0))
+		if at <= 0.0 or at >= last:
+			_error("%s: turns go down the health bar, each at_hp in (0, the one before)" % where)
+		last = at
+		if turn.has("caption") and not _dialogue_ids.has(str(turn.caption)):
+			_error("%s: turn caption is not a dialogue: %s" % [where, turn.caption])
+		if turn.has("face") and not entry.get("sprite", {}).get("faces", {}).has(str(turn.face)):
+			_error("%s: turn face is not one of sprite.faces: %s" % [where, turn.face])
+	for attack in attacks:
+		if attack.has("until_hp"):
+			var until := float(attack.until_hp)
+			if until <= 0.0 or until >= 1.0 or (attack.has("from_hp") and until >= float(attack.from_hp)):
+				_error("%s: until_hp is in (0, 1) and under from_hp" % where)
+		if attack.get("around", false) and (attack.get("type") != "melee" or float(attack.get("windup", 0)) < 1.2):
+			_error("%s: a blow all around is a melee with a wind-up of at least 1.2 s" % where)
+		if attack.get("type") == "hail":
+			if int(attack.get("count", 0)) < 1 or int(attack.get("count", 0)) > 8:
+				_error("%s: hail.count is 1–8" % where)
+			if float(attack.get("spacing", 0)) < 70.0:
+				_error("%s: hail.spacing is at least 70 — he must fit between two stones" % where)
+			if float(attack.get("windup", 0)) < 1.0 or float(attack.get("fall_time", 0)) <= 0.0:
+				_error("%s: hail needs a wind-up of at least 1 s and a fall_time" % where)
+
+
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 ## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
 const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "fruit_eaten", "truce_broken",
-	"chain_opened", "fettered_freed"]
+	"chain_opened", "fettered_freed",
+	# the scales of dawns (Dawns.seed_night, a night with "seed": "dawns")
+	"weighed_grace", "weighed_temptation", "weighed_will", "weighed_level", "weighed_none"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
+## Flags the finale reads (docs/CHAPTER7.md §5) that chapters III–VI write once
+## they are built (docs/CAMPAIGN.md §5): counted as written, and named in a
+## warning while nobody writes them yet. Remove a flag here when its chapter lands.
+const FLAGS_AWAITED := [
+	"sided_host", "sided_legion", "sided_none", "rope_paid_before", "prisoner_cut", "malchus_asked", "malchus_hanged",
+	"marah_sweetened", "marah_bitter", "wormwood_drunk", "rizpah_watched", "rizpah_told", "rizpah_left",
+	"light_returned", "light_shared", "light_taken", "read_tyre_ledger",
+	"tirzah_herbs", "pit_locked", "key_thrown", "key_kept",
+	"angels_kept_bound", "angels_loosed", "angels_left_to_men", "scroll_eaten",
+	"witnesses_covered", "witnesses_asked", "witnesses_robbed"]
 
 
 ## The engine room a game pack's room was made from (`base_room` in its scene), or "".
@@ -1917,6 +2021,13 @@ func _check_story_flags() -> void:
 	for flag in FLAGS_FOR_TESTS:
 		flags_set[flag] = "a test"
 		flags_read[flag] = "a test"
+	var awaited: Array = []
+	for flag in FLAGS_AWAITED:
+		if not flags_set.has(flag):
+			awaited.append(flag)
+			flags_set[flag] = "a chapter still to come"
+	if not awaited.is_empty():
+		_warn("flag(s) the campaign's end reads that no chapter writes yet (FLAGS_AWAITED): %s" % ", ".join(awaited))
 	var orphans: Array = []
 	for flag in flags_set:
 		if not flags_read.has(flag):
@@ -2384,6 +2495,9 @@ func _check_nights(game: Dictionary) -> void:
 					_error("%s: after \"%s\" is not an earlier night (or the game's id, %s, for the first)" % [where, after, game.get("id", "")])
 		elif night.has("after"):
 			_error("data/game.json: the first night is always open — it comes after nothing")
+		# "seed": "dawns" (Dawns, docs/CHAPTER7.md §9): the only seed there is
+		if night.has("seed") and str(night.seed) != "dawns":
+			_error("%s: seed must be \"dawns\" (the scales of the other nights' dawns)" % where)
 		for path in night.get("rooms", []):
 			owner[str(path)] = str(night.id)
 	for fork in _game_entries("forks"):

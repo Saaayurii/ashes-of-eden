@@ -157,12 +157,19 @@ jobs:
       # headless run. The first sign of a mistake in it is a blank page in
       # somebody's browser. Node is already on the runner.
       - name: The web loading page still works
-        run: python3 tools/web/check_shell.py
+        run: |
+          python3 tools/web/check_shell.py
+          python3 -m unittest discover -s tools/web
 
       # The painted pictures import as lossy WebP; one left at Godot's default
       # (lossless) put megabytes back on the Web player's download unnoticed.
       - name: Painted pictures stay lossy
         run: python3 tools/export/check_lossy.py
+
+      # The narrow panels a room's _wide picture replaced are left out of the
+      # light builds by name; a new chapter's are not until this list is redone.
+      - name: Light builds' exclude list is current
+        run: python3 tools/export/music_filters.py --check
 
       # The telemetry receiver and the script that turns what it collected
       # into the playtest logs balance_probe reads (docs/PLAYTEST.md).

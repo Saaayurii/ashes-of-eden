@@ -789,6 +789,8 @@ func _anim(step: Dictionary) -> void:
 		(actor as Player).play_scripted(animation)  # the scene owns the body; release() hands it back
 	elif actor is Enemy:
 		(actor as Enemy)._play(animation, bool(step.get("hold", false)))
+	elif actor is Npc:
+		(actor as Npc).play_scripted(animation)  # the elders fall on their faces (elders_fall_down)
 
 
 func _dialogue(step: Dictionary, instant: bool) -> void:

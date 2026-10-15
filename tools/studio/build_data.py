@@ -1095,6 +1095,7 @@ def gamedata(root: Path, strings):
         "flags_read_in_code": json.loads((root / "data" / "game.json").read_text()).get("flags_read", []),
         "flags_set_in_code": _gd_list(validator, "FLAGS_SET_IN_CODE"),
         "flags_for_tests": _gd_list(validator, "FLAGS_FOR_TESTS"),
+        "flags_awaited": _gd_list(validator, "FLAGS_AWAITED"),
         "music": {"existing": existing, "tracks": [{k: t[k] for k in ("slug", "title", "author", "license", "playlists")} for t in manifest["tracks"]],
                   "files": {p.stem: p.name for p in sorted(music.iterdir()) if p.suffix in (".mp3", ".ogg", ".wav")}},
         "rooms": rooms,

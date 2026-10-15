@@ -49,6 +49,19 @@ ROOM_EXPANSION_CUTS = {
     "seir_square": (380, 820), "seir_roofs": (300, 1020), "seir_canal": (200, 1000),
     "seir_quay": (250, 1050), "seir_wrecks": (250, 470), "seir_warehouses": (320, 1000),
     "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
+    # the Heavenly Hall (chapter VII)
+    "hall_elders_stair": (600, 900),
+    "hall_outer_court": (180, 600),
+    "hall_measured_temple": (300, 960),
+    "hall_gallery_of_lamps": (200, 1240),
+    "hall_sea_of_glass": (400, 870),
+    "hall_archive": (300, 700),
+    "hall_stones_of_fire": (440, 790),
+    "hall_ark_sanctum": (300, 960),
+    "hall_thunders": (300, 1010),
+    "hall_hail_gallery": (440, 800),
+    "hall_flaming_way": (300, 650),
+    "hall_eden_gate": (300, 620),
     "tyre_causeway": (330, 860), "tyre_counting_house": (300, 960), "tyre_dark_quarter": (230, 860),
     "tyre_bright_quay": (400, 780), "tyre_dyeworks": (460, 1160),
     "tyre_gate": (660, 870), "tyre_lamp_market": (470, 700), "tyre_rich_gate": (520, 1115),
@@ -105,6 +118,11 @@ FOCAL_RANGES = {
     "seir_warehouses": ((890, 960),),          # the clock on the post
     "seir_breakwater": ((740, 820),),          # moon
     "seir_lighthouse": ((540, 640), (900, 1130)),  # moon in its window, the lamp
+    "hall_elders_stair": ((1170, 1280),),           # the exit arch
+    "hall_measured_temple": ((560, 720),),          # the measured altar
+    "hall_ark_sanctum": ((430, 850),),              # the veil and the ark under its covering
+    "hall_stones_of_fire": ((870, 1160),),          # the plinth stone Lucifer stands on
+    "hall_eden_gate": ((860, 1280),),               # the gate in its hedge of fire
     "tyre_causeway": ((980, 1060), (0, 300)),  # moon, Zacchaeus's sycamore
     "tyre_counting_house": ((395, 445), (860, 915)),  # the two windows
     "tyre_dark_quarter": ((790, 830),),        # moon
@@ -153,6 +171,10 @@ TRAVERSAL_PATCHES = {
     "crypt_lava": [(730, 610, 100, 12, "LowerReturn"), (700, 315, 85, 12, "GalleryReturn")],  # treasure terrace and gallery return
     "hell_gate": [(1525, 563, 75, 12, "Return1"), (1550, 493, 50, 12, "Return2"),
                   (265, 315, 125, 12, "LeftReturn"), (225, 405, 65, 12, "LeftReturnLower")],  # upper left lip clears the stair underside
+    # the seven lamps' right gallery is 112 px over the floor, out of a double
+    # jump, and its stair rises the other way: a step off the wall between the
+    # gold column and the gallery's pier, coming from the entrance
+    "hall_gallery_of_lamps": [(955, 448, 60, 10, "GalleryStep")],
 }
 
 # One visual thought per new seam, not another random barrel on the route.
@@ -179,6 +201,19 @@ SEAM_STORIES = {
     "seir_roofs": ("", ""), "seir_canal": ("", ""), "seir_quay": ("", ""), "seir_wrecks": ("", ""),
     "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
     "seir_lighthouse": ("", ""),
+    # the Heavenly Hall's paintings are ordered and even; the seams stay clear
+    "hall_elders_stair": ("", ""),
+    "hall_outer_court": ("", ""),
+    "hall_measured_temple": ("", ""),
+    "hall_gallery_of_lamps": ("", ""),
+    "hall_sea_of_glass": ("", ""),
+    "hall_archive": ("", ""),
+    "hall_stones_of_fire": ("", ""),
+    "hall_ark_sanctum": ("", ""),
+    "hall_thunders": ("", ""),
+    "hall_hail_gallery": ("", ""),
+    "hall_flaming_way": ("", ""),
+    "hall_eden_gate": ("", ""),
     # Tyre's too.
     "tyre_causeway": ("", ""), "tyre_counting_house": ("", ""), "tyre_dark_quarter": ("", ""),
     "tyre_bright_quay": ("", ""), "tyre_dyeworks": ("", ""), "tyre_gate": ("", ""), "tyre_lamp_market": ("", ""), "tyre_rich_gate": ("", ""), "tyre_vaults": ("", ""), "tyre_galleys": ("", ""), "tyre_palace_stair": ("", ""), "tyre_throne": ("", ""),
@@ -236,6 +271,18 @@ ROOM_PROP_MOTIFS = {
     "seir_road": {}, "seir_gate": {}, "seir_street": {}, "seir_square": {}, "seir_roofs": {},
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
+    "hall_elders_stair": {},
+    "hall_outer_court": {},
+    "hall_measured_temple": {},
+    "hall_gallery_of_lamps": {},
+    "hall_sea_of_glass": {},
+    "hall_archive": {},
+    "hall_stones_of_fire": {},
+    "hall_ark_sanctum": {},
+    "hall_thunders": {},
+    "hall_hail_gallery": {},
+    "hall_flaming_way": {},
+    "hall_eden_gate": {},
     "tyre_causeway": {}, "tyre_counting_house": {}, "tyre_dark_quarter": {}, "tyre_bright_quay": {},
     "tyre_dyeworks": {}, "tyre_gate": {}, "tyre_lamp_market": {}, "tyre_rich_gate": {}, "tyre_vaults": {}, "tyre_galleys": {}, "tyre_palace_stair": {}, "tyre_throne": {},
     "marah_gallows": {}, "marah_ford": {}, "marah_host_bank": {}, "marah_field": {}, "marah_bitter_wells": {},
@@ -336,6 +383,117 @@ DEPTH_WINDOWS = {
     "seir_roofs": (0.02, []), "seir_canal": (0.02, []), "seir_quay": (0.02, []), "seir_wrecks": (0.02, []),
     "seir_warehouses": (0.02, []), "seir_breakwater": (0.02, []), "seir_lighthouse_stair": (0.02, []),
     "seir_lighthouse": (0.02, []),
+    # the Heavenly Hall (docs/CHAPTER7_ART.md §5): plates by ChatGPT from each panel;
+    # the lamps' gallery and the archive have no sky to look through
+    "hall_elders_stair": (0.02, [  # the panes of the two arched windows, mullions left standing
+        [(150, 122), (182, 122), (182, 185), (150, 185)],
+        [(150, 191), (182, 191), (182, 425), (150, 425)],
+        [(186, 122), (215, 122), (215, 185), (186, 185)],
+        [(186, 191), (215, 191), (215, 425), (186, 425)],
+        [(244, 122), (270, 122), (270, 185), (244, 185)],
+        [(244, 191), (270, 191), (270, 425), (244, 425)],
+        [(274, 122), (307, 122), (307, 185), (274, 185)],
+        [(274, 191), (307, 191), (307, 390), (274, 390)],
+        [(392, 122), (421, 122), (421, 185), (392, 185)],
+        [(425, 122), (455, 122), (455, 185), (425, 185)],
+        [(483, 122), (510, 122), (510, 185), (483, 185)],
+        [(514, 122), (547, 122), (547, 185), (514, 185)],
+        [(392, 191), (421, 191), (421, 353), (392, 372)],
+        [(425, 191), (455, 191), (455, 330), (425, 350)],
+        [(483, 191), (510, 191), (510, 240), (483, 240)],
+        [(514, 191), (547, 191), (547, 240), (514, 240)],
+    ]),
+    "hall_outer_court": (0.02, [  # the far city through the four arches, under the hanging ornaments and over the balustrades
+        [(150, 202), (292, 202), (292, 265), (150, 265)],
+        [(382, 202), (537, 202), (540, 515), (432, 515), (430, 385), (425, 352), (378, 350)],
+        [(618, 202), (822, 202), (826, 335), (798, 338), (798, 365), (704, 368), (700, 480), (612, 480)],
+        [(916, 202), (1128, 202), (1132, 365), (1088, 365), (1086, 335), (1012, 335), (1010, 392), (912, 392)],
+    ]),
+    "hall_measured_temple": (0.02, [  # the upper lights of the five windows, above the transoms
+        [(152, 110), (195, 110), (195, 272), (152, 272)],
+        [(201, 110), (256, 110), (256, 272), (201, 272)],
+        [(350, 110), (402, 110), (402, 272), (350, 272)],
+        [(408, 110), (458, 110), (458, 272), (408, 272)],
+        [(578, 110), (634, 110), (634, 250), (578, 250)],
+        [(640, 110), (698, 110), (698, 250), (640, 250)],
+        [(812, 110), (865, 110), (865, 272), (812, 272)],
+        [(871, 110), (926, 110), (926, 272), (871, 272)],
+        [(1028, 110), (1077, 110), (1077, 272), (1028, 272)],
+        [(1083, 110), (1130, 110), (1130, 272), (1083, 272)],
+    ]),
+    "hall_gallery_of_lamps": (0.02, []),
+    "hall_sea_of_glass": (0.02, [  # the far city in its clouds through the tall windows and the throne's arch
+        [(364, 112), (500, 112), (500, 322), (364, 322)],
+        [(386, 326), (440, 326), (440, 514), (386, 514)],
+        [(564, 60), (716, 60), (716, 318), (564, 318)],
+        [(774, 112), (924, 112), (924, 318), (774, 318)],
+        [(842, 336), (896, 336), (896, 514), (842, 514)],
+        [(582, 434), (602, 416), (680, 416), (710, 442), (710, 514), (582, 514)],
+    ]),
+    "hall_archive": (0.02, []),
+    "hall_stones_of_fire": (0.02, [  # the far city through the panes, the flaming way's clouds turned round
+        [(147, 106), (211, 106), (211, 338), (147, 338)],
+        [(219, 106), (288, 106), (288, 338), (219, 338)],
+        [(374, 106), (426, 106), (426, 458), (374, 458)],
+        [(434, 106), (498, 106), (498, 458), (434, 458)],
+        [(574, 106), (639, 106), (639, 338), (574, 338)],
+        [(647, 106), (712, 106), (712, 338), (647, 338)],
+        [(788, 106), (853, 106), (853, 458), (788, 458)],
+        [(861, 106), (927, 106), (927, 332), (861, 332)],
+        [(1003, 106), (1066, 106), (1066, 332), (1003, 332)],
+        [(1074, 106), (1142, 106), (1142, 332), (1074, 332)],
+    ]),
+    "hall_ark_sanctum": (0.02, [  # the storm through the panes of the two lightning windows
+        [(194, 88), (225, 88), (225, 173), (194, 173)],
+        [(194, 178), (225, 178), (225, 275), (194, 275)],
+        [(234, 88), (270, 88), (270, 173), (234, 173)],
+        [(234, 178), (270, 178), (270, 275), (234, 275)],
+        [(294, 88), (325, 88), (325, 173), (294, 173)],
+        [(294, 178), (325, 178), (325, 275), (294, 275)],
+        [(334, 88), (365, 88), (365, 173), (334, 173)],
+        [(334, 178), (365, 178), (365, 275), (334, 275)],
+        [(912, 88), (940, 88), (940, 173), (912, 173)],
+        [(912, 178), (940, 178), (940, 275), (912, 275)],
+        [(954, 88), (985, 88), (985, 173), (954, 173)],
+        [(954, 178), (985, 178), (985, 275), (954, 275)],
+        [(1009, 88), (1043, 88), (1043, 173), (1009, 173)],
+        [(1009, 178), (1043, 178), (1043, 275), (1009, 275)],
+        [(1057, 88), (1088, 88), (1088, 173), (1057, 173)],
+        [(1057, 178), (1088, 178), (1088, 275), (1057, 275)],
+    ]),
+    "hall_thunders": (0.02, [  # the storm through the panes of the four windows, platforms and mullions left standing
+        [(180, 80), (250, 80), (250, 384), (180, 384)],
+        [(268, 80), (344, 80), (344, 384), (268, 384)],
+        [(182, 462), (242, 462), (242, 544), (182, 544)],
+        [(272, 462), (308, 462), (308, 544), (272, 544)],
+        [(442, 62), (490, 62), (490, 294), (442, 294)],
+        [(510, 62), (554, 62), (554, 294), (510, 294)],
+        [(702, 200), (746, 200), (746, 544), (702, 544)],
+        [(784, 274), (846, 274), (846, 544), (784, 544)],
+        [(944, 80), (1008, 80), (1008, 224), (982, 224), (982, 166), (944, 166)],
+        [(1030, 80), (1098, 80), (1098, 224), (1030, 224)],
+        [(944, 322), (1008, 322), (1008, 546), (944, 546)],
+        [(1030, 322), (1098, 322), (1098, 546), (1030, 546)],
+    ]),
+    "hall_hail_gallery": (0.02, [  # the storm sky over and between the two gates
+        [(8, 8), (1150, 8), (1150, 200), (8, 200)],
+        [(8, 200), (140, 200), (140, 498), (8, 498)],
+        [(448, 200), (558, 200), (558, 498), (448, 498)],
+        [(560, 200), (718, 200), (718, 332), (560, 332)],
+        [(722, 200), (842, 200), (842, 498), (722, 498)],
+        [(218, 370), (362, 370), (362, 495), (218, 495)],
+        [(918, 370), (1062, 370), (1062, 495), (918, 495)],
+    ]),
+    "hall_flaming_way": (0.02, [  # the far city in its clouds over the galleries and through the shrine's arch
+        [(640, 8), (1195, 8), (1195, 328), (640, 328)],
+        [(240, 345), (270, 308), (340, 308), (370, 345), (370, 476), (240, 476)],
+        [(448, 322), (488, 322), (488, 478), (448, 478)],
+    ]),
+    "hall_eden_gate": (0.02, [  # the dawn sky between the columns, over the garden's crowns
+        [(310, 10), (436, 10), (436, 278), (310, 278)],
+        [(628, 10), (712, 10), (712, 345), (628, 345)],
+        [(42, 112), (92, 112), (92, 500), (42, 500)],
+    ]),
     # Tyre has no inpainted plates yet (docs/CHAPTER4_ART.md) either.
     "tyre_causeway": (0.02, []), "tyre_counting_house": (0.02, []), "tyre_dark_quarter": (0.02, []),
     "tyre_bright_quay": (0.02, []), "tyre_dyeworks": (0.02, []), "tyre_gate": (0.02, []), "tyre_lamp_market": (0.02, []), "tyre_rich_gate": (0.02, []), "tyre_vaults": (0.02, []), "tyre_galleys": (0.02, []), "tyre_palace_stair": (0.02, []), "tyre_throne": (0.02, []),
@@ -716,6 +874,9 @@ def expand_painted_room(name, room):
         # The chains end at its uneven 256/268 px underside, like the cages
         # already present in this chamber, instead of leaving bare bars in air.
         out["hanging_supports"] = {1: (42, 38), 2: (31, 18)}
+    if name == "hall_gallery_of_lamps":
+        out["painted_cornices"] = True
+        out["cornice_crop"] = (1040, 393)  # the gallery's own marble slab, clear of the seams
     if name == "swamp_crypt":
         out["painted_cornices"] = True
         out["cornice_crop"] = (150, 319)
@@ -1005,6 +1166,29 @@ angular_velocity_max = 40.0
 scale_amount_min = 0.5
 scale_amount_max = 1.1
 color = Color(0.75, 0.75, 0.85, 0.7)
+color_ramp = SubResource("fade")
+"""
+
+# The great hail (chapter VII, hall_hail_gallery): hard white stones falling
+# fast and slanting with the wind, cosmetic only (the hail that hurts is the
+# hail spirits' attack, whose shadows show where it falls).
+WEATHER["hail"] = """[node name="Weather" type="CPUParticles2D" parent="."]
+z_index = 2
+position = Vector2({cx}, -20)
+amount = {amount_high}
+lifetime = 1.6
+preprocess = 1.6
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2({ex}, 4)
+direction = Vector2(0.25, 1)
+spread = 6.0
+gravity = Vector2(0, 600)
+initial_velocity_min = 260.0
+initial_velocity_max = 380.0
+scale_amount_min = 0.6
+scale_amount_max = 1.2
+color = Color(0.92, 0.95, 1.0, 0.85)
 color_ramp = SubResource("fade")
 """
 

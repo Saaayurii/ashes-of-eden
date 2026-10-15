@@ -1,0 +1,23 @@
+{
+  "id": "elders_2",
+  "name": "SPEAKER_ELDERS",
+  "avatar": "res://assets/portraits/elders.png",
+  "dialogue": "ch7_elders",
+  "scripted": true,
+  "menu": false,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/elders_v2_idle.png",
+      "walk": "res://assets/sprites/elders_v2_walk.png",
+      "interact": "res://assets/sprites/elders_v2_interact.png",
+      "special": "res://assets/sprites/elders_v2_special.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "_art": "another of the twenty-four, the same sheet"
+}

@@ -473,8 +473,7 @@ async function step(name, fn) {
       const zones = await page.evaluate(() => lifeRule('catacombs_2').zones);
       assert.equal(zones.at(-1).kind, 'glow'); assert.equal(zones[0].rect.join(), '0,0,600,300');   // drawn over zone 1, which stayed put
       await page.click('#lifeSend');
-      // a runner without a GPU spends most of a minute here before the write: 60 s was the edge
-      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 120000 });
+      await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 180000 });
       const diff = git('diff', '--numstat', '--', 'data/backdrops.json').trim();
       assert.equal(diff, '2\t1\tdata/backdrops.json', diff);
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); LIFE.raf = 0; });
@@ -629,7 +628,7 @@ async function step(name, fn) {
       await send('weapons', [['[data-cp-act="pick"][data-p="data/weapons/daggers.json"]', null], ['[data-cp="s.multiplier"][data-i="1"]', '0.6']]);
       assert.equal(was('data/weapons/daggers.json'), daggers.replace('{"animation": "attack2", "multiplier": 0.55,', '{"animation": "attack2", "multiplier": 0.6,'));
       await send('endings', [['[data-cp-act="pick"][data-p="data/endings/fourth.json"]', null], ['[data-cp="flag-add"][data-k="unless"]', 'blood_paid']]);
-      assert.equal(was('data/endings/fourth.json'), fourth.replace('"book_read"]}', '"book_read"], "unless": ["blood_paid"]}'));
+      assert.equal(was('data/endings/fourth.json'), fourth.replace('"]}\n}', '"], "unless": ["blood_paid"]}\n}'));
       await send('route', [['[data-cp-act="pick"][data-id=""]', null], ['[data-cp-act="down"][data-i="1"]', null]]);
       const cross = '    "res://scenes/rooms/graveyard_cross.tscn",\n', arches = '    "res://scenes/rooms/graveyard_arches.tscn",\n';
       assert.equal(was('data/game.json'), game.replace(cross + arches, arches + cross));
