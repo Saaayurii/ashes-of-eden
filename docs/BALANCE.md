@@ -146,8 +146,9 @@ enemies free to move, every night's bosses and elites, and writes a «Nights» t
   Euphrates' flagellant 66 → 80, censer monk 54 → 68, river wraith 46 → 58, chained penitent 84 → 92; the hall's
   measuring angel 150 → 135, proud mirror 320 → 270. Bosses: watchman 1100 → 1550, wormwood 1250 → 1550, prince
   1300 → 1500, abaddon 1450 → 1650, four-bound 1600 → 1250 (the chain phases make him long already), cherub 1900.
-- **Result:** mean room 36 · 64 · 82 · 88 · 86 · 106 (Seir … Hall; Engedi and the Euphrates a plateau — the
-  river has fewer bodies, each harder: TTK 3.0 s against 2.0), bosses 3.0 · 3.1 · 3.3 · 3.4 · 4.0 · 4.2 min. Still
+- **Result** (re-measured with chapter VI's gifts and the ash archer of main): mean room 40 · 68 · 80 · 85 · 86 · 110
+  (Seir … Hall; Engedi and the Euphrates nearly level — the river has fewer bodies, each harder: TTK 3.0 s against
+  2.0), bosses 2.9 · 3.0 · 3.3 · 3.5 · 3.8 · 4.1 min. Still
   open: the hall's sea of glass (2.5× its mean, the proud mirror), and the four numbers of CORE_LOOP.md for these
   nights — every recorded playtest is chapter I, so they wait for telemetry.
 
