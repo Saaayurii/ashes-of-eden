@@ -2320,8 +2320,14 @@ func _check_draft_plans() -> void:
 	var forks := {}
 	for fork in _game_entries("forks"):
 		forks[fork.get("id", "")] = true
-	for data_root in _draft_roots():
-		var path := data_root.get_base_dir().path_join("rooms.json")
+	# a chapter that has come into the game keeps its plan (drafts/<name>/rooms.json) with no data/ beside it
+	var plans: Array[String] = []
+	var drafts := DirAccess.open(DRAFTS)
+	if drafts:
+		for draft in drafts.get_directories():
+			plans.append(DRAFTS.path_join(draft).path_join("rooms.json"))
+	plans.sort()
+	for path in plans:
 		if not FileAccess.file_exists(path):
 			continue
 		var plan = JSON.parse_string(FileAccess.get_file_as_string(path))
@@ -2359,7 +2365,7 @@ func _check_draft_plans() -> void:
 				if not ResourceLoader.exists("res://scenes/rooms/%s.tscn" % other):
 					_error("%s: stand-in \"%s\" is not a room" % [where, other])
 		for scene in _planned_rooms:
-			if _planned_rooms[scene] == data_root.get_base_dir().get_file() and not seen.has(scene):
+			if _planned_rooms[scene] == path.get_base_dir().get_file() and not seen.has(scene):
 				_error("%s: %s is in the drafts' data but not in the plan" % [path, scene])
 
 ## A room a draft names is allowed not to exist yet: its painting is still to

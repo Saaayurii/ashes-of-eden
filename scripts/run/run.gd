@@ -1125,7 +1125,7 @@ static func gifts_unlocked_tonight() -> Array:
 	if nights <= 0:
 		return []
 	return Data.abilities.values().filter(
-		func(a: Dictionary) -> bool: return int(a.get("unlock_nights", 0)) == nights
+		func(a: Dictionary) -> bool: return int(a.get("unlock_nights", 0)) == nights and Omens.of_night(a)
 	)
 
 

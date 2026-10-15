@@ -3,6 +3,9 @@
     "id": "long_night",
     "name": "OMEN_LONG_NIGHT",
     "description": "OMEN_LONG_NIGHT_DESC",
+    "nights": [
+      "seir"
+    ],
     "rules": {
       "flasks": 1,
       "enemy_hp": 1.2
@@ -12,6 +15,9 @@
     "id": "dead_calm",
     "name": "OMEN_DEAD_CALM",
     "description": "OMEN_DEAD_CALM_DESC",
+    "nights": [
+      "seir"
+    ],
     "rules": {
       "enemy_sight": 0.5,
       "essence": 0.85,
@@ -22,6 +28,9 @@
     "id": "drowned_bells",
     "name": "OMEN_DROWNED_BELLS",
     "description": "OMEN_DROWNED_BELLS_DESC",
+    "nights": [
+      "seir"
+    ],
     "rules": {
       "promote_chance": 0.2,
       "promote": {
