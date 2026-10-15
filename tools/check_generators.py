@@ -28,10 +28,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ## (name, argv, paths it owns, slow?). "Slow" means minutes, usually because
 ## it renders audio or downloads a font; those are skipped unless asked for.
-# the people tools/art/build_people_sheets.py cuts (its PEOPLE)
-PEOPLE_SHEETS = ("lazarus", "lazarus_sit", "jonah", "naomi", "malchus", "malchus_hanged", "marah_scout",
-                 "rizpah", "parley_bannerbearer", "parley_centurion", "zacchaeus", "lydia", "saul",
-                 "euphrates_reveller", "witness")
+# the people tools/art/build_people_sheets.py cuts: those of its PEOPLE whose sheet is drawn
+# (the rest it skips; add one here when its sheet lands, or the checkout of its strips fails)
+PEOPLE_SHEETS = ("lazarus", "lazarus_sit", "jonah", "naomi", "malchus", "malchus_hanged",
+                 "rizpah", "parley_bannerbearer", "parley_centurion", "zacchaeus", "lydia", "saul")
 
 GENERATORS = [
     ("sfx", ["tools/audio/generate_sfx.py"], ["assets/audio/sfx"], True),
@@ -92,7 +92,7 @@ GENERATORS = [
     # the bolts and the people of chapters II-VI, cut from sheets Codex drew
     ("flight strips", ["tools/art/build_flight_strips.py"],
      ["assets/sprites/projectiles/%s_flight_v3.png" % b
-      for b in ("incense", "host_arrow", "wormwood", "wormwood_ember")], False),
+      for b in ("incense", "host_arrow", "wormwood")], False),
     ("people sheets", ["tools/art/build_people_sheets.py"],
      ["assets/sprites/%s_%s.png" % (p, r) for p in PEOPLE_SHEETS for r in ("idle", "walk", "interact")]
      , False),
