@@ -401,6 +401,15 @@ func _run() -> void:
 		_assert(dealt.all(func(a): return seir_hand.has(a.id)), "every open gift of Seir turns up in its hands")
 		_assert(seir_hand.any(func(id): return not data.abilities[id].has("nights")),
 			"and the gifts of every night still do")
+		var unrelieved: Dictionary = data.abilities["unrelieved"]
+		var profile_nights: int = root.get_node("Profile").data.nights
+		root.get_node("Profile").data.nights = int(unrelieved.unlock_nights)
+		game.night = ""
+		_assert(not run.gifts_unlocked_tonight().map(func(a): return a.id).has("unrelieved"),
+			"a night that never deals Seir's gift does not announce it")
+		game.night = "seir"
+		_assert(run.gifts_unlocked_tonight().map(func(a): return a.id).has("unrelieved"), "  Seir does")
+		root.get_node("Profile").data.nights = profile_nights
 		game.night = "marah"
 		_assert(not seir.any(func(a): return omens.of_night(a)), "another chapter's night deals none")
 	game.night = night_was
