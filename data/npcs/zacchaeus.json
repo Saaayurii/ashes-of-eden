@@ -1,0 +1,27 @@
+{
+  "id": "zacchaeus",
+  "_art": "stand-in body (matthew) and portrait (matthew); own sheet and portrait in docs/CHAPTER4_ART.md",
+  "name": "NPC_ZACCHAEUS",
+  "avatar": "res://assets/portraits/matthew.png",
+  "dialogue": "npc_zacchaeus",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/matthew_v2_idle.png",
+      "walk": "res://assets/sprites/matthew_v2_walk.png",
+      "interact": "res://assets/sprites/matthew_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 4
+  },
+  "lore": "NPC_ZACCHAEUS_LORE",
+  "role": "NPC_ROLE_ZACCHAEUS",
+  "location": "LOC_TYRE_CAUSEWAY",
+  "lines": [
+    "NPC_ZACCHAEUS_LINE_1",
+    "NPC_ZACCHAEUS_LINE_2"
+  ]
+}

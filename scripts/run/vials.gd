@@ -14,12 +14,12 @@ class_name Vials
 const TIERS := 5
 ## How a rule stacks as the vials pile up.
 const ADD := ["flasks"]
-const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown",
+const MUL := ["enemy_damage", "enemy_hp", "essence", "enemy_sight", "skill_cooldown", "dark", "lamp_price",
 	"tether_length"]
 const MAX := ["promote_chance"]
 const MIN := ["rest_heal"]
 const DEFAULTS := {"flasks": 0, "enemy_damage": 1.0, "enemy_hp": 1.0, "promote_chance": 0.0, "rest_heal": 1.0,
-	"essence": 1.0, "enemy_sight": 1.0, "skill_cooldown": 1.0,
+	"essence": 1.0, "enemy_sight": 1.0, "skill_cooldown": 1.0, "dark": 1.0, "lamp_price": 1.0,
 	"tether_length": 1.0}
 
 

@@ -1,0 +1,103 @@
+{
+  "id": "prince_of_tyre",
+  "name": "ENEMY_PRINCE_OF_TYRE",
+  "lore": "ENEMY_PRINCE_OF_TYRE_LORE",
+  "tip": "TIP_PRINCE_OF_TYRE",
+  "_art": "stand-in: the blind preacher in a crown of gold, until his own atlas",
+  "epithet": "BOSS_EPITHET_PRINCE_OF_TYRE",
+  "hp": 1300,
+  "speed": 46,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "boss": true,
+  "behaviour": "walker",
+  "aggro_range": 800,
+  "size": 15,
+  "color": "#e0c090",
+  "material": "gold",
+  "tags": [
+    "human",
+    "boss"
+  ],
+  "stagger_chance": 0.0,
+  "armor": 0.2,
+  "sprite": {
+    "like": "blind_preacher",
+    "tint": "#e0c090"
+  },
+  "light": {
+    "color": "#ffe6a0",
+    "radius": 80,
+    "energy": 0.9
+  },
+  "darkness_phase": {
+    "at_hp": 0.5,
+    "dark": 0.85,
+    "relight_price": 2.0,
+    "windup": 1.4,
+    "caption": "ch4_prince_douse",
+    "animation": "special",
+    "color": "#fff0b0"
+  },
+  "attacks": [
+    {
+      "name": "Sceptre",
+      "type": "melee",
+      "range": 60,
+      "reach": 78,
+      "windup": 1.0,
+      "damage": 22,
+      "cooldown": 2.2,
+      "recover": 0.7,
+      "weight": 3,
+      "animation": "attack"
+    },
+    {
+      "name": "Coin Volley",
+      "type": "ranged",
+      "range": 440,
+      "windup": 0.95,
+      "damage": 10,
+      "cooldown": 3.8,
+      "recover": 0.6,
+      "weight": 2,
+      "projectile_speed": 230,
+      "projectile_style": "coin",
+      "volley": 4,
+      "volley_gap": 0.16,
+      "color": "#ffd870",
+      "animation": "attack_alt"
+    },
+    {
+      "name": "Crown Ray",
+      "type": "beam",
+      "range": 480,
+      "windup": 1.3,
+      "damage": 22,
+      "cooldown": 4.4,
+      "recover": 0.9,
+      "weight": 2,
+      "length": 440,
+      "thickness": 20,
+      "duration": 0.55,
+      "color": "#fff0b0",
+      "from_hp": 0.5,
+      "animation": "special"
+    },
+    {
+      "name": "Tithe",
+      "type": "melee",
+      "range": 70,
+      "reach": 96,
+      "windup": 1.5,
+      "damage": 36,
+      "cooldown": 4.8,
+      "recover": 1.1,
+      "weight": 1,
+      "from_hp": 0.5,
+      "animation": "attack"
+    }
+  ],
+  "essence": 240,
+  "ash": 18
+}

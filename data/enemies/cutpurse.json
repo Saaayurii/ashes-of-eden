@@ -1,0 +1,54 @@
+{
+  "id": "cutpurse",
+  "name": "ENEMY_CUTPURSE",
+  "lore": "ENEMY_CUTPURSE_LORE",
+  "tip": "TIP_CUTPURSE",
+  "_art": "stand-in: the cultist in soot and grey, until its own atlas",
+  "hp": 50,
+  "speed": 82,
+  "damage": 0,
+  "attack_interval": 0.8,
+  "behaviour": "walker",
+  "aggro_range": 420,
+  "size": 11,
+  "color": "#3a3640",
+  "material": "cloth",
+  "tags": [
+    "human"
+  ],
+  "stagger_chance": 0.25,
+  "dark_adapted": true,
+  "steals": 3,
+  "sprite": {
+    "like": "cultist",
+    "tint": "#6a6070"
+  },
+  "attacks": [
+    {
+      "name": "Sleeve Knife",
+      "type": "melee",
+      "range": 28,
+      "reach": 36,
+      "windup": 0.5,
+      "damage": 10,
+      "cooldown": 1.6,
+      "recover": 0.4,
+      "weight": 3,
+      "animation": "attack"
+    },
+    {
+      "name": "Leap",
+      "type": "lunge",
+      "range": 200,
+      "windup": 0.65,
+      "damage": 14,
+      "cooldown": 3.0,
+      "lunge_speed": 380,
+      "lunge_time": 0.32,
+      "recover": 0.7,
+      "weight": 2,
+      "animation": "attack_alt"
+    }
+  ],
+  "essence": 18
+}

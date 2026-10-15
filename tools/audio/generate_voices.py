@@ -276,6 +276,15 @@ RECIPES = {
     "blind_preacher": lambda w: choir(220 * w),
     "ophanim": lambda w: seraph(55 * w),
     "raven": lambda w: caw(720 * w),
+    # Tyre (docs/CHAPTER4.md §6): stand-in throats from the same makers
+    "woe_eagle": lambda w: caw(540 * w),  # lower than a raven: the eagle crying woe
+    "tyre_guard": lambda w: metal(105 * w),
+    "cutpurse": lambda w: grunt(175 * w),
+    "debt_wraith": lambda w: whistle(540 * w),
+    "dim_star": lambda w: chime(660 * w),
+    "dye_drowned": lambda w: growl(72 * w),
+    "tyre_treasurer": lambda w: caller(160 * w),
+    "prince_of_tyre": lambda w: choir(185 * w),
     "wailer": lambda w: keen(420 * w),
 }
 

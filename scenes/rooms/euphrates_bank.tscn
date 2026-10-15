@@ -165,7 +165,7 @@ position = Vector2(640, 522)
 prop_id = "pot"
 
 [node name="Liquid1" type="Area2D" parent="."]
-position = Vector2(745, 540)
+position = Vector2(1065, 540)
 script = ExtResource("15_hazard")
 kind = "water"
 size = Vector2(262, 36)

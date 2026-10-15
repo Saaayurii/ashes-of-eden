@@ -622,6 +622,31 @@ SPECIALS = {
     "ophanim_special": (22, 165, 2400),
 }
 
+def lamp_light(seed):
+    """A lamp of Tyre bought (scripts/rooms/lamp.gd): the flint's tick, the oil
+    catching in a soft breath of air, a few spits of the wick after it."""
+    rng = random.Random(seed)
+    seconds = rng.uniform(0.7, 0.85)
+    out = silence(seconds, SFX_RATE)
+    tick = env(highpass([rng.uniform(-1.0, 1.0) for _ in range(int(0.012 * SFX_RATE))], 3000, SFX_RATE), 0.02, 1.0, 4.0)
+    place(out, tick, 0.0, 0.9)
+    n = int(0.5 * SFX_RATE)
+    breath = env(lowpass([rng.uniform(-1.0, 1.0) for _ in range(n)], rng.uniform(900, 1300), SFX_RATE), 0.25, 1.0, 1.8)
+    place(out, breath, 0.03, 0.8)
+    glow = env(tone(0.45, SFX_RATE, rng.uniform(150, 175), rng.uniform(190, 215), "tri"), 0.3, 1.0, 2.0)
+    place(out, glow, 0.05, 0.12)
+    for _ in range(rng.randint(4, 7)):
+        spit = env(highpass([rng.uniform(-1.0, 1.0) for _ in range(int(0.006 * SFX_RATE))], 2400, SFX_RATE), 0.05, 1.0, 3.0)
+        place(out, spit, rng.uniform(0.15, seconds - 0.05), rng.uniform(0.15, 0.4))
+    return normalize(out, 0.55)
+
+
+def lamp_sfx():
+    """A lamp of Tyre lit (scripts/rooms/lamp.gd), three takes."""
+    for take in (1, 2, 3):
+        write(os.path.join(SFX_DIR, "lamp_light_%d.wav" % take), lamp_light(90 + take), SFX_RATE)
+
+
 if __name__ == "__main__":
     import sys
     if sys.argv[1:] == ["liquids"]:  # only the pools' sounds: python3 tools/audio/generate_sfx.py liquids
@@ -629,6 +654,9 @@ if __name__ == "__main__":
         sys.exit(0)
     if sys.argv[1:] == ["rustle"]:  # only the trees' leaves: python3 tools/audio/generate_sfx.py rustle
         rustle_sfx()
+        sys.exit(0)
+    if sys.argv[1:] == ["lamp"]:  # only the lamps of Tyre: python3 tools/audio/generate_sfx.py lamp
+        lamp_sfx()
         sys.exit(0)
     if sys.argv[1:] == ["chains"]:  # only chapter VI's chains: python3 tools/audio/generate_sfx.py chains
         chain_sfx()
@@ -645,4 +673,5 @@ if __name__ == "__main__":
     liquid_sfx()
     rustle_sfx()
     wingbeat_sfx()
+    lamp_sfx()
     chain_sfx()

@@ -185,7 +185,7 @@ z_index = 1
 [node name="Props" type="Node2D" parent="."]
 
 [node name="Liquid1" type="Area2D" parent="."]
-position = Vector2(390, 580)
+position = Vector2(550, 580)
 script = ExtResource("15_hazard")
 kind = "water"
 size = Vector2(500, 130)

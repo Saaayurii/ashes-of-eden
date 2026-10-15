@@ -606,6 +606,31 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('«Оружие», «Концовки» and «Ночи» send only what changed, in the file\'s own shape', async () => {
+      const was = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
+      const daggers = was('data/weapons/daggers.json'), fourth = was('data/endings/fourth.json'), game = was('data/game.json');
+      const send = async (m, edit) => {
+        await page.evaluate(async ([m, edit]) => {
+          setMode(m); await new Promise(r => setTimeout(r, 700));
+          const box = document.querySelector(`#gdLayout_${m}`);
+          for (const [sel, value] of edit) {
+            const el = box.querySelector(sel);
+            if (value === null) el.click(); else { el.value = value; el.dispatchEvent(new Event('change', { bubbles: true })); }
+          }
+          await gdSend(m);
+        }, [m, edit]);
+        await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 60000 });
+        await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+      };
+      await send('weapons', [['[data-cp-act="pick"][data-p="data/weapons/daggers.json"]', null], ['[data-cp="s.multiplier"][data-i="1"]', '0.6']]);
+      assert.equal(was('data/weapons/daggers.json'), daggers.replace('{"animation": "attack2", "multiplier": 0.55,', '{"animation": "attack2", "multiplier": 0.6,'));
+      await send('endings', [['[data-cp-act="pick"][data-p="data/endings/fourth.json"]', null], ['[data-cp="flag-add"][data-k="unless"]', 'blood_paid']]);
+      assert.equal(was('data/endings/fourth.json'), fourth.replace('"book_read"]}', '"book_read"], "unless": ["blood_paid"]}'));
+      await send('route', [['[data-cp-act="pick"][data-id=""]', null], ['[data-cp-act="down"][data-i="1"]', null]]);
+      const cross = '    "res://scenes/rooms/graveyard_cross.tscn",\n', arches = '    "res://scenes/rooms/graveyard_arches.tscn",\n';
+      assert.equal(was('data/game.json'), game.replace(cross + arches, arches + cross));
+    });
+
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('\n'));
     console.log(`studio e2e: ${steps.length} passed`);
   } finally {
