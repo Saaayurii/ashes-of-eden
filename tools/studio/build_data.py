@@ -155,12 +155,20 @@ def hero(root: Path):
     return c
 
 
-def bestiary(root: Path):
+def bestiary(root: Path, strings=None):
+    """Every creature of data/enemies as a character from the game: the archetype tree's
+    (build_bestiary_assets.py), then one per other set of strips an enemy is drawn with
+    (an old strip a variant still wears, the ophanim's seal, the straw man). A variant drawn
+    with another's strips and a tint is not a character of its own: `strip_owners` names
+    whose it wears, and the studio's «Персонажи» opens that one."""
+    strings = strings if strings is not None else load_strings(root)
+    raw, resolved = game_enemies(root)
+    tree = json.loads((root / "data/enemy_archetypes/tree.json").read_text(encoding="utf-8"))
+    _owner, own = strip_owners(root, raw, resolved)
+    sprites = [(e["id"], e["sprite"], BESTIARY_GENERATOR) for e in tree if e.get("sprite")]
+    sprites += [(eid, enemy_sprite(resolved, resolved[eid].get("sprite", {})), None) for eid in own]
     out = []
-    for e in json.loads((root / "data/enemy_archetypes/tree.json").read_text(encoding="utf-8")):
-        sp = e.get("sprite")
-        if not sp:
-            continue
+    for eid, sp, generator in sprites:
         cw, ch = sp["cell"]
         anims = []
         for name, res in sp["animations"].items():
@@ -168,14 +176,54 @@ def bestiary(root: Path):
             if path.exists():
                 imgs = slice_strip(path, cw, ch)
                 if imgs:
-                    anims.append(_anim(e["id"], name, float(sp.get("fps", 8)), name in ("idle", "walk"), imgs, res,
+                    anims.append(_anim(eid, name, float(sp.get("fps", 8)), name in ("idle", "walk"), imgs, res,
                                        regions=[[res, i * cw, 0, cw, ch] for i in range(len(imgs))]))
         if anims:
-            c = _character(e["id"], (cw, ch), anims, f"{e.get('family', 'enemy')} enemy, imported from the game",
-                           {"kind": "game", "generator": BESTIARY_GENERATOR})
+            family = next((e.get("family") for e in tree if e["id"] == eid), "")
+            origin = {"kind": "game", "generator": generator or strip_generator(asset_url(anims[0]["file"])), "enemy": eid}
+            c = _character(eid, (cw, ch), anims, f"{family or 'enemy'} enemy, imported from the game", origin)
+            c["name"] = strings.get(raw.get(eid, {}).get("name", ""), {}).get("ru") or eid
             c["rev"] = rev(root, *sorted(a["file"] for a in anims))
             out.append(c)
     return out
+
+
+def strip_owners(root: Path, raw, resolved):
+    """Whose character holds the strips each enemy is drawn with (Enemy._setup_sprite, "like"
+    and "extends" followed): {enemy id: character id | None}, and the enemies that need a
+    character of their own (strips nobody in the archetype tree has, and no studio project
+    of that id — ash_archer is one the studio made and keeps in tools/studio/projects)."""
+    tree = json.loads((root / "data/enemy_archetypes/tree.json").read_text(encoding="utf-8"))
+    projects = {json.loads(f.read_text(encoding="utf-8")).get("id") for f in (STUDIO / "projects" / "chars").glob("*.json")}
+    files = lambda sp: frozenset(r for r in sp.get("animations", {}).values() if res_to_path(root, r).exists())
+    held = [(files(e["sprite"]), e["id"]) for e in tree if e.get("sprite") and files(e["sprite"])]
+    # the one others borrow from first, so a variant's old strips are named after the creature they were drawn for
+    lent = {e.get("sprite", {}).get("like") for e in raw.values()} | {e.get("extends") for e in raw.values()}
+    owner, own = {}, []
+    for eid in sorted(raw, key=lambda i: (i not in lent, i)):
+        sp = enemy_sprite(resolved, resolved[eid].get("sprite", {}))
+        mine = files(sp)
+        if not mine or "cell" not in sp:
+            owner[eid] = None
+            continue
+        hit = next((cid for key, cid in held if mine <= key), None)
+        if hit is None:
+            hit = eid
+            held.append((mine, eid))
+            if eid not in projects:
+                own.append(eid)
+        owner[eid] = hit
+    return owner, own
+
+
+def strip_generator(rel):
+    """The generator that owns a picture, the most particular first (tools/check_generators.py):
+    the ophanim's seals have their own, inside the bestiary's folder."""
+    sys.path.insert(0, str(STUDIO.parents[0] / "art"))
+    from studio_overrides import owners
+    best = max(((len(p), script) for script, paths in owners().values() for p in paths
+                if rel == p or rel.startswith(p.rstrip("/") + "/")), default=(0, None))
+    return best[1]
 
 
 # ------------------------------------------------------------------ rooms ---
@@ -473,7 +521,11 @@ def story(root: Path, strings, rooms):
 
 
 def enemies(root: Path, strings):
-    """What the enemy wizard offers to inherit from: every enemy with its fight in short."""
+    """What the enemy wizard offers to inherit from: every enemy with its fight in short,
+    where the game brings it out (`where`, empty: nowhere) and whose character holds the
+    strips it is drawn with (`char`, see strip_owners) — the studio's «Персонажи» lists them all."""
+    raw, resolved = game_enemies(root)
+    places, (owner, _own) = enemy_places(root, raw, resolved, strings), strip_owners(root, raw, resolved)
     out = []
     for f in sorted((root / "data/enemies").glob("*.json")):
         e = json.loads(f.read_text(encoding="utf-8"))
@@ -484,7 +536,9 @@ def enemies(root: Path, strings):
                     "boss": bool(e.get("boss")), "tags": e.get("tags", []), "hp": e.get("hp"), "speed": e.get("speed"),
                     "material": e.get("material"), "attacks": sorted({a.get("type", "?") for a in attacks}),
                     "name": {"ru": name.get("ru", ""), "en": name.get("en", "")},
-                    "sprite": e.get("sprite", {}).get("cell"), "bestiary": e.get("bestiary", True)})
+                    "sprite": e.get("sprite", {}).get("cell"), "bestiary": e.get("bestiary", True),
+                    "where": places.get(e.get("id", f.stem), []), "char": owner.get(e.get("id", f.stem)),
+                    "tint": enemy_sprite(resolved, resolved.get(e.get("id", f.stem), {}).get("sprite", {})).get("tint")})
     return out
 
 
@@ -666,20 +720,9 @@ def seams(root: Path):
     return out
 
 
-# ---------------------------------------------------------- ranged attacks
-# data/projectiles.json is how every bolt looks; the attacks that loose them are
-# the ranged ones in data/enemies and the bolt skills in data/abilities. The
-# studio's «Снаряды» edits all three, so it needs each attack's place in its file.
-def projectiles(root: Path, strings):
-    doc = json.loads((root / "data/projectiles.json").read_text(encoding="utf-8"))
-    sheets = {}
-    for look in doc["styles"].values():
-        res = look.get("sheet", "")
-        size = _size(root, res)
-        if size:
-            sheets[res] = {"url": asset_url(res), "w": size[0], "h": size[1]}
-    name = lambda key: {k: strings.get(key, {}).get(k, "") or key for k in ("ru", "en")}
-    # every enemy as the game builds it (data_loader.gd): extends first, then the archetype overlay
+def game_enemies(root: Path):
+    """Every enemy as the game builds it (data_loader.gd): extends first, then the archetype
+    overlay. -> ({id: its own file}, {id: resolved})"""
     raw = {}
     for f in sorted((root / "data/enemies").glob("*.json")):
         e = json.loads(f.read_text(encoding="utf-8"))
@@ -694,22 +737,130 @@ def projectiles(root: Path, strings):
     for over in (json.loads(tree.read_text(encoding="utf-8")) if tree.exists() else []):
         if over.get("id") in resolved and "sprite" in over:
             resolved[over["id"]]["sprite"] = {**resolved[over["id"]].get("sprite", {}), **over["sprite"]}
+    return raw, resolved
 
-    def body(sprite):
-        """What the preview needs to draw a body: its strips, cell, fps, scale (Enemy._setup_sprite).
-        "like" borrows another creature's strips, its own keys laid over them."""
-        if "like" in sprite:
-            sprite = {**resolved.get(sprite["like"], {}).get("sprite", {}), **{k: v for k, v in sprite.items() if k != "like"}}
-        anims = {a: asset_url(res) for a, res in sprite.get("animations", {}).items() if _size(root, res)}
-        if not anims or "cell" not in sprite:
-            return None
-        return {"cell": sprite["cell"], "fps": sprite.get("fps", 6), "scale": sprite.get("scale", 1.0),
-                "pad_y": sprite.get("pad_y", 0), "tint": sprite.get("tint"), "anims": anims,
-                "frames": {a: _size(root, res)[0] // sprite["cell"][0] for a, res in sprite.get("animations", {}).items() if a in anims}}
+
+def enemy_sprite(resolved, sprite):
+    """The sprite a body is drawn with (Enemy._setup_sprite): "like" borrows another creature's
+    strips, its own keys laid over them."""
+    if "like" in sprite:
+        sprite = {**resolved.get(sprite["like"], {}).get("sprite", {}), **{k: v for k, v in sprite.items() if k != "like"}}
+    return sprite
+
+
+def enemy_body(root: Path, resolved, sprite):
+    """What the preview needs to draw a body: its strips, cell, fps, scale (Enemy._setup_sprite)."""
+    sprite = enemy_sprite(resolved, sprite)
+    anims = {a: asset_url(res) for a, res in sprite.get("animations", {}).items() if _size(root, res)}
+    if not anims or "cell" not in sprite:
+        return None
+    return {"cell": sprite["cell"], "fps": sprite.get("fps", 6), "scale": sprite.get("scale", 1.0),
+            "pad_y": sprite.get("pad_y", 0), "tint": sprite.get("tint"), "anims": anims,
+            "frames": {a: _size(root, res)[0] // sprite["cell"][0] for a, res in sprite.get("animations", {}).items() if a in anims}}
+
+
+def enemy_places(root: Path, raw, resolved, strings):
+    """Where the hero meets each enemy of data/enemies, in words for the studio's lists:
+    {id: ["Глава I · Кладбище, Болото", "призывает: Офаним", …]}; an empty list is a
+    creature the game never brings out (a leftover or a draft). In a room of any night
+    (an EnemySpawn, or a guardian of a prop standing there), summoned, split off, sealed
+    or promoted to (vials, omens) by one that is, or the practice yard's own (behaviour dummy)."""
+    ru = lambda key: strings.get(key, {}).get("ru", "") or key
+    chapter = {}
+    for f in sorted((root / "data/chapters").glob("*.json")):
+        for area in json.loads(f.read_text(encoding="utf-8")):
+            for res in area.get("rooms", []):
+                chapter[res] = (ru(area.get("chapter", "")).split(" · ")[0], ru(area.get("title", "")))
+    props = {f.stem: json.loads(f.read_text(encoding="utf-8")) for f in (root / "data/props").glob("*.json")}
+    seen, why = {}, {}
+
+    def meet(eid, chap, area):
+        if eid in raw:
+            areas = seen.setdefault(eid, {}).setdefault(chap, [])
+            if area not in areas:
+                areas.append(area)
+    for res in game_rooms(game_doc(root)):
+        path = res_to_path(root, res)
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        chap, area = chapter.get(res, ("", path.stem))
+        for eid in re.findall(r'^enemy_id = &?"([^"]+)"', text, re.M):
+            meet(eid, chap, area)
+        for pid in re.findall(r'^prop_id = &?"([^"]+)"', text, re.M):
+            for wave in props.get(pid, {}).get("guardians", []):
+                for g in wave:
+                    meet(g[0], chap, area)
+    for eid, e in resolved.items():
+        if e.get("behaviour") == "dummy":
+            why.setdefault(eid, []).append("тренировочный двор")
+    promote = {}  # (common, elite) -> what promotes it
+    for d, label in (("vials", "чаша гнева"), ("omens", "знамение")):
+        for f in sorted((root / "data" / d).glob("*.json")):
+            doc = json.loads(f.read_text(encoding="utf-8"))
+            for entry in doc if isinstance(doc, list) else [doc]:
+                for a, b in entry.get("rules", {}).get("promote", {}).items():
+                    if label not in promote.setdefault((a, b), []):
+                        promote[(a, b)].append(label)
+    tree = root / "data/enemy_archetypes/tree.json"
+    attacks = {e["id"]: e["attacks"] for e in (json.loads(tree.read_text(encoding="utf-8")) if tree.exists() else []) if "attacks" in e}
+
+    def brings(eid):
+        """-> [(other id, how it comes)]: what this one brings onto the floor."""
+        e, out = resolved[eid], []
+        if e.get("summons", {}).get("id"):
+            out.append((e["summons"]["id"], "его призывает:"))
+        own = attacks.get(eid) or e.get("attacks", []) + ([e["attack"]] if "attack" in e else [])
+        out += [(a["id"], "его призывает:") for a in own if a.get("type") == "summon" and a.get("id")]
+        if e.get("on_death", {}).get("type") == "split":
+            out.append((e["on_death"].get("into"), "остаётся от:"))
+        if e.get("seal_phase", {}).get("seal"):
+            out.append((e["seal_phase"]["seal"], "печати ставит:"))
+        return out
+    live = set(seen) | set(why)
+    while True:
+        grew = False
+        for eid in sorted(live):
+            for other, how in brings(eid):
+                line = f"{how} {ru(raw[eid].get('name', eid))}"
+                if other in raw and line not in why.setdefault(other, []):
+                    why[other].append(line)
+                    grew = grew or other not in live
+                    live.add(other)
+        for (a, b), by in promote.items():
+            if a in live and b in raw:
+                line = f"элита вместо: {ru(raw[a].get('name', a))} ({', '.join(by)})"
+                if line not in why.setdefault(b, []):
+                    why[b].append(line)
+                    grew = grew or b not in live
+                    live.add(b)
+        if not grew:
+            break
+    return {eid: [f"{c} · {', '.join(areas)}" if c else ", ".join(areas) for c, areas in seen.get(eid, {}).items()] + why.get(eid, [])
+            for eid in raw}
+
+
+# ---------------------------------------------------------- ranged attacks
+# data/projectiles.json is how every bolt looks; the attacks that loose them are
+# the ranged ones in data/enemies and the bolt skills in data/abilities. The
+# studio's «Снаряды» edits all three, so it needs each attack's place in its file.
+def projectiles(root: Path, strings):
+    doc = json.loads((root / "data/projectiles.json").read_text(encoding="utf-8"))
+    sheets = {}
+    for look in doc["styles"].values():
+        res = look.get("sheet", "")
+        size = _size(root, res)
+        if size:
+            sheets[res] = {"url": asset_url(res), "w": size[0], "h": size[1]}
+    name = lambda key: {k: strings.get(key, {}).get(k, "") or key for k in ("ru", "en")}
+    raw, resolved = game_enemies(root)
+    body = lambda sprite: enemy_body(root, resolved, sprite)
     hero = {"cell": [128, 64], "fps": 10, "scale": 1.0, "hero": True,
             "anims": {a: f"assets/sprites/elian_{a}.png" for a in ("idle", "attack") if (root / f"assets/sprites/elian_{a}.png").exists()}}
     dummy = body(resolved.get("training_dummy", {}).get("sprite", {}))
     users, roster = [], []
+    places = enemy_places(root, raw, resolved, strings)
+    tree = root / "data/enemy_archetypes/tree.json"
     tree_entries = json.loads(tree.read_text(encoding="utf-8")) if tree.exists() else []
     for eid in sorted(raw):
         e, at = raw[eid], attack_source(eid, raw, tree_entries)
@@ -718,7 +869,7 @@ def projectiles(root: Path, strings):
         b = body(resolved.get(eid, {}).get("sprite", {}))
         roster.append({"id": eid, "name": name(e.get("name", "")), "body": b, "boss": bool(resolved[eid].get("boss")),
                        "material": resolved[eid].get("material", "cloth"),
-                       "behaviour": resolved[eid].get("behaviour", "walker"), "source": at,
+                       "behaviour": resolved[eid].get("behaviour", "walker"), "source": at, "where": places[eid],
                        "attacks": [{"type": a.get("type"), "animation": a.get("animation")} for a in at["items"]]})
         for i, a in enumerate(at["items"]):
             if a.get("type") == "ranged":
@@ -954,7 +1105,7 @@ def build(root: Path, out: Path, asset_base: str, branch: str = "main", sha: str
     `root` is a game pack laid over the engine — meta.json then names the pack's repository, which the
     studio writes to, and the URL its own files (content/…) are read from."""
     strings = load_strings(root)
-    chars = [hero(root)] + bestiary(root)
+    chars = [hero(root)] + bestiary(root, strings)
     chars += shared("chars", {c["id"] for c in chars})
     write(out, "list.json", [write(out, f"chars/{c['id']}.sprite.json", c) for c in chars])
     rooms = [room_project(root, p) for p in room_scenes(root)]
