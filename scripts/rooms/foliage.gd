@@ -692,6 +692,8 @@ func _on_world_impulse(at: Vector2, direction: Vector2, strength: float, kind: S
 ## The old leaves under every crown: thrown down onto whatever floor lies below.
 ## Deferred a physics frame — the room's shapes are not in the space at _ready.
 func _lay_litter() -> void:
+	if not is_inside_tree():
+		return  # the room was swapped out before its first frame
 	await get_tree().physics_frame
 	if not is_inside_tree():
 		return
