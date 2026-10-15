@@ -36,6 +36,7 @@ counts on it (check_reach, the studio's composeReach and reach_test.gd all
 leave it out): it is a shortcut over a gap, not the way.
 """
 import json
+import math
 import os
 import re
 
@@ -373,7 +374,9 @@ def windows(entry, owned):
 
 def depth_parallax(entry, owned):
     strengths = [owned[c["painting"]][0] for c in entry["cells"] if c["painting"] in owned]
-    return round(sum(strengths) / len(strengths), 4) if strengths else 0.025
+    # fsum: exact on every Python (3.12's sum() compensates, 3.11's does not,
+    # and 0.085 / 4 sits on the rounding edge)
+    return round(math.fsum(strengths) / len(strengths), 4) if strengths else 0.025
 
 
 def plate_path(stem):

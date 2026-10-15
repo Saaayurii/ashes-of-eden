@@ -352,7 +352,7 @@ intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/composed/graveyard_tree.png"
-depth_parallax = 0.0213
+depth_parallax = 0.0212
 window_depths = PackedFloat32Array(0.68, 0.84, 1.0, 0.68, 0.84, 0.68, 0.84, 0.68, 0.84)
 sky_windows = PackedInt32Array(1, 4, 6, 8)
 

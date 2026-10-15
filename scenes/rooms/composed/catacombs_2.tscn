@@ -416,7 +416,7 @@ intro_dialogue = ""
 intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/composed/catacombs_2.png"
-depth_parallax = 0.0217
+depth_parallax = 0.0218
 window_depths = PackedFloat32Array(0.68, 0.84, 1.0, 0.84)
 sky_windows = PackedInt32Array(1)
 
