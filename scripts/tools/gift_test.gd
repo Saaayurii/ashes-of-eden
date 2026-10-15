@@ -163,6 +163,56 @@ func _run() -> void:
 	player.stats.cursed_damage = 0.0
 	_assert(plain_loss > 0.0 and absf(cursed_loss / plain_loss - 1.4) < 0.05,
 		"accursed strength: under a curse a blow takes 40%% more (%.1f vs %.1f)" % [cursed_loss, plain_loss])
+	# Honeyed Sting: a blow is worth more only while he is stung
+	player.stats.torment_damage = 0.3
+	player.torment = 0.0
+	plain_loss = await swing_loss.call(false)
+	player.torment = 5.0
+	var stung_loss: float = await swing_loss.call(false)
+	player.torment = 0.0
+	player.stats.torment_damage = 0.0
+	_assert(plain_loss > 0.0 and absf(stung_loss / plain_loss - 1.3) < 0.05,
+		"honeyed sting: stung, a blow takes 30%% more (%.1f vs %.1f)" % [stung_loss, plain_loss])
+	# Glut: each fruit eaten tonight sharpens the blade
+	var surfeit_was: int = root.get_node("Game").surfeit
+	player.stats.glut = 0.05
+	root.get_node("Game").surfeit = 0
+	plain_loss = await swing_loss.call(false)
+	root.get_node("Game").surfeit = 4
+	var glut_loss: float = await swing_loss.call(false)
+	root.get_node("Game").surfeit = surfeit_was
+	player.stats.glut = 0.0
+	_assert(plain_loss > 0.0 and absf(glut_loss / plain_loss - 1.2) < 0.05,
+		"glut: four fruit, a blow takes 20%% more (%.1f vs %.1f)" % [glut_loss, plain_loss])
+	# Seeking Death: once a room a killing blow leaves one hp and a sting
+	player.stats.death_refused = 1.0
+	player._death_refused_room = false
+	player.torment = 0.0
+	player.hp = 5.0
+	player._hurt_grace_left = 0.0
+	player._apply_damage(50.0)
+	_assert(is_equal_approx(player.hp, 1.0) and player.torment > 0.0,
+		"seeking death: a killing blow leaves 1 hp and a sting (hp %.1f, sting %.1f)" % [player.hp, player.torment])
+	_assert(player._death_refused_room, "seeking death: spent for the room")
+	player.stats.death_refused = 0.0
+	player._death_refused_room = false
+	player.torment = 0.0
+	player.hp = player.stats.max_hp
+	# Fasting: a room cleared on an empty stomach heals
+	player.stats.fasting = 10.0
+	root.get_node("Game").surfeit = 0
+	player.hp = player.stats.max_hp * 0.5
+	var fast_hp: float = player.hp
+	player._on_room_cleared(0)
+	var fasted: float = player.hp - fast_hp
+	player.hp = player.stats.max_hp * 0.5
+	root.get_node("Game").surfeit = 1
+	player._on_room_cleared(0)
+	var fed: float = player.hp - player.stats.max_hp * 0.5
+	root.get_node("Game").surfeit = surfeit_was
+	player.stats.fasting = 0.0
+	player.hp = player.stats.max_hp
+	_assert(fasted >= 9.5 and fed < 0.5, "fasting: a room cleared unfed heals (%.1f), fed it does not (%.1f)" % [fasted, fed])
 	# Covetous Eye: a common chest hands over a rare item
 	player.stats.covetous = 1.0
 	var items_before: Array = root.get_node("Game").items.duplicate()

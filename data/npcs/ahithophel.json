@@ -1,0 +1,23 @@
+{
+  "id": "ahithophel",
+  "_art": "drawn by Codex (docs/CHAPTER5_ART.md §3): seated, his own sheet and portrait",
+  "name": "NPC_AHITHOPHEL",
+  "avatar": "res://assets/portraits/ahithophel.png",
+  "dialogue": "npc_ahithophel",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/ahithophel_v2_idle.png",
+      "walk": "res://assets/sprites/ahithophel_v2_walk.png",
+      "interact": "res://assets/sprites/ahithophel_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_AHITHOPHEL_LORE",
+  "role": "NPC_ROLE_AHITHOPHEL",
+  "location": "AREA_ENGEDI_ROAD"
+}

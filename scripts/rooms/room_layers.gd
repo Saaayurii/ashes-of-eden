@@ -45,6 +45,10 @@ const FAR_WINDOWS := {
 	# nor Marah (chapter III)
 	"marah_gallows": [], "marah_ford": [], "marah_host_bank": [], "marah_field": [],
 	"marah_bitter_wells": [], "marah_dry_bed": [], "marah_trench": [], "marah_legion_bank": [], "marah_parley": [], "marah_siege": [], "marah_springs_path": [], "marah_wormwood_spring": [],
+	# Engedi (chapter V): no inpainted plates yet
+	"engedi_smoke_road": [], "engedi_vineyard_gate": [], "engedi_terraces": [], "engedi_spring": [],
+	"engedi_orchard": [], "engedi_pit_rim": [], "engedi_abyss_mouth": [],
+	"engedi_arbor": [], "engedi_feast_hall": [], "engedi_hives": [], "engedi_wine_press": [], "engedi_pit_stair": [],
 	# the Euphrates: no plates behind its openings yet (docs/CHAPTER6_ART.md)
 	"euphrates_bank": [], "euphrates_town": [], "euphrates_gate": [], "euphrates_cloister": [],
 	"euphrates_scriptorium": [], "euphrates_refectory": [], "euphrates_bell_tower": [], "euphrates_altar_court": [],

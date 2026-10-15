@@ -1,0 +1,887 @@
+[
+  {
+    "id": "fork_engedi_garden",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FORK_GARDEN",
+        "choices": [
+          {
+            "id": "orchard",
+            "text": "DLG_CH5_FORK_ORCHARD"
+          },
+          {
+            "id": "arbor",
+            "text": "DLG_CH5_FORK_ARBOR"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "fork_engedi_pit",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FORK_PIT",
+        "choices": [
+          {
+            "id": "hives",
+            "text": "DLG_CH5_FORK_HIVES"
+          },
+          {
+            "id": "press",
+            "text": "DLG_CH5_FORK_PRESS"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "ch5_ahithophel",
+    "start": "a1",
+    "nodes": {
+      "a1": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_1",
+        "next": "a2"
+      },
+      "a2": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_2",
+        "next": "a3"
+      },
+      "a3": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_3",
+        "next": "again"
+      },
+      "again": {
+        "branches": [
+          {
+            "nights": 3,
+            "next": "a_again"
+          }
+        ],
+        "next": "a4"
+      },
+      "a_again": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_AGAIN",
+        "next": "a4"
+      },
+      "a4": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_4",
+        "choices": [
+          {
+            "id": "stay",
+            "text": "DLG_CH5_AHITHOPHEL_STAY",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "ahithophel_stayed"
+              ]
+            }
+          },
+          {
+            "id": "lie",
+            "text": "DLG_CH5_AHITHOPHEL_LIE",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "ahithophel_lied"
+              ]
+            }
+          },
+          {
+            "id": "tell",
+            "text": "DLG_CH5_AHITHOPHEL_TELL",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "ahithophel_told"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "ch5_ahithophel_stayed",
+    "start": "s1",
+    "nodes": {
+      "s1": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_STAYED_1",
+        "next": "s2"
+      },
+      "s2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_AHITHOPHEL_STAYED_2",
+        "next": "s3"
+      },
+      "s3": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_STAYED_3"
+      }
+    }
+  },
+  {
+    "id": "ch5_ahithophel_lied",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_LIED_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_LIED_2"
+      }
+    }
+  },
+  {
+    "id": "ch5_ahithophel_told",
+    "start": "t1",
+    "nodes": {
+      "t1": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_TOLD_1",
+        "next": "t2"
+      },
+      "t2": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_TOLD_2"
+      }
+    }
+  },
+  {
+    "id": "npc_ahithophel",
+    "start": "route",
+    "nodes": {
+      "route": {
+        "branches": [
+          {
+            "flag": "ahithophel_stayed",
+            "next": "stayed"
+          },
+          {
+            "flag": "ahithophel_lied",
+            "next": "lied"
+          },
+          {
+            "flag": "ahithophel_told",
+            "next": "told"
+          }
+        ],
+        "next": "none"
+      },
+      "stayed": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_E_STAYED"
+      },
+      "lied": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_E_LIED"
+      },
+      "told": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_E_TOLD"
+      },
+      "none": {
+        "speaker": "SPEAKER_AHITHOPHEL",
+        "text": "DLG_CH5_AHITHOPHEL_E_NONE"
+      }
+    }
+  },
+  {
+    "id": "npc_tirzah",
+    "start": "route",
+    "nodes": {
+      "route": {
+        "branches": [
+          {
+            "flag": "tirzah_asked",
+            "next": "e_asked"
+          },
+          {
+            "flag": "tirzah_spared",
+            "next": "e_spared"
+          },
+          {
+            "flag": "tirzah_fed",
+            "next": "e_fed"
+          }
+        ],
+        "next": "t1"
+      },
+      "e_asked": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_E_ASKED"
+      },
+      "e_spared": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_E_SPARED"
+      },
+      "e_fed": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_E_FED"
+      },
+      "t1": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_1",
+        "next": "water"
+      },
+      "water": {
+        "branches": [
+          {
+            "flag": "wormwood_drunk",
+            "next": "w_wormwood"
+          },
+          {
+            "flag": "marah_sweetened",
+            "next": "w_sweet"
+          },
+          {
+            "flag": "marah_bitter",
+            "next": "w_bitter"
+          }
+        ],
+        "next": "t2"
+      },
+      "w_wormwood": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_WORMWOOD",
+        "next": "t2"
+      },
+      "w_sweet": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_SWEET",
+        "next": "t2"
+      },
+      "w_bitter": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_BITTER",
+        "next": "t2"
+      },
+      "t2": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_2",
+        "next": "priest"
+      },
+      "priest": {
+        "branches": [
+          {
+            "flag": "matthew_confessed",
+            "next": "m_elian"
+          }
+        ],
+        "next": "t3"
+      },
+      "m_elian": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_TIRZAH_MATTHEW_ELIAN",
+        "next": "m"
+      },
+      "m": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_MATTHEW",
+        "next": "t3"
+      },
+      "t3": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_3",
+        "next": "t4",
+        "look": {
+          "portrait": false
+        }
+      },
+      "t4": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_4",
+        "choices": [
+          {
+            "id": "ask",
+            "text": "DLG_CH5_TIRZAH_ASK",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "tirzah_asked",
+                "tirzah_herbs"
+              ]
+            },
+            "next": "asked"
+          },
+          {
+            "id": "spare",
+            "text": "DLG_CH5_TIRZAH_SPARE",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "tirzah_spared",
+                "tirzah_herbs"
+              ]
+            },
+            "next": "spared"
+          },
+          {
+            "id": "feed",
+            "text": "DLG_CH5_TIRZAH_FEED",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "tirzah_fed",
+                "tirzah_herbs"
+              ]
+            },
+            "next": "fed"
+          }
+        ]
+      },
+      "asked": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_ASKED",
+        "next": "asked2"
+      },
+      "asked2": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_ASKED_2"
+      },
+      "spared": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_SPARED",
+        "next": "spared2"
+      },
+      "spared2": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_SPARED_2"
+      },
+      "fed": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_FED",
+        "next": "fed2"
+      },
+      "fed2": {
+        "speaker": "SPEAKER_TIRZAH",
+        "text": "DLG_CH5_TIRZAH_FED_2"
+      }
+    }
+  },
+  {
+    "id": "ch5_feast",
+    "blocking": false,
+    "start": "f1",
+    "nodes": {
+      "f1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FEAST_1",
+        "next": "f2"
+      },
+      "f2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FEAST_2",
+        "next": "ate"
+      },
+      "ate": {
+        "branches": [
+          {
+            "flag": "fruit_eaten",
+            "next": "f3"
+          }
+        ]
+      },
+      "f3": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FEAST_ATE"
+      }
+    }
+  },
+  {
+    "id": "ch5_voice",
+    "start": "v1",
+    "nodes": {
+      "v1": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_1",
+        "next": "answer"
+      },
+      "answer": {
+        "branches": [
+          {
+            "flag": "voice_yes",
+            "next": "yes"
+          },
+          {
+            "flag": "voice_no",
+            "next": "no"
+          },
+          {
+            "flag": "voice_silent",
+            "next": "silent"
+          }
+        ],
+        "next": "habit"
+      },
+      "yes": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_YES",
+        "next": "habit"
+      },
+      "no": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_NO",
+        "next": "habit"
+      },
+      "silent": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_SILENT",
+        "next": "habit"
+      },
+      "habit": {
+        "branches": [
+          {
+            "habit": "grace",
+            "next": "h_grace"
+          },
+          {
+            "habit": "temptation",
+            "next": "h_temptation"
+          },
+          {
+            "habit": "will",
+            "next": "h_will"
+          }
+        ],
+        "next": "menu"
+      },
+      "h_grace": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_HABIT_GRACE",
+        "next": "menu"
+      },
+      "h_temptation": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_HABIT_TEMPTATION",
+        "next": "menu"
+      },
+      "h_will": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_HABIT_WILL",
+        "next": "menu"
+      },
+      "menu": {
+        "branches": [
+          {
+            "flag": "read_endless_menu",
+            "next": "m"
+          }
+        ],
+        "next": "v2"
+      },
+      "m": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_MENU",
+        "next": "v2"
+      },
+      "v2": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_2",
+        "choices": [
+          {
+            "id": "morning",
+            "text": "DLG_CH5_VOICE_MORNING",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "rim_morning"
+              ]
+            },
+            "next": "r_morning"
+          },
+          {
+            "id": "bottom",
+            "text": "DLG_CH5_VOICE_BOTTOM",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "rim_bottom"
+              ]
+            },
+            "next": "r_bottom"
+          },
+          {
+            "id": "nothing",
+            "text": "DLG_CH5_VOICE_NOTHING",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "rim_nothing"
+              ]
+            },
+            "next": "r_nothing"
+          }
+        ]
+      },
+      "r_morning": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_R_MORNING"
+      },
+      "r_bottom": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_R_BOTTOM"
+      },
+      "r_nothing": {
+        "speaker": "SPEAKER_VOICE",
+        "text": "DLG_CH5_VOICE_R_NOTHING"
+      }
+    }
+  },
+  {
+    "id": "ch5_abaddon",
+    "start": "a1",
+    "nodes": {
+      "a1": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_1",
+        "next": "a2"
+      },
+      "a2": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_2",
+        "next": "a3"
+      },
+      "a3": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_3",
+        "next": "rim"
+      },
+      "rim": {
+        "branches": [
+          {
+            "flag": "rim_morning",
+            "next": "morning"
+          },
+          {
+            "flag": "rim_bottom",
+            "next": "bottom"
+          },
+          {
+            "flag": "rim_nothing",
+            "next": "nothing"
+          }
+        ],
+        "next": "ate"
+      },
+      "morning": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_MORNING",
+        "next": "ate"
+      },
+      "bottom": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_BOTTOM",
+        "next": "ate"
+      },
+      "nothing": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_NOTHING",
+        "next": "ate"
+      },
+      "ate": {
+        "branches": [
+          {
+            "flag": "fruit_eaten",
+            "next": "ate_l"
+          }
+        ],
+        "next": "key"
+      },
+      "ate_l": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_ATE",
+        "next": "key"
+      },
+      "key": {
+        "branches": [
+          {
+            "flag": "read_key_page",
+            "next": "k1"
+          }
+        ],
+        "next": "a4"
+      },
+      "k1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_ABADDON_KEY_ELIAN",
+        "next": "k2"
+      },
+      "k2": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_KEY",
+        "next": "a4"
+      },
+      "a4": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_ABADDON_4",
+        "next": "a5"
+      },
+      "a5": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_5",
+        "next": "a6"
+      },
+      "a6": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_ABADDON_6",
+        "next": "a7"
+      },
+      "a7": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_7"
+      }
+    }
+  },
+  {
+    "id": "ch5_abaddon_fall",
+    "start": "f1",
+    "nodes": {
+      "f1": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_FALL_1",
+        "next": "f2"
+      },
+      "f2": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_FALL_2",
+        "choices": [
+          {
+            "id": "lock",
+            "text": "DLG_CH5_KEY_LOCK",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "pit_locked"
+              ]
+            },
+            "next": "r_lock"
+          },
+          {
+            "id": "throw",
+            "text": "DLG_CH5_KEY_THROW",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "key_thrown"
+              ]
+            },
+            "next": "r_throw"
+          },
+          {
+            "id": "keep",
+            "text": "DLG_CH5_KEY_KEEP",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "key_kept"
+              ]
+            },
+            "next": "r_keep"
+          }
+        ]
+      },
+      "r_lock": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_R_LOCK"
+      },
+      "r_throw": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_R_THROW"
+      },
+      "r_keep": {
+        "speaker": "SPEAKER_ABADDON",
+        "text": "DLG_CH5_ABADDON_R_KEEP"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_locked",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_LOCKED"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_thrown",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_THROWN"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_kept",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_KEPT"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_silent",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_SILENT"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_ahithophel_stayed",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_AHITHOPHEL_STAYED"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_ahithophel_lied",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_AHITHOPHEL_LIED"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_ahithophel_told",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_AHITHOPHEL_TOLD"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_tirzah_asked",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_TIRZAH_ASKED"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_tirzah_spared",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_TIRZAH_SPARED"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_tirzah_fed",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_TIRZAH_FED"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_grace",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_GRACE"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_temptation",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_TEMPTATION"
+      }
+    }
+  },
+  {
+    "id": "ch5_finale_will",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH5_FINALE_WILL"
+      }
+    }
+  },
+  {
+    "id": "note_vintner_day",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_VINTNER_DAY",
+        "text": "DLG_NOTE_VINTNER_DAY"
+      }
+    }
+  },
+  {
+    "id": "note_endless_menu",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_ENDLESS_MENU",
+        "text": "DLG_NOTE_ENDLESS_MENU"
+      }
+    }
+  },
+  {
+    "id": "note_key_page",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_KEY_PAGE",
+        "text": "DLG_NOTE_KEY_PAGE"
+      }
+    }
+  }
+]

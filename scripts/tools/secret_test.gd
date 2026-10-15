@@ -23,7 +23,7 @@ func _run() -> void:
 	for scene in ["res://scenes/rooms/village_night.tscn", "res://scenes/rooms/swamp_crypt.tscn", "res://scenes/rooms/catacombs_2.tscn",
 			"res://scenes/rooms/hall_elders_stair.tscn", "res://scenes/rooms/hall_outer_court.tscn", "res://scenes/rooms/hall_archive.tscn",
 			"res://scenes/rooms/tyre_counting_house.tscn", "res://scenes/rooms/tyre_gate.tscn",
-			"res://scenes/rooms/tyre_palace_stair.tscn"]:
+			"res://scenes/rooms/tyre_palace_stair.tscn", "res://scenes/rooms/engedi_pit_stair.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room
@@ -39,7 +39,7 @@ func _run() -> void:
 			# a bricked-up doorway, not a patch of bricks: its niche is drawn
 			# behind it, or the painting has the arch (NICHE_PAINTED)
 			var niche = wall.get_node_or_null("Niche")
-			_assert(niche != null or wall.prop_id in ["secret_wall_catacombs", "secret_wall_hall_court", "secret_wall_tyre_counting", "secret_wall_tyre_gate"],
+			_assert(niche != null or wall.prop_id in ["secret_wall_catacombs", "secret_wall_hall_court", "secret_wall_tyre_counting", "secret_wall_tyre_gate", "secret_wall_engedi_key"],
 				"%s: stands in a doorway" % wall.prop_id)
 			if niche != null:
 				_assert(niche.get_index() == 0 and niche.texture.get_width() > wall.sprite.texture.get_width() / wall.sprite.hframes,
@@ -121,10 +121,11 @@ func _run() -> void:
 	game.flags.erase("book_read")
 	church.queue_free()
 	await _settle(0.1)
-	# Seir's, Marah's and the Euphrates' caches have no wall yet (docs/CHAPTER2_ART.md, CHAPTER3_ART.md, CHAPTER6_ART.md): they stand open
+	# Seir's, Marah's, two of Engedi's and the Euphrates' caches have no wall yet (docs/CHAPTER2_ART.md, CHAPTER3_ART.md, CHAPTER5.md, CHAPTER6_ART.md): they stand open
 	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn",
 			"res://scenes/rooms/marah_gallows.tscn", "res://scenes/rooms/marah_field.tscn",
 			"res://scenes/rooms/marah_springs_path.tscn",
+			"res://scenes/rooms/engedi_terraces.tscn", "res://scenes/rooms/engedi_feast_hall.tscn",
 			"res://scenes/rooms/euphrates_gate.tscn", "res://scenes/rooms/euphrates_bell_tower.tscn", "res://scenes/rooms/euphrates_river_stair.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)

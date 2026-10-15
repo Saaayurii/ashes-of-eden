@@ -2,7 +2,8 @@ extends Area2D
 class_name Prop
 ## Barrels, crates and chests. Everything comes from res://data/props/*.json
 ## (see docs/DATA_FORMATS.md):
-##   kind      "destructible" (hit it) | "chest" (walk into it) | "chain" (a
+##   kind      "destructible" (hit it) | "chest" (walk into it) | "fruit" (eaten
+##             on `interact`: scripts/rooms/fruit.gd, docs/CHAPTER5.md) | "chain" (a
 ##             ring a chained body is held to, ChainRing: "opens_with" a flag)
 ##   sprite    one strip: whole -> cracked -> bursting -> leftovers
 ##   essence   paid out when it breaks or opens
@@ -114,8 +115,11 @@ func _ready() -> void:
 	# Anchored to the floor by a shadow, so a body walking past reads as
 	# passing in front of it instead of through it.
 	Fx.shadow(self, Vector2(0, 1), size.x * 1.5, 0.9)
-	if stats.get("kind", "destructible") == "chest":
-		if int(stats.get("curse", 0)) > 0 or stats.get("interact", false) or stats.has("guarded"):
+	if Fruit.is_fruit(stats) and Fruit.eaten(self):
+		queue_free()  # eaten earlier tonight (a save, a room built again)
+		return
+	if stats.get("kind", "destructible") in ["chest", "fruit"]:
+		if int(stats.get("curse", 0)) > 0 or stats.get("interact", false) or stats.has("guarded") or Fruit.is_fruit(stats):
 			_add_prompt()
 		else:
 			body_entered.connect(_on_body_entered)
@@ -326,7 +330,8 @@ func _offer() -> void:
 	if _keepers_near():
 		_prompt.text = tr("CHEST_GUARDED")
 		return
-	var offer := tr(str(stats.prompt)) if stats.has("prompt") else tr("CHEST_CURSED_PROMPT") % int(stats.get("curse", 0))
+	var offer := tr(str(stats.prompt)) if stats.has("prompt") else tr("PROMPT_EAT") if Fruit.is_fruit(stats) \
+		else tr("CHEST_CURSED_PROMPT") % int(stats.get("curse", 0))
 	_prompt.text = "%s  %s" % [Settings.key_name("interact"), offer]
 	if Input.is_action_just_pressed("interact"):
 		open(taker)
@@ -394,6 +399,11 @@ func _on_body_entered(body: Node) -> void:
 	# We are inside the area's own body_entered: physics is mid-flush and will
 	# not let us switch monitoring off until it is done.
 	set_deferred("monitoring", false)
+	if Fruit.is_fruit(stats):
+		Fruit.eat(self, body as Player)
+		if _light != null:
+			_light.set_base_energy(0.0)
+		return
 	_pay_out(body as Player)
 	_show_icon()
 	var glow := Color(stats.get("glow", "#ffd9a0"))

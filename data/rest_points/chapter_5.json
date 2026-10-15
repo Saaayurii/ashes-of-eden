@@ -1,0 +1,18 @@
+[
+  {
+    "id": "engedi_spring",
+    "at": [
+      820,
+      560
+    ],
+    "_comment": "the white limestone basin under the fall, beside Tirzah"
+  },
+  {
+    "id": "engedi_pit_rim",
+    "at": [
+      380,
+      560
+    ],
+    "_comment": "the vineyard's boundary stone, a cluster cut in it, the last thing standing before the pit"
+  }
+]

@@ -71,6 +71,14 @@ ROOM_EXPANSION_CUTS = {
     "marah_legion_bank": (600, 1110), "marah_trench": (230, 1080),
     "marah_parley": (360, 850), "marah_siege": (630, 790),
     "marah_springs_path": (180, 780), "marah_wormwood_spring": (300, 965),
+    "engedi_smoke_road": (560, 820), "engedi_vineyard_gate": (350, 800), "engedi_terraces": (400, 1100),
+    "engedi_spring": (300, 650), "engedi_orchard": (430, 1000), "engedi_pit_rim": (300, 950),
+    "engedi_abyss_mouth": (280, 960),
+    "engedi_arbor": (448, 832),
+    "engedi_feast_hall": (448, 832),
+    "engedi_hives": (400, 1100),
+    "engedi_wine_press": (560, 1120),
+    "engedi_pit_stair": (200, 900),
     # chapter VI, the Euphrates
     "euphrates_bank": (300, 540),
     "euphrates_town": (540, 760),
@@ -138,6 +146,11 @@ FOCAL_RANGES = {
     "marah_siege": ((960, 1230), (300, 612)),    # the tower, the rampart
     "marah_springs_path": ((270, 575), (930, 1110)),  # the fold and trough, the hut
     "marah_wormwood_spring": ((395, 960),),           # the basin and the star
+    "engedi_smoke_road": ((150, 460),),        # Ahithophel's fig tree
+    "engedi_spring": ((900, 1160),),           # the fall and the white basin
+    "engedi_orchard": ((780, 900),),           # the little fall
+    "engedi_pit_rim": ((700, 800),),           # the boundary stone
+    "engedi_abyss_mouth": ((420, 880),),       # the fire in the pit
     "euphrates_bank": ((640, 800),),           # the mighty angel with the little book
     "euphrates_town": ((655, 705),),           # moon
     "euphrates_altar_court": ((560, 745),),    # the golden altar with four horns
@@ -208,6 +221,9 @@ SEAM_STORIES = {
     "marah_bitter_wells": ("", ""), "marah_dry_bed": ("", ""), "marah_trench": ("", ""),
     "marah_legion_bank": ("", ""), "marah_parley": ("", ""), "marah_siege": ("", ""),
     "marah_springs_path": ("", ""), "marah_wormwood_spring": ("", ""),
+    "engedi_smoke_road": ("", ""), "engedi_vineyard_gate": ("", ""), "engedi_terraces": ("", ""), "engedi_spring": ("", ""),
+    "engedi_orchard": ("", ""), "engedi_pit_rim": ("", ""), "engedi_abyss_mouth": ("", ""),
+    "engedi_arbor": ("", ""), "engedi_feast_hall": ("", ""), "engedi_hives": ("", ""), "engedi_wine_press": ("", ""), "engedi_pit_stair": ("", ""),
     "euphrates_bank": ("", ""),
     "euphrates_town": ("", ""),
     "euphrates_gate": ("", ""),
@@ -271,6 +287,9 @@ ROOM_PROP_MOTIFS = {
     "tyre_dyeworks": {}, "tyre_gate": {}, "tyre_lamp_market": {}, "tyre_rich_gate": {}, "tyre_vaults": {}, "tyre_galleys": {}, "tyre_palace_stair": {}, "tyre_throne": {},
     "marah_gallows": {}, "marah_ford": {}, "marah_host_bank": {}, "marah_field": {}, "marah_bitter_wells": {},
     "marah_dry_bed": {}, "marah_trench": {}, "marah_legion_bank": {}, "marah_parley": {}, "marah_siege": {}, "marah_springs_path": {}, "marah_wormwood_spring": {},
+    "engedi_smoke_road": {}, "engedi_vineyard_gate": {}, "engedi_terraces": {}, "engedi_spring": {},
+    "engedi_orchard": {}, "engedi_pit_rim": {}, "engedi_abyss_mouth": {},
+    "engedi_arbor": {}, "engedi_feast_hall": {}, "engedi_hives": {}, "engedi_wine_press": {}, "engedi_pit_stair": {},
     "euphrates_bank": {},
     "euphrates_town": {},
     "euphrates_gate": {},
@@ -483,6 +502,10 @@ DEPTH_WINDOWS = {
     "marah_bitter_wells": (0.02, []), "marah_dry_bed": (0.02, []), "marah_trench": (0.02, []),
     "marah_legion_bank": (0.02, []), "marah_parley": (0.02, []), "marah_siege": (0.02, []),
     "marah_springs_path": (0.02, []), "marah_wormwood_spring": (0.02, []),
+    # nor Engedi (docs/CHAPTER5_ART.md)
+    "engedi_smoke_road": (0.02, []), "engedi_vineyard_gate": (0.02, []), "engedi_terraces": (0.02, []), "engedi_spring": (0.02, []),
+    "engedi_orchard": (0.02, []), "engedi_pit_rim": (0.02, []), "engedi_abyss_mouth": (0.02, []),
+    "engedi_arbor": (0.02, []), "engedi_feast_hall": (0.02, []), "engedi_hives": (0.02, []), "engedi_wine_press": (0.02, []), "engedi_pit_stair": (0.02, []),
     "euphrates_bank": (0.02, []),
     "euphrates_town": (0.02, []),
     "euphrates_gate": (0.02, []),
@@ -1908,8 +1931,11 @@ def build(name, r, scene=None):
         bx, by = r["bell"]
         text += f'[node name="Bell" type="Node2D" parent="."]\nposition = Vector2({bx}, {by})\nscript = ExtResource("14_bell")\n\n'
     text += '[node name="Spawns" type="Node2D" parent="."]\n\n'
+    # a room's own thickening of the locusts' clouds (scripts/enemies/swarm.gd), on every marker
+    swarm_meta = (f'metadata/swarm_per_surfeit = {float(r["swarm_per_surfeit"])}\n'
+                  if r.get("swarm_per_surfeit") is not None else '')
     for i, (eid, x, y) in enumerate(r["spawns"], 1):
-        text += f'[node name="Spawn{i}" type="Marker2D" parent="Spawns"]\nposition = Vector2({x}, {y})\nscript = ExtResource("5_spawn")\nenemy_id = "{eid}"\n\n'
+        text += f'[node name="Spawn{i}" type="Marker2D" parent="Spawns"]\nposition = Vector2({x}, {y})\nscript = ExtResource("5_spawn")\nenemy_id = "{eid}"\n{swarm_meta}\n'
     px, py = r["player"]
     dx, dy = r["door"]
     motes = MOTES.format(cx=width / 2, cy=height / 2, ex=width / 2, ey=height / 2, amount=int(36 * area))

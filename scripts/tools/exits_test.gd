@@ -74,6 +74,18 @@ const DOORWAYS := {
 	"marah_siege": [1545, 1600, 602],           # the gap behind the tower
 	"marah_springs_path": [1505, 1570, 135],    # the gap between the rocks at the top
 	"marah_wormwood_spring": [1540, 1590, 590], # the arch on the right
+	"engedi_smoke_road": [1535, 1585, 572],           # the dark gap between the rocks
+	"engedi_vineyard_gate": [1500, 1550, 572],        # the open vineyard gate
+	"engedi_terraces": [1520, 1570, 150],             # the arch atop the terraces
+	"engedi_spring": [1545, 1595, 572],               # the cave mouth past the fountain
+	"engedi_orchard": [1535, 1585, 580],              # the arch under the vines
+	"engedi_arbor": [1535, 1585, 575],                # the arch at the arbor's end
+	"engedi_feast_hall": [1520, 1570, 582],           # the arch past the brazier
+	"engedi_pit_rim": [1535, 1585, 549],              # the doorway up the steps
+	"engedi_hives": [1520, 1570, 587],                # the arch in the hive wall
+	"engedi_wine_press": [1520, 1570, 533],           # the arch beside the press
+	"engedi_pit_stair": [1520, 1570, 603],            # the arch at the stair's foot
+	"engedi_abyss_mouth": [1535, 1585, 440],          # the arch into the pit
 	"euphrates_bank": [1535, 1590, 526],         # the arch in the ruined wall by the reeds
 	"euphrates_town": [1460, 1540, 503],         # the open town gate onto the river
 	"euphrates_gate": [1465, 1520, 600],         # the arch beside the gatehouse beams

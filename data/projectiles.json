@@ -622,6 +622,75 @@
         }
       ]
     },
+    "pit_smoke": {
+      "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",
+      "frames": 4,
+      "fps": 9,
+      "shader": 3,
+      "scale": 0.8,
+      "trail": 8,
+      "light": 14,
+      "breathe": [
+        0.18,
+        7
+      ],
+      "echo": {
+        "offset": 10,
+        "sway": [
+          3,
+          18
+        ],
+        "color": "#8a6040",
+        "alpha": 0.4,
+        "scale": 0.9
+      },
+      "burst": [
+        {
+          "fx": "ash",
+          "color": "#7a5a3a",
+          "count": 12,
+          "spread": 40,
+          "size": 4
+        },
+        {
+          "fx": "debris",
+          "color": "#e0a050",
+          "count": 5
+        }
+      ]
+    },
+    "abaddon_lance": {
+      "sheet": "res://assets/sprites/projectiles/preacher_flight_v3.png",
+      "frames": 4,
+      "fps": 12,
+      "shader": 1,
+      "scale": 0.7,
+      "trail": 10,
+      "light": 22,
+      "echo": {
+        "offset": 10,
+        "sway": [
+          0,
+          0
+        ],
+        "color": "#f0c070",
+        "alpha": 0.35,
+        "scale": 0.8
+      },
+      "burst": [
+        {
+          "fx": "sparkle",
+          "color": "#ffd890",
+          "count": 10,
+          "size": 5
+        },
+        {
+          "fx": "debris",
+          "color": "#c88a40",
+          "count": 6
+        }
+      ]
+    },
     "incense": {
       "_art": "stand-in strip until incense_flight_v3.png is drawn (docs/CHAPTER6_ART.md): a slow warm puff",
       "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",

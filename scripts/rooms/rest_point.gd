@@ -87,6 +87,10 @@ func rest(body: Player) -> bool:
 				and enemy.global_position.distance_to(global_position) <= SAFE_RADIUS:
 			Fx.popup(global_position + Vector2(0, -44), tr("REST_ENEMIES"), Color(1.0, 0.6, 0.5), 8)
 			return false
+	if not body.can_heal():
+		# the locust's sting (docs/CHAPTER5.md §2): no rest until it passes
+		Fx.popup(global_position + Vector2(0, -44), tr("REST_TORMENTED"), Color(0.85, 0.6, 0.35), 8)
+		return false
 	Game.rested[room_path] = true
 	body.rest()
 	Audio.play(&"bell", -9.0)

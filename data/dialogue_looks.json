@@ -35,5 +35,9 @@
       "portrait_border": "#8fb8e0aa"
     }
   },
-  "speakers": {}
+  "speakers": {
+    "SPEAKER_ABADDON": "res://assets/portraits/abaddon_face.png",
+    "SPEAKER_AHITHOPHEL": "res://assets/portraits/ahithophel.png",
+    "SPEAKER_TIRZAH": "res://assets/portraits/tirzah.png"
+  }
 }

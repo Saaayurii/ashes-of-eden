@@ -28,6 +28,12 @@ def build(name: str) -> None:
         strip.save(OUTPUT / f"{name}_v2_{action}.png", optimize=True)
 
 
+NPCS = ("knight", "mara", "matthew", "nun", "villager", "severin",
+        "ahithophel", "tirzah")  # the last two: chapter V (docs/CHAPTER5_ART.md §3), drawn by Codex, seated
+
+
 if __name__ == "__main__":
-    for npc in ("knight", "mara", "matthew", "nun", "villager", "severin"):
+    import sys
+    # python3 tools/art/build_npc_v2.py [name ...] — only those, or every one
+    for npc in sys.argv[1:] or NPCS:
         build(npc)

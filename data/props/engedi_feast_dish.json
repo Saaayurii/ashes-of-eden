@@ -1,0 +1,21 @@
+{
+  "id": "engedi_feast_dish",
+  "kind": "fruit",
+  "heal": 0.35,
+  "surfeit": 1,
+  "lifts_torment": true,
+  "style": "feast",
+  "prompt": "PROMPT_EAT",
+  "glow": "#ffe0a0",
+  "idle_frames": 2,
+  "hitbox": [
+    30,
+    14
+  ],
+  "sprite": {
+    "path": "res://assets/props/engedi_feast_dish.png",
+    "frame_w": 40,
+    "frame_h": 24,
+    "frames": 2
+  }
+}

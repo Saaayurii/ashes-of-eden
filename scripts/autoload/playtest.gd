@@ -9,7 +9,7 @@ extends Node
 ##   run_start {version, difficulty, platform, weapon, night}, room_start {room, index}, room_clear {room, seconds, damage, deaths},
 ##   hurt {room, fraction}, death {room, x, y, by}, boss {room, id, seconds},
 ##   gift {id, rarity, path}, refuse {}, altar {room, paid}, chest {room, id}, level {level}, choice {dialogue, choice}, secret {room, note, first},
-##   skip {dialogue} (a blocking dialogue cut short),
+##   skip {dialogue} (a blocking dialogue cut short), eat {room, surfeit} (a fruit, docs/CHAPTER5.md),
 ##   run_end {won, seconds, level, gifts, alignment, omen, vial}
 ##
 ## Off in tool scripts (-s); turn the file off with Settings "playtest_log" =
@@ -53,6 +53,7 @@ func _ready() -> void:
 	EventBus.choice_made.connect(func(d: String, c: String) -> void: _write("choice", {"dialogue": d, "choice": c}))
 	EventBus.dialogue_skipped.connect(func(d: String) -> void: _write("skip", {"dialogue": d}))
 	EventBus.note_found.connect(func(n: String, first: bool) -> void: _write("secret", {"room": _room, "note": n, "first": first}))
+	EventBus.fruit_eaten.connect(func(_id: String, surfeit: int) -> void: _write("eat", {"room": _room, "surfeit": surfeit}))
 	get_tree().node_added.connect(_on_node_added)
 	# The main scene may already be in the tree before this autoload is ready
 	# (started straight into the run): catch it once, deferred.

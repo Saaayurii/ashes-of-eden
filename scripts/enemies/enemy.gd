@@ -489,7 +489,7 @@ func liquid_heal(amount: float) -> void:
 
 
 func _is_flying() -> bool:
-	return stats.get("behaviour", "walker") in ["flyer", "boss_ophanim", "seal"]
+	return stats.get("behaviour", "walker") in ["flyer", "boss_ophanim", "seal", "swarm"]
 
 
 func is_dead() -> bool:
@@ -710,7 +710,7 @@ func _physics_process(delta: float) -> void:
 				_attack = EnemyDark.douse_attack(self)  # the Prince puts the room out
 				_begin_windup(to_target)
 				_douse(0)
-			elif _attack_cd <= 0.0:
+			elif _attack_cd <= 0.0 and Swarm.may_strike(self):
 				var choice := _mirror.choose(to_target, delta) if _mirror != null else _choose_attack(to_target)
 				if choice >= 0:
 					_repeats = _repeats + 1 if choice == _last_attack else 0
@@ -761,7 +761,7 @@ func _physics_process(delta: float) -> void:
 		for touched in contact_area.get_overlapping_bodies():
 			if touched is Player and not touched.is_dead() and _hostile_to(touched):
 				_contact_cd = float(stats.get("attack_interval", 0.8))
-				touched.take_damage(contact_damage, self)
+				touched.take_damage(contact_damage, self, _hit_info())
 		# a lunge into a hostile soldier (Faction): the bodies collide, so touching is near
 		for other in _hostile_bodies():
 			if _contact_cd > 0.0:
@@ -887,6 +887,9 @@ func _patrol(delta: float) -> void:
 	var radius := float(spec.get("radius", PATROL_DEFAULTS.radius))
 	var speed := float(stats.get("speed", 50)) * float(spec.get("speed", PATROL_DEFAULTS.speed)) * _liquid_drag()
 	var pause: Array = spec.get("pause", PATROL_DEFAULTS.pause)
+	if stats.get("behaviour", "walker") == "swarm":
+		Swarm.patrol(self, delta)  # the cloud drifts as one (scripts/enemies/swarm.gd)
+		return
 	if _is_flying():
 		_bob += delta * 2.0
 		if _patrol_wait > 0.0:
@@ -1013,6 +1016,7 @@ func _notice(who: Node2D, shout := true) -> void:
 	_alert_fx()
 	if Net.active:
 		_net_alert.rpc(facing)
+	Swarm.wake(self, who)
 	if shout:
 		for node in get_tree().get_nodes_in_group("enemies"):
 			var other := node as Enemy
@@ -1106,6 +1110,9 @@ func _chase(to_target: Vector2, delta: float) -> void:
 			if not pecking:
 				chase += _personal_space(to_target) * speed * 2.0
 			chase += _flock() * speed
+			velocity = chase + _knockback
+		"swarm":
+			chase = Swarm.chase(self, to_target, delta)
 			velocity = chase + _knockback
 		"boss_ophanim":
 			_bob += delta * 2.0
@@ -1322,6 +1329,12 @@ func _hold(delta: float) -> void:
 			if state == State.RECOVER and _target != null and is_instance_valid(_target):
 				# a lunge that ended on the player does not stay there
 				velocity += _personal_space(_target.global_position - global_position) * 220.0
+			if state == State.WINDUP and _attack.get("dive_to_floor", false) and _target != null and is_instance_valid(_target):
+				# a flyer's nova from the floor: down to the hero's feet all through the wind-up
+				var floor_at := Vector2(global_position.x, _target.global_position.y - 6.0)
+				velocity += (floor_at - global_position) * 4.0
+		"swarm":
+			velocity = _knockback + Swarm.hold(self)
 		_:
 			velocity.x = _knockback.x
 			_fall(delta)
@@ -1841,7 +1854,7 @@ func _nova_hit() -> void:
 	for node in get_tree().get_nodes_in_group("player"):
 		var victim := node as Player
 		if victim != null and not victim.is_dead() and _hostile_to(victim) and victim.global_position.distance_to(global_position) <= radius:
-			victim.take_damage(float(_attack.get("damage", 12)), self)
+			victim.take_damage(float(_attack.get("damage", 12)), self, _hit_info())
 	for victim in _hostile_bodies():
 		if victim.global_position.distance_to(global_position) <= radius:
 			victim.take_damage(float(_attack.get("damage", 12)) * Faction.damage_between(), self)
@@ -2035,7 +2048,7 @@ func _beam_tick() -> void:
 		if (absf(d.y - 10.0) < half and absf(d.x) < length) or (absf(d.x) < half and absf(d.y) < length):
 			_beam_hit[victim] = true
 			var share := 1.0 if victim is Player else Faction.damage_between()
-			victim.take_damage(float(_attack.get("damage", 20)) * share, self)
+			victim.take_damage(float(_attack.get("damage", 20)) * share, self, _hit_info())
 
 
 func _clear_beam() -> void:
@@ -2063,7 +2076,7 @@ func _melee_hit() -> void:
 		return
 	for body_hit in attack_area.get_overlapping_bodies():
 		if body_hit is Player and not body_hit.is_dead() and _hostile_to(body_hit):
-			body_hit.take_damage(float(_attack.get("damage", 10)), self)
+			body_hit.take_damage(float(_attack.get("damage", 10)), self, _hit_info())
 		elif body_hit is Enemy and _hostile_to(body_hit):
 			body_hit.take_damage(float(_attack.get("damage", 10)) * Faction.damage_between(), self)
 	attack_area.monitoring = false
@@ -2236,6 +2249,12 @@ func _net_turn(index: int) -> void:
 
 
 ## The second frame of the swing, for the enemies that have one drawn.
+## What a blow carries besides its damage: the locust's sting ("torment",
+## seconds, docs/CHAPTER5.md §2) — the hero heals with nothing while it lasts.
+func _hit_info() -> Dictionary:
+	return {"torment": float(_attack.get("torment"))} if _attack.has("torment") else {}
+
+
 func _hold_attack_frame() -> void:
 	var animation := str(_attack.get("animation", "attack"))
 	if not _attack.has("hit_frame") and _has_anim.has(animation) and sprite.sprite_frames.get_frame_count(animation) > 1:

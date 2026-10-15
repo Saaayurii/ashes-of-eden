@@ -1,0 +1,24 @@
+[
+  {
+    "id": "engedi_garden_fork",
+    "_comment": "Past the spring the garden parts: under the trees (much fruit, many locusts) or along the vine gallery (little fruit, gardeners and smoke). Both come out at the feast.",
+    "after": "res://scenes/rooms/engedi_spring.tscn",
+    "dialogue": "fork_engedi_garden",
+    "options": {
+      "orchard": "res://scenes/rooms/engedi_orchard.tscn",
+      "arbor": "res://scenes/rooms/engedi_arbor.tscn"
+    },
+    "then": "res://scenes/rooms/engedi_feast_hall.tscn"
+  },
+  {
+    "id": "engedi_pit_fork",
+    "_comment": "Past the rim two ways down: through the combs in the rock (honey, thicker swarms) or through the wine press (a tight fight on the floor). Both come out on the pit stair.",
+    "after": "res://scenes/rooms/engedi_pit_rim.tscn",
+    "dialogue": "fork_engedi_pit",
+    "options": {
+      "hives": "res://scenes/rooms/engedi_hives.tscn",
+      "press": "res://scenes/rooms/engedi_wine_press.tscn"
+    },
+    "then": "res://scenes/rooms/engedi_pit_stair.tscn"
+  }
+]

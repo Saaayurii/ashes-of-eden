@@ -84,3 +84,6 @@ signal night_retried
 signal enemy_holds_changed(enemy: Node, holds: bool)
 ## A pool's surface was lifted or lowered (Hazard.set_level: Wormwood's flood).
 signal liquid_level_changed(pool: Node, rise: float)
+## A fruit was eaten (scripts/rooms/fruit.gd): its prop id and the night's
+## surfeit after it. Playtest logs it as "eat".
+signal fruit_eaten(id: String, surfeit: int)

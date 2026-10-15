@@ -1034,6 +1034,146 @@
     }
   },
   {
+    "id": "vine_husk",
+    "family": "engedi",
+    "tier": 1,
+    "avatar": "res://assets/portraits/vine_husk.png",
+    "sprite": {
+      "cell": [
+        76,
+        50
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/vine_husk_v2_idle.png",
+        "walk": "res://assets/sprites/vine_husk_v2_walk.png",
+        "attack": "res://assets/sprites/vine_husk_v2_attack.png",
+        "attack_alt": "res://assets/sprites/vine_husk_v2_attack_alt.png",
+        "special": "res://assets/sprites/vine_husk_v2_special.png",
+        "hurt": "res://assets/sprites/vine_husk_v2_hurt.png",
+        "death": "res://assets/sprites/vine_husk_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
+    "id": "feaster",
+    "family": "engedi",
+    "tier": 2,
+    "avatar": "res://assets/portraits/feaster.png",
+    "sprite": {
+      "cell": [
+        92,
+        50
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/feaster_v2_idle.png",
+        "walk": "res://assets/sprites/feaster_v2_walk.png",
+        "attack": "res://assets/sprites/feaster_v2_attack.png",
+        "attack_alt": "res://assets/sprites/feaster_v2_attack_alt.png",
+        "special": "res://assets/sprites/feaster_v2_special.png",
+        "hurt": "res://assets/sprites/feaster_v2_hurt.png",
+        "death": "res://assets/sprites/feaster_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
+    "id": "locust",
+    "family": "pit",
+    "tier": 1,
+    "avatar": "res://assets/portraits/locust.png",
+    "sprite": {
+      "cell": [
+        26,
+        22
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/locust_v2_idle.png",
+        "walk": "res://assets/sprites/locust_v2_walk.png",
+        "attack": "res://assets/sprites/locust_v2_attack.png",
+        "attack_alt": "res://assets/sprites/locust_v2_attack_alt.png",
+        "special": "res://assets/sprites/locust_v2_special.png",
+        "hurt": "res://assets/sprites/locust_v2_hurt.png",
+        "death": "res://assets/sprites/locust_v2_death.png"
+      },
+      "scale": 1.0,
+      "pad_y": 2
+    }
+  },
+  {
+    "id": "pit_smoke",
+    "family": "pit",
+    "tier": 2,
+    "avatar": "res://assets/portraits/pit_smoke.png",
+    "sprite": {
+      "cell": [
+        68,
+        55
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/pit_smoke_v2_idle.png",
+        "walk": "res://assets/sprites/pit_smoke_v2_walk.png",
+        "attack": "res://assets/sprites/pit_smoke_v2_attack.png",
+        "attack_alt": "res://assets/sprites/pit_smoke_v2_attack_alt.png",
+        "special": "res://assets/sprites/pit_smoke_v2_special.png",
+        "hurt": "res://assets/sprites/pit_smoke_v2_hurt.png",
+        "death": "res://assets/sprites/pit_smoke_v2_death.png"
+      },
+      "scale": 1.0,
+      "pad_y": 3
+    }
+  },
+  {
+    "id": "locust_rider",
+    "family": "pit",
+    "tier": 3,
+    "avatar": "res://assets/portraits/locust_rider.png",
+    "sprite": {
+      "cell": [
+        128,
+        63
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/locust_rider_v2_idle.png",
+        "walk": "res://assets/sprites/locust_rider_v2_walk.png",
+        "attack": "res://assets/sprites/locust_rider_v2_attack.png",
+        "attack_alt": "res://assets/sprites/locust_rider_v2_attack_alt.png",
+        "special": "res://assets/sprites/locust_rider_v2_special.png",
+        "hurt": "res://assets/sprites/locust_rider_v2_hurt.png",
+        "death": "res://assets/sprites/locust_rider_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
+    "id": "abaddon",
+    "family": "pit",
+    "tier": 4,
+    "avatar": "res://assets/portraits/abaddon.png",
+    "sprite": {
+      "cell": [
+        92,
+        74
+      ],
+      "fps": 9,
+      "animations": {
+        "idle": "res://assets/sprites/abaddon_v2_idle.png",
+        "walk": "res://assets/sprites/abaddon_v2_walk.png",
+        "attack": "res://assets/sprites/abaddon_v2_attack.png",
+        "attack_alt": "res://assets/sprites/abaddon_v2_attack_alt.png",
+        "special": "res://assets/sprites/abaddon_v2_special.png",
+        "hurt": "res://assets/sprites/abaddon_v2_hurt.png",
+        "death": "res://assets/sprites/abaddon_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
     "id": "four_bound",
     "family": "heaven",
     "tier": 3,

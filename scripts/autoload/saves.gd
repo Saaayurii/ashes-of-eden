@@ -232,6 +232,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"level": Game.level,
 			"ash": Game.ash_earned,
 			"unscathed": Game.unscathed,
+			"surfeit": Game.surfeit,
 			"dealt": Game.dealt,
 			"heaviest": Game.heaviest,
 			"taken": Game.taken,
@@ -285,6 +286,7 @@ func restore(data: Dictionary, body: Player) -> void:
 	Game.essence = maxf(0.0, float(state.get("essence", 0.0)))
 	Game.ash_earned = int(state.get("ash", 0))
 	Game.unscathed = maxi(0, int(state.get("unscathed", 0)))
+	Game.surfeit = maxi(0, int(state.get("surfeit", 0)))  # an old save ate nothing
 	Game.dealt = maxf(0.0, float(state.get("dealt", 0.0)))
 	Game.heaviest = maxf(0.0, float(state.get("heaviest", 0.0)))
 	Game.taken = maxf(0.0, float(state.get("taken", 0.0)))

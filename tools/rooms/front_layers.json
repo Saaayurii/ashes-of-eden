@@ -44,6 +44,18 @@
   "seir_wrecks": [
     {"from": "seir_wrecks_wide", "crop": [380, 40, 130, 220], "at": [892, 214], "depth": 1.35, "dark": 0.92, "cut": 38}
   ],
+  "engedi_smoke_road": [
+    {"from": "engedi_smoke_road_wide", "crop": [1490, 110, 80, 250], "at": [1110, 300], "depth": 1.45, "dark": 0.9, "cut": 42, "flip": true}
+  ],
+  "engedi_orchard": [
+    {"from": "engedi_orchard_wide", "crop": [1060, 0, 70, 250], "at": [560, 230], "depth": 1.5, "dark": 0.9, "cut": 38}
+  ],
+  "engedi_vineyard_gate": [
+    {"from": "engedi_vineyard_gate_wide", "crop": [1530, 0, 70, 220], "at": [380, 250], "depth": 1.5, "dark": 0.9, "cut": 40}
+  ],
+  "engedi_arbor": [
+    {"from": "engedi_arbor_wide", "crop": [1520, 40, 60, 230], "at": [700, 240], "depth": 1.5, "dark": 0.9, "cut": 40, "flip": true}
+  ],
   "hall_measured_temple": [
     {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [140, 160], "depth": 1.4, "dark": 0.6, "key": "alpha"},
     {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [1390, 160], "depth": 1.4, "dark": 0.6, "key": "alpha", "flip": true}

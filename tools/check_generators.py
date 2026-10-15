@@ -41,6 +41,11 @@ GENERATORS = [
      ["assets/props/altar_book.png"], False),
     ("blood altar", ["tools/art/make_blood_altar.py"],
      ["assets/props/blood_altar.png"], False),
+    # chapter V's fruit, ropes and key (docs/CHAPTER5.md)
+    ("engedi props", ["tools/art/make_engedi_props.py"],
+     ["assets/props/engedi_fig.png", "assets/props/engedi_grapes.png",
+      "assets/props/engedi_pomegranate.png", "assets/props/engedi_feast_dish.png",
+      "assets/props/engedi_pit_key.png", "assets/decor/engedi_broken_ropes.png"], False),
     ("chain ring", ["tools/art/make_chain_ring.py"],
      ["assets/props/chain_ring.png"], False),
     # the living liquids' body textures and strips (data/liquids.json, scripts/rooms/hazard.gd)

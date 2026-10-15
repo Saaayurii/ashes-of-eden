@@ -1199,6 +1199,163 @@ PAINTED = {
         props=[],
         decor=[], npcs=[], ambient="#b8bccc", lights="auto",
         player=(20, 530), door=(1235, 518)),
+    # Chapter V, Engedi (docs/CHAPTER5.md). Panels drawn by Codex from
+    # docs/CHAPTER5_ART.md (credited in assets/CREDITS.md), traced with
+    # tools/rooms/trace_panel.py. The garden that will not wither: fruit on
+    # every floor (props of kind "fruit", eaten on E), locusts over it.
+    "engedi_smoke_road": dict(
+        # The road under the brown smoke: Ahithophel by his fig tree, the cut
+        # ropes on the ground at its foot; his fig lies there only if he was lied to.
+        painting="engedi_smoke_road", width=1280, height=720, weather="ash", fog=0.2, intro="", music="road",
+        intro_cutscene="ahithophel_by_the_tree", void_kill_y=690,
+        ground=[(0, 572, 1280, 148)],
+        spawns=[("locust", 900, 380), ("vine_husk", 700, 560), ("vine_husk", 1000, 560)],
+        props=[("engedi_fig", 180, 572), ("engedi_fig", 420, 572), ("engedi_fig_ahithophel", 350, 572)],
+        decor=[("engedi_broken_ropes", 262, 572, "mid")], npcs=[("ahithophel", 300, 572)],
+        ambient="#c8b498", lights="auto",
+        player=(40, 552), door=(1240, 540)),
+    "engedi_vineyard_gate": dict(
+        # The vineyard wall and its gate tower: the gardeners still tend the
+        # vines, and a rider of the locusts walks between the rows.
+        painting="engedi_vineyard_gate", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night",
+        void_kill_y=690,
+        ground=[(0, 572, 1280, 148)],
+        spawns=[("vine_husk", 400, 560), ("vine_husk", 700, 560), ("vine_husk", 950, 560), ("locust_rider", 600, 560)],
+        props=[("engedi_grapes", 250, 572), ("engedi_grapes", 860, 572)],
+        decor=[], npcs=[], ambient="#c8b8a0", lights="auto",
+        player=(40, 552), door=(1205, 540)),
+    "engedi_terraces": dict(
+        # Up the vineyard's terraces: four floors, the painted stairs between
+        # them; the vintner's book lies on the top terrace by the door.
+        painting="engedi_terraces", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night",
+        void_kill_y=700,
+        ground=[(0, 626, 1280, 94)],
+        ledges=[(0, 488, 800, 14), (250, 350, 1030, 14), (640, 150, 640, 14)],
+        # The painted stairs rise to the left, back under the terrace they reach,
+        # so they are treads to jump (one-way ledges let him up through and
+        # down again), not ramps: a ramp's head under its own floor is a trap.
+        platforms=[(110, 598, 45, 8), (75, 566, 45, 8), (45, 537, 45, 8), (15, 510, 40, 8),
+                   (770, 454, 40, 8), (735, 419, 40, 8), (700, 384, 40, 8),
+                   (850, 316, 40, 8), (810, 282, 40, 8), (775, 248, 40, 8), (740, 214, 40, 8), (705, 180, 40, 8)],
+        painted_platforms=[(110, 598, 45, 8), (75, 566, 45, 8), (45, 537, 45, 8), (15, 510, 40, 8),
+                           (770, 454, 40, 8), (735, 419, 40, 8), (700, 384, 40, 8),
+                           (850, 316, 40, 8), (810, 282, 40, 8), (775, 248, 40, 8), (740, 214, 40, 8),
+                           (705, 180, 40, 8)],
+        spawns=[("locust", 300, 400), ("locust", 1050, 250), ("vine_husk", 450, 476), ("vine_husk", 1050, 338),
+                ("pit_smoke", 450, 200)],
+        props=[("engedi_grapes", 330, 626), ("engedi_grapes", 520, 488), ("engedi_grapes", 1120, 350),
+               ("engedi_cache_vintner_day", 1000, 150)],
+        decor=[], npcs=[], ambient="#c8b8a0", lights="auto",
+        player=(40, 606), door=(1225, 118)),
+    "engedi_spring": dict(
+        # The spring under the fall: Tirzah by the white basin, which is the
+        # rest point; two feasters at the water's edge wait to be struck.
+        painting="engedi_spring", width=1280, height=720, weather="none", fog=0.12, intro="", music="church",
+        void_kill_y=690,
+        ground=[(0, 572, 1280, 148)],
+        spawns=[("locust", 960, 380), ("feaster", 300, 560), ("feaster", 680, 560)],
+        props=[("engedi_pomegranate", 450, 572), ("engedi_pomegranate", 1200, 572),
+               ("engedi_pomegranate_tirzah", 1150, 572)],
+        decor=[], npcs=[("tirzah", 1010, 572)], ambient="#c8d0c0", lights="auto",
+        player=(40, 552), door=(1250, 540)),
+    "engedi_orchard": dict(
+        # Under the trees (the spring's fork): the most fruit of the night and
+        # the most locusts; the terraces above are the painting's, not a floor.
+        painting="engedi_orchard", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night",
+        void_kill_y=690,
+        ground=[(0, 580, 1280, 140)],
+        spawns=[("locust", 300, 380), ("locust", 1000, 300), ("vine_husk", 600, 568), ("vine_husk", 1100, 568),
+                ("locust_rider", 860, 568)],
+        props=[("engedi_fig", 150, 580), ("engedi_fig", 330, 580), ("engedi_pomegranate", 620, 580),
+               ("engedi_pomegranate", 1050, 580)],
+        decor=[], npcs=[], ambient="#c8c0a8", lights="auto",
+        player=(40, 560), door=(1240, 548)),
+    "engedi_pit_rim": dict(
+        # The edge of the abyss: the vineyard's boundary stone is the rest
+        # point; past it the smoke rises out of the ground. The Voice speaks here.
+        painting="engedi_pit_rim", width=1280, height=720, weather="ash", fog=0.2, intro="", music="dead_bridge",
+        intro_cutscene="voice_at_the_rim", void_kill_y=690,
+        ground=[(0, 549, 1280, 171)],
+        spawns=[("locust_rider", 500, 537), ("locust_rider", 1000, 537), ("locust", 700, 300),
+                ("pit_smoke", 400, 250), ("pit_smoke", 900, 250)],
+        props=[("engedi_grapes", 1080, 549)],
+        decor=[], npcs=[], ambient="#c8a888", lights="auto",
+        player=(40, 529), door=(1240, 517)),
+    "engedi_abyss_mouth": dict(
+        # The mouth of the pit: one stone floor over the fire. Abaddon comes up
+        # out of it; the key is in the finale.
+        painting="engedi_abyss_mouth", width=1280, height=720, weather="ash", fog=0.1, intro="", music="boss_ophanim",
+        intro_cutscene="abaddon_arrival", outro_cutscene="ch5_finale", void_kill_y=690,
+        ground=[(0, 440, 1280, 280)],
+        spawns=[("abaddon", 640, 300)],
+        props=[],
+        decor=[], npcs=[], ambient="#d0a888", lights="auto",
+        player=(40, 420), door=(1240, 408)),
+    "engedi_arbor": dict(
+        # The vine gallery (the garden fork's second way): the path under the
+        # pergola and the walk along its beams, reached by the painted stair.
+        painting="engedi_arbor", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night",
+        void_kill_y=690,
+        ground=[(0, 575, 1280, 145)],
+        ledges=[(80, 365, 540, 14), (726, 365, 462, 14)],
+        platforms=[(80, 540, 45, 8), (60, 505, 45, 8), (80, 470, 45, 8), (110, 436, 45, 8), (145, 402, 45, 8)],
+        painted_platforms=[(80, 540, 45, 8), (60, 505, 45, 8), (80, 470, 45, 8), (110, 436, 45, 8), (145, 402, 45, 8)],
+        spawns=[("vine_husk", 450, 563), ("vine_husk", 900, 563), ("vine_husk", 1000, 353),
+                ("pit_smoke", 500, 250), ("pit_smoke", 950, 250)],
+        props=[("engedi_grapes", 300, 575), ("engedi_grapes", 850, 365)],
+        decor=[], npcs=[], ambient="#c8b8a0", lights="auto",
+        player=(40, 555), door=(1240, 543)),
+    "engedi_feast_hall": dict(
+        # The feast without end: six feasters wait at the long table and do not
+        # lift their heads; the swollen two and a rider hold the door.
+        painting="engedi_feast_hall", width=1280, height=720, weather="none", fog=0.1, intro="", music="church",
+        intro_cutscene="feast_without_end", void_kill_y=690,
+        ground=[(0, 582, 1280, 138)],
+        ledges=[(263, 518, 708, 14)],
+        spawns=[("feaster", 300, 570), ("feaster", 420, 570), ("feaster", 540, 570), ("feaster", 700, 570),
+                ("feaster", 820, 570), ("feaster", 940, 570),
+                ("swollen_feaster", 180, 570), ("swollen_feaster", 1060, 570), ("locust_rider", 1120, 570)],
+        props=[("engedi_feast_dish", 620, 518), ("engedi_cache_endless_menu", 130, 582)],
+        decor=[], npcs=[], ambient="#d0b090", lights="auto",
+        player=(40, 562), door=(1225, 550)),
+    "engedi_hives": dict(
+        # The combs of the locusts in the rock (the pit fork's first way): honey
+        # in the hollows of the floor, and every cloud thicker for each fruit.
+        painting="engedi_hives", width=1280, height=720, weather="ash", fog=0.15, intro="", music="dead_bridge",
+        void_kill_y=690, swarm_per_surfeit=1.0,
+        ground=[(0, 587, 216, 133), (216, 617, 290, 103), (506, 587, 240, 133), (746, 617, 130, 103),
+                (876, 587, 404, 133)],
+        spawns=[("locust", 300, 350), ("locust", 650, 300), ("locust", 1000, 350), ("locust_herald", 900, 575)],
+        props=[("engedi_grapes", 600, 587)],
+        decor=[], npcs=[], ambient="#c8a880", lights="auto",
+        player=(40, 567), door=(1225, 555)),
+    "engedi_wine_press": dict(
+        # The press and its vat (the pit fork's second way): a close fight on
+        # the floor and on the wine.
+        painting="engedi_wine_press", width=1280, height=720, weather="ash", fog=0.15, intro="", music="dead_bridge",
+        void_kill_y=690,
+        ground=[(0, 533, 1280, 187)],
+        ledges=[(700, 476, 360, 14)],
+        spawns=[("vine_husk", 300, 521), ("vine_husk", 600, 521), ("swollen_feaster", 850, 464),
+                ("swollen_feaster", 450, 521), ("locust_rider", 1150, 521), ("locust_herald", 650, 521)],
+        props=[("engedi_grapes", 200, 533)],
+        decor=[], npcs=[], ambient="#c8a890", lights="auto",
+        player=(40, 513), door=(1225, 501)),
+    "engedi_pit_stair": dict(
+        # Down the shaft of the pit: from the arch at the top by the painted
+        # stairs to the floor; the page about the key lies in the niche.
+        painting="engedi_pit_stair", width=1280, height=720, weather="ash", fog=0.2, intro="", music="dead_bridge",
+        void_kill_y=690,
+        ground=[(0, 603, 1280, 117)],
+        ledges=[(0, 148, 265, 14), (441, 284, 401, 14), (52, 422, 410, 14), (834, 500, 237, 14)],
+        ramps=[(265, 148, 441, 284), (462, 422, 715, 603), (1071, 500, 1170, 603)],
+        platforms=[(395, 355, 40, 8)],
+        painted_platforms=[(395, 355, 40, 8)],
+        spawns=[("locust", 600, 200), ("locust", 950, 350), ("pit_smoke", 300, 300), ("pit_smoke", 800, 420),
+                ("locust_rider", 650, 272), ("locust_herald", 900, 591)],
+        props=[("secret_wall_engedi_key", 748, 284)],
+        decor=[], npcs=[], ambient="#c8a080", lights="auto",
+        player=(40, 128), door=(1225, 571)),
     # Chapter VI, the abbey on the Euphrates (docs/CHAPTER6.md), painted by Codex.
     "euphrates_bank": dict(
         # The bank under the storm: the mighty angel stands in the depth with the

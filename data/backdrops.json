@@ -801,6 +801,118 @@
       {"kind": "sway", "rect": [1520, 0, 80, 130], "anchor": "stands", "strength": 0.6},
       {"kind": "glow", "rect": [1560, 480, 30, 40], "tint": "#ff8040", "strength": 0.2, "speed": 0.6}
     ]},
+    "engedi_smoke_road": {"family": "dusk", "zones": [
+      {"kind": "glow", "rect": [1330, 60, 110, 90], "tint": "#ffb070", "strength": 0.16, "speed": 0.5},
+      {"kind": "sway", "rect": [0, 0, 850, 250], "strength": 1.2, "speed": 0.8, "tree": "oak"},
+      {"kind": "falls", "rect": [760, 310, 40, 140]},
+      {"kind": "falls", "rect": [850, 330, 60, 140]},
+      {"kind": "falls", "rect": [920, 390, 60, 80]},
+      {"kind": "haze", "rect": [720, 100, 880, 300], "strength": 0.6},
+      {"kind": "sway", "rect": [1460, 120, 80, 180]},
+      {"kind": "sway", "rect": [1380, 260, 60, 120]}
+    ]},
+    "engedi_vineyard_gate": {"family": "dusk", "zones": [
+      {"kind": "haze", "rect": [200, 0, 1320, 250], "strength": 0.6},
+      {"kind": "sway", "rect": [0, 0, 250, 300], "strength": 1.2, "speed": 0.9, "tree": "oak"},
+      {"kind": "sway", "rect": [1440, 140, 160, 160], "strength": 1.4},
+      {"kind": "falls", "rect": [300, 200, 40, 120]},
+      {"kind": "falls", "rect": [1120, 300, 40, 100]},
+      {"kind": "falls", "rect": [1310, 220, 40, 90]},
+      {"kind": "sway", "rect": [730, 140, 190, 60], "strength": 0.8}
+    ]},
+    "engedi_terraces": {"family": "dusk", "zones": [
+      {"kind": "haze", "rect": [0, 0, 760, 280], "strength": 0.6},
+      {"kind": "falls", "rect": [165, 180, 30, 80]},
+      {"kind": "falls", "rect": [380, 140, 30, 60]},
+      {"kind": "falls", "rect": [1030, 400, 40, 90]},
+      {"kind": "falls", "rect": [1060, 480, 40, 90]},
+      {"kind": "glow", "rect": [980, 420, 120, 140], "tint": "#c8ffd0", "strength": 0.14, "speed": 0.7},
+      {"kind": "sway", "rect": [300, 190, 410, 140], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [860, 0, 230, 100], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [1060, 180, 360, 90]}
+    ]},
+    "engedi_spring": {"family": "dusk", "zones": [
+      {"kind": "glow", "rect": [1110, 60, 80, 60], "tint": "#ffb070", "strength": 0.16, "speed": 0.5},
+      {"kind": "falls", "rect": [1255, 220, 70, 340], "strength": 1.2},
+      {"kind": "water", "rect": [700, 565, 610, 40]},
+      {"kind": "sway", "rect": [1240, 0, 360, 180], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [0, 0, 460, 300], "strength": 1.0, "tree": "oak"},
+      {"kind": "haze", "rect": [460, 100, 760, 200], "strength": 0.5},
+      {"kind": "sway", "rect": [690, 350, 380, 100], "strength": 0.8}
+    ]},
+    "engedi_orchard": {"family": "dusk", "zones": [
+      {"kind": "haze", "rect": [350, 0, 1020, 250], "strength": 0.6},
+      {"kind": "falls", "rect": [960, 415, 40, 70]},
+      {"kind": "falls", "rect": [990, 495, 40, 80]},
+      {"kind": "sway", "rect": [0, 0, 330, 280], "strength": 1.2, "tree": "oak"},
+      {"kind": "sway", "rect": [610, 160, 300, 190], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [1070, 140, 460, 230], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [1520, 0, 80, 300]}
+    ]},
+    "engedi_pit_rim": {"family": "dusk", "zones": [
+      {"kind": "glow", "rect": [790, 60, 110, 90], "tint": "#ffb070", "strength": 0.18, "speed": 0.5},
+      {"kind": "falls", "rect": [565, 120, 30, 80]},
+      {"kind": "falls", "rect": [615, 200, 40, 90]},
+      {"kind": "falls", "rect": [660, 280, 25, 50]},
+      {"kind": "falls", "rect": [210, 450, 35, 90]},
+      {"kind": "haze", "rect": [580, 150, 760, 380], "strength": 0.8},
+      {"kind": "pulse", "rect": [660, 380, 660, 150]},
+      {"kind": "sway", "rect": [0, 0, 280, 250], "strength": 1.2, "tree": "oak"},
+      {"kind": "sway", "rect": [1420, 100, 180, 180], "strength": 1.0, "tree": "oak"}
+    ]},
+    "engedi_abyss_mouth": {"family": "hell", "zones": [
+      {"kind": "lava", "rect": [580, 330, 480, 110], "strength": 0.8},
+      {"kind": "haze", "rect": [460, 60, 860, 370], "strength": 0.9},
+      {"kind": "pulse", "rect": [580, 300, 480, 140]},
+      {"kind": "falls", "rect": [530, 160, 30, 60]},
+      {"kind": "falls", "rect": [610, 230, 30, 80]},
+      {"kind": "falls", "rect": [1110, 170, 40, 70]},
+      {"kind": "falls", "rect": [1070, 260, 50, 90]},
+      {"kind": "sway", "rect": [0, 0, 460, 200], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [1360, 0, 240, 240], "strength": 1.0, "tree": "oak"}
+    ]},
+    "engedi_arbor": {"family": "dusk", "zones": [
+      {"kind": "haze", "rect": [380, 30, 1200, 140], "strength": 0.6},
+      {"kind": "falls", "rect": [815, 400, 35, 60]},
+      {"kind": "falls", "rect": [915, 265, 45, 85]},
+      {"kind": "falls", "rect": [1170, 520, 70, 50]},
+      {"kind": "sway", "rect": [80, 380, 1300, 110], "strength": 0.6},
+      {"kind": "sway", "rect": [0, 0, 300, 260], "strength": 1.2, "tree": "oak"},
+      {"kind": "sway", "rect": [1470, 60, 130, 260], "strength": 1.0}
+    ]},
+    "engedi_feast_hall": {"family": "dusk", "zones": [
+      {"kind": "sway", "rect": [100, 0, 1400, 110], "strength": 0.6},
+      {"kind": "haze", "rect": [600, 100, 400, 300], "strength": 0.5},
+      {"kind": "falls", "rect": [890, 210, 15, 50]},
+      {"kind": "falls", "rect": [730, 395, 20, 55]},
+      {"kind": "falls", "rect": [1360, 375, 30, 60]},
+      {"kind": "falls", "rect": [1415, 180, 30, 150]},
+      {"kind": "glow", "rect": [420, 470, 800, 60], "tint": "#ffb060", "strength": 0.12, "speed": 0.6}
+    ]},
+    "engedi_hives": {"family": "dusk", "zones": [
+      {"kind": "haze", "rect": [300, 0, 760, 130], "strength": 0.6},
+      {"kind": "falls", "rect": [1185, 180, 70, 240]},
+      {"kind": "glow", "rect": [1170, 220, 110, 200], "tint": "#c8ff90", "strength": 0.14, "speed": 0.6},
+      {"kind": "water", "rect": [216, 598, 450, 22]},
+      {"kind": "water", "rect": [906, 598, 130, 22]},
+      {"kind": "sway", "rect": [80, 60, 320, 200], "strength": 1.0, "tree": "oak"}
+    ]},
+    "engedi_wine_press": {"family": "dusk", "zones": [
+      {"kind": "falls", "rect": [330, 225, 70, 235]},
+      {"kind": "falls", "rect": [900, 300, 40, 170]},
+      {"kind": "water", "rect": [860, 455, 360, 20]},
+      {"kind": "sway", "rect": [740, 0, 700, 230], "strength": 0.8},
+      {"kind": "sway", "rect": [0, 0, 330, 250], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [1450, 30, 150, 280], "strength": 1.0}
+    ]},
+    "engedi_pit_stair": {"family": "dusk", "zones": [
+      {"kind": "haze", "rect": [640, 0, 380, 560], "strength": 0.7},
+      {"kind": "glow", "rect": [640, 300, 380, 300], "tint": "#ff9050", "strength": 0.14, "speed": 0.5},
+      {"kind": "falls", "rect": [1320, 120, 60, 290]},
+      {"kind": "falls", "rect": [460, 380, 60, 220]},
+      {"kind": "sway", "rect": [1220, 0, 300, 180], "strength": 1.0, "tree": "oak"},
+      {"kind": "sway", "rect": [150, 0, 260, 250], "strength": 0.8}
+    ]},
     "euphrates_bank": {"family": "abbey", "zones": [
       {"kind": "water", "rect": [1060, 405, 500, 180]},
       {"kind": "sway", "rect": [640, 380, 180, 140]},

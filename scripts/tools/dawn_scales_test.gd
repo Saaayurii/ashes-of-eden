@@ -82,7 +82,7 @@ func _run() -> void:
 	_check(result.flag == "weighed_level", "a tie: weighed_level")
 	var all := {first: "temptation"}
 	for night in data.nights():
-		all[str(night.get("id", ""))] = "temptation"
+		all[campaign.night_key(str(night.get("id", "")))] = "temptation"
 	result = dawns.weigh(all, "hall")
 	_check(result.weight.temptation == all.size() - 1 and result.weight.temptation <= 6,
 		"every other night leaning one way: +%d, no more than +6" % result.weight.temptation)

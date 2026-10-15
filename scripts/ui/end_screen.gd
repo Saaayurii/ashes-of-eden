@@ -174,8 +174,11 @@ static func deeds_line(ids: Array) -> String:
 
 ## The night's numbers: dealt, the heaviest blow, taken, parries (Game).
 static func numbers_line() -> String:
-	return TranslationServer.translate("RUN_NUMBERS") % [roundi(Game.dealt), roundi(Game.heaviest),
+	var line := TranslationServer.translate("RUN_NUMBERS") % [roundi(Game.dealt), roundi(Game.heaviest),
 		roundi(Game.taken), Game.parries]
+	if Game.surfeit > 0:  # the garden's fruit (docs/CHAPTER5.md)
+		line += "   ·   " + TranslationServer.translate("RUN_SURFEIT") % Game.surfeit
+	return line
 
 
 ## The last blows taken, oldest first: "Last blows: Zealot 12 · Lava 20". "" for none.

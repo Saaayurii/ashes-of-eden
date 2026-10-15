@@ -6,7 +6,7 @@ extends SceneTree
 
 ## Secret walls set into an arch the room's painting already has; every other
 ## one brings its own niche (tools/art/make_secret_walls.py).
-const NICHE_PAINTED := ["secret_wall_catacombs", "secret_wall_hall_court", "secret_wall_tyre_counting", "secret_wall_tyre_gate"]
+const NICHE_PAINTED := ["secret_wall_catacombs", "secret_wall_hall_court", "secret_wall_tyre_counting", "secret_wall_tyre_gate", "secret_wall_engedi_key"]
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const PATHS := ["grace", "temptation", "will"]
 const EFFECT_TYPES := ["stat", "lifesteal", "extra_life", "heal", "skill"]
@@ -23,13 +23,14 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
 	"cursed_damage", "chosen_damage", "curse_relief", "covetous",
 	"lantern", "mite", "lamp_blood", "dark_damage", "dark_sight", "parry_flare",
-	"liquid_mend", "truce_hold", "feud_damage", "crossfire_armor", "taut_damage"]
+	"liquid_mend", "truce_hold", "feud_damage", "crossfire_armor", "taut_damage",
+	"torment_immune", "fasting", "glut", "torment_damage", "death_refused"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
 ## The moves Player reports through EventBus.technique_performed.
 const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
-const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy"]
+const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy", "swarm"]
 const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon", "hail", "wail"]
 ## How a bolt may fly (scripts/fx/projectile.gd _advance_motion).
 const PROJECTILE_MOTIONS := ["straight", "wave", "accelerate", "arc", "surge", "return", "home"]
@@ -43,7 +44,7 @@ const LOOK_NUMBERS := {"border_width": [0, 4], "radius": [0, 12], "speaker_size"
 	"text_size": [10, 28], "caption_size": [9, 24]}  # DialogueLook.NUMBERS
 const LOOK_KEYS := ["style", "panel", "caption", "portrait", "face"]
 const ANIMATIONS := ["idle", "walk", "idle_to_walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
-const PROP_KINDS := ["destructible", "chest", "chain", "lamp"]
+const PROP_KINDS := ["destructible", "chest", "chain", "lamp", "fruit"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
 const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold", "glass"]
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
@@ -303,8 +304,21 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 						_error("%s: a wail's radius is 60–400 px" % where)
 					if float(attack.get("damage", 0)) != 0.0:
 						_error("%s: a wail hurts nobody (no damage)" % where)
+				# chapter V (docs/CHAPTER5.md §9): the sting, the swarm's call, the dive
+				if attack.has("torment") and (float(attack.torment) < 0.5 or float(attack.torment) > 12.0):
+					_error("%s: attack.torment is seconds of the sting, 0.5..12" % where)
+				if attack.get("type") == "summon" and (int(attack.get("count", 1)) < 1 or int(attack.get("count", 1)) > 6):
+					_error("%s: a summon calls 1..6 at once (count)" % where)
+				if attack.has("dive_to_floor") and (not attack.dive_to_floor is bool or attack.get("type") != "nova"):
+					_error("%s: dive_to_floor is true or false, on a nova" % where)
+				if entry.get("behaviour") == "swarm" and float(attack.get("windup", 0)) < 0.5:
+					_error("%s: a locust's dive winds up at least 0.5 s" % where)
 			if entry.has("patience"):
 				_check_patience(entry, where)
+			if entry.has("swarm"):
+				_check_swarm(entry, where)
+			elif entry.get("behaviour") == "swarm":
+				_error("%s: behaviour swarm needs its \"swarm\" block (base, per_surfeit, max)" % where)
 			if entry.has("summons") and not entry.summons.has("id"):
 				_error("%s: summons.id missing" % where)
 			if entry.has("seal_phase"):
@@ -377,6 +391,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: blood_price is a share of the bar (0.05–0.3), on a chest opened by hand (interact)" % where)
 			if entry.get("kind") == "destructible" and float(entry.get("hp", 0)) <= 0.0:
 				_error("%s: a destructible needs positive hp" % where)
+			if entry.get("kind") == "fruit":
+				_check_fruit(entry, where)
 			_check_sprite(entry.get("sprite", {}), where)
 			_check_effect(entry.get("effect", {}), where)
 			if entry.get("hitbox", [1, 1]).size() != 2:
@@ -1307,6 +1323,40 @@ func _check_relic(entry: Dictionary, where: String) -> void:
 		_error("%s: needs names no relic" % where)
 
 
+## A locust cloud (scripts/enemies/swarm.gd): how many one marker lets out.
+func _check_swarm(entry: Dictionary, where: String) -> void:
+	var spec = entry.swarm
+	if not spec is Dictionary or entry.get("behaviour") != "swarm":
+		_error("%s: swarm is a block, on a behaviour swarm" % where)
+		return
+	var bounds := {"base": [1, 8], "per_surfeit": [0, 2], "max": [1, 16], "spacing": [6, 48], "dive_slots": [1, 3]}
+	for key in spec:
+		if not bounds.has(key):
+			_error("%s: swarm.%s is not one of %s" % [where, key, bounds.keys()])
+		elif float(spec[key]) < float(bounds[key][0]) or float(spec[key]) > float(bounds[key][1]):
+			_error("%s: swarm.%s is %s..%s" % [where, key, bounds[key][0], bounds[key][1]])
+	if int(spec.get("base", 4)) > int(spec.get("max", 12)):
+		_error("%s: swarm.base above swarm.max" % where)
+
+
+## A fruit (scripts/rooms/fruit.gd, docs/CHAPTER5.md §2): it heals a share of
+## the bar, adds surfeit, lifts the sting unless told not to, and has a style.
+## It pays nothing a chest pays: eating is its own reward.
+func _check_fruit(entry: Dictionary, where: String) -> void:
+	var heal := float(entry.get("heal", 0.25))
+	if heal < 0.05 or heal > 0.5:
+		_error("%s: a fruit heals 0.05..0.5 of the bar" % where)
+	if not entry.get("surfeit", 1.0) is float or int(entry.get("surfeit", 1.0)) < 1 or int(entry.get("surfeit", 1.0)) > 3:
+		_error("%s: surfeit is 1..3" % where)
+	if entry.has("lifts_torment") and not entry.lifts_torment is bool:
+		_error("%s: lifts_torment is true or false" % where)
+	if not ["fig", "grapes", "pomegranate", "feast"].has(str(entry.get("style", "fig"))):
+		_error("%s: style is fig, grapes, pomegranate or feast" % where)
+	for key in ["essence", "item", "note", "ash", "curse", "weapon", "effect", "reveals", "chest_heal"]:
+		if entry.has(key):
+			_error("%s: a fruit is eaten, not opened: no %s" % [where, key])
+
+
 ## A vial of wrath (data/vials, scripts/run/vials.gd): a tier 1..5 once each,
 ## rules Vials knows how to stack, a promotion only to an elite of that kind.
 var _vial_tiers := {}
@@ -1462,6 +1512,26 @@ func _check_omen(entry: Dictionary, where: String) -> void:
 				for from in value:
 					if not _enemy_ids.has(from) or not _enemy_ids.has(str(value[from])):
 						_error("%s: promote %s -> %s names no enemy" % [where, from, value[from]])
+			# chapter V (docs/CHAPTER5.md §7): the sting, the cloud, the fruit
+			"torment":
+				hurts = hurts or float(value) > 1.0
+				helps = helps or float(value) < 1.0
+				if float(value) <= 0.0 or float(value) > 3.0:
+					_error("%s: torment multiplies the sting's length, 0..3" % where)
+			"swarm":
+				hurts = hurts or int(value) > 0
+				helps = helps or int(value) < 0
+				if absi(int(value)) > 6:
+					_error("%s: swarm adds -6..6 locusts a cloud" % where)
+			"fruit_heal":
+				helps = helps or float(value) > 1.0
+				hurts = hurts or float(value) < 1.0
+				if float(value) <= 0.0 or float(value) > 3.0:
+					_error("%s: fruit_heal multiplies what a fruit heals, 0..3" % where)
+			"surfeit_per_fruit":
+				hurts = hurts or int(value) > 1
+				if int(value) < 1 or int(value) > 3:
+					_error("%s: surfeit_per_fruit is 1..3" % where)
 			_:
 				_error("%s: rules.%s is not a rule an omen can carry" % [where, key])
 	if not (helps and hurts):
@@ -1730,7 +1800,7 @@ func _check_hall_keys(entry: Dictionary, attacks: Array, where: String) -> void:
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 ## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
-const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "truce_broken",
+const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "fruit_eaten", "truce_broken",
 	"chain_opened", "fettered_freed",
 	# the scales of dawns (Dawns.seed_night, a night with "seed": "dawns")
 	"weighed_grace", "weighed_temptation", "weighed_will", "weighed_level", "weighed_none"]
@@ -2434,10 +2504,14 @@ func _check_nights(game: Dictionary) -> void:
 		if fork.has("_draft"):
 			continue  # a draft's rooms join a night when their paintings do
 		var in_nights := {}
+		var planned := false
 		for path in [fork.get("after", ""), fork.get("then", "")] + (fork.get("options", {}) as Dictionary).values():
 			if fork.has("_draft") and not FileAccess.file_exists(str(path)):
 				continue  # a draft's room still waiting for its painting (_room_missing)
 			in_nights[owner.get(str(path), "?")] = true
+			planned = planned or (fork.has("_draft") and not FileAccess.file_exists(str(path)))
+		if planned:
+			continue  # a draft's fork waits for its paintings (_room_missing)
 		if in_nights.size() != 1 or in_nights.has("?"):
 			_error("data/forks/%s: its rooms must all be one night's" % fork.get("id", "?"))
 

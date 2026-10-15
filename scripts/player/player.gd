@@ -72,6 +72,12 @@ static var BASE_STATS := {
 	"truce_hold": 0.0,          # a soldier that has just seen him holds its first blow this long (Standard of Peace, Enemy._notice)
 	"feud_damage": 0.0,         # blows on an enemy busy fighting another enemy are worth this much more (Blood Feud)
 	"crossfire_armor": 0.0,     # armour while soldiers of two sides are awake in the room (No Man's Land)
+	# Chapter V's gifts (docs/CHAPTER5.md §7): the sting and the fruit.
+	"torment_immune": 0.0,      # 1 = the locust's sting never takes hold (Seal on the Brow)
+	"fasting": 0.0,             # a cleared room heals this much while the night's surfeit is nil (Fasting)
+	"glut": 0.0,                # blows worth this much more for each surfeit, up to GLUT_COUNT (Glut)
+	"torment_damage": 0.0,      # blows worth this much more while tormented (Honeyed Sting)
+	"death_refused": 0.0,       # 1 = once a room a killing blow leaves 1 hp and a sting (Seeking Death)
 	"taut_damage": 0.0,         # a body hanging on its chain's end takes this much more (Loosened Chain)
 }
 ## Where the item mechanics above reach.
@@ -214,7 +220,7 @@ static var WAVE_SPEED := 260.0
 ## Slot 1 wears a colder cloth so the two of you never lose each other.
 const SLOT_TINTS := [Color.WHITE, Color(0.72, 0.84, 1.05)]
 ## What the other peer needs to draw this body. The rest is local theatre.
-const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon", ".:lantern",
+const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon", ".:lantern", ".:torment",
 	".:last_technique"]
 
 signal died(player: Player)
@@ -322,6 +328,11 @@ var _charge_time := 0.0
 var _charge_ready := false
 var _combo_timer := 0.0
 var _healing_left := 0.0
+## The locust's sting (docs/CHAPTER5.md §2), seconds: while it lasts nothing
+## heals this body but a fruit. It never hurts and never kills. Replicated, so
+## the partner sees the tremor. Torment.gd keeps the rules.
+var torment := 0.0
+var _death_refused_room := false
 var _rally_left := 0.0
 var _rally_pool := 0.0
 var _blocking := false
@@ -398,6 +409,7 @@ func _ready() -> void:
 		_rally_pool = 0.0
 		_rally_left = 0.0
 		_hurt_grace_left = 0.0
+		_death_refused_room = false
 		_wounded_this_room = false)
 	body.modulate = SLOT_TINTS[slot % SLOT_TINTS.size()]
 	if _is_mine():
@@ -574,6 +586,7 @@ func _physics_process(delta: float) -> void:
 	_block_cd = maxf(0.0, _block_cd - delta)
 	_tick_rally(delta)
 	_mend_in_liquid(delta)
+	Torment.tick(self, delta)
 	_hurt_grace_left = maxf(0.0, _hurt_grace_left - delta)
 	_wrath_left = maxf(0.0, _wrath_left - delta)
 	_dodge_counter_left = maxf(0.0, _dodge_counter_left - delta)
@@ -735,7 +748,10 @@ func _physics_process(delta: float) -> void:
 				_attack()
 		elif Input.is_action_just_pressed("heal") and heal_charges > 0 and on_floor and hp < stats.max_hp \
 				and not _blocking:
-			_start_heal()
+			if can_heal():
+				_start_heal()
+			else:
+				Torment.deny(self)  # the sting: the flask will not go down
 		else:
 			_auto_swing()  # only with Settings.auto_attack on
 
@@ -963,6 +979,8 @@ func _arm(with_draw: bool) -> void:
 
 ## A rest point: whole again, every flask full, nothing left to recover.
 func rest() -> void:
+	if not can_heal():
+		return  # RestPoint says why (REST_TORMENTED)
 	# under the fourth vial an altar gives back only part of the bar (data/vials)
 	hp = minf(stats.max_hp, maxf(hp, hp + stats.max_hp * float(Vials.rule("rest_heal"))))
 	heal_charges = int(stats.heal_charges)
@@ -1009,6 +1027,8 @@ func _heal_burst() -> void:
 
 
 func heal(amount: float) -> void:
+	if not can_heal():
+		return  # the sting: flask, gifts, items, pools — all of it waits
 	var restored := minf(maxf(0.0, amount), stats.max_hp - hp)
 	hp += restored
 	# Flask, gifts and life-steal fill the same missing health; they must not
@@ -1031,6 +1051,24 @@ func _crossfire_armor() -> float:
 	if stats.crossfire_armor <= 0.0 or not Faction.two_sides_awake(get_tree()):
 		return 0.0
 	return stats.crossfire_armor
+## The one question every heal asks (docs/CHAPTER5.md §2): not while stung.
+func can_heal() -> bool:
+	return torment <= 0.0
+
+
+## A sting landed: the longer of the two, never a sum, never past the cap.
+func apply_torment(seconds: float) -> void:
+	Torment.apply(self, seconds)
+
+
+## A fruit (scripts/rooms/fruit.gd): the sting lifts first, then it heals —
+## the one heal the sting does not stop, which is the fruit's temptation.
+func eat(heal_share: float, lifts := true) -> void:
+	if _dead:
+		return
+	if lifts:
+		torment = 0.0
+	heal(stats.max_hp * heal_share)
 
 
 func recoverable_hp() -> float:
@@ -1046,7 +1084,7 @@ func _tick_rally(delta: float) -> void:
 
 
 func _recover_from_strike(damage: float) -> void:
-	if _dead or _rally_left <= 0.0 or _rally_pool <= 0.0:
+	if _dead or _rally_left <= 0.0 or _rally_pool <= 0.0 or not can_heal():
 		return
 	var restored := minf(minf(_rally_pool, maxf(0.0, damage) * RALLY_HIT_SHARE), stats.max_hp - hp)
 	if restored <= 0.0:
@@ -1149,7 +1187,8 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 		var owner_id := get_multiplayer_authority()
 		if multiplayer.get_peers().has(owner_id):
 			var path: NodePath = source.get_path() if source != null and source.is_inside_tree() else NodePath()
-			_net_damage.rpc_id(owner_id, amount, _attacker_x(source, info), path, _blame(source, info))
+			_net_damage.rpc_id(owner_id, amount, _attacker_x(source, info), path, _blame(source, info),
+				float(info.get("torment", 0.0)))
 		return  # a body whose owner has left takes nothing; the run frees it
 	_apply_damage(amount, source, info)
 
@@ -1158,11 +1197,14 @@ func take_damage(amount: float, source: Node = null, info: Dictionary = {}) -> v
 ## on every peer, so a block here still knows which way the blow came from and
 ## a parry here can still answer the body that swung over there.
 @rpc("any_peer", "call_remote", "reliable")
-func _net_damage(amount: float, from_x: float, source_path: NodePath, killer := "") -> void:
+func _net_damage(amount: float, from_x: float, source_path: NodePath, killer := "", sting := 0.0) -> void:
 	var source: Node = null if source_path.is_empty() else get_node_or_null(source_path)
 	# A projectile can already have burst before this RPC arrives. Its nonempty
 	# path still identifies combat damage, even if there is no node to resolve.
-	_apply_damage(amount, source, {"from_x": from_x, "combat_hit": not source_path.is_empty(), "killer": killer})
+	var info := {"from_x": from_x, "combat_hit": not source_path.is_empty(), "killer": killer}
+	if sting > 0.0:
+		info["torment"] = sting
+	_apply_damage(amount, source, info)
 
 
 ## Who to blame for a blow: the enemy that struck or loosed it, the lava, or
@@ -1233,6 +1275,8 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 			_cancel_charge()  # a wound breaks the charge; the blade was not ready
 		if stats.wrath_after_hit > 0.0:
 			_wrath_left = WRATH_TIME
+		if info.has("torment"):
+			apply_torment(float(info.torment))
 	if amount > 0.0 and not blocked and combat_hit:
 		_hurt_grace_left = HURT_GRACE_TIME
 	if amount > 0.0 and hp > 0.0:
@@ -1259,7 +1303,9 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		Audio.play(&"player_hurt")
 		if Net.active:
 			_net_hit_fx.rpc(amount)
-	if hp <= 0.0:
+	if hp <= 0.0 and Torment.refuse_death(self):
+		pass  # Seeking Death: he sought it and did not find it (1 hp, a sting)
+	elif hp <= 0.0:
 		if stats.extra_lives > 0:
 			stats.extra_lives -= 1
 			hp = stats.max_hp * 0.5
@@ -1287,6 +1333,7 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 
 func _go_down() -> void:
 	_dead = true
+	torment = 0.0
 	_hurt_grace_left = 0.0
 	_dodge_counter_left = 0.0
 	_dodge_counted = false
@@ -1370,6 +1417,7 @@ func revive(at: Vector2, fraction := 1.0) -> void:
 	fell_outside_room = false
 	slain_by = ""
 	curse = 0
+	torment = 0.0
 	_healing_left = 0.0
 	_slamming = false
 	_slam_recovery = 0.0
@@ -1657,6 +1705,8 @@ func _on_room_cleared(index: int) -> void:
 		heal_charges += 1
 		_emit_hp()
 		Fx.sparkle(global_position + Vector2(0, -12), Color(0.75, 1.0, 0.7), 10, 10.0)
+	if _is_mine() and not _dead and stats.fasting > 0.0 and Game.surfeit == 0:
+		heal(stats.fasting)  # Fasting: the room was its own bread
 	if not _is_mine() or _dead or stats.clear_heal <= 0.0:
 		return
 	heal(stats.clear_heal)
@@ -2045,6 +2095,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Blood Feud: a body busy with another body has turned its back on him
 		if live_enemy and stats.feud_damage > 0.0 and (target as Enemy).feuding():
 			damage *= 1.0 + stats.feud_damage
+		# Glut and Honeyed Sting (docs/CHAPTER5.md §7): what was eaten, what stings
+		if live_enemy:
+			damage *= Torment.damage_factor(self)
 		if live_enemy and stats.backstab_refresh > 0.0 and (target as Enemy).is_unaware():
 			_dash_cd = 0.0
 		if live_enemy and crit and stats.desperate_crit_heal > 0.0 and hp < stats.max_hp * DESPERATE_SHARE:

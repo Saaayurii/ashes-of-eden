@@ -29,6 +29,9 @@ PEOPLE = ["knight", "mara", "matthew", "nun", "severin", "villager"]
 # the sixth cell, a sea wraith, came out teal; ours is the red tide's, so it keeps the wraith's
 SEIR_ENEMIES = ["watchman", "waiting_townsman", "gate_warden", "drowned", "drowned_bosun"]
 SEIR_PEOPLE = ["lazarus", "jonah", "naomi"]
+# Engedi (chapter V), the same way: docs/CHAPTER5_ART.md
+ENGEDI_ENEMIES = ["locust", "locust_rider", "feaster", "vine_husk", "pit_smoke", "abaddon"]
+ENGEDI_PEOPLE = ["ahithophel", "tirzah", "abaddon_face"]
 # the Heavenly Hall (chapter VII), drawn by Codex (assets/CREDITS.md); the
 # variants (wheel, hail spirit, archive scribe) and the reflections draw no new body
 HALL_ENEMIES = ["seraph", "measuring_angel", "register_scribe", "wheel",
@@ -65,6 +68,9 @@ GAME_CELLS = {
     # Seir (chapter II), drawn by Codex's image generation (assets/CREDITS.md)
     "waiting_townsman": (52, 52), "drowned": (60, 60), "gate_warden": (72, 72),
     "drowned_bosun": (96, 84), "watchman": (88, 88),
+    # Engedi (chapter V); the feaster's idle is seated, so its cell is a sitting man's
+    "locust": (22, 18), "locust_rider": (76, 52), "feaster": (48, 40),
+    "vine_husk": (48, 45), "pit_smoke": (40, 49), "abaddon": (72, 74),
     # the Euphrates (chapter VI), drawn by Codex's image generation (assets/CREDITS.md)
     "four_bound": (72, 72),
     "flagellant": (52, 49), "censer_monk": (52, 47), "chained_penitent": (56, 36),
@@ -75,7 +81,7 @@ GAME_CELLS = {
     "cherub": (112, 96),
 }
 # A creature that hovers: its drawing is centred in the cell, not stood on the bottom row.
-FLYERS = {"raven", "shade", "wraith", "ophanim", "river_wraith", "fettered_angel", "seraph"}
+FLYERS = {"raven", "shade", "wraith", "ophanim", "locust", "pit_smoke", "abaddon", "river_wraith", "fettered_angel", "seraph"}
 # The cherub's four faces (Ezek. 1:10), one row each of a 7x7 atlas: four idle
 # frames, then three of its attack. Each is cut to HEAD_CELL, its collar ring on
 # the bottom row, and laid on the body at the tree's "head_at" (Enemy, CherubFaces).
@@ -718,6 +724,8 @@ def main() -> None:
     split_atlas(PORTRAITS / "people_atlas.png", PEOPLE, 3, 2)
     split_atlas(PORTRAITS / "seir_enemies_atlas.png", SEIR_ENEMIES, 3, 2)
     split_atlas(PORTRAITS / "seir_people_atlas.png", SEIR_PEOPLE, 3, 1)
+    split_atlas(PORTRAITS / "engedi_enemies_atlas.png", ENGEDI_ENEMIES, 3, 2)
+    split_atlas(PORTRAITS / "engedi_people_atlas.png", ENGEDI_PEOPLE, 3, 1)
     split_atlas(PORTRAITS / "hall_enemies_atlas.png", HALL_ENEMIES, 4, 2)
     split_atlas(PORTRAITS / "hall_people_atlas.png", HALL_PEOPLE, 3, 2)
     build_strips()
