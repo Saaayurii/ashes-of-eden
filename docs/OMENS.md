@@ -31,6 +31,9 @@ an unknown rule, and `promote_chance` without its `promote` map.
 
 - The first `Omens.FROM_NIGHT` (3) finished nights are plain: a new player meets the chapter as it is.
 - Settings → Omens (`Settings.omens`, shown once they have begun) turns them off for the player's own nights.
+- A chapter's omen names its night (`"nights": ["euphrates"]`, ids of `data/game.json` `nights`, `""` the
+  first): `Omens.roll` draws it only there (`Omens.of_night`), where its chains or its horsemen are. A chapter's
+  gifts carry the same key and `Run._roll_gifts` honours it; none = every night.
 - Solo only, none in the practice yard. The night of the day draws the day's own from its seed, the same for
   everyone, whatever the profile or the switch.
 - The bestiary has a page per omen (`omen:<id>`, between the deeds and the chronicle), named once a night has
