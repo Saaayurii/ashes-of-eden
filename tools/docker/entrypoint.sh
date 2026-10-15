@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Entry point for the build image. Usage:
 #   entrypoint validate            validate data + localization
-#   entrypoint test [smoke|K/N]    headless tests (all, the smoke runs, or one share of the rest)
+#   entrypoint test [smoke [NIGHT]|K/N]  headless tests (all, the smoke runs — of one night, or
+#                                  every night — or one share of the rest)
 #   entrypoint game-test           validate + play any game on the engine (a game pack's CI)
 #   entrypoint net-test [mode...]  two-process crossplay stand (default: all four)
 #   entrypoint server [--flags]    dedicated headless host for two browsers
@@ -101,10 +102,15 @@ case "${1:-validate}" in
     test)
         # test            every test, one after another
         # test smoke      only the two that play a whole night (the long ones)
+        # test smoke NIGHT  the night walk for one night alone (`first`, or an
+        #                 id in game.json `nights`; the room-by-room smoke goes
+        #                 with `first`), for CI's job per night
         # test K/N        the K-th of N shares of the rest, for CI's parallel jobs
         shift
         import
         part="${1:-all}"
+        night=""
+        [ "$part" = smoke ] && night="${2:-}"
         k=0; n=0
         case "$part" in
             */*) k="${part%/*}"; n="${part#*/}" ;;
@@ -119,6 +125,12 @@ case "${1:-validate}" in
             elif [ $smoke -eq 0 ]; then
                 [ $(( i % n + 1 )) -eq "$k" ] && run=1
                 i=$(( i + 1 ))
+            fi
+            if [ $run -eq 1 ] && [ -n "$night" ]; then
+                case "$t" in
+                    */smoke_test.gd) t="$t -- night=$night" ;;
+                    *) [ "$night" = first ] || run=0 ;;
+                esac
             fi
             if [ $run -eq 1 ]; then
                 echo "==> $t"
