@@ -7,11 +7,14 @@
     "plate": {"blood": "#5a090c", "shade": 0.1, "drops": 4, "spray": 120, "stain": 0.8, "stain_life": 25, "mist": 2, "soak": 0.4, "splash": 1, "run": 10, "drip": 0.3, "back": 0.08, "cloud": 10, "hiss": 0.5, "bleed": 0.5, "gush": 10, "pool": 10, "spurt": 0.8, "limbs": 3, "chance": 0.25, "fling": 140, "cuts": {"all": 1, "head": 3, "half": 2, "limb": 1}},
     "feather": {"blood": "#700c12", "shade": 0.2, "drops": 6, "spray": 130, "stain": 0.7, "stain_life": 20, "mist": 5, "soak": 0.5, "splash": 2, "run": 10, "drip": 0.3, "back": 0.15, "cloud": 8, "hiss": 0.4, "bleed": 0.6, "gush": 10, "pool": 6, "spurt": 0.6, "limbs": 2, "chance": 0.5, "fling": 150, "cuts": {"all": 3, "head": 2, "half": 1, "limb": 0}},
     "spirit": {"blood": "#a9c4ffb0", "shade": 0.3, "drops": 5, "spray": 90, "stain": 0, "stain_life": 4, "mist": 8, "soak": 0, "splash": 0, "run": 0, "drip": 0, "back": 0, "cloud": 0, "hiss": 0, "bleed": 0, "gush": 10, "pool": 0, "spurt": 0, "limbs": 0, "chance": 0, "fling": 0, "cuts": {"all": 1}},
-    "gold": {"blood": "#ffe08ad0", "shade": 0.25, "drops": 6, "spray": 110, "stain": 0.5, "stain_life": 6, "mist": 6, "soak": 0, "splash": 1, "run": 0, "drip": 0, "back": 0.1, "cloud": 6, "hiss": 0.8, "bleed": 0, "gush": 12, "pool": 0, "spurt": 0, "limbs": 0, "chance": 0, "fling": 0, "cuts": {"all": 1}}
+    "gold": {"blood": "#ffe08ad0", "shade": 0.25, "drops": 6, "spray": 110, "stain": 0.5, "stain_life": 6, "mist": 6, "soak": 0, "splash": 1, "run": 0, "drip": 0, "back": 0.1, "cloud": 6, "hiss": 0.8, "bleed": 0, "gush": 12, "pool": 0, "spurt": 0, "limbs": 0, "chance": 0, "fling": 0, "cuts": {"all": 1}},
+    "glass": {"blood": "#f4ecd8a0", "shade": 0.15, "drops": 4, "spray": 120, "stain": 0, "stain_life": 3, "mist": 0, "soak": 0, "splash": 0, "run": 0, "drip": 0, "back": 0, "cloud": 0, "hiss": 0, "bleed": 0, "gush": 0, "pool": 0, "spurt": 0, "limbs": 0, "chance": 0, "fling": 0, "cuts": {"all": 1}}
   },
   "bodies": {
     "elian": {"material": "flesh", "drops": 6, "limbs": 0, "pool": 12, "bleed": 0.6},
-    "training_dummy": {"blood": "#b9a27a", "drops": 5, "back": 0, "soak": 0, "stain_life": 6, "pool": 0, "bleed": 0, "limbs": 0}
+    "training_dummy": {"blood": "#b9a27a", "drops": 5, "back": 0, "soak": 0, "stain_life": 6, "pool": 0, "bleed": 0, "limbs": 0},
+    "mirror_elian": {"limbs": 0, "pool": 0, "bleed": 0},
+    "proud_mirror": {"limbs": 0, "pool": 0, "bleed": 0}
   },
   "moves": {
     "attack": {"aim": -10},

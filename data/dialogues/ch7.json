@@ -1,0 +1,1675 @@
+[
+  {
+    "id": "ch7_elders",
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_1",
+        "next": "e2"
+      },
+      "e2": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_2",
+        "next": "weigh"
+      },
+      "weigh": {
+        "branches": [
+          {
+            "flag": "weighed_grace",
+            "next": "w_grace"
+          },
+          {
+            "flag": "weighed_temptation",
+            "next": "w_temptation"
+          },
+          {
+            "flag": "weighed_will",
+            "next": "w_will"
+          },
+          {
+            "flag": "weighed_level",
+            "next": "w_level"
+          },
+          {
+            "flag": "weighed_none",
+            "next": "w_none"
+          }
+        ],
+        "next": "w_none"
+      },
+      "w_grace": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WEIGHED_GRACE",
+        "next": "witness"
+      },
+      "w_temptation": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WEIGHED_TEMPTATION",
+        "next": "witness"
+      },
+      "w_will": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WEIGHED_WILL",
+        "next": "witness"
+      },
+      "w_level": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WEIGHED_LEVEL",
+        "next": "witness"
+      },
+      "w_none": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WEIGHED_NONE",
+        "next": "witness"
+      },
+      "witness": {
+        "branches": [
+          {
+            "flag": "stranger_killed",
+            "next": "testify"
+          },
+          {
+            "flag": "stranger_heard",
+            "next": "testify"
+          },
+          {
+            "flag": "stranger_refused",
+            "next": "testify"
+          },
+          {
+            "flag": "watchman_sent_down",
+            "next": "testify"
+          },
+          {
+            "flag": "watchman_relieved",
+            "next": "testify"
+          },
+          {
+            "flag": "watchman_dark",
+            "next": "testify"
+          },
+          {
+            "flag": "sided_host",
+            "next": "testify"
+          },
+          {
+            "flag": "sided_legion",
+            "next": "testify"
+          },
+          {
+            "flag": "sided_none",
+            "next": "testify"
+          },
+          {
+            "flag": "light_returned",
+            "next": "testify"
+          },
+          {
+            "flag": "light_shared",
+            "next": "testify"
+          },
+          {
+            "flag": "light_taken",
+            "next": "testify"
+          },
+          {
+            "flag": "angels_kept_bound",
+            "next": "testify"
+          },
+          {
+            "flag": "angels_loosed",
+            "next": "testify"
+          },
+          {
+            "flag": "angels_left_to_men",
+            "next": "testify"
+          }
+        ],
+        "next": "no_witness"
+      },
+      "no_witness": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_NO_WITNESS",
+        "next": "e3"
+      },
+      "testify": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_TESTIFY",
+        "next": "t_stranger"
+      },
+      "t_stranger": {
+        "branches": [
+          {
+            "flag": "stranger_killed",
+            "next": "s_stranger_killed"
+          },
+          {
+            "flag": "stranger_heard",
+            "next": "s_stranger_heard"
+          },
+          {
+            "flag": "stranger_refused",
+            "next": "s_stranger_refused"
+          }
+        ],
+        "next": "t_watchman"
+      },
+      "s_stranger_killed": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_STRANGER_KILLED",
+        "next": "t_watchman"
+      },
+      "s_stranger_heard": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_STRANGER_HEARD",
+        "next": "t_watchman"
+      },
+      "s_stranger_refused": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_STRANGER_REFUSED",
+        "next": "t_watchman"
+      },
+      "t_watchman": {
+        "branches": [
+          {
+            "flag": "watchman_sent_down",
+            "next": "s_watchman_sent_down"
+          },
+          {
+            "flag": "watchman_relieved",
+            "next": "s_watchman_relieved"
+          },
+          {
+            "flag": "watchman_dark",
+            "next": "s_watchman_dark"
+          }
+        ],
+        "next": "t_sided"
+      },
+      "s_watchman_sent_down": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WATCHMAN_SENT_DOWN",
+        "next": "t_sided"
+      },
+      "s_watchman_relieved": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WATCHMAN_RELIEVED",
+        "next": "t_sided"
+      },
+      "s_watchman_dark": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_WATCHMAN_DARK",
+        "next": "t_sided"
+      },
+      "t_sided": {
+        "branches": [
+          {
+            "flag": "sided_host",
+            "next": "s_sided_host"
+          },
+          {
+            "flag": "sided_legion",
+            "next": "s_sided_legion"
+          },
+          {
+            "flag": "sided_none",
+            "next": "s_sided_none"
+          }
+        ],
+        "next": "t_light"
+      },
+      "s_sided_host": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_SIDED_HOST",
+        "next": "t_light"
+      },
+      "s_sided_legion": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_SIDED_LEGION",
+        "next": "t_light"
+      },
+      "s_sided_none": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_SIDED_NONE",
+        "next": "t_light"
+      },
+      "t_light": {
+        "branches": [
+          {
+            "flag": "light_returned",
+            "next": "s_light_returned"
+          },
+          {
+            "flag": "light_shared",
+            "next": "s_light_shared"
+          },
+          {
+            "flag": "light_taken",
+            "next": "s_light_taken"
+          }
+        ],
+        "next": "t_angels"
+      },
+      "s_light_returned": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_LIGHT_RETURNED",
+        "next": "t_angels"
+      },
+      "s_light_shared": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_LIGHT_SHARED",
+        "next": "t_angels"
+      },
+      "s_light_taken": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_LIGHT_TAKEN",
+        "next": "t_angels"
+      },
+      "t_angels": {
+        "branches": [
+          {
+            "flag": "angels_kept_bound",
+            "next": "s_angels_kept_bound"
+          },
+          {
+            "flag": "angels_loosed",
+            "next": "s_angels_loosed"
+          },
+          {
+            "flag": "angels_left_to_men",
+            "next": "s_angels_left_to_men"
+          }
+        ],
+        "next": "e3"
+      },
+      "s_angels_kept_bound": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_ANGELS_BOUND",
+        "next": "e3"
+      },
+      "s_angels_loosed": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_ANGELS_LOOSED",
+        "next": "e3"
+      },
+      "s_angels_left_to_men": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_ANGELS_TO_MEN",
+        "next": "e3"
+      },
+      "e3": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_3",
+        "choices": [
+          {
+            "id": "kneel",
+            "text": "DLG_CH7_ELDERS_KNEEL",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "elian_knelt"
+              ]
+            },
+            "next": "k1"
+          },
+          {
+            "id": "stand",
+            "text": "DLG_CH7_ELDERS_STAND",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "elian_stood"
+              ]
+            },
+            "next": "st1"
+          },
+          {
+            "id": "bow",
+            "text": "DLG_CH7_ELDERS_BOW",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "elders_bowed"
+              ]
+            },
+            "next": "b1"
+          }
+        ]
+      },
+      "k1": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_KNEEL_1",
+        "next": "k2"
+      },
+      "k2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ELDERS_KNEEL_2"
+      },
+      "st1": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_STAND_1",
+        "next": "st2"
+      },
+      "st2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ELDERS_STAND_2"
+      },
+      "b1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ELDERS_BOW_1",
+        "next": "b2"
+      },
+      "b2": {
+        "speaker": "SPEAKER_ELDERS",
+        "text": "DLG_CH7_ELDERS_BOW_2"
+      }
+    }
+  },
+  {
+    "id": "ch7_court_sky",
+    "blocking": false,
+    "start": "sky",
+    "nodes": {
+      "sky": {
+        "branches": [
+          {
+            "flag": "light_returned",
+            "next": "returned"
+          },
+          {
+            "flag": "light_shared",
+            "next": "shared"
+          },
+          {
+            "flag": "light_taken",
+            "next": "taken"
+          }
+        ],
+        "next": "none"
+      },
+      "returned": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_SKY_RETURNED",
+        "next": "court"
+      },
+      "shared": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_SKY_SHARED",
+        "next": "court"
+      },
+      "taken": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_SKY_TAKEN",
+        "next": "court"
+      },
+      "none": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_SKY_NONE",
+        "next": "court"
+      },
+      "court": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_COURT_INTRO"
+      }
+    }
+  },
+  {
+    "id": "ch7_temple_intro",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_TEMPLE_INTRO"
+      }
+    }
+  },
+  {
+    "id": "fork_hall_temple",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_FORK_TEMPLE",
+        "choices": [
+          {
+            "id": "lamps",
+            "text": "DLG_CH7_FORK_LAMPS"
+          },
+          {
+            "id": "glass",
+            "text": "DLG_CH7_FORK_GLASS"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "fork_hall_storm",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_FORK_STORM",
+        "choices": [
+          {
+            "id": "thunders",
+            "text": "DLG_CH7_FORK_THUNDERS"
+          },
+          {
+            "id": "hail",
+            "text": "DLG_CH7_FORK_HAIL"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "npc_enoch",
+    "start": "route",
+    "nodes": {
+      "route": {
+        "branches": [
+          {
+            "habit": "grace",
+            "next": "habit_grace"
+          },
+          {
+            "habit": "temptation",
+            "next": "habit_temptation"
+          },
+          {
+            "habit": "will",
+            "next": "habit_will"
+          }
+        ],
+        "next": "nights"
+      },
+      "habit_grace": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_HABIT_GRACE",
+        "next": "nights"
+      },
+      "habit_temptation": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_HABIT_TEMPTATION",
+        "next": "nights"
+      },
+      "habit_will": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_HABIT_WILL",
+        "next": "nights"
+      },
+      "nights": {
+        "branches": [
+          {
+            "nights": 3,
+            "next": "nights_line"
+          }
+        ],
+        "next": "n1"
+      },
+      "nights_line": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NIGHTS",
+        "next": "n1"
+      },
+      "n1": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ENOCH_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_3",
+        "next": "rope"
+      },
+      "rope": {
+        "branches": [
+          {
+            "flag": "rope_paid_before",
+            "next": "rope_e"
+          }
+        ],
+        "next": "ledger"
+      },
+      "rope_e": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ENOCH_ROPE_ELIAN",
+        "next": "rope_l"
+      },
+      "rope_l": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_ROPE",
+        "next": "ledger"
+      },
+      "ledger": {
+        "branches": [
+          {
+            "flag": "read_tyre_ledger",
+            "next": "ledger_e"
+          }
+        ],
+        "next": "herbs"
+      },
+      "ledger_e": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ENOCH_LEDGER_ELIAN",
+        "next": "ledger_l"
+      },
+      "ledger_l": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_LEDGER",
+        "next": "herbs"
+      },
+      "herbs": {
+        "branches": [
+          {
+            "flag": "tirzah_herbs",
+            "next": "herbs_e"
+          }
+        ],
+        "next": "scroll"
+      },
+      "herbs_e": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ENOCH_HERBS_ELIAN",
+        "next": "herbs_l"
+      },
+      "herbs_l": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_HERBS",
+        "next": "scroll"
+      },
+      "scroll": {
+        "branches": [
+          {
+            "flag": "scroll_eaten",
+            "next": "scroll_l"
+          }
+        ],
+        "next": "versions"
+      },
+      "scroll_l": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_SCROLL",
+        "next": "versions"
+      },
+      "versions": {
+        "branches": [
+          {
+            "flag": "version_heaven",
+            "next": "v_heaven"
+          },
+          {
+            "flag": "version_abyss",
+            "next": "v_some"
+          },
+          {
+            "flag": "version_man",
+            "next": "v_some"
+          },
+          {
+            "flag": "book_read",
+            "next": "v_some"
+          }
+        ],
+        "next": "tally"
+      },
+      "v_heaven": {
+        "branches": [
+          {
+            "flag": "version_abyss",
+            "next": "v_abyss"
+          }
+        ],
+        "next": "v_some"
+      },
+      "v_abyss": {
+        "branches": [
+          {
+            "flag": "version_man",
+            "next": "v_man"
+          }
+        ],
+        "next": "v_some"
+      },
+      "v_man": {
+        "branches": [
+          {
+            "flag": "book_read",
+            "next": "v_all"
+          }
+        ],
+        "next": "v_some"
+      },
+      "v_all": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_VERSIONS",
+        "next": "tally"
+      },
+      "v_some": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_SOME_VERSIONS",
+        "next": "tally"
+      },
+      "tally": {
+        "branches": [
+          {
+            "flag": "read_court_tally",
+            "next": "tally_e"
+          }
+        ],
+        "next": "register"
+      },
+      "tally_e": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ENOCH_TALLY_ELIAN",
+        "next": "tally_l"
+      },
+      "tally_l": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_TALLY",
+        "next": "register"
+      },
+      "register": {
+        "branches": [
+          {
+            "flag": "register_read",
+            "next": "register_e"
+          }
+        ],
+        "next": "ask"
+      },
+      "register_e": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ENOCH_REGISTER_ELIAN",
+        "next": "register_l"
+      },
+      "register_l": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_REGISTER",
+        "next": "ask"
+      },
+      "ask": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_ASK",
+        "choices": [
+          {
+            "id": "write",
+            "text": "DLG_CH7_ENOCH_WRITE",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "enoch_wrote_names"
+              ]
+            },
+            "next": "w1"
+          },
+          {
+            "id": "strike",
+            "text": "DLG_CH7_ENOCH_STRIKE",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "enoch_struck"
+              ]
+            },
+            "next": "s1"
+          },
+          {
+            "id": "leave",
+            "text": "DLG_CH7_ENOCH_LEAVE",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "enoch_left"
+              ]
+            },
+            "next": "l1"
+          }
+        ]
+      },
+      "s1": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_STRIKE_1",
+        "next": "s2"
+      },
+      "s2": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_STRIKE_2",
+        "next": "s3"
+      },
+      "s3": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ENOCH_STRIKE_3"
+      },
+      "l1": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_LEAVE_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_LEAVE_2"
+      },
+      "w1": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_WRITE_1",
+        "next": "name_lazarus"
+      },
+      "name_lazarus": {
+        "branches": [
+          {
+            "flag": "lazarus_helped",
+            "next": "named_lazarus"
+          },
+          {
+            "flag": "lazarus_asked",
+            "next": "named_lazarus"
+          },
+          {
+            "flag": "lazarus_passed",
+            "next": "named_lazarus"
+          }
+        ],
+        "next": "name_watchman"
+      },
+      "named_lazarus": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_LAZARUS",
+        "next": "name_watchman"
+      },
+      "name_watchman": {
+        "branches": [
+          {
+            "flag": "watchman_sent_down",
+            "next": "named_watchman"
+          },
+          {
+            "flag": "watchman_relieved",
+            "next": "named_watchman"
+          },
+          {
+            "flag": "watchman_dark",
+            "next": "named_watchman"
+          }
+        ],
+        "next": "name_naomi"
+      },
+      "named_watchman": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_WATCHMAN",
+        "next": "name_naomi"
+      },
+      "name_naomi": {
+        "branches": [
+          {
+            "flag": "naomi_waited",
+            "next": "named_naomi"
+          },
+          {
+            "flag": "naomi_told",
+            "next": "named_naomi"
+          },
+          {
+            "flag": "naomi_lamp_out",
+            "next": "named_naomi"
+          }
+        ],
+        "next": "name_malchus"
+      },
+      "named_naomi": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_NAOMI",
+        "next": "name_malchus"
+      },
+      "name_malchus": {
+        "branches": [
+          {
+            "flag": "prisoner_cut",
+            "next": "named_malchus"
+          },
+          {
+            "flag": "malchus_asked",
+            "next": "named_malchus"
+          },
+          {
+            "flag": "malchus_hanged",
+            "next": "named_malchus"
+          }
+        ],
+        "next": "name_rizpah"
+      },
+      "named_malchus": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_MALCHUS",
+        "next": "name_rizpah"
+      },
+      "name_rizpah": {
+        "branches": [
+          {
+            "flag": "rizpah_watched",
+            "next": "named_rizpah"
+          },
+          {
+            "flag": "rizpah_told",
+            "next": "named_rizpah"
+          },
+          {
+            "flag": "rizpah_left",
+            "next": "named_rizpah"
+          }
+        ],
+        "next": "name_tirzah"
+      },
+      "named_rizpah": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_RIZPAH",
+        "next": "name_tirzah"
+      },
+      "name_tirzah": {
+        "branches": [
+          {
+            "flag": "tirzah_herbs",
+            "next": "named_tirzah"
+          }
+        ],
+        "next": "name_witnesses"
+      },
+      "named_tirzah": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_TIRZAH",
+        "next": "name_witnesses"
+      },
+      "name_witnesses": {
+        "branches": [
+          {
+            "flag": "witnesses_covered",
+            "next": "named_witnesses"
+          },
+          {
+            "flag": "witnesses_asked",
+            "next": "named_witnesses"
+          },
+          {
+            "flag": "witnesses_robbed",
+            "next": "named_witnesses"
+          }
+        ],
+        "next": "name_mara"
+      },
+      "named_witnesses": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_WITNESSES",
+        "next": "name_mara"
+      },
+      "name_mara": {
+        "branches": [
+          {
+            "flag": "mara_saved",
+            "next": "named_mara"
+          }
+        ],
+        "next": "name_matthew"
+      },
+      "named_mara": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_MARA",
+        "next": "name_matthew"
+      },
+      "name_matthew": {
+        "branches": [
+          {
+            "flag": "matthew_confessed",
+            "next": "named_matthew"
+          },
+          {
+            "flag": "matthew_judged",
+            "next": "named_matthew"
+          },
+          {
+            "flag": "matthew_released",
+            "next": "named_matthew"
+          }
+        ],
+        "next": "w_end"
+      },
+      "named_matthew": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_NAME_MATTHEW",
+        "next": "w_end"
+      },
+      "w_end": {
+        "speaker": "NPC_ENOCH",
+        "text": "DLG_CH7_ENOCH_WRITE_END"
+      }
+    }
+  },
+  {
+    "id": "ch7_lucifer",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_2",
+        "next": "l3"
+      },
+      "l3": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_3",
+        "next": "l4"
+      },
+      "l4": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_4",
+        "next": "l5"
+      },
+      "l5": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_5",
+        "next": "l6"
+      },
+      "l6": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_6",
+        "choices": [
+          {
+            "id": "for_me",
+            "text": "DLG_CH7_LUCIFER_Q_FOR_ME",
+            "effect": {
+              "set_flags": [
+                "lucifer_met"
+              ]
+            },
+            "next": "a_for_me"
+          },
+          {
+            "id": "rope",
+            "text": "DLG_CH7_LUCIFER_Q_ROPE",
+            "effect": {
+              "set_flags": [
+                "lucifer_met"
+              ]
+            },
+            "next": "a_rope"
+          },
+          {
+            "id": "who",
+            "text": "DLG_CH7_LUCIFER_Q_WHO",
+            "effect": {
+              "set_flags": [
+                "lucifer_met"
+              ]
+            },
+            "next": "a_who"
+          }
+        ]
+      },
+      "a_for_me": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_A_FOR_ME",
+        "next": "last"
+      },
+      "a_rope": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_A_ROPE",
+        "next": "last"
+      },
+      "a_who": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_A_WHO",
+        "next": "last"
+      },
+      "last": {
+        "speaker": "SPEAKER_LUCIFER",
+        "text": "DLG_CH7_LUCIFER_LAST"
+      }
+    }
+  },
+  {
+    "id": "ch7_ark",
+    "start": "v1",
+    "nodes": {
+      "v1": {
+        "speaker": "SPEAKER_VOICES",
+        "text": "DLG_CH7_ARK_VOICES_1",
+        "next": "e"
+      },
+      "e": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_ARK_ELIAN",
+        "next": "v2"
+      },
+      "v2": {
+        "speaker": "SPEAKER_VOICES",
+        "text": "DLG_CH7_ARK_VOICES_2"
+      }
+    }
+  },
+  {
+    "id": "ch7_ark_caption",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_ARK_CAPTION"
+      }
+    }
+  },
+  {
+    "id": "ch7_cherub",
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_1",
+        "next": "lucifer"
+      },
+      "lucifer": {
+        "branches": [
+          {
+            "flag": "lucifer_met",
+            "next": "c_lucifer"
+          }
+        ],
+        "next": "register"
+      },
+      "c_lucifer": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_LUCIFER",
+        "next": "register"
+      },
+      "register": {
+        "branches": [
+          {
+            "flag": "enoch_struck",
+            "next": "c_struck"
+          },
+          {
+            "flag": "enoch_wrote_names",
+            "next": "c_names"
+          }
+        ],
+        "next": "stair"
+      },
+      "c_struck": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_STRUCK",
+        "next": "stair"
+      },
+      "c_names": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_NAMES",
+        "next": "stair"
+      },
+      "stair": {
+        "branches": [
+          {
+            "flag": "elian_knelt",
+            "next": "c_knelt"
+          },
+          {
+            "flag": "elian_stood",
+            "next": "c_stood"
+          },
+          {
+            "flag": "elders_bowed",
+            "next": "c_bowed"
+          }
+        ],
+        "next": "c2"
+      },
+      "c_knelt": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_KNELT",
+        "next": "c2"
+      },
+      "c_stood": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_STOOD",
+        "next": "c2"
+      },
+      "c_bowed": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_BOWED",
+        "next": "c2"
+      },
+      "c2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH7_CHERUB_2",
+        "next": "c3"
+      },
+      "c3": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_3"
+      }
+    }
+  },
+  {
+    "id": "ch7_cherub_lion",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_CHERUB_LION"
+      }
+    }
+  },
+  {
+    "id": "ch7_cherub_ox",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_CHERUB_OX"
+      }
+    }
+  },
+  {
+    "id": "ch7_cherub_eagle",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_CHERUB_EAGLE"
+      }
+    }
+  },
+  {
+    "id": "ch7_cherub_fall",
+    "start": "f1",
+    "nodes": {
+      "f1": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_FALL_1",
+        "next": "f2"
+      },
+      "f2": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_FALL_2"
+      }
+    }
+  },
+  {
+    "id": "ch7_finale_silence",
+    "blocking": false,
+    "start": "s1",
+    "nodes": {
+      "s1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_FINALE_SILENCE",
+        "next": "angels"
+      },
+      "angels": {
+        "branches": [
+          {
+            "flag": "angels_kept_bound",
+            "next": "bound"
+          },
+          {
+            "flag": "angels_loosed",
+            "next": "loosed"
+          },
+          {
+            "flag": "angels_left_to_men",
+            "next": "to_men"
+          }
+        ]
+      },
+      "bound": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_ANGELS_BOUND"
+      },
+      "loosed": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_ANGELS_LOOSED"
+      },
+      "to_men": {
+        "speaker": "SPEAKER_CHERUB",
+        "text": "DLG_CH7_CHERUB_ANGELS_TO_MEN"
+      }
+    }
+  },
+  {
+    "id": "ch7_finale_gate",
+    "blocking": false,
+    "start": "g1",
+    "nodes": {
+      "g1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_FINALE_GATE"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_lazarus_helped",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_LAZARUS_HELPED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_lazarus_asked",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_LAZARUS_ASKED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_lazarus_passed",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_LAZARUS_PASSED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_watchman_sent_down",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_WATCHMAN_SENT_DOWN"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_watchman_relieved",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_WATCHMAN_RELIEVED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_watchman_dark",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_WATCHMAN_DARK"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_malchus_cut",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MALCHUS_CUT"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_malchus_asked",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MALCHUS_ASKED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_malchus_hanged",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MALCHUS_HANGED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_marah_sweetened",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MARAH_SWEETENED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_marah_bitter",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MARAH_BITTER"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_wormwood",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_WORMWOOD"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_light_returned",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_LIGHT_RETURNED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_light_shared",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_LIGHT_SHARED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_light_taken",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_LIGHT_TAKEN"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_tirzah",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_TIRZAH"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_pit_locked",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_PIT_LOCKED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_key_thrown",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_KEY_THROWN"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_key_kept",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_KEY_KEPT"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_angels_bound",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_ANGELS_BOUND"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_angels_loosed",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_ANGELS_LOOSED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_angels_to_men",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_ANGELS_TO_MEN"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_witnesses_covered",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_WITNESSES_COVERED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_witnesses_asked",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_WITNESSES_ASKED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_witnesses_robbed",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_WITNESSES_ROBBED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_matthew_confessed",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MATTHEW_CONFESSED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_matthew_judged",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MATTHEW_JUDGED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_matthew_released",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MATTHEW_RELEASED"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_mara",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_MARA"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_enoch_names",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_ENOCH_NAMES"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_enoch_struck",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_ENOCH_STRUCK"
+      }
+    }
+  },
+  {
+    "id": "ch7_epilogue_enoch_left",
+    "blocking": false,
+    "start": "e1",
+    "nodes": {
+      "e1": {
+        "speaker": "SPEAKER_NARRATOR",
+        "text": "DLG_CH7_EPI_ENOCH_LEFT"
+      }
+    }
+  },
+  {
+    "id": "note_crown",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_CROWN",
+        "text": "DLG_NOTE_CROWN_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_CROWN",
+        "text": "DLG_NOTE_CROWN_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_CROWN",
+        "text": "DLG_NOTE_CROWN_3"
+      }
+    }
+  },
+  {
+    "id": "note_court_tally",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_COURT_TALLY",
+        "text": "DLG_NOTE_COURT_TALLY_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_COURT_TALLY",
+        "text": "DLG_NOTE_COURT_TALLY_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_COURT_TALLY",
+        "text": "DLG_NOTE_COURT_TALLY_3"
+      }
+    }
+  },
+  {
+    "id": "note_register",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_REGISTER",
+        "text": "DLG_NOTE_REGISTER_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_REGISTER",
+        "text": "DLG_NOTE_REGISTER_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_REGISTER",
+        "text": "DLG_NOTE_REGISTER_3"
+      }
+    }
+  }
+]

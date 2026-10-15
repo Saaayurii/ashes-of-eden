@@ -10,6 +10,7 @@
     "mara_saved",
     ["lazarus_helped", "lazarus_asked", "lazarus_passed"],
     ["watchman_sent_down", "watchman_relieved", "watchman_dark"],
+    ["naomi_waited", "naomi_told", "naomi_lamp_out"],
     "read_tyre_ledger",
     ["light_returned", "light_shared", "light_taken"],
     ["prisoner_cut", "malchus_asked", "malchus_hanged"],
@@ -44,7 +45,7 @@
     "res://scenes/rooms/hell_gate.tscn"
   ],
   "opening": {"prologue": "ch1_prologue", "prologue_short": "ch1_prologue_short", "intro": "ch1_intro", "last_fall": "ch1_last_fall"},
-  "finale": {"room": "res://scenes/rooms/hell_gate.tscn", "cutscene": "ch1_finale", "ends_campaign": false},
+  "finale": {"room": "res://scenes/rooms/hall_eden_gate.tscn", "cutscene": "ch7_finale", "ends_campaign": true},
   "nights": [
     {
       "id": "seir",
@@ -123,6 +124,26 @@
         "res://scenes/rooms/euphrates_cistern.tscn",
         "res://scenes/rooms/euphrates_river_stair.tscn",
         "res://scenes/rooms/euphrates_bound.tscn"
+      ]
+    },
+    {
+      "id": "hall",
+      "after_dawns": 6,
+      "opening": {"wake": false},
+      "seed": "dawns",
+      "rooms": [
+        "res://scenes/rooms/hall_elders_stair.tscn",
+        "res://scenes/rooms/hall_outer_court.tscn",
+        "res://scenes/rooms/hall_measured_temple.tscn",
+        "res://scenes/rooms/hall_gallery_of_lamps.tscn",
+        "res://scenes/rooms/hall_sea_of_glass.tscn",
+        "res://scenes/rooms/hall_archive.tscn",
+        "res://scenes/rooms/hall_stones_of_fire.tscn",
+        "res://scenes/rooms/hall_ark_sanctum.tscn",
+        "res://scenes/rooms/hall_thunders.tscn",
+        "res://scenes/rooms/hall_hail_gallery.tscn",
+        "res://scenes/rooms/hall_flaming_way.tscn",
+        "res://scenes/rooms/hall_eden_gate.tscn"
       ]
     }
   ],

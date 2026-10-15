@@ -21,6 +21,7 @@ func _run() -> void:
 	var heard := []
 	root.get_node("EventBus").note_found.connect(func(note_id: String, first: bool) -> void: heard.append([note_id, first]))
 	for scene in ["res://scenes/rooms/village_night.tscn", "res://scenes/rooms/swamp_crypt.tscn", "res://scenes/rooms/catacombs_2.tscn",
+			"res://scenes/rooms/hall_elders_stair.tscn", "res://scenes/rooms/hall_outer_court.tscn", "res://scenes/rooms/hall_archive.tscn",
 			"res://scenes/rooms/tyre_counting_house.tscn", "res://scenes/rooms/tyre_gate.tscn",
 			"res://scenes/rooms/tyre_palace_stair.tscn"]:
 		var room = load(scene).instantiate()
@@ -38,7 +39,7 @@ func _run() -> void:
 			# a bricked-up doorway, not a patch of bricks: its niche is drawn
 			# behind it, or the painting has the arch (NICHE_PAINTED)
 			var niche = wall.get_node_or_null("Niche")
-			_assert(niche != null or wall.prop_id in ["secret_wall_catacombs", "secret_wall_tyre_counting", "secret_wall_tyre_gate"],
+			_assert(niche != null or wall.prop_id in ["secret_wall_catacombs", "secret_wall_hall_court", "secret_wall_tyre_counting", "secret_wall_tyre_gate"],
 				"%s: stands in a doorway" % wall.prop_id)
 			if niche != null:
 				_assert(niche.get_index() == 0 and niche.texture.get_width() > wall.sprite.texture.get_width() / wall.sprite.hframes,

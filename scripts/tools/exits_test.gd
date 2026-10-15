@@ -38,6 +38,18 @@ const DOORWAYS := {
 	"seir_breakwater": [1523, 1573, 432],       # the lighthouse door
 	"seir_lighthouse_stair": [1485, 1535, 119], # the arch at the top of the stair
 	"seir_lighthouse": [1545, 1595, 495],       # the arch past the lamp room
+	"hall_elders_stair": [1517, 1567, 562], # the pointed arch past the crowns
+	"hall_outer_court": [1527, 1577, 570], # the arch under the sun
+	"hall_measured_temple": [1535, 1585, 502], # the arch by the measured windows
+	"hall_gallery_of_lamps": [1545, 1595, 507], # the arch past the stair
+	"hall_sea_of_glass": [1545, 1595, 522], # the arch over the glass
+	"hall_archive": [1507, 1557, 608], # the arch past the ladder
+	"hall_stones_of_fire": [1540, 1590, 500], # the arch beyond the plinth
+	"hall_ark_sanctum": [1545, 1595, 530], # the dark arch past the ark
+	"hall_thunders": [1540, 1590, 552], # the arch past the storm window
+	"hall_hail_gallery": [1520, 1570, 552], # the arch past the hail
+	"hall_flaming_way": [1533, 1583, 580], # the arch past the lamps
+	"hall_eden_gate": [1525, 1575, 542], # the burning arch of the gate
 	"tyre_causeway": [1550, 1600, 498],         # the gate's arch at the causeway's end
 	"tyre_counting_house": [1510, 1560, 574],   # the arch past the tellers' tables
 	"tyre_dark_quarter": [1535, 1585, 546],     # the alley mouth at the street's end

@@ -1,0 +1,34 @@
+{
+  "id": "hail_spirit",
+  "extends": "wraith",
+  "_comment": "A white whirlwind of hail: the wraith's body, iced. It never shoots at him: it calls hail onto the floor around him, and every stone shows its shadow first.",
+  "name": "ENEMY_HAIL_SPIRIT",
+  "lore": "ENEMY_HAIL_SPIRIT_LORE",
+  "tip": "TIP_HAIL_SPIRIT",
+  "hp": 45,
+  "color": "#dce8ff",
+  "sprite": {
+    "like": "wraith",
+    "tint": "#e8f0ff"
+  },
+  "attack": {
+    "type": "hail",
+    "range": 420,
+    "windup": 1.1,
+    "damage": 12,
+    "cooldown": 4.0,
+    "count": 3,
+    "spacing": 80,
+    "fall_time": 0.5,
+    "recover": 0.6,
+    "color": "#e8f0ff"
+  },
+  "light": {
+    "color": "#d8e8ff",
+    "radius": 56,
+    "energy": 0.8,
+    "flicker": 0.1
+  },
+  "essence": 16,
+  "voice": "wraith"
+}

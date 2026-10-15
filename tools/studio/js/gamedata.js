@@ -83,6 +83,8 @@ function gdFlags(files, code = {}) {
   for (const f of code.read || []) put(f, 'read', 'scripts/');
   for (const f of code.set || []) put(f, 'set', 'scripts/');
   for (const f of code.tests || []) { put(f, 'set', 'a test'); put(f, 'read', 'a test'); }
+  // FLAGS_AWAITED: the campaign's end reads them, a chapter still to come will write them
+  for (const f of code.awaited || []) if (!out[f]?.set.length) put(f, 'set', 'a chapter still to come');
   return out;
 }
 /* validate_data.gd, entry by entry: what the validator would refuse ({error}) or only say ({warn}) */
@@ -537,7 +539,7 @@ function renderStory() {
   const scene = s => String(s).replace('res://scenes/rooms/', '').replace('.tscn', '');
   const forkAfter = new Map(forks.map(f => [scene(f.after), f])), forkWay = new Map(forks.flatMap(f => Object.entries(f.options).map(([k, s]) => [scene(s), `${f.id}: ${k}`])));
   const rooms = (gdDoc(GD_ROOMS) || {});
-  const flags = gdFlags(cur, { read: GD.data.flags_read_in_code, set: GD.data.flags_set_in_code, tests: GD.data.flags_for_tests });
+  const flags = gdFlags(cur, { read: GD.data.flags_read_in_code, set: GD.data.flags_set_in_code, tests: GD.data.flags_for_tests, awaited: GD.data.flags_awaited });
   const ghosts = Object.entries(flags).filter(([, f]) => !f.set.length), orphans = Object.entries(flags).filter(([, f]) => !f.read.length);
   $('#gdSide_story').innerHTML = `<div class="card"><b>Флаги</b> <span class="muted">${Object.keys(flags).length}</span>
       <div class="${ghosts.length ? 'warn' : 'muted'}">Читаются, но нигде не ставятся (ветка недостижима — валидатор падает): ${ghosts.length ? esc(ghosts.map(([k]) => k).join(', ')) : 'нет'}</div>

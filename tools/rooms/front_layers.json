@@ -43,5 +43,9 @@
   ],
   "seir_wrecks": [
     {"from": "seir_wrecks_wide", "crop": [380, 40, 130, 220], "at": [892, 214], "depth": 1.35, "dark": 0.92, "cut": 38}
+  ],
+  "hall_measured_temple": [
+    {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [140, 160], "depth": 1.4, "dark": 0.6, "key": "alpha"},
+    {"from": "pieces/hall_temple_column", "crop": [0, 0, 61, 430], "at": [1390, 160], "depth": 1.4, "dark": 0.6, "key": "alpha", "flip": true}
   ]
 }

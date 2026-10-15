@@ -1211,5 +1211,314 @@
         "death": "res://assets/sprites/lion_horse_v2_death.png"
       }
     }
+  },
+  {
+    "id": "seraph",
+    "family": "hall",
+    "tier": 2,
+    "avatar": "res://assets/portraits/seraph.png",
+    "sprite": {
+      "cell": [
+        112,
+        74
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/seraph_v2_idle.png",
+        "walk": "res://assets/sprites/seraph_v2_walk.png",
+        "attack": "res://assets/sprites/seraph_v2_attack.png",
+        "attack_alt": "res://assets/sprites/seraph_v2_attack_alt.png",
+        "special": "res://assets/sprites/seraph_v2_special.png",
+        "hurt": "res://assets/sprites/seraph_v2_hurt.png",
+        "death": "res://assets/sprites/seraph_v2_death.png"
+      },
+      "scale": 1.0,
+      "pad_y": 7
+    }
+  },
+  {
+    "id": "measuring_angel",
+    "family": "hall",
+    "tier": 2,
+    "avatar": "res://assets/portraits/measuring_angel.png",
+    "sprite": {
+      "cell": [
+        120,
+        78
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/measuring_angel_v2_idle.png",
+        "walk": "res://assets/sprites/measuring_angel_v2_walk.png",
+        "attack": "res://assets/sprites/measuring_angel_v2_attack.png",
+        "attack_alt": "res://assets/sprites/measuring_angel_v2_attack_alt.png",
+        "special": "res://assets/sprites/measuring_angel_v2_special.png",
+        "hurt": "res://assets/sprites/measuring_angel_v2_hurt.png",
+        "death": "res://assets/sprites/measuring_angel_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
+    "id": "register_scribe",
+    "family": "hall",
+    "tier": 1,
+    "avatar": "res://assets/portraits/register_scribe.png",
+    "sprite": {
+      "cell": [
+        88,
+        56
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/register_scribe_v2_idle.png",
+        "walk": "res://assets/sprites/register_scribe_v2_walk.png",
+        "attack": "res://assets/sprites/register_scribe_v2_attack.png",
+        "attack_alt": "res://assets/sprites/register_scribe_v2_attack_alt.png",
+        "special": "res://assets/sprites/register_scribe_v2_special.png",
+        "hurt": "res://assets/sprites/register_scribe_v2_hurt.png",
+        "death": "res://assets/sprites/register_scribe_v2_death.png"
+      },
+      "scale": 1.0
+    }
+  },
+  {
+    "id": "cherub",
+    "family": "hall",
+    "tier": 3,
+    "avatar": "res://assets/portraits/cherub.png",
+    "sprite": {
+      "cell": [
+        172,
+        99
+      ],
+      "fps": 8,
+      "animations": {
+        "idle": "res://assets/sprites/cherub_v2_idle.png",
+        "walk": "res://assets/sprites/cherub_v2_walk.png",
+        "attack": "res://assets/sprites/cherub_v2_attack.png",
+        "attack_alt": "res://assets/sprites/cherub_v2_attack_alt.png",
+        "special": "res://assets/sprites/cherub_v2_special.png",
+        "hurt": "res://assets/sprites/cherub_v2_hurt.png",
+        "death": "res://assets/sprites/cherub_v2_death.png"
+      },
+      "scale": 1.0,
+      "head_at": [
+        -4,
+        -46
+      ],
+      "head_track": {
+        "idle": [
+          [
+            0,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            10,
+            1
+          ],
+          [
+            8,
+            0
+          ]
+        ],
+        "walk": [
+          [
+            7,
+            -3
+          ],
+          [
+            11,
+            -3
+          ],
+          [
+            11,
+            -3
+          ],
+          [
+            15,
+            -3
+          ],
+          [
+            17,
+            -2
+          ],
+          [
+            18,
+            -2
+          ],
+          [
+            13,
+            -2
+          ]
+        ],
+        "attack": [
+          [
+            -11,
+            35
+          ],
+          [
+            -28,
+            45
+          ],
+          [
+            -32,
+            27
+          ],
+          [
+            -9,
+            35
+          ],
+          [
+            -4,
+            34
+          ],
+          [
+            -3,
+            30
+          ],
+          [
+            -6,
+            39
+          ]
+        ],
+        "attack_alt": [
+          [
+            8,
+            2
+          ],
+          [
+            -11,
+            32
+          ],
+          [
+            0,
+            25
+          ],
+          [
+            8,
+            22
+          ],
+          [
+            18,
+            23
+          ],
+          [
+            10,
+            24
+          ],
+          [
+            -2,
+            38
+          ]
+        ],
+        "special": [
+          [
+            -16,
+            20
+          ],
+          [
+            -17,
+            18
+          ],
+          [
+            -18,
+            20
+          ],
+          [
+            -18,
+            38
+          ],
+          [
+            -19,
+            21
+          ],
+          [
+            -18,
+            22
+          ],
+          [
+            -20,
+            38
+          ]
+        ],
+        "hurt": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            8,
+            0
+          ]
+        ],
+        "death": [
+          [
+            -9,
+            21
+          ],
+          [
+            -16,
+            32
+          ],
+          [
+            -17,
+            34
+          ],
+          [
+            -23,
+            48
+          ],
+          [
+            -36,
+            61
+          ],
+          [
+            -6,
+            36
+          ],
+          [
+            -39,
+            60
+          ]
+        ]
+      }
+    }
   }
 ]

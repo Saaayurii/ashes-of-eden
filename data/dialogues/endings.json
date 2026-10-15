@@ -24,9 +24,7 @@
     "blocking": false,
     "start": "m1",
     "nodes": {
-      "m1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_END_MAN_1", "next": "m2"},
-      "m2": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_MAN_2", "next": "m3"},
-      "m3": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_MAN_3"}
+      "m1": {"speaker": "SPEAKER_ELIAN", "text": "DLG_END_MAN_1"}
     }
   },
   {
@@ -39,6 +37,24 @@
       "f3": {"speaker": "SPEAKER_VOICE", "text": "DLG_END_FOURTH_3", "next": "f4"},
       "f4": {"speaker": "SPEAKER_ELIAN", "text": "DLG_END_FOURTH_4", "next": "f5"},
       "f5": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_FOURTH_5"}
+    }
+  },
+  {
+    "id": "ending_garden",
+    "blocking": false,
+    "start": "g1",
+    "nodes": {
+      "g1": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_CH7_END_GARDEN_1", "next": "g2"},
+      "g2": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_CH7_END_GARDEN_2"}
+    }
+  },
+  {
+    "id": "ending_man_tail",
+    "blocking": false,
+    "start": "m2",
+    "nodes": {
+      "m2": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_MAN_2", "next": "m3"},
+      "m3": {"speaker": "SPEAKER_NARRATOR", "text": "DLG_END_MAN_3"}
     }
   }
 ]

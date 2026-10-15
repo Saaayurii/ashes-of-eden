@@ -84,7 +84,8 @@ func _ready() -> void:
 		strips = strips.duplicate()
 		strips["idle"] = sprite_spec.path
 	for anim in strips:
-		if Fx.add_strip(frames, strips[anim], cell, fps, anim, anim not in ["attack", "interact"]):
+		# a scene's pose ("special": the elders fall on their faces) is played once and held
+		if Fx.add_strip(frames, strips[anim], cell, fps, anim, anim not in ["attack", "interact", "special"]):
 			_has_anim[anim] = true
 	if _has_anim.has("idle"):
 		sprite.sprite_frames = frames
@@ -393,6 +394,12 @@ func _talk() -> void:
 	if dialogue and spec.has("dialogue"):
 		# Talked to where they stand: the lines go over their head, not into a panel.
 		dialogue.play_bubble(spec.dialogue, self, visitor if visitor != null else self)
+
+
+## A cutscene's "anim" step: one of this person's strips, played where they stand.
+func play_scripted(animation: String) -> void:
+	if _has_anim.has(animation):
+		sprite.play(animation)
 
 
 func _end_action_animation() -> void:

@@ -133,7 +133,7 @@ function cpEndingsProblems(list, game, ctx) {
   if (!('finale' in game)) { if (list.length) out.push('концовки есть, а финала (game.json "finale") нет — негде кончаться кампании'); return out; }
   const f = game.finale;
   if (!f || typeof f !== 'object' || Array.isArray(f)) return [...out, 'finale — {room, cutscene, ends_campaign}'];
-  if (!(game.rooms || []).includes(f.room)) out.push(`комната финала должна быть из первой ночи: ${f.room ?? '—'}`);
+  if (!cpNights(game).flatMap(n => n.rooms || []).includes(f.room)) out.push(`комната финала должна быть из какой-нибудь ночи: ${f.room ?? '—'}`);
   if ('cutscene' in f && !ctx.cutscenes.includes(f.cutscene)) out.push(`нет катсцены финала ${f.cutscene}`);
   if ('ends_campaign' in f && typeof f.ends_campaign !== 'boolean') out.push('ends_campaign — да или нет');
   return out;
@@ -466,8 +466,8 @@ function renderRoute() {
       <label><span><input type="checkbox" data-cp="wake"${cur.opening?.wake === false ? '' : ' checked'}> встаёт из могилы (иначе входит на ногах)</span></label>
       ${[['prologue', 'пролог', 'c'], ['prologue_short', 'короткий пролог', 'c'], ['intro', 'вступление', 'd'], ['last_fall', 'там, где пал прошлой ночью', 'd']].map(([k, l, t]) => `<label>${l} <span class="muted">${k}</span><select data-cp="open" data-k="${k}">${cpOpt(t === 'c' ? ctx.cutscenes : ctx.dialogues, cur.opening?.[k] || '', '—')}</select></label>`).join('')}
       ${cur.id && !(cur.rooms || []).length ? '<button class="sm" data-cp-act="night-del">✕ Убрать пустую ночь</button>' : ''}</div>
-    <div class="card"><b>Финал</b> <span class="muted">комната первой ночи, после которой кончается кампания</span>
-      <label>комната<select data-cp="finale.room">${cpOpt(game.rooms.map(String), game.finale?.room || '', '— нет финала')}</select></label>
+    <div class="card"><b>Финал</b> <span class="muted">комната любой ночи, после которой кончается кампания</span>
+      <label>комната<select data-cp="finale.room">${cpOpt(cpNights(game).flatMap(n => n.rooms || []).map(String), game.finale?.room || '', '— нет финала')}</select></label>
       <label>катсцена перед концовкой<select data-cp="finale.cutscene">${cpOpt(ctx.cutscenes, game.finale?.cutscene || '', '—')}</select></label>
       <label><span><input type="checkbox" data-cp="finale.ends"${game.finale?.ends_campaign ? ' checked' : ''}> кампания здесь кончается (иначе рассвет и «продолжение следует»)</span></label></div>`;
   const rooms = cur.rooms || [];

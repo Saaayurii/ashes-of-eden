@@ -1,0 +1,22 @@
+{
+  "id": "hall_cache_crown",
+  "_art": "the chest behind a marble secret wall (secret_wall_hall_*) (docs/CHAPTER7.md §4 Тайники)",
+  "kind": "chest",
+  "essence": 30,
+  "ash": 15,
+  "note": "note_crown",
+  "glow": "#f2e0b0",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_wooden.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/realm/badge_2.png"
+  ]
+}
