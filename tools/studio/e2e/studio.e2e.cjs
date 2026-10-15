@@ -35,9 +35,10 @@ function restore() {
 const steps = [];
 async function step(name, fn) {
   process.stdout.write(`  … ${name}\n`);
+  const t = Date.now();
   await fn();
   steps.push(name);
-  process.stdout.write(`  ok ${name}\n`);
+  process.stdout.write(`  ok ${name} (${((Date.now() - t) / 1000).toFixed(1)} s)\n`);
 }
 
 (async () => {
@@ -462,6 +463,9 @@ async function step(name, fn) {
         return n;
       });
       assert.ok(moving > 500, `the picture should breathe, ${moving} pixels changed`);
+      // measured: now still the preview's own loop. On a runner with no GPU each of its frames is
+      // drawn in software and takes seconds, and every mouse event and wait below waits for one.
+      await page.evaluate(() => { cancelAnimationFrame(LIFE.raf); LIFE.raf = -1; });
       await page.evaluate(() => { $('#lifeNewKind').value = 'glow'; $('#lifeDraw').click(); });
       const box = await page.locator('#lifeOver').boundingBox();
       await page.mouse.move(box.x + box.width * 0.05, box.y + box.height * 0.1); await page.mouse.down();
@@ -472,7 +476,7 @@ async function step(name, fn) {
       await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 180000 });
       const diff = git('diff', '--numstat', '--', 'data/backdrops.json').trim();
       assert.equal(diff, '2\t1\tdata/backdrops.json', diff);
-      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+      await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); LIFE.raf = 0; });
     });
 
     await step('a platform piece redrawn at another size goes in fitted to its own', async () => {

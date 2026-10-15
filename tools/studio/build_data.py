@@ -70,10 +70,22 @@ def rev(root: Path, *res):
     return h.hexdigest()[:12]
 
 
+## --png-cache: what the last build drew out of pictures — the frames it encoded, by their pixels,
+## a painting's seam scores, by its bytes. That is most of the build, and the local studio server
+## builds after every write, when almost none of them have changed.
+PNG_CACHE: dict[str, object] = {}
+PNG_USED: dict[str, object] = {}
+
+
 def data_url(img: Image.Image) -> str:
-    buf = io.BytesIO()
-    img.save(buf, "PNG", optimize=True)
-    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+    key = hashlib.sha1(f"{img.mode}{img.size}".encode() + img.tobytes()).hexdigest()
+    url = PNG_CACHE.get(key)
+    if url is None:
+        buf = io.BytesIO()
+        img.save(buf, "PNG", optimize=True)
+        url = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+    PNG_USED[key] = url
+    return url
 
 
 # ------------------------------------------------------------- characters ---
@@ -708,15 +720,18 @@ def seams(root: Path):
         if not path.exists():
             continue
         amount = 120 if r.get("interior") else 160
-        im = Image.open(path).convert("L")
-        detail = lambda box: ImageStat.Stat(im.crop(box).filter(ImageFilter.FIND_EDGES)).mean[0]
-        whole = max(1.0, detail((0, 0, im.width, im.height)))
-        bands = []
-        for i, cut in enumerate(points):
-            x0 = cut + i * amount
-            # how busy the band is against the painting as a whole: fog and dark stone hide a twin, banners do not
-            bands.append({"x": x0, "w": amount, "cut": cut, "score": round(detail((x0, 0, x0 + amount, im.height)) / whole, 2)})
-        out[res] = {"room": room, "w": im.width, "h": im.height, "bands": bands}
+        key = "seams:" + hashlib.sha1(path.read_bytes() + repr((room, points, amount)).encode()).hexdigest()
+        if key not in PNG_CACHE:
+            im = Image.open(path).convert("L")
+            detail = lambda box: ImageStat.Stat(im.crop(box).filter(ImageFilter.FIND_EDGES)).mean[0]
+            whole = max(1.0, detail((0, 0, im.width, im.height)))
+            bands = []
+            for i, cut in enumerate(points):
+                x0 = cut + i * amount
+                # how busy the band is against the painting as a whole: fog and dark stone hide a twin, banners do not
+                bands.append({"x": x0, "w": amount, "cut": cut, "score": round(detail((x0, 0, x0 + amount, im.height)) / whole, 2)})
+            PNG_CACHE[key] = {"room": room, "w": im.width, "h": im.height, "bands": bands}
+        out[res] = PNG_USED[key] = PNG_CACHE[key]
     return out
 
 
@@ -771,7 +786,12 @@ def enemy_places(root: Path, raw, resolved, strings):
         for area in json.loads(f.read_text(encoding="utf-8")):
             for res in area.get("rooms", []):
                 chapter[res] = (ru(area.get("chapter", "")).split(" · ")[0], ru(area.get("title", "")))
-    props = {f.stem: json.loads(f.read_text(encoding="utf-8")) for f in (root / "data/props").glob("*.json")}
+    props = {}  # by id, as Data reads them: a file holds one entry or a list of them
+    for f in (root / "data/props").glob("*.json"):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        for entry in doc if isinstance(doc, list) else [doc]:
+            if isinstance(entry, dict):
+                props[str(entry.get("id", f.stem))] = entry
     seen, why = {}, {}
 
     def meet(eid, chap, area):
@@ -1155,7 +1175,13 @@ def main():
     ap.add_argument("--content-base", default="", help="prefix for the pack's own files (content/…): its raw URL, or a local path")
     ap.add_argument("--content-sha", default="", help="the pack's commit (default: content/'s own git HEAD, when it is a checkout)")
     ap.add_argument("--engine-repo", default=REPO)
+    ap.add_argument("--png-cache", type=Path, help="keep the encoded frames in this file between builds (the local studio server)")
     a = ap.parse_args()
+    if a.png_cache and a.png_cache.exists():
+        try:
+            PNG_CACHE.update(json.loads(a.png_cache.read_text(encoding="utf-8")))
+        except ValueError:
+            pass  # a cache cut short is only a slower build
     root, pack = ROOT, None
     sys.path.insert(0, str(ROOT / "tools" / "packs"))
     from game_view import game_view, pack_game
@@ -1168,6 +1194,9 @@ def main():
         pack = {"repo": a.repo, "branch": a.branch, "sha": content_sha, "content_base": a.content_base or a.asset_base + "content/",
                 "engine": {"repo": a.engine_repo, "sha": a.sha or head_sha(ROOT)}}
     print(build(root, Path(a.out), a.asset_base, a.branch, a.sha or head_sha(ROOT), pack))
+    if a.png_cache:
+        a.png_cache.parent.mkdir(parents=True, exist_ok=True)
+        a.png_cache.write_text(json.dumps(PNG_USED), encoding="utf-8")
 
 
 if __name__ == "__main__":

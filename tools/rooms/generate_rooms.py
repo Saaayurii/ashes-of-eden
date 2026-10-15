@@ -2212,8 +2212,36 @@ if __name__ == "__main__" and "--pack" in sys.argv:
         raise SystemExit("unreachable mandatory route in the pack's rooms")
     sys.exit(0)
 
+def rooms_for(paths):
+    """The rooms that write these files (the studio's edits of them, tools/art/studio_overrides.py),
+    or None when one of them is not a single room's own: then every room is built."""
+    rooms = set()
+    for rel in paths:
+        folder, stem = os.path.dirname(rel), os.path.basename(rel).removesuffix(".png")
+        if folder == "assets/levels" and stem.endswith("_wide"):
+            hits = {n for n, r in ROOMS.items() if r.get("painting") == stem.removesuffix("_wide")}
+        elif folder == "assets/levels/depth" and stem.endswith("_backfill_wide"):
+            hits = {n for n, r in ROOMS.items() if r.get("painting") == stem.removesuffix("_backfill_wide")}
+        elif folder == "assets/levels/composed":
+            hits = {stem.removesuffix("_backfill")} & COMPOSED.keys()
+        elif folder == "assets/levels/front":
+            hits = {stem.rsplit("_", 1)[0].removeprefix("composed_")} & ROOMS.keys()
+        else:
+            hits = set()
+        if not hits:
+            return None
+        rooms |= hits
+    return rooms
+
+
 if __name__ == "__main__":
-    selected = set(sys.argv[1:])
+    # `--for <file>…`: only the rooms that write those files (the studio server, after an edit of one)
+    args = sys.argv[1:]
+    cut = args.index("--for") if "--for" in args else len(args)
+    selected = set(args[:cut])
+    if cut < len(args):
+        rooms = rooms_for(args[cut + 1:])
+        selected = selected | rooms if rooms is not None else set()
     unknown = selected - ROOMS.keys()
     if unknown:
         raise SystemExit("unknown rooms: " + ", ".join(sorted(unknown)))
@@ -2236,23 +2264,26 @@ if __name__ == "__main__":
             if DEPTH_WINDOWS[name][1]:
                 _expand_panel("depth/" + room["painting"] + "_backfill", room["_x_inserts"], FOCAL_RANGES.get(name, ()))
         build(name, room)
-    if not selected:
-        # a composed room taken out of the table, or gone live, leaves no draft behind
-        for folder, ext, keep in (("scenes/rooms/composed", ".tscn", lambda n: not COMPOSED[n].get("live")),
-                                  ("assets/levels/composed", ".png", lambda n: True),
-                                  ("assets/levels/composed", "_backfill.png", lambda n: compose.windows(COMPOSED[n], compose.owners(PAINTED, DEPTH_WINDOWS)))):
-            for file in sorted(glob.glob(os.path.join(ROOT, folder, "*" + ext))):
-                stem = os.path.basename(file)[:-len(ext)]
-                if ext == ".png" and stem.endswith("_backfill"):
-                    continue
-                if stem not in COMPOSED or not keep(stem):
-                    for stale in (file, file + ".import"):
-                        if os.path.exists(stale):
-                            os.unlink(stale)
-        for file in sorted(glob.glob(os.path.join(front.OUT, "*.png"))):
-            if os.path.basename(file) not in FRONT_WRITTEN:
+    # Rooms named on the command line (the studio server names the ones a write changed) sweep
+    # only their own leftovers: what they write is then what a full run would leave of them.
+    ours = (lambda stem: True) if not selected else (lambda stem: stem in selected)
+    # a composed room taken out of the table, or gone live, leaves no draft behind
+    for folder, ext, keep in (("scenes/rooms/composed", ".tscn", lambda n: not COMPOSED[n].get("live")),
+                              ("assets/levels/composed", ".png", lambda n: True),
+                              ("assets/levels/composed", "_backfill.png", lambda n: compose.windows(COMPOSED[n], compose.owners(PAINTED, DEPTH_WINDOWS)))):
+        for file in sorted(glob.glob(os.path.join(ROOT, folder, "*" + ext))):
+            stem = os.path.basename(file)[:-len(ext)]
+            if ext == ".png" and stem.endswith("_backfill"):
+                continue
+            if ours(stem) and (stem not in COMPOSED or not keep(stem)):
                 for stale in (file, file + ".import"):
                     if os.path.exists(stale):
                         os.unlink(stale)
+    for file in sorted(glob.glob(os.path.join(front.OUT, "*.png"))):
+        key = os.path.basename(file)[:-4].rsplit("_", 1)[0]  # <room>_<i>, composed_<room>_<i> for a draft
+        if ours(key.removeprefix("composed_")) and os.path.basename(file) not in FRONT_WRITTEN:
+            for stale in (file, file + ".import"):
+                if os.path.exists(stale):
+                    os.unlink(stale)
     if failed:
         raise SystemExit("unreachable mandatory route in: " + ", ".join(failed))
