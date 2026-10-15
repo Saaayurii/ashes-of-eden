@@ -14,7 +14,8 @@
     "dusk": {"flame": 0.45, "flame_floor": 0.8},
     "harbour": {"flame": 0.5, "flame_floor": 0.6},
     "tyre": {"flame": 0.55, "flame_floor": 0.62},
-    "marah": {"flame": 0.5, "flame_floor": 0.66}
+    "marah": {"flame": 0.5, "flame_floor": 0.66},
+    "abbey": {"flame": 0.5, "flame_floor": 0.62}
   },
   "rooms": {
     "prolog_1_walk_a": {"family": "dusk", "zones": []},
@@ -672,6 +673,105 @@
       {"kind": "sway", "rect": [1340, 205, 30, 60], "anchor": "hangs", "strength": 1.0},
       {"kind": "sway", "rect": [1520, 0, 80, 130], "anchor": "stands", "strength": 0.6},
       {"kind": "glow", "rect": [1560, 480, 30, 40], "tint": "#ff8040", "strength": 0.2, "speed": 0.6}
+    ]},
+    "euphrates_bank": {"family": "abbey", "zones": [
+      {"kind": "water", "rect": [1060, 405, 500, 180]},
+      {"kind": "sway", "rect": [640, 380, 180, 140]},
+      {"kind": "sway", "rect": [1000, 400, 180, 130], "strength": 0.8},
+      {"kind": "sway", "rect": [1200, 440, 200, 100]},
+      {"kind": "sway", "rect": [0, 0, 120, 300], "strength": 0.7, "speed": 0.6},
+      {"kind": "glow", "rect": [1010, 50, 70, 80], "tint": "#dfe8ff", "strength": 0.12, "speed": 0.35},
+      {"kind": "haze", "rect": [600, 300, 1000, 160]}
+    ]},
+    "euphrates_town": {"family": "abbey", "zones": [
+      {"kind": "sway", "rect": [400, 220, 560, 80], "strength": 0.8, "speed": 0.7},
+      {"kind": "sway", "rect": [960, 220, 250, 60], "strength": 0.8, "speed": 0.7},
+      {"kind": "sway", "rect": [100, 100, 300, 80], "strength": 0.7},
+      {"kind": "sway", "rect": [1380, 80, 220, 80], "strength": 0.7},
+      {"kind": "glow", "rect": [300, 420, 450, 80], "tint": "#ffc070", "strength": 0.18, "speed": 0.5},
+      {"kind": "glow", "rect": [1240, 370, 200, 120], "tint": "#ffc070", "strength": 0.2, "speed": 0.5},
+      {"kind": "water", "rect": [0, 640, 1600, 80]}
+    ]},
+    "euphrates_gate": {"family": "abbey", "zones": [
+      {"kind": "glow", "rect": [0, 410, 250, 110], "tint": "#ffc070", "strength": 0.18, "speed": 0.6},
+      {"kind": "glow", "rect": [1300, 240, 80, 60], "tint": "#ffc070", "strength": 0.18, "speed": 0.6},
+      {"kind": "glow", "rect": [1400, 460, 180, 80], "tint": "#ffc070", "strength": 0.18, "speed": 0.6},
+      {"kind": "water", "rect": [90, 500, 70, 90]}
+    ]},
+    "euphrates_cloister": {"family": "abbey", "zones": [
+      {"kind": "sway", "rect": [240, 300, 300, 200], "strength": 0.6, "speed": 0.5},
+      {"kind": "sway", "rect": [740, 200, 90, 120], "strength": 0.7},
+      {"kind": "stars", "rect": [680, 0, 240, 160]},
+      {"kind": "stars", "rect": [240, 300, 1160, 100]},
+      {"kind": "haze", "rect": [220, 420, 1180, 140]},
+      {"kind": "water", "rect": [600, 460, 700, 40]}
+    ]},
+    "euphrates_scriptorium": {"family": "abbey", "zones": [
+      {"kind": "haze", "rect": [580, 500, 320, 120], "strength": 0.7},
+      {"kind": "haze", "rect": [980, 220, 280, 100], "strength": 0.7},
+      {"kind": "haze", "rect": [200, 80, 250, 90], "strength": 0.6}
+    ]},
+    "euphrates_refectory": {"family": "abbey", "zones": [
+      {"kind": "glow", "rect": [1300, 400, 160, 160], "tint": "#ffc070", "strength": 0.25, "speed": 0.5},
+      {"kind": "haze", "rect": [280, 430, 1000, 110], "strength": 0.6}
+    ]},
+    "euphrates_altar_court": {"family": "abbey", "zones": [
+      {"kind": "glow", "rect": [720, 370, 180, 100], "tint": "#ffd060", "strength": 0.2, "speed": 0.25},
+      {"kind": "pulse", "rect": [720, 340, 180, 60], "strength": 0.4, "speed": 0.4},
+      {"kind": "stars", "rect": [0, 0, 1600, 90]},
+      {"kind": "water", "rect": [650, 190, 300, 110]},
+      {"kind": "water", "rect": [880, 190, 640, 50]},
+      {"kind": "sway", "rect": [100, 40, 320, 220], "strength": 0.8, "speed": 0.7}
+    ]},
+    "euphrates_crypt_of_chains": {"family": "abbey", "zones": [
+      {"kind": "sway", "rect": [640, 400, 60, 70], "strength": 0.5},
+      {"kind": "sway", "rect": [1100, 420, 100, 80], "strength": 0.5},
+      {"kind": "sway", "rect": [1300, 440, 120, 70], "strength": 0.5},
+      {"kind": "sway", "rect": [1320, 160, 200, 70], "strength": 0.5},
+      {"kind": "pulse", "rect": [550, 0, 80, 80], "tint": "#cfe0ff", "strength": 0.35},
+      {"kind": "pulse", "rect": [960, 0, 80, 60], "tint": "#cfe0ff", "strength": 0.35},
+      {"kind": "pulse", "rect": [1360, 0, 80, 60], "tint": "#cfe0ff", "strength": 0.35},
+      {"kind": "falls", "rect": [600, 300, 20, 40]}
+    ]},
+    "euphrates_cistern": {"family": "abbey", "zones": [
+      {"kind": "water", "rect": [0, 500, 1600, 220]},
+      {"kind": "falls", "rect": [300, 90, 10, 60]},
+      {"kind": "falls", "rect": [1300, 100, 10, 60]},
+      {"kind": "haze", "rect": [0, 420, 1600, 140]}
+    ]},
+    "euphrates_river_stair": {"family": "abbey", "zones": [
+      {"kind": "falls", "rect": [205, 300, 40, 280]},
+      {"kind": "falls", "rect": [365, 280, 30, 220]},
+      {"kind": "falls", "rect": [470, 300, 30, 200]},
+      {"kind": "glow", "rect": [760, 310, 60, 60], "tint": "#ffc070", "strength": 0.22, "speed": 0.6},
+      {"kind": "water", "rect": [0, 640, 1600, 70]},
+      {"kind": "stars", "rect": [1060, 0, 380, 100]}
+    ]},
+    "euphrates_bound": {"family": "abbey", "zones": [
+      {"kind": "falls", "rect": [100, 35, 1380, 70]},
+      {"kind": "falls", "rect": [340, 100, 20, 120]},
+      {"kind": "falls", "rect": [1100, 100, 20, 120]},
+      {"kind": "water", "rect": [0, 590, 1600, 40]},
+      {"kind": "pulse", "rect": [115, 520, 110, 80], "tint": "#cfe0ff", "strength": 0.5},
+      {"kind": "pulse", "rect": [660, 520, 110, 80], "tint": "#cfe0ff", "strength": 0.5},
+      {"kind": "pulse", "rect": [840, 520, 110, 80], "tint": "#cfe0ff", "strength": 0.5},
+      {"kind": "pulse", "rect": [1380, 520, 110, 80], "tint": "#cfe0ff", "strength": 0.5}
+    ]},
+    "composed/euphrates_bell_tower": {"family": "abbey", "zones": [
+      {"kind": "sway", "rect": [285, 140, 110, 120], "strength": 0.4, "speed": 0.3},
+      {"kind": "sway", "rect": [440, 130, 140, 140], "strength": 0.4, "speed": 0.3},
+      {"kind": "sway", "rect": [630, 140, 110, 120], "strength": 0.4, "speed": 0.3},
+      {"kind": "sway", "rect": [680, 710, 20, 580], "strength": 0.6},
+      {"kind": "sway", "rect": [1040, 880, 40, 360], "strength": 0.6},
+      {"kind": "sway", "rect": [140, 760, 130, 180], "strength": 0.3, "speed": 0.3},
+      {"kind": "pulse", "rect": [480, 440, 50, 50], "tint": "#cfe0ff", "strength": 0.35},
+      {"kind": "pulse", "rect": [555, 990, 40, 50], "tint": "#cfe0ff", "strength": 0.35},
+      {"kind": "pulse", "rect": [905, 1000, 40, 50], "tint": "#cfe0ff", "strength": 0.35},
+      {"kind": "stars", "rect": [70, 80, 110, 300]},
+      {"kind": "stars", "rect": [960, 240, 160, 240]},
+      {"kind": "water", "rect": [70, 420, 110, 70]},
+      {"kind": "water", "rect": [960, 450, 160, 50]},
+      {"kind": "haze", "rect": [40, 1150, 1200, 200], "strength": 0.6}
     ]}
   }
 }

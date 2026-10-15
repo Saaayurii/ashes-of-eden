@@ -1,0 +1,14 @@
+{
+  "id": "voice_from_the_horns",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.4},
+    {"do": "camera", "to": [640, 300], "zoom": 1.1, "time": 1.4},
+    {"do": "fx", "kind": "light", "at": [640, 300], "color": "#ffd070", "radius": 110, "time": 2.0, "energy": 0.9},
+    {"do": "sound", "name": "bell", "volume": -8},
+    {"do": "dialogue", "id": "ch6_horns", "cast": {"SPEAKER_ELIAN": "player"}},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.9},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
+  ]
+}

@@ -41,6 +41,8 @@ GENERATORS = [
      ["assets/props/altar_book.png"], False),
     ("blood altar", ["tools/art/make_blood_altar.py"],
      ["assets/props/blood_altar.png"], False),
+    ("chain ring", ["tools/art/make_chain_ring.py"],
+     ["assets/props/chain_ring.png"], False),
     # the living liquids' body textures and strips (data/liquids.json, scripts/rooms/hazard.gd)
     ("liquids", ["tools/art/make_liquids.py"],
      ["assets/fx/liquids", "tools/art/contact/liquids.png"], False),

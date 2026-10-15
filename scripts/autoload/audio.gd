@@ -117,6 +117,11 @@ const MIX := {
 	&"summon": [-2.0, 0.70, 0.05],
 	# the world
 	&"door_open": [-5.0, 0.85, 0.0],
+	# chapter VI's chains (scripts/enemies/tether.gd, scripts/rooms/chain_ring.gd)
+	&"chain_strain": [-7.0, 1.0, 0.08],
+	&"chain_snap": [-5.0, 1.0, 0.08],
+	&"chain_unlock": [-4.0, 1.0, 0.03],
+	&"censer_swing": [-9.0, 1.0, 0.1],
 	&"prop_break": [-4.0, 1.0, 0.08],
 	# the pools (data/liquids.json, Hazard): going in, coming out, wading, and their breath
 	&"splash": [-6.0, 1.0, 0.10],

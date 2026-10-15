@@ -60,6 +60,11 @@ GAME_CELLS = {
     # Seir (chapter II), drawn by Codex's image generation (assets/CREDITS.md)
     "waiting_townsman": (52, 52), "drowned": (60, 60), "gate_warden": (72, 72),
     "drowned_bosun": (96, 84), "watchman": (88, 88),
+    # the Euphrates (chapter VI), drawn by Codex's image generation (assets/CREDITS.md)
+    "four_bound": (72, 72),
+    "flagellant": (52, 49), "censer_monk": (52, 47), "chained_penitent": (56, 36),
+    "horseman": (96, 70), "river_wraith": (52, 43), "fettered_angel": (52, 49),
+    "lion_horse": (100, 62),
 }
 
 
@@ -465,7 +470,7 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     """Every creature's seven strips; returns the strip cell of each and how
     many rows were added above a flyer's drawing (its "pad_y")."""
     atlas_dir = SPRITES / "enemy_atlases"
-    flyers = {"raven", "shade", "wraith", "ophanim"}
+    flyers = {"raven", "shade", "wraith", "ophanim", "river_wraith", "fettered_angel"}
     cells: dict[str, tuple[tuple[int, int], int]] = {}
     for enemy, target_cell in GAME_CELLS.items():
         if not wanted(enemy):

@@ -1,0 +1,27 @@
+{
+  "id": "euphrates_cache_chain_roll",
+  "_art": "the chest behind a bricked-up wall; the wall is cut from the room's painting by tools/art/make_secret_walls.py once it exists",
+  "kind": "chest",
+  "essence": 30,
+  "ash": 15,
+  "note": "note_chain_roll",
+  "glow": "#e0c890",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_wooden.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/quest/letter_2.png"
+  ],
+  "effect": {
+    "set_flags": [
+      "read_chain_roll"
+    ]
+  }
+}

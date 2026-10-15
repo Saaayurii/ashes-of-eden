@@ -537,6 +537,59 @@ def wingbeat_sfx():
         write(os.path.join(SFX_DIR, "wingbeat_%d.wav" % take), wingbeat(60 + take), SFX_RATE)
 
 
+def links(rng, seconds, count, cutoff):
+    """A run of iron links knocking together: short bright ticks, unevenly spaced."""
+    out = silence(seconds, SFX_RATE)
+    for _ in range(count):
+        tick = env(mix(highpass(noise(0.05, SFX_RATE), cutoff, SFX_RATE),
+                       [v * 0.4 for v in tone(0.05, SFX_RATE, rng.uniform(1900, 3100))]), 0.001, 1.0, 6.0)
+        place(out, tick, rng.uniform(0.0, seconds - 0.06), rng.uniform(0.25, 0.8))
+    return out
+
+
+def chain_strain(rng):
+    """A chain pulled to its end (scripts/combat/tether.gd): links rattle, then a dull iron groan."""
+    out = links(rng, 0.55, 9, 2400)
+    groan = env(tone(0.45, SFX_RATE, rng.uniform(95, 120), rng.uniform(70, 85), "tri"), 0.04, 1.0, 1.8)
+    place(out, groan, 0.08, 0.7)
+    return normalize(out, 0.6)
+
+
+def chain_snap(rng):
+    """A chain caught short: one hard clank and the links ringing after it."""
+    out = links(rng, 0.42, 6, 3000)
+    clank = env(mix(lowpass(noise(0.07, SFX_RATE), 2600, SFX_RATE),
+                    [v * 0.5 for v in tone(0.25, SFX_RATE, rng.uniform(560, 720))]), 0.001, 1.0, 3.2)
+    place(out, clank, 0.0, 1.0)
+    return normalize(out, 0.7)
+
+
+def chain_unlock(rng):
+    """The abbot's key in a ring (scripts/rooms/chain_ring.gd): a turn, a click, the chain falling."""
+    out = silence(0.9, SFX_RATE)
+    turn = env(lowpass(noise(0.16, SFX_RATE), 1400, SFX_RATE), 0.03, 1.0, 1.5)
+    click = env(mix(highpass(noise(0.03, SFX_RATE), 2500, SFX_RATE),
+                    [v * 0.6 for v in tone(0.12, SFX_RATE, rng.uniform(1300, 1500))]), 0.001, 1.0, 4.0)
+    place(out, turn, 0.0, 0.5)
+    place(out, click, 0.17, 0.9)
+    place(out, links(rng, 0.6, 10, 2000), 0.28, 0.8)
+    return normalize(out, 0.65)
+
+
+def censer_swing(rng):
+    """A censer on its chain: a soft whoosh through the air and the links ticking."""
+    whoosh = env(lowpass(noise(0.5, SFX_RATE), rng.uniform(900, 1300), SFX_RATE), 0.18, 1.0, 1.6)
+    return normalize(mix([v * 0.8 for v in whoosh], links(rng, 0.5, 4, 2800)), 0.5)
+
+
+def chain_sfx():
+    """Chapter VI's chains, three takes each, from their own seeds."""
+    for name, make, base in (("chain_strain", chain_strain, 80), ("chain_snap", chain_snap, 90),
+                             ("chain_unlock", chain_unlock, 100), ("censer_swing", censer_swing, 110)):
+        for take in (1, 2, 3):
+            write(os.path.join(SFX_DIR, "%s_%d.wav" % (name, take)), make(random.Random(base + take)), SFX_RATE)
+
+
 SFX = {
     "bell": bell,
     "swing": swing,
@@ -605,6 +658,9 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["lamp"]:  # only the lamps of Tyre: python3 tools/audio/generate_sfx.py lamp
         lamp_sfx()
         sys.exit(0)
+    if sys.argv[1:] == ["chains"]:  # only chapter VI's chains: python3 tools/audio/generate_sfx.py chains
+        chain_sfx()
+        sys.exit(0)
     if sys.argv[1:] == ["wingbeat"]:  # only the ravens' wings: python3 tools/audio/generate_sfx.py wingbeat
         wingbeat_sfx()
         sys.exit(0)
@@ -618,3 +674,4 @@ if __name__ == "__main__":
     rustle_sfx()
     wingbeat_sfx()
     lamp_sfx()
+    chain_sfx()
