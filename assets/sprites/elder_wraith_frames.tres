@@ -1,0 +1,411 @@
+[gd_resource type="SpriteFrames" load_steps=60 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/elder_wraith_idle.png" id="tex_elder_wraith_idle"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elder_wraith_walk.png" id="tex_elder_wraith_walk"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elder_wraith_attack.png" id="tex_elder_wraith_attack"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elder_wraith_hurt.png" id="tex_elder_wraith_hurt"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elder_wraith_shoot.png" id="tex_elder_wraith_shoot"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elder_wraith_special.png" id="tex_elder_wraith_special"]
+[ext_resource type="Texture2D" path="res://assets/sprites/elder_wraith_death.png" id="tex_elder_wraith_death"]
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_0"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_1"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_2"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_3"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_4"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_5"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_6"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_idle_7"]
+atlas = ExtResource("tex_elder_wraith_idle")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_0"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_1"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_2"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_3"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_4"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_5"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_6"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_walk_7"]
+atlas = ExtResource("tex_elder_wraith_walk")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_0"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_1"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_2"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_3"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_4"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_5"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_6"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_attack_7"]
+atlas = ExtResource("tex_elder_wraith_attack")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_hurt_0"]
+atlas = ExtResource("tex_elder_wraith_hurt")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_hurt_1"]
+atlas = ExtResource("tex_elder_wraith_hurt")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_hurt_2"]
+atlas = ExtResource("tex_elder_wraith_hurt")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_hurt_3"]
+atlas = ExtResource("tex_elder_wraith_hurt")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_0"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_1"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_2"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_3"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_4"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_5"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_6"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_shoot_7"]
+atlas = ExtResource("tex_elder_wraith_shoot")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_0"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_1"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_2"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_3"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_4"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_5"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_6"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_special_7"]
+atlas = ExtResource("tex_elder_wraith_special")
+region = Rect2(896, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_0"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(0, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_1"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(128, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_2"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(256, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_3"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(384, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_4"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(512, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_5"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(640, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_6"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(768, 0, 128, 64)
+
+[sub_resource type="AtlasTexture" id="elder_wraith_death_7"]
+atlas = ExtResource("tex_elder_wraith_death")
+region = Rect2(896, 0, 128, 64)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_idle_7")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_walk_7")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_attack_7")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elder_wraith_hurt_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_hurt_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_hurt_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_hurt_3")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_shoot_7")
+}],
+"loop": false,
+"name": &"shoot",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_special_7")
+}],
+"loop": false,
+"name": &"special",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("elder_wraith_death_7")
+}],
+"loop": false,
+"name": &"death",
+"speed": 8.0
+}]

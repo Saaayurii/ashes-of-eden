@@ -136,12 +136,32 @@ class Overrides(unittest.TestCase):
         self.assertTrue(self.red_at(rel, 103, 101))
 
     def test_the_bestiary_keeps_her_touch_up(self):
+        # `--for` builds only the creature the edit was drawn on: what the studio server asks for
         rel = "assets/sprites/cultist_v2_idle.png"
         self.touched += ["assets/sprites", "assets/portraits", "data/enemy_archetypes/tree.json"]
+        other = ROOT / "assets/sprites/zealot_v2_idle.png"
+        stamp = other.stat().st_mtime_ns
         self.override(rel, x=30, y=40, w=3, h=3)
-        r = self.run_gen("tools/art/build_bestiary_assets.py")
+        r = self.run_gen("tools/art/build_bestiary_assets.py", "--for", rel)
         self.assertEqual(r.returncode, 0, r.stderr[-2000:])
         self.assertTrue(self.red_at(rel, 31, 41))
+        self.assertEqual(other.stat().st_mtime_ns, stamp, "another creature is not built")
+
+    def test_regenerating_one_edit_builds_its_room_alone_and_a_removed_edit_goes(self):
+        rel = "assets/levels/graveyard_arches_wide.png"
+        self.touched += ["assets/levels", "scenes/rooms"]
+        clean = Image.open(ROOT / rel).convert("RGBA").getpixel((101, 101))
+        self.override(rel, x=100, y=100, w=6, h=3)
+        out = subprocess.run([sys.executable, "tools/art/studio_overrides.py", "regenerate", rel], cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(out.returncode, 0, out.stderr[-2000:])
+        self.assertTrue(self.red_at(rel, 103, 101))
+        built = [line for line in out.stdout.splitlines() if line.startswith("wrote scenes/rooms/")]
+        self.assertEqual(built, ["wrote scenes/rooms/graveyard_arches.tscn"], "only the room the edit is in")
+        so.save_manifest({k: v for k, v in self.manifest().items() if k != rel})
+        so._cache = None
+        out = subprocess.run([sys.executable, "tools/art/studio_overrides.py", "regenerate", rel], cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(out.returncode, 0, out.stderr[-2000:])
+        self.assertEqual(Image.open(ROOT / rel).convert("RGBA").getpixel((101, 101)), clean, "taken away, the generator's own again")
 
     def test_every_generator_that_writes_pictures_honours_edits(self):
         # the generators of tools/check_generators.py that write PNGs, minus those that write none

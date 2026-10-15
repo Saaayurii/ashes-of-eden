@@ -18,6 +18,13 @@ extends SceneTree
 ## past that the bodies start passing through each other and the failures are
 ## the harness's, not the game's. Override for a slow machine:
 ##   godot --headless -s scripts/tools/smoke_test.gd -- 2
+##
+## It walks the first night and then every night in game.json `nights`. CI
+## gives each night a runner of its own, so the smoke stays as long as one
+## night however many chapters land:
+##   godot --headless -s scripts/tools/smoke_test.gd -- night=first
+##   godot --headless -s scripts/tools/smoke_test.gd -- night=seir
+## An id that names no night fails rather than walking nothing.
 const TIME_SCALE := 4.0
 
 var _failed := false
@@ -28,12 +35,24 @@ func _init() -> void:
 
 
 func _run() -> void:
-	var args := OS.get_cmdline_user_args()
-	Engine.time_scale = float(args[0]) if args.size() > 0 and args[0].is_valid_float() else TIME_SCALE
+	Engine.time_scale = TIME_SCALE
+	var only := ""  # "" every night, "first" the first, else a night's id
+	for arg in OS.get_cmdline_user_args():
+		if arg.is_valid_float():
+			Engine.time_scale = float(arg)
+		elif arg.begins_with("night="):
+			only = arg.trim_prefix("night=")
 	print("time scale: %.1fx" % Engine.time_scale)
 	var profile = root.get_node("Profile")
 	var game = root.get_node("Game")
 	var nights_before: int = profile.data.nights
+	if only != "" and only != "first":
+		var ids: Array = root.get_node("Data").nights().slice(1).map(func(n): return str(n.id))
+		_assert(ids.has(only), "night=%s is one of game.json's nights %s" % [only, ids])
+		await _later_nights(profile, game, nights_before, only)
+		print("SMOKE TEST (night %s) %s" % [only, "FAILED" if _failed else "PASSED"])
+		quit(1 if _failed else 0)
+		return
 	change_scene_to_file("res://scenes/run/run.tscn")
 	await _settle()
 	var run := current_scene
@@ -62,7 +81,8 @@ func _run() -> void:
 	_assert(profile.data.nights == nights_before + 1, "profile recorded the night")
 	_assert(run_end.get_node("%RunEndStats").text.contains(str(run.kills)), "run stats shown")
 	await _check_transition(run, root.get_node("Data"))
-	await _second_night(profile, game, nights_before)
+	if only == "":
+		await _later_nights(profile, game, nights_before + 1, "")
 	print("SMOKE TEST %s" % ("FAILED" if _failed else "PASSED"))
 	quit(1 if _failed else 0)
 
@@ -133,10 +153,15 @@ func _walk(run, dialogue, picker, cut, game, first: bool) -> int:
 
 ## The later nights (game.json "nights"): each its own night from the menu's
 ## pick, walked to its own dawn, its furthest room kept apart from the first's.
-func _second_night(profile, game, nights_before: int) -> void:
+## `only` walks that one alone; `nights_before` is the count before the first
+## of them is walked.
+func _later_nights(profile, game, nights_before: int, only: String) -> void:
 	var data = root.get_node("Data")
 	var nights: Array = data.nights()
+	var done := 0
 	for i in range(1, nights.size()):
+		if only != "" and str(nights[i].id) != only:
+			continue
 		game.night = str(nights[i].id)
 		paused = false  # the last night's end screen paused the tree; Play from the menu unpauses it
 		change_scene_to_file("res://scenes/run/run.tscn")
@@ -148,7 +173,8 @@ func _second_night(profile, game, nights_before: int) -> void:
 		await _settle()
 		_assert(run.get_node("UI/RunEnd").visible, "the night %s ends at its own dawn" % game.night)
 		_assert(run.kills == kills, "its %d enemies counted (%d)" % [kills, run.kills])
-		_assert(profile.data.nights == nights_before + 1 + i, "the profile recorded the night %s" % game.night)
+		done += 1
+		_assert(profile.data.nights == nights_before + done, "the profile recorded the night %s" % game.night)
 		_assert(profile.best_of(game.night) > 0,
 			"its furthest room is its own (%d)" % profile.best_of(game.night))
 		_assert(profile.best_of("") == best_first, "and the first night's is left alone")
