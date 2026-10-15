@@ -125,7 +125,10 @@ func _walk(run, dialogue, picker, cut, game, first: bool) -> int:
 		await _dismiss_ui(dialogue, picker, cut)  # level-up gifts earned while clearing
 		# A gift waits where a place ends, not behind every door (Run._door_grants_gift);
 		# ask before we walk through, while this room is still the current one.
-		var ends_place: bool = run._door_grants_gift()
+		# out of the finale's room, once the campaign ends there, the ending
+		# comes instead of a gift (Run._advance)
+		var closes: bool = load("res://scripts/run/endings.gd").closes_campaign(run.ROOMS[index])
+		var ends_place: bool = run._door_grants_gift() and not closes
 		# Walk through the door: teleport the body into it.
 		run.player.global_position = room.door.global_position
 		await _settle(0.5)
@@ -171,7 +174,20 @@ func _later_nights(profile, game, nights_before: int, only: String) -> void:
 		var best_first: int = profile.best_of("")
 		var kills: int = await _walk(run, run.get_node("UI/DialogueBox"), run.get_node("UI/AbilityPicker"), run.get_node("UI/Cutscene"), game, false)
 		await _settle()
+		# the night of the campaign's finale (game.json "finale", chapter VII)
+		# ends in an ending's scene before its dawn: skip it as a player would
+		var finale: bool = data.night_of(str(load("res://scripts/run/endings.gd").finale().get("room", ""))) == game.night \
+			and load("res://scripts/run/endings.gd").finale().get("ends_campaign", false)
+		var cut = run.get_node("UI/Cutscene")
+		for attempt in 120:
+			if run.get_node("UI/RunEnd").visible:
+				break
+			if cut.playing != "":
+				cut._skip()
+			await _dismiss_ui(run.get_node("UI/DialogueBox"), run.get_node("UI/AbilityPicker"), cut)
+			await _settle(0.25)
 		_assert(run.get_node("UI/RunEnd").visible, "the night %s ends at its own dawn" % game.night)
+		_assert((game.ending != "") == finale, "  %s" % ("and the campaign ends: %s" % game.ending if finale else "to be continued, no ending"))
 		_assert(run.kills == kills, "its %d enemies counted (%d)" % [kills, run.kills])
 		done += 1
 		_assert(profile.data.nights == nights_before + done, "the profile recorded the night %s" % game.night)

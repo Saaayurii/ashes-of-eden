@@ -214,7 +214,8 @@ static var WAVE_SPEED := 260.0
 ## Slot 1 wears a colder cloth so the two of you never lose each other.
 const SLOT_TINTS := [Color.WHITE, Color(0.72, 0.84, 1.05)]
 ## What the other peer needs to draw this body. The rest is local theatre.
-const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon", ".:lantern"]
+const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon", ".:lantern",
+	".:last_technique"]
 
 signal died(player: Player)
 
@@ -232,6 +233,10 @@ var skin := "":
 ## a chest laid another at his feet. Replicated, so the other player's slash
 ## is drawn the weapon's size; saved with the body (Saves.capture).
 var weapon := Weapons.DEFAULT
+## The last special move this body made (EventBus.technique_performed, our own
+## body writes it): what a reflection answers with (scripts/enemies/mirror.gd).
+## Replicated, so the host's reflections read a guest's too.
+var last_technique := ""
 ## His `lantern` stat, replicated so a partner draws his light as wide (Darkness).
 var lantern := 0.0
 
@@ -383,6 +388,9 @@ func _ready() -> void:
 	EventBus.boss_died.connect(func() -> void: heal_charges = int(stats.heal_charges); _emit_hp())
 	EventBus.flasks_given.connect(_give_flasks)
 	EventBus.enemy_died.connect(_on_enemy_died)
+	EventBus.technique_performed.connect(func(id: String) -> void:
+		if _is_mine():
+			last_technique = id)
 	EventBus.room_cleared.connect(_on_room_cleared)
 	EventBus.room_started.connect(func(_index: int) -> void:
 		_guard_left = int(stats.guard)

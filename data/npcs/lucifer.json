@@ -1,0 +1,25 @@
+{
+  "id": "lucifer",
+  "name": "SPEAKER_LUCIFER",
+  "avatar": "res://assets/portraits/lucifer.png",
+  "dialogue": "ch7_lucifer",
+  "scripted": true,
+  "menu": false,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/lucifer_v2_idle.png",
+      "walk": "res://assets/sprites/lucifer_v2_walk.png",
+      "interact": "res://assets/sprites/lucifer_v2_interact.png",
+      "special": "res://assets/sprites/lucifer_v2_special.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_LUCIFER_LORE",
+  "role": "NPC_ROLE_LUCIFER",
+  "location": "LOC_HALL_STONES_OF_FIRE"
+}

@@ -49,6 +49,19 @@ const FAR_WINDOWS := {
 	"euphrates_bank": [], "euphrates_town": [], "euphrates_gate": [], "euphrates_cloister": [],
 	"euphrates_scriptorium": [], "euphrates_refectory": [], "euphrates_bell_tower": [], "euphrates_altar_court": [],
 	"euphrates_crypt_of_chains": [], "euphrates_cistern": [], "euphrates_river_stair": [], "euphrates_bound": [],
+	# the Heavenly Hall (chapter VII): every pane, arch and gap onto its sky slides
+	"hall_elders_stair": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+	"hall_outer_court": [1, 2, 3, 4],
+	"hall_measured_temple": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+	"hall_gallery_of_lamps": [], # no sky: the lamps hang in a closed hall
+	"hall_sea_of_glass": [1, 2, 3, 4, 5, 6],
+	"hall_archive": [], # no sky: shelves and stone
+	"hall_stones_of_fire": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+	"hall_ark_sanctum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+	"hall_thunders": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+	"hall_hail_gallery": [1, 2, 3, 4, 5, 6, 7],
+	"hall_flaming_way": [1, 2, 3],
+	"hall_eden_gate": [1, 2, 3],
 }
 
 

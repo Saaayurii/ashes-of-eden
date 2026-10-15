@@ -1,0 +1,39 @@
+{
+  "id": "proud_mirror",
+  "extends": "mirror_elian",
+  "_comment": "The proud reflection: gold, upright, a shield in front open only from its wind-up to the end of its recovery; it remembers his last two moves and never steps aside.",
+  "name": "ENEMY_PROUD_MIRROR",
+  "lore": "ENEMY_PROUD_MIRROR_LORE",
+  "tip": "TIP_PROUD_MIRROR",
+  "hp": 320,
+  "damage": 18,
+  "tags": [
+    "mirror",
+    "elite"
+  ],
+  "shield": 0.5,
+  "stagger_chance": 0.0,
+  "mirror": {
+    "windup_scale": 1.5,
+    "copies": "last_technique",
+    "copies_count": 2,
+    "roll": null,
+    "rise": 0
+  },
+  "sprite": {
+    "frames": "res://assets/sprites/elian_frames.tres",
+    "cell": [
+      128,
+      64
+    ],
+    "tint": "#ffd890",
+    "fps": 10,
+    "anim_map": {
+      "special": "cleave",
+      "attack_alt": "lunge"
+    },
+    "glass": 0.8
+  },
+  "essence": 60,
+  "voice": "mirror_elian"
+}

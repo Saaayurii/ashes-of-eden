@@ -773,3 +773,28 @@
 | `AREA_HALL_ARCHIVE` / `_SUB` | Архив / где пишут | The Archive / where things are written |
 | `AREA_HALL_SANCTUM` / `_SUB` | Святилище / храм отверзся | The Sanctum / the temple opened |
 | `AREA_HALL_WAY` / `_SUB` | Путь к дереву жизни / меч обращается во все стороны | The Way of the Tree / the sword turns every way |
+
+## 11. Как сделано (и где отступили от плана)
+
+- **Отражения** — `scripts/enemies/mirror.gd` (`Mirror`): статические правила (`attacks_for`,
+  `copy_of`, `remember`, `step_reach`, `hero_time`) и узел-помощник `Mirror` на враге; RPC подъёма и
+  переката (`_net_rise`, `_net_roll`) живут на этом узле, а не рядом с `_net_strike` — так `enemy.gd`
+  получил только крючки. Лежащее отражение вне группы `enemies`, но счётчик `alive` комнаты его держит.
+- **Херувим** — `scripts/enemies/cherub_faces.gd` (`CherubFaces`): голова ездит по шее по
+  `head_track`, который `build_bestiary_assets.py` (`track_cherub_neck`) меряет по каждому кадру тела.
+  Повороты (`turns`), `around` + `telegraph_fx: arc`, град (`hail`: тени, потом камни сверху — луч
+  вверх, чтобы камень не родился в потолке) — в `enemy.gd`, ключи — в валидаторе.
+- **Весы рассветов** — `scripts/run/dawns.gd`; запись рассвета — `Campaign.record_dawn` (E3 главы III).
+- **Отступления:**
+  - у `hall_sea_of_glass` нет вступительной подписи — комната стоит на развилке, а путь развилки не
+    несёт истории (правило валидатора); стеклянное море говорит само;
+  - у `hall_stones_of_fire` нет `hazards`: швы между камнями — только свет (зона `lava` в
+    `backdrops.json`), не лужа — комната без боя, сцена Люцифера, и путь к нему не должен жечь;
+  - у ночи `hall` нет `after: "euphrates"` — ночи Евфрата (глава VI) в этой ветке ещё нет; её
+    открывает `after_dawns: 6`. Дописать `after`, когда VI будет влита;
+  - глубинных пластин (`depth/<room>_backfill.png`) у чертога нет — проёмы закрыты кладкой;
+  - зона `falls` у `hall_hail_gallery` — на глаз, проверить `backdrop_life_shot.gd`;
+  - звук `hit_glass` не записан: удар по стеклу пока звучит общим `hit` (запасной путь `Audio`).
+- **Широкие картины комнат** запечены на x86 (`docker run --platform linux/amd64 python:3.12-slim`),
+  как их печёт CI: на Mac и на arm64 Pillow даёт расхождение в один уровень, и `check_generators.py`
+  его не прощает.

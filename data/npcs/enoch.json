@@ -1,0 +1,33 @@
+{
+  "id": "enoch",
+  "name": "NPC_ENOCH",
+  "avatar": "res://assets/portraits/enoch.png",
+  "dialogue": "npc_enoch",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/enoch_v2_idle.png",
+      "walk": "res://assets/sprites/enoch_v2_walk.png",
+      "interact": "res://assets/sprites/enoch_v2_interact.png",
+      "special": "res://assets/sprites/enoch_v2_special.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lore": "NPC_ENOCH_LORE",
+  "role": "NPC_ROLE_ENOCH",
+  "location": "LOC_HALL_ARCHIVE",
+  "light": {
+    "color": "#fff0c8",
+    "radius": 44,
+    "energy": 0.6,
+    "flicker": 0.15
+  },
+  "lines": [
+    "NPC_ENOCH_LINE_1",
+    "NPC_ENOCH_LINE_2"
+  ]
+}

@@ -29,6 +29,11 @@ PEOPLE = ["knight", "mara", "matthew", "nun", "severin", "villager"]
 # the sixth cell, a sea wraith, came out teal; ours is the red tide's, so it keeps the wraith's
 SEIR_ENEMIES = ["watchman", "waiting_townsman", "gate_warden", "drowned", "drowned_bosun"]
 SEIR_PEOPLE = ["lazarus", "jonah", "naomi"]
+# the Heavenly Hall (chapter VII), drawn by Codex (assets/CREDITS.md); the
+# variants (wheel, hail spirit, archive scribe) and the reflections draw no new body
+HALL_ENEMIES = ["seraph", "measuring_angel", "register_scribe", "wheel",
+                "hail_spirit", "mirror_elian", "proud_mirror", "cherub"]
+HALL_PEOPLE = ["elders", "enoch", "lucifer"]
 
 STRIPS = {
     "possessed_villager": ("possessed_idle.png", (40, 36)),
@@ -65,7 +70,17 @@ GAME_CELLS = {
     "flagellant": (52, 49), "censer_monk": (52, 47), "chained_penitent": (56, 36),
     "horseman": (96, 70), "river_wraith": (52, 43), "fettered_angel": (52, 49),
     "lion_horse": (100, 62),
+    # the Heavenly Hall (chapter VII), drawn by Codex's image generation
+    "seraph": (72, 60), "measuring_angel": (60, 72), "register_scribe": (56, 52),
+    "cherub": (112, 96),
 }
+# A creature that hovers: its drawing is centred in the cell, not stood on the bottom row.
+FLYERS = {"raven", "shade", "wraith", "ophanim", "river_wraith", "fettered_angel", "seraph"}
+# The cherub's four faces (Ezek. 1:10), one row each of a 7x7 atlas: four idle
+# frames, then three of its attack. Each is cut to HEAD_CELL, its collar ring on
+# the bottom row, and laid on the body at the tree's "head_at" (Enemy, CherubFaces).
+CHERUB_FACES = ["man", "lion", "ox", "eagle"]
+HEAD_CELL = (32, 32)
 
 
 # How far past its grid line a frame may reach for its own swing, as a share
@@ -470,7 +485,7 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     """Every creature's seven strips; returns the strip cell of each and how
     many rows were added above a flyer's drawing (its "pad_y")."""
     atlas_dir = SPRITES / "enemy_atlases"
-    flyers = {"raven", "shade", "wraith", "ophanim", "river_wraith", "fettered_angel"}
+    flyers = FLYERS
     cells: dict[str, tuple[tuple[int, int], int]] = {}
     for enemy, target_cell in GAME_CELLS.items():
         if not wanted(enemy):
@@ -565,6 +580,91 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     return cells
 
 
+def build_cherub_heads() -> None:
+    """The four heads, one strip each (cherub_head_<face>.png): one scale for
+    all four, from the tallest idle head, every head's collar on the bottom row
+    and centred on the same x, so the face can change without the neck moving."""
+    source = SPRITES / "enemy_atlases" / "cherub_heads.png"
+    if not source.exists():
+        return
+    atlas = Image.open(source).convert("RGBA")
+    rows = [_row_frames(atlas, row, False) for row in range(len(CHERUB_FACES))]
+    tallest = widest = 1
+    for frames_of in rows:
+        for frame, _ in frames_of:
+            bounds = frame.getchannel("A").getbbox()
+            if bounds:
+                tallest = max(tallest, bounds[3] - bounds[1])
+                widest = max(widest, bounds[2] - bounds[0])
+    scale = min((HEAD_CELL[0] - 2) / widest, (HEAD_CELL[1] - 2) / tallest)
+    for face, frames_of in zip(CHERUB_FACES, rows):
+        sequence = []
+        for frame, _ in frames_of:
+            bounds = frame.getchannel("A").getbbox()
+            canvas = Image.new("RGBA", HEAD_CELL)
+            if bounds:
+                head = frame.crop(bounds)
+                head = head.resize((max(1, round(head.width * scale)), max(1, round(head.height * scale))),
+                                   Image.Resampling.LANCZOS)
+                canvas.alpha_composite(head, ((HEAD_CELL[0] - head.width) // 2, HEAD_CELL[1] - head.height))
+            sequence.append(canvas)
+        save_strip(SPRITES / f"cherub_head_{face}.png", sequence)
+
+
+def track_cherub_neck() -> None:
+    """Where the cherub's head sits in every frame (docs/CHAPTER7.md §9): its
+    body is drawn headless, and the head is a sprite of its own (CherubFaces)
+    that must ride the neck through a swing and a fall. The collar of the first
+    idle frame is found once (the highest torso pixel between the wings and the
+    sword), then matched in every frame of every strip; the tree gets "head_at"
+    (the idle head's centre from the cell's centre) and "head_track" (each
+    frame's collar offset from the idle one)."""
+    import numpy as np
+    tree = json.loads(TREE.read_text(encoding="utf-8"))
+    entry = next((e for e in tree if e["id"] == "cherub" and "sprite" in e), None)
+    if entry is None:
+        return
+    cell_w, cell_h = entry["sprite"]["cell"]
+
+    def frames(anim):
+        path = SPRITES / f"cherub_v2_{anim}.png"
+        if not path.exists():
+            return []
+        strip = np.asarray(Image.open(path).convert("RGBA"), dtype=np.float32)
+        return [strip[:, i * cell_w:(i + 1) * cell_w] for i in range(strip.shape[1] // cell_w)]
+
+    idle = frames("idle")
+    if not idle:
+        return
+    first = idle[0]
+    alpha = first[..., 3] > 128
+    x0, x1 = int(cell_w * 0.46), int(cell_w * 0.58)
+    rows = np.where(alpha[:, x0:x1].any(axis=1))[0]
+    top = int(rows[0])
+    cols = np.where(alpha[top, x0:x1])[0]
+    neck_x = x0 + int(cols.mean())
+    half_w, depth = 9, 12
+    template = first[top:top + depth, neck_x - half_w:neck_x + half_w + 1]
+    weight = (template[..., 3:4] > 128).astype(np.float32)
+    track = {}
+    for anim in ("idle", "walk", "attack", "attack_alt", "special", "hurt", "death"):
+        offsets = []
+        for frame in frames(anim):
+            best, at = None, (0, 0)
+            for y in range(0, cell_h - depth):
+                for x in range(half_w, cell_w - half_w - 1):
+                    patch = frame[y:y + depth, x - half_w:x + half_w + 1]
+                    cost = float((np.abs(patch - template) * weight).sum())
+                    if best is None or cost < best:
+                        best, at = cost, (x - neck_x, y - top)
+            offsets.append(list(at))
+        if offsets:
+            track[anim] = offsets
+    entry["sprite"]["head_at"] = [neck_x - cell_w // 2, top - cell_h // 2 - HEAD_CELL[1] // 2 + 4]
+    entry["sprite"]["head_track"] = track
+    TREE.write_text(json.dumps(tree, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def write_cells(cells: dict[str, tuple[tuple[int, int], int]]) -> None:
     """The tree's "cell" is the strip's: the two must never disagree. A flyer
     grown in height also gets "pad_y", so the game keeps its body where the
@@ -618,8 +718,12 @@ def main() -> None:
     split_atlas(PORTRAITS / "people_atlas.png", PEOPLE, 3, 2)
     split_atlas(PORTRAITS / "seir_enemies_atlas.png", SEIR_ENEMIES, 3, 2)
     split_atlas(PORTRAITS / "seir_people_atlas.png", SEIR_PEOPLE, 3, 1)
+    split_atlas(PORTRAITS / "hall_enemies_atlas.png", HALL_ENEMIES, 4, 2)
+    split_atlas(PORTRAITS / "hall_people_atlas.png", HALL_PEOPLE, 3, 2)
     build_strips()
+    build_cherub_heads()
     write_cells(build_generated_animation_strips())
+    track_cherub_neck()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "hall_stair",
+    "chapter": "CHAPTER_VII",
+    "title": "AREA_HALL_STAIR",
+    "subtitle": "AREA_HALL_STAIR_SUB",
+    "color": "#f2e8cc",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/hall_elders_stair.tscn"
+    ]
+  },
+  {
+    "id": "hall_courts",
+    "chapter": "CHAPTER_VII",
+    "title": "AREA_HALL_COURTS",
+    "subtitle": "AREA_HALL_COURTS_SUB",
+    "color": "#e6dcc0",
+    "rooms": [
+      "res://scenes/rooms/hall_outer_court.tscn",
+      "res://scenes/rooms/hall_measured_temple.tscn",
+      "res://scenes/rooms/hall_gallery_of_lamps.tscn",
+      "res://scenes/rooms/hall_sea_of_glass.tscn"
+    ]
+  },
+  {
+    "id": "hall_archive",
+    "chapter": "CHAPTER_VII",
+    "title": "AREA_HALL_ARCHIVE",
+    "subtitle": "AREA_HALL_ARCHIVE_SUB",
+    "color": "#d8c8a0",
+    "rooms": [
+      "res://scenes/rooms/hall_archive.tscn",
+      "res://scenes/rooms/hall_stones_of_fire.tscn"
+    ]
+  },
+  {
+    "id": "hall_sanctum",
+    "chapter": "CHAPTER_VII",
+    "title": "AREA_HALL_SANCTUM",
+    "subtitle": "AREA_HALL_SANCTUM_SUB",
+    "color": "#fff4d8",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/hall_ark_sanctum.tscn",
+      "res://scenes/rooms/hall_thunders.tscn",
+      "res://scenes/rooms/hall_hail_gallery.tscn"
+    ]
+  },
+  {
+    "id": "hall_way",
+    "chapter": "CHAPTER_VII",
+    "title": "AREA_HALL_WAY",
+    "subtitle": "AREA_HALL_WAY_SUB",
+    "color": "#ffd8a0",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/hall_flaming_way.tscn",
+      "res://scenes/rooms/hall_eden_gate.tscn"
+    ]
+  }
+]
