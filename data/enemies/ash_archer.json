@@ -4,6 +4,26 @@
   "name": "ENEMY_ASH_ARCHER",
   "lore": "ENEMY_ASH_ARCHER_LORE",
   "tip": "TIP_ASH_ARCHER",
+  "behaviour": "caster",
+  "keep_away": 150,
+  "hp": 40,
+  "speed": 62,
+  "aggro_range": 440,
+  "stagger_chance": 0.45,
+  "attack": {
+    "type": "ranged",
+    "range": 320,
+    "reach": 0,
+    "windup": 0.9,
+    "damage": 9,
+    "cooldown": 2.6,
+    "recover": 0.4,
+    "projectile_speed": 260,
+    "projectile_motion": "arc",
+    "motion_amount": 24,
+    "projectile_style": "ash_arrow",
+    "color": "#ffb070"
+  },
   "sprite": {
     "cell": [
       96,
