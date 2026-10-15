@@ -13,7 +13,7 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "/tmp"
 	var only: Array = Array(args[1].split("|")) if args.size() > 1 else []
-	var rooms: Array = root.get_node("Data").rooms
+	var rooms: Array = root.get_node("Data").all_rooms()  # every night's
 	for path in rooms:
 		var name: String = path.get_file().get_basename()
 		if not only.is_empty() and not only.has(name):

@@ -224,6 +224,7 @@ func capture(room_path: String, kills: int, elapsed: float, body: Player) -> Dic
 			"weapon_found": Game.weapon_found,
 			"rested": Game.rested.keys(),
 			"walked": Game.walked.duplicate(),
+			"lamps_lit": Game.lamps_lit.keys(),
 			"vial": Game.vial,
 			"omen": Game.omen,
 			"rerolls": Game.rerolls,
@@ -271,6 +272,11 @@ func restore(data: Dictionary, body: Player) -> void:
 	for path in state.get("rested", []):
 		if path is String:
 			Game.rested[path] = true
+	# the lamps of Tyre bought tonight (an old save bought none)
+	var lamps = state.get("lamps_lit", [])
+	for key in (lamps if lamps is Array else []):
+		if key is String:
+			Game.lamps_lit[key] = true
 	# an old save has no way walked: the map then shows only where we stand
 	for path in state.get("walked", []):
 		if path is String and ResourceLoader.exists(path):

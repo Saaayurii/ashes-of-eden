@@ -73,6 +73,7 @@ const MIX := {
 	&"level_up": [-6.0, 1.0, 0.0],
 	&"room_clear": [-8.0, 1.0, 0.0],
 	&"bell": [-4.0, 1.0, 0.02],
+	&"lamp_light": [-7.0, 1.0, 0.06],  # a lamp of Tyre bought (Lamp)
 	&"victory": [0.0, 1.0, 0.0],
 	&"defeat": [-3.0, 0.8, 0.0],
 	&"heal": [-10.0, 1.0, 0.0],

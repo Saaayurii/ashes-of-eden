@@ -641,7 +641,11 @@ func _physics_process(delta: float) -> void:
 				_set_state(State.CHASE, 0.0)
 		State.CHASE:
 			_chase(to_target, delta)
-			if _attack_cd <= 0.0:
+			if EnemyDark.douse_due(self, hp / _max_hp):
+				_attack = EnemyDark.douse_attack(self)  # the Prince puts the room out
+				_begin_windup(to_target)
+				_douse(0)
+			elif _attack_cd <= 0.0:
 				var choice := _choose_attack(to_target)
 				if choice >= 0:
 					_repeats = _repeats + 1 if choice == _last_attack else 0
@@ -985,7 +989,7 @@ func _net_alert(new_facing: int) -> void:
 
 
 func _chase(to_target: Vector2, delta: float) -> void:
-	var speed := float(stats.get("speed", 50)) * _liquid_drag()
+	var speed := float(stats.get("speed", 50)) * _liquid_drag() * EnemyDark.speed_factor(self)
 	var aggro := float(stats.get("aggro_range", 380))
 	var chase := Vector2.ZERO
 	match stats.get("behaviour", "walker"):
@@ -1091,6 +1095,7 @@ func _chase(to_target: Vector2, delta: float) -> void:
 				chase.x = _keep_distance(to_target, melee_range, speed, aggro, delta)
 			velocity.x = chase.x + _knockback.x
 			velocity.y += _knockback.y
+	velocity = EnemyDark.keep_out_of_light(self, velocity, delta)
 	if absf(to_target.x) > 4.0:
 		facing = 1 if to_target.x > 0.0 else -1
 	_play("walk" if chase.length() > 1.0 else "idle")
@@ -1309,6 +1314,7 @@ func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26
 			_telegraph_tween.kill()
 			_telegraph_tween = null
 		visual.modulate = Color.WHITE
+		Darkness.telegraph(self, duration, color)
 		return
 	visual.modulate = Color(1.0, 0.85, 0.7)
 	if _telegraph_tween != null:
@@ -1318,6 +1324,7 @@ func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26
 	_telegraph_tween.tween_property(visual, "modulate", Color.WHITE, 0.1)
 	# The wind-up also brightens the room around the enemy: readable in the dark.
 	Fx.flash(global_position + Vector2(0, -10), Color(color), 60.0, duration, 0.6)
+	Darkness.telegraph(self, duration, color, beam, length)  # a dark room: the wind-up lights itself
 	if beam:
 		_show_beam(true, duration, length, thickness, color)
 
@@ -1338,6 +1345,7 @@ func _cancel_telegraph() -> void:
 		create_tween().tween_property(visual, "modulate", Color.WHITE, 0.12)
 	_telegraph_tween = null
 	_clear_beam()
+	Darkness.clear_telegraph(self)
 	_play("idle")
 
 
@@ -1440,6 +1448,10 @@ func _resolve_strike(to_target: Vector2) -> void:
 			_call_up(_attack)
 			if Net.active:
 				_net_strike.rpc("summon", animation)
+		"douse":
+			_set_state(State.STRIKE, 0.3)
+			_play(animation)
+			_douse(1)
 		"wail":
 			_set_state(State.STRIKE, float(_attack.get("duration", 0.6)))
 			_play(animation)
@@ -1484,6 +1496,25 @@ func _net_strike(kind: String, animation := "attack") -> void:
 		_lunge_fx()
 	elif kind == "summon":
 		_summon_fx()
+
+
+## darkness_phase (EnemyDark): the host decides, every peer sees it.
+func _douse(stage: int) -> void:
+	EnemyDark.douse(self, stage)
+	if Net.active and multiplayer.is_server():
+		_net_douse.rpc(stage)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_douse(stage: int) -> void:
+	EnemyDark.douse(self, stage)
+
+
+## A guest's body was robbed (EnemyDark.steal): the bar is the host's.
+@rpc("any_peer", "call_remote", "reliable")
+func _net_stole(amount: float) -> void:
+	if multiplayer.is_server():
+		EnemyDark.take(self, clampf(amount, 0.0, 10.0))
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -2545,9 +2576,11 @@ func _die() -> void:
 	if affix != "" and not felled_by_soldier:
 		Profile.record_affix(enemy_id, affix)  # the bestiary page lists the affixes laid low
 	var is_boss: bool = stats.get("boss", false)
+	Darkness.clear_telegraph(self)
 	if _simulated and Game.practice == "":  # practice pays nothing
 		# a body felled by another pays a share (Faction): not his victory
 		Game.add_essence(float(stats.get("essence", 10)) * (Faction.essence_between() if felled_by_soldier else 1.0))
+		EnemyDark.give_back(self)  # a thief's takings
 		if is_boss:
 			Game.ash_earned += int(stats.get("ash", 10))
 			if fight_time >= 0.0:
