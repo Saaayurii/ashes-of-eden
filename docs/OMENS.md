@@ -24,11 +24,6 @@ of the same chapter play differently without asking anything of the player.
 | `enemy_sight` | `Enemy._can_see` | how far the dead see ahead (below 1 helps: more backstabs) |
 | `skill_cooldown` | `Player._cast_skill` | the active skill's cooldown (below 1 helps) |
 
-Optional `nights` (a list of night ids from `data/game.json`, the first night under the game's own
-id): the omen is drawn only in those nights (`Campaign.night_fits`, filtered in `Omens.roll`) — a
-chapter's omens belong to its night (Seir's `long_night`, `dead_calm`, `drowned_bells`); without the
-field an omen may fall on any night. The night of the day plays the first night.
-
 The validator refuses an omen that is not a trade (something that helps and something that hurts),
 an unknown rule, and `promote_chance` without its `promote` map.
 

@@ -380,29 +380,29 @@ func _run() -> void:
 		profile.data.nights = nights_before
 
 	# --- gifts of one night ---------------------------------------------------
-	# A chapter's gifts carry "nights" (Campaign.night_fits): dealt in that
+	# A chapter's gifts carry "nights" (Omens.of_night): dealt in that
 	# chapter's night only, never in the first, the daily or a duel.
 	var night_was: String = game.night
-	var seir: Array = data.abilities.values().filter(
-		func(a): return a.get("nights", []).has("seir") and int(a.get("unlock_nights", 0)) == 0)
-	_assert(not seir.is_empty(), "Seir has gifts of its own")
+	var omens = load("res://scripts/run/omens.gd")
+	var seir: Array = data.abilities.values().filter(func(a): return a.get("nights", []).has("seir"))
+	_assert(seir.size() == 6, "Seir has its six gifts (%d)" % seir.size())
 	if not seir.is_empty():
 		game.night = ""
-		_assert(run.gift_locked(seir[0]), "the first night does not deal %s" % seir[0].id)
+		_assert(not seir.any(func(a): return omens.of_night(a)), "the first night is no night of Seir's gifts")
 		var first_hand: Array = []
 		for i in 200:
 			first_hand += run._roll_gifts().map(func(a): return a.id)
-		_assert(not first_hand.has(seir[0].id), "and no hand of the first night holds it")
+		_assert(not seir.any(func(a): return first_hand.has(a.id)), "and no hand of the first night holds one")
 		game.night = "seir"
-		_assert(not run.gift_locked(seir[0]), "Seir deals %s" % seir[0].id)
 		var seir_hand: Array = []
 		for i in 400:
 			seir_hand += run._roll_gifts().map(func(a): return a.id)
-		_assert(seir.all(func(a): return seir_hand.has(a.id)), "every gift of Seir turns up in its hands")
+		var dealt: Array = seir.filter(func(a): return not run.gift_locked(a))
+		_assert(dealt.all(func(a): return seir_hand.has(a.id)), "every open gift of Seir turns up in its hands")
 		_assert(seir_hand.any(func(id): return not data.abilities[id].has("nights")),
 			"and the gifts of every night still do")
 		game.night = "marah"
-		_assert(run.gift_locked(seir[0]), "another chapter's night does not")
+		_assert(not seir.any(func(a): return omens.of_night(a)), "another chapter's night deals none")
 	game.night = night_was
 	_finish()
 

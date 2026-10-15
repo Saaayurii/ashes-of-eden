@@ -30,18 +30,6 @@ static func night_key(night: String) -> String:
 	return str(Data.game.get("id", "first"))
 
 
-## Whether a gift or an omen belongs to tonight: its "nights" (game.json night
-## ids, the first night under the game's own id, Campaign.night_key) name it,
-## or it has none and belongs to every night. A chapter's gifts and omens are
-## dealt in that chapter's night only; the daily, a duel and co-op play the
-## first night, so they never see another chapter's.
-static func night_fits(spec: Dictionary) -> bool:
-	var nights = spec.get("nights")
-	if not nights is Array:
-		return true
-	return (nights as Array).has(night_key(Game.night))
-
-
 ## Whether this night may write to, or start from, what other nights left.
 static func remembers() -> bool:
 	if Net.active or Net.dedicated or Game.daily != "" or Game.practice != "":

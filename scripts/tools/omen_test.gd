@@ -52,7 +52,7 @@ func _run() -> void:
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
 	var everywhere: Array = data.omens.values().filter(func(o): return not o.has("nights"))
 	_check(drawn.size() == everywhere.size(), "every omen of every night can come up (%d of %d)" % [drawn.size(), everywhere.size()])
-	# a chapter's omens ("nights", Campaign.night_fits) are drawn in its night only
+	# a chapter's omens ("nights", Omens.of_night) are drawn in its night only
 	var seir: Array = data.omens.values().filter(func(o): return o.get("nights", []).has("seir")).map(func(o): return o.id)
 	_check(not seir.is_empty() and not seir.any(func(id): return drawn.has(id)), "the first night draws none of Seir's omens %s" % [seir])
 	var night_was: String = game.night
@@ -141,9 +141,10 @@ func _run() -> void:
 	var box = load("res://scripts/ui/dialogue_box.gd")
 	var crone: Dictionary = data.dialogues["npc_villager"].nodes
 	var said := {}
+	game.night = ""
 	for id in data.omens:
-		if data.omens[id].has("nights") and not data.omens[id].nights.has(data.game.get("id", "")):
-			continue  # another chapter's omen never falls on the crone's night
+		if not omens.of_night(data.omens[id]):
+			continue  # a chapter's own omen is drawn in its night, where she is not
 		game.omen = id
 		var next := ""
 		for branch in crone["omen"].branches:

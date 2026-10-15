@@ -214,6 +214,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 	for field in REQUIRED[collection]:
 		if not entry.has(field):
 			_error("%s: missing field \"%s\"" % [where, field])
+	if collection in ["abilities", "omens"] and entry.has("nights"):
+		_check_of_nights(entry.nights, where)
 	match collection:
 		"abilities":
 			_use_key(entry.get("name", ""), where)
@@ -243,7 +245,6 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					if spec.get("kind") == "bolt":
 						_check_volley(spec, where + ": skill", str(spec.get("style", "sacred")), str(spec.get("motion", "straight")))
 			_check_effect(entry.get("alignment", {}), where)
-			_check_entry_nights(entry, where)
 			if entry.has("icon") and not FileAccess.file_exists(str(entry.icon)) and not ResourceLoader.exists(str(entry.icon)):
 				_error("%s: icon not found: %s" % [where, entry.icon])
 		"enemies":
@@ -459,7 +460,6 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_relic(entry, where)
 		"omens":
 			_check_omen(entry, where)
-			_check_entry_nights(entry, where)
 		"endings":
 			_check_ending(entry, where)
 		"affixes":
@@ -2473,23 +2473,16 @@ func _check_opening(opening: Dictionary, where: String, game: Dictionary) -> voi
 			_error("data/game.json: %s.%s names %s \"%s\", which does not exist" % [where, key, folder, id])
 
 
-## A gift's or an omen's "nights" (Run.night_fits): a list of the nights it
-## is dealt in — game.json night ids, the first under the game's own id. A name
-## that is no night would keep it out of every one.
-func _check_entry_nights(entry: Dictionary, where: String) -> void:
-	if not entry.has("nights"):
+## A chapter's gift or omen names the nights it is dealt in (Omens.of_night):
+## ids of game.json's nights, "" for the first; an empty list would never be dealt.
+func _check_of_nights(nights, where: String) -> void:
+	if not (nights is Array) or (nights as Array).is_empty():
+		_error("%s: nights is a list of night ids" % where)
 		return
-	var game: Dictionary = DATA_DOC.top("game.json", _validated_roots())
-	var known := [str(game.get("id", "first"))]
-	for night in game.get("nights", []):
-		if night is Dictionary:
-			known.append(str(night.get("id", "")))
-	if not entry.nights is Array or (entry.nights as Array).is_empty():
-		_error("%s: nights is a list of night ids %s" % [where, known])
-		return
-	for id in entry.nights:
-		if not known.has(str(id)):
-			_error("%s: nights names \"%s\", which is no night of %s" % [where, id, known])
+	var ids: Array = DATA_DOC.nights(DATA_DOC.top("game.json", _validated_roots())).map(func(n: Dictionary) -> String: return str(n.id))
+	for id in nights:
+		if not ids.has(str(id)):
+			_error("%s: nights names \"%s\", which is no night in game.json" % [where, id])
 
 
 ## The nights after the first (game.json "nights", DataDoc.nights): each its

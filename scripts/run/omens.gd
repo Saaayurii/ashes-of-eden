@@ -25,9 +25,20 @@ static func rules(id := "") -> Dictionary:
 	return spec(id).get("rules", {})
 
 
+## A gift or an omen may name the nights it belongs to (`"nights": ["euphrates"]`
+## in data/abilities or data/omens): a chapter's cards are dealt only in its own
+## night, where its chains and its horsemen are. None = every night, which is
+## all of chapter I's. The night of the day, a duel and co-op play the first night
+## (Game.night ""), so both players are still offered the same cards.
+static func of_night(entry: Dictionary) -> bool:
+	var nights: Array = entry.get("nights", [])
+	return nights.is_empty() or nights.has(Game.night)
+
+
 ## One omen or none, drawn with [param rng]: CHANCE of one, then each the same.
 static func roll(rng: RandomNumberGenerator) -> String:
-	var ids: Array = Data.omens.keys().filter(func(id) -> bool: return Campaign.night_fits(spec(str(id))))
+	var ids: Array = Data.omens.keys().filter(
+		func(id: String) -> bool: return of_night(Data.omens[id]))  # a chapter's own stay in it
 	ids.sort()  # the same seed draws the same omen on every machine
 	if ids.is_empty() or rng.randf() >= CHANCE:
 		return ""
