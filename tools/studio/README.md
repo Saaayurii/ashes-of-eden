@@ -468,6 +468,24 @@ opens Photos and Files on an iPad. The e2e test drives it as an iPad
 
     Подробно: [docs/ROOM_COMPOSER.md](../../docs/ROOM_COMPOSER.md),
     [docs/DEPTH.md](../../docs/DEPTH.md).
+23. **Оружие, Концовки, Ночи** — то, что раньше правилось только руками в JSON.
+    - **Оружие**: цепь ударов (поза из тех, что у Элиана уже есть, урон ×,
+      отдых, замах, отброс, оглушение, тяжёлый ли, цвет дуги), зона удара
+      и её центр — красная рамка перед героем, дуга, урон на всё оружие,
+      удар в спину, стойкость, поправки к выпаду, рассечению и подсечке.
+      Внизу время цепи и урон в секунду. У меча пустое число — число самого
+      героя (его правит «Боёвка»). «+ Копией» — новое оружие из выбранного.
+    - **Концовки**: порядок, «когда» (какой путь ведёт и с каким отрывом,
+      ровная ночь, нужные флаги и флаги, которых быть не должно), запасная
+      (ровно одна), катсцена и три строки на четырёх языках. Карточка
+      «Проверить ночь» — поставь счётчики и флаги и увидишь, какая концовка
+      выпадет. Флаги концовок видны в «Сюжете» в обе стороны.
+    - **Ночи**: комнаты каждой ночи по порядку (↑ ↓, ✕ — убрать из ночи,
+      «в другую ночь…»), какой ночи какая комната, после скольких рассветов
+      открывается ночь, как она начинается (из могилы или на ногах, пролог,
+      вступление), и финал — комната, катсцена и кончается ли кампания.
+    Красные строки — то, что не пропустит валидатор; с ними «→ В игру» не
+    отправит.
 
 ## Other games on the engine
 
@@ -522,7 +540,7 @@ built on this engine without a `hero.json` of its own fights like Ashes; one
 with a partial file overrides only the keys it names (docs/GAME_PACKS.md).
 
 **The game's own tables** (`js/gamedata.js`, «Облик», «Тексты», «Музыка», «Забег»,
-«Сюжет», «Места»). `build_data.py` writes `import/gamedata.json`: every string,
+«Сюжет», «Места»; `js/campaign.js`, «Оружие», «Концовки», «Ночи»). `build_data.py` writes `import/gamedata.json`: every string,
 `STATS` / `ITEM_STATS` / `TECHNIQUES` and the flag lists from the validator,
 `AbilitySystem.CAPS`, `Achievements.COUNTERS`, `EXISTING` and the manifest of
 `fetch_music.py`, the music files on disk and each room's mood. The data files are
@@ -541,7 +559,21 @@ notes and every flag both ways; «Места» puts the rest point and studio pr
 Each check mirrors `validate_data.gd` (`gdProblems`, `gdFlags`), and a send the
 validator would refuse is refused here: change one, change the other
 (`tests/gamedata.test.js`). After a playlist change, run
-`python3 tools/export/music_filters.py`. In the sandbox, «✚ Дар» sends
+`python3 tools/export/music_filters.py`.
+«Оружие» edits `data/weapons` (the chain's steps, hitbox, offset, slash_scale,
+damage, backstab, poise, techniques; a sword step's empty number is the hero's own,
+and a copy of the sword is given every number, since only the sword falls back),
+draws the step's hitbox in front of the hero and gives the chain's time and damage
+as `Weapons.chain_time` counts them; «Концовки» edits `data/endings` (order,
+`when`, the one fallback, cutscene, name / description / line) and plays
+`Endings.choose` on counters and flags she sets, and its flags are on «Сюжет»'s map
+(`gdFlags` reads `when.flags` / `unless`); «Ночи» edits `data/game.json` `rooms`,
+`nights` (order, which night a room is in, `after_dawns`, `opening`) and `finale`.
+These three write a file in its own shape (`gdShaped`: an untouched value is the
+very text it was, a changed one takes its old shape, a new file the shape of a
+sibling), and mirror `_check_weapon`, `_check_ending`, `_check_finale`,
+`_check_game`, `_check_nights` and `_check_opening` (`tests/campaign.test.js`); the
+weapon bounds, the icons and the room scenes come in `gamedata.json`. In the sandbox, «✚ Дар» sends
 `{command: "gift"}`: `Run._studio_gift` hands the hero a skill and casts it at the
 nearest foe, or takes any other gift once (`studio_live_test.gd`).
 

@@ -1,0 +1,128 @@
+[
+  {
+    "id": "sweetened_water",
+    "name": "ABILITY_SWEETENED_WATER_NAME",
+    "description": "ABILITY_SWEETENED_WATER_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/potion_2.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "liquid_mend",
+        "op": "add",
+        "value": 2.0
+      }
+    ]
+  },
+  {
+    "id": "standard_of_peace",
+    "name": "ABILITY_STANDARD_OF_PEACE_NAME",
+    "description": "ABILITY_STANDARD_OF_PEACE_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/banner_1.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "truce_hold",
+        "op": "add",
+        "value": 1.5
+      }
+    ]
+  },
+  {
+    "id": "wormwood_draught",
+    "name": "ABILITY_WORMWOOD_DRAUGHT_NAME",
+    "description": "ABILITY_WORMWOOD_DRAUGHT_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/potion_5.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "attack_damage",
+        "op": "add",
+        "value": 3
+      },
+      {
+        "type": "stat",
+        "stat": "max_hp",
+        "op": "add",
+        "value": -12
+      }
+    ]
+  },
+  {
+    "id": "blood_feud",
+    "name": "ABILITY_BLOOD_FEUD_NAME",
+    "description": "ABILITY_BLOOD_FEUD_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/trophy_2.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "feud_damage",
+        "op": "add",
+        "value": 0.35
+      }
+    ]
+  },
+  {
+    "id": "no_mans_land",
+    "name": "ABILITY_NO_MANS_LAND_NAME",
+    "description": "ABILITY_NO_MANS_LAND_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/badge_2.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "crossfire_armor",
+        "op": "add",
+        "value": 0.12
+      }
+    ]
+  },
+  {
+    "id": "deserters_stride",
+    "name": "ABILITY_DESERTERS_STRIDE_NAME",
+    "description": "ABILITY_DESERTERS_STRIDE_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/marker_2.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "dash_cooldown",
+        "op": "add",
+        "value": -0.4
+      },
+      {
+        "type": "stat",
+        "stat": "speed",
+        "op": "add",
+        "value": 8
+      }
+    ]
+  }
+]

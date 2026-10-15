@@ -1,0 +1,822 @@
+[
+  {
+    "id": "fork_tyre_city",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_FORK_TYRE_CITY",
+        "choices": [
+          {
+            "id": "dark",
+            "text": "DLG_FORK_TYRE_CITY_DARK"
+          },
+          {
+            "id": "bright",
+            "text": "DLG_FORK_TYRE_CITY_BRIGHT"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "fork_tyre_harbour",
+    "start": "ask",
+    "nodes": {
+      "ask": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_FORK_TYRE_HARBOUR",
+        "choices": [
+          {
+            "id": "vaults",
+            "text": "DLG_FORK_TYRE_HARBOUR_VAULTS"
+          },
+          {
+            "id": "galleys",
+            "text": "DLG_FORK_TYRE_HARBOUR_GALLEYS"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "ch4_zacchaeus",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_2",
+        "next": "l3"
+      },
+      "l3": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_3",
+        "choices": [
+          {
+            "id": "down",
+            "text": "DLG_CH4_ZACCHAEUS_DOWN",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "zacchaeus_down"
+              ]
+            }
+          },
+          {
+            "id": "ask",
+            "text": "DLG_CH4_ZACCHAEUS_ASK",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "zacchaeus_asked"
+              ]
+            }
+          },
+          {
+            "id": "sell",
+            "text": "DLG_CH4_ZACCHAEUS_SELL",
+            "effect": {
+              "temptation": 1,
+              "flask": -1,
+              "set_flags": [
+                "zacchaeus_sold"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "ch4_zacchaeus_down",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_DOWN_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_ZACCHAEUS_DOWN_2",
+        "next": "l3"
+      },
+      "l3": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_DOWN_3"
+      }
+    }
+  },
+  {
+    "id": "ch4_zacchaeus_asked",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_ASKED_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_ZACCHAEUS_ASKED_2",
+        "next": "l3"
+      },
+      "l3": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_ASKED_3"
+      }
+    }
+  },
+  {
+    "id": "ch4_zacchaeus_sold",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_SOLD_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_CH4_ZACCHAEUS_SOLD_2"
+      }
+    }
+  },
+  {
+    "id": "npc_zacchaeus",
+    "start": "route",
+    "nodes": {
+      "route": {
+        "branches": [
+          {
+            "flag": "zacchaeus_sold",
+            "next": "sold"
+          },
+          {
+            "flag": "zacchaeus_asked",
+            "next": "asked"
+          }
+        ],
+        "next": "default"
+      },
+      "sold": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_NPC_ZACCHAEUS_SOLD"
+      },
+      "asked": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_NPC_ZACCHAEUS_ASKED"
+      },
+      "default": {
+        "speaker": "NPC_ZACCHAEUS",
+        "text": "DLG_NPC_ZACCHAEUS_DEFAULT"
+      }
+    }
+  },
+  {
+    "id": "ch4_market_caption",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_MARKET_CAPTION"
+      }
+    }
+  },
+  {
+    "id": "ch4_rich_gate_lazarus",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "NPC_LAZARUS",
+        "text": "DLG_CH4_RICH_GATE_LAZARUS_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "NPC_LAZARUS",
+        "text": "DLG_CH4_RICH_GATE_LAZARUS_2"
+      }
+    }
+  },
+  {
+    "id": "ch4_rich_gate_passed",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_RICH_GATE_PASSED"
+      }
+    }
+  },
+  {
+    "id": "ch4_rich_gate_empty",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_RICH_GATE_EMPTY"
+      }
+    }
+  },
+  {
+    "id": "npc_lazarus_tyre",
+    "start": "l1",
+    "nodes": {
+      "l1": {
+        "speaker": "NPC_LAZARUS",
+        "text": "DLG_NPC_LAZARUS_TYRE_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "NPC_LAZARUS",
+        "text": "DLG_NPC_LAZARUS_TYRE_2",
+        "next": "l3"
+      },
+      "l3": {
+        "speaker": "NPC_LAZARUS",
+        "text": "DLG_NPC_LAZARUS_TYRE_3"
+      }
+    }
+  },
+  {
+    "id": "npc_lydia",
+    "start": "route",
+    "nodes": {
+      "route": {
+        "branches": [
+          {
+            "nights": 6,
+            "next": "nights"
+          }
+        ],
+        "next": "l1"
+      },
+      "nights": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_NIGHTS",
+        "next": "l1"
+      },
+      "l1": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_1",
+        "next": "l2"
+      },
+      "l2": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_2",
+        "next": "deal"
+      },
+      "deal": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_LYDIA_ELIAN_DEAL",
+        "next": "lucifer"
+      },
+      "lucifer": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_LUCIFER",
+        "next": "tariff_route"
+      },
+      "tariff_route": {
+        "branches": [
+          {
+            "flag": "read_light_tariff",
+            "next": "tariff_elian"
+          }
+        ],
+        "next": "zacchaeus_route"
+      },
+      "tariff_elian": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_LYDIA_TARIFF_ELIAN",
+        "next": "tariff"
+      },
+      "tariff": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_TARIFF",
+        "next": "zacchaeus_route"
+      },
+      "zacchaeus_route": {
+        "branches": [
+          {
+            "flag": "zacchaeus_asked",
+            "next": "zacchaeus"
+          }
+        ],
+        "next": "ask"
+      },
+      "zacchaeus": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_ZACCHAEUS",
+        "next": "ask"
+      },
+      "ask": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_ASK",
+        "choices": [
+          {
+            "id": "give",
+            "text": "DLG_LYDIA_GIVE",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "lydia_gave"
+              ]
+            },
+            "next": "give"
+          },
+          {
+            "id": "who",
+            "text": "DLG_LYDIA_WHO",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "lydia_asked"
+              ]
+            },
+            "next": "who"
+          },
+          {
+            "id": "buy",
+            "text": "DLG_LYDIA_BUY",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "lydia_bought"
+              ]
+            },
+            "next": "buy"
+          }
+        ]
+      },
+      "give": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_GIVE_REPLY"
+      },
+      "who": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_WHO_REPLY"
+      },
+      "buy": {
+        "speaker": "NPC_LYDIA",
+        "text": "DLG_LYDIA_BUY_REPLY"
+      }
+    }
+  },
+  {
+    "id": "ch4_prince",
+    "start": "r_sold",
+    "nodes": {
+      "r_sold": {
+        "branches": [
+          {
+            "flag": "zacchaeus_sold",
+            "next": "sold"
+          }
+        ],
+        "next": "r_purple"
+      },
+      "sold": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_SOLD",
+        "next": "r_purple"
+      },
+      "r_purple": {
+        "branches": [
+          {
+            "flag": "lydia_bought",
+            "next": "purple"
+          }
+        ],
+        "next": "r_ledger"
+      },
+      "purple": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_PURPLE",
+        "next": "r_ledger"
+      },
+      "r_ledger": {
+        "branches": [
+          {
+            "flag": "read_tyre_ledger",
+            "next": "ledger"
+          }
+        ],
+        "next": "r_habit"
+      },
+      "ledger": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_LEDGER",
+        "next": "r_habit"
+      },
+      "r_habit": {
+        "branches": [
+          {
+            "habit": "grace",
+            "next": "h_grace"
+          },
+          {
+            "habit": "temptation",
+            "next": "h_temptation"
+          },
+          {
+            "habit": "will",
+            "next": "h_will"
+          }
+        ],
+        "next": "p1"
+      },
+      "h_grace": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_HABIT_GRACE",
+        "next": "p1"
+      },
+      "h_temptation": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_HABIT_TEMPTATION",
+        "next": "p1"
+      },
+      "h_will": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_HABIT_WILL",
+        "next": "p1"
+      },
+      "p1": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_1",
+        "next": "p2"
+      },
+      "p2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_PRINCE_2",
+        "next": "p3"
+      },
+      "p3": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_3",
+        "next": "price"
+      },
+      "price": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_PRICE",
+        "choices": [
+          {
+            "id": "star",
+            "text": "DLG_CH4_PRINCE_STAR",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "prince_star_asked"
+              ]
+            },
+            "next": "star"
+          },
+          {
+            "id": "refuse",
+            "text": "DLG_CH4_PRINCE_REFUSE",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "prince_refused"
+              ]
+            },
+            "next": "refuse"
+          },
+          {
+            "id": "how_much",
+            "text": "DLG_CH4_PRINCE_HOW_MUCH",
+            "effect": {
+              "temptation": 1,
+              "flask": 1,
+              "set_flags": [
+                "prince_paid"
+              ]
+            },
+            "next": "paid"
+          }
+        ]
+      },
+      "star": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_STAR_REPLY"
+      },
+      "refuse": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_REFUSE_REPLY"
+      },
+      "paid": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_PAID_REPLY"
+      }
+    }
+  },
+  {
+    "id": "ch4_prince_douse",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_DOUSE"
+      }
+    }
+  },
+  {
+    "id": "ch4_prince_fall",
+    "start": "route",
+    "nodes": {
+      "route": {
+        "branches": [
+          {
+            "flag": "prince_star_asked",
+            "next": "star"
+          },
+          {
+            "flag": "prince_refused",
+            "next": "refused"
+          },
+          {
+            "flag": "prince_paid",
+            "next": "paid"
+          }
+        ],
+        "next": "f1"
+      },
+      "star": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_FALL_STAR",
+        "next": "f1"
+      },
+      "refused": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_FALL_REFUSED",
+        "next": "f1"
+      },
+      "paid": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_FALL_PAID",
+        "next": "f1"
+      },
+      "f1": {
+        "speaker": "SPEAKER_PRINCE_OF_TYRE",
+        "text": "DLG_CH4_PRINCE_FALL_1",
+        "next": "f2"
+      },
+      "f2": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_PRINCE_FALL_2",
+        "choices": [
+          {
+            "id": "return",
+            "text": "DLG_CH4_LIGHT_RETURN",
+            "effect": {
+              "grace": 1,
+              "set_flags": [
+                "light_returned"
+              ]
+            }
+          },
+          {
+            "id": "share",
+            "text": "DLG_CH4_LIGHT_SHARE",
+            "effect": {
+              "will": 1,
+              "set_flags": [
+                "light_shared"
+              ]
+            }
+          },
+          {
+            "id": "take",
+            "text": "DLG_CH4_LIGHT_TAKE",
+            "effect": {
+              "temptation": 1,
+              "set_flags": [
+                "light_taken"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_returned",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_RETURNED"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_shared",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_SHARED"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_taken",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_TAKEN"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_silent",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_SILENT"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_zacchaeus_down",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_ZACCHAEUS_DOWN"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_zacchaeus_sold",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_ZACCHAEUS_SOLD"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_lydia_gave",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_LYDIA_GAVE"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_lydia_asked",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_LYDIA_ASKED"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_lydia_bought",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_LYDIA_BOUGHT"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_lamplighter",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_LAMPLIGHTER"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_lazarus",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_LAZARUS"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_grace",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_GRACE"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_temptation",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_TEMPTATION"
+      }
+    }
+  },
+  {
+    "id": "ch4_finale_will",
+    "blocking": false,
+    "start": "c1",
+    "nodes": {
+      "c1": {
+        "speaker": "SPEAKER_ELIAN",
+        "text": "DLG_CH4_FINALE_WILL"
+      }
+    }
+  },
+  {
+    "id": "note_light_tariff",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_LIGHT_TARIFF",
+        "text": "DLG_NOTE_LIGHT_TARIFF_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_LIGHT_TARIFF",
+        "text": "DLG_NOTE_LIGHT_TARIFF_2"
+      }
+    }
+  },
+  {
+    "id": "note_tyre_ledger",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_TYRE_LEDGER",
+        "text": "DLG_NOTE_TYRE_LEDGER_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_TYRE_LEDGER",
+        "text": "DLG_NOTE_TYRE_LEDGER_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_TYRE_LEDGER",
+        "text": "DLG_NOTE_TYRE_LEDGER_3"
+      }
+    }
+  },
+  {
+    "id": "note_lamplighter_letter",
+    "blocking": false,
+    "start": "n1",
+    "nodes": {
+      "n1": {
+        "speaker": "NOTE_LAMPLIGHTER_LETTER",
+        "text": "DLG_NOTE_LAMPLIGHTER_1",
+        "next": "n2"
+      },
+      "n2": {
+        "speaker": "NOTE_LAMPLIGHTER_LETTER",
+        "text": "DLG_NOTE_LAMPLIGHTER_2",
+        "next": "n3"
+      },
+      "n3": {
+        "speaker": "NOTE_LAMPLIGHTER_LETTER",
+        "text": "DLG_NOTE_LAMPLIGHTER_3"
+      }
+    }
+  }
+]

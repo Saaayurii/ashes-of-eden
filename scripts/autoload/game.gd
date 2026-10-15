@@ -87,6 +87,8 @@ var rerolls := 0
 ## What the greedier gifts add to every kill. Mirrored here from the player's
 ## stats by AbilitySystem, because the essence bar is the run's, not the body's.
 var essence_bonus := 0.0
+## Lamps bought tonight (Lamp.key: "room:prop"), burning till dawn; saved.
+var lamps_lit := {}
 
 
 func _ready() -> void:
@@ -129,6 +131,7 @@ func new_run() -> void:
 	vial = 0
 	rerolls = 0
 	essence_bonus = 0.0
+	lamps_lit = {}
 
 
 ## One more blow taken by our own body (Player._apply_damage).
@@ -154,11 +157,19 @@ func apply_effect(effect: Dictionary) -> void:
 	for path in PATHS:
 		alignment[path] += int(effect.get(path, 0))
 	for flag in effect.get("set_flags", []):
-		flags[flag] = true
+		set_flag(str(flag))
 	# a choice that costs something real (Lazarus on the road, docs/CHAPTER2.md)
 	if int(effect.get("flask", 0)) != 0:
 		EventBus.flasks_given.emit(-int(effect.flask))
 	EventBus.alignment_changed.emit(alignment.duplicate())
+
+
+## Sets a story flag; one game.json "flags_kept" names outlives the night
+## (Campaign.keep, docs/CAMPAIGN.md §5). Code that sets a flag goes through here.
+func set_flag(flag: String) -> void:
+	flags[flag] = true
+	Campaign.keep(flag)
+	Faction.flag_set(flag)  # a side chosen takes hold at once (chapter III)
 
 
 ## The path the player leans towards. Ties resolve to Will: the human default.

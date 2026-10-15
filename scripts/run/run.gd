@@ -97,6 +97,8 @@ func _ready() -> void:
 	if Net.active or Game.daily != "" or not Data.has_night(Game.night):
 		Game.night = ""
 	Data.use_night(Game.night)
+	# what other nights left (game.json "flags_kept", docs/CAMPAIGN.md §5)
+	Campaign.lay(Game.flags)
 	Game.vial = Vials.for_new_night()
 	if Game.daily != "":
 		# the night of the day: its own vial and its own deal, the same for all
@@ -117,7 +119,9 @@ func _ready() -> void:
 	run_end.retry.connect(_restart)
 	run_end.to_menu.connect(_to_menu)
 	run_end.spar.connect(_spar)
-	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void: kills += 1)
+	EventBus.enemy_died.connect(func(_id: StringName, _pos: Vector2) -> void:
+		if not Faction.felled_by_soldier():
+			kills += 1)
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.enemy_spawn_requested.connect(_on_spawn_requested)
 	EventBus.player_rested.connect(_on_player_rested)
@@ -452,6 +456,7 @@ static func room_from_args(args: PackedStringArray) -> int:
 				if str(path).get_file().get_basename() == want:
 					Game.night = str(night.id)
 					Data.use_night(Game.night)
+					Campaign.relay(Game.flags)
 					return room_names().find(want)
 		push_warning("run: no room called '%s'. Try one of: %s" % [want, ", ".join(names)])
 	return -1
@@ -833,6 +838,14 @@ func _advance() -> void:
 		await _close_campaign()
 		_advancing = false
 		return
+	# Left without waking anyone who waits (Room.quiet_outro): the room's last word.
+	if room != null and room.quiet_outro != "" and not room.woke_waiter():
+		if Net.active:
+			_net_quiet_outro.rpc(room.quiet_outro)
+		await cutscene.play(room.quiet_outro)
+		if _finished or not is_inside_tree():
+			_advancing = false
+			return
 	if _door_grants_gift():
 		if Net.active:
 			_gift_pending = {}
@@ -862,6 +875,11 @@ func _advance() -> void:
 	# new (possibly quiet) room before the player sees it.
 	await get_tree().physics_frame
 	_advancing = false
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_quiet_outro(id: String) -> void:
+	cutscene.play(id)
 
 
 ## How the campaign ends (scripts/run/endings.gd): the host reads the night —

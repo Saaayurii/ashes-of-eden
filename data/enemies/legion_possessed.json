@@ -1,0 +1,46 @@
+{
+  "id": "legion_possessed",
+  "extends": "possessed_villager",
+  "name": "ENEMY_LEGION_POSSESSED",
+  "lore": "ENEMY_LEGION_POSSESSED_LORE",
+  "tip": "TIP_LEGION_POSSESSED",
+  "_comment": "Chapter III: a villager the Legion put in stolen armour; its own body, warmer.",
+  "faction": "legion",
+  "hp": 34,
+  "speed": 74,
+  "essence": 10,
+  "color": "#a05a3a",
+  "tags": [
+    "human",
+    "possessed"
+  ],
+  "sprite": {
+    "like": "possessed_villager",
+    "tint": "#d8b090"
+  },
+  "attacks": [
+    {
+      "type": "melee",
+      "range": 26,
+      "reach": 32,
+      "windup": 0.45,
+      "damage": 7,
+      "cooldown": 1.5,
+      "recover": 0.35,
+      "weight": 2,
+      "animation": "attack"
+    },
+    {
+      "type": "lunge",
+      "range": 170,
+      "windup": 0.6,
+      "damage": 10,
+      "lunge_speed": 360,
+      "lunge_time": 0.3,
+      "cooldown": 2.6,
+      "recover": 1.0,
+      "weight": 1,
+      "animation": "attack"
+    }
+  ]
+}

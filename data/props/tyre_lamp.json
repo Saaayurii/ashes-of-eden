@@ -1,0 +1,237 @@
+[
+  {
+    "id": "tyre_lamp",
+    "kind": "lamp",
+    "price": 20,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    },
+    "_doc": "Bought light (docs/CHAPTER4.md §2, scripts/rooms/lamp.gd): the same bronze lamp at each of the room tables' prices. price is essence (× the night's lamp_price), lit = somebody already paid, free_if = it burns for nothing once the story set the flag."
+  },
+  {
+    "id": "tyre_lamp_lit",
+    "kind": "lamp",
+    "price": 0,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    },
+    "lit": true
+  },
+  {
+    "id": "tyre_lamp_free",
+    "kind": "lamp",
+    "price": 0,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    }
+  },
+  {
+    "id": "tyre_lamp_10",
+    "kind": "lamp",
+    "price": 10,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    }
+  },
+  {
+    "id": "tyre_lamp_15",
+    "kind": "lamp",
+    "price": 15,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    }
+  },
+  {
+    "id": "tyre_lamp_25",
+    "kind": "lamp",
+    "price": 25,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    }
+  },
+  {
+    "id": "tyre_lamp_30",
+    "kind": "lamp",
+    "price": 30,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    }
+  },
+  {
+    "id": "tyre_lamp_hook",
+    "kind": "lamp",
+    "price": 40,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    },
+    "free_if": "zacchaeus_down"
+  },
+  {
+    "id": "tyre_lamp_lydia_20",
+    "kind": "lamp",
+    "price": 20,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    },
+    "free_if": "lydia_gave"
+  },
+  {
+    "id": "tyre_lamp_lydia_25",
+    "kind": "lamp",
+    "price": 25,
+    "radius": 150,
+    "color": "#ffcf70",
+    "still": true,
+    "essence": 0,
+    "prompt": "PROMPT_LAMP",
+    "flame_height": 44,
+    "prompt_height": 66,
+    "hitbox": [
+      14,
+      52
+    ],
+    "sprite": {
+      "path": "res://assets/props/tyre_lamp.png",
+      "frame_w": 24,
+      "frame_h": 56,
+      "frames": 2,
+      "ground_pad": 0
+    },
+    "free_if": "lydia_gave"
+  }
+]

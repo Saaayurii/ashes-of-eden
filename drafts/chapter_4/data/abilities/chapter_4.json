@@ -1,0 +1,116 @@
+[
+  {
+    "id": "lamp_for_the_poor",
+    "name": "ABILITY_LAMP_FOR_THE_POOR_NAME",
+    "description": "ABILITY_LAMP_FOR_THE_POOR_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/relic_2.png",
+    "rarity": "common",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "lantern",
+        "op": "add",
+        "value": 32
+      }
+    ]
+  },
+  {
+    "id": "widows_mite",
+    "name": "ABILITY_WIDOWS_MITE_NAME",
+    "description": "ABILITY_WIDOWS_MITE_DESC",
+    "path": "grace",
+    "icon": "res://assets/icons/realm/resource_3.png",
+    "rarity": "rare",
+    "alignment": {
+      "grace": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "mite",
+        "op": "add",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "bought_light",
+    "name": "ABILITY_BOUGHT_LIGHT_NAME",
+    "description": "ABILITY_BOUGHT_LIGHT_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/potion_12.png",
+    "rarity": "common",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "lamp_blood",
+        "op": "add",
+        "value": 0.05
+      }
+    ]
+  },
+  {
+    "id": "usurers_edge",
+    "name": "ABILITY_USURERS_EDGE_NAME",
+    "description": "ABILITY_USURERS_EDGE_DESC",
+    "path": "temptation",
+    "icon": "res://assets/icons/realm/rune_5.png",
+    "rarity": "rare",
+    "alignment": {
+      "temptation": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "dark_damage",
+        "op": "add",
+        "value": 0.35
+      }
+    ]
+  },
+  {
+    "id": "eyes_of_the_dark",
+    "name": "ABILITY_EYES_OF_THE_DARK_NAME",
+    "description": "ABILITY_EYES_OF_THE_DARK_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/status_2.png",
+    "rarity": "common",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "dark_sight",
+        "op": "add",
+        "value": 0.3
+      }
+    ]
+  },
+  {
+    "id": "honest_scales",
+    "name": "ABILITY_HONEST_SCALES_NAME",
+    "description": "ABILITY_HONEST_SCALES_DESC",
+    "path": "will",
+    "icon": "res://assets/icons/realm/badge_2.png",
+    "rarity": "rare",
+    "alignment": {
+      "will": 1
+    },
+    "effects": [
+      {
+        "type": "stat",
+        "stat": "parry_flare",
+        "op": "add",
+        "value": 3
+      }
+    ]
+  }
+]

@@ -56,7 +56,7 @@ jobs:
         run: docker compose run --rm godot ${{ matrix.run }}
 
   tools:
-    name: Generators, web page, telemetry, studio
+    name: Generators, web page, telemetry, studio units
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -77,6 +77,11 @@ jobs:
       - name: The web loading page still works
         run: python3 tools/web/check_shell.py
 
+      # The painted pictures import as lossy WebP; one left at Godot's default
+      # (lossless) put megabytes back on the Web player's download unnoticed.
+      - name: Painted pictures stay lossy
+        run: python3 tools/export/check_lossy.py
+
       # The telemetry receiver and the script that turns what it collected
       # into the playtest logs balance_probe reads (docs/PLAYTEST.md).
       - name: Telemetry receiver tests
@@ -90,17 +95,34 @@ jobs:
           python3 -m unittest discover -s tools/studio/tests
           node --test tools/studio/tests/*.test.js
 
-      # The studio itself in Chromium, against its local server: every tab
-      # loads, a frame becomes a sprite, undo, the enemy wizard (with the room
-      # regenerated), a dialogue line. It puts back everything it writes.
-      # Then its GitHub side against a fake GitHub in memory: a send opens a
-      # pull request, the owner's review shows, her answer, a fix in the same PR.
-      - name: Art studio in a browser
+  # The studio itself in Chromium, against its local server: every tab loads,
+  # a frame becomes a sprite, undo, the enemy wizard (with the room
+  # regenerated), a dialogue line; its GitHub side against a fake GitHub in
+  # memory; attacks; the shared workspace. Each script puts back what it
+  # writes, and each runs on a runner of its own: together they took ten
+  # minutes, the longest job in CI.
+  studio-browser:
+    name: Studio in a browser (${{ matrix.script }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        script: [studio, studio.github, attacks, workspace]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Playwright and Chromium
         working-directory: tools/studio/e2e
         run: |
           npm install --no-save --no-package-lock playwright@1.49.1 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
-          node studio.e2e.cjs
-          node studio.github.e2e.cjs
-          node attacks.e2e.cjs
-          node workspace.e2e.cjs
+
+      - name: ${{ matrix.script }}.e2e.cjs
+        working-directory: tools/studio/e2e
+        run: |
+          python3 -m pip install --quiet numpy pillow
+          # the studio's data (tools/studio/import): studio.github reads it before
+          # any server builds it, and it used to be left by the script before it
+          python3 ../../../tools/studio/build_data.py
+          node ${{ matrix.script }}.e2e.cjs

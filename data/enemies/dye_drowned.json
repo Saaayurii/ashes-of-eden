@@ -1,0 +1,16 @@
+{
+  "id": "dye_drowned",
+  "extends": "drowned",
+  "name": "ENEMY_DYE_DROWNED",
+  "lore": "ENEMY_DYE_DROWNED_LORE",
+  "tip": "TIP_DYE_DROWNED",
+  "_art": "the drowned's own strips, dyed murex: a dyer who drowned in his vat",
+  "hp": 52,
+  "essence": 15,
+  "material": "flesh",
+  "color": "#5a2a68",
+  "sprite": {
+    "like": "drowned",
+    "tint": "#a070b8"
+  }
+}

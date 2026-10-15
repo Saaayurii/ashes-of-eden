@@ -60,7 +60,7 @@ class LivingBackdrops(unittest.TestCase):
     def test_all_attack_types_and_frame_counts_are_available_to_the_actions_editor(self):
         shots = build_data.projectiles(ROOT, build_data.load_strings(ROOT))
         types = {a["type"] for r in shots["roster"] for a in r["source"]["items"]}
-        self.assertEqual(types, {"melee", "lunge", "ranged", "beam", "nova", "summon"})
+        self.assertEqual(types, {"melee", "lunge", "ranged", "beam", "nova", "summon", "wail"})
         villager = next(r for r in shots["roster"] if r["id"] == "possessed_villager")
         self.assertEqual(villager["source"]["file"], "data/enemy_archetypes/tree.json")
         cry = villager["source"]["items"][2]
@@ -203,6 +203,24 @@ class Build(unittest.TestCase):
             self.assertTrue(all(not t["url"].startswith(("http", "/")) for e in audio for t in e["takes"]))
 
 
+class Campaign(unittest.TestCase):
+    """What the «Оружие», «Концовки» and «Ночи» tabs read (js/campaign.js)."""
+
+    def test_weapon_bounds_icons_and_scenes(self):
+        data = build_data.gamedata(ROOT, {})
+        weapon = data["weapon"]
+        self.assertEqual(weapon["step_bounds"]["multiplier"], [0.2, 4.0])
+        self.assertEqual(weapon["bounds"]["poise"], [0.0, 0.5])
+        self.assertIn("thrust", weapon["animations"])
+        self.assertIn("path", weapon["arcs"])
+        self.assertIn("heavy", weapon["needs"])
+        for path in (ROOT / "data/weapons").glob("*.json"):
+            self.assertIn(json.loads(path.read_text())["icon"], data["icons"], path.name)
+        game = json.loads((ROOT / "data/game.json").read_text())
+        for room in build_data.game_rooms(game) + [game["practice_room"]]:
+            self.assertIn(room, data["scenes"])
+
+
 class Enemies(unittest.TestCase):
     def test_wizard_bases(self):
         listed = {e["id"]: e for e in build_data.enemies(ROOT, build_data.load_strings(ROOT))}
@@ -210,6 +228,39 @@ class Enemies(unittest.TestCase):
         self.assertIn("melee", listed["cultist"]["attacks"])
         self.assertTrue(listed["cultist"]["name"]["ru"])
         self.assertEqual(listed["elite_possessed"]["extends"], "possessed_villager")
+
+    def test_every_enemy_says_where_it_is_met(self):
+        """The sandbox's «как …» and «Персонажи» group creatures by where the game brings them out;
+        every enemy of data/enemies is somewhere — a room of any night, a prop's guardians, a summon,
+        a split, a seal, a promotion, the yard. One that is not is a leftover: give it a place or drop it."""
+        listed = {e["id"]: e for e in build_data.enemies(ROOT, build_data.load_strings(ROOT))}
+        nowhere = sorted(i for i, e in listed.items() if not e["where"])
+        self.assertEqual(nowhere, [], f"in data/enemies but never in the game: {nowhere}")
+        self.assertTrue(any(w.startswith("Глава I · ") for w in listed["cultist"]["where"]))
+        self.assertTrue(any(w.startswith("Глава III · ") for w in listed["host_spearman"]["where"]))
+        self.assertIn("печати ставит: Офаним", listed["ophanim_seal"]["where"])
+        self.assertIn("тренировочный двор", listed["training_dummy"]["where"])
+        self.assertTrue(any(w.startswith("элита вместо: ") for w in listed["fallen_champion"]["where"]))
+        self.assertTrue(any(w.startswith("Глава I · ") for w in listed["shield_bearer"]["where"]))   # the reliquary's guardians
+
+    def test_every_drawn_enemy_has_a_character_in_the_studio(self):
+        """«Персонажи» opens every creature: its own character, or the one whose strips it wears."""
+        strings = build_data.load_strings(ROOT)
+        listed = build_data.enemies(ROOT, strings)
+        chars = {c["id"]: c for c in build_data.bestiary(ROOT, strings)}
+        shared = {json.loads(f.read_text(encoding="utf-8"))["id"] for f in (STUDIO / "projects/chars").glob("*.json")}
+        for e in listed:
+            if e["char"]:
+                self.assertTrue(e["char"] in chars or e["char"] in shared, f"{e['id']} wears {e['char']}, which the studio does not list")
+        by = {e["id"]: e for e in listed}
+        self.assertEqual((by["cult_caller"]["char"], by["cult_caller"]["tint"]), ("cultist", "#c8b4ff"))
+        self.assertEqual(by["host_archer"]["char"], "ash_archer")   # the studio's own project
+        self.assertEqual(chars["cultist"]["name"], by["cultist"]["name"]["ru"])
+        self.assertEqual(chars["ophanim_seal"]["origin"]["generator"], "tools/art/make_ophanim_seals.py")
+        for c in chars.values():
+            self.assertTrue(c["origin"]["generator"], c["id"])
+            for a in c["animations"]:
+                self.assertTrue(all(r[3:] == [c["settings"]["cellW"], c["settings"]["cellH"]] for r in a["regions"]), c["id"])
 
 
 class PreviewPage(unittest.TestCase):

@@ -20,7 +20,9 @@ func _run() -> void:
 	var found := {}
 	var heard := []
 	root.get_node("EventBus").note_found.connect(func(note_id: String, first: bool) -> void: heard.append([note_id, first]))
-	for scene in ["res://scenes/rooms/village_night.tscn", "res://scenes/rooms/swamp_crypt.tscn", "res://scenes/rooms/catacombs_2.tscn"]:
+	for scene in ["res://scenes/rooms/village_night.tscn", "res://scenes/rooms/swamp_crypt.tscn", "res://scenes/rooms/catacombs_2.tscn",
+			"res://scenes/rooms/tyre_counting_house.tscn", "res://scenes/rooms/tyre_gate.tscn",
+			"res://scenes/rooms/tyre_palace_stair.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room
@@ -36,7 +38,7 @@ func _run() -> void:
 			# a bricked-up doorway, not a patch of bricks: its niche is drawn
 			# behind it, or the painting has the arch (NICHE_PAINTED)
 			var niche = wall.get_node_or_null("Niche")
-			_assert(niche != null or wall.prop_id == "secret_wall_catacombs",
+			_assert(niche != null or wall.prop_id in ["secret_wall_catacombs", "secret_wall_tyre_counting", "secret_wall_tyre_gate"],
 				"%s: stands in a doorway" % wall.prop_id)
 			if niche != null:
 				_assert(niche.get_index() == 0 and niche.texture.get_width() > wall.sprite.texture.get_width() / wall.sprite.hframes,
@@ -118,8 +120,10 @@ func _run() -> void:
 	game.flags.erase("book_read")
 	church.queue_free()
 	await _settle(0.1)
-	# Seir's caches have no wall yet (docs/CHAPTER2_ART.md): they stand open
-	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn"]:
+	# Seir's and Marah's caches have no wall yet (docs/CHAPTER2_ART.md, CHAPTER3_ART.md): they stand open
+	for scene in ["res://scenes/rooms/seir_gate.tscn", "res://scenes/rooms/seir_wrecks.tscn", "res://scenes/rooms/seir_lighthouse_stair.tscn",
+			"res://scenes/rooms/marah_gallows.tscn", "res://scenes/rooms/marah_field.tscn",
+			"res://scenes/rooms/marah_springs_path.tscn"]:
 		var room = load(scene).instantiate()
 		root.add_child(room)
 		current_scene = room

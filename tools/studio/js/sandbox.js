@@ -26,7 +26,7 @@ async function sandboxOpen() {
   const el = sandbox.el = document.createElement('div');
   el.id = 'sandbox';
   el.innerHTML = `<div class="sb-head"><b>Песочница</b>
-      <select id="sbBase" title="Как дерётся">${bases.map(e => `<option value="${e.id}" ${e.id === sandbox.base ? 'selected' : ''}>как ${esc(e.name?.ru || e.id)}</option>`).join('') || '<option value="cultist">как культист</option>'}</select>
+      <select id="sbBase" title="Как дерётся: твой рисунок, а удары, шаг и выстрелы — этого врага игры">${sandboxBaseOptions(bases) || '<option value="cultist">как культист</option>'}</select>
       <select id="sbAnim" title="Драться или показать одну анимацию на месте"></select>
       <select id="sbSpeed" title="Замедлить игру, чтобы рассмотреть кадры"><option value="1">100 %</option><option value="0.5">50 %</option><option value="0.25">25 %</option></select>
       <select id="sbCount" title="Сколько их на дворе"><option value="1">×1</option><option value="2">×2</option><option value="3">×3</option></select>
@@ -119,6 +119,12 @@ window.addEventListener('message', e => {
     if (sandbox.giftNext) { const id = sandbox.giftNext; sandbox.giftNext = ''; setTimeout(() => { if ($('#sbGift')) $('#sbGift').value = id; sandboxCommand('gift'); }, 900); } sandboxState(`в игре: ${(e.data.animations || []).join(', ')} · ${new Date().toLocaleTimeString().slice(0, 5)}`); }
 });
 document.addEventListener('click', e => { if (e.target.closest('[data-act="chars-sandbox"]')) sandboxOpen(); });
+// «как …»: the enemies of the game her drawing can fight like, by the chapter they are met in
+// (lib.js creatureGroups); the hover says where, and one the game never brings out is set apart.
+function sandboxBaseOptions(bases) {
+  return creatureGroups(bases).map(g => `<optgroup label="${esc(g.label === 'Нет в игре' ? 'Нет в игре (черновики)' : g.label)}">${g.items.map(i =>
+    `<option value="${esc(i.id)}" ${i.id === sandbox.base ? 'selected' : ''} title="${esc(i.where.join('\n') || 'в игре не появляется')}">как ${esc(i.name)}${i.out ? ' (нет в игре)' : ''}</option>`).join('')}</optgroup>`).join('');
+}
 
 async function sandboxDraftData(id) {
   await worldLoad(); await attacksEnterData(); await shotsLoad(); await pfxLoad(); await loadSndLib();

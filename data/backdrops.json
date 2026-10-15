@@ -12,7 +12,9 @@
     "hell": {"flame": 0.22, "flame_floor": 0.82},
     "dawn": {"flame": 0.45, "flame_floor": 0.74},
     "dusk": {"flame": 0.45, "flame_floor": 0.8},
-    "harbour": {"flame": 0.5, "flame_floor": 0.6}
+    "harbour": {"flame": 0.5, "flame_floor": 0.6},
+    "tyre": {"flame": 0.55, "flame_floor": 0.62},
+    "marah": {"flame": 0.5, "flame_floor": 0.66}
   },
   "rooms": {
     "prolog_1_walk_a": {"family": "dusk", "zones": []},
@@ -448,6 +450,228 @@
       {"kind": "sway", "rect": [0, 0, 80, 230]},
       {"kind": "sway", "rect": [1520, 0, 60, 230]},
       {"kind": "stars", "rect": [140, 40, 1060, 150]}
+    ]},
+    "tyre_causeway": {"family": "tyre", "zones": [
+      {"kind": "water", "rect": [0, 590, 1600, 130]},
+      {"kind": "water", "rect": [330, 400, 1270, 52], "floor": 0.3},
+      {"kind": "sway", "rect": [180, 110, 150, 140], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "dead", "birds": 2},
+      {"kind": "sway", "rect": [10, 230, 120, 120], "strength": 1.0, "speed": 0.8},
+      {"kind": "glow", "rect": [1300, 55, 90, 90], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5},
+      {"kind": "stars", "rect": [330, 0, 900, 120]}
+    ]},
+    "tyre_counting_house": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [555, 40, 50, 250], "tint": "#9fb8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "glow", "rect": [1180, 40, 55, 250], "tint": "#9fb8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "sway", "rect": [880, 70, 220, 130], "strength": 0.8, "speed": 0.5},
+      {"kind": "sway", "rect": [110, 300, 50, 200], "strength": 0.8, "speed": 0.6},
+      {"kind": "haze", "rect": [700, 300, 300, 250], "strength": 0.5}
+    ]},
+    "tyre_dark_quarter": {"family": "tyre", "zones": [
+      {"kind": "sway", "rect": [140, 150, 80, 100], "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [1020, 180, 140, 60], "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [1340, 230, 150, 50], "strength": 0.9, "speed": 0.7},
+      {"kind": "haze", "rect": [940, 250, 160, 300], "strength": 0.7},
+      {"kind": "glow", "rect": [945, 15, 50, 45], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5}
+    ]},
+    "tyre_bright_quay": {"family": "tyre", "zones": [
+      {"kind": "water", "rect": [0, 590, 1600, 130]},
+      {"kind": "water", "rect": [1207, 485, 52, 105]},
+      {"kind": "water", "rect": [560, 345, 1040, 70], "floor": 0.3},
+      {"kind": "sway", "rect": [0, 0, 120, 300], "strength": 0.8, "speed": 0.6},
+      {"kind": "glow", "rect": [335, 55, 60, 50], "tint": "#cfd8ff", "strength": 0.14, "speed": 0.6},
+      {"kind": "stars", "rect": [180, 0, 1400, 110]}
+    ]},
+    "tyre_dyeworks": {"family": "tyre", "zones": [
+      {"kind": "water", "rect": [150, 505, 215, 32], "floor": 0.2},
+      {"kind": "water", "rect": [710, 505, 215, 32], "floor": 0.2},
+      {"kind": "water", "rect": [1080, 505, 230, 32], "floor": 0.2},
+      {"kind": "sway", "rect": [360, 140, 80, 200], "strength": 1.4, "speed": 0.9},
+      {"kind": "sway", "rect": [680, 140, 110, 200], "strength": 1.4, "speed": 0.9},
+      {"kind": "sway", "rect": [850, 175, 70, 170], "strength": 1.4, "speed": 0.9},
+      {"kind": "sway", "rect": [60, 70, 70, 150], "strength": 1.2, "speed": 0.8},
+      {"kind": "haze", "rect": [130, 20, 140, 270], "strength": 1.0},
+      {"kind": "glow", "rect": [160, 395, 70, 50], "tint": "#ff9040", "strength": 0.3, "speed": 0.8},
+      {"kind": "glow", "rect": [840, 40, 60, 60], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5}
+    ]},
+    "tyre_gate": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [500, 20, 80, 160], "tint": "#9fb8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "sway", "rect": [340, 120, 50, 120], "strength": 0.8, "speed": 0.6},
+      {"kind": "sway", "rect": [1250, 160, 45, 200], "strength": 0.8, "speed": 0.6},
+      {"kind": "sway", "rect": [470, 300, 60, 150], "strength": 0.7, "speed": 0.5},
+      {"kind": "haze", "rect": [1420, 280, 130, 220], "strength": 0.7}
+    ]},
+    "tyre_lamp_market": {"family": "tyre", "zones": [
+      {"kind": "sway", "rect": [120, 360, 350, 80], "strength": 0.9, "speed": 0.7},
+      {"kind": "sway", "rect": [710, 360, 360, 80], "strength": 0.9, "speed": 0.7},
+      {"kind": "sway", "rect": [1350, 50, 220, 150], "strength": 0.8, "speed": 0.6},
+      {"kind": "sway", "rect": [1350, 330, 220, 120], "strength": 0.8, "speed": 0.6},
+      {"kind": "water", "rect": [330, 235, 820, 25], "floor": 0.3},
+      {"kind": "glow", "rect": [350, 50, 60, 55], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5},
+      {"kind": "stars", "rect": [230, 0, 1050, 130]}
+    ]},
+    "tyre_rich_gate": {"family": "tyre", "zones": [
+      {"kind": "water", "rect": [40, 300, 390, 110], "floor": 0.3},
+      {"kind": "glow", "rect": [175, 45, 60, 55], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5},
+      {"kind": "stars", "rect": [0, 0, 440, 120]},
+      {"kind": "sway", "rect": [1200, 0, 400, 300], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "oak"},
+      {"kind": "sway", "rect": [550, 180, 140, 160], "strength": 1.0, "speed": 0.8},
+      {"kind": "sway", "rect": [1320, 250, 120, 200], "strength": 1.0, "speed": 0.8},
+      {"kind": "haze", "rect": [1500, 420, 100, 160], "strength": 0.6}
+    ]},
+    "tyre_vaults": {"family": "tyre", "zones": [
+      {"kind": "sway", "rect": [675, 320, 20, 100], "strength": 0.6, "speed": 0.5},
+      {"kind": "sway", "rect": [1155, 170, 30, 130], "strength": 0.6, "speed": 0.5},
+      {"kind": "haze", "rect": [1515, 360, 50, 180], "strength": 0.7}
+    ]},
+    "tyre_galleys": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [625, 75, 50, 50], "tint": "#cfd8ff", "strength": 0.12, "speed": 0.5},
+      {"kind": "water", "rect": [0, 600, 1600, 120], "floor": 0.3},
+      {"kind": "sway", "rect": [60, 95, 190, 75], "strength": 0.9, "speed": 0.8},
+      {"kind": "sway", "rect": [730, 95, 190, 70], "strength": 0.9, "speed": 0.8},
+      {"kind": "sway", "rect": [1260, 170, 160, 60], "strength": 0.9, "speed": 0.8}
+    ]},
+    "tyre_palace_stair": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [480, 145, 55, 55], "tint": "#cfd8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "water", "rect": [1030, 400, 170, 60], "floor": 0.3},
+      {"kind": "sway", "rect": [730, 0, 45, 270], "strength": 0.6, "speed": 0.5},
+      {"kind": "sway", "rect": [1320, 220, 55, 250], "strength": 0.6, "speed": 0.5},
+      {"kind": "sway", "rect": [100, 280, 45, 170], "strength": 0.6, "speed": 0.5}
+    ]},
+    "tyre_throne": {"family": "tyre", "zones": [
+      {"kind": "glow", "rect": [465, 165, 45, 50], "tint": "#cfd8ff", "strength": 0.1, "speed": 0.4},
+      {"kind": "water", "rect": [240, 370, 1250, 90], "floor": 0.3},
+      {"kind": "sway", "rect": [55, 0, 70, 230], "strength": 0.5, "speed": 0.4},
+      {"kind": "sway", "rect": [1520, 0, 55, 230], "strength": 0.5, "speed": 0.4}
+    ]},
+    "marah_gallows": {"family": "marah", "zones": [
+      {"kind": "sway", "rect": [580, 20, 440, 240], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "dead", "birds": 2},
+      {"kind": "sway", "rect": [890, 150, 30, 100], "strength": 1.4, "speed": 0.9},
+      {"kind": "sway", "rect": [100, 345, 50, 80]},
+      {"kind": "sway", "rect": [265, 345, 45, 80]},
+      {"kind": "sway", "rect": [1225, 365, 35, 85]},
+      {"kind": "sway", "rect": [1385, 365, 35, 70]},
+      {"kind": "glow", "rect": [1180, 230, 420, 70], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "water", "rect": [900, 320, 420, 110]},
+      {"kind": "haze", "rect": [0, 240, 1600, 120]}
+    ]},
+    "marah_ford": {"family": "marah", "zones": [
+      {"kind": "water", "rect": [235, 500, 1365, 110]},
+      {"kind": "glow", "rect": [920, 85, 60, 60], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [0, 340, 200, 100], "tint": "#9ab0ff", "strength": 0.2, "speed": 0.6},
+      {"kind": "glow", "rect": [1430, 230, 170, 180], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "sway", "rect": [110, 185, 30, 110]},
+      {"kind": "sway", "rect": [190, 280, 30, 80]},
+      {"kind": "sway", "rect": [1320, 270, 30, 70]},
+      {"kind": "sway", "rect": [1515, 240, 80, 70]},
+      {"kind": "sway", "rect": [1080, 330, 250, 50], "strength": 0.8, "speed": 0.6},
+      {"kind": "haze", "rect": [200, 330, 1100, 150]}
+    ]},
+    "marah_host_bank": {"family": "marah", "zones": [
+      {"kind": "water", "rect": [640, 335, 900, 90]},
+      {"kind": "glow", "rect": [680, 60, 60, 60], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [1385, 180, 50, 60], "tint": "#9ab0ff", "strength": 0.25, "speed": 0.7},
+      {"kind": "sway", "rect": [150, 165, 40, 110]},
+      {"kind": "sway", "rect": [1250, 205, 110, 40], "strength": 0.8},
+      {"kind": "sway", "rect": [0, 330, 170, 90], "strength": 0.6},
+      {"kind": "sway", "rect": [1490, 350, 110, 70], "strength": 0.6},
+      {"kind": "haze", "rect": [600, 280, 1000, 80]}
+    ]},
+    "marah_field": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [395, 380, 30, 30], "tint": "#ffa050", "strength": 0.25, "speed": 0.6},
+      {"kind": "glow", "rect": [1000, 340, 600, 60], "tint": "#ff8040", "strength": 0.2, "speed": 0.5},
+      {"kind": "glow", "rect": [0, 330, 250, 60], "tint": "#9ab0ff", "strength": 0.18, "speed": 0.6},
+      {"kind": "sway", "rect": [340, 265, 30, 100]},
+      {"kind": "sway", "rect": [1195, 295, 35, 100]},
+      {"kind": "sway", "rect": [110, 300, 25, 70]},
+      {"kind": "water", "rect": [540, 440, 420, 60]},
+      {"kind": "haze", "rect": [0, 370, 1600, 90]}
+    ]},
+    "marah_bitter_wells": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [740, 0, 110, 320], "tint": "#d8ecff", "strength": 0.22, "speed": 0.4},
+      {"kind": "water", "rect": [440, 490, 305, 110]},
+      {"kind": "water", "rect": [860, 490, 300, 110]},
+      {"kind": "sway", "rect": [160, 100, 90, 140]},
+      {"kind": "sway", "rect": [320, 110, 90, 130]},
+      {"kind": "sway", "rect": [1200, 130, 130, 100]},
+      {"kind": "sway", "rect": [1400, 130, 110, 90]},
+      {"kind": "sway", "rect": [425, 320, 50, 110], "anchor": "hangs", "strength": 1.2},
+      {"kind": "sway", "rect": [1130, 320, 50, 110], "anchor": "hangs", "strength": 1.2},
+      {"kind": "haze", "rect": [640, 0, 300, 450]}
+    ]},
+    "marah_dry_bed": {"family": "marah", "zones": [
+      {"kind": "sway", "rect": [520, 100, 300, 380], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "dead", "birds": 2},
+      {"kind": "glow", "rect": [310, 50, 60, 60], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [110, 340, 50, 70], "tint": "#9ab0ff", "strength": 0.22, "speed": 0.7},
+      {"kind": "glow", "rect": [1220, 170, 300, 90], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "sway", "rect": [1170, 180, 220, 60], "strength": 0.8},
+      {"kind": "sway", "rect": [30, 270, 50, 80]},
+      {"kind": "water", "rect": [680, 520, 100, 30]},
+      {"kind": "haze", "rect": [0, 320, 1100, 100]}
+    ]},
+    "marah_trench": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [705, 50, 60, 60], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [60, 90, 70, 70], "tint": "#9ab0ff", "strength": 0.22, "speed": 0.7},
+      {"kind": "glow", "rect": [450, 140, 40, 40], "tint": "#9ab0ff", "strength": 0.22, "speed": 0.7},
+      {"kind": "sway", "rect": [435, 55, 40, 100], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [175, 475, 60, 70], "anchor": "hangs", "strength": 0.8},
+      {"kind": "sway", "rect": [1510, 475, 60, 70], "anchor": "hangs", "strength": 0.8},
+      {"kind": "haze", "rect": [0, 180, 1600, 120]}
+    ]},
+    "marah_legion_bank": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [380, 50, 50, 50], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "water", "rect": [0, 510, 330, 90]},
+      {"kind": "glow", "rect": [860, 400, 120, 50], "tint": "#ff8040", "strength": 0.24, "speed": 0.5},
+      {"kind": "glow", "rect": [1480, 360, 30, 40], "tint": "#ff8040", "strength": 0.2, "speed": 0.6},
+      {"kind": "sway", "rect": [210, 190, 35, 90], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [280, 240, 40, 80], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [1075, 140, 40, 90], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [1200, 200, 45, 70], "anchor": "hangs", "strength": 1.0},
+      {"kind": "haze", "rect": [700, 0, 500, 300]}
+    ]},
+    "marah_parley": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [280, 290, 40, 50], "tint": "#d8ecff", "strength": 0.18, "speed": 0.4},
+      {"kind": "glow", "rect": [862, 290, 40, 50], "tint": "#ff8040", "strength": 0.22, "speed": 0.6},
+      {"kind": "glow", "rect": [1335, 375, 30, 40], "tint": "#ff8040", "strength": 0.2, "speed": 0.6},
+      {"kind": "sway", "rect": [160, 170, 40, 170], "anchor": "hangs", "strength": 0.6},
+      {"kind": "sway", "rect": [556, 210, 40, 180], "anchor": "hangs", "strength": 0.6},
+      {"kind": "sway", "rect": [1158, 230, 40, 170], "anchor": "hangs", "strength": 0.6},
+      {"kind": "sway", "rect": [1410, 150, 40, 170], "anchor": "hangs", "strength": 0.6}
+    ]},
+    "marah_siege": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [925, 85, 45, 45], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "glow", "rect": [120, 250, 60, 60], "tint": "#9ab0ff", "strength": 0.22, "speed": 0.7},
+      {"kind": "glow", "rect": [795, 360, 40, 30], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "glow", "rect": [1170, 555, 40, 30], "tint": "#ff8040", "strength": 0.22, "speed": 0.5},
+      {"kind": "glow", "rect": [1380, 240, 40, 30], "tint": "#ff8040", "strength": 0.2, "speed": 0.6},
+      {"kind": "glow", "rect": [1470, 505, 40, 40], "tint": "#ff8040", "strength": 0.2, "speed": 0.6},
+      {"kind": "water", "rect": [900, 420, 130, 100]},
+      {"kind": "sway", "rect": [45, 225, 40, 80], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [195, 455, 40, 80], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [505, 225, 40, 80], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [1350, 165, 60, 100], "anchor": "hangs", "strength": 0.8},
+      {"kind": "sway", "rect": [1450, 425, 60, 100], "anchor": "hangs", "strength": 0.8},
+      {"kind": "haze", "rect": [800, 100, 300, 300]}
+    ]},
+    "marah_springs_path": {"family": "marah", "zones": [
+      {"kind": "sway", "rect": [520, 110, 180, 140], "anchor": "stands", "strength": 0.6, "speed": 0.7, "tree": "dead", "birds": 2},
+      {"kind": "glow", "rect": [1420, 0, 180, 110], "tint": "#d8ecff", "strength": 0.2, "speed": 0.4},
+      {"kind": "glow", "rect": [675, 210, 30, 30], "tint": "#ff8040", "strength": 0.2, "speed": 0.6},
+      {"kind": "glow", "rect": [1515, 325, 30, 30], "tint": "#ff8040", "strength": 0.2, "speed": 0.6},
+      {"kind": "glow", "rect": [20, 555, 30, 40], "tint": "#ff8040", "strength": 0.2, "speed": 0.6},
+      {"kind": "falls", "rect": [365, 200, 20, 60]},
+      {"kind": "falls", "rect": [470, 210, 15, 45]},
+      {"kind": "haze", "rect": [0, 150, 700, 200]}
+    ]},
+    "marah_wormwood_spring": {"family": "marah", "zones": [
+      {"kind": "glow", "rect": [760, 450, 170, 140], "tint": "#d8ecff", "strength": 0.3, "speed": 0.5},
+      {"kind": "haze", "rect": [780, 380, 120, 120]},
+      {"kind": "glow", "rect": [920, 65, 45, 45], "tint": "#d8ecff", "strength": 0.14, "speed": 0.6},
+      {"kind": "water", "rect": [555, 565, 565, 30]},
+      {"kind": "sway", "rect": [100, 70, 60, 70], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [1040, 195, 25, 60], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [1340, 205, 30, 60], "anchor": "hangs", "strength": 1.0},
+      {"kind": "sway", "rect": [1520, 0, 80, 130], "anchor": "stands", "strength": 0.6},
+      {"kind": "glow", "rect": [1560, 480, 30, 40], "tint": "#ff8040", "strength": 0.2, "speed": 0.6}
     ]}
   }
 }

@@ -1,0 +1,44 @@
+{
+  "id": "host_archer",
+  "name": "ENEMY_HOST_ARCHER",
+  "lore": "ENEMY_HOST_ARCHER_LORE",
+  "tip": "TIP_HOST_ARCHER",
+  "_comment": "Chapter III. Stub art: the ash archer's strips in white.",
+  "faction": "host",
+  "hp": 40,
+  "speed": 58,
+  "damage": 0,
+  "attack_interval": 0.9,
+  "behaviour": "caster",
+  "keep_away": 150,
+  "aggro_range": 460,
+  "size": 12,
+  "color": "#e0e0d8",
+  "material": "cloth",
+  "tags": [
+    "human"
+  ],
+  "essence": 15,
+  "stagger_chance": 0.4,
+  "voice": "cultist",
+  "sprite": {
+    "like": "ash_archer",
+    "tint": "#f0f0e8"
+  },
+  "attack": {
+    "type": "ranged",
+    "range": 330,
+    "reach": 0,
+    "windup": 0.9,
+    "damage": 9,
+    "cooldown": 2.8,
+    "recover": 0.4,
+    "projectile_speed": 260,
+    "projectile_motion": "arc",
+    "motion_amount": 26,
+    "projectile_style": "host_arrow",
+    "color": "#f4f6ff",
+    "volley": 2,
+    "volley_gap": 0.35
+  }
+}

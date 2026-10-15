@@ -76,6 +76,45 @@
       "particles": {"ambient": "clots", "ambient_every": 0.9, "splash": "blood", "trail": "drips", "trail_time": 1.5, "tint": "#b0202a"},
       "light": {"color": "#b02030", "radius": 60.0, "energy": 0.35, "every": 140.0, "flicker": 0.1},
       "sounds": {"enter": "splash", "big": "splash_big", "exit": "splash_out", "wade": "wade", "ambient": "blood_loop", "bubble": "water_bubble"}
+    },
+    "dye": {
+      "colors": {"surface": "#9a5ab0", "body": "#3a1040", "deep": "#14041a", "foam": "#d0a0e0", "glow": "#7a3a9a"},
+      "opacity": 0.85,
+      "painted_opacity": 0.2,
+      "texture": "res://assets/fx/liquids/body_dye.png",
+      "waves": {"amplitude": 0.8, "speed": 0.4, "length": 60.0, "spring": 0.025, "damping": 0.04, "spread": 0.25, "splash": 0.8},
+      "flow": 0.03,
+      "shimmer": 0.2,
+      "body": {"drag": 0.5, "buoyancy": 0.35, "sink_speed": 55.0, "swim": 180.0, "swim_cooldown": 0.3, "jump": 0.9},
+      "damage": 0.0,
+      "burns": false,
+      "kills_walkers": false,
+      "enemy": {"drag": 0.5, "heal_per_second": 0.0, "harms": {}},
+      "douses": true,
+      "heal": {},
+      "particles": {"ambient": "glints", "ambient_every": 0.7, "splash": "drops", "trail": "drips", "trail_time": 2.5, "tint": "#8a3aa0"},
+      "light": {},
+      "sounds": {"enter": "splash", "big": "splash_big", "exit": "splash_out", "wade": "wade", "ambient": "water_loop", "bubble": "water_bubble"}
+    },
+    "bitter": {
+      "_comment": "Chapter III's bitter water (docs/CHAPTER3.md §7): it does not hurt — it slows. The ones who rise out of it do the hurting.",
+      "colors": {"surface": "#b8c48a", "body": "#3d4a26", "deep": "#141a0c", "foam": "#dfe6b8", "glow": "#c8e6a0"},
+      "opacity": 0.78,
+      "painted_opacity": 0.18,
+      "texture": "res://assets/fx/liquids/body_bog.png",
+      "waves": {"amplitude": 0.9, "speed": 0.5, "length": 58.0, "spring": 0.02, "damping": 0.05, "spread": 0.22, "splash": 0.8},
+      "flow": 0.02,
+      "shimmer": 0.4,
+      "body": {"drag": 0.5, "buoyancy": 0.4, "sink_speed": 55.0, "swim": 190.0, "swim_cooldown": 0.4, "jump": 0.85},
+      "damage": 0.0,
+      "burns": false,
+      "kills_walkers": false,
+      "enemy": {"drag": 0.5, "heal_per_second": 0.0, "harms": {}},
+      "douses": true,
+      "heal": {},
+      "particles": {"ambient": "glints", "ambient_every": 0.7, "splash": "drops", "trail": "drips", "trail_time": 1.2, "tint": "#c8d8a0"},
+      "light": {"color": "#b8e090", "radius": 50.0, "energy": 0.3, "every": 150.0, "flicker": 0.1},
+      "sounds": {"enter": "splash", "big": "splash_big", "exit": "splash_out", "wade": "wade", "ambient": "water_loop", "bubble": "water_bubble"}
     }
   }
 }

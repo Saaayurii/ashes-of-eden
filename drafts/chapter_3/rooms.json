@@ -1,0 +1,197 @@
+{
+  "_comment": "Chapter III room by room, in play order (docs/CHAPTER3.md §1). Six rooms are painted and generated (painted_rooms.py); the other six wait for their paintings (docs/CHAPTER3_ART.md) and move into the generator tables when they come. validate_data.gd checks every id named here.",
+  "rooms": [
+    {
+      "id": "marah_gallows",
+      "area": "marah_gallows",
+      "kind": "story",
+      "step": 1,
+      "intro": "malchus_at_the_tree",
+      "npcs": [
+        "malchus",
+        "marah_scout",
+        "malchus_hanged"
+      ],
+      "enemies": {
+        "host_spearman": 2,
+        "host_archer": 1,
+        "legion_possessed": 2
+      },
+      "props": [
+        "marah_cache_rizpah_names"
+      ],
+      "note": "The dead tree over the ford; Malchus hangs a Legion scout. Elian breaks a branch off the tree."
+    },
+    {
+      "id": "marah_ford",
+      "area": "marah_ford",
+      "kind": "fight",
+      "step": 2,
+      "enemies": {
+        "host_spearman": 2,
+        "host_archer": 1,
+        "legion_brute": 1,
+        "legion_possessed": 2
+      },
+      "fork": "marah_ford_fork",
+      "note": "Knee-deep bitter water; the two armies already at it. Fork after: the Host's bank / the Legion's."
+    },
+    {
+      "id": "marah_host_bank",
+      "area": "marah_ford",
+      "kind": "fight",
+      "step": 3,
+      "enemies": {
+        "host_spearman": 3,
+        "host_archer": 2,
+        "host_sentinel": 1
+      },
+      "note": "White tents, white fires; the Host hunts him like anyone."
+    },
+    {
+      "id": "marah_legion_bank",
+      "area": "marah_ford",
+      "kind": "fight",
+      "step": 3,
+      "enemies": {
+        "legion_possessed": 3,
+        "legion_brute": 2,
+        "wormwood_shade": 1
+      },
+      "stand_in": [
+        "swamp_red"
+      ],
+      "note": "Smoked hides and warm fires; the Legion's camp, the same fight from the other side."
+    },
+    {
+      "id": "marah_field",
+      "area": "marah_field",
+      "kind": "rest",
+      "step": 4,
+      "npcs": [
+        "rizpah"
+      ],
+      "rest": "marah_field",
+      "enemies": {
+        "raven": 3,
+        "legion_possessed": 2,
+        "host_spearman": 2
+      },
+      "note": "Rizpah's rock; the hanged of both armies on the horizon."
+    },
+    {
+      "id": "marah_trench",
+      "area": "marah_field",
+      "kind": "fight",
+      "step": 5,
+      "enemies": {
+        "host_spearman": 2,
+        "legion_possessed": 2,
+        "legion_brute": 1,
+        "host_archer": 1
+      },
+      "props": [
+        "marah_cache_two_orders"
+      ],
+      "stand_in": [
+        "catacombs_1"
+      ],
+      "note": "A trench across the field; the two orders in a buried dugout."
+    },
+    {
+      "id": "marah_parley",
+      "area": "marah_lines",
+      "kind": "story",
+      "step": 6,
+      "intro": "parley_tent",
+      "npcs": [
+        "parley_bannerbearer",
+        "parley_centurion"
+      ],
+      "enemies": {
+        "host_spearman": 2,
+        "legion_possessed": 2
+      },
+      "stand_in": [
+        "church"
+      ],
+      "note": "The truce tent: the side is chosen here, and the guards show the rule at once."
+    },
+    {
+      "id": "marah_siege",
+      "area": "marah_lines",
+      "kind": "fight",
+      "step": 7,
+      "enemies": {
+        "host_standard_bearer": 1,
+        "legion_centurion": 1,
+        "host_archer": 2,
+        "legion_brute": 1
+      },
+      "fork": "marah_siege_fork",
+      "stand_in": [
+        "graveyard_arches"
+      ],
+      "note": "Both elites at the walls. Fork after: the bitter wells / the dry bed."
+    },
+    {
+      "id": "marah_bitter_wells",
+      "area": "marah_lines",
+      "kind": "fight",
+      "step": 8,
+      "enemies": {
+        "wormwood_shade": 3,
+        "legion_possessed": 2,
+        "host_archer": 1
+      },
+      "note": "Deep bitter basins under a shaft of light."
+    },
+    {
+      "id": "marah_dry_bed",
+      "area": "marah_lines",
+      "kind": "fight",
+      "step": 8,
+      "enemies": {
+        "host_sentinel": 2,
+        "host_archer": 2,
+        "legion_brute": 1,
+        "legion_possessed": 2
+      },
+      "note": "The dry river bed under the dead tree and the Legion's cliff."
+    },
+    {
+      "id": "marah_springs_path",
+      "area": "marah_spring",
+      "kind": "rest",
+      "step": 9,
+      "rest": "marah_springs_path",
+      "props": [
+        "marah_cache_shepherd_tally"
+      ],
+      "enemies": {
+        "wormwood_shade": 2,
+        "host_sentinel": 1,
+        "legion_possessed": 2
+      },
+      "stand_in": [
+        "swamp_moon"
+      ],
+      "note": "Terraces down to the spring; the shepherd's fold is the rest point, his hut holds the tally."
+    },
+    {
+      "id": "marah_wormwood_spring",
+      "area": "marah_spring",
+      "kind": "boss",
+      "step": 10,
+      "intro": "wormwood_arrival",
+      "outro": "ch3_finale",
+      "enemies": {
+        "wormwood": 1
+      },
+      "stand_in": [
+        "seir_lighthouse"
+      ],
+      "note": "One screen tall. The star hangs over the spring, half in the water; the pool rises (flood)."
+    }
+  ]
+}

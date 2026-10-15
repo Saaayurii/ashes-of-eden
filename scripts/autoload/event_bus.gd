@@ -32,6 +32,8 @@ signal blood_offered(body: Node, price: float)
 signal blood_settled(paid: bool)
 ## A chest opened by our own body (Prop): its prop id, for the playtest log.
 signal chest_opened(prop_id: String)
+## A lamp of Tyre was bought (Lamp): what it cost and how it was paid.
+signal lamp_lit(price: int, how: String)
 ## Gifts taken together woke something none does alone (data/resonances).
 signal resonance_awakened(resonance_id: String)
 signal item_found(item: Dictionary)
@@ -74,3 +76,8 @@ signal lighting_changed
 signal run_restored
 ## "Again" on the night's end: another night begins (Telemetry counts it).
 signal night_retried
+## A soldier's truce with the hero broke (Faction.break_truce, host) or a side was
+## chosen (Faction.flag_set): whether the body keeps the door shut changed.
+signal enemy_holds_changed(enemy: Node, holds: bool)
+## A pool's surface was lifted or lowered (Hazard.set_level: Wormwood's flood).
+signal liquid_level_changed(pool: Node, rise: float)

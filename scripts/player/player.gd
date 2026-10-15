@@ -60,6 +60,18 @@ static var BASE_STATS := {
 	"covetous": 0.0,            # the chance a chest's common item is a rare one instead (Covetous Eye)
 	"charge_speed": 0.0,        # the cleave's charge fills this much faster (Quick Study)
 	"parry_window": 0.0,        # seconds added to the parry's window (Watchman's Patience)
+	# bought light (docs/CHAPTER4.md, scripts/rooms/darkness.gd, lamp.gd)
+	"lantern": 0.0,             # pixels added to the lantern a dark room gives him (A Lamp for the Poor)
+	"mite": 0.0,                # a lamp he cannot afford takes all the essence there is and burns (The Widow's Mite)
+	"lamp_blood": 0.0,          # lamps take this share of max_hp for the night instead of essence (Bought Light)
+	"dark_damage": 0.0,         # a blow on an enemy outside every light is worth this much more (Usurer's Edge)
+	"dark_sight": 0.0,          # a room's darkness is this much shallower for him (Eyes of the Dark)
+	"parry_flare": 0.0,         # a parry lights 110 px around him for this many seconds (Honest Scales)
+	# Chapter III's gifts (drafts/chapter_3, docs/CHAPTER3.md §7)
+	"liquid_mend": 0.0,         # health a second while he stands in a pool that does not burn (Sweetened Water)
+	"truce_hold": 0.0,          # a soldier that has just seen him holds its first blow this long (Standard of Peace, Enemy._notice)
+	"feud_damage": 0.0,         # blows on an enemy busy fighting another enemy are worth this much more (Blood Feud)
+	"crossfire_armor": 0.0,     # armour while soldiers of two sides are awake in the room (No Man's Land)
 }
 ## Where the item mechanics above reach.
 static var HEAL_BURST_RADIUS := 72.0
@@ -201,7 +213,7 @@ static var WAVE_SPEED := 260.0
 ## Slot 1 wears a colder cloth so the two of you never lose each other.
 const SLOT_TINTS := [Color.WHITE, Color(0.72, 0.84, 1.05)]
 ## What the other peer needs to draw this body. The rest is local theatre.
-const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon"]
+const NET_PROPERTIES := [".:position", ".:facing", ".:hp", ".:net_anim", ".:slot", ".:skin", ".:weapon", ".:lantern"]
 
 signal died(player: Player)
 
@@ -219,6 +231,8 @@ var skin := "":
 ## a chest laid another at his feet. Replicated, so the other player's slash
 ## is drawn the weapon's size; saved with the body (Saves.capture).
 var weapon := Weapons.DEFAULT
+## His `lantern` stat, replicated so a partner draws his light as wide (Darkness).
+var lantern := 0.0
 
 var stats: Dictionary = BASE_STATS.duplicate()
 var hp: float
@@ -236,8 +250,9 @@ var versus := false
 var net_anim := "idle":
 	set(value):
 		net_anim = value
-		if not _is_mine() and body != null and body.sprite_frames.has_animation(value):
-			body.play(value)
+		if not _is_mine() and body != null and body.sprite_frames.has_animation(_pose(value)):
+			body.set_meta(&"pose", value)
+			body.play(_pose(value))
 
 var _jumps_left := 0
 var _coyote := 0.0
@@ -549,6 +564,7 @@ func _physics_process(delta: float) -> void:
 	_scripted_left = maxf(0.0, _scripted_left - delta)
 	_block_cd = maxf(0.0, _block_cd - delta)
 	_tick_rally(delta)
+	_mend_in_liquid(delta)
 	_hurt_grace_left = maxf(0.0, _hurt_grace_left - delta)
 	_wrath_left = maxf(0.0, _wrath_left - delta)
 	_dodge_counter_left = maxf(0.0, _dodge_counter_left - delta)
@@ -850,7 +866,7 @@ func _animate(on_floor: bool) -> void:
 	if _healing_left > 0.0:
 		return  # the flask animation owns the body until the heal completes
 	if _blocking:
-		if body.animation != "guard":
+		if not _posed("guard"):
 			_play("guard")  # raise, then hold on the braced frame
 		return
 	if _dash_left > 0.0:
@@ -880,8 +896,26 @@ func _animate(on_floor: bool) -> void:
 
 func _play(animation: String) -> void:
 	body.speed_scale = 1.0  # a weapon's swing may have hurried or slowed the last one
-	body.play(animation)
+	body.set_meta(&"pose", animation)  # what ActionFx reads for a weapon's own frames
+	body.play(_pose(animation))
 	net_anim = animation
+
+
+## The frames [param animation] is drawn with in the hand's weapon: its own
+## (`"frames"` in data/weapons: spear_attack, from make_weapon_frames.py) when
+## it has them, else the hero's. net_anim carries the pose and the weapon is replicated, so a peer
+## draws the same frames.
+func _pose(animation: String) -> String:
+	var drawn := Weapons.frames(weapon)
+	if drawn == "" or body == null:
+		return animation
+	var own := "%s_%s" % [drawn, animation]
+	return own if body.sprite_frames.has_animation(own) else animation
+
+
+## The pose on the body now is [param animation], whatever weapon draws it.
+func _posed(animation: String) -> bool:
+	return body.animation == _pose(animation)
 
 
 ## A one-shot the body finishes before anything else gets to pose it.
@@ -972,6 +1006,22 @@ func heal(amount: float) -> void:
 	# leave a second, invisible recovery pool behind.
 	_rally_pool = maxf(0.0, _rally_pool - restored)
 	_emit_hp()
+
+
+## Sweetened Water: a pool that does not burn (water, bitter, bog) mends him.
+func _mend_in_liquid(delta: float) -> void:
+	if stats.liquid_mend <= 0.0 or not _is_mine() or hp >= stats.max_hp or _liquid_now() <= 0.0:
+		return
+	if bool(_liquid.spec.get("burns", false)):
+		return
+	heal(stats.liquid_mend * delta)
+
+
+## No Man's Land: armour while two sides are awake in the room (Faction).
+func _crossfire_armor() -> float:
+	if stats.crossfire_armor <= 0.0 or not Faction.two_sides_awake(get_tree()):
+		return 0.0
+	return stats.crossfire_armor
 
 
 func recoverable_hp() -> float:
@@ -1152,7 +1202,7 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		Juice.shake(2.0)
 		Audio.play(&"hit_crit", -6.0)
 		return
-	amount *= 1.0 - clampf(stats.armor, 0.0, 0.5)
+	amount *= 1.0 - clampf(stats.armor + _crossfire_armor(), 0.0, 0.5)
 	# a heavy weapon's poise: a body mid-swing pays less for standing its ground
 	if _attack_anim_left > 0.0:
 		amount *= 1.0 - Weapons.number(weapon, "poise", 0.0)
@@ -1169,6 +1219,7 @@ func _apply_damage(amount: float, source: Node = null, info: Dictionary = {}) ->
 		_wounded_this_room = true
 		if _is_mine():  # what it took, not what it would have: a killing blow stops at the last hp
 			Game.note_blow(_blame(source, info), minf(amount, maxf(hp_before, 0.0)))
+			EnemyDark.steal(source, self)  # a cutpurse's cut (docs/CHAPTER4.md)
 		if _charging:
 			_cancel_charge()  # a wound breaks the charge; the blade was not ready
 		if stats.wrath_after_hit > 0.0:
@@ -1558,6 +1609,8 @@ func _throw_wave() -> void:
 ## Health a kill is worth. Only our own body collects, and only while it is
 ## still standing.
 func _on_enemy_died(_id: StringName, _at: Vector2) -> void:
+	if Faction.felled_by_soldier():
+		return  # felled by another body (chapter III): not his kill
 	if _is_mine() and not _dead and curse > 0:
 		curse = maxi(0, curse - 1 - int(stats.curse_relief))
 		if curse == 0:
@@ -1663,6 +1716,8 @@ func _parry(source: Node, from_x: float) -> void:
 			if enemy != null and not enemy.is_dead() and enemy.global_position.distance_to(global_position) <= PARRY_STUN_RADIUS:
 				enemy.stagger(stats.parry_stun)
 		Fx.flash(global_position + Vector2(0, -12), Color(0.95, 0.9, 0.7), PARRY_STUN_RADIUS, 0.4)
+	if stats.parry_flare > 0.0:
+		Darkness.flare(self, stats.parry_flare)  # Honest Scales
 
 
 ## Steel on steel: the block held, the blow is a thud and a few cold sparks.
@@ -1815,10 +1870,10 @@ static func action_spec(id: String) -> Dictionary:
 func _action_hit_frame(spec: Dictionary, animation: String) -> bool:
 	if not body.sprite_frames.has_animation(animation):
 		return true
-	var frame := clampi(int(spec.get("hit_frame", 0)), 0, body.sprite_frames.get_frame_count(animation) - 1)
+	var frame := clampi(int(spec.get("hit_frame", 0)), 0, body.sprite_frames.get_frame_count(_pose(animation)) - 1)
 	while body.frame < frame:
 		await get_tree().process_frame
-		if not is_inside_tree() or _dead or body.animation != animation:
+		if not is_inside_tree() or _dead or not _posed(animation):
 			return false
 	return true
 
@@ -1969,9 +2024,15 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Trophy Hunter: the chosen of the dead (an elite, a boss) are the prey
 		if live_enemy and stats.chosen_damage > 0.0 and (target as Enemy).is_chosen():
 			damage *= 1.0 + stats.chosen_damage
+		# Usurer's Edge: a blow struck where no light reaches (Darkness)
+		if live_enemy and stats.dark_damage > 0.0 and Darkness.unlit(target as Node2D):
+			damage *= 1.0 + stats.dark_damage
 		# Cruel Opening: the wind-up the player can read is also a door
 		if live_enemy and stats.windup_bonus > 0.0 and (target as Enemy).state == Enemy.State.WINDUP:
 			damage *= 1.0 + stats.windup_bonus
+		# Blood Feud: a body busy with another body has turned its back on him
+		if live_enemy and stats.feud_damage > 0.0 and (target as Enemy).feuding():
+			damage *= 1.0 + stats.feud_damage
 		if live_enemy and stats.backstab_refresh > 0.0 and (target as Enemy).is_unaware():
 			_dash_cd = 0.0
 		if live_enemy and crit and stats.desperate_crit_heal > 0.0 and hp < stats.max_hp * DESPERATE_SHARE:

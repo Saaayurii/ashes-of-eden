@@ -6,7 +6,7 @@ extends SceneTree
 
 ## Secret walls set into an arch the room's painting already has; every other
 ## one brings its own niche (tools/art/make_secret_walls.py).
-const NICHE_PAINTED := ["secret_wall_catacombs"]
+const NICHE_PAINTED := ["secret_wall_catacombs", "secret_wall_tyre_counting", "secret_wall_tyre_gate"]
 const LOCALES := ["en", "ru", "uk", "zh_CN"]
 const PATHS := ["grace", "temptation", "will"]
 const EFFECT_TYPES := ["stat", "lifesteal", "extra_life", "heal", "skill"]
@@ -21,14 +21,16 @@ const STATS := ["max_hp", "speed", "acceleration", "jump_velocity", "gravity", "
 	"wave_damage", "guard", "essence_bonus", "friction", "slide_friction",
 	"heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge", "wrath_after_hit",
 	"desperate_crit_heal", "technique_heal", "windup_bonus", "charge_speed", "parry_window",
-	"cursed_damage", "chosen_damage", "curse_relief", "covetous"]
+	"cursed_damage", "chosen_damage", "curse_relief", "covetous",
+	"lantern", "mite", "lamp_blood", "dark_damage", "dark_sight", "parry_flare",
+	"liquid_mend", "truce_hold", "feud_damage", "crossfire_armor"]
 ## The mechanics an item may carry (Player.BASE_STATS): interactions, not "+3 damage".
 const ITEM_STATS := ["heal_burst", "parry_stun", "chest_heal", "backstab_refresh", "clean_clear_charge",
 	"wrath_after_hit", "desperate_crit_heal"]
 ## The moves Player reports through EventBus.technique_performed.
 const TECHNIQUES := ["lunge", "cleave", "sweep", "rising", "dash_strike", "slam", "wall_jump", "riposte", "backstab"]
 const BEHAVIOURS := ["walker", "flyer", "boss_ophanim", "caster", "seal", "dummy"]
-const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon"]
+const ATTACK_TYPES := ["melee", "ranged", "lunge", "beam", "nova", "summon", "wail"]
 ## How a bolt may fly (scripts/fx/projectile.gd _advance_motion).
 const PROJECTILE_MOTIONS := ["straight", "wave", "accelerate", "arc", "surge", "return", "home"]
 const BURST_FX := ["sparkle", "ash", "debris", "spark"]
@@ -41,7 +43,7 @@ const LOOK_NUMBERS := {"border_width": [0, 4], "radius": [0, 12], "speaker_size"
 	"text_size": [10, 28], "caption_size": [9, 24]}  # DialogueLook.NUMBERS
 const LOOK_KEYS := ["style", "panel", "caption", "portrait", "face"]
 const ANIMATIONS := ["idle", "walk", "idle_to_walk", "interact", "attack", "attack_alt", "special", "hurt", "death"]
-const PROP_KINDS := ["destructible", "chest"]
+const PROP_KINDS := ["destructible", "chest", "lamp"]
 ## What a blade landing on this body sounds like (tools/audio/generate_voices.py).
 const MATERIALS := ["flesh", "cloth", "mail", "plate", "bone", "feather", "spirit", "gold"]
 ## Cutscene steps (scripts/ui/cutscene.gd): step -> the fields it must carry.
@@ -103,6 +105,12 @@ var used_keys := {}  # localization key -> where it is used
 ## checked rather than noticed.
 var flags_set := {}
 var flags_read := {}
+## The same, by what holds them ("dialogues/<id>", "props/<id>", …): flag ->
+## {holder: true}. Which night a holder plays in says whether a flag read in
+## one night and written in another is one that outlives its night
+## (game.json "flags_kept", _check_kept_flags).
+var _flag_writers := {}
+var _flag_readers := {}
 ## Rooms a draft names that have no scene yet (scene -> draft), printed at the end.
 var _planned_rooms := {}
 
@@ -135,6 +143,7 @@ func _init() -> void:
 	_check_game()
 	_check_enemy_archetypes()
 	_check_enemy_strips()
+	_check_factions()
 	var game: Dictionary = _game()
 	for entry in _game_entries("endings"):  # a deed may name one before they are checked
 		_ending_ids[str(entry.get("id", ""))] = true
@@ -164,6 +173,7 @@ func _init() -> void:
 	_check_cjk_font(strings)
 	_check_glyphs(strings)
 	_check_story_flags()
+	_check_kept_flags(game)
 	_check_backdrops()
 	_check_foliage()
 	_check_telemetry_urls()
@@ -236,6 +246,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: icon not found: %s" % [where, entry.icon])
 		"enemies":
 			_use_key(entry.get("name", ""), where)
+			_check_dark_enemy(entry, where)
 			if entry.has("lore"):
 				_use_key(entry.lore, where)
 			# the advice the night's end gives when this one laid him low
@@ -270,6 +281,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					_error("%s: on_death.count is 1–4" % where)
 			if not BEHAVIOURS.has(entry.get("behaviour", "walker")):
 				_error("%s: behaviour must be one of %s" % [where, BEHAVIOURS])
+			_check_enemy_side(entry, where)
 			if entry.has("sprite"):
 				_check_sprite(entry.sprite, where)
 			var attacks: Array = entry.get("attacks", [])
@@ -280,9 +292,19 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			for attack in attacks:
 				if not ATTACK_TYPES.has(attack.get("type")):
 					_error("%s: attack.type must be one of %s" % [where, ATTACK_TYPES])
-				for field in ["windup", "damage", "cooldown"]:
+				# a wail hurts nobody: it wakes the ones who wait (Enemy.hear_wail)
+				for field in (["windup", "cooldown"] if attack.get("type") == "wail" else ["windup", "damage", "cooldown"]):
 					if float(attack.get(field, 0)) <= 0.0:
 						_error("%s: attack.%s must be positive" % [where, field])
+				if attack.get("type") == "wail":
+					if float(attack.get("windup", 0)) < 0.8:
+						_error("%s: a wail's windup is at least 0.8 s — the breath before it is the warning" % where)
+					if float(attack.get("radius", 0)) < 60.0 or float(attack.get("radius", 0)) > 400.0:
+						_error("%s: a wail's radius is 60–400 px" % where)
+					if float(attack.get("damage", 0)) != 0.0:
+						_error("%s: a wail hurts nobody (no damage)" % where)
+			if entry.has("patience"):
+				_check_patience(entry, where)
 			if entry.has("summons") and not entry.summons.has("id"):
 				_error("%s: summons.id missing" % where)
 			if entry.has("seal_phase"):
@@ -336,7 +358,9 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			if entry.has("weapon") and not (entry.weapon is bool and entry.get("kind") == "chest"):
 				_error("%s: weapon is true or false, on a chest (it lays the night's weapon)" % where)
 			if entry.has("requires_flag"):
-				flags_read[str(entry.requires_flag)] = where  # the prop waits for it
+				_read_flag(str(entry.requires_flag), where)  # the prop waits for it
+			if entry.get("kind") == "lamp" or entry.has("free_if"):
+				_check_lamp(entry, where)
 			if entry.has("curse") and (entry.get("kind") != "chest" or not (entry.curse is float or entry.curse is int)
 					or int(entry.curse) < 1 or int(entry.curse) > 30):
 				_error("%s: curse is a number of kills (1–30), on a chest" % where)
@@ -496,7 +520,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				if node.has("branches"):  # a router node: flags -> next, no text
 					for branch in node.branches:
 						if branch.has("flag"):
-							flags_read[str(branch.flag)] = node_where
+							_read_flag(str(branch.flag), node_where)
 						for key in ["path", "habit"]:
 							if branch.has(key) and not PATHS.has(str(branch[key])):
 								_error("%s: branch %s \"%s\" is not one of %s" % [node_where, key, branch[key], PATHS])
@@ -722,6 +746,34 @@ func _check_awareness(entry: Dictionary, where: String) -> void:
 				_error("%s: unknown patrol.%s" % [where, field])
 
 
+## "patience" (Enemy._begin_tend, the Watchman): the turn to the fire and what
+## a blow in it costs him. The quickened wind-up stays readable.
+func _check_patience(entry: Dictionary, where: String) -> void:
+	var spec = entry.patience
+	if not (spec is Dictionary):
+		_error("%s: patience must be an object" % where)
+		return
+	for key in spec:
+		if not ["every", "turn", "animation", "quicken", "min_windup"].has(key):
+			_error("%s: unknown patience.%s" % [where, key])
+	var every = spec.get("every", [8.0, 10.0])
+	if not (every is Array) or every.size() != 2 or float(every[0]) < 4.0 or float(every[1]) < float(every[0]) \
+			or float(every[1]) > 30.0:
+		_error("%s: patience.every is [min, max] seconds, 4–30" % where)
+	var turn := float(spec.get("turn", 1.2))
+	if turn < 0.6 or turn > 2.5:
+		_error("%s: patience.turn is 0.6–2.5 s" % where)
+	var quicken := float(spec.get("quicken", 0.6))
+	if quicken < 0.4 or quicken > 1.0:
+		_error("%s: patience.quicken is a share of the wind-up, 0.4–1" % where)
+	if float(spec.get("min_windup", 0.5)) < 0.45:
+		_error("%s: patience.min_windup under 0.45 s is an unreadable blow" % where)
+	var animation := str(spec.get("animation", "special"))
+	var anims: Dictionary = entry.get("sprite", {}).get("animations", {}) if entry.get("sprite") is Dictionary else {}
+	if not anims.is_empty() and not anims.has(animation):
+		_error("%s: patience.animation %s is not one of its strips" % [where, animation])
+
+
 func _check_enemy_archetypes() -> void:
 	for entry in _game_entries("enemy_archetypes"):
 		var where := "enemy_archetypes/%s" % entry.get("id", "?")
@@ -908,6 +960,8 @@ func _check_volley(attack: Dictionary, where: String, style: String, motion: Str
 		_error("%s: return must turn before the projectile expires" % where)
 	elif motion == "home" and amount > 4.0:
 		_error("%s: a bolt that turns faster than 4 rad/s cannot be dodged" % where)
+	if attack.has("mark_landing") and (motion != "arc" or float(attack.mark_landing) <= 0.0 or float(attack.mark_landing) > 1.2):
+		_error("%s: mark_landing is (0, 1.2] seconds of glow, only on an arcing bolt (projectile_motion arc)" % where)
 	var volley := int(attack.get("volley", 1))
 	if volley < 1 or volley > 5:
 		_error("%s: volley must be 1..5 rounds" % where)
@@ -1317,7 +1371,7 @@ func _check_ending(entry: Dictionary, where: String) -> void:
 					_error("%s: when.%s is a list of flags" % [where, key])
 				else:
 					for flag in when[key]:
-						flags_read[str(flag)] = where
+						_read_flag(str(flag), where)
 			_:
 				_error("%s: when.%s is not path, lead, balanced, flags or unless" % [where, key])
 	if when.has("lead") and not when.has("path"):
@@ -1372,6 +1426,11 @@ func _check_omen(entry: Dictionary, where: String) -> void:
 			"enemy_sight":
 				helps = helps or float(value) < 1.0
 				hurts = hurts or float(value) > 1.0
+			"dark", "lamp_price":  # docs/CHAPTER4.md §7: deeper dark, dearer lamps
+				hurts = hurts or float(value) > 1.0
+				helps = helps or float(value) < 1.0
+				if float(value) <= 0.0 or float(value) > 2.0:
+					_error("%s: rules.%s is 0..2" % [where, key])
 			"promote_chance":
 				hurts = hurts or float(value) > 0.0
 				if float(value) > 1.0:
@@ -1439,7 +1498,7 @@ func _check_fork(entry: Dictionary, where: String) -> void:
 			continue
 		var scene := FileAccess.get_file_as_string(path)
 		var story := []
-		for field in ["intro_cutscene", "outro_cutscene", "intro_dialogue"]:
+		for field in ["intro_cutscene", "outro_cutscene", "quiet_outro", "intro_dialogue"]:
 			var at := scene.find(field + " = \"")
 			if at >= 0 and scene.substr(at + field.length() + 4, 1) != "\"":
 				story.append(field)
@@ -1517,7 +1576,7 @@ func _check_cutscene(entry: Dictionary, where: String) -> void:
 				_error("%s: step %s: %s must be a flag or a list of flags" % [where, kind, key])
 				continue
 			for flag in (([step[key]] if step[key] is String else step[key]) as Array):
-				flags_read[str(flag)] = where
+				_read_flag(str(flag), where)
 		if kind == "hold":
 			holds += 1
 		elif kind == "release":
@@ -1567,7 +1626,7 @@ func _check_sprite(sprite: Dictionary, where: String) -> void:
 ## Flags the engine itself sets: written in GDScript, not by a choice in data.
 ## blood_paid: a blood altar's price paid (Run._on_blood_offered).
 ## waiter_struck: a blow on one that waits, while it still waited (Enemy._apply_damage).
-const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck"]
+const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "truce_broken"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
 
@@ -1699,6 +1758,72 @@ func _check_foliage() -> void:
 				_error("data/backdrops.json: %s: tree \"%s\" is not a style of data/foliage.json (%s)" % [key, zone.tree, styles.keys()])
 
 
+## Chapter III's keys on an enemy (docs/CHAPTER3.md §9): its side, a flying
+## boss's anchor / leash / hover_floor, Wormwood's flood, and on a summon
+## "where" and "essence". The bolts' mark_landing is checked with the volley.
+func _check_enemy_side(entry: Dictionary, where: String) -> void:
+	if entry.has("faction"):
+		var sides: Dictionary = _doc("factions.json").get("factions", {})
+		if not sides.has(str(entry.faction)):
+			_error("%s: faction %s is not in data/factions.json (%s)" % [where, entry.faction, sides.keys()])
+		if entry.get("boss", false):
+			_error("%s: a boss has no side (no army comes near the star)" % where)
+	if entry.has("anchor") and not (entry.anchor is Array and entry.anchor.size() == 2):
+		_error("%s: anchor is [x, y] in finished-room pixels" % where)
+	if entry.has("leash") and (not entry.has("anchor") or float(entry.leash) <= 0.0):
+		_error("%s: leash is a positive radius around an anchor" % where)
+	if entry.has("hover_floor") and float(entry.hover_floor) < 0.0:
+		_error("%s: hover_floor is px over the floor, not negative" % where)
+	if (entry.has("anchor") or entry.has("hover_floor")) and not str(entry.get("behaviour", "walker")) in ["flyer", "boss_ophanim"]:
+		_error("%s: anchor and hover_floor hold a flyer" % where)
+	if entry.has("flood"):
+		var flood: Dictionary = entry.flood
+		if str(flood.get("liquid", "")) == "":
+			_error("%s: flood.liquid names the pool (its node name, a liquid's \"name\" in studio_rooms.json)" % where)
+		if float(flood.get("at_hp", 0.5)) <= 0.0 or float(flood.get("at_hp", 0.5)) >= 1.0:
+			_error("%s: flood.at_hp is a share of health, in (0, 1)" % where)
+		if float(flood.get("rise", 64)) <= 0.0 or float(flood.get("rise", 64)) > 200.0:
+			_error("%s: flood.rise is (0, 200] px" % where)
+		if float(flood.get("warn", 1.5)) < 0.8:
+			_error("%s: flood.warn must leave at least 0.8 s to read it" % where)
+		if float(flood.get("time", 3.0)) <= 0.0:
+			_error("%s: flood.time must be positive" % where)
+	var attacks: Array = entry.get("attacks", []) + ([entry.attack] if entry.has("attack") else [])
+	for attack in attacks:
+		if attack.has("where") and (attack.get("type") != "summon" or str(attack.where) != "liquid"):
+			_error("%s: \"where\": \"liquid\" is the only place a summon may rise" % where)
+		if attack.has("essence") and (attack.get("type") != "summon" or float(attack.essence) < 0.0):
+			_error("%s: essence on an attack is what a summon's risen pay, not negative" % where)
+
+
+## data/factions.json (scripts/enemies/faction.gd): sides that hate each other
+## both ways, the flag that spares the hero is somebody's to set (and counts as
+## read), shares of a blow and of essence between bodies in (0, 1].
+func _check_factions() -> void:
+	var parsed := _doc("factions.json")
+	if parsed.is_empty():
+		return
+	for key in ["damage_between", "essence_between"]:
+		if float(parsed.get(key, 0.5)) <= 0.0 or float(parsed.get(key, 0.5)) > 1.0:
+			_error("data/factions.json: %s must be in (0, 1]" % key)
+	if float(parsed.get("shout_radius", 160)) <= 0.0:
+		_error("data/factions.json: shout_radius must be positive")
+	var sides: Dictionary = parsed.get("factions", {})
+	for id in sides:
+		var side: Dictionary = sides[id]
+		used_keys[str(side.get("name", ""))] = "data/factions.json"
+		for other in side.get("hostile", []):
+			if not sides.has(str(other)) or str(other) == str(id):
+				_error("data/factions.json: %s is hostile to %s, which is not another side" % [id, other])
+			elif not sides[other].get("hostile", []).has(id):
+				_error("data/factions.json: %s is hostile to %s but not the other way round" % [id, other])
+		var flag := str(side.get("spares_on", ""))
+		if flag != "":
+			_read_flag(flag, "data/factions.json")
+		if side.has("color") and not Color.html_is_valid(str(side.color)):
+			_error("data/factions.json: %s.color is not a colour" % id)
+
+
 func _check_story_flags() -> void:
 	# a game's own flags that something other than a branch reads (game.json "flags_read")
 	for flag in DATA_DOC.top("game.json", _validated_roots()).get("flags_read", []):
@@ -1726,9 +1851,136 @@ func _check_story_flags() -> void:
 			% ", ".join(ghosts))
 
 
+func _read_flag(flag: String, where: String) -> void:
+	flags_read[flag] = where
+	_holders(_flag_readers, flag)[_holder(where)] = true
+
+
+func _set_flag(flag: String, where: String) -> void:
+	flags_set[flag] = where
+	_holders(_flag_writers, flag)[_holder(where)] = true
+
+
+static func _holders(table: Dictionary, flag: String) -> Dictionary:
+	if not table.has(flag):
+		table[flag] = {}
+	return table[flag]
+
+
+## "dialogues/ch3_malchus#ask" -> "dialogues/ch3_malchus".
+static func _holder(where: String) -> String:
+	return where.split("#")[0].split(":")[0].strip_edges()
+
+
+## Which nights (DataDoc.nights ids, "" the first) each holder of story plays
+## in: what a night's rooms name (people, props, scenes), its opening, its
+## forks' questions, the finale's endings, and every dialogue a scene, a
+## person, a note or a prop of it opens. A holder no night names (a dialogue
+## code opens) is in none — and is taken to be every night's.
+func _night_holders(game: Dictionary) -> Dictionary:
+	var owners := {}
+	var line := RegEx.create_from_string("^(\\w+) = \"([^\"]+)\"$")
+	var by_holder := {}
+	for collection in ["dialogues", "cutscenes", "npcs", "props", "notes", "forks", "endings"]:
+		for entry in _game_entries(collection):
+			by_holder["%s/%s" % [collection, entry.get("id", "")]] = entry
+	var finale_room := str(game.get("finale", {}).get("room", ""))
+	for night in DATA_DOC.nights(game):
+		var id := str(night.id)
+		var todo: Array = []
+		for key in night.get("opening", {}):
+			if key != "wake":
+				todo.append(("dialogues/" if key in ["intro", "last_fall"] else "cutscenes/") + str(night.opening[key]))
+		var rooms: Array = night.get("rooms", [])
+		for path in rooms:
+			if not ResourceLoader.exists(str(path)):
+				continue
+			for row in FileAccess.get_file_as_string(str(path)).split("\n"):
+				var hit := line.search(row)
+				if hit == null:
+					continue
+				match hit.get_string(1):
+					"npc_id": todo.append("npcs/" + hit.get_string(2))
+					"prop_id": todo.append("props/" + hit.get_string(2))
+					"intro_cutscene", "outro_cutscene": todo.append("cutscenes/" + hit.get_string(2))
+					"intro_dialogue": todo.append("dialogues/" + hit.get_string(2))
+			if str(path) == finale_room:
+				todo.append("cutscenes/" + str(game.finale.get("cutscene", "")))
+				for entry in _game_entries("endings"):
+					todo.append("endings/" + str(entry.get("id", "")))
+		for fork in _game_entries("forks"):
+			if rooms.has(fork.get("after", "")):
+				todo.append("forks/" + str(fork.get("id", "")))
+		while not todo.is_empty():
+			var holder := str(todo.pop_back())
+			if not owners.has(holder):
+				owners[holder] = {}
+			if owners[holder].has(id):
+				continue
+			owners[holder][id] = true
+			var entry = by_holder.get(holder)
+			if not entry is Dictionary:
+				continue
+			if entry.has("dialogue"):
+				todo.append("dialogues/" + str(entry.dialogue))
+			if entry.has("note"):
+				todo.append("notes/" + str(entry.note))
+			if entry.has("cutscene"):
+				todo.append("cutscenes/" + str(entry.cutscene))
+			for step in entry.get("steps", []):
+				if step is Dictionary and str(step.get("do", "")) == "dialogue":
+					todo.append("dialogues/" + str(step.get("id", "")))
+	return owners
+
+
+## game.json "flags_kept" (docs/CAMPAIGN.md §5, Campaign): each entry a flag or a
+## group of flags somebody writes; a flag read in one night and written only in
+## others must be in it, or the branch can never be reached.
+func _check_kept_flags(game: Dictionary) -> void:
+	var kept := {}
+	var listed = game.get("flags_kept", [])
+	if not listed is Array:
+		_error("data/game.json: flags_kept is a list of flags and groups (lists) of flags")
+		listed = []
+	for entry in listed:
+		var group: Array = [entry] if entry is String else (entry if entry is Array else [])
+		if group.is_empty() or (entry is Array and group.size() < 2):
+			_error("data/game.json: flags_kept: %s is a flag or a group of two or more" % [entry])
+		for flag in group:
+			if kept.has(str(flag)):
+				_error("data/game.json: flags_kept names %s twice" % flag)
+			kept[str(flag)] = true
+			if not flags_set.has(str(flag)):
+				_error("data/game.json: flags_kept: nobody writes %s" % flag)
+			elif not flags_read.has(str(flag)):
+				_warn("data/game.json: flags_kept: nobody reads %s yet" % flag)
+	var owners := _night_holders(game)
+	for flag in _flag_readers:
+		if kept.has(flag) or not _flag_writers.has(flag) or FLAGS_SET_IN_CODE.has(flag):
+			continue
+		var written := {}
+		var anywhere := false
+		for holder in _flag_writers[flag]:
+			if not owners.has(holder):
+				anywhere = true
+			else:
+				written.merge(owners[holder])
+		if anywhere:
+			continue
+		for holder in _flag_readers[flag]:
+			if not owners.has(holder):
+				continue
+			var shared := false
+			for night in owners[holder]:
+				shared = shared or written.has(night)
+			if not shared:
+				_error("%s reads %s, which only another night writes (%s): add it to game.json flags_kept"
+					% [holder, flag, ", ".join(written.keys().map(func(n) -> String: return "first" if n == "" else str(n)))])
+
+
 func _check_effect(effect: Dictionary, where: String) -> void:
 	for flag in effect.get("set_flags", []):
-		flags_set[str(flag)] = where
+		_set_flag(str(flag), where)
 	if effect.has("flask") and (not (effect.flask is float or effect.flask is int) or int(effect.flask) != float(effect.flask)
 			or absi(int(effect.flask)) > 3 or int(effect.flask) == 0):
 		_error("%s: flask is a whole number of flasks, -3..3 (negative: given away)" % where)
@@ -2037,11 +2289,24 @@ func _check_nights(game: Dictionary) -> void:
 			var dawns = night.get("after_dawns", 0)
 			if not (dawns is float or dawns is int) or int(dawns) < 1:
 				_error("%s: after_dawns must be 1 or more — the first night is the one always open" % where)
+			# "after" (docs/CAMPAIGN.md §6, Campaign.night_open): an earlier night, or the game's own id for the first
+			if night.has("after"):
+				var after := str(night.after)
+				var earlier: Array = [str(game.get("id", ""))]
+				for j in i:
+					if j > 0:
+						earlier.append(str(nights[j].id))
+				if not earlier.has(after):
+					_error("%s: after \"%s\" is not an earlier night (or the game's id, %s, for the first)" % [where, after, game.get("id", "")])
+		elif night.has("after"):
+			_error("data/game.json: the first night is always open — it comes after nothing")
 		for path in night.get("rooms", []):
 			owner[str(path)] = str(night.id)
 	for fork in _game_entries("forks"):
 		var in_nights := {}
 		for path in [fork.get("after", ""), fork.get("then", "")] + (fork.get("options", {}) as Dictionary).values():
+			if fork.has("_draft") and not FileAccess.file_exists(str(path)):
+				continue  # a draft's room still waiting for its painting (_room_missing)
 			in_nights[owner.get(str(path), "?")] = true
 		if in_nights.size() != 1 or in_nights.has("?"):
 			_error("data/forks/%s: its rooms must all be one night's" % fork.get("id", "?"))
@@ -2050,6 +2315,7 @@ func _check_nights(game: Dictionary) -> void:
 func _check_game_rooms(game: Dictionary) -> void:
 	var wants := {"enemy_id": [_enemy_ids, "enemy"], "npc_id": [_npc_ids, "npc"], "prop_id": [_prop_ids, "prop"],
 		"intro_cutscene": [_cutscene_ids, "cutscene"], "outro_cutscene": [_cutscene_ids, "cutscene"],
+		"quiet_outro": [_cutscene_ids, "cutscene"],
 		"intro_dialogue": [_dialogue_ids, "dialogue"]}
 	var line := RegEx.create_from_string("^(\\w+) = \"([^\"]+)\"$")
 	for path in DATA_DOC.all_rooms(game) + [game.get("practice_room", "")]:
@@ -2171,6 +2437,11 @@ const WEAPON_BOUNDS := {"damage": [0.5, 2.0], "backstab": [0.0, 2.0], "poise": [
 const WEAPON_STEP_NEEDS := ["multiplier", "recovery", "knockback", "heavy"]
 const WEAPON_ANIMATIONS := ["attack", "attack2", "attack3", "thrust", "rising", "dash_strike"]
 const WEAPON_ARCS := ["white", "gold", "red", "heavy", "path"]
+## A weapon's own frames (`"frames"`, make_weapon_frames.py) must be drawn for
+## its chain's poses and for these, which any weapon in hand may be put in
+## (Weapons.FRAMED).
+const WEAPON_FRAMED := ["draw", "guard", "thrust", "rising", "dash_strike", "lunge", "charge", "cleave", "sweep"]
+const HERO_FRAMES := "res://assets/sprites/elian_frames.tres"
 
 
 func _check_weapon(entry: Dictionary, where: String) -> void:
@@ -2189,6 +2460,8 @@ func _check_weapon(entry: Dictionary, where: String) -> void:
 		_error("%s: chain is 1–5 steps" % where)
 		return
 	var own: bool = entry.get("id", "") == "sword"
+	if entry.has("frames"):
+		_check_weapon_frames(str(entry.frames), chain, where)
 	for i in chain.size():
 		var step = chain[i]
 		var at := "%s.chain[%d]" % [where, i]
@@ -2228,6 +2501,29 @@ func _check_weapon(entry: Dictionary, where: String) -> void:
 					_bounded(moves[move][key], WEAPON_STEP_BOUNDS[key], "%s.techniques.%s.%s" % [where, move, key])
 				else:
 					_error("%s.techniques.%s: unknown key %s" % [where, move, key])
+
+
+## Every pose the weapon's chain names, and every one the body may take with
+## it in hand, drawn as <frames>_<pose> in the hero's SpriteFrames.
+func _check_weapon_frames(prefix: String, chain: Array, where: String) -> void:
+	if prefix == "" or not prefix.is_valid_identifier():
+		_error("%s: frames is the prefix of its animations in %s (spear -> spear_attack)" % [where, HERO_FRAMES])
+		return
+	var hero = load(HERO_FRAMES)
+	if hero == null:
+		_error("%s: cannot load %s" % [where, HERO_FRAMES])
+		return
+	var poses: Array = WEAPON_FRAMED.duplicate()
+	for step in chain:
+		if step is Dictionary and not poses.has(str(step.get("animation", ""))):
+			poses.append(str(step.get("animation", "")))
+	for pose in poses:
+		var own := "%s_%s" % [prefix, pose]
+		if not hero.has_animation(own):
+			_error("%s: no \"%s\" in %s (tools/art/make_weapon_frames.py, build_elian_frames.py)" % [where, own, HERO_FRAMES])
+		elif hero.has_animation(pose) and hero.get_frame_count(own) != hero.get_frame_count(pose):
+			# a hit frame, a hold, the touch of a technique are counted in the hero's frames
+			_error("%s: %s has %d frames, %s has %d" % [where, own, hero.get_frame_count(own), pose, hero.get_frame_count(pose)])
 
 
 func _bounded(value, bounds: Array, label: String) -> void:
@@ -2289,3 +2585,62 @@ func _check_player_actions() -> void:
 			_error("player action %s.hit_frame needs a nonnegative integer" % id)
 		if action.has("sfx") and not action.sfx is String:
 			_error("player action %s.sfx needs a sound name" % id)
+
+
+## A lamp of Tyre (scripts/rooms/lamp.gd, docs/CHAPTER4.md §9): a price in
+## essence 0–60, a light 60–220 px, and `free_if` is a flag read.
+func _check_lamp(entry: Dictionary, where: String) -> void:
+	if entry.get("kind") != "lamp":
+		_error("%s: free_if belongs to a lamp" % where)
+		return
+	if not entry.get("prompt", "") is String:
+		_error("%s: a lamp's prompt is a key" % where)
+	var price = entry.get("price", 20)
+	if not (price is float or price is int) or float(price) < 0.0 or float(price) > 60.0:
+		_error("%s: a lamp's price is essence, 0–60" % where)
+	var radius = entry.get("radius", 150)
+	if not (radius is float or radius is int) or float(radius) < 60.0 or float(radius) > 220.0:
+		_error("%s: a lamp's radius is 60–220 px" % where)
+	if entry.has("lit") and not entry.lit is bool:
+		_error("%s: lit is true or false" % where)
+	if entry.has("color") and not (entry.color is String and Color.html_is_valid(entry.color)):
+		_error("%s: color is a #rrggbb" % where)
+	if entry.has("free_if"):
+		if not (entry.free_if is String and entry.free_if != ""):
+			_error("%s: free_if is a flag" % where)
+		else:
+			_read_flag(str(entry.free_if), where)  # it burns for nothing once the story set it
+	_use_key("PROMPT_LAMP", where)
+	_use_key("PROMPT_LAMP_POOR", where)
+
+
+## Chapter IV's keys on an enemy (scripts/enemies/enemy_dark.gd).
+func _check_dark_enemy(entry: Dictionary, where: String) -> void:
+	if entry.has("dark_adapted") and not entry.dark_adapted is bool:
+		_error("%s: dark_adapted is true or false" % where)
+	if entry.has("steals"):
+		var n = entry.steals
+		if not (n is float or n is int) or float(n) < 0.0 or float(n) > 10.0:
+			_error("%s: steals is essence a blow takes, 0–10" % where)
+	if not entry.has("darkness_phase"):
+		return
+	var phase = entry.darkness_phase
+	if not entry.get("boss", false) and not "boss" in entry.get("tags", []):
+		_error("%s: only a boss puts the room out (darkness_phase)" % where)
+	if not phase is Dictionary:
+		_error("%s: darkness_phase is an object" % where)
+		return
+	for key in phase:
+		if not key in ["at_hp", "dark", "relight_price", "windup", "caption", "animation", "color"]:
+			_error("%s: darkness_phase has no key \"%s\"" % [where, key])
+	if float(phase.get("dark", 0.85)) < 0.0 or float(phase.get("dark", 0.85)) > 0.95:
+		_error("%s: darkness_phase.dark is 0–0.95" % where)
+	if float(phase.get("relight_price", 2.0)) < 1.0 or float(phase.get("relight_price", 2.0)) > 3.0:
+		_error("%s: darkness_phase.relight_price is 1–3" % where)
+	if float(phase.get("at_hp", 0.5)) <= 0.0 or float(phase.get("at_hp", 0.5)) >= 1.0:
+		_error("%s: darkness_phase.at_hp is a share of health, between 0 and 1" % where)
+	# a readable wind-up, like every other: the palm raised
+	if float(phase.get("windup", 1.4)) < 0.6:
+		_error("%s: darkness_phase.windup is at least 0.6 s — a wind-up the player can read" % where)
+	if phase.has("caption") and not _dialogue_ids.has(str(phase.caption)):
+		_error("%s: darkness_phase.caption names no dialogue \"%s\"" % [where, phase.caption])

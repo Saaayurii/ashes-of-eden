@@ -202,6 +202,22 @@ def caller(base=190):
     }
 
 
+## The keening woman of Seir (the wailer): a breath drawn in, then a high,
+## wavering cry with the throat's grain in it. Her "attack" is the wail
+## itself, timed to the 1 s wind-up: the in-breath first, the cry at release.
+def keen(root=420):
+    voice = lambda s, f, gl, vib: lowpass(sine(f, s, gl, vib, 5.2) + 0.35 * saw(f, s, gl), 2600)
+    breath = lambda s: bandpass(noise(s), 700, 3200) * env(int(s * RATE), 0.6, 0.3)
+    def cry(s, f, gl, vib, attack=0.08, release=0.5):
+        return voice(s, f, gl, vib) * env(int(s * RATE), attack, release)
+    return {
+        "alert": norm(cry(0.35, root * 0.9, 1.2, 0.02, 0.1, 0.6), 0.42),  # a sob caught in the throat
+        "attack": norm(np.concatenate([0.5 * breath(0.4), cry(0.95, root, 1.35, 0.045, 0.15, 0.55)]), 0.5),
+        "hurt": norm(cry(0.16, root * 1.3, 0.8, 0.01, 0.02, 0.6), 0.42),
+        "death": norm(np.concatenate([cry(0.5, root * 1.1, 0.7, 0.04, 0.05, 0.4), 0.4 * breath(0.5)]), 0.42),
+    }
+
+
 # ------------------------------------------------------------- impacts ---
 # What a blade landing on this material sounds like. Each takes a Random so a
 # take is reproducible and two enemies of the same stuff still differ.
@@ -260,6 +276,16 @@ RECIPES = {
     "blind_preacher": lambda w: choir(220 * w),
     "ophanim": lambda w: seraph(55 * w),
     "raven": lambda w: caw(720 * w),
+    # Tyre (docs/CHAPTER4.md §6): stand-in throats from the same makers
+    "woe_eagle": lambda w: caw(540 * w),  # lower than a raven: the eagle crying woe
+    "tyre_guard": lambda w: metal(105 * w),
+    "cutpurse": lambda w: grunt(175 * w),
+    "debt_wraith": lambda w: whistle(540 * w),
+    "dim_star": lambda w: chime(660 * w),
+    "dye_drowned": lambda w: growl(72 * w),
+    "tyre_treasurer": lambda w: caller(160 * w),
+    "prince_of_tyre": lambda w: choir(185 * w),
+    "wailer": lambda w: keen(420 * w),
 }
 
 

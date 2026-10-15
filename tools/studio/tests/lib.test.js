@@ -309,6 +309,25 @@ test('a touch-up patch paints exactly its pixels', () => {
   assert.equal(d.reduce((a, b) => a + b, 0), 10 + 20 + 30 + 255);
 });
 
+test('creatures are listed by the chapter they are met in, variants under whose strips they wear', () => {
+  const roster = [
+    { id: 'raven', name: { ru: 'Ворон' }, char: 'raven', where: ['Глава II · Дорога', 'Глава I · Деревня'] },
+    { id: 'cultist', name: { ru: 'Культист' }, char: 'cultist', where: ['Глава I · Кладбище'] },
+    { id: 'cult_caller', name: { ru: 'Зовущий' }, char: 'cultist', tint: '#c8b4ff', where: ['Глава I · Топь'] },
+    { id: 'drowned', name: { ru: 'Утопленник' }, char: 'drowned', where: ['Глава II · Гавань'] },
+    { id: 'seal', name: { ru: 'Печать' }, char: 'seal', where: ['печати ставит: Офаним'] },
+    { id: 'old', name: { ru: 'Забытый' }, char: null, where: [] },
+  ];
+  const groups = L.creatureGroups(roster);
+  assert.deepEqual(groups.map(g => g.label), ['Глава I', 'Глава II', 'Ещё в игре', 'Нет в игре']);
+  assert.deepEqual(groups[0].items.map(i => i.id), ['cult_caller', 'cultist']);   // by name
+  assert.deepEqual(groups[1].items.map(i => i.id), ['raven', 'drowned']);         // the first place written (play order)
+  const caller = groups[0].items[0];
+  assert.equal(caller.base, 'Культист'); assert.equal(caller.tint, '#c8b4ff');
+  assert.equal(groups[0].items[1].base, '');
+  assert.ok(groups[3].items[0].out);
+});
+
 // --- her work against the game's copy ---
 
 test('the game copy replaces only what she has not changed', () => {
