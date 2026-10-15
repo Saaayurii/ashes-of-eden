@@ -1806,16 +1806,11 @@ const FLAGS_SET_IN_CODE := ["blood_paid", "waiter_struck", "fruit_eaten", "truce
 	"weighed_grace", "weighed_temptation", "weighed_will", "weighed_level", "weighed_none"]
 ## Flags a tool sets on purpose to drive a test, never by play.
 const FLAGS_FOR_TESTS := ["save_test"]
-## Flags the finale reads (docs/CHAPTER7.md §5) that chapters III–VI write once
-## they are built (docs/CAMPAIGN.md §5): counted as written, and named in a
-## warning while nobody writes them yet. Remove a flag here when its chapter lands.
-const FLAGS_AWAITED := [
-	"sided_host", "sided_legion", "sided_none", "rope_paid_before", "prisoner_cut", "malchus_asked", "malchus_hanged",
-	"marah_sweetened", "marah_bitter", "wormwood_drunk", "rizpah_watched", "rizpah_told", "rizpah_left",
-	"light_returned", "light_shared", "light_taken", "read_tyre_ledger",
-	"tirzah_herbs", "pit_locked", "key_thrown", "key_kept",
-	"angels_kept_bound", "angels_loosed", "angels_left_to_men", "scroll_eaten",
-	"witnesses_covered", "witnesses_asked", "witnesses_robbed"]
+## Flags a later chapter's end reads that the chapters before it write once they
+## are built (docs/CAMPAIGN.md §5): counted as written, and named in a warning
+## while nobody writes them yet. Remove a flag here when its chapter lands —
+## chapters III–VI all have, so the list is empty until the next one.
+const FLAGS_AWAITED := []
 
 
 ## The engine room a game pack's room was made from (`base_room` in its scene), or "".
