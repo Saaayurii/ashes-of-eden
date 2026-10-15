@@ -137,10 +137,10 @@ func _run() -> void:
 	_check(is_equal_approx(float(vials.rule("dark")), 1.33) and is_equal_approx(float(vials.rule("essence")), 1.3),
 		"A Third of the Day: a deeper dark, more essence")
 	game.omen = "debt_called_in"
-	_check(is_equal_approx(float(vials.rule("lamp_price")), 1.5) and int(vials.rule("flasks")) == 1,
-		"The Debt Called In: dearer lamps, one more flask")
+	_check(is_equal_approx(float(vials.rule("lamp_price")), 2.0) and int(vials.rule("flasks")) == 1,
+		"The Debt Called In: lamps at twice the price, one more flask")
 	game.omen = "woe_woe_woe"
-	_check(is_equal_approx(float(vials.rule("enemy_damage")), 1.2) and is_equal_approx(vials.ash_multiplier(), 1.45),
+	_check(is_equal_approx(float(vials.rule("enemy_damage")), 1.2) and is_equal_approx(vials.ash_multiplier(), 1.4),
 		"Woe, Woe, Woe: harder blows, richer Ash")
 	game.omen = ""
 

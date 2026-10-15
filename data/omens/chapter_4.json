@@ -6,7 +6,7 @@
     "nights": ["tyre"],
     "rules": {
       "enemy_damage": 1.2,
-      "ash": 1.45
+      "ash": 1.4
     }
   },
   {
@@ -25,7 +25,7 @@
     "description": "OMEN_DEBT_CALLED_IN_DESC",
     "nights": ["tyre"],
     "rules": {
-      "lamp_price": 1.5,
+      "lamp_price": 2.0,
       "flasks": 1
     }
   }
