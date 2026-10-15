@@ -513,6 +513,46 @@
         }
       ]
     },
+    "ash_arrow": {
+      "sheet": "res://assets/sprites/projectiles/zealot_flight_v3.png",
+      "frames": 4,
+      "fps": 15,
+      "shader": 1,
+      "scale": 0.7,
+      "squash": [
+        0.7,
+        0.05,
+        21
+      ],
+      "pulse": 0.02,
+      "bob": [
+        0,
+        0
+      ],
+      "echo": {
+        "offset": 18,
+        "sway": [
+          1,
+          10
+        ],
+        "color": "#ff8a3a",
+        "alpha": 0.28,
+        "scale": 0.6
+      },
+      "burst": [
+        {
+          "fx": "spark",
+          "color": "#ffb070",
+          "count": 8
+        },
+        {
+          "fx": "ash",
+          "color": "#8a7a70",
+          "count": 5,
+          "size": 4
+        }
+      ]
+    },
     "wormwood": {
       "sheet": "res://assets/sprites/projectiles/wraith_flight_v3.png",
       "frames": 4,
