@@ -8,8 +8,8 @@
 
 - Ночь — `euphrates` (`data/game.json` `nights`, §8), префикс комнат `euphrates_`. Чьё: **Небо**.
 - Данные главы — в `data/` (враги, люди, диалоги, сцены, тайники, развилки, места отдыха, записи,
-  области); дары и знамения ждут в черновике `drafts/chapter_6/data/{abilities,omens}` — их вводит
-  сессия баланса (CAMPAIGN §8).
+  области); дары и знамения — `data/abilities/chapter_6.json`, `data/omens/chapter_6.json`, с
+  `"nights": ["euphrates"]`: сдаются только в эту ночь (`Omens.of_night`).
 - «Шестая труба» (Откр. 9:13–21, пересказ): голос от четырёх рогов золотого жертвенника велит
   развязать четырёх ангелов, связанных у великой реки Евфрат; они приготовлены на час, и день, и
   месяц, и год — убить третью часть людей. Конница — двести миллионов; у коней головы львиные, из
@@ -272,18 +272,19 @@
 
 ## 7. Дары, знамения, места отдыха, области
 
-**Дары** — `drafts/chapter_6/data/abilities/chapter_6.json`, по два на путь, у каждого `rarity`:
+**Дары** — `data/abilities/chapter_6.json`, по два на путь, у каждого `rarity`, все с
+`"nights": ["euphrates"]` (`Omens.of_night`: в другие ночи их нет в колоде):
 
 | id | Путь | Редкость | Механика |
 |---|---|---|---|
-| `kept_vigil` (Отстоянная стража) | благодать | rare | `parry_window` +0,05 (кап 0,15) |
-| `bread_of_the_refectory` (Хлеб трапезной) | благодать | common | `max_hp` +12, `clear_heal` +3 |
+| `kept_vigil` (Отстоянная стража) | благодать | rare | `parry_window` +0,08 (кап 0,15; обычный «Терпение сторожа» — +0,06) |
+| `bread_of_the_refectory` (Хлеб трапезной) | благодать | common | `max_hp` +15, `clear_heal` +8 |
 | `loosened_chain` (Ослабленная цепь) | соблазн | rare | **новый стат `taut_damage`** +0,6: удар по телу на натянутой цепи (в натяжении) стоит на 60 % больше (кап 1,0; §9) |
-| `covet` (Зависть) | соблазн | common | `lifesteal` +0,03 (кап 0,15) |
-| `unbound` (Несвязанный) | воля | rare | `dash_cooldown` ×0,85, `speed` +12 |
+| `covet` (Зависть) | соблазн | common | `lifesteal` +0,05 (кап 0,15) |
+| `unbound` (Несвязанный) | воля | rare | `dash_cooldown` ×0,65, `speed` ×1,08 (кувырок, а «Быстрые ноги» — бег) |
 | `scourged_back` (Иссечённая спина) | воля | common | `wrath_after_hit` +0,35 |
 
-**Знамения** — `drafts/chapter_6/data/omens/chapter_6.json`, каждое — сделка:
+**Знамения** — `data/omens/chapter_6.json`, каждое — сделка, только в ночь `euphrates`:
 
 | id | Правила | Смысл |
 |---|---|---|
@@ -356,7 +357,7 @@ river_stair `dead_bridge`, bound `boss_ophanim`.
   `data/notes/ch6_notes.json`; `data/dialogue_looks.json` `speakers` для `SPEAKER_SAUL`,
   `SPEAKER_MIGHTY_ANGEL`, `SPEAKER_HORNS` (без портрета), `SPEAKER_BOUND_HOUR` / `_DAY` / `_MONTH` /
   `_YEAR`, `SPEAKER_REVELLER`.
-- `drafts/chapter_6/data/{abilities,omens}/chapter_6.json`, `drafts/chapter_6/rooms.json` (план).
+- `data/abilities/chapter_6.json`, `data/omens/chapter_6.json`; `drafts/chapter_6/rooms.json` (план).
 - `tools/rooms/painted_rooms.py` — 11 таблиц `euphrates_*`; `tools/rooms/composed_rooms.json` —
   `euphrates_bell_tower` (1×2, `"live": true`); `FOCAL_RANGES`, `data/backdrops.json`,
   `RoomLayers.FAR_WINDOWS`, `<id>.lights.json` — по `CHAPTER6_ART.md`.
