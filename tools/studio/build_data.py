@@ -786,7 +786,12 @@ def enemy_places(root: Path, raw, resolved, strings):
         for area in json.loads(f.read_text(encoding="utf-8")):
             for res in area.get("rooms", []):
                 chapter[res] = (ru(area.get("chapter", "")).split(" · ")[0], ru(area.get("title", "")))
-    props = {f.stem: json.loads(f.read_text(encoding="utf-8")) for f in (root / "data/props").glob("*.json")}
+    props = {}  # by id, as Data reads them: a file holds one entry or a list of them
+    for f in (root / "data/props").glob("*.json"):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        for entry in doc if isinstance(doc, list) else [doc]:
+            if isinstance(entry, dict):
+                props[str(entry.get("id", f.stem))] = entry
     seen, why = {}, {}
 
     def meet(eid, chap, area):
