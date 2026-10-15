@@ -77,6 +77,11 @@ jobs:
       - name: The web loading page still works
         run: python3 tools/web/check_shell.py
 
+      # The painted pictures import as lossy WebP; one left at Godot's default
+      # (lossless) put megabytes back on the Web player's download unnoticed.
+      - name: Painted pictures stay lossy
+        run: python3 tools/export/check_lossy.py
+
       # The telemetry receiver and the script that turns what it collected
       # into the playtest logs balance_probe reads (docs/PLAYTEST.md).
       - name: Telemetry receiver tests

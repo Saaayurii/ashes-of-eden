@@ -20,6 +20,10 @@ tools/audio/.cache/
 !assets/cutscenes/*.png.import
 !assets/levels/*_v1.png.import
 !assets/levels/depth/hell_gate_atmosphere_v2.png.import
+# …and the passage cards between places (the curtain's pictures) and the
+# thresholds they are cut from: the size of a screen, painted, 2 MB each lossless
+!assets/levels/*_threshold*.png.import
+!assets/ui/transitions/*.png.import
 localization/*.translation
 export_presets.cfg.bak
 .editor/

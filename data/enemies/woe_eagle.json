@@ -1,0 +1,39 @@
+{
+  "id": "woe_eagle",
+  "name": "ENEMY_WOE_EAGLE",
+  "lore": "ENEMY_WOE_EAGLE_LORE",
+  "tip": "TIP_WOE_EAGLE",
+  "_art": "stand-in: the raven grown, until its own atlas",
+  "hp": 34,
+  "speed": 110,
+  "damage": 0,
+  "attack_interval": 0.8,
+  "behaviour": "flyer",
+  "hover_distance": 90,
+  "aggro_range": 600,
+  "size": 13,
+  "color": "#1e1c24",
+  "material": "feather",
+  "tags": [
+    "beast"
+  ],
+  "sprite": {
+    "like": "raven",
+    "tint": "#c8c0d8",
+    "scale": 1.6
+  },
+  "attacks": [
+    {
+      "name": "Dive",
+      "type": "lunge",
+      "range": 170,
+      "windup": 0.7,
+      "damage": 13,
+      "cooldown": 2.6,
+      "lunge_speed": 400,
+      "lunge_time": 0.35,
+      "recover": 0.5
+    }
+  ],
+  "essence": 15
+}

@@ -758,6 +758,24 @@ function contentKey(o) {
     : ['animations', 'settings', 'reference', 'description'];
   return JSON.stringify(pick.map(k => o[k] ?? null), (k, v) => k === 'busy' ? undefined : v);
 }
+// The game's creatures for the studio's lists (import/enemies.json, build_data.enemies): grouped by
+// the chapter where the hero first meets each — `where` lines start «Глава …» for a room; a creature
+// only summoned, split off, sealed or in the yard is «Ещё в игре»; one the game never brings out is
+// «Нет в игре». `char`: whose character holds its strips (a variant wears another's, tinted).
+// -> [{label, items: [{id, name, char, base, tint, where, out}]}]
+function creatureGroups(roster) {
+  const name = e => e?.name?.ru || e?.id || '';
+  const by = new Map(roster.map(e => [e.id, e])), groups = new Map();
+  const order = l => { const m = /^Глава ([IVX]+)$/.exec(l); return m ? ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'].indexOf(m[1]) : l === 'Ещё в игре' ? 90 : 99; };
+  for (const e of roster) {
+    const where = e.where || [], room = where.find(w => /^Глава [IVX]+ · /.test(w));
+    const label = room ? room.split(' · ')[0] : where.length ? 'Ещё в игре' : 'Нет в игре';
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push({ id: e.id, name: name(e), char: e.char || null, base: e.char && e.char !== e.id ? name(by.get(e.char)) || e.char : '',
+      tint: e.tint || '', where, out: !where.length, boss: !!e.boss });
+  }
+  return [...groups].sort((a, b) => order(a[0]) - order(b[0])).map(([label, items]) => ({ label, items: items.sort((a, b) => a.name.localeCompare(b.name, 'ru')) }));
+}
 // local: what this browser has (dirty = edited here, pendingPr = sent and not yet
 // in the game, base = the game revision it was taken from); incoming: the game's
 // or a shared copy (rev = revision). -> 'take' | 'keep' | 'conflict'
@@ -1435,5 +1453,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
 })(typeof module !== 'undefined' ? module.exports : window);

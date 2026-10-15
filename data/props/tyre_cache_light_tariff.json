@@ -1,0 +1,27 @@
+{
+  "id": "tyre_cache_light_tariff",
+  "_art": "a chest left in a corner of the painting; a bricked-up wall over it once make_secret_walls.py cuts one",
+  "kind": "chest",
+  "essence": 30,
+  "ash": 10,
+  "note": "note_light_tariff",
+  "glow": "#e0c890",
+  "hitbox": [
+    24,
+    20
+  ],
+  "sprite": {
+    "path": "res://assets/props/chest_wooden.png",
+    "frame_w": 40,
+    "frame_h": 32,
+    "frames": 4
+  },
+  "icon": [
+    "res://assets/icons/quest/letter_2.png"
+  ],
+  "effect": {
+    "set_flags": [
+      "read_light_tariff"
+    ]
+  }
+}

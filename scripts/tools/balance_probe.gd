@@ -583,7 +583,7 @@ static func killer_and_omen_rows(files: Array) -> Array:
 ## them ended: hands refused, blood altars paid or turned down, elite caches
 ## and cursed chests opened. One file is one night. Static, for a test.
 static func trade_rows(files: Array) -> Array:
-	var kinds := ["refuse", "altar paid", "altar withdrawn", "elite_cache", "chest_cursed"]
+	var kinds := ["refuse", "altar paid", "altar withdrawn", "elite_cache", "chest_cursed", "lamp bought", "lamp in blood"]
 	var uses := {}    # kind -> times
 	var nights := {}  # kind -> [nights it happened in, dawns among them]
 	for path in files:
@@ -601,6 +601,8 @@ static func trade_rows(files: Array) -> Array:
 					kind = "altar paid" if bool(e.get("paid", false)) else "altar withdrawn"
 				"chest":
 					kind = str(e.get("id", "")) if ["elite_cache", "chest_cursed"].has(str(e.get("id", ""))) else ""
+				"lamp":  # the lamps of Tyre (docs/CHAPTER4.md §9)
+					kind = "lamp in blood" if str(e.get("how", "")) == "blood" else "lamp bought"
 				"run_end":
 					won = bool(e.get("won", false))
 			if kind != "":
