@@ -1,0 +1,19 @@
+{
+  "id": "chain",
+  "kind": "chain",
+  "essence": 0,
+  "opens_with": "saul_keys",
+  "prompt": "PROMPT_UNLOCK_CHAIN",
+  "still": true,
+  "glow": "#cfd6e6",
+  "hitbox": [
+    20,
+    12
+  ],
+  "sprite": {
+    "path": "res://assets/props/chain_ring.png",
+    "frame_w": 32,
+    "frame_h": 32,
+    "frames": 3
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "id": "lion_horse",
+  "name": "ENEMY_LION_HORSE",
+  "lore": "ENEMY_LION_HORSE_LORE",
+  "tip": "TIP_LION_HORSE",
+  "_art": "its own atlas, sulphur-maned (Codex, docs/CHAPTER6_ART.md)",
+  "hp": 280,
+  "speed": 66,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "walker",
+  "aggro_range": 500,
+  "size": 18,
+  "armor": 0.1,
+  "color": "#8a5a2a",
+  "material": "flesh",
+  "tags": [
+    "beast",
+    "elite"
+  ],
+  "sprite": {
+    "cell": [
+      116,
+      75
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/lion_horse_v2_idle.png",
+      "walk": "res://assets/sprites/lion_horse_v2_walk.png",
+      "attack": "res://assets/sprites/lion_horse_v2_attack.png",
+      "attack_alt": "res://assets/sprites/lion_horse_v2_attack_alt.png",
+      "special": "res://assets/sprites/lion_horse_v2_special.png",
+      "hurt": "res://assets/sprites/lion_horse_v2_hurt.png",
+      "death": "res://assets/sprites/lion_horse_v2_death.png"
+    }
+  },
+  "attacks": [
+    {
+      "type": "beam",
+      "range": 170,
+      "length": 150,
+      "thickness": 26,
+      "duration": 0.6,
+      "windup": 1.0,
+      "damage": 20,
+      "cooldown": 3.8,
+      "recover": 0.6,
+      "color": "#ffb050",
+      "weight": 2,
+      "animation": "attack"
+    },
+    {
+      "type": "melee",
+      "behind": true,
+      "range": 60,
+      "reach": 80,
+      "windup": 0.8,
+      "damage": 18,
+      "cooldown": 2.4,
+      "recover": 0.5,
+      "weight": 2,
+      "animation": "attack_alt"
+    },
+    {
+      "type": "lunge",
+      "range": 280,
+      "windup": 1.0,
+      "damage": 22,
+      "cooldown": 4.0,
+      "lunge_speed": 420,
+      "lunge_time": 0.45,
+      "recover": 1.0,
+      "weight": 1,
+      "animation": "special"
+    }
+  ],
+  "essence": 60,
+  "light": {
+    "color": "#ffb050",
+    "radius": 46,
+    "energy": 0.6,
+    "flicker": 0.2
+  }
+}

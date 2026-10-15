@@ -1,0 +1,20 @@
+{
+  "id": "euphrates_reveller",
+  "_art": "stand-in body (villager); shown only by witnesses_in_the_street",
+  "name": "SPEAKER_REVELLER",
+  "dialogue": "npc_euphrates_reveller",
+  "scripted": true,
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/villager_v2_idle.png",
+      "walk": "res://assets/sprites/villager_v2_walk.png",
+      "interact": "res://assets/sprites/villager_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  }
+}

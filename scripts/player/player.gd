@@ -72,6 +72,7 @@ static var BASE_STATS := {
 	"truce_hold": 0.0,          # a soldier that has just seen him holds its first blow this long (Standard of Peace, Enemy._notice)
 	"feud_damage": 0.0,         # blows on an enemy busy fighting another enemy are worth this much more (Blood Feud)
 	"crossfire_armor": 0.0,     # armour while soldiers of two sides are awake in the room (No Man's Land)
+	"taut_damage": 0.0,         # a body hanging on its chain's end takes this much more (Loosened Chain)
 }
 ## Where the item mechanics above reach.
 static var HEAL_BURST_RADIUS := 72.0
@@ -2032,6 +2033,9 @@ func _land_hits(multiplier: float, knockback: float, heavy: bool, stagger := 0.0
 		# Trophy Hunter: the chosen of the dead (an elite, a boss) are the prey
 		if live_enemy and stats.chosen_damage > 0.0 and (target as Enemy).is_chosen():
 			damage *= 1.0 + stats.chosen_damage
+		# Loosened Chain: a body hanging on its chain's end is open
+		if live_enemy and stats.taut_damage > 0.0 and (target as Enemy).is_taut():
+			damage *= 1.0 + stats.taut_damage
 		# Usurer's Edge: a blow struck where no light reaches (Darkness)
 		if live_enemy and stats.dark_damage > 0.0 and Darkness.unlit(target as Node2D):
 			damage *= 1.0 + stats.dark_damage

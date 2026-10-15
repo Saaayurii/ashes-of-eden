@@ -1,0 +1,7 @@
+{
+  "id": "refectory_arrival",
+  "steps": [
+    {"do": "sound", "name": "chain_strain", "volume": -14},
+    {"do": "dialogue", "id": "ch6_refectory"}
+  ]
+}

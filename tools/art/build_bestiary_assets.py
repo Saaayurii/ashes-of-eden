@@ -65,12 +65,17 @@ GAME_CELLS = {
     # Seir (chapter II), drawn by Codex's image generation (assets/CREDITS.md)
     "waiting_townsman": (52, 52), "drowned": (60, 60), "gate_warden": (72, 72),
     "drowned_bosun": (96, 84), "watchman": (88, 88),
+    # the Euphrates (chapter VI), drawn by Codex's image generation (assets/CREDITS.md)
+    "four_bound": (72, 72),
+    "flagellant": (52, 49), "censer_monk": (52, 47), "chained_penitent": (56, 36),
+    "horseman": (96, 70), "river_wraith": (52, 43), "fettered_angel": (52, 49),
+    "lion_horse": (100, 62),
     # the Heavenly Hall (chapter VII), drawn by Codex's image generation
     "seraph": (72, 60), "measuring_angel": (60, 72), "register_scribe": (56, 52),
     "cherub": (112, 96),
 }
 # A creature that hovers: its drawing is centred in the cell, not stood on the bottom row.
-FLYERS = {"raven", "shade", "wraith", "ophanim", "seraph"}
+FLYERS = {"raven", "shade", "wraith", "ophanim", "river_wraith", "fettered_angel", "seraph"}
 # The cherub's four faces (Ezek. 1:10), one row each of a 7x7 atlas: four idle
 # frames, then three of its attack. Each is cut to HEAD_CELL, its collar ring on
 # the bottom row, and laid on the body at the tree's "head_at" (Enemy, CherubFaces).
