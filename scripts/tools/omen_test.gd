@@ -41,30 +41,29 @@ func _run() -> void:
 	# --- the draw ----------------------------------------------------------------
 	var drawn := {}
 	var with_one := 0
-	for seed in 2000:
-		var rng := RandomNumberGenerator.new()
-		rng.seed = seed
-		var id: String = omens.roll(rng)
-		if id != "":
-			with_one += 1
-			drawn[id] = true
+	var astray: Array = []
+	# a chapter's omens ("nights") come up in its own night only (Run.of_night)
+	var night_ids: Array = []
+	for night in data.nights():  # the first night is ""
+		if not night_ids.has(str(night.id)):
+			night_ids.append(str(night.id))
+	for night_id in night_ids:
+		game.night = night_id
+		for seed in 2000:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = seed
+			var id: String = omens.roll(rng)
+			if id != "":
+				with_one += int(night_id == "")
+				drawn[id] = true
+				var nights: Array = data.omens[id].get("nights", [])
+				if not nights.is_empty() and not nights.has(night_id):
+					astray.append("%s in %s" % [id, night_id])
+	game.night = ""
 	var share := with_one / 2000.0
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
-	var everywhere: Array = data.omens.values().filter(func(o): return not o.has("nights"))
-	_check(drawn.size() == everywhere.size(), "every omen of every night can come up (%d of %d)" % [drawn.size(), everywhere.size()])
-	# a chapter's omens ("nights", Omens.of_night) are drawn in its night only
-	var seir: Array = data.omens.values().filter(func(o): return o.get("nights", []).has("seir")).map(func(o): return o.id)
-	_check(not seir.is_empty() and not seir.any(func(id): return drawn.has(id)), "the first night draws none of Seir's omens %s" % [seir])
-	var night_was: String = game.night
-	game.night = "seir"
-	var in_seir := {}
-	for seed in 2000:
-		var rng := RandomNumberGenerator.new()
-		rng.seed = seed
-		in_seir[omens.roll(rng)] = true
-	game.night = night_was
-	_check(seir.all(func(id): return in_seir.has(id)) and in_seir.size() == everywhere.size() + seir.size() + 1,
-		"Seir draws its own omens beside the rest (%d)" % in_seir.size())
+	_check(drawn.size() == data.omens.size(), "every omen can come up, each in its night (%d of %d)" % [drawn.size(), data.omens.size()])
+	_check(astray.is_empty(), "  and a chapter's omen never in another night %s" % [astray])
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
