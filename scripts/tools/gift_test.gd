@@ -435,15 +435,17 @@ func _run() -> void:
 		profile.data.nights = nights_before
 
 	# --- gifts of one night ----------------------------------------------------
-	# A chapter's own gifts ("nights": [...], Data.plays_in) are built on what
-	# only its rooms have — Tyre's on its lamps — and are dealt nowhere else.
+	# A chapter's own gifts ("nights": [...]) are built on what
+	# only its rooms have — Tyre's on its lamps — and are dealt nowhere else
+	# (Omens.of_night).
 	var own: Array = data.abilities.values().filter(func(a): return not a.get("nights", []).is_empty())
 	_assert(not own.is_empty(), "some gifts belong to one night")
 	if not own.is_empty():
-		var night_was: String = data.night
+		var omens = load("res://scripts/run/omens.gd")
+		var night_was: String = game.night
 		var home := str(own[0].nights[0])
 		var dealt := func(night_id: String) -> bool:
-			data.night = night_id
+			game.night = night_id
 			for i in 300:
 				for gift in run._roll_gifts():
 					if own.has(gift):
@@ -451,12 +453,13 @@ func _run() -> void:
 			return false
 		var at_home: bool = dealt.call(home)
 		var elsewhere: bool = dealt.call("")
-		data.night = night_was
+		var everywhere: Array = data.abilities.values().filter(func(a): return a.get("nights", []).is_empty())
+		game.night = home
+		var anywhere: bool = omens.of_night(everywhere[0])
+		game.night = night_was
 		_assert(at_home, "%s's own gifts are dealt there" % home)
 		_assert(not elsewhere, "and never on the first night")
-		var everywhere: Array = data.abilities.values().filter(func(a): return a.get("nights", []).is_empty())
-		_assert(data.plays_in(everywhere[0], home) and data.plays_in(everywhere[0], ""),
-			"a gift that names no night is dealt on every one")
+		_assert(anywhere and omens.of_night(everywhere[0]), "a gift that names no night is dealt on every one")
 	_finish()
 
 
