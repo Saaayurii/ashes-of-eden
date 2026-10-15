@@ -73,6 +73,8 @@ static var HIT_ATTACK_DELAY: float = 0.25
 static var REPEAT_ATTACK_WEIGHT: float = 0.18
 ## Physics layers a look or a step is stopped by: world (1) and ledges (5).
 const SOLID_MASK := 1 | 16
+## How long a body with a blow behind it ("behind") takes to turn round.
+const BEHIND_TURN := 0.6
 ## Per behaviour: sight range, sight height, feel-behind radius.
 static var SIGHT_DEFAULTS: Dictionary = {
 	"walker": [210.0, 70.0, 40.0],
@@ -225,6 +227,17 @@ var _flooded := false
 var felled_by_soldier := false
 var _turned := false
 var _nod_at := -10000
+## Chains (Tether, docs/CHAPTER6.md): held to an anchor until the keys loose it.
+## Replicated when its data has a chain: every peer draws it.
+var tethered := false
+## Hanging on the chain's end (the host's Tether decides): no blows but ranged.
+var taut := false
+## The Four Bound's pillar (bound_phases), replicated.
+var bound_phase := 0
+var _tether: Tether
+## A body with a blow behind it ("behind" on a melee attack) turns slowly:
+## how long the one it hunts has stood at its back.
+var _turn_wait := 0.0
 
 @onready var body: ColorRect = $Body
 @onready var sprite: AnimatedSprite2D = $Sprite
@@ -240,7 +253,7 @@ var _nod_at := -10000
 ## enemy, before it enters the tree.
 func attach_net_sync() -> void:
 	if Net.active and not has_node("NetSync"):
-		Net.attach_sync(self, [".:position", ".:facing", ".:aware", ".:spared"])
+		Net.attach_sync(self, [".:position", ".:facing", ".:aware", ".:spared"] + Tether.synced(enemy_id))
 
 
 ## Lays the "enemy_ai" numbers over the script's own (a key it does not know is
@@ -352,6 +365,8 @@ func _ready() -> void:
 		set_physics_process(_simulated)
 	if _simulated and stats.get("boss", false):
 		EventBus.boss_hp_changed.emit(stats.get("name", ""), hp, _max_hp)
+	tethered = stats.has("tether") or stats.has("bound_phases")
+	_tether = Tether.attach(self)
 
 
 ## An elite reads as one before it swings: a low ember glow under it and a
@@ -614,6 +629,8 @@ func _physics_process(delta: float) -> void:
 		_patrol(delta)
 		_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
 		move_and_slide()
+		if _tether != null:
+			_tether.hold(delta)
 		var seen: Node2D = null if waits() else _spot_player()
 		if seen != null:
 			_notice(seen)
@@ -646,7 +663,10 @@ func _physics_process(delta: float) -> void:
 			if _state_left <= 0.0:
 				_set_state(State.CHASE, 0.0)
 		State.CHASE:
-			_chase(to_target, delta)
+			if _tether != null and _tether.restrains(to_target, _melee_reach()):
+				_strain(to_target, delta)
+			else:
+				_chase(to_target, delta)
 			if EnemyDark.douse_due(self, hp / _max_hp):
 				_attack = EnemyDark.douse_attack(self)  # the Prince puts the room out
 				_begin_windup(to_target)
@@ -687,6 +707,10 @@ func _physics_process(delta: float) -> void:
 				_set_state(State.CHASE, 0.0)
 	_knockback = _knockback.move_toward(Vector2.ZERO, 700.0 * delta)
 	move_and_slide()
+	if _tether != null and _tether.hold(delta) and state == State.STRIKE and _attack.get("type") == "lunge":
+		# the lunge ran out of chain: it snaps short and hangs there
+		_tether.snap()
+		_set_state(State.RECOVER, _tether.strain_time)
 
 	# Only a telegraphed lunge hurts by bodily contact. Walkers and flyers
 	# otherwise use their attack hitboxes: simply closing distance must not
@@ -1104,9 +1128,149 @@ func _chase(to_target: Vector2, delta: float) -> void:
 			velocity.x = chase.x + _knockback.x
 			velocity.y += _knockback.y
 	velocity = EnemyDark.keep_out_of_light(self, velocity, delta)
+	_face(to_target, delta)
+	_play("walk" if chase.length() > 1.0 else "idle")
+
+
+## Turns to the one it hunts — at once, unless it has a blow for behind it
+## ("behind"): then it is slow to turn (BEHIND_TURN), and that is the moment
+## the blow is for.
+func _face(to_target: Vector2, delta: float) -> void:
+	if absf(to_target.x) <= 4.0:
+		return
+	var want := 1 if to_target.x > 0.0 else -1
+	if want == facing:
+		_turn_wait = 0.0
+		return
+	if _has_behind():
+		_turn_wait += delta
+		if _turn_wait < BEHIND_TURN:
+			return
+	_turn_wait = 0.0
+	facing = want
+
+
+func _has_behind() -> bool:
+	for attack in _attacks:
+		if attack.get("behind", false):
+			return true
+	return false
+
+
+## Hanging on its chain's end (Tether): it leans toward the one it hunts and
+## goes no further; only a ranged blow may come out of it.
+func _strain(to_target: Vector2, delta: float) -> void:
+	if _is_flying():
+		velocity = to_target.normalized() * float(stats.get("speed", 50)) * 0.5 + _knockback
+	else:
+		_fall(delta)
+		velocity.x = signf(to_target.x) * float(stats.get("speed", 50)) * 0.5 + _knockback.x
 	if absf(to_target.x) > 4.0:
 		facing = 1 if to_target.x > 0.0 else -1
-	_play("walk" if chase.length() > 1.0 else "idle")
+
+
+## The pose of a body hanging on its chain (every peer, from Tether): strain,
+## else special, else hurt.
+func strain_pose() -> void:
+	for pose in ["strain", "special", "hurt"]:
+		if _has_anim.has(pose):
+			_play(pose)
+			return
+
+
+## Hit for more on its chain's end (the gift Loosened Chain: taut_damage).
+func is_taut() -> bool:
+	return _tether != null and _tether.is_taut()
+
+
+## The Four Bound's change of pillar (host, from Tether): it stops, is pulled,
+## and the next stands.
+func begin_bound_swap(seconds: float) -> void:
+	_set_state(State.RECOVER, seconds)
+	_attack_cd = maxf(_attack_cd, seconds + 0.4)
+	_cancel_telegraph()
+	if Net.active:
+		_net_cancel_telegraph.rpc()
+	strain_pose()
+
+
+func end_bound_swap() -> void:
+	if state == State.RECOVER:
+		_set_state(State.CHASE, 0.0)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_tether_fx(kind: StringName) -> void:
+	if _tether != null:
+		_tether.play_fx(kind)
+
+
+## The abbot's keys (prop "chain", docs/CHAPTER6.md §9): the chain falls. Host
+## only; "freed" multiplies its speed, damage and the rest between blows, or
+## with "leaves" it goes up the river and the room stops waiting for it.
+func loose() -> void:
+	if Net.active and not multiplayer.is_server():
+		return
+	if _tether == null or not tethered or state == State.DEAD:
+		return
+	tethered = false
+	taut = false
+	var freed: Dictionary = stats.get("freed", {})
+	var leaves := bool(freed.get("leaves", false))
+	Game.flags["chain_opened"] = true
+	Profile.count("chains_opened")
+	_loose_fx(leaves)
+	if Net.active:
+		_net_loose.rpc(leaves)
+	if leaves:
+		Game.flags["fettered_freed"] = true
+		state = State.DEAD  # out of the fight: no blows, no essence, no corpse
+		collision_layer = 0
+		collision_mask = 0
+		contact_area.monitoring = false
+		attack_area.monitoring = false
+		EventBus.enemy_left.emit(StringName(enemy_id), global_position)
+		var away := create_tween()
+		away.tween_property(self, "global_position:y", global_position.y - 140.0, 1.2) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		away.tween_callback(_leave)
+		return
+	stats.speed = float(stats.get("speed", 50)) * float(freed.get("speed", 1.0))
+	var damage := float(freed.get("damage", 1.0))
+	var cooldown := float(freed.get("cooldown", 1.0))
+	stats.damage = float(stats.get("damage", 0)) * damage
+	for attack in _attacks:
+		attack.damage = float(attack.get("damage", 0)) * damage
+		attack.cooldown = float(attack.get("cooldown", 1.5)) * cooldown
+	aware = true
+	_set_state(State.CHASE, 0.0)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _net_loose(leaves: bool) -> void:
+	tethered = false
+	_loose_fx(leaves)
+	if leaves:
+		state = State.DEAD
+		create_tween().tween_property(self, "position:y", position.y - 140.0, 1.2)
+
+
+func _loose_fx(leaves: bool) -> void:
+	if Audio.has_clip(&"chain_unlock"):
+		Audio.play_at(&"chain_unlock", global_position, -4.0)
+	else:
+		Audio.play_at(&"block", global_position, -8.0)
+	Fx.sparkle(global_position + Vector2(0, -8), Color(0.85, 0.9, 1.0), 10, 12.0)
+	if leaves:
+		hp_bar.visible = false
+		create_tween().tween_property(visual, "modulate:a", 0.0, 1.2)
+		var motes := Timer.new()
+		motes.wait_time = 0.15
+		motes.autostart = true
+		motes.timeout.connect(func() -> void:
+			if is_inside_tree():
+				Fx.sparkle(global_position + Vector2(0, -12), Color(1.0, 0.95, 0.8), 3, 10.0))
+		add_child(motes)
 
 
 ## Stand still (walkers keep gravity) while winding up / striking / recovering.
@@ -1212,6 +1376,9 @@ func _flock() -> Vector2:
 func _choose_attack(to_target: Vector2) -> int:
 	if _exposed_left > 0.0:
 		return -1  # the damage phase: open and not fighting back
+	if _tether != null and _tether.swapping():
+		return -1
+	var hanging := is_taut()
 	var candidates: Array[int] = []
 	var fraction := hp / _max_hp
 	for i in _attacks.size():
@@ -1222,6 +1389,8 @@ func _choose_attack(to_target: Vector2) -> int:
 			continue
 		if not _sealed and attack.get("sealed_only", false):
 			continue
+		if hanging and attack.get("type", "melee") in ["melee", "lunge"]:
+			continue  # on its chain's end only a ranged blow comes out
 		if _in_attack_range(attack, to_target):
 			candidates.append(i)
 	if candidates.is_empty():
@@ -1246,6 +1415,8 @@ func _in_attack_range(attack: Dictionary, to_target: Vector2) -> bool:
 	var range := float(attack.get("range", 30))
 	match attack.get("type", "melee"):
 		"melee":
+			if attack.get("behind", false) and to_target.x * facing >= 0.0:
+				return false  # a kick for the one at its back
 			return absf(to_target.x) <= range and absf(to_target.y) <= 26.0
 		"beam":
 			# Only worth firing when the player is roughly on one of the two axes.
@@ -1262,7 +1433,8 @@ func _in_attack_range(attack: Dictionary, to_target: Vector2) -> bool:
 
 func _begin_windup(to_target: Vector2) -> void:
 	_set_state(State.WINDUP, _windup_of(_attack))
-	facing = 1 if to_target.x >= 0.0 else -1
+	if not _attack.get("behind", false):
+		facing = 1 if to_target.x >= 0.0 else -1
 	var beam: bool = _attack.get("type", "melee") == "beam"
 	var length := float(_attack.get("length", 420))
 	var thickness := float(_attack.get("thickness", 26))
@@ -1317,6 +1489,8 @@ func is_tending() -> bool:
 func _telegraph(duration: float, beam := false, length := 420.0, thickness := 26.0, color := "#ffe9a8", animation := "attack", effect := "glow") -> void:
 	_voice("attack", &"enemy_windup", -11.0)
 	_play(animation, true)
+	if _tether != null:
+		_tether.wind(duration)  # the chain pulls straight before the blow
 	if effect == "none":
 		if _telegraph_tween != null:
 			_telegraph_tween.kill()
@@ -1816,6 +1990,9 @@ func _clear_beam() -> void:
 func _melee_hit() -> void:
 	# layer 3 (enemies) only while a side is in play: a blade between soldiers (Faction)
 	attack_area.collision_mask = 2 | (4 if Faction.soldiers > 0 else 0)
+	var behind: bool = _attack.get("behind", false)
+	if behind:
+		attack_area.scale.x = -facing  # the blow goes out the back
 	attack_area.monitoring = true
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -1827,6 +2004,7 @@ func _melee_hit() -> void:
 		elif body_hit is Enemy and _hostile_to(body_hit):
 			body_hit.take_damage(float(_attack.get("damage", 10)) * Faction.damage_between(), self)
 	attack_area.monitoring = false
+	attack_area.scale.x = facing
 
 
 ## The second frame of the swing, for the enemies that have one drawn.
@@ -1852,6 +2030,8 @@ func _set_state(new_state: State, duration: float) -> void:
 func _play(animation: String, hold_first_frame := false) -> void:
 	if _sealed and animation in ["idle", "walk", "hurt"] and _has_anim.has("special"):
 		animation = "special"  # eyes closed: the wheels turn in on themselves
+	if not _has_anim.has(animation) and animation in ["attack_alt", "special"] and _has_anim.has("attack"):
+		animation = "attack"  # a stand-in's strips (sprite.like) may draw only the one blow
 	# rising from rest: the drawn bridge plays once, then the walk (_on_sprite_finished);
 	# asked to walk while it plays, it plays on
 	# — only from a rest it held (IDLE_TO_WALK_REST), not a frame of idle in a hover
@@ -1962,6 +2142,8 @@ func _apply_damage(amount: float, from: Vector2, pushed: bool, crit: bool, knock
 	if stats.get("behaviour", "walker") == "dummy":
 		hp = maxf(hp, 1.0)  # straw does not die; it shows the number and stands again
 		_dummy_rest = 2.0
+	if _tether != null:
+		hp = _tether.floor_hp(hp, _max_hp)  # the Four Bound: no blow skips a pillar
 	var phase: Dictionary = stats.get("seal_phase", {})
 	var seal_now := not phase.is_empty() and not _seal_done and hp <= _max_hp * float(phase.get("at_hp", 0.5))
 	if seal_now:

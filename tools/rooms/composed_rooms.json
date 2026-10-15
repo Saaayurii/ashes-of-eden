@@ -941,6 +941,60 @@
       [["fallen_guard", 950, 631], ["cultist", 500, 263], ["cult_slinger", 1080, 392], ["hollow_wraith", 500, 400], ["shade", 1100, 300]]
     ]
   },
+  "euphrates_bell_tower": {
+    "live": true,
+    "cells": [
+      {"painting": "panels/euphrates_bell_tower_top", "col": 0, "row": 0},
+      {"painting": "euphrates_bell_tower", "col": 0, "row": 1}
+    ],
+    "ground": [
+      [0, 1357, 1280, 83]
+    ],
+    "ledges": [
+      [55, 548, 1175, 14],
+      [230, 362, 410, 14],
+      [750, 190, 480, 14],
+      [280, 1072, 320, 14],
+      [600, 1112, 400, 14],
+      [745, 877, 500, 14],
+      [990, 720, 150, 12]
+    ],
+    "platforms": [
+      [1010, 1050, 50, 10],
+      [1090, 985, 50, 10],
+      [1170, 925, 50, 10],
+      [1100, 660, 50, 10],
+      [1030, 600, 50, 10],
+      [335, 485, 50, 10],
+      [270, 425, 50, 10],
+      [820, 485, 50, 10],
+      [890, 422, 50, 10],
+      [820, 358, 50, 10],
+      [890, 295, 50, 10],
+      [820, 235, 50, 10]
+    ],
+    "ramps": [
+      [285, 1357, 645, 1112],
+      [800, 877, 1060, 720]
+    ],
+    "player": [40, 1337],
+    "door": [1190, 158],
+    "spawns": [
+      ["censer_monk", 420, 1060],
+      ["censer_monk", 780, 1100],
+      ["chained_penitent", 540, 1060],
+      ["chained_penitent", 880, 1100],
+      ["fettered_angel", 505, 470],
+      ["river_wraith", 300, 250],
+      ["river_wraith", 900, 1250]
+    ],
+    "props": [
+      ["chain", 570, 1072],
+      ["chain", 920, 1112],
+      ["euphrates_cache_seven_thunders", 685, 548]
+    ],
+    "npcs": []
+  },
   "graveyard_arches": {
     "live": false,
     "cells": [

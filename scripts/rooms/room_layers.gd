@@ -45,6 +45,10 @@ const FAR_WINDOWS := {
 	# nor Marah (chapter III)
 	"marah_gallows": [], "marah_ford": [], "marah_host_bank": [], "marah_field": [],
 	"marah_bitter_wells": [], "marah_dry_bed": [], "marah_trench": [], "marah_legion_bank": [], "marah_parley": [], "marah_siege": [], "marah_springs_path": [], "marah_wormwood_spring": [],
+	# the Euphrates: no plates behind its openings yet (docs/CHAPTER6_ART.md)
+	"euphrates_bank": [], "euphrates_town": [], "euphrates_gate": [], "euphrates_cloister": [],
+	"euphrates_scriptorium": [], "euphrates_refectory": [], "euphrates_bell_tower": [], "euphrates_altar_court": [],
+	"euphrates_crypt_of_chains": [], "euphrates_cistern": [], "euphrates_river_stair": [], "euphrates_bound": [],
 }
 
 

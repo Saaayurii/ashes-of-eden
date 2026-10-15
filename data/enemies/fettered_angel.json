@@ -1,0 +1,77 @@
+{
+  "id": "fettered_angel",
+  "name": "ENEMY_FETTERED_ANGEL",
+  "lore": "ENEMY_FETTERED_ANGEL_LORE",
+  "tip": "TIP_FETTERED_ANGEL",
+  "_art": "its own atlas, cold white; the chain is the game's (Tether)",
+  "hp": 76,
+  "speed": 54,
+  "damage": 0,
+  "attack_interval": 1.0,
+  "behaviour": "flyer",
+  "hover_distance": 70,
+  "aggro_range": 380,
+  "size": 13,
+  "color": "#cfe6ff",
+  "material": "feather",
+  "tags": [
+    "angel"
+  ],
+  "sprite": {
+    "cell": [
+      56,
+      55
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/fettered_angel_v2_idle.png",
+      "walk": "res://assets/sprites/fettered_angel_v2_walk.png",
+      "attack": "res://assets/sprites/fettered_angel_v2_attack.png",
+      "attack_alt": "res://assets/sprites/fettered_angel_v2_attack_alt.png",
+      "special": "res://assets/sprites/fettered_angel_v2_special.png",
+      "hurt": "res://assets/sprites/fettered_angel_v2_hurt.png",
+      "death": "res://assets/sprites/fettered_angel_v2_death.png"
+    },
+    "pad_y": 3
+  },
+  "tether": {
+    "length": 110
+  },
+  "freed": {
+    "leaves": true
+  },
+  "attacks": [
+    {
+      "type": "beam",
+      "range": 220,
+      "length": 200,
+      "thickness": 18,
+      "duration": 0.4,
+      "windup": 1.0,
+      "damage": 16,
+      "cooldown": 3.4,
+      "recover": 0.6,
+      "color": "#cfe6ff",
+      "weight": 1,
+      "animation": "attack_alt"
+    },
+    {
+      "type": "melee",
+      "range": 40,
+      "reach": 56,
+      "windup": 0.7,
+      "damage": 12,
+      "cooldown": 1.9,
+      "recover": 0.4,
+      "weight": 2,
+      "animation": "attack"
+    }
+  ],
+  "essence": 0,
+  "light": {
+    "color": "#cfe6ff",
+    "radius": 56,
+    "energy": 0.7,
+    "flicker": 0.08
+  }
+}

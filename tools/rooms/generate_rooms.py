@@ -58,6 +58,18 @@ ROOM_EXPANSION_CUTS = {
     "marah_legion_bank": (600, 1110), "marah_trench": (230, 1080),
     "marah_parley": (360, 850), "marah_siege": (630, 790),
     "marah_springs_path": (180, 780), "marah_wormwood_spring": (300, 965),
+    # chapter VI, the Euphrates
+    "euphrates_bank": (300, 540),
+    "euphrates_town": (540, 760),
+    "euphrates_gate": (320, 460),
+    "euphrates_cloister": (480, 800),
+    "euphrates_scriptorium": (660, 900),
+    "euphrates_refectory": (560, 760),
+    "euphrates_altar_court": (250, 1010),
+    "euphrates_crypt_of_chains": (330, 1000),
+    "euphrates_cistern": (200, 1080),
+    "euphrates_river_stair": (200, 1140),
+    "euphrates_bound": (360, 920),
 }
 
 # Small, authored corrections to widened paintings. These are transparent
@@ -108,6 +120,10 @@ FOCAL_RANGES = {
     "marah_siege": ((960, 1230), (300, 612)),    # the tower, the rampart
     "marah_springs_path": ((270, 575), (930, 1110)),  # the fold and trough, the hut
     "marah_wormwood_spring": ((395, 960),),           # the basin and the star
+    "euphrates_bank": ((640, 800),),           # the mighty angel with the little book
+    "euphrates_town": ((655, 705),),           # moon
+    "euphrates_altar_court": ((560, 745),),    # the golden altar with four horns
+    "euphrates_bound": ((120, 210), (500, 780), (1065, 1160)),  # the pillars and their rings
 }
 
 TRAVERSAL_PATCHES = {
@@ -157,6 +173,18 @@ SEAM_STORIES = {
     "marah_bitter_wells": ("", ""), "marah_dry_bed": ("", ""), "marah_trench": ("", ""),
     "marah_legion_bank": ("", ""), "marah_parley": ("", ""), "marah_siege": ("", ""),
     "marah_springs_path": ("", ""), "marah_wormwood_spring": ("", ""),
+    "euphrates_bank": ("", ""),
+    "euphrates_town": ("", ""),
+    "euphrates_gate": ("", ""),
+    "euphrates_cloister": ("", ""),
+    "euphrates_scriptorium": ("", ""),
+    "euphrates_refectory": ("", ""),
+    "euphrates_altar_court": ("", ""),
+    "euphrates_crypt_of_chains": ("", ""),
+    "euphrates_cistern": ("", ""),
+    "euphrates_river_stair": ("", ""),
+    "euphrates_bound": ("", ""),
+    "euphrates_bell_tower": ("", ""),
 }
 
 # These two tall, asymmetric silhouettes break specific mirrored joins in the
@@ -196,6 +224,18 @@ ROOM_PROP_MOTIFS = {
     "tyre_dyeworks": {}, "tyre_gate": {}, "tyre_lamp_market": {}, "tyre_rich_gate": {}, "tyre_vaults": {}, "tyre_galleys": {}, "tyre_palace_stair": {}, "tyre_throne": {},
     "marah_gallows": {}, "marah_ford": {}, "marah_host_bank": {}, "marah_field": {}, "marah_bitter_wells": {},
     "marah_dry_bed": {}, "marah_trench": {}, "marah_legion_bank": {}, "marah_parley": {}, "marah_siege": {}, "marah_springs_path": {}, "marah_wormwood_spring": {},
+    "euphrates_bank": {},
+    "euphrates_town": {},
+    "euphrates_gate": {},
+    "euphrates_cloister": {},
+    "euphrates_scriptorium": {},
+    "euphrates_refectory": {},
+    "euphrates_altar_court": {},
+    "euphrates_crypt_of_chains": {},
+    "euphrates_cistern": {},
+    "euphrates_river_stair": {},
+    "euphrates_bound": {},
+    "euphrates_bell_tower": {},
 }
 
 # Hand-placed openings in each original 1280x720 painting. Coordinates stay
@@ -285,6 +325,18 @@ DEPTH_WINDOWS = {
     "marah_bitter_wells": (0.02, []), "marah_dry_bed": (0.02, []), "marah_trench": (0.02, []),
     "marah_legion_bank": (0.02, []), "marah_parley": (0.02, []), "marah_siege": (0.02, []),
     "marah_springs_path": (0.02, []), "marah_wormwood_spring": (0.02, []),
+    "euphrates_bank": (0.02, []),
+    "euphrates_town": (0.02, []),
+    "euphrates_gate": (0.02, []),
+    "euphrates_cloister": (0.02, []),
+    "euphrates_scriptorium": (0.02, []),
+    "euphrates_refectory": (0.02, []),
+    "euphrates_altar_court": (0.02, []),
+    "euphrates_crypt_of_chains": (0.02, []),
+    "euphrates_cistern": (0.02, []),
+    "euphrates_river_stair": (0.02, []),
+    "euphrates_bound": (0.02, []),
+    "euphrates_bell_tower": (0.02, []),
 }
 
 

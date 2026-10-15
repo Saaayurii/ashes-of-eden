@@ -1,0 +1,62 @@
+[
+  {
+    "id": "euphrates_bank",
+    "chapter": "CHAPTER_VI",
+    "title": "AREA_EUPHRATES_BANK",
+    "subtitle": "AREA_EUPHRATES_BANK_SUB",
+    "color": "#a8b8b0",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/euphrates_bank.tscn"
+    ]
+  },
+  {
+    "id": "euphrates_town",
+    "chapter": "CHAPTER_VI",
+    "title": "AREA_EUPHRATES_TOWN",
+    "subtitle": "AREA_EUPHRATES_TOWN_SUB",
+    "color": "#c8b090",
+    "rooms": [
+      "res://scenes/rooms/euphrates_town.tscn"
+    ]
+  },
+  {
+    "id": "euphrates_abbey",
+    "chapter": "CHAPTER_VI",
+    "title": "AREA_EUPHRATES_ABBEY",
+    "subtitle": "AREA_EUPHRATES_ABBEY_SUB",
+    "color": "#d8c8a0",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/euphrates_gate.tscn",
+      "res://scenes/rooms/euphrates_cloister.tscn",
+      "res://scenes/rooms/euphrates_scriptorium.tscn",
+      "res://scenes/rooms/euphrates_refectory.tscn",
+      "res://scenes/rooms/euphrates_bell_tower.tscn"
+    ]
+  },
+  {
+    "id": "euphrates_altar",
+    "chapter": "CHAPTER_VI",
+    "title": "AREA_EUPHRATES_ALTAR",
+    "subtitle": "AREA_EUPHRATES_ALTAR_SUB",
+    "color": "#e8c870",
+    "rooms": [
+      "res://scenes/rooms/euphrates_altar_court.tscn",
+      "res://scenes/rooms/euphrates_crypt_of_chains.tscn",
+      "res://scenes/rooms/euphrates_cistern.tscn"
+    ]
+  },
+  {
+    "id": "euphrates_riverbed",
+    "chapter": "CHAPTER_VI",
+    "title": "AREA_EUPHRATES_RIVERBED",
+    "subtitle": "AREA_EUPHRATES_RIVERBED_SUB",
+    "color": "#cfe6ff",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/euphrates_river_stair.tscn",
+      "res://scenes/rooms/euphrates_bound.tscn"
+    ]
+  }
+]

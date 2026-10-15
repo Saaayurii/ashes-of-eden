@@ -621,6 +621,46 @@
           "size": 3
         }
       ]
+    },
+    "incense": {
+      "_art": "stand-in strip until incense_flight_v3.png is drawn (docs/CHAPTER6_ART.md): a slow warm puff",
+      "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",
+      "frames": 4,
+      "fps": 6,
+      "shader": 3,
+      "scale": 0.8,
+      "light": 22,
+      "trail": 5,
+      "breathe": [
+        0.15,
+        3
+      ],
+      "bob": [
+        3,
+        6
+      ],
+      "echo": {
+        "offset": 10,
+        "sway": [
+          2,
+          12
+        ],
+        "color": "#e8c890",
+        "alpha": 0.28
+      },
+      "burst": [
+        {
+          "fx": "ash",
+          "color": "#c8b890",
+          "count": 10
+        },
+        {
+          "fx": "sparkle",
+          "color": "#e8c890",
+          "count": 4,
+          "size": 4
+        }
+      ]
     }
   }
 }

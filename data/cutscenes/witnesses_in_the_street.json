@@ -1,0 +1,23 @@
+{
+  "id": "witnesses_in_the_street",
+  "steps": [
+    {"do": "hold"},
+    {"do": "letterbox", "on": true, "time": 0.4},
+    {"do": "appear", "who": "npc:euphrates_reveller", "time": 0.6},
+    {"do": "appear", "who": "npc:witness_left", "time": 0.0},
+    {"do": "appear", "who": "npc:witness_right", "time": 0.0},
+    {"do": "camera", "between": ["player", "npc:witness_left"], "zoom": 1.15, "time": 1.2},
+    {"do": "appear", "who": "npc:malchus_far", "time": 0.8},
+    {"do": "walk", "who": "npc:malchus_far", "by": [260, 0], "time": 4.0},
+    {"do": "dialogue", "id": "ch6_witnesses", "cast": {"SPEAKER_REVELLER": "npc:euphrates_reveller", "SPEAKER_ELIAN": "player"}, "zoom": 1.25},
+    {"do": "vanish", "who": "npc:malchus_far", "time": 0.6},
+    {"do": "walk", "who": "player", "to": "npc:witness_left", "offset": [-16, 0], "time": 0.7, "if": "witnesses_covered"},
+    {"do": "dialogue", "id": "ch6_witnesses_covered", "cast": {"SPEAKER_REVELLER": "npc:euphrates_reveller", "SPEAKER_ELIAN": "player"}, "zoom": 1.25, "if": "witnesses_covered"},
+    {"do": "dialogue", "id": "ch6_witnesses_asked", "cast": {"SPEAKER_REVELLER": "npc:euphrates_reveller", "SPEAKER_ELIAN": "player"}, "zoom": 1.25, "if": "witnesses_asked"},
+    {"do": "walk", "who": "player", "to": "npc:witness_right", "offset": [-16, 0], "time": 0.7, "if": "witnesses_robbed"},
+    {"do": "dialogue", "id": "ch6_witnesses_robbed", "cast": {"SPEAKER_REVELLER": "npc:euphrates_reveller", "SPEAKER_ELIAN": "player"}, "zoom": 1.25, "if": "witnesses_robbed"},
+    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.8},
+    {"do": "letterbox", "on": false, "time": 0.3},
+    {"do": "release"}
+  ]
+}

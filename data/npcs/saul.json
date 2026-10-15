@@ -1,0 +1,29 @@
+{
+  "id": "saul",
+  "_art": "stand-in body (matthew); own sheet in docs/CHAPTER6_ART.md",
+  "name": "NPC_SAUL",
+  "dialogue": "npc_saul",
+  "face": "left",
+  "sprite": {
+    "animations": {
+      "idle": "res://assets/sprites/matthew_v2_idle.png",
+      "walk": "res://assets/sprites/matthew_v2_walk.png",
+      "interact": "res://assets/sprites/matthew_v2_attack.png"
+    },
+    "cell": [
+      48,
+      48
+    ],
+    "fps": 3
+  },
+  "lines": [
+    "NPC_SAUL_LINE_1",
+    "NPC_SAUL_LINE_2"
+  ],
+  "light": {
+    "color": "#ffb060",
+    "radius": 40,
+    "energy": 0.6,
+    "flicker": 0.3
+  }
+}

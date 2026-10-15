@@ -3,6 +3,9 @@ extends Node
 ## references to each other (UI <-> combat <-> story).
 
 signal enemy_died(enemy_id: StringName, position: Vector2)
+## One that went away alive (a fettered angel loosed by the keys, Enemy.loose):
+## the room stops waiting for it, nobody is paid for it.
+signal enemy_left(enemy_id: StringName, position: Vector2)
 ## A boss asking for reinforcements. The run spawns them so a session can replicate them.
 signal enemy_spawn_requested(enemy_id: String, position: Vector2)
 signal player_hp_changed(hp: float, max_hp: float)
