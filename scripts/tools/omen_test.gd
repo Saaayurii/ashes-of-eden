@@ -41,16 +41,35 @@ func _run() -> void:
 	# --- the draw ----------------------------------------------------------------
 	var drawn := {}
 	var with_one := 0
-	for seed in 2000:
-		var rng := RandomNumberGenerator.new()
-		rng.seed = seed
-		var id: String = omens.roll(rng)
-		if id != "":
-			with_one += 1
-			drawn[id] = true
+	var astray: Array = []
+	# a chapter's omens ("nights") come up in its own night only (Run.of_night)
+	var night_ids: Array = []
+	for night in data.nights():  # the first night is ""
+		if not night_ids.has(str(night.id)):
+			night_ids.append(str(night.id))
+	for night_id in night_ids:
+		game.night = night_id
+		for seed in 2000:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = seed
+			var id: String = omens.roll(rng)
+			if id != "":
+				with_one += int(night_id == "")
+				drawn[id] = true
+				var nights: Array = data.omens[id].get("nights", [])
+				if not nights.is_empty() and not nights.has(night_id):
+					astray.append("%s in %s" % [id, night_id])
+	game.night = ""
 	var share := with_one / 2000.0
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
-	_check(drawn.size() == data.omens.size(), "every omen can come up (%d of %d)" % [drawn.size(), data.omens.size()])
+	_check(drawn.size() == data.omens.size(), "every omen can come up, each in its night (%d of %d)" % [drawn.size(), data.omens.size()])
+	_check(astray.is_empty(), "  and a chapter's omen never in another night %s" % [astray])
+	game.night = "euphrates"
+	var here: bool = omens.of_night(data.abilities.get("loosened_chain", {"nights": ["?"]}))
+	game.night = ""
+	var away: bool = omens.of_night(data.abilities.get("loosened_chain", {}))
+	_check(here and not away and omens.of_night(data.abilities.get("seal_of_order", {"nights": ["?"]})),
+		"Loosened Chain is dealt in the Euphrates night only; chapter I's gifts in every night")
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
@@ -127,7 +146,10 @@ func _run() -> void:
 	var box = load("res://scripts/ui/dialogue_box.gd")
 	var crone: Dictionary = data.dialogues["npc_villager"].nodes
 	var said := {}
+	game.night = ""
 	for id in data.omens:
+		if not omens.of_night(data.omens[id]):
+			continue  # a chapter's own omen is drawn in its night, where she is not
 		game.omen = id
 		var next := ""
 		for branch in crone["omen"].branches:
@@ -139,7 +161,7 @@ func _run() -> void:
 	var unheard := 0
 	for id in said:
 		unheard += 1 if said[id] == "" else 0
-	_check(unheard == 0, "the crone has a word for every omen (%s)" % said)
+	_check(unheard == 0, "the crone has a word for every omen of her night (%s)" % said)
 	_check(not box.branch_holds({"omen": "blood_moon"}), "  and none on a plain night")
 
 	# --- on the body and in the room ------------------------------------------------
