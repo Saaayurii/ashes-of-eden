@@ -73,6 +73,11 @@ def main():
         if "addEventListener" not in body or "startGame" not in body:
             complain("startGame is not behind a listener — the build would come up mute")
         check_syntax(body)
+        # Pages takes no file over 100 MB, so CI serves the pack in parts and
+        # writes where they are into this line (tools/web/split_pack.py).
+        if not re.search(r"^\s*const PACK_PARTS = null;$", body, re.M) or "startFromParts" not in body:
+            complain("no `const PACK_PARTS = null;` and startFromParts — split_pack.py cannot "
+                     "serve the pack in parts, and a pack over 100 MB will not deploy")
 
     # Full screen on a phone is the difference between a game and a postage
     # stamp: the Play click asks for it and the corner button stays.

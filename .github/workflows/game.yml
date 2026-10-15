@@ -122,6 +122,7 @@ jobs:
             --url "https://$(echo "$owner" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}/"
           docker compose run --rm build build Web
           test -f build/web/index.html
+          sudo python3 tools/web/split_pack.py build/web/index.html build/web/index.pck
           big=$(find build/web -type f -size +99M | head -1 || true)
           if [ -n "$big" ]; then echo "::error::$big is over 100 MB — GitHub Pages will reject it."; exit 1; fi
 

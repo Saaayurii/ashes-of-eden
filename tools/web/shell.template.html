@@ -407,6 +407,61 @@
 
 		function mb(bytes) { return (bytes / 1048576).toFixed(0); }
 
+		// Pages refuses a file over 100 MB, so the deployed pack comes in parts:
+		// tools/web/split_pack.py cuts it and writes their names and sizes here.
+		// null (a local export, itch.io) is one index.pck, started the usual way.
+		const PACK_PARTS = null;
+
+		// Every part fetched straight into its place in one buffer, which the
+		// engine takes as its main pack exactly as if it had fetched it whole.
+		function fetchPart(url, into, onBytes, tries) {
+			return fetch(url).then((response) => {
+				if (!response.ok) { throw new Error(url + ": " + response.status); }
+				const reader = response.body.getReader();
+				let got = 0;
+				function next() {
+					return reader.read().then(({done, value}) => {
+						if (done) {
+							if (got !== into.length) { throw new Error(url + " is " + got + " bytes, not " + into.length); }
+							return;
+						}
+						if (got + value.length > into.length) { throw new Error(url + " is longer than " + into.length + " bytes"); }
+						into.set(value, got);
+						got += value.length;
+						onBytes(got);
+						return next();
+					});
+				}
+				return next();
+			}).catch((err) => {
+				if (tries <= 1) { throw err; }
+				onBytes(0);
+				return new Promise((resolve) => setTimeout(resolve, 1000))
+					.then(() => fetchPart(url, into, onBytes, tries - 1));
+			});
+		}
+
+		function startFromParts(split, onProgress) {
+			const total = split.parts.reduce((sum, part) => sum + part[1], 0);
+			const whole = new Uint8Array(total);
+			const got = split.parts.map(() => 0);
+			let at = 0;
+			const parts = split.parts.map(([url, size], i) => {
+				const into = whole.subarray(at, at + size);
+				at += size;
+				return fetchPart(url, into, (bytes) => {
+					got[i] = bytes;
+					onProgress(got.reduce((a, b) => a + b, 0), total);
+				}, 4);
+			});
+			// The engine downloads beside the parts; started the way startGame
+			// would, with the pack the parts made in place of a fetched one.
+			return Promise.all([GAME.init(GAME.config.executable)].concat(parts)).then(() => {
+				GAME.preloadFile(whole, split.pack);
+				return GAME.start({args: ["--main-pack", split.pack].concat(GAME.config.args)});
+			});
+		}
+
 		function fatal(message) {
 			note.textContent = "";
 			play.hidden = true;
@@ -438,13 +493,12 @@
 				play.disabled = true;
 				gate.classList.add("loading");
 				note.textContent = "Loading…";
-				GAME.startGame({
-					onProgress: (current, total) => {
-						if (!total) { return; }
-						fill.style.width = Math.round((current / total) * 100) + "%";
-						note.textContent = mb(current) + " of " + mb(total) + " MB";
-					},
-				}).then(() => {
+				const onProgress = (current, total) => {
+					if (!total) { return; }
+					fill.style.width = Math.round((current / total) * 100) + "%";
+					note.textContent = mb(current) + " of " + mb(total) + " MB";
+				};
+				(PACK_PARTS ? startFromParts(PACK_PARTS, onProgress) : GAME.startGame({onProgress})).then(() => {
 					fill.style.width = "100%";
 					gate.classList.add("gone");
 					setTimeout(() => gate.remove(), 560);
