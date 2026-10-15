@@ -335,6 +335,39 @@ async function step(name, fn) {
       await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
     });
 
+    await step('a game creature gets a frame more (from its shared copy) or one less (a frame turned off), and the game is pointed at the new strip', async () => {
+      const sent = async (setup) => {
+        await page.evaluate(setup);
+        await page.waitForFunction(() => { const d = document.querySelector('#dlg'); return d?.open && /Записано в игру|Не получилось/i.test(d.innerText); }, null, { timeout: 180000 });
+        const text = await page.textContent('#dlg');
+        await page.evaluate(() => { const d = document.querySelector('#dlg'); d.close(); d.replaceChildren(); });
+        assert.doesNotMatch(text, /Не получилось/, text);
+        return text;
+      };
+      const width = rel => +execFileSync('python3', ['-c', `from PIL import Image; print(Image.open('${rel}').width)`], { cwd: ROOT, encoding: 'utf8' }).trim();
+      // the copy she shared comes back as shared_cultist: still the cultist of the archetype tree
+      await sent(async () => {
+        setMode('chars');
+        const p = migrate(await (await fetch('import/chars/cultist.sprite.json')).json()); p.id = 'shared_cultist'; delete p.origin.enemy;
+        projects.push(p); P = p; processed = new Map(); renderAll(); await build();
+        const a = P.animations.find(a => a.name === 'idle'); a.frames.push({ ...JSON.parse(JSON.stringify(a.frames[0])), id: uid() });
+        save(); await build(); sendToGame(charFiles, 'chars');
+      });
+      const tree = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemy_archetypes/tree.json'), 'utf8')).find(e => e.id === 'cultist');
+      assert.equal(tree.sprite.animations.idle, 'res://assets/sprites/cultist_studio_idle.png');
+      assert.equal(width('assets/sprites/cultist_studio_idle.png'), tree.sprite.cell[0] * 8, 'seven frames and one more');
+      // a creature outside the tree (its strips named in data/enemies): one frame off is one frame less
+      const was = await page.evaluate(async () => {
+        const p = migrate(await (await fetch('import/chars/cult_slinger.sprite.json')).json());
+        projects.push(p); P = p; processed = new Map(); renderAll(); await build();
+        return P.animations.find(a => a.name === 'idle').frames.length;
+      });
+      await sent(async () => { P.animations.find(a => a.name === 'idle').frames[0].off = true; save(); await build(); sendToGame(charFiles, 'chars'); });
+      const slinger = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/enemies/cultist.json'), 'utf8')).sprite;
+      assert.equal(slinger.animations.idle, 'res://assets/sprites/cult_slinger_studio_idle.png', 'the file that names the strip is pointed at the new one');
+      assert.equal(width('assets/sprites/cult_slinger_studio_idle.png'), slinger.cell[0] * (was - 1));
+    });
+
     await step('an edit of a game character in the wrong cell, or moved off its cell, is stopped before it empties the game', async () => {
       const r = await page.evaluate(async () => {
         setMode('chars');
