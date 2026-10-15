@@ -1063,7 +1063,7 @@ func _roll_gifts() -> Array[Dictionary]:
 	for path in Game.PATHS:
 		var pool := Data.abilities.values().filter(
 			func(a: Dictionary) -> bool:
-				return a.path == path and not taken.has(a.id) and not gift_locked(a)
+				return a.path == path and not taken.has(a.id) and not gift_locked(a) and Omens.of_night(a)
 		)
 		var pick := _weighted_pick(pool)
 		if not pick.is_empty():
@@ -1111,8 +1111,6 @@ func _announce_omen() -> void:
 ## been available and still is. Locks are also ignored in a duel, where both
 ## players must be offered the same cards whatever they have played before.
 static func gift_locked(ability: Dictionary) -> bool:
-	if not Data.of_tonight(ability):
-		return true  # another night's gift (its "nights")
 	var needs := int(ability.get("unlock_nights", 0))
 	if needs <= 0 or Net.mode == Net.Mode.PVP or Game.daily != "" or Relics.early(str(ability.get("id", ""))):
 		return false

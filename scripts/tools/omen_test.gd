@@ -41,23 +41,29 @@ func _run() -> void:
 	# --- the draw ----------------------------------------------------------------
 	var drawn := {}
 	var with_one := 0
-	for seed in 2000:
-		var rng := RandomNumberGenerator.new()
-		rng.seed = seed
-		var id: String = omens.roll(rng)
-		if id != "":
-			with_one += 1
-			drawn[id] = true
-	for night in data.nights():  # an omen of one night's own comes up on that night
-		for seed in 400:
+	var astray: Array = []
+	# a chapter's omens ("nights") come up in its own night only (Run.of_night)
+	var night_ids: Array = []
+	for night in data.nights():  # the first night is ""
+		if not night_ids.has(str(night.id)):
+			night_ids.append(str(night.id))
+	for night_id in night_ids:
+		game.night = night_id
+		for seed in 2000:
 			var rng := RandomNumberGenerator.new()
 			rng.seed = seed
-			var id: String = omens.roll(rng, str(night.id))
+			var id: String = omens.roll(rng)
 			if id != "":
+				with_one += int(night_id == "")
 				drawn[id] = true
+				var nights: Array = data.omens[id].get("nights", [])
+				if not nights.is_empty() and not nights.has(night_id):
+					astray.append("%s in %s" % [id, night_id])
+	game.night = ""
 	var share := with_one / 2000.0
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
-	_check(drawn.size() == data.omens.size(), "every omen can come up (%d of %d)" % [drawn.size(), data.omens.size()])
+	_check(drawn.size() == data.omens.size(), "every omen can come up, each in its night (%d of %d)" % [drawn.size(), data.omens.size()])
+	_check(astray.is_empty(), "  and a chapter's omen never in another night %s" % [astray])
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
@@ -104,27 +110,14 @@ func _run() -> void:
 	_check(omens.of_day("2026-10-01") == first, "  and the menu can name it before the night begins")
 	game.daily = ""
 
-	# --- omens of one night's own ("nights": chapter V's) ------------------------
+	# --- chapter V's omens, in the Engedi night only ("nights") ----------------
 	var of_engedi: Array = data.omens.keys().filter(func(id): return (data.omens[id].get("nights", []) as Array).has("engedi"))
 	_check(of_engedi.size() == 3, "Engedi has its three omens (%d)" % of_engedi.size())
-	var night_was: String = data.night
-	profile.data.nights = omens.FROM_NIGHT
-	data.use_night("")
-	var foreign := false
-	for i in 200:
-		foreign = foreign or of_engedi.has(omens.for_new_night(true))
-	_check(not foreign, "the first night never draws Engedi's omens")
-	data.use_night("engedi")
-	var own := false
-	for i in 200:
-		own = own or of_engedi.has(omens.for_new_night(true))
-	_check(own, "  the Engedi night does")
 	var day_foreign := false
+	game.night = ""
 	for day in range(1, 29):
 		day_foreign = day_foreign or of_engedi.has(omens.of_day("2026-02-%02d" % day))
-	_check(not day_foreign, "  the night of the day is the first night's, wherever the menu was")
-	data.use_night(night_was)
-	profile.data.nights = 0
+	_check(not day_foreign, "  the night of the day never draws them")
 
 	# --- the rules ---------------------------------------------------------------
 	game.vial = 0
@@ -156,9 +149,10 @@ func _run() -> void:
 	var box = load("res://scripts/ui/dialogue_box.gd")
 	var crone: Dictionary = data.dialogues["npc_villager"].nodes
 	var said := {}
+	game.night = ""
 	for id in data.omens:
-		if not data.of_night(data.omens[id], ""):
-			continue  # the crone is the first night's; another night's omen is not hers
+		if not omens.of_night(data.omens[id]):
+			continue  # a chapter's own omen is drawn in its night, where she is not
 		game.omen = id
 		var next := ""
 		for branch in crone["omen"].branches:
@@ -170,7 +164,7 @@ func _run() -> void:
 	var unheard := 0
 	for id in said:
 		unheard += 1 if said[id] == "" else 0
-	_check(unheard == 0, "the crone has a word for every omen (%s)" % said)
+	_check(unheard == 0, "the crone has a word for every omen of her night (%s)" % said)
 	_check(not box.branch_holds({"omen": "blood_moon"}), "  and none on a plain night")
 
 	# --- on the body and in the room ------------------------------------------------
