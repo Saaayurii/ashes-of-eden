@@ -19,7 +19,8 @@ class_name Enemy
 ##              within "radius" wakes and hunts (the city woken by another's voice).
 ##              (a single "attack" object is accepted too). One is picked by weight among those in range,
 ##              with a strong penalty for repeating while another is available.
-##   sprite     one strip, or {"cell", "fps", "animations": {idle, walk, attack, hurt, death}}
+##   sprite     one strip, or {"cell", "fps", "animations": {idle, walk, attack, hurt, death}};
+##              "idle_to_walk", when drawn, plays once each time it rises from rest into the walk
 ##   sight      {"range", "height", "behind"}: how far ahead it looks (a cone in
 ##              front of its face, cut by walls and floors) and the radius behind
 ##              its back it can still feel you in.
@@ -188,6 +189,9 @@ var _patrol_wait := 0.0
 var _has_anim := {}
 ## An animation the studio's sandbox asks it to show instead of fighting ("" = fight).
 var showcase := ""
+## How long it must have stood at rest before a walk starts with "idle_to_walk".
+const IDLE_TO_WALK_REST := 0.4
+var _rest_from := -100000
 ## What the body's scale springs back to after a hit punch.
 var _visual_scale := Vector2.ONE
 var _simulated := true  # false on a client: the host drives this body
@@ -545,6 +549,8 @@ func _setup_sprite(spec: Dictionary) -> void:
 	if _has_anim.is_empty():
 		return
 	sprite.sprite_frames = frames
+	if _has_anim.has("idle_to_walk") and not sprite.animation_finished.is_connected(_on_sprite_finished):
+		sprite.animation_finished.connect(_on_sprite_finished)
 	var art_scale := float(spec.get("scale", 1.0))
 	sprite.scale = Vector2.ONE * art_scale
 	# The collision box is 22 px tall around the origin, so its sole is at +11; the
@@ -873,9 +879,11 @@ func _patrol(delta: float) -> void:
 				velocity = to_goal.normalized() * speed
 				if absf(to_goal.x) > 4.0:
 					facing = 1 if to_goal.x > 0.0 else -1
+		# under way or waiting, by its own drift, not by the bob added below
+		var moving := velocity.length() > 6.0
 		velocity.y += sin(_bob) * 10.0
 		velocity += _knockback
-		_play("walk" if velocity.length() > 6.0 else "idle")
+		_play("walk" if moving else "idle")
 		return
 	_fall(delta)
 	velocity.x = _knockback.x
@@ -2072,12 +2080,27 @@ func _set_state(new_state: State, duration: float) -> void:
 func _play(animation: String, hold_first_frame := false) -> void:
 	if _sealed and animation in ["idle", "walk", "hurt"] and _has_anim.has("special"):
 		animation = "special"  # eyes closed: the wheels turn in on themselves
+	# rising from rest: the drawn bridge plays once, then the walk (_on_sprite_finished);
+	# asked to walk while it plays, it plays on
+	# — only from a rest it held (IDLE_TO_WALK_REST), not a frame of idle in a hover
+	if animation == "walk" and _has_anim.has("idle_to_walk") and _has_anim.has("walk") and not hold_first_frame:
+		if sprite.animation == "idle" and Time.get_ticks_msec() - _rest_from >= IDLE_TO_WALK_REST * 1000.0:
+			animation = "idle_to_walk"
+		elif sprite.animation == "idle_to_walk" and sprite.is_playing():
+			return
 	if not _has_anim.has(animation) or sprite.animation == animation and sprite.is_playing() and not hold_first_frame:
 		return
+	if animation == "idle":
+		_rest_from = Time.get_ticks_msec()
 	sprite.play(animation)
 	if hold_first_frame:
 		sprite.pause()
 		sprite.frame = 0
+
+
+func _on_sprite_finished() -> void:
+	if sprite.animation == "idle_to_walk" and showcase == "" and state != State.DEAD:
+		sprite.play("walk")
 
 
 func _attack_animation_remaining() -> float:
