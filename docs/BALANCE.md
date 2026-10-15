@@ -124,6 +124,33 @@ pinned — common enemies free to move, and each move on the straw man.
   Estimate **28 min** (graveyard_cross, now two paintings wide, is in it). The extra essence would have bought 7 levels, so the curve went to **180 × 1.3**:
   6 levels + 8 doors = 14 upgrades, still inside the target.
 
+## Pass of 2026-10-15: the nights after the first
+
+Chapters II–VII are nights of their own, each begun by a fresh hero (docs/GAME_PACKS.md), twelve rooms with no
+reinforcement waves, so they are measured as their own curves: `balance_probe.gd` now duels each night's commonest
+enemies free to move, every night's bosses and elites, and writes a «Nights» table (docs/BALANCE_PROBE.md).
+
+- **The probe's own clock was inflating it.** `Game.enemy_hp_multiplier` hardens what spawns by the night's clock
+  (+6 % HP / +4 % damage every 3 min), and the probe's duels ran one after another in the same night: by the bosses
+  they were fighting +30 % bodies (the Ophanim measured 111–157 s instead of 84). Each duel now starts at
+  `Game.elapsed = 0`; the census adds the clock back room by room as the night would.
+- **Nights are compared by threat, not by the duels' damage/s.** The pinned duels' measured damage taken swings by
+  half from run to run with the AI's spacing (chapter I's night went 527 → 318 with nothing changed). A room's
+  «face-tank HP» is Σ threat × TTK, threat = mean blow / mean (wind-up + cooldown) from the JSON, TTK measured.
+- **Targets.** Mean room rises night to night, no room above ~2.5× its night's mean, a night's boss 3–4 min and
+  each later boss at least as long as the one before; common TTK stays 2–3 s (the hall's 4 s is armoured angels).
+  Seir stays the gentlest: the waiting town is a re-entry after the first dawn, most of its people never fight.
+- **Tuned (HP only; every tip still tells the truth):** Seir's drowned 44 → 54, sea wraith 34 → 42; Tyre's
+  guard 96 → 74 (with a 0.5 shield it was the spike), cutpurse 50 → 46, treasurer 190 → 170; Engedi's vine husk
+  70 → 90, pit smoke 40 → 54, locust rider 90 → 108, herald 260 → 280, feaster 120 → 90 (six in the feast hall);
+  Euphrates' flagellant 66 → 80, censer monk 54 → 68, river wraith 46 → 58, chained penitent 84 → 92; the hall's
+  measuring angel 150 → 135, proud mirror 320 → 270. Bosses: watchman 1100 → 1550, wormwood 1250 → 1550, prince
+  1300 → 1500, abaddon 1450 → 1650, four-bound 1600 → 1250 (the chain phases make him long already), cherub 1900.
+- **Result:** mean room 36 · 64 · 82 · 88 · 86 · 106 (Seir … Hall; Engedi and the Euphrates a plateau — the
+  river has fewer bodies, each harder: TTK 3.0 s against 2.0), bosses 3.0 · 3.1 · 3.3 · 3.4 · 4.0 · 4.2 min. Still
+  open: the hall's sea of glass (2.5× its mean, the proud mirror), and the four numbers of CORE_LOOP.md for these
+  nights — every recorded playtest is chapter I, so they wait for telemetry.
+
 ## The vials of wrath
 
 After a dawn, five rungs above the difficulty mode (docs/VIALS.md). Each is a rule, not a multiplier on everything:

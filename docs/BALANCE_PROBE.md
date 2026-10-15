@@ -6,16 +6,22 @@
 
 | Target | Wanted | Measured | |
 |---|---|---|---|
-| Common enemy TTK, fresh hero | 2–3 s | 1.9 s | ✅ |
+| Common enemy TTK, fresh hero | 2–3 s | 1.5 s | ✅ |
 | Upgrades per run (levels + place doors) | 10–14 | 14 (6 levels + 8 doors) | ✅ |
-| Run length (estimate) | 25–30 min | 28 min | ✅ |
-| blind_preacher fight | 1.5–2.5 min | 42 s damage phase → ~1.8 min | ✅ |
+| Run length (estimate) | 25–30 min | 32 min | ⚠️ |
+| blind_preacher fight | 1.5–2.5 min | 43 s damage phase → ~1.8 min | ✅ |
 | knight_of_ash fight | 1.5–2.5 min | 39 s damage phase → ~1.6 min | ✅ |
-| ophanim fight | 3–4 min | 86 s damage phase → ~3.6 min | ✅ |
+| ophanim fight | 3–4 min | 84 s damage phase → ~3.5 min | ✅ |
+| watchman fight | 3–4 min | 71 s damage phase → ~3.0 min | ⚠️ |
+| wormwood fight | 3–4 min | 74 s damage phase → ~3.1 min | ✅ |
+| prince_of_tyre fight | 3–4 min | 79 s damage phase → ~3.3 min | ✅ |
+| abaddon fight | 3–4 min | 81 s damage phase → ~3.4 min | ✅ |
+| four_bound fight | 3–4 min | 95 s damage phase → ~4.0 min | ✅ |
+| cherub fight | 3–4 min | 100 s damage phase → ~4.2 min | ⚠️ |
 
 ## Playtests (69 recorded runs)
 
-No run reached the end yet (estimate above: 28 min).
+No run reached the end yet (estimate above: 32 min).
 
 | Room | Clears | Median time | Median damage (bar) | Deaths | Boss fight |
 |---|---|---|---|---|---|
@@ -54,26 +60,75 @@ No run reached the end yet (estimate above: 28 min).
 
 | Enemy | TTK | Hits | Damage taken while face-tanking |
 |---|---|---|---|
-| ash_archer | 2.1 s | 5 | 3.7 HP/s |
-| blind_preacher (boss) | 42.1 s | 78 | 2.9 HP/s |
-| cult_caller | 1.7 s | 4 | 0.0 HP/s |
-| cult_slinger | 2.1 s | 4 | 0.0 HP/s |
-| cultist | 1.7 s | 4 | 3.6 HP/s |
-| elder_wraith | 4.2 s | 8 | 0.0 HP/s |
-| elite_cultist | 3.3 s | 7 | 6.9 HP/s |
-| elite_possessed | 2.9 s | 6 | 0.0 HP/s |
-| fallen_champion | 4.2 s | 8 | 5.5 HP/s |
-| fallen_guard | 3.7 s | 8 | 2.0 HP/s |
-| hollow_wraith | 2.1 s | 4 | 0.0 HP/s |
-| knight_of_ash (boss) | 39.3 s | 73 | 4.9 HP/s |
-| ophanim (boss) | 86.4 s | 139 | 4.8 HP/s |
-| possessed_villager | 2.5 s | 5 | 2.1 HP/s |
-| preacher_acolyte | 4.6 s | 9 | 3.8 HP/s |
-| raven | 0.1 s | 1 | 0.0 HP/s |
-| shade | 1.3 s | 3 | 4.2 HP/s |
-| shield_bearer | 6.2 s | 11 | 3.6 HP/s |
-| wraith | 2.1 s | 4 | 2.6 HP/s |
-| zealot | 2.1 s | 5 | 2.6 HP/s |
+| abaddon (boss) | 80.9 s | 150 | 2.9 HP/s |
+| archive_scribe | 2.5 s | 6 | 3.6 HP/s |
+| ash_archer | 1.7 s | 4 | 0.0 HP/s |
+| blind_preacher (boss) | 42.5 s | 79 | 2.5 HP/s |
+| censer_monk | 2.5 s | 6 | 0.0 HP/s |
+| chained_penitent | 3.7 s | 8 | 2.7 HP/s |
+| cherub (boss) | 100.5 s | 186 | 2.7 HP/s |
+| cult_caller | 2.1 s | 5 | 0.0 HP/s |
+| cult_slinger | 1.7 s | 4 | 0.0 HP/s |
+| cultist | 2.1 s | 5 | 2.3 HP/s |
+| cutpurse | 1.7 s | 4 | 0.0 HP/s |
+| debt_wraith | 1.7 s | 4 | 0.0 HP/s |
+| dim_star | 2.5 s | 6 | 2.8 HP/s |
+| drowned | 2.1 s | 5 | 1.9 HP/s |
+| drowned_bosun | 7.0 s | 14 | 2.3 HP/s |
+| dye_drowned | 2.1 s | 5 | 0.9 HP/s |
+| elder_wraith | 2.5 s | 6 | 0.0 HP/s |
+| elite_cultist | 3.3 s | 7 | 2.9 HP/s |
+| elite_possessed | 1.7 s | 4 | 0.0 HP/s |
+| fallen_champion | 7.0 s | 14 | 3.0 HP/s |
+| fallen_guard | 3.7 s | 8 | 2.4 HP/s |
+| feaster | 4.1 s | 9 | 1.2 HP/s |
+| fettered_angel | 3.3 s | 7 | 1.6 HP/s |
+| flagellant | 3.3 s | 7 | 3.1 HP/s |
+| four_bound (boss) | 95.4 s | 115 | 2.1 HP/s |
+| gate_warden | 5.4 s | 11 | 1.4 HP/s |
+| hail_spirit | 1.7 s | 4 | 0.0 HP/s |
+| hollow_wraith | 1.7 s | 4 | 0.0 HP/s |
+| horseman | 4.1 s | 9 | 2.7 HP/s |
+| host_archer | 1.7 s | 4 | 0.0 HP/s |
+| host_sentinel | 2.1 s | 5 | 0.0 HP/s |
+| host_spearman | 2.5 s | 6 | 2.5 HP/s |
+| host_standard_bearer | 9.0 s | 18 | 3.2 HP/s |
+| knight_of_ash (boss) | 39.3 s | 73 | 4.3 HP/s |
+| legion_brute | 6.6 s | 13 | 2.9 HP/s |
+| legion_centurion | 9.9 s | 19 | 2.7 HP/s |
+| legion_possessed | 0.9 s | 3 | 0.0 HP/s |
+| lion_horse | 13.5 s | 26 | 1.9 HP/s |
+| locust | 0.1 s | 1 | 0.0 HP/s |
+| locust_herald | 21.7 s | 41 | 2.2 HP/s |
+| locust_rider | 4.1 s | 9 | 2.4 HP/s |
+| measuring_angel | 7.0 s | 14 | 1.8 HP/s |
+| mirror_elian | 5.4 s | 11 | 3.3 HP/s |
+| ophanim (boss) | 83.5 s | 134 | 3.7 HP/s |
+| pit_smoke | 2.1 s | 5 | 0.0 HP/s |
+| possessed_villager | 2.1 s | 5 | 1.7 HP/s |
+| preacher_acolyte | 4.1 s | 9 | 2.6 HP/s |
+| prince_of_tyre (boss) | 79.2 s | 147 | 2.7 HP/s |
+| proud_mirror | 18.0 s | 34 | 4.2 HP/s |
+| raven | 0.5 s | 2 | 0.0 HP/s |
+| register_scribe | 2.5 s | 6 | 1.4 HP/s |
+| river_wraith | 2.1 s | 5 | 2.1 HP/s |
+| sea_wraith | 1.7 s | 4 | 0.0 HP/s |
+| seraph | 3.7 s | 8 | 2.3 HP/s |
+| shade | 0.9 s | 3 | 0.0 HP/s |
+| shield_bearer | 5.8 s | 12 | 3.7 HP/s |
+| swollen_feaster | 3.3 s | 7 | 1.2 HP/s |
+| tyre_guard | 5.4 s | 11 | 2.7 HP/s |
+| tyre_treasurer | 11.5 s | 22 | 1.1 HP/s |
+| vine_husk | 3.7 s | 8 | 2.8 HP/s |
+| wailer | 0.9 s | 3 | 0.0 HP/s |
+| waiting_townsman | 0.9 s | 3 | 0.0 HP/s |
+| watchman (boss) | 71.1 s | 132 | 3.5 HP/s |
+| wheel | 2.1 s | 5 | 0.0 HP/s |
+| woe_eagle | 0.9 s | 3 | 0.0 HP/s |
+| wormwood (boss) | 74.4 s | 138 | 0.8 HP/s |
+| wormwood_shade | 0.9 s | 3 | 0.0 HP/s |
+| wraith | 0.9 s | 3 | 0.0 HP/s |
+| zealot | 1.7 s | 4 | 0.0 HP/s |
 
 ## Common enemies free to move
 
@@ -81,11 +136,28 @@ The duels above pin the enemy in front of the sword. Here it paces, queues and g
 
 | Enemy | Pinned | Free |
 |---|---|---|
-| possessed_villager | 2.1 HP/s | 1.0 HP/s |
-| cultist | 3.6 HP/s | 0.6 HP/s |
-| fallen_guard | 2.0 HP/s | 2.6 HP/s |
-| shade | 4.2 HP/s | 0.8 HP/s |
+| possessed_villager | 1.7 HP/s | 1.7 HP/s |
+| cultist | 2.3 HP/s | 0.6 HP/s |
+| fallen_guard | 2.4 HP/s | 2.2 HP/s |
+| shade | 0.0 HP/s | 0.4 HP/s |
 | raven | 0.0 HP/s | 1.9 HP/s |
+| drowned | 1.9 HP/s | 1.8 HP/s |
+| sea_wraith | 0.0 HP/s | 1.5 HP/s |
+| legion_possessed | 0.0 HP/s | 0.0 HP/s |
+| host_spearman | 2.5 HP/s | 2.8 HP/s |
+| host_archer | 0.0 HP/s | 2.7 HP/s |
+| tyre_guard | 2.7 HP/s | 4.8 HP/s |
+| cutpurse | 0.0 HP/s | 3.1 HP/s |
+| debt_wraith | 0.0 HP/s | 0.0 HP/s |
+| locust | 0.0 HP/s | 1.5 HP/s |
+| vine_husk | 2.8 HP/s | 0.9 HP/s |
+| locust_rider | 2.4 HP/s | 4.0 HP/s |
+| flagellant | 3.1 HP/s | 4.0 HP/s |
+| censer_monk | 0.0 HP/s | 5.5 HP/s |
+| chained_penitent | 2.7 HP/s | 2.8 HP/s |
+| measuring_angel | 1.8 HP/s | 4.4 HP/s |
+| wheel | 0.0 HP/s | 1.0 HP/s |
+| seraph | 2.3 HP/s | 0.0 HP/s |
 
 ## The moves on the straw man
 
@@ -100,27 +172,154 @@ Damage per second over 10 s of doing only that (docs/TECHNIQUES.md): a move shou
 
 ## Rooms
 
-| Room | Enemies | Waves | Total HP | Essence | Est. time | Bosses |
-|---|---|---|---|---|---|---|
-| village_night | 12 | 1 | 460 | 138 | 81 s |  |
-| graveyard_cross | 16 | 0 | 644 | 201 | 110 s |  |
-| graveyard_arches | 15 | 1 | 692 | 228 | 121 s |  |
-| graveyard_tree | 16 | 1 | 684 | 224 | 116 s |  |
-| swamp_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| swamp_moon | 16 | 1 | 648 | 205 | 108 s |  |
-| swamp_red (one way of a fork) | 10 | 0 | 438 | 179 | 78 s |  |
-| swamp_crypt (one way of a fork) | 20 | 2 | 1007 | 378 | 161 s |  |
-| catacombs_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| catacombs_1 | 17 | 1 | 890 | 297 | 147 s |  |
-| catacombs_2 (one way of a fork) | 12 | 0 | 636 | 223 | 104 s |  |
-| catacombs_3 (one way of a fork) | 22 | 2 | 1136 | 381 | 187 s |  |
-| crypt_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| crypt_skulls | 21 | 2 | 1068 | 352 | 171 s |  |
-| preacher_nave | 1 | 0 | 900 | 150 | 116 s | blind_preacher |
-| church | 0 | 0 | 0 | 0 | 11 s |  |
-| ashes_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| crypt_lava | 1 | 0 | 760 | 260 | 113 s | knight_of_ash |
-| gate_threshold | 0 | 0 | 0 | 0 | 15 s |  |
-| hell_gate | 1 | 0 | 1500 | 400 | 231 s | ophanim |
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |
+|---|---|---|---|---|---|---|---|
+| village_night | 12 | 1 | 460 | 138 | 73 s | 48 |  |
+| graveyard_cross | 26 | 0 | 1020 | 322 | 169 s | 101 |  |
+| graveyard_arches | 15 | 1 | 692 | 228 | 111 s | 103 |  |
+| graveyard_tree | 16 | 1 | 684 | 224 | 112 s | 105 |  |
+| swamp_threshold | 0 | 0 | 0 | 0 | 15 s | 0 |  |
+| swamp_moon | 16 | 1 | 648 | 205 | 103 s | 83 |  |
+| swamp_red (one way of a fork) | 10 | 0 | 438 | 179 | 76 s | 63 |  |
+| swamp_crypt (one way of a fork) | 20 | 2 | 1007 | 378 | 176 s | 207 |  |
+| catacombs_threshold | 0 | 0 | 0 | 0 | 15 s | 0 |  |
+| catacombs_1 | 17 | 1 | 890 | 297 | 158 s | 181 |  |
+| catacombs_2 (one way of a fork) | 12 | 0 | 636 | 223 | 108 s | 115 |  |
+| catacombs_3 (one way of a fork) | 22 | 2 | 1136 | 381 | 211 s | 271 |  |
+| crypt_threshold | 0 | 0 | 0 | 0 | 15 s | 0 |  |
+| crypt_skulls | 21 | 2 | 1068 | 352 | 191 s | 245 |  |
+| preacher_nave | 1 | 0 | 900 | 150 | 156 s | 0 | blind_preacher |
+| church | 0 | 0 | 0 | 0 | 11 s | 0 |  |
+| ashes_threshold | 0 | 0 | 0 | 0 | 15 s | 0 |  |
+| crypt_lava | 1 | 0 | 760 | 260 | 154 s | 0 | knight_of_ash |
+| gate_threshold | 0 | 0 | 0 | 0 | 15 s | 0 |  |
+| hell_gate | 1 | 0 | 1500 | 400 | 324 s | 0 | ophanim |
 
+Face-tank HP = Σ, over the room's non-boss enemies, of what it throws at a fresh hero standing and swinging until it falls: its threat (mean blow over mean wind-up + cooldown, from its JSON) × its pinned TTK, hardened by the night's clock — what a room costs one who never rolls or blocks, the measure the nights are compared by below. (The duels' measured damage/s swings by half from run to run with the AI's spacing, so it is shown, not used.) 
 Room time = Σ TTK × 3.0 (walking, dodging, waiting for openings) + a boss's TTK × 2.5 (docs/BALANCE.md §6) + width / 110 px/s. Enemies count every reinforcement wave and what a body splits into. The 3.0 is measured from playtests (see the constant in balance_probe.gd); the TTKs are real; the walking speed is a guess.
+
+## Nights
+
+Every night is begun by a fresh hero (level one, no gifts, the reliquary aside), so it is its own curve. Common = neither boss, elite nor mid-boss; TTK is the pinned duels above, damage/s the threat from the JSON (see Rooms), both weighted by how often the night meets each.
+
+| Night | Enemies | Elites | Common TTK | Common dmg/s | Face-tank HP: first 3 rooms | mean room | worst room | night | Hardest common blow | Boss fight | Gifts | Est. length |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| first | 158 | 4 | 1.9 s | 2.6 | 252 | 138 | 271 | 1194 | 17 (shield_bearer) | blind_preacher 1.8 min, knight_of_ash 1.6 min, ophanim 3.5 min | 14 (6 + 8) | 32 min |
+| seir | 56 | 2 | 1.7 s | 3.0 | 80 | 36 | 86 | 334 | 11 (drowned) | watchman 3.0 min | 7 (2 + 5) | 11 min |
+| marah | 60 | 3 | 2.2 s | 3.6 | 141 | 64 | 115 | 597 | 18 (legion_brute) | wormwood 3.1 min | 9 (4 + 5) | 14 min |
+| tyre | 46 | 2 | 2.7 s | 4.5 | 126 | 82 | 170 | 721 | 24 (tyre_guard) | prince_of_tyre 3.3 min | 9 (4 + 5) | 14 min |
+| engedi | 55 | 2 | 2.0 s | 3.3 | 148 | 88 | 205 | 782 | 20 (locust_rider) | abaddon 3.4 min | 9 (3 + 6) | 15 min |
+| euphrates | 47 | 2 | 3.0 s | 4.2 | 140 | 86 | 162 | 771 | 22 (horseman) | four_bound 4.0 min | 9 (4 + 5) | 16 min |
+| hall | 32 | 1 | 4.3 s | 4.3 | 180 | 106 | 263 | 780 | 20 (measuring_angel) | cherub 4.2 min | 9 (4 + 5) | 15 min |
+
+### seir
+
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |
+|---|---|---|---|---|---|---|---|
+| seir_road | 2 | 0 | 24 | 24 | 17 s | 2 |  |
+| seir_gate | 5 | 0 | 310 | 0 | 55 s | 63 |  |
+| seir_street | 9 | 0 | 254 | 16 | 38 s | 15 |  |
+| seir_square | 7 | 0 | 224 | 22 | 36 s | 12 |  |
+| seir_roofs (one way of a fork) | 6 | 0 | 108 | 60 | 27 s | 10 |  |
+| seir_canal (one way of a fork) | 6 | 0 | 276 | 52 | 45 s | 31 |  |
+| seir_quay | 5 | 0 | 222 | 39 | 40 s | 26 |  |
+| seir_wrecks | 8 | 0 | 524 | 140 | 81 s | 86 |  |
+| seir_warehouses (one way of a fork) | 8 | 0 | 330 | 60 | 52 s | 38 |  |
+| seir_breakwater (one way of a fork) | 6 | 0 | 276 | 86 | 50 s | 39 |  |
+| seir_lighthouse_stair | 6 | 0 | 416 | 114 | 68 s | 71 |  |
+| seir_lighthouse | 1 | 0 | 1550 | 220 | 214 s | 0 | watchman |
+
+### marah
+
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |
+|---|---|---|---|---|---|---|---|
+| marah_gallows | 5 | 0 | 232 | 67 | 40 s | 34 |  |
+| marah_ford | 6 | 0 | 332 | 95 | 60 s | 57 |  |
+| marah_host_bank (one way of a fork) | 6 | 0 | 320 | 100 | 54 s | 51 |  |
+| marah_legion_bank (one way of a fork) | 6 | 0 | 332 | 98 | 65 s | 58 |  |
+| marah_field | 7 | 0 | 228 | 88 | 39 s | 29 |  |
+| marah_trench | 9 | 0 | 616 | 175 | 102 s | 115 |  |
+| marah_parley | 5 | 0 | 292 | 80 | 57 s | 53 |  |
+| marah_siege | 9 | 0 | 690 | 202 | 120 s | 106 |  |
+| marah_bitter_wells (one way of a fork) | 6 | 0 | 198 | 71 | 35 s | 26 |  |
+| marah_dry_bed (one way of a fork) | 7 | 0 | 356 | 122 | 68 s | 68 |  |
+| marah_springs_path | 6 | 0 | 494 | 139 | 92 s | 102 |  |
+| marah_wormwood_spring | 1 | 0 | 1550 | 260 | 234 s | 0 | wormwood |
+
+### tyre
+
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |
+|---|---|---|---|---|---|---|---|
+| tyre_causeway | 3 | 0 | 114 | 48 | 25 s | 14 |  |
+| tyre_gate | 4 | 0 | 240 | 100 | 57 s | 70 |  |
+| tyre_lamp_market | 5 | 0 | 218 | 86 | 40 s | 41 |  |
+| tyre_counting_house | 5 | 0 | 398 | 151 | 91 s | 118 |  |
+| tyre_dark_quarter (one way of a fork) | 6 | 0 | 290 | 112 | 50 s | 47 |  |
+| tyre_bright_quay (one way of a fork) | 6 | 0 | 384 | 158 | 94 s | 134 |  |
+| tyre_rich_gate | 4 | 0 | 216 | 94 | 54 s | 69 |  |
+| tyre_dyeworks | 6 | 0 | 288 | 92 | 52 s | 52 |  |
+| tyre_vaults (one way of a fork) | 6 | 0 | 388 | 141 | 82 s | 101 |  |
+| tyre_galleys (one way of a fork) | 6 | 0 | 310 | 131 | 68 s | 89 |  |
+| tyre_palace_stair | 6 | 0 | 512 | 195 | 123 s | 170 |  |
+| tyre_throne | 1 | 0 | 1500 | 240 | 248 s | 0 | prince_of_tyre |
+
+### engedi
+
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |
+|---|---|---|---|---|---|---|---|
+| engedi_smoke_road | 3 | 0 | 188 | 30 | 37 s | 34 |  |
+| engedi_vineyard_gate | 4 | 0 | 378 | 58 | 60 s | 68 |  |
+| engedi_terraces | 5 | 0 | 250 | 47 | 43 s | 46 |  |
+| engedi_spring | 3 | 0 | 188 | 14 | 40 s | 46 |  |
+| engedi_orchard (one way of a fork) | 5 | 0 | 304 | 48 | 52 s | 56 |  |
+| engedi_arbor (one way of a fork) | 5 | 0 | 378 | 72 | 63 s | 83 |  |
+| engedi_feast_hall | 15 | 0 | 836 | 84 | 129 s | 205 |  |
+| engedi_pit_rim | 5 | 0 | 332 | 64 | 57 s | 68 |  |
+| engedi_hives (one way of a fork) | 4 | 0 | 304 | 56 | 88 s | 68 |  |
+| engedi_wine_press (one way of a fork) | 12 | 0 | 756 | 126 | 150 s | 169 |  |
+| engedi_pit_stair | 6 | 0 | 512 | 100 | 121 s | 127 |  |
+| engedi_abyss_mouth | 1 | 0 | 1650 | 420 | 253 s | 0 | abaddon |
+
+### euphrates
+
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |
+|---|---|---|---|---|---|---|---|
+| euphrates_bank | 3 | 0 | 216 | 58 | 40 s | 35 |  |
+| euphrates_town | 4 | 0 | 298 | 70 | 51 s | 55 |  |
+| euphrates_gate | 4 | 0 | 296 | 76 | 50 s | 50 |  |
+| euphrates_cloister (one way of a fork) | 5 | 0 | 408 | 100 | 64 s | 77 |  |
+| euphrates_scriptorium (one way of a fork) | 5 | 0 | 376 | 100 | 58 s | 60 |  |
+| euphrates_refectory | 3 | 0 | 228 | 56 | 44 s | 45 |  |
+| euphrates_bell_tower | 7 | 0 | 512 | 116 | 75 s | 87 |  |
+| euphrates_altar_court | 7 | 0 | 760 | 180 | 118 s | 161 |  |
+| euphrates_crypt_of_chains (one way of a fork) | 8 | 0 | 680 | 130 | 108 s | 143 |  |
+| euphrates_cistern (one way of a fork) | 6 | 0 | 392 | 100 | 65 s | 73 |  |
+| euphrates_river_stair | 6 | 0 | 688 | 166 | 114 s | 162 |  |
+| euphrates_bound | 1 | 0 | 1250 | 260 | 296 s | 0 | four_bound |
+
+### hall
+
+| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |
+|---|---|---|---|---|---|---|---|
+| hall_elders_stair | 3 | 0 | 245 | 62 | 48 s | 45 |  |
+| hall_outer_court | 3 | 0 | 205 | 56 | 38 s | 27 |  |
+| hall_measured_temple | 4 | 0 | 475 | 108 | 85 s | 108 |  |
+| hall_gallery_of_lamps (one way of a fork) | 5 | 0 | 385 | 100 | 58 s | 62 |  |
+| hall_sea_of_glass (one way of a fork) | 4 | 0 | 660 | 138 | 123 s | 263 |  |
+| hall_archive | 4 | 0 | 280 | 0 | 46 s | 66 |  |
+| hall_stones_of_fire | 0 | 0 | 0 | 0 | 15 s | 0 |  |
+| hall_ark_sanctum | 4 | 0 | 380 | 94 | 67 s | 70 |  |
+| hall_thunders (one way of a fork) | 4 | 0 | 475 | 116 | 102 s | 185 |  |
+| hall_hail_gallery (one way of a fork) | 4 | 0 | 270 | 78 | 55 s | 52 |  |
+| hall_flaming_way | 5 | 0 | 625 | 136 | 110 s | 182 |  |
+| hall_eden_gate | 1 | 0 | 1900 | 450 | 311 s | 0 | cherub |
+
+## Wind-ups
+
+Blows under 0.3 s, or of 15 and more under 0.6 s:
+
+| Enemy | Attack | Damage | Wind-up |
+|---|---|---|---|
+| blind_preacher | melee | 18 | 0.50 s |
+| elite_cultist | melee | 16 | 0.44 s |
+| preacher_acolyte | melee | 18 | 0.55 s |

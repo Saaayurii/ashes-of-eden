@@ -5,7 +5,7 @@
   "lore": "ENEMY_WORMWOOD_LORE",
   "tip": "TIP_WORMWOOD",
   "_comment": "Chapter III's boss (docs/CHAPTER3.md §6): a fallen star half in the spring, never touching the ground. A flying boss on the generic flyer path, held over its spring by anchor + leash (room pixels; set from the traced room) and hover_floor. Stub art: the Ophanim's strips, cold white.",
-  "hp": 1250,
+  "hp": 1550,
   "speed": 36,
   "damage": 0,
   "attack_interval": 0.9,

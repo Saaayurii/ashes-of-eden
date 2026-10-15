@@ -5,7 +5,7 @@
   "name": "ENEMY_PROUD_MIRROR",
   "lore": "ENEMY_PROUD_MIRROR_LORE",
   "tip": "TIP_PROUD_MIRROR",
-  "hp": 320,
+  "hp": 270,
   "damage": 18,
   "tags": [
     "mirror",

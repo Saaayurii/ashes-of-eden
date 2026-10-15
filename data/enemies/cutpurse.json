@@ -4,7 +4,7 @@
   "lore": "ENEMY_CUTPURSE_LORE",
   "tip": "TIP_CUTPURSE",
   "_art": "stand-in: the cultist in soot and grey, until its own atlas",
-  "hp": 50,
+  "hp": 46,
   "speed": 82,
   "damage": 0,
   "attack_interval": 0.8,

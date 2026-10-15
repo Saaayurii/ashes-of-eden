@@ -3,7 +3,7 @@
   "name": "ENEMY_LOCUST_RIDER",
   "lore": "ENEMY_LOCUST_RIDER_LORE",
   "tip": "TIP_LOCUST_RIDER",
-  "hp": 90,
+  "hp": 108,
   "speed": 70,
   "damage": 0,
   "attack_interval": 1.0,
