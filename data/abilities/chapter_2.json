@@ -6,6 +6,9 @@
     "path": "grace",
     "icon": "res://assets/icons/realm/potion_3.png",
     "rarity": "rare",
+    "nights": [
+      "seir"
+    ],
     "alignment": {
       "grace": 1
     },
@@ -14,7 +17,7 @@
         "type": "stat",
         "stat": "heal_charges",
         "op": "add",
-        "value": 1
+        "value": 2
       }
     ]
   },
@@ -25,6 +28,9 @@
     "path": "grace",
     "icon": "res://assets/icons/realm/weather_3.png",
     "rarity": "common",
+    "nights": [
+      "seir"
+    ],
     "alignment": {
       "grace": 1
     },
@@ -33,7 +39,7 @@
         "type": "stat",
         "stat": "clear_heal",
         "op": "add",
-        "value": 6
+        "value": 15
       }
     ]
   },
@@ -44,6 +50,9 @@
     "path": "temptation",
     "icon": "res://assets/icons/realm/status_6.png",
     "rarity": "rare",
+    "nights": [
+      "seir"
+    ],
     "alignment": {
       "temptation": 1
     },
@@ -52,7 +61,7 @@
         "type": "stat",
         "stat": "backstab_multiplier",
         "op": "add",
-        "value": 1.0
+        "value": 1.25
       }
     ]
   },
@@ -63,6 +72,9 @@
     "path": "temptation",
     "icon": "res://assets/icons/realm/resource_7.png",
     "rarity": "common",
+    "nights": [
+      "seir"
+    ],
     "alignment": {
       "temptation": 1
     },
@@ -82,6 +94,9 @@
     "path": "will",
     "icon": "res://assets/icons/realm/badge_4.png",
     "rarity": "epic",
+    "nights": [
+      "seir"
+    ],
     "alignment": {
       "will": 1
     },
@@ -102,6 +117,9 @@
     "path": "will",
     "icon": "res://assets/icons/realm/resource_12.png",
     "rarity": "common",
+    "nights": [
+      "seir"
+    ],
     "alignment": {
       "will": 1
     },
@@ -110,7 +128,7 @@
         "type": "stat",
         "stat": "armor",
         "op": "add",
-        "value": 0.05
+        "value": 0.1
       }
     ]
   }
