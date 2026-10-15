@@ -899,7 +899,19 @@ const ENEMY_ANIMATIONS = ['idle', 'walk', 'idle_to_walk', 'interact', 'attack', 
 function enemySlotFor(anims, slot) {
   return anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null;
 }
-// The post itself; strips: {slot: data URL of a strip of whole cells}.
+// A new enemy fights as the one it extends — attacks, projectile and all. An archer drawn with a bow and
+// made to extend a cultist swings the cultist's knife (ash_archer did): a character that looks like a
+// shooter (a shoot/ranged animation, a bow in its name or description) is offered a base that shoots.
+const SHOOTER_WORDS = /\b(archer|bow|bowman|crossbow|sling|slinger|shoot|shooter|marksman)|лук|лучни|арбалет|стрел|праща/i;
+const looksRanged = p => (p.animations || []).some(a => /shoot|ranged|bow/.test(a.name)) || SHOOTER_WORDS.test(`${p.name || ''} ${p.description || ''}`);
+const shootsFrom = e => (e.attacks || []).includes('ranged');
+// bases: import/enemies.json entries the wizard offers → the id to preselect: a walker or caster that
+// shoots for a shooter (one that also stands its ground in melee last), the first otherwise
+function enemyBaseFor(bases, p) {
+  if (!looksRanged(p)) return bases[0]?.id || '';
+  const rank = e => (shootsFrom(e) ? 0 : 4) + (e.behaviour === 'flyer' ? 2 : 0) + ((e.attacks || []).length > 1 ? 1 : 0);
+  return [...bases].sort((a, b) => rank(a) - rank(b))[0]?.id || '';
+}
 function liveMessage({ name, base, cell, fps, strips }) {
   return { type: 'ashes-live', name: name || '', extends: base || 'cultist', cell: [+cell[0], +cell[1]], fps: +fps || 8, strips };
 }
@@ -1521,5 +1533,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, liveFrames, gameCharId, stripHome, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, looksRanged, shootsFrom, enemyBaseFor, frameEdits, liveFrames, gameCharId, stripHome, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
 })(typeof module !== 'undefined' ? module.exports : window);

@@ -765,11 +765,18 @@ async function enemyWizard() {
   const pick = slot => enemySlotFor(anims, slot)?.id || '';
   const taken = enemyList.some(e => e.id === id);
   let getPlace = null; ewVoices = {}; ewAvatar = null;
-  setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id); });
+  // the base is the whole fight: say what it does, and offer one that shoots to a character that looks like a shooter
+  const shooter = looksRanged(P), base0 = enemyBaseFor(bases, P);
+  const fightNote = bid => { const e = bases.find(x => x.id === bid); if (!e) return '';
+    return shootsFrom(e) ? `Стреляет (${esc(e.attacks.join(' + '))}): снаряд и замах — как у «${esc(e.name.ru || e.id)}».`
+      : `Бьёт вблизи (${esc(e.attacks.join(' + '))}) — не стреляет.${shooter ? ' <b>Персонаж похож на стрелка:</b> выбери образец, который стреляет, иначе в игре он будет бить, а не стрелять.' : ''}`; };
+  setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id);
+    const sel = document.getElementById('ewBase'), out = document.getElementById('ewFight');
+    if (sel && out) { const show = () => { out.innerHTML = fightNote(sel.value); }; sel.addEventListener('change', show); show(); } });
   await dialog(`<h3>Сделать «${esc(P.name)}» врагом</h3>
     <div class="fgrid">
       <div><label>Имя файла (латиницей)</label><input id="ewId" value="${esc(taken ? id + '_2' : id)}"></div>
-      <div><label>Похож по бою на…</label><select id="ewBase">${bases.map(e => `<option value="${e.id}">${esc(e.name.ru || e.id)} — ${BEHAVIOUR_RU[e.behaviour]}, ${e.attacks.join(' + ')}, ${e.hp} HP</option>`).join('')}</select></div>
+      <div><label>Похож по бою на…</label><select id="ewBase">${bases.map(e => `<option value="${e.id}" ${e.id === base0 ? 'selected' : ''}>${esc(e.name.ru || e.id)} — ${BEHAVIOUR_RU[e.behaviour]}, ${e.attacks.join(' + ')}, ${e.hp} HP</option>`).join('')}</select><div class="muted" id="ewFight"></div></div>
       <div><label>Имя (рус.)</label><input id="ewNameRu" placeholder="Лучница"></div>
       <div><label>Имя (англ.)</label><input id="ewNameEn" placeholder="Archer"></div>
       <div class="wide"><label>Кто это (рус., для бестиария)</label><textarea id="ewLoreRu" rows="2"></textarea></div>
@@ -788,7 +795,7 @@ async function enemyWizard() {
     <div class="row" style="margin:0"><button class="sm" data-ewv="avatar">⬆ Своя картинка</button><span class="muted" id="ewAvatar">по умолчанию — анимация покоя</span></div>
     <h3 style="margin-top:12px">Где появляется</h3>
     <div id="ewPlace"></div>
-    <div class="note">Бой (здоровье, скорость, атаки) враг берёт у выбранного. Подраться с ним можно сразу на тренировочном дворе в превью.</div>
+    <div class="note">Бой (здоровье, скорость, атаки, стреляет ли и чем) враг берёт у выбранного в «Похож по бою на…». Подраться с ним можно сразу на тренировочном дворе в превью.</div>
     <div class="warn" id="ewErr"></div>`,
     [['→ В игру', d => {
       const v = q => d.querySelector(q).value.trim(), form = { id: slug(v('#ewId')), base: v('#ewBase'), place: getPlace?.() || null, voices: { ...ewVoices }, avatar: ewAvatar,
@@ -797,6 +804,8 @@ async function enemyWizard() {
       const err = !form.id ? 'Нужно имя файла' : enemyList.some(e => e.id === form.id) ? `Враг «${form.id}» в игре уже есть — выбери другое имя` : !form.map.idle ? 'Нужна анимация «покой»'
         : !(form.name.ru || form.name.en) ? 'Нужно имя' : !(form.tip.ru || form.tip.en) ? 'Нужна подсказка «как драться» — без неё игра не примет врага' : '';
       if (err) { d.querySelector('#ewErr').textContent = err; return false; }
+      const fight = bases.find(e => e.id === form.base);
+      if (shooter && fight && !shootsFrom(fight) && !confirm(`«${P.name}» похож на стрелка, а «${fight.name.ru || fight.id}» бьёт вблизи и не стреляет — в игре у него будет ближний бой.\n\nOK — так и задумано\nОтмена — выбрать другой образец`)) return false;
       setTimeout(() => sendToGame(() => enemyFiles(form), 'chars'));
     }, 'primary'], ['Отмена']]);
 }

@@ -508,6 +508,28 @@ test('frameEdits: a frame turned off shortens a bestiary animation, an empty one
   assert.deepEqual(L.liveFrames({ frames: swapped }).map(f => f.id), ['cultist_idle_1', 'cultist_idle_2', 'new']);
 });
 
+test('the enemy wizard offers an archer a base that shoots, never the cultist\'s knife by default', () => {
+  const bases = [
+    { id: 'censer_monk', behaviour: 'caster', attacks: ['nova', 'ranged'] },
+    { id: 'cultist', behaviour: 'walker', attacks: ['melee'] },
+    { id: 'host_archer', behaviour: 'caster', attacks: ['ranged'] },
+    { id: 'wraith', behaviour: 'flyer', attacks: ['ranged'] }];
+  const archer = { name: 'ash_archer', description: 'hooded archer with a longbow', animations: [{ name: 'idle' }] };
+  assert.ok(L.looksRanged(archer));
+  assert.ok(L.looksRanged({ name: 'Лучница', animations: [] }), 'in Russian');
+  assert.ok(L.looksRanged({ name: 'x', animations: [{ name: 'shoot' }] }), 'a shoot animation');
+  assert.ok(!L.looksRanged({ name: 'cultist', description: 'a cultist with a knife, elbow out', animations: [{ name: 'attack' }] }), '«elbow» is no bow');
+  assert.equal(L.enemyBaseFor(bases, archer), 'host_archer', 'a grounded pure shooter first');
+  assert.equal(L.enemyBaseFor(bases, { name: 'brute', animations: [] }), 'censer_monk', 'anyone else: the list as it is');
+  assert.ok(L.shootsFrom(bases[3]) && !L.shootsFrom(bases[1]));
+  // the real list the wizard reads
+  const list = path.join(__dirname, '../import/enemies.json');
+  if (fs.existsSync(list)) {
+    const real = JSON.parse(fs.readFileSync(list, 'utf8')).filter(e => !e.boss && !e.extends && ['walker', 'flyer', 'caster'].includes(e.behaviour) && e.bestiary !== false);
+    assert.ok(L.shootsFrom(real.find(e => e.id === L.enemyBaseFor(real, archer))), 'the game has a shooter to offer');
+  }
+});
+
 test('a shared copy of a game creature is that creature', () => {
   assert.equal(L.gameCharId({ id: 'shared_shade', origin: { kind: 'game', generator: 'x' } }), 'shade');
   assert.equal(L.gameCharId({ id: 'shared_x', origin: { kind: 'game', enemy: 'cultist' } }), 'cultist');
