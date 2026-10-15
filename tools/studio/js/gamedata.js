@@ -147,6 +147,7 @@ function gdProblems(kind, e, ctx) {
       else if (k === 'swarm') { hurts ||= v > 0; helps ||= v < 0; if (Math.abs(v) > 6) err('swarm — −6…6 саранчи на рой'); }
       else if (k === 'fruit_heal') { helps ||= v > 1; hurts ||= v < 1; if (!(v > 0 && v <= 3)) err('fruit_heal — множитель лечения плода, 0…3'); }
       else if (k === 'surfeit_per_fruit') { hurts ||= v > 1; if (!(v >= 1 && v <= 3)) err('surfeit_per_fruit — 1…3'); }
+      else if (k === 'tether_length') { hurts ||= v > 1; helps ||= v < 1; if (v < 1 || v > 2) err('tether_length — 1…2'); }  // глава VI: цепь длиннее
       else if (k === 'promote') { for (const [from, to] of Object.entries(v || {})) if (!(from in ctx.enemies) || !(to in ctx.enemies)) err(`promote ${from} → ${to}: нет такого врага`); }
       else err(`rules.${k} — не правило знамения`);
     }
