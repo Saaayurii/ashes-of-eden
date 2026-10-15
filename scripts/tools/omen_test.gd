@@ -58,15 +58,17 @@ func _run() -> void:
 		for night in data.omens[id].get("nights", []):
 			by_night[night] = by_night.get(night, []) + [id]
 	for night in by_night:
+		game.night = night
 		var there := {}
 		for seed in 2000:
 			var rng := RandomNumberGenerator.new()
 			rng.seed = seed
-			var id: String = omens.roll(rng, night)
+			var id: String = omens.roll(rng)
 			if id != "":
 				there[id] = true
 		_check(by_night[night].all(func(id): return there.has(id)), "%s draws its own omens %s" % [night, by_night[night]])
 		_check(by_night[night].all(func(id): return not drawn.has(id)), "  and the first night never does")
+		game.night = ""
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
@@ -144,6 +146,8 @@ func _run() -> void:
 	var crone: Dictionary = data.dialogues["npc_villager"].nodes
 	var said := {}
 	for id in data.omens:
+		if data.omens[id].has("nights"):
+			continue  # a chapter's own omen never falls on the crone's night
 		game.omen = id
 		var next := ""
 		for branch in crone["omen"].branches:
@@ -155,7 +159,7 @@ func _run() -> void:
 	var unheard := 0
 	for id in said:
 		unheard += 1 if said[id] == "" else 0
-	_check(unheard == 0, "the crone has a word for every omen (%s)" % said)
+	_check(unheard == 0, "the crone has a word for every omen of her night (%s)" % said)
 	_check(not box.branch_holds({"omen": "blood_moon"}), "  and none on a plain night")
 
 	# --- on the body and in the room ------------------------------------------------
