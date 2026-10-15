@@ -117,6 +117,8 @@ func _ready() -> void:
 			body_entered.connect(_on_body_entered)
 		var glow := Color(stats.get("glow", "#ffd9a0"))
 		_light = Fx.light(self, Vector2(0, -size.y / 2.0), glow, 44.0, 0.7, 0.0, 0.25)
+	if stats.get("kind", "") == "lamp":
+		Lamp.attach(self, stats)  # bought light, docs/CHAPTER4.md
 	EventBus.world_impulse.connect(_on_world_impulse)
 	_setup_ambient()
 	if stats.has("requires_flag") and not Game.flags.has(str(stats.requires_flag)):

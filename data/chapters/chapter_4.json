@@ -1,0 +1,61 @@
+[
+  {
+    "id": "tyre_causeway",
+    "chapter": "CHAPTER_IV",
+    "title": "AREA_TYRE_CAUSEWAY",
+    "subtitle": "AREA_TYRE_CAUSEWAY_SUB",
+    "color": "#d8c08a",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/tyre_causeway.tscn"
+    ]
+  },
+  {
+    "id": "tyre_market",
+    "chapter": "CHAPTER_IV",
+    "title": "AREA_TYRE_MARKET",
+    "subtitle": "AREA_TYRE_MARKET_SUB",
+    "color": "#e0b860",
+    "rooms": [
+      "res://scenes/rooms/tyre_gate.tscn",
+      "res://scenes/rooms/tyre_lamp_market.tscn",
+      "res://scenes/rooms/tyre_counting_house.tscn"
+    ]
+  },
+  {
+    "id": "tyre_city",
+    "chapter": "CHAPTER_IV",
+    "title": "AREA_TYRE_CITY",
+    "subtitle": "AREA_TYRE_CITY_SUB",
+    "color": "#b8a890",
+    "rooms": [
+      "res://scenes/rooms/tyre_dark_quarter.tscn",
+      "res://scenes/rooms/tyre_bright_quay.tscn",
+      "res://scenes/rooms/tyre_rich_gate.tscn"
+    ]
+  },
+  {
+    "id": "tyre_harbour",
+    "chapter": "CHAPTER_IV",
+    "title": "AREA_TYRE_HARBOUR",
+    "subtitle": "AREA_TYRE_HARBOUR_SUB",
+    "color": "#8a5a9a",
+    "rooms": [
+      "res://scenes/rooms/tyre_dyeworks.tscn",
+      "res://scenes/rooms/tyre_vaults.tscn",
+      "res://scenes/rooms/tyre_galleys.tscn"
+    ]
+  },
+  {
+    "id": "tyre_palace",
+    "chapter": "CHAPTER_IV",
+    "title": "AREA_TYRE_PALACE",
+    "subtitle": "AREA_TYRE_PALACE_SUB",
+    "color": "#ffe6a0",
+    "sound": "bell",
+    "rooms": [
+      "res://scenes/rooms/tyre_palace_stair.tscn",
+      "res://scenes/rooms/tyre_throne.tscn"
+    ]
+  }
+]

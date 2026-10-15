@@ -47,6 +47,7 @@ func _ready() -> void:
 	EventBus.weapon_taken.connect(_on_weapon)
 	EventBus.gift_refused.connect(func() -> void: _write("refuse", {}))
 	EventBus.blood_settled.connect(func(paid: bool) -> void: _write("altar", {"room": _room, "paid": paid}))
+	EventBus.lamp_lit.connect(func(price: int, how: String) -> void: _write("lamp", {"room": _room, "price": price, "how": how}))
 	EventBus.chest_opened.connect(func(id: String) -> void: _write("chest", {"room": _room, "id": id}))
 	EventBus.level_up.connect(func(level: int) -> void: _write("level", {"level": level}))
 	EventBus.choice_made.connect(func(d: String, c: String) -> void: _write("choice", {"dialogue": d, "choice": c}))
