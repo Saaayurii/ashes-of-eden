@@ -226,6 +226,15 @@ class PreviewPage(unittest.TestCase):
         self.assertIn("['--composed']", page)   # ?composed=1: the room's composed draft
         self.assertIn("Превью отправки #7", page)
 
+    def test_preview_does_not_load_the_main_packs_parts(self):
+        import make_preview_page
+        html = ('<body><script>const GAME = new Engine({"args":[],"executable":"index","fileSizes":{}});\n'
+                '\t\tconst PACK_PARTS = {"pack":"index.pck","parts":[["index.pck.0",64]]};\n</script></body>')
+        page = make_preview_page.preview_page(html, 7, 99)
+        self.assertIn("\t\tconst PACK_PARTS = null;", page)
+        self.assertNotIn("index.pck.0", page)
+        self.assertIn("index.pck.0", make_preview_page.live_page(html))
+
     def test_live_page_is_the_main_pack_in_studio_live(self):
         import make_preview_page
         html = ('<body><script>const canFull = !!(root.requestFullscreen || root.webkitRequestFullscreen);'
