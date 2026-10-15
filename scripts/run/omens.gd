@@ -27,7 +27,7 @@ static func rules(id := "") -> Dictionary:
 
 ## One omen or none, drawn with [param rng]: CHANCE of one, then each the same.
 static func roll(rng: RandomNumberGenerator) -> String:
-	var ids: Array = Data.omens.keys()
+	var ids: Array = Data.omens.keys().filter(func(id) -> bool: return Campaign.night_fits(spec(str(id))))
 	ids.sort()  # the same seed draws the same omen on every machine
 	if ids.is_empty() or rng.randf() >= CHANCE:
 		return ""

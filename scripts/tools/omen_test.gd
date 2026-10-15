@@ -50,7 +50,21 @@ func _run() -> void:
 			drawn[id] = true
 	var share := with_one / 2000.0
 	_check(absf(share - omens.CHANCE) < 0.05, "about %d%% of nights draw an omen (%.2f)" % [int(omens.CHANCE * 100), share])
-	_check(drawn.size() == data.omens.size(), "every omen can come up (%d of %d)" % [drawn.size(), data.omens.size()])
+	var everywhere: Array = data.omens.values().filter(func(o): return not o.has("nights"))
+	_check(drawn.size() == everywhere.size(), "every omen of every night can come up (%d of %d)" % [drawn.size(), everywhere.size()])
+	# a chapter's omens ("nights", Campaign.night_fits) are drawn in its night only
+	var seir: Array = data.omens.values().filter(func(o): return o.get("nights", []).has("seir")).map(func(o): return o.id)
+	_check(not seir.is_empty() and not seir.any(func(id): return drawn.has(id)), "the first night draws none of Seir's omens %s" % [seir])
+	var night_was: String = game.night
+	game.night = "seir"
+	var in_seir := {}
+	for seed in 2000:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed
+		in_seir[omens.roll(rng)] = true
+	game.night = night_was
+	_check(seir.all(func(id): return in_seir.has(id)) and in_seir.size() == everywhere.size() + seir.size() + 1,
+		"Seir draws its own omens beside the rest (%d)" % in_seir.size())
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
@@ -128,6 +142,8 @@ func _run() -> void:
 	var crone: Dictionary = data.dialogues["npc_villager"].nodes
 	var said := {}
 	for id in data.omens:
+		if data.omens[id].has("nights") and not data.omens[id].nights.has(data.game.get("id", "")):
+			continue  # another chapter's omen never falls on the crone's night
 		game.omen = id
 		var next := ""
 		for branch in crone["omen"].branches:
@@ -139,7 +155,7 @@ func _run() -> void:
 	var unheard := 0
 	for id in said:
 		unheard += 1 if said[id] == "" else 0
-	_check(unheard == 0, "the crone has a word for every omen (%s)" % said)
+	_check(unheard == 0, "the crone has a word for every omen of her night (%s)" % said)
 	_check(not box.branch_holds({"omen": "blood_moon"}), "  and none on a plain night")
 
 	# --- on the body and in the room ------------------------------------------------

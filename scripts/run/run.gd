@@ -1108,6 +1108,8 @@ func _announce_omen() -> void:
 ## been available and still is. Locks are also ignored in a duel, where both
 ## players must be offered the same cards whatever they have played before.
 static func gift_locked(ability: Dictionary) -> bool:
+	if not Campaign.night_fits(ability):
+		return true
 	var needs := int(ability.get("unlock_nights", 0))
 	if needs <= 0 or Net.mode == Net.Mode.PVP or Game.daily != "" or Relics.early(str(ability.get("id", ""))):
 		return false
@@ -1122,7 +1124,7 @@ static func gifts_unlocked_tonight() -> Array:
 	if nights <= 0:
 		return []
 	return Data.abilities.values().filter(
-		func(a: Dictionary) -> bool: return int(a.get("unlock_nights", 0)) == nights
+		func(a: Dictionary) -> bool: return int(a.get("unlock_nights", 0)) == nights and Campaign.night_fits(a)
 	)
 
 

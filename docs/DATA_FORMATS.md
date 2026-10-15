@@ -151,6 +151,13 @@ earlier one could not. A gift without the field has always been available. Locks
 duel, where both players must be offered the same cards. The night a gift unlocks on, the run says
 so once in a caption (`UNLOCKED_TONIGHT`).
 
+Optional `nights`: the nights this gift is dealt in — a list of night ids from `data/game.json`
+(`"nights": ["seir"]`; the first night is the game's own id, `Campaign.night_key`). A chapter's gifts
+carry their night, so the first night keeps its balance and Seir deals its own cards beside the
+common ones. Checked before `unlock_nights` (`Run.gift_locked` → `Campaign.night_fits`); the night
+of the day, a duel and co-op play the first night. No field: every night. The same field on an
+omen (`docs/OMENS.md`).
+
 ## Dialogues — `data/dialogues/`
 
 ```json

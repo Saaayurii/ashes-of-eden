@@ -348,7 +348,7 @@ func _run() -> void:
 	# Some cards name the night they start appearing on, so a fifth run can
 	# hold something the first could not (Run.gift_locked).
 	var gated: Array = data.abilities.values().filter(
-		func(a): return int(a.get("unlock_nights", 0)) > 0)
+		func(a): return int(a.get("unlock_nights", 0)) > 0 and not a.has("nights"))
 	_assert(not gated.is_empty(), "some gifts are held back for a later night")
 	if not gated.is_empty():
 		var profile = root.get_node("Profile")
@@ -373,11 +373,37 @@ func _run() -> void:
 
 		# A gift with no night named has always been available.
 		var ungated: Array = data.abilities.values().filter(
-			func(a): return int(a.get("unlock_nights", 0)) == 0)
+			func(a): return int(a.get("unlock_nights", 0)) == 0 and not a.has("nights"))
 		profile.data.nights = 0
 		_assert(not ungated.is_empty() and not run.gift_locked(ungated[0]),
 			"a gift with no night named is never held back")
 		profile.data.nights = nights_before
+
+	# --- gifts of one night ---------------------------------------------------
+	# A chapter's gifts carry "nights" (Campaign.night_fits): dealt in that
+	# chapter's night only, never in the first, the daily or a duel.
+	var night_was: String = game.night
+	var seir: Array = data.abilities.values().filter(
+		func(a): return a.get("nights", []).has("seir") and int(a.get("unlock_nights", 0)) == 0)
+	_assert(not seir.is_empty(), "Seir has gifts of its own")
+	if not seir.is_empty():
+		game.night = ""
+		_assert(run.gift_locked(seir[0]), "the first night does not deal %s" % seir[0].id)
+		var first_hand: Array = []
+		for i in 200:
+			first_hand += run._roll_gifts().map(func(a): return a.id)
+		_assert(not first_hand.has(seir[0].id), "and no hand of the first night holds it")
+		game.night = "seir"
+		_assert(not run.gift_locked(seir[0]), "Seir deals %s" % seir[0].id)
+		var seir_hand: Array = []
+		for i in 400:
+			seir_hand += run._roll_gifts().map(func(a): return a.id)
+		_assert(seir.all(func(a): return seir_hand.has(a.id)), "every gift of Seir turns up in its hands")
+		_assert(seir_hand.any(func(id): return not data.abilities[id].has("nights")),
+			"and the gifts of every night still do")
+		game.night = "marah"
+		_assert(run.gift_locked(seir[0]), "another chapter's night does not")
+	game.night = night_was
 	_finish()
 
 
