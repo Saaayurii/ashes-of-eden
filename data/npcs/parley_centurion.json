@@ -1,16 +1,15 @@
 {
   "id": "parley_centurion",
-  "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn (the Legion's centurion, smoked hides side of the tent)",
+  "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): the Legion's centurion at the parley, his own sheet",
   "name": "SPEAKER_LEGION_CENTURION",
-  "avatar": "res://assets/portraits/fallen_champion.png",
   "dialogue": "ch3_parley",
   "scripted": true,
   "face": "left",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/knight_v2_idle.png",
-      "walk": "res://assets/sprites/knight_v2_walk.png",
-      "interact": "res://assets/sprites/knight_v2_attack.png"
+      "idle": "res://assets/sprites/parley_centurion_idle.png",
+      "walk": "res://assets/sprites/parley_centurion_walk.png",
+      "interact": "res://assets/sprites/parley_centurion_interact.png"
     },
     "cell": [
       48,

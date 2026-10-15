@@ -25,8 +25,20 @@
   "essence": 28,
   "voice": "fallen_guard",
   "sprite": {
-    "like": "shield_bearer",
-    "tint": "#c8a080"
+    "cell": [
+      80,
+      65
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/legion_brute_v2_idle.png",
+      "walk": "res://assets/sprites/legion_brute_v2_walk.png",
+      "attack": "res://assets/sprites/legion_brute_v2_attack.png",
+      "attack_alt": "res://assets/sprites/legion_brute_v2_attack_alt.png",
+      "special": "res://assets/sprites/legion_brute_v2_special.png",
+      "hurt": "res://assets/sprites/legion_brute_v2_hurt.png",
+      "death": "res://assets/sprites/legion_brute_v2_death.png"
+    }
   },
   "attacks": [
     {
@@ -51,5 +63,6 @@
       "weight": 1,
       "animation": "attack_alt"
     }
-  ]
+  ],
+  "_art": "drawn by Codex (docs/CHAPTER3_ART.md §2): the Legion's shield-bearer, his own atlas"
 }

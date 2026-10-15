@@ -23,9 +23,20 @@
   "essence": 50,
   "voice": "gate_warden",
   "sprite": {
-    "like": "gate_warden",
-    "tint": "#fff8e8",
-    "scale": 1.15
+    "cell": [
+      96,
+      64
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/host_standard_bearer_v2_idle.png",
+      "walk": "res://assets/sprites/host_standard_bearer_v2_walk.png",
+      "attack": "res://assets/sprites/host_standard_bearer_v2_attack.png",
+      "attack_alt": "res://assets/sprites/host_standard_bearer_v2_attack_alt.png",
+      "special": "res://assets/sprites/host_standard_bearer_v2_special.png",
+      "hurt": "res://assets/sprites/host_standard_bearer_v2_hurt.png",
+      "death": "res://assets/sprites/host_standard_bearer_v2_death.png"
+    }
   },
   "attacks": [
     {
@@ -53,5 +64,6 @@
       "color": "#fff4d8",
       "damage": 1
     }
-  ]
+  ],
+  "_art": "drawn by Codex (docs/CHAPTER3_ART.md §2): the Host's standard-bearer and his blue fire, his own atlas"
 }

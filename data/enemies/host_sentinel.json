@@ -26,9 +26,21 @@
     "flicker": 0.1
   },
   "sprite": {
-    "like": "wraith",
-    "tint": "#e8f0ff",
-    "scale": 1.1
+    "cell": [
+      68,
+      64
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/host_sentinel_v2_idle.png",
+      "walk": "res://assets/sprites/host_sentinel_v2_walk.png",
+      "attack": "res://assets/sprites/host_sentinel_v2_attack.png",
+      "attack_alt": "res://assets/sprites/host_sentinel_v2_attack_alt.png",
+      "special": "res://assets/sprites/host_sentinel_v2_special.png",
+      "hurt": "res://assets/sprites/host_sentinel_v2_hurt.png",
+      "death": "res://assets/sprites/host_sentinel_v2_death.png"
+    },
+    "pad_y": 4
   },
   "attacks": [
     {
@@ -58,5 +70,6 @@
       "weight": 1,
       "animation": "attack"
     }
-  ]
+  ],
+  "_art": "its own atlas, an angel with a flame for a face and wings of folded linen (Codex, docs/CHAPTER3_ART.md §2)"
 }

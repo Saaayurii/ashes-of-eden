@@ -1,16 +1,15 @@
 {
   "id": "malchus_hanged",
-  "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn; shown only by malchus_at_the_tree when malchus_hanged",
+  "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): the same man, limp; the rope is drawn by build_people_sheets.py",
   "name": "NPC_MALCHUS",
-  "avatar": "res://assets/portraits/severin.png",
   "dialogue": "ch3_malchus_hanged",
   "scripted": true,
   "face": "left",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/severin_v2_idle.png",
-      "walk": "res://assets/sprites/severin_v2_walk.png",
-      "interact": "res://assets/sprites/severin_v2_attack.png"
+      "idle": "res://assets/sprites/malchus_hanged_idle.png",
+      "walk": "res://assets/sprites/malchus_hanged_walk.png",
+      "interact": "res://assets/sprites/malchus_hanged_interact.png"
     },
     "cell": [
       48,
