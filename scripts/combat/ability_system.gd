@@ -45,6 +45,13 @@ const CAPS := {
 	"covetous": [0.0, 1.0],
 	"charge_speed": [0.0, 1.0],
 	"parry_window": [0.0, 0.15],
+	# bought light (docs/CHAPTER4.md §7: the gifts wait in drafts/chapter_4)
+	"lantern": [0.0, 128.0],
+	"mite": [0.0, 1.0],
+	"lamp_blood": [0.0, 0.1],
+	"dark_damage": [0.0, 0.6],
+	"dark_sight": [0.0, 0.6],
+	"parry_flare": [0.0, 5.0],
 	# chapter III (drafts/chapter_3): crossfire_armor is added to armor under its 0.5
 	"liquid_mend": [0.0, 4.0],
 	"truce_hold": [0.0, 3.0],

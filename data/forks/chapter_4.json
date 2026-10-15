@@ -1,0 +1,24 @@
+[
+  {
+    "id": "tyre_city_fork",
+    "_comment": "Past the counting house: down through the dark quarter or along the bright quay. Both come out at the rich man's gate.",
+    "after": "res://scenes/rooms/tyre_counting_house.tscn",
+    "dialogue": "fork_tyre_city",
+    "options": {
+      "dark": "res://scenes/rooms/tyre_dark_quarter.tscn",
+      "bright": "res://scenes/rooms/tyre_bright_quay.tscn"
+    },
+    "then": "res://scenes/rooms/tyre_rich_gate.tscn"
+  },
+  {
+    "id": "tyre_harbour_fork",
+    "_comment": "Past the dyeworks: under the embankment through the vaults or across the galleys' decks. Both come out at the palace stair.",
+    "after": "res://scenes/rooms/tyre_dyeworks.tscn",
+    "dialogue": "fork_tyre_harbour",
+    "options": {
+      "vaults": "res://scenes/rooms/tyre_vaults.tscn",
+      "galleys": "res://scenes/rooms/tyre_galleys.tscn"
+    },
+    "then": "res://scenes/rooms/tyre_palace_stair.tscn"
+  }
+]

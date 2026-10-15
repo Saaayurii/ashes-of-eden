@@ -49,6 +49,10 @@ ROOM_EXPANSION_CUTS = {
     "seir_square": (380, 820), "seir_roofs": (300, 1020), "seir_canal": (200, 1000),
     "seir_quay": (250, 1050), "seir_wrecks": (250, 470), "seir_warehouses": (320, 1000),
     "seir_breakwater": (250, 1000), "seir_lighthouse_stair": (300, 1000), "seir_lighthouse": (300, 720),
+    "tyre_causeway": (330, 860), "tyre_counting_house": (300, 960), "tyre_dark_quarter": (230, 860),
+    "tyre_bright_quay": (400, 780), "tyre_dyeworks": (460, 1160),
+    "tyre_gate": (660, 870), "tyre_lamp_market": (470, 700), "tyre_rich_gate": (520, 1115),
+    "tyre_vaults": (420, 800), "tyre_galleys": (360, 850), "tyre_palace_stair": (180,), "tyre_throne": (640, 850),
     "marah_gallows": (180, 1200), "marah_ford": (500, 850), "marah_host_bank": (400, 700),
     "marah_field": (560, 1180), "marah_bitter_wells": (170, 1140), "marah_dry_bed": (900, 1120),
     "marah_legion_bank": (600, 1110), "marah_trench": (230, 1080),
@@ -81,6 +85,17 @@ FOCAL_RANGES = {
     "seir_warehouses": ((890, 960),),          # the clock on the post
     "seir_breakwater": ((740, 820),),          # moon
     "seir_lighthouse": ((540, 640), (900, 1130)),  # moon in its window, the lamp
+    "tyre_causeway": ((980, 1060), (0, 300)),  # moon, Zacchaeus's sycamore
+    "tyre_counting_house": ((395, 445), (860, 915)),  # the two windows
+    "tyre_dark_quarter": ((790, 830),),        # moon
+    "tyre_bright_quay": ((340, 390),),         # moon
+    "tyre_dyeworks": ((840, 895),),            # moon
+    "tyre_gate": ((500, 610),),                # the barred slot with the moon
+    "tyre_lamp_market": ((355, 410),),         # moon
+    "tyre_rich_gate": ((180, 230), (660, 790)),  # moon, the studded door
+    "tyre_galleys": ((455, 505),),             # moon
+    "tyre_palace_stair": ((300, 360), (605, 695)),  # moon, the laver
+    "tyre_throne": ((455, 510), (1080, 1180)),  # moon, the throne
     "marah_gallows": ((480, 850),),             # the dead tree and its noose
     "marah_ford": ((740, 820),),                # moon
     "marah_host_bank": ((500, 580), (1040, 1110)),  # moon, the white brazier on the tower
@@ -135,6 +150,9 @@ SEAM_STORIES = {
     "seir_roofs": ("", ""), "seir_canal": ("", ""), "seir_quay": ("", ""), "seir_wrecks": ("", ""),
     "seir_warehouses": ("", ""), "seir_breakwater": ("", ""), "seir_lighthouse_stair": ("", ""),
     "seir_lighthouse": ("", ""),
+    # Tyre's too.
+    "tyre_causeway": ("", ""), "tyre_counting_house": ("", ""), "tyre_dark_quarter": ("", ""),
+    "tyre_bright_quay": ("", ""), "tyre_dyeworks": ("", ""), "tyre_gate": ("", ""), "tyre_lamp_market": ("", ""), "tyre_rich_gate": ("", ""), "tyre_vaults": ("", ""), "tyre_galleys": ("", ""), "tyre_palace_stair": ("", ""), "tyre_throne": ("", ""),
     "marah_gallows": ("", ""), "marah_ford": ("", ""), "marah_host_bank": ("", ""), "marah_field": ("", ""),
     "marah_bitter_wells": ("", ""), "marah_dry_bed": ("", ""), "marah_trench": ("", ""),
     "marah_legion_bank": ("", ""), "marah_parley": ("", ""), "marah_siege": ("", ""),
@@ -174,6 +192,8 @@ ROOM_PROP_MOTIFS = {
     "seir_road": {}, "seir_gate": {}, "seir_street": {}, "seir_square": {}, "seir_roofs": {},
     "seir_canal": {}, "seir_quay": {}, "seir_wrecks": {}, "seir_warehouses": {}, "seir_breakwater": {},
     "seir_lighthouse_stair": {}, "seir_lighthouse": {},
+    "tyre_causeway": {}, "tyre_counting_house": {}, "tyre_dark_quarter": {}, "tyre_bright_quay": {},
+    "tyre_dyeworks": {}, "tyre_gate": {}, "tyre_lamp_market": {}, "tyre_rich_gate": {}, "tyre_vaults": {}, "tyre_galleys": {}, "tyre_palace_stair": {}, "tyre_throne": {},
     "marah_gallows": {}, "marah_ford": {}, "marah_host_bank": {}, "marah_field": {}, "marah_bitter_wells": {},
     "marah_dry_bed": {}, "marah_trench": {}, "marah_legion_bank": {}, "marah_parley": {}, "marah_siege": {}, "marah_springs_path": {}, "marah_wormwood_spring": {},
 }
@@ -257,6 +277,9 @@ DEPTH_WINDOWS = {
     "seir_roofs": (0.02, []), "seir_canal": (0.02, []), "seir_quay": (0.02, []), "seir_wrecks": (0.02, []),
     "seir_warehouses": (0.02, []), "seir_breakwater": (0.02, []), "seir_lighthouse_stair": (0.02, []),
     "seir_lighthouse": (0.02, []),
+    # Tyre has no inpainted plates yet (docs/CHAPTER4_ART.md) either.
+    "tyre_causeway": (0.02, []), "tyre_counting_house": (0.02, []), "tyre_dark_quarter": (0.02, []),
+    "tyre_bright_quay": (0.02, []), "tyre_dyeworks": (0.02, []), "tyre_gate": (0.02, []), "tyre_lamp_market": (0.02, []), "tyre_rich_gate": (0.02, []), "tyre_vaults": (0.02, []), "tyre_galleys": (0.02, []), "tyre_palace_stair": (0.02, []), "tyre_throne": (0.02, []),
     # Marah (chapter III): no inpainted plates yet either
     "marah_gallows": (0.02, []), "marah_ford": (0.02, []), "marah_host_bank": (0.02, []), "marah_field": (0.02, []),
     "marah_bitter_wells": (0.02, []), "marah_dry_bed": (0.02, []), "marah_trench": (0.02, []),
@@ -501,6 +524,10 @@ def expand_painted_room(name, room):
     for key in ("ground", "ledges", "platforms", "painted_platforms", "hazards"):
         out[key] = [(_map_x(x, inserts), y, _map_x(x + w, inserts) - _map_x(x, inserts), h)
                     for x, y, w, h in room.get(key, [])]
+    # a table's own pools ([kind, x, surface y, w, depth(, options)], docs/LIQUIDS.md), widened like the floor
+    out["liquids"] = [[pool[0], _map_x(pool[1], inserts), pool[2],
+                       _map_x(pool[1] + pool[3], inserts) - _map_x(pool[1], inserts), pool[4]] + list(pool[5:])
+                      for pool in room.get("liquids", [])]
     out["crumbling_platforms"] = [(_map_x(piece[0], inserts), piece[1],
                                     _map_x(piece[0] + piece[2], inserts) - _map_x(piece[0], inserts),
                                     piece[3] if len(piece) > 3 else "stone")
@@ -1702,6 +1729,11 @@ texture = SubResource("glow_tex")
         text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
                             '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
                             '[ext_resource type="Script" path="res://scripts/rooms/crumbling_platform.gd" id="crumbling_platform"]')
+    if r.get("dark"):  # bought light (docs/CHAPTER4.md §2): the room sinks to this share of black
+        text = text.replace('[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]',
+                            '[ext_resource type="Script" path="res://scripts/rooms/room.gd" id="1_room"]\n'
+                            '[ext_resource type="Script" path="res://scripts/rooms/darkness.gd" id="darkness"]')
+        text = text.rstrip() + f'\n\n[node name="Darkness" type="Node" parent="."]\nscript = ExtResource("darkness")\ndark = {float(r["dark"])}\n'
     if scene is None:  # a composed draft is another room's geometry: her textures wait for the room itself
         text, warnings = studio_textures.apply(text, STUDIO_TEXTURES.get(name), name)
         for warning in warnings:
@@ -1793,7 +1825,7 @@ if os.path.exists(STUDIO_ROOMS):
                     raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a liquid is [kind of data/liquids.json, x, y, w, h(, options)]")
                 if _pool[3] < 16 or _pool[4] < 8:
                     raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a liquid is at least 16x8 px")
-            ROOMS[_name]["liquids"] = [list(p) for p in _extra.get("liquids", [])]
+            ROOMS[_name]["liquids"] = list(ROOMS[_name].get("liquids", [])) + [list(p) for p in _extra.get("liquids", [])]
             if "textures" in _extra or "retouch" in _extra:
                 studio_textures.validate(f"tools/rooms/studio_rooms.json: {_name}", _extra)
                 STUDIO_TEXTURES[_name] = {k: _extra[k] for k in ("textures", "retouch") if k in _extra}

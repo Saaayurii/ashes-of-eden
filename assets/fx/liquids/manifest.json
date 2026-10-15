@@ -35,6 +35,15 @@
     "fps": 0,
     "tint": false
   },
+  "body_dye": {
+    "cell": [
+      64,
+      64
+    ],
+    "frames": 1,
+    "fps": 0,
+    "tint": false
+  },
   "splash": {
     "cell": [
       32,
