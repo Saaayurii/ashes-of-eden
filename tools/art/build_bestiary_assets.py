@@ -7,6 +7,7 @@ them makes every crop and every derived animation reproducible.
 
 import json
 from pathlib import Path
+import sys
 from statistics import median
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter
@@ -222,10 +223,14 @@ def _fit_canvas(enemy: str, target: tuple[int, int], extent: tuple[int, int, int
 
 
 def split_atlas(source: Path, names: list[str], columns: int, rows: int) -> None:
+    if not any(wanted(name) for name in names):
+        return
     image = Image.open(source).convert("RGBA")
     cell_w, cell_h = image.width // columns, image.height // rows
     PORTRAITS.mkdir(parents=True, exist_ok=True)
     for index, name in enumerate(names):
+        if not wanted(name):
+            continue
         x, y = (index % columns) * cell_w, (index // columns) * cell_h
         cell = image.crop((x, y, x + cell_w, y + cell_h))
         cell.thumbnail((192, 192), Image.Resampling.LANCZOS)
@@ -265,6 +270,8 @@ def shifted(frame: Image.Image, dx: int, dy: int) -> Image.Image:
 
 def build_strips() -> None:
     for enemy, (filename, cell) in STRIPS.items():
+        if not wanted(enemy):
+            continue
         source = frames(SPRITES / filename, cell)
         base = source[0]
         accent = (120, 55, 180) if enemy in {"shade", "fallen_champion"} else (210, 55, 35)
@@ -461,6 +468,8 @@ def build_generated_animation_strips() -> dict[str, tuple[tuple[int, int], int]]
     flyers = {"raven", "shade", "wraith", "ophanim"}
     cells: dict[str, tuple[tuple[int, int], int]] = {}
     for enemy, target_cell in GAME_CELLS.items():
+        if not wanted(enemy):
+            continue
         source = atlas_dir / f"{enemy}.png"
         if not source.exists():
             continue
@@ -566,7 +575,40 @@ def write_cells(cells: dict[str, tuple[tuple[int, int], int]]) -> None:
     TREE.write_text(json.dumps(tree, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+NAMES = set(ENEMIES + PEOPLE + SEIR_ENEMIES + SEIR_PEOPLE) | STRIPS.keys() | GAME_CELLS.keys()
+
+
+def names_for(paths: list[str]) -> set[str] | None:
+    """The creatures whose files these are (the studio's edits of them, tools/art/studio_overrides.py),
+    or None when one of them is no single creature's: then all of them are built."""
+    names = set()
+    for rel in paths:
+        stem = Path(rel).stem
+        hits = [n for n in NAMES if stem == n or stem.startswith(n + "_")]
+        if Path(rel).parent.as_posix() not in ("assets/sprites", "assets/portraits") or not hits:
+            return None
+        names.add(max(hits, key=len))
+    return names
+
+
+## Names on the command line build only those creatures and people, `--for <file>…` only those
+## that write the files (the studio server, after an edit of one); every creature is built
+## apart from the others, so its files come out as a whole run writes them.
+_args = sys.argv[1:]
+_cut = _args.index("--for") if "--for" in _args else len(_args)
+ONLY = set(_args[:_cut])
+if _cut < len(_args):
+    _names = names_for(_args[_cut + 1:])
+    ONLY = ONLY | _names if _names is not None else set()
+
+
+def wanted(name: str) -> bool:
+    return not ONLY or name in ONLY
+
+
 def main() -> None:
+    if ONLY - NAMES:
+        raise SystemExit("unknown creatures: " + ", ".join(sorted(ONLY - NAMES)))
     split_atlas(PORTRAITS / "enemies_atlas.png", ENEMIES, 4, 3)
     split_atlas(PORTRAITS / "people_atlas.png", PEOPLE, 3, 2)
     split_atlas(PORTRAITS / "seir_enemies_atlas.png", SEIR_ENEMIES, 3, 2)

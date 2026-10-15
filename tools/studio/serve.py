@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import sys
 import threading
+import time
 from contextlib import contextmanager
 from io import BytesIO
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -184,8 +185,29 @@ def image(req):
         return {"ok": True, "b64": base64.b64encode(out.read_bytes()).decode()}
 
 
+def changed_rooms(before, written):
+    """The rooms whose entries a write changed in the room tables (each is keyed by room): only
+    those are regenerated — the rest are what their tables already wrote, as CI holds them
+    (tools/check_generators.py). None when a table did not parse before: then every room."""
+    rooms = set()
+    for table in ROOM_TABLES:
+        if table not in written:
+            continue
+        path = ROOT / table
+        try:
+            old = json.loads(before.get(path) or b"{}")
+        except ValueError:
+            return None
+        new = json.loads(path.read_text(encoding="utf-8"))
+        rooms |= {name for name in old.keys() | new.keys() if old.get(name) != new.get(name)}
+    return sorted(rooms)
+
+
 def run(cmd, timeout=600):
+    t = time.monotonic()
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=timeout)
+    if cmd[0] == sys.executable:  # where a write's seconds went, in the server's log
+        print(f"  {' '.join(cmd[1:])}: {time.monotonic() - t:.1f} s", file=sys.stderr, flush=True)
     return r.returncode, (r.stdout + r.stderr)[-6000:]
 
 
@@ -233,8 +255,9 @@ class Handler(SimpleHTTPRequestHandler):
                         if code:
                             raise ValueError("генератор комнат игры не принял изменения:\n" + out)
                         regenerated = True
-                    if any(t in written for t in ROOM_TABLES):
-                        code, out = run([sys.executable, "tools/rooms/generate_rooms.py"])
+                    rooms = changed_rooms(before, written) if any(t in written for t in ROOM_TABLES) else []
+                    if rooms != []:
+                        code, out = run([sys.executable, "tools/rooms/generate_rooms.py", *(rooms or [])])
                         if code:
                             raise ValueError("генератор комнат не принял изменения:\n" + out)
                         regenerated = True
@@ -246,15 +269,18 @@ class Handler(SimpleHTTPRequestHandler):
                         manifest = ROOT / "tools/studio/overrides/overrides.json"
                         old = json.loads(before.get(manifest, b"{}"))
                         new = json.loads(manifest.read_text(encoding="utf-8"))
-                        keep = {rel for rel, entry in new.items() if old.get(rel) != entry}
+                        keep = {rel for rel in old.keys() | new.keys() if old.get(rel) != new.get(rel)}
                         for rel in new:
                             edit = "tools/studio/overrides/" + rel
                             mask = edit[:-4] + ".mask.png"
                             if edit in written or mask in written:
                                 keep.add(rel)
-                        code, out = run([sys.executable, "tools/art/studio_overrides.py", "regenerate"])
-                        if code:
-                            raise ValueError("генератор не принял правку:\n" + out)
+                        # only the generators of these edits, each for just their pictures where it can
+                        # (studio_overrides.NARROWS): the rest are restored below anyway
+                        if keep:
+                            code, out = run([sys.executable, "tools/art/studio_overrides.py", "regenerate", *sorted(keep)])
+                            if code:
+                                raise ValueError("генератор не принял правку:\n" + out)
                         owned = snapshot_tree([p.relative_to(ROOT).as_posix() for p in (ROOT / "assets").iterdir() if p.is_dir() and p.name != "audio"] + ["scenes/rooms", "data/enemy_archetypes"])
                         explicit = set(written)
                         for p in owned.keys() | before.keys():
@@ -330,7 +356,8 @@ class Server(ThreadingHTTPServer):
 
 
 def build_data_cmd():
-    cmd = [sys.executable, "tools/studio/build_data.py"]
+    # the pictures it read last time, kept beside its data: a write rebuilds it, and most of them are as they were
+    cmd = [sys.executable, "tools/studio/build_data.py", "--png-cache", "tools/studio/import/.png_cache.json"]
     if PACK is not None:
         remote = subprocess.run(["git", "remote", "get-url", "origin"], cwd=PACK, capture_output=True, text=True).stdout.strip()
         repo = remote.removesuffix(".git").replace("git@github.com:", "https://github.com/").split("github.com/")[-1] if "github.com" in remote else ""
