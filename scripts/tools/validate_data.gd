@@ -214,6 +214,8 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 	for field in REQUIRED[collection]:
 		if not entry.has(field):
 			_error("%s: missing field \"%s\"" % [where, field])
+	if collection in ["abilities", "omens"] and entry.has("nights"):
+		_check_of_nights(entry.nights, where)
 	match collection:
 		"abilities":
 			_use_key(entry.get("name", ""), where)
@@ -243,7 +245,6 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 					if spec.get("kind") == "bolt":
 						_check_volley(spec, where + ": skill", str(spec.get("style", "sacred")), str(spec.get("motion", "straight")))
 			_check_effect(entry.get("alignment", {}), where)
-			_check_entry_nights(entry, where)
 			if entry.has("icon") and not FileAccess.file_exists(str(entry.icon)) and not ResourceLoader.exists(str(entry.icon)):
 				_error("%s: icon not found: %s" % [where, entry.icon])
 		"enemies":
@@ -459,7 +460,6 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_relic(entry, where)
 		"omens":
 			_check_omen(entry, where)
-			_check_entry_nights(entry, where)
 		"endings":
 			_check_ending(entry, where)
 		"affixes":
@@ -2325,14 +2325,8 @@ func _check_draft_plans() -> void:
 	var forks := {}
 	for fork in _game_entries("forks"):
 		forks[fork.get("id", "")] = true
-	# a chapter that has come into the game keeps its plan (drafts/<name>/rooms.json) with no data/ beside it
-	var plans: Array[String] = []
-	var drafts := DirAccess.open(DRAFTS)
-	if drafts:
-		for draft in drafts.get_directories():
-			plans.append(DRAFTS.path_join(draft).path_join("rooms.json"))
-	plans.sort()
-	for path in plans:
+	for data_root in _draft_roots():
+		var path := data_root.get_base_dir().path_join("rooms.json")
 		if not FileAccess.file_exists(path):
 			continue
 		var plan = JSON.parse_string(FileAccess.get_file_as_string(path))
@@ -2370,7 +2364,7 @@ func _check_draft_plans() -> void:
 				if not ResourceLoader.exists("res://scenes/rooms/%s.tscn" % other):
 					_error("%s: stand-in \"%s\" is not a room" % [where, other])
 		for scene in _planned_rooms:
-			if _planned_rooms[scene] == path.get_base_dir().get_file() and not seen.has(scene):
+			if _planned_rooms[scene] == data_root.get_base_dir().get_file() and not seen.has(scene):
 				_error("%s: %s is in the drafts' data but not in the plan" % [path, scene])
 
 ## A room a draft names is allowed not to exist yet: its painting is still to
@@ -2473,23 +2467,16 @@ func _check_opening(opening: Dictionary, where: String, game: Dictionary) -> voi
 			_error("data/game.json: %s.%s names %s \"%s\", which does not exist" % [where, key, folder, id])
 
 
-## A gift's or an omen's "nights" (Campaign.night_fits): a list of the nights it
-## is dealt in — game.json night ids, the first under the game's own id. A name
-## that is no night would keep it out of every one.
-func _check_entry_nights(entry: Dictionary, where: String) -> void:
-	if not entry.has("nights"):
+## A chapter's gift or omen names the nights it is dealt in (Omens.of_night):
+## ids of game.json's nights, "" for the first; an empty list would never be dealt.
+func _check_of_nights(nights, where: String) -> void:
+	if not (nights is Array) or (nights as Array).is_empty():
+		_error("%s: nights is a list of night ids" % where)
 		return
-	var game: Dictionary = DATA_DOC.top("game.json", _validated_roots())
-	var known := [str(game.get("id", "first"))]
-	for night in game.get("nights", []):
-		if night is Dictionary:
-			known.append(str(night.get("id", "")))
-	if not entry.nights is Array or (entry.nights as Array).is_empty():
-		_error("%s: nights is a list of night ids %s" % [where, known])
-		return
-	for id in entry.nights:
-		if not known.has(str(id)):
-			_error("%s: nights names \"%s\", which is no night of %s" % [where, id, known])
+	var ids: Array = DATA_DOC.nights(DATA_DOC.top("game.json", _validated_roots())).map(func(n: Dictionary) -> String: return str(n.id))
+	for id in nights:
+		if not ids.has(str(id)):
+			_error("%s: nights names \"%s\", which is no night in game.json" % [where, id])
 
 
 ## The nights after the first (game.json "nights", DataDoc.nights): each its

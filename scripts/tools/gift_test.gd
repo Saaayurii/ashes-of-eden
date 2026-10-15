@@ -373,15 +373,15 @@ func _run() -> void:
 
 		# A gift with no night named has always been available.
 		var ungated: Array = data.abilities.values().filter(
-			func(a): return int(a.get("unlock_nights", 0)) == 0 and not a.has("nights"))
+			func(a): return int(a.get("unlock_nights", 0)) == 0)
 		profile.data.nights = 0
 		_assert(not ungated.is_empty() and not run.gift_locked(ungated[0]),
 			"a gift with no night named is never held back")
 		profile.data.nights = nights_before
 
 	# --- a chapter's own gifts are dealt in its night only ---------------------
-	# `"nights": [...]` (Run.gift_locked): Blood Feud means nothing where no two
-	# armies fight, so the first night never deals it and Marah deals it often.
+	# `"nights": [...]` (Omens.of_night): Blood Feud means nothing where no two
+	# armies fight, so the first night never deals it and its own night does.
 	var night_was: String = game.night
 	var by_night := {}
 	for ability in data.abilities.values():
@@ -389,21 +389,20 @@ func _run() -> void:
 			by_night[night] = by_night.get(night, []) + [ability]
 	for night in by_night:
 		var own: Array = by_night[night]
-		game.night = ""
-		_assert(own.all(func(a): return run.gift_locked(a)),
-			"the first night deals none of %s's %d gifts" % [night, own.size()])
-		game.night = night
-		_assert(own.all(func(a): return not run.gift_locked(a)), "%s deals them" % night)
 		var seen := {}
+		game.night = ""
+		for i in 300:
+			for ability in run._roll_gifts():
+				seen[ability.id] = true
+		_assert(own.all(func(a): return not seen.has(a.id)),
+			"the first night deals none of %s's %d gifts" % [night, own.size()])
+		seen = {}
+		game.night = night
 		for i in 300:
 			for ability in run._roll_gifts():
 				seen[ability.id] = true
 		var missing: Array = own.filter(func(a): return not seen.has(a.id)).map(func(a): return a.id)
-		_assert(missing.is_empty(), "  and every one of them turns up in %s's hands %s" % [night, missing])
-		for other in by_night:
-			if other != night:
-				_assert(by_night[other].all(func(a): return run.gift_locked(a)),
-					"  but none of %s's" % other)
+		_assert(missing.is_empty(), "  %s deals every one of them %s" % [night, missing])
 	game.night = night_was
 	_finish()
 

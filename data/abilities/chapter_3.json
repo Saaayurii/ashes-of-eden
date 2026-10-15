@@ -15,7 +15,7 @@
         "type": "stat",
         "stat": "liquid_mend",
         "op": "add",
-        "value": 2.0
+        "value": 1.5
       }
     ]
   },
@@ -55,7 +55,7 @@
         "type": "stat",
         "stat": "attack_damage",
         "op": "add",
-        "value": 3
+        "value": 4
       },
       {
         "type": "stat",
@@ -121,13 +121,13 @@
         "type": "stat",
         "stat": "dash_cooldown",
         "op": "add",
-        "value": -0.4
+        "value": -0.6
       },
       {
         "type": "stat",
         "stat": "speed",
         "op": "add",
-        "value": 8
+        "value": 15
       }
     ]
   }
