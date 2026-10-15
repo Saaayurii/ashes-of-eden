@@ -66,7 +66,9 @@ test('the game\'s table is valid, and bad values are caught before a send', () =
 const G = require('../js/gore.js');
 const ink = { stain: 1, life: 30, soak: 0.6, splash: 6, run: 30, drip: 1, back: 0 };
 const run = (st, seconds) => { for (let t = 0; t < seconds; t += 1 / 60) { G.GORE.clock += 1 / 60; G.goreStep(1 / 60, st); } };
-const fresh = () => { G.GORE.drops = []; G.GORE.stains = []; G.GORE.drips = []; G.GORE.pieces = []; G.GORE.wound = 0; };
+// a fixed sequence for the physics below: a wanted drip must not be left to the luck of one run (CI once drew none)
+const seeded = (a = 0x9e3779b9) => () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const fresh = () => { Math.random = seeded(); G.GORE.drops = []; G.GORE.stains = []; G.GORE.drips = []; G.GORE.pieces = []; G.GORE.wound = 0; };
 test('a mark on the ledge stops at its edges, and what hangs over drips to the floor', () => {
   const st = G.goreStage(480, 270), L = st.ledge; fresh();
   for (let i = 0; i < 12; i++) G.goreDrop(L.x1 - 4 + Math.random() * 3.5, L.top - 16, 0, 40, [200, 0, 0, 1], ink, G.SPLASHED);
