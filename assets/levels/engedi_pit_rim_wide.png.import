@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/engedi_pit_rim_wide.png-0d20af5ad3b40155da6d5
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/feaster.png-427c944502a6f31834a5408a18b130b7.
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/abaddon_face.png-e1caab02395a894fd035f2a0877d
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

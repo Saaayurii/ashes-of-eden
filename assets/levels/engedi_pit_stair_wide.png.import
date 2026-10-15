@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/engedi_pit_stair_wide.png-7c90059ab48fa6867bd
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/vine_husk.png-85b2d2b196ad9573cf35571f3dfb2e5
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

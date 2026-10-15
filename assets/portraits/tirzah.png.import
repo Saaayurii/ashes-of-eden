@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/tirzah.png-c91bc82b78ef2d1ae685506dbb9b40fe.c
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

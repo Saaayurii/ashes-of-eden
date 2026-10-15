@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/tyre_lamp_market_wide.png-6db9caa81225341b2f3
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
