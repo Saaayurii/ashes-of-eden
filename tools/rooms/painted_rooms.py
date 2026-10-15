@@ -1186,7 +1186,7 @@ PAINTED = {
         painted_platforms=[(395, 355, 40, 8)],
         spawns=[("locust", 600, 200), ("locust", 950, 350), ("pit_smoke", 300, 300), ("pit_smoke", 800, 420),
                 ("locust_rider", 650, 272), ("locust_herald", 900, 591)],
-        props=[("engedi_cache_key_page", 745, 284)],
+        props=[("secret_wall_engedi_key", 748, 284)],
         decor=[], npcs=[], ambient="#c8a080", lights="auto",
         player=(40, 128), door=(1225, 571)),
 }

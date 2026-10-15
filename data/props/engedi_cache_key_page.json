@@ -1,6 +1,6 @@
 {
   "id": "engedi_cache_key_page",
-  "_art": "a chest behind a bricked-up wall; the wall is cut from the room's painting by tools/art/make_secret_walls.py once it exists",
+  "_art": "a chest in the walled-up niche on the pit stair; secret_wall_engedi_key stands over it",
   "kind": "chest",
   "essence": 30,
   "ash": 15,

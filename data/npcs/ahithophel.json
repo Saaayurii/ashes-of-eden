@@ -1,15 +1,15 @@
 {
   "id": "ahithophel",
-  "_art": "stand-in body (severin, sitting); own sheet in docs/CHAPTER5_ART.md (the portrait is drawn)",
+  "_art": "drawn by Codex (docs/CHAPTER5_ART.md §3): seated, his own sheet and portrait",
   "name": "NPC_AHITHOPHEL",
   "avatar": "res://assets/portraits/ahithophel.png",
   "dialogue": "npc_ahithophel",
   "face": "left",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/severin_v2_idle.png",
-      "walk": "res://assets/sprites/severin_v2_walk.png",
-      "interact": "res://assets/sprites/severin_v2_attack.png"
+      "idle": "res://assets/sprites/ahithophel_v2_idle.png",
+      "walk": "res://assets/sprites/ahithophel_v2_walk.png",
+      "interact": "res://assets/sprites/ahithophel_v2_attack.png"
     },
     "cell": [
       48,

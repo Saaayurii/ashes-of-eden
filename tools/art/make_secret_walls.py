@@ -40,6 +40,8 @@ WALLS = {
     # the collectors' booth on the sea gate's gallery, its doorway bricked in the painting
     "tyre_gate": ("tyre_gate", (205, 150, 258, 248), 52, 92, 17),
     # beside the laver on the palace stair's middle landing: plain masonry, so a niche of its own
+    # Engedi (docs/CHAPTER5_ART.md): the walled-up niche on the pit stair's middle landing, its arch painted
+    "engedi_key": ("engedi_pit_stair", (725, 212, 771, 282), 52, 76, 23),
     "tyre_stair": ("tyre_palace_stair", (548, 282, 602, 372), 52, 92, 19),
 }
 GLOW = (255, 204, 120)

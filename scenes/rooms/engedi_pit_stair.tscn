@@ -196,8 +196,8 @@ z_index = 1
 [node name="Props" type="Node2D" parent="."]
 
 [node name="Prop1" parent="Props" instance=ExtResource("7_prop")]
-position = Vector2(905, 284)
-prop_id = "engedi_cache_key_page"
+position = Vector2(908, 284)
+prop_id = "secret_wall_engedi_key"
 
 [node name="Spawns" type="Node2D" parent="."]
 
