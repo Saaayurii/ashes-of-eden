@@ -28,8 +28,20 @@
     "flicker": 0.1
   },
   "sprite": {
-    "like": "fallen_champion",
-    "tint": "#c09060"
+    "cell": [
+      76,
+      68
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/legion_centurion_v2_idle.png",
+      "walk": "res://assets/sprites/legion_centurion_v2_walk.png",
+      "attack": "res://assets/sprites/legion_centurion_v2_attack.png",
+      "attack_alt": "res://assets/sprites/legion_centurion_v2_attack_alt.png",
+      "special": "res://assets/sprites/legion_centurion_v2_special.png",
+      "hurt": "res://assets/sprites/legion_centurion_v2_hurt.png",
+      "death": "res://assets/sprites/legion_centurion_v2_death.png"
+    }
   },
   "attacks": [
     {
@@ -69,5 +81,6 @@
       "color": "#ffb070",
       "impact_fx": "dust"
     }
-  ]
+  ],
+  "_art": "drawn by Codex (docs/CHAPTER3_ART.md §2): the Legion's centurion, his own atlas"
 }

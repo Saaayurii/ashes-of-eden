@@ -43,7 +43,7 @@ MANIFEST = os.path.join(DIR, "overrides.json")
 ## and so whose pictures the studio may edit (tools/studio/build_data.py lists them for it).
 OVERRIDABLE = {"secret walls", "altar book", "blood altar", "chain ring", "weapon icons", "bestiary strips", "ophanim seals",
                "rooms", "weapon frames", "hero moves", "practice yard", "liquids", "tyre lamp", "coin flight",
-               "engedi props"}
+               "engedi props", "flight strips", "people sheets"}
 
 ## Generators that can build only what writes some files (`--for <file>…`, the rooms or creatures
 ## those are): regenerating for one edit then costs a room, not all of them.
