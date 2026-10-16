@@ -7,7 +7,10 @@
       "torment": 1.5,
       "ash": 1.4,
       "essence": 1.15
-    }
+    },
+    "nights": [
+      "engedi"
+    ]
   },
   {
     "id": "smoke_of_the_pit",
@@ -17,7 +20,10 @@
       "swarm": 2,
       "enemy_sight": 0.6,
       "ash": 1.3
-    }
+    },
+    "nights": [
+      "engedi"
+    ]
   },
   {
     "id": "full_table",
@@ -27,6 +33,9 @@
       "fruit_heal": 1.5,
       "surfeit_per_fruit": 2,
       "ash": 1.25
-    }
+    },
+    "nights": [
+      "engedi"
+    ]
   }
 ]

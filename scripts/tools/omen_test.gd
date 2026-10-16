@@ -116,6 +116,15 @@ func _run() -> void:
 	_check(omens.of_day("2026-10-01") == first, "  and the menu can name it before the night begins")
 	game.daily = ""
 
+	# --- chapter V's omens, in the Engedi night only ("nights") ----------------
+	var of_engedi: Array = data.omens.keys().filter(func(id): return (data.omens[id].get("nights", []) as Array).has("engedi"))
+	_check(of_engedi.size() == 3, "Engedi has its three omens (%d)" % of_engedi.size())
+	var day_foreign := false
+	game.night = ""
+	for day in range(1, 29):
+		day_foreign = day_foreign or of_engedi.has(omens.of_day("2026-02-%02d" % day))
+	_check(not day_foreign, "  the night of the day never draws them")
+
 	# --- the rules ---------------------------------------------------------------
 	game.vial = 0
 	game.omen = "blood_moon"
