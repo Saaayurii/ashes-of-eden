@@ -158,24 +158,45 @@ func _run() -> void:
 		# held still: an aware walker keeps its distance (docs/ENEMY_AI.md) and
 		# would step out of the first swing, which then read as 0 damage
 		dummy.set_physics_process(false)
+		# and so is everyone else: the foe and the sleeper the backstab just woke
+		# hunt him, and a blow or a shove between the step in and the swing
+		# carried him out of reach — the plain swing then read as 0 (a CI flake)
+		var held: Array = []
+		for body in _enemies(run):
+			if body != dummy and body.is_physics_processing():
+				body.set_physics_process(false)
+				held.append(body)
 		player.stats.crit_chance = 0.0
 		var hits: Array = []
 		for wrath in [0.0, 0.8]:
-			await _settle(0.35)
-			dummy.hp = dummy._max_hp
-			dummy.velocity = Vector2.ZERO
-			dummy._knockback = Vector2.ZERO
-			player.global_position = dummy.global_position + Vector2(-18, 4)
-			player.facing = 1
-			player.hitbox.scale.x = 1
-			player.stats.wrath_after_hit = wrath
-			player._wrath_left = 1.0 if wrath > 0.0 else 0.0
-			player._attack_cd = 0.0
-			player._combo = 0
-			await _frames(1)
-			player._attack()
-			await _frames(4)
-			hits.append(dummy._max_hp - dummy.hp)
+			# one landed swing each: a swing that found nobody is swung again,
+			# which changes nothing it measures (wrath is spent only on a hit)
+			var dealt := 0.0
+			for attempt in 4:
+				await _settle(0.35)
+				dummy.hp = dummy._max_hp
+				dummy.velocity = Vector2.ZERO
+				dummy._knockback = Vector2.ZERO
+				player.velocity = Vector2.ZERO
+				player._hurt_grace_left = 5.0  # a bolt already in the air finds no wound to open
+				player.global_position = dummy.global_position + Vector2(-18, 4)
+				player.facing = 1
+				player.hitbox.scale.x = 1
+				player.stats.wrath_after_hit = wrath
+				player._wrath_left = 1.0 if wrath > 0.0 else 0.0
+				player._attack_cd = 0.0
+				player._combo = 0
+				await _frames(1)
+				player._attack()
+				await _frames(4)
+				dealt = dummy._max_hp - dummy.hp
+				if dealt > 0.0:
+					break
+				print("  ..   halo: swing %d found nobody (on floor %s, %s from it)" % [attempt + 1, player.is_on_floor(), dummy.global_position - player.global_position])
+			hits.append(dealt)
+		for body in held:
+			body.set_physics_process(true)
+		player._hurt_grace_left = 0.0
 		var plain: float = hits[0]
 		var angry: float = hits[1]
 		_check(plain > 0.0 and absf(angry - plain * 1.8) < 0.5, "halo: the wounded swing hits harder (%s vs %s)" % [angry, plain])
