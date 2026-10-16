@@ -3,7 +3,7 @@
   "name": "ENEMY_PIT_SMOKE",
   "lore": "ENEMY_PIT_SMOKE_LORE",
   "tip": "TIP_PIT_SMOKE",
-  "hp": 40,
+  "hp": 54,
   "speed": 80,
   "damage": 0,
   "attack_interval": 1.0,

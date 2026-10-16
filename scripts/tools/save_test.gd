@@ -105,6 +105,16 @@ func _run() -> void:
 	_assert(run.checkpoint.get("night", "") == "seir", "and the next save names it too")
 	run.queue_free()
 	await process_frame
+	# and so for every night of the campaign, its last room against the night before's
+	var chain: Array = data.nights()
+	for i in range(1, chain.size()):
+		var night := checkpoint.duplicate(true)
+		night.room = str((chain[i].rooms as Array).back())
+		night["night"] = str(chain[i].id)
+		var parsed: Dictionary = saves.parse(JSON.stringify(night))
+		_assert(not parsed.is_empty() and str(parsed.get("night", "")) == str(chain[i].id), "a save in %s's %s is taken" % [chain[i].id, night.room.get_file()])
+		night.room = str((chain[i - 1].rooms as Array).back())
+		_assert(saves.parse(JSON.stringify(night)).is_empty(), "  and %s's room under %s's name is refused" % [chain[i - 1].id if chain[i - 1].id != "" else "the first night", chain[i].id])
 	game.night = ""
 	data.use_night("")
 
