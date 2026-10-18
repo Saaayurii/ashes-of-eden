@@ -349,6 +349,9 @@ def room_project(root: Path, path: Path):
     layers.sort(key=lambda l: l["z"])
     spawns = [[c["props"].get("enemy_id", '""').strip('"'), *_vec(c["props"].get("position"))]
               for c in nodes if c["parent"] == "Spawns" and c["type"] == "Marker2D"]
+    # the people standing in it (a cutscene's «Люди сцены» shows them on the map)
+    npcs = [[c["props"].get("npc_id", '""').strip('"'), *_vec(c["props"].get("position"))]
+            for c in nodes if c["parent"] == "Props" and "npc_id" in c["props"]]
     # the tops of the room's colliders: where an enemy placed in the studio can stand
     rects = {m[0]: (float(m[1]), float(m[2])) for m in re.findall(
         r'\[sub_resource type="RectangleShape2D" id="([^"]+)"\]\s*size = Vector2\(([-\d.]+), ([-\d.]+)\)', text)}
@@ -372,7 +375,7 @@ def room_project(root: Path, path: Path):
             hazards.append([kind, round(hx, 1), round(hy, 1), round(hw, 1), round(hh, 1),
                             {"painted": n["props"].get("painted", "true") != "false", "name": n["name"]}])
     return {
-        "spawns": spawns, "surfaces": surfaces, "hazards": hazards,
+        "spawns": spawns, "npcs": npcs, "surfaces": surfaces, "hazards": hazards,
         "id": "room_" + path.stem, "kind": "bg", "name": path.stem,
         "width": int(float(top.get("width", 1280))), "height": int(float(top.get("height", 360))),
         "viewW": round(640 / VIEW_ZOOM), "viewH": round(360 / VIEW_ZOOM), "ambient": ambient,
@@ -524,8 +527,22 @@ def story(root: Path, strings, rooms):
             faces[npc["name"]] = npc["avatar"]
     portraits = sorted("res://" + f.relative_to(root).as_posix() for f in (root / "assets/portraits").glob("*.png")
                        if "atlas" not in f.stem)
+    # the game's people for a cutscene's actor lists, and what a person made for one scene can wear:
+    # another person's strip, or any idle strip under assets/sprites (one row of frames, Fx.add_strip)
+    people = []
+    for f in sorted((root / "data/npcs").glob("*.json")):
+        npc = json.loads(f.read_text(encoding="utf-8"))
+        sprite = npc.get("sprite", {})
+        people.append({"id": npc.get("id", f.stem), "name": npc.get("name", ""), "scripted": bool(npc.get("scripted")),
+                       "avatar": npc.get("avatar", ""), "studio": npc.get("_studio", ""),
+                       "idle": sprite.get("animations", {}).get("idle", sprite.get("path", "")),
+                       "cell": sprite.get("cell", [32, 44]), "fps": sprite.get("fps", 4)})
+    strips = []
+    for f in sorted((root / "assets/sprites").rglob("*idle*.png")):
+        w, h = Image.open(f).size
+        strips.append({"res": "res://" + f.relative_to(root).as_posix(), "url": f.relative_to(root).as_posix(), "w": w, "h": h})
     return {"cutscenes": scenes, "dialogues": dialogues, "strings": strings,
-            "looks": looks, "faces": faces, "portraits": portraits,
+            "looks": looks, "faces": faces, "portraits": portraits, "npcs": people, "strips": strips,
             "speakers": sorted(k for k in strings if k.startswith("SPEAKER_")),
             "playlists": json.loads((root / "data/music/playlists.json").read_text(encoding="utf-8")),
             "played_in": played_in, "used_by": used_by, "room_order": room_order(root),

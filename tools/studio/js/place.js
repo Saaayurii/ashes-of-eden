@@ -35,30 +35,34 @@ function drawRoomOverview(c, room, spot, enemyId) {
   for (const [sx, sy, sw] of room.surfaces || []) x.fillRect(sx * k, sy * k - 1, sw * k, 2);
   x.font = '11px system-ui';
   for (const [id, ex, ey] of room.spawns || []) { if (id === enemyId) continue; x.fillStyle = '#e06464'; x.beginPath(); x.arc(ex * k, ey * k, 4, 0, 7); x.fill(); x.fillText(id, ex * k + 6, ey * k - 4); }
+  for (const [id, nx, ny] of room.npcs || []) { if (id === enemyId) continue; x.fillStyle = '#e0b85a'; x.beginPath(); x.arc(nx * k, ny * k, 4, 0, 7); x.fill(); x.fillText(id, nx * k + 6, ny * k - 4); }
   if (spot) { x.fillStyle = '#6aa8ff'; x.beginPath(); x.arc(spot.x * k, spot.y * k, 6, 0, 7); x.fill(); x.fillStyle = '#fff'; x.fillText(enemyId || 'здесь', spot.x * k + 8, spot.y * k - 6); }
 }
 
 // A room picker with a map, put inside a dialog that is already open.
-// Returns a getter for what was chosen: {room, x, y} or null.
-function roomPicker(box, enemyId, initial) {
-  let pick = initial || null;
-  const roomOptions = () => `<option value="">— не ставить в комнату —</option>${roomNames().map(n => `<option ${pick?.room === n ? 'selected' : ''}>${n}</option>`).join('')}`;
+// Returns a getter for what was chosen: {room, x, y} or null. initial may name
+// only a room (opened on its map, nothing placed yet); opts.lift is how far
+// above the floor the origin stands (snapToSurface: an enemy's 12, a person's NPC_LIFT).
+function roomPicker(box, enemyId, initial, opts = {}) {
+  let pick = initial?.x !== undefined ? initial : null;
+  const start = initial?.room || '';
+  const roomOptions = () => `<option value="">— не ставить в комнату —</option>${roomNames().map(n => `<option ${start === n ? 'selected' : ''}>${n}</option>`).join('')}`;
   box.innerHTML = `<div class="row" style="margin:0"><select class="rp-room" style="width:auto">${roomOptions()}</select>
     <span class="muted rp-info">${pick ? `${pick.room}: ${pick.x}, ${pick.y}` : 'Выбери комнату и кликни по полу, где ему стоять'}</span></div>
     <canvas class="rp-map" style="width:100%;display:none;margin-top:6px;border-radius:6px;cursor:crosshair"></canvas>
-    <div class="note">Зелёное — пол, красные — враги, которые уже там стоят. Студия ставит точку на ближайший пол под кликом; дойти до врага игрок должен — это ещё раз проверит генератор комнат.</div>`;
+    <div class="note">${opts.note || 'Зелёное — пол, красные — враги, которые уже там стоят. Студия ставит точку на ближайший пол под кликом; дойти до врага игрок должен — это ещё раз проверит генератор комнат.'}</div>`;
   const sel = box.querySelector('.rp-room'), map = box.querySelector('.rp-map'), info = box.querySelector('.rp-info');
   let room = null;
   const show = async () => {
     room = sel.value ? await loadRoom(sel.value) : null;
     map.style.display = room ? '' : 'none';
     if (room) drawRoomOverview(map, room, pick?.room === sel.value ? pick : null, enemyId);
-    if (!room) { pick = null; info.textContent = 'Не ставится в комнату — только тренировочный двор'; }
+    if (!room) { pick = null; info.textContent = opts.none || 'Не ставится в комнату — только тренировочный двор'; }
   };
   sel.onchange = show;
   map.onclick = e => {
     if (!room) return;
-    const k = map.clientWidth / room.width, s = snapToSurface(room.surfaces, e.offsetX / k, e.offsetY / k);
+    const k = map.clientWidth / room.width, s = snapToSurface(room.surfaces, e.offsetX / k, e.offsetY / k, opts.lift);
     if (!s) { info.textContent = 'Здесь нет пола — кликни выше пола, на который его поставить'; return; }
     pick = { room: sel.value, ...s }; info.textContent = `${pick.room}: ${pick.x}, ${pick.y}`;
     drawRoomOverview(map, room, pick, enemyId);
@@ -66,8 +70,8 @@ function roomPicker(box, enemyId, initial) {
   // The room list lives with the cutscenes and backgrounds tabs. The enemy
   // wizard opens from the characters tab too, before either has loaded — the
   // list was empty and the enemy could go into no room. Load the order here.
-  if (roomNames().length) { if (pick) show(); }
-  else loadCutData().then(() => { sel.innerHTML = roomOptions(); if (pick) show(); });
+  if (roomNames().length) { if (start) show(); }
+  else loadCutData().then(() => { sel.innerHTML = roomOptions(); if (start) show(); });
   return () => pick;
 }
 

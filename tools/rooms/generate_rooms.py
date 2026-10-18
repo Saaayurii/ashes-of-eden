@@ -2050,6 +2050,15 @@ ROOMS.update({name: expand_painted_room(name, room) if name in ROOM_EXPANSION_CU
 # the painted widening, like a "wide" entry), and which cutscene a room plays.
 # The spawns go through check_reach like every other walker.
 STUDIO_ROOMS = os.path.join(ROOT, "tools", "rooms", "studio_rooms.json")
+
+
+def _add_studio_npcs(room, extra):
+    """The studio's people after the room's own; a widened room's rounds stay as the table had them."""
+    added = [tuple(n) for n in extra.get("npcs", [])]
+    if "npc_paths" in room:
+        room["npc_paths"] = list(room["npc_paths"]) + [[] for _ in added]
+    room["npcs"] = list(room.get("npcs", [])) + added
+
 ## Pictures she laid into a room or retouched there by hand (tools/rooms/studio_textures.py).
 STUDIO_TEXTURES = {}
 ## Each room's additions as written, for a composed room gone live: the studio
@@ -2077,6 +2086,11 @@ if os.path.exists(STUDIO_ROOMS):
                 if len(_prop) != 3 or not os.path.exists(os.path.join(ROOT, "data/props", _prop[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _prop[1:]):
                     raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a prop is [existing prop id, x, y]")
             ROOMS[_name]["props"] = list(ROOMS[_name].get("props", [])) + [tuple(p) for p in _extra.get("props", [])]
+            # people a cutscene made (data/npcs, "scripted": hidden until its "appear"), standing on the floor
+            for _npc in _extra.get("npcs", []):
+                if len(_npc) != 3 or not os.path.exists(os.path.join(ROOT, "data/npcs", _npc[0] + ".json")) or not all(isinstance(v, (int, float)) for v in _npc[1:]):
+                    raise SystemExit(f"tools/rooms/studio_rooms.json: {_name}: a person is [existing npc id, x, y]")
+            _add_studio_npcs(ROOMS[_name], _extra)
             # pools of water, lava, bog or blood (data/liquids.json), in the finished room's pixels:
             # [kind, x, surface y, w, depth] and an optional {"painted": true}
             _kinds = json.load(open(os.path.join(ROOT, "data", "liquids.json"), encoding="utf-8"))["kinds"]
@@ -2123,6 +2137,7 @@ def compose_room(name, entry):
         room["spawns"] = [tuple(s) for s in extra.get("spawns_override", room["spawns"])] + [tuple(s) for s in extra.get("spawns", [])]
         room["waves"] = extra.get("waves", [])
         room["props"] = room["props"] + [tuple(p) for p in extra.get("props", [])]
+        _add_studio_npcs(room, extra)
         ROOMS[name] = room
     picture = os.path.join(ROOT, "assets", "levels", "composed", name + ".png")
     os.makedirs(os.path.dirname(picture), exist_ok=True)
@@ -2212,6 +2227,9 @@ def studio_extra(name, room, extra, where="content/rooms/studio_rooms.json"):
     for prop in extra.get("props", []):
         if len(prop) != 3 or not _pack_has("props", prop[0]):
             raise SystemExit(f"{where}: {name}: a prop is [existing prop id, x, y]")
+    for npc in extra.get("npcs", []):
+        if len(npc) != 3 or not _pack_has("npcs", npc[0]):
+            raise SystemExit(f"{where}: {name}: a person is [existing npc id, x, y]")
     room["spawns"] = [tuple(s) for s in extra.get("spawns_override", room.get("spawns", []))] + [tuple(s) for s in extra.get("spawns", [])]
     if "waves" in extra:
         room["waves"] = extra["waves"]
@@ -2219,6 +2237,7 @@ def studio_extra(name, room, extra, where="content/rooms/studio_rooms.json"):
         if key in extra:
             room[key] = extra[key]
     room["props"] = list(room.get("props", [])) + [tuple(p) for p in extra.get("props", [])]
+    _add_studio_npcs(room, extra)
     return room
 
 

@@ -9,7 +9,7 @@ async function loadCutData() {
   catch { cutData = { cutscenes: [], dialogues: {}, strings: {}, speakers: [], playlists: {} }; }
   return cutData;
 }
-const migrateCut = c => { c.kind = 'cutscene'; c.steps ||= []; c.dialogues ||= {}; c.strings ||= {}; c.images ||= {}; return c; };
+const migrateCut = c => { c.kind = 'cutscene'; c.steps ||= []; c.dialogues ||= {}; c.strings ||= {}; c.images ||= {}; c.npcs ||= {}; return c; };
 let cutSaveTimer = null;
 function saveCut() { if (!CUT) return; CUT.updated = Date.now(); CUT.dirty = true; trackChange('cut'); cutCheckSoon(); clearTimeout(cutSaveTimer); cutSaveTimer = setTimeout(() => { if (dbOk) DB.put(CUT, 'cutscenes').catch(() => {}); }, 400); }
 async function cutUpsert(c) { const i = cuts.findIndex(x => x.id === c.id); if (i >= 0) cuts[i] = c; else cuts.push(c); if (dbOk) try { await DB.put(c, 'cutscenes'); } catch {} }
@@ -32,12 +32,12 @@ const STEP_TYPES = {
   release: { label: 'Вернуть управление', fields: [] },
   letterbox: { label: 'Кино-полосы', fields: [['on', 'bool', 'Показать'], ['time', 'num', 'Время, с']] },
   wait: { label: 'Пауза', fields: [['time', 'num', 'Время, с']] },
-  camera: { label: 'Камера', fields: [['to', 'actor', 'К кому / точке'], ['between', 'json', 'Между двумя: ["player","boss"]'], ['zoom', 'num', 'Зум'], ['time', 'num', 'Время, с'], ['offset', 'point', 'Смещение']] },
+  camera: { label: 'Камера', fields: [['to', 'actor', 'К кому / точке'], ['between', 'pair', 'Или между двумя (оба в кадре)'], ['zoom', 'num', 'Зум'], ['time', 'num', 'Время, с'], ['offset', 'point', 'Смещение']] },
   move: { label: 'Сдвинуть', fields: [['who', 'actor', 'Кого'], ['to', 'actor', 'Куда (актёр или [x,y])'], ['by', 'point', 'На сколько'], ['offset', 'point', 'Смещение'], ['time', 'num', 'Время, с'], ['ease', 'select', 'Плавность', [['', '—'], ['in', 'in'], ['out', 'out'], ['in_out', 'in_out']]]] },
   walk: { label: 'Идти', fields: [['who', 'actor', 'Кто'], ['to', 'actor', 'Куда'], ['by', 'point', 'На сколько'], ['offset', 'point', 'Смещение'], ['time', 'num', 'Время, с'], ['run', 'bool', 'Бегом']] },
   anim: { label: 'Анимация', fields: [['who', 'actor', 'Кто'], ['anim', 'text', 'Анимация (idle, draw, attack…)'], ['hold', 'bool', 'Замереть на 1-м кадре']] },
   face: { label: 'Повернуться', fields: [['who', 'actor', 'Кто'], ['dir', 'select', 'Куда', [['1', 'вправо'], ['-1', 'влево']]]] },
-  dialogue: { label: 'Диалог', fields: [['id', 'dialogue', 'Диалог'], ['wait', 'bool', 'Ждать конца'], ['cast', 'json', 'Камера на говорящих: {"SPEAKER_ELIAN":"player"}'], ['zoom', 'num', 'Зум на говорящего']] },
+  dialogue: { label: 'Диалог', fields: [['id', 'dialogue', 'Диалог'], ['wait', 'bool', 'Ждать конца'], ['cast', 'cast', 'Камера на говорящих (кто говорит → на кого смотрит камера)'], ['zoom', 'num', 'Зум на говорящего']] },
   title: { label: 'Титр (имя босса)', fields: [['who', 'actor', 'Кто'], ['name', 'text', 'Своё имя (ключ строки)'], ['subtitle', 'text', 'Подзаголовок'], ['at', 'select', 'Где', [['', 'сверху'], ['top', 'сверху'], ['bottom', 'снизу']]], ['time', 'num', 'Время, с'], ['wait', 'bool', 'Ждать'], ['sound', 'sound', 'Звук']] },
   flash: { label: 'Вспышка', fields: [['color', 'color', 'Цвет'], ['strength', 'num', 'Сила 0–1'], ['time', 'num', 'Время, с']] },
   presence: { label: 'Присутствие во тьме', fields: [['at', 'actor', 'Где'], ['offset', 'point', 'Смещение'], ['color', 'color', 'Цвет'], ['radius', 'num', 'Радиус'], ['strength', 'num', 'Сила'], ['eyes', 'bool', 'Глаза'], ['time', 'num', 'Время, с'], ['on', 'bool', 'Показать']] },
@@ -58,7 +58,7 @@ function stepSummary(s) {
   switch (s.do) {
     case 'letterbox': return `${s.on === false ? 'убрать' : 'показать'}${t}`;
     case 'wait': return `${s.time ?? 0} с`;
-    case 'camera': return `→ ${s.between ? JSON.stringify(s.between) : pt(s.to) || '—'}${s.zoom ? ' ×' + s.zoom : ''}${t}`;
+    case 'camera': return `→ ${Array.isArray(s.between) ? s.between.join(' + ') : pt(s.to) || '—'}${s.zoom ? ' ×' + s.zoom : ''}${t}`;
     case 'move': case 'walk': return `${s.who || '?'} ${s.to ? '→ ' + pt(s.to) : s.by ? 'на ' + pt(s.by) : ''}${t}`;
     case 'anim': return `${s.who || '?'}: ${s.anim || ''}`;
     case 'face': return `${s.who || '?'} ${+s.dir < 0 ? '←' : '→'}`;
@@ -77,7 +77,7 @@ function stepSummary(s) {
 function renderCutSel() {
   $('#cutSel').innerHTML = cuts.slice().sort((a, b) => a.id.localeCompare(b.id)).map(c => `<option value="${esc(c.id)}" ${c === CUT ? 'selected' : ''}>${esc(c.id)}</option>`).join('') || '<option>—</option>';
 }
-function renderCutAll() { trackChange('cut'); renderCutSel(); $('#cutEmpty').style.display = CUT ? 'none' : ''; renderCutBgSel(); renderSteps(); renderStepEditor(); drawCutFrame(); cutCheck(); }
+function renderCutAll() { trackChange('cut'); renderCutSel(); $('#cutEmpty').style.display = CUT ? 'none' : ''; renderCutBgSel(); renderSteps(); renderStepEditor(); renderCutPeople(); fillDatalists(); drawCutFrame(); cutCheck(); }
 /* what validate_data.gd would refuse, before she sends it (lib.js cutProblems over the whole game's flags, this scene in it) */
 let cutCheckTimer = 0;
 function cutCheckSoon() { clearTimeout(cutCheckTimer); cutCheckTimer = setTimeout(cutCheck, 300); }
@@ -95,10 +95,15 @@ async function cutCheck() {
   files[`data/cutscenes/${CUT.id}.json`] = { id: CUT.id, steps: CUT.steps };
   files['data/dialogues/~studio.json'] = Object.values(CUT.dialogues);
   const flags = world ? gdFlags(files, { read: GD.data.flags_read_in_code, set: GD.data.flags_set_in_code, tests: GD.data.flags_for_tests, awaited: GD.data.flags_awaited }) : null;
-  const npcs = world ? new Set(Object.entries(files).filter(([p]) => p.startsWith('data/npcs/')).flatMap(([, d]) => [].concat(d).map(n => n?.id)).filter(Boolean)) : null;
-  const known = new Set((library || []).map(e => e.res));
+  const people = cutData?.npcs || [], npcs = world ? new Set(Object.entries(files).filter(([p]) => p.startsWith('data/npcs/')).flatMap(([, d]) => [].concat(d).map(n => n?.id)).filter(Boolean))
+    : people.length ? new Set(people.map(n => n.id)) : null;
+  const known = new Set([...(library || []).map(e => e.res), ...(cutData?.strips || []).map(e => e.res)]);
   const { err, warn } = cutProblems(CUT.steps, { dialogue: cutDialogue, key: cutHasText, npcs, flags,
-    image: res => !!CUT.images[res] || !library || known.has(res) });
+    image: res => !!CUT.images[res] || !library || known.has(res),
+    own: CUT.npcs, scene: CUT.id, rooms: cutRooms(), gameNpcs: new Map(people.map(n => [n.id, n.studio || ''])), scripted: new Set(people.filter(n => n.scripted).map(n => n.id)),
+    missing: k => ['en', 'uk', 'zh_CN'].filter(l => !(CUT.strings[k]?.[l] || cutData?.strings[k]?.[l])) });
+  // a Chinese name in characters the build's font lacks (validate_data.gd _check_glyphs)
+  for (const [id, n] of Object.entries(CUT.npcs)) { const zh = [...new Set(CUT.strings[n.name]?.zh_CN || '')].filter(c => c.trim() && GD?.zh && !GD.zh.has(c)); if (zh.length) warn.push(`человек «${id}»: иероглифов ${zh.join('')} нет в шрифте сборки — после отправки перезапусти tools/art/make_cjk_font.py, иначе проверка данных упадёт`); }
   box.innerHTML = !err.length && !warn.length ? '<div class="muted" style="padding:4px 2px">✓ Проверка: ошибок нет</div>'
     : `<div class="card" style="margin:6px 0;${err.length ? 'border-color:var(--err)' : ''}"><b>Проверка</b> <span class="muted">${err.length ? `ошибок: ${err.length} — игра не примет сцену, пока их не исправить` : 'ошибок нет, есть замечания'}</span>
       ${err.map(m => `<div class="warn" style="color:var(--err)">✕ ${esc(m)}</div>`).join('')}${warn.map(m => `<div class="warn">⚠ ${esc(m)}</div>`).join('')}</div>`;
@@ -127,13 +132,33 @@ function fieldHtml(s, [k, type, label, opts]) {
     case 'color': return `<div>${lab}<div class="row" style="margin:0"><input type="color" data-sf="${k}" data-ft="color" value="${/^#[0-9a-f]{6}$/i.test(v || '') ? v : '#ffffff'}" style="width:44px;height:30px;padding:2px"><input data-sf="${k}" data-ft="text" value="${esc(v ?? '')}" placeholder="#ffffff"></div></div>`;
     case 'json': return `<div class="wide">${lab}<input data-sf="${k}" data-ft="json" value="${esc(v != null ? JSON.stringify(v) : '')}"></div>`;
     case 'list': return `<div>${lab}<input data-sf="${k}" data-ft="list" list="dlCutFlags" value="${esc(Array.isArray(v) ? v.join(', ') : v ?? '')}"></div>`;
-    case 'actor': return `<div>${lab}<input data-sf="${k}" data-ft="actor" list="dlActors" value="${esc(Array.isArray(v) ? JSON.stringify(v) : v ?? '')}"></div>`;
+    case 'actor': return `<div>${lab}<input data-sf="${k}" data-ft="actor" list="dlActors" value="${esc(Array.isArray(v) ? JSON.stringify(v) : v ?? '')}" placeholder="player, boss, npc:…"></div>`;
+    case 'pair': { const a = Array.isArray(v) ? v : ['', '']; return `<div class="wide">${lab}<div class="row" style="margin:0">${[0, 1].map(i => `<input data-sf="${k}" data-ft="pair" data-pi="${i}" list="dlActors" value="${esc(a[i] ?? '')}" placeholder="${i ? 'и второй' : 'первый'} (player, boss, npc:…)">`).join('<span class="muted">и</span>')}</div></div>`; }
+    case 'cast': { const rows = v && typeof v === 'object' && !Array.isArray(v) ? Object.entries(v) : [];
+      return `<div class="wide">${lab}<div id="castRows">${rows.map(([sp, a]) => cutCastRow(s, k, sp, a)).join('') || '<div class="muted">нет — камера стоит, где стояла</div>'}</div>
+        <div class="row" style="margin:2px 0 0"><button class="sm" data-act="cut-cast-add">＋ Говорящий</button><button class="sm" data-act="cut-cast-auto" title="Каждому, кто говорит в этом диалоге, — его персонаж: Элиану игрок, человеку — он сам">По репликам диалога</button></div></div>`; }
     case 'sound': return `<div>${lab}<div class="row" style="margin:0"><input data-sf="${k}" data-ft="text" list="dlSfx" value="${esc(v ?? '')}"><button class="sm" data-act="cut-try-sound" data-k="${k}">▶</button></div></div>`;
     case 'music': return `<div>${lab}<div class="row" style="margin:0"><input data-sf="${k}" data-ft="text" list="dlMusic" value="${esc(v ?? '')}"><button class="sm" data-act="cut-try-music" data-k="${k}">▶</button></div></div>`;
     case 'dialogue': return `<div class="wide">${lab}<div class="row" style="margin:0"><input data-sf="${k}" data-ft="text" list="dlDialogues" value="${esc(v ?? '')}"><button class="sm" data-act="cut-new-dlg">+ Новый диалог</button></div></div>`;
     case 'image': return `<div class="wide">${lab}<div class="row" style="margin:0"><input data-sf="${k}" data-ft="text" list="dlImages" value="${esc(v ?? '')}"><button class="sm" data-act="cut-img-up">⬆ Своя</button></div></div>`;
     default: return `<div>${lab}<input data-sf="${k}" data-ft="text" value="${esc(v ?? '')}"></div>`;
   }
+}
+// one speaker → actor row of a dialogue's «cast»: the speaker from those who talk in it (and everyone else), the actor from the list
+function cutCastRow(s, k, sp, a) {
+  const d = cutDialogue(s.id), talk = cutSpeakersOf(d), all = [...new Set([sp, ...talk, ...cutAllSpeakers()].filter(Boolean))];
+  return `<div class="row cast-row" style="margin:2px 0 0"><select data-sf="${k}" data-ft="cast" data-cp="speaker" style="width:auto;max-width:220px">${all.map(x => `<option value="${esc(x)}"${x === sp ? ' selected' : ''}>${esc(str(x))}${talk.includes(x) ? '' : ' — не говорит здесь'}</option>`).join('')}</select>
+    <span class="muted">→</span><input data-sf="${k}" data-ft="cast" data-cp="actor" list="dlActors" value="${esc(a ?? '')}" placeholder="player, npc:…" style="width:180px"><button class="sm ghost danger" data-act="cut-cast-del" title="Убрать">✕</button></div>`;
+}
+const cutSpeakersOf = d => d ? [...new Set(dialogueOrder(d).map(n => d.nodes[n].speaker).filter(Boolean))] : [];
+const cutAllSpeakers = () => [...new Set([...(cutData?.speakers || []), ...Object.values(CUT?.npcs || {}).map(n => n.name)])].sort();
+// who a speaker is on the stage: Elian is the player, a person is whoever bears that name (this scene's own first)
+function cutActorFor(speaker) {
+  if (speaker === 'SPEAKER_ELIAN') return 'player';
+  const own = Object.entries(CUT?.npcs || {}).find(([, n]) => n.name === speaker);
+  if (own) return 'npc:' + own[0];
+  const game = (cutData?.npcs || []).filter(n => n.name === speaker);
+  return game.length ? 'npc:' + (game.find(n => !n.scripted) || game[0]).id : '';
 }
 function renderStepEditor() {
   const box = $('#stepEditor'), s = CUT?.steps[cutStepSel];
@@ -178,7 +203,7 @@ function cutKnownFlags() {
 function renderDialogueEditor(id) {
   const box = $('#dlgEditor'), d = getDialogue(id); if (!box) return;
   if (!d) { box.innerHTML = `<div class="note">Диалога «${esc(id || '')}» нет. Нажми «+ Новый диалог».</div>`; return; }
-  const sp = cutData?.speakers || [], inc = dialogueIncoming(d), caption = d.blocking === false;
+  const sp = cutAllSpeakers(), inc = dialogueIncoming(d), caption = d.blocking === false;
   box.innerHTML = `<h3 style="margin:12px 0 4px">Реплики «${esc(d.id)}»${caption ? ' <span class="muted">(субтитры поверх игры — ответов в них не бывает)</span>' : ''}</h3>
     ${dialogueOrder(d).map(nid => {
       const n = d.nodes[nid], from = nid === d.start ? 'начало' : inc[nid] ? 'после ' + inc[nid].join(', ') : 'ни откуда не ведут';
@@ -220,6 +245,11 @@ function ownDialogue(id) {
   return CUT.dialogues[id];
 }
 const imgUrl = res => CUT?.images[res] || A(res);
+// the «cast» as its rows read now; a row with no speaker is left out
+function cutCastFromRows() {
+  const o = {}; document.querySelectorAll('#castRows .cast-row').forEach(r => { const sp = r.querySelector('[data-cp="speaker"]').value; if (sp) o[sp] = r.querySelector('[data-cp="actor"]').value.trim(); });
+  return Object.keys(o).length ? o : undefined;
+}
 
 /* ---- просмотр ---- */
 const CW = 640, CH2 = 360;
@@ -353,6 +383,7 @@ function cutCanvasClick(e) {
 }
 async function playDialogue(id, tok) {
   await dlgLoad().catch(() => {});   // the windows' looks, the portraits and the game's fonts
+  for (const n of Object.values(CUT?.npcs || {})) if (n.avatar && DLG.data?.faces) DLG.data.faces[n.name] = n.avatar;   // as the game does: a person's avatar is their name's portrait
   // what the «Диалоги» tab has changed and not sent yet is what the scene shows
   const d = CUT?.dialogues[id] || DLG.work?.[id] || getDialogue(id); if (!d) { cs.label = `диалог «${id}» не найден`; await sleepTok(1, tok); return; }
   const caption = d.blocking === false;
@@ -426,16 +457,125 @@ function renderCutBgSel() {
   const sel = $('#cutBg'); if (!sel || sel.options.length > 1 || !library) return;
   sel.innerHTML = '<option value="">— без фона —</option>' + library.filter(e => e.cat === 'backgrounds' || e.cat === 'levels').map(e => `<option value="${esc(A(e.url))}">${esc(e.res.replace('res://assets/', ''))}</option>`).join('');
 }
+// everyone a step can name: the hero, the room's boss and door, every person of the game (npc:<id>) and this scene's own
+function cutActors() {
+  const own = CUT?.npcs || {}, game = (cutData?.npcs || []).filter(n => !own[n.id]);
+  return [['player', 'Элиан'], ['boss', 'босс комнаты'], ['door', 'дверь'],
+    ...Object.entries(own).map(([id, n]) => ['npc:' + id, `${str(n.name)} — человек этой сцены`]),
+    ...game.map(n => ['npc:' + n.id, `${str(n.name)}${n.scripted ? ' (появляется только в сценах)' : ''}`])];
+}
 function fillFlagList() { const el = $('#dlCutFlags'); if (el) el.innerHTML = cutKnownFlags().map(v => `<option value="${esc(v)}">`).join(''); }
 function fillDatalists() {
   fillFlagList();
-  $('#dlActors').innerHTML = ['player', 'boss', 'door'].map(v => `<option value="${v}">`).join('');
+  $('#dlActors').innerHTML = cutActors().map(([v, l]) => `<option value="${esc(v)}" label="${esc(l)}">`).join('');
   if (sndLib) {
     $('#dlSfx').innerHTML = [...new Set(sndLib.filter(e => e.cat === 'sfx').map(e => e.name))].map(v => `<option value="${esc(v)}">`).join('');
     $('#dlMusic').innerHTML = [...Object.keys(cutData?.playlists || {}), ...sndLib.filter(e => e.cat === 'music').map(e => e.name)].map(v => `<option value="${esc(v)}">`).join('');
   }
   if (cutData) $('#dlDialogues').innerHTML = [...new Set([...Object.keys(cutData.dialogues), ...cuts.flatMap(c => Object.keys(c.dialogues))])].map(v => `<option value="${esc(v)}">`).join('');
   if (library) $('#dlImages').innerHTML = library.filter(e => ['backgrounds', 'levels', 'cutscenes'].includes(e.cat) || e.res.includes('/cutscenes/')).map(e => `<option value="${esc(e.res)}">`).join('');
+}
+
+/* ---- люди сцены: a person who exists only for this scene (data/npcs "scripted": hidden until «Появиться», never talked to on E) ---- */
+const cutRooms = () => CUT?.attach?.room ? [CUT.attach.room] : (cutData?.played_in?.[CUT?.id] || []);
+function cutFigure(sp, h) {
+  if (!sp?.idle || !sp.cell?.[1]) return '';
+  return `<span style="display:inline-block;flex:none;width:${Math.round(sp.cell[0] * h / sp.cell[1])}px;height:${h}px;background:url('${esc(A(sp.idle))}') 0 0/auto ${h}px no-repeat;image-rendering:pixelated"></span>`;
+}
+function renderCutPeople() {
+  const box = $('#cutPeople'); if (!box) return;
+  if (!CUT) { box.innerHTML = ''; return; }
+  box.innerHTML = `<h3 style="margin:12px 0 4px">Люди сцены</h3>
+    ${Object.entries(CUT.npcs || {}).map(([id, n]) => `<div class="srow" style="cursor:default">${cutFigure(n.sprite, 28)}<b>${esc(str(n.name))}</b>
+      <span class="ss">npc:${esc(id)}${n.at?.room ? ' · ' + esc(n.at.room) : ' · нигде не стоит'}</span><span class="grow"></span>
+      <button class="sm ghost" data-act="cut-npc-appear" data-id="${esc(id)}" title="Шаг «Появиться» с ним — после выбранного шага">＋ Появиться</button>
+      <button class="sm ghost" data-act="cut-npc-edit" data-id="${esc(id)}" title="Имя, вид, где стоит">✎</button><button class="sm ghost danger" data-act="cut-npc-del" data-id="${esc(id)}" title="Убрать из сцены">✕</button></div>`).join('')}
+    <div class="row"><button class="sm" data-act="cut-npc-new">＋ Новый человек</button></div>
+    <div class="note">Человек только для этой сцены: его не видно, пока шаг «Появиться» не позовёт, и заговорить с ним на E нельзя. Тех, кто уже живёт в игре, выбирай прямо в полях «Кто» / «Куда» (npc:…).</div>`;
+}
+// a strip of one row of frames (Fx.add_strip): a guess at how many — near square, and a whole number of them
+function cutGuessFrames(w, h) {
+  const n = Math.max(1, Math.round(w / h));
+  for (let d = 0; d < n; d++) for (const m of [n - d, n + d]) if (m >= 1 && w % m === 0) return m;
+  return 1;
+}
+async function cutPersonDialog(editId) {
+  if (!CUT) return;
+  await loadCutData(); try { await gdLoad(); } catch {}
+  const n = editId ? CUT.npcs[editId] : null, names = n ? { ...(cutData.strings[n.name] || {}), ...(CUT.strings[n.name] || {}) } : {};
+  const strips = cutData.strips || [], people = (cutData.npcs || []).filter(p => p.idle), sizeOf = res => { const e = strips.find(x => x.res === res); return e ? [e.w, e.h] : null; };
+  let look = n ? JSON.parse(JSON.stringify(n.sprite)) : null;
+  const cur = look ? 'strip:' + look.idle : '';
+  const stripOpts = [...strips.map(e => e.res), ...(look && !strips.some(e => e.res === look.idle) ? [look.idle] : [])];
+  const firstDlg = n?.dialogue || (CUT.steps.find(x => x.do === 'dialogue' && x.id) || {}).id || '';
+  const LOC = [['ru', 'Русский'], ['en', 'English'], ['uk', 'Українська'], ['zh_CN', '中文']];
+  const done = dialog(`<h3>${n ? `Человек сцены «${esc(editId)}»` : 'Новый человек для этой сцены'}</h3>
+    <div class="fgrid">
+      <div><label>Имя файла (латиницей)</label><input id="npId" value="${esc(editId || '')}" ${n ? 'disabled' : ''} placeholder="например old_shepherd"></div>
+      <div><label>Смотрит</label><select id="npFace"><option value="left"${n?.face !== 'right' ? ' selected' : ''}>влево</option><option value="right"${n?.face === 'right' ? ' selected' : ''}>вправо</option></select></div>
+      ${LOC.map(([l, t]) => `<div><label>Имя — ${t}</label><input id="npName_${l}" value="${esc(names[l] || '')}"></div>`).join('')}
+    </div>
+    <h3 style="margin:10px 0 4px">Как выглядит</h3>
+    <div class="row" style="margin:0;align-items:flex-start"><canvas id="npPrev" width="96" height="96" style="background:#1b1d24;border-radius:6px;image-rendering:pixelated;flex:none"></canvas>
+      <div class="fgrid" style="flex:1">
+        <div class="wide"><label>Картинка (стоит на месте, кадры в ряд)</label><select id="npLook"><option value="">— выбери —</option>
+          <optgroup label="Как у человека игры">${people.map(p => `<option value="npc:${esc(p.id)}">${esc(str(p.name))} (${esc(p.id)})</option>`).join('')}</optgroup>
+          <optgroup label="Картинки игры (assets/sprites)">${stripOpts.map(r => `<option value="strip:${esc(r)}"${'strip:' + r === cur ? ' selected' : ''}>${esc(r.replace('res://assets/sprites/', ''))}</option>`).join('')}</optgroup></select></div>
+        <div><label>Кадров в ряду</label><input id="npFrames" type="number" min="1" step="1"></div>
+        <div><label>Кадров в секунду</label><input id="npFps" type="number" min="1" step="1" value="${look?.fps || 4}"></div>
+        <div class="wide muted" id="npCell"></div>
+      </div></div>
+    <div class="fgrid">
+      <div><label>Портрет в окне реплик</label><select id="npAvatar"><option value="">— без портрета —</option>${(cutData.portraits || []).map(r => `<option${r === n?.avatar ? ' selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
+      <div><label>Его диалог (игра требует; в сцене он говорит репликами шагов)</label><input id="npDlg" list="dlDialogues" value="${esc(firstDlg)}"></div>
+    </div>
+    <h3 style="margin:10px 0 4px">Где стоит</h3><div id="npPlace"></div>`,
+    [['Готово', d => save(d), 'primary'], ['Отмена']]);
+  const dlgEl = document.getElementById('dlg'), q = sel => dlgEl.querySelector(sel);
+  const getPlace = roomPicker(q('#npPlace'), editId || 'он', n?.at || { room: cutRooms()[0] || '' },
+    { lift: NPC_LIFT, none: 'Не стоит нигде — «Появиться» его не найдёт', note: 'Зелёное — пол, жёлтые — люди, красные — враги. Кликни по полу, где ему стоять: студия ставит его ногами на ближайший пол под кликом. Комната — та, где играет сцена.' });
+  let img = null, frame = 0;
+  const showCell = () => { q('#npCell').textContent = look?.cell ? `кадр ${look.cell[0]}×${look.cell[1]}${look.size ? `, картинка ${look.size[0]}×${look.size[1]}` : ''}${look.size && look.size[0] % look.cell[0] ? ' — не делится на кадры!' : ''}` : ''; };
+  const setLook = v => {
+    if (v.startsWith('npc:')) { const p = people.find(x => x.id === v.slice(4)); look = { idle: p.idle, cell: [...p.cell], fps: p.fps, size: sizeOf(p.idle) }; }
+    else if (v.startsWith('strip:')) { const res = v.slice(6), size = sizeOf(res) || look?.size; look = { idle: res, fps: +q('#npFps').value || 4, size }; const f = size ? cutGuessFrames(size[0], size[1]) : 1; look.cell = size ? [size[0] / f, size[1]] : n?.sprite.cell || [32, 44]; }
+    else look = null;
+    q('#npFrames').value = look?.size ? Math.round(look.size[0] / look.cell[0]) : ''; q('#npFps').value = look?.fps || 4;
+    img = null; frame = 0; if (look) loadImage(A(look.idle)).then(im => { img = im; if (look && !look.size) { look.size = [im.width, im.height]; q('#npFrames').value = Math.round(im.width / look.cell[0]); showCell(); } }).catch(() => {});
+    showCell();
+  };
+  if (look) { const keep = look; setLook('strip:' + keep.idle); look = keep; look.size ||= sizeOf(look.idle); q('#npFrames').value = look.size ? Math.round(look.size[0] / look.cell[0]) : ''; showCell(); }
+  q('#npLook').onchange = e => setLook(e.target.value);
+  q('#npFrames').oninput = e => { const f = Math.max(1, Math.round(+e.target.value || 1)); if (look?.size) { look.cell = [look.size[0] / f, look.size[1]]; showCell(); } };
+  q('#npFps').oninput = e => { if (look) look.fps = Math.max(1, Math.round(+e.target.value || 4)); };
+  const cv = q('#npPrev'), x = cv.getContext('2d'); x.imageSmoothingEnabled = false;
+  const tick = setInterval(() => {
+    if (!dlgEl.open) return clearInterval(tick);
+    x.clearRect(0, 0, 96, 96); if (!img || !look?.cell) return;
+    const [cw, ch] = look.cell, count = Math.max(1, Math.floor(img.width / cw)), k = Math.min(96 / cw, 96 / ch);
+    frame = (frame + 1) % count; x.drawImage(img, frame * cw, 0, cw, ch, (96 - cw * k) / 2, 96 - ch * k, cw * k, ch * k);
+  }, 1000 / Math.max(1, look?.fps || 4));
+  function save() {
+    const id = editId || q('#npId').value.trim().toLowerCase();
+    if (!SCENE_NPC_ID.test(id)) { toast('Имя файла — латиница, цифры и _, с буквы', 'err'); return false; }
+    if (!editId && (CUT.npcs[id] || (cutData.npcs || []).some(p => p.id === id && p.studio !== CUT.id))) { toast(`«${id}» уже есть — выбери другое имя файла`, 'err'); return false; }
+    const vals = Object.fromEntries(LOC.map(([l]) => [l, q('#npName_' + l).value.trim()]).filter(([, v]) => v));
+    if (!vals.ru && !vals.en) { toast('Нужно имя — хотя бы по-русски', 'err'); return false; }
+    if (!look?.idle) { toast('Выбери, как он выглядит', 'err'); return false; }
+    const place = getPlace(); if (!place) { toast('Кликни по полу в комнате, где ему стоять', 'err'); return false; }
+    let key = n?.name;
+    if (!key) { const base = 'SPEAKER_' + id.toUpperCase(); key = base; for (let i = 2; CUT.strings[key] || cutData.strings[key]; i++) key = `${base}_${i}`; }
+    CUT.strings[key] = vals;
+    const sprite = { idle: look.idle, cell: look.cell.map(v => Math.round(v)), fps: look.fps || 4, ...(look.size ? { size: look.size } : {}), ...(look.ground_offset ? { ground_offset: look.ground_offset } : {}) };
+    CUT.npcs[id] = { name: key, dialogue: q('#npDlg').value.trim(), face: q('#npFace').value, sprite, at: place, ...(q('#npAvatar').value ? { avatar: q('#npAvatar').value } : {}) };
+    if (!n && !CUT.steps.some(st => st.do === 'appear' && st.who === 'npc:' + id)) {
+      const at = Math.max(0, CUT.steps.findIndex(st => st.do === 'hold') + 1);
+      CUT.steps.splice(at, 0, { do: 'appear', who: 'npc:' + id, time: 0.6 }); cutStepSel = at;
+      toast(`Добавлен шаг «Появиться» (${at + 1}) — передвинь его, куда нужно`);
+    }
+    saveCut(); renderCutAll();
+  }
+  await done;
 }
 
 /* ---- экспорт катсцены ---- */
@@ -525,6 +665,23 @@ document.addEventListener('click', async e => {
       const at = cutStepSel >= 0 ? cutStepSel + 1 : CUT.steps.length;
       CUT.steps.splice(at, 0, ns); cutStepSel = at; saveCut(); renderSteps(); renderStepEditor(); break;
     }
+    case 'cut-cast-add': case 'cut-cast-auto': case 'cut-cast-del': {
+      const cast = { ...(s.cast && typeof s.cast === 'object' ? s.cast : {}) };
+      if (act === 'cut-cast-del') delete cast[b.closest('.cast-row').querySelector('[data-cp="speaker"]').value];
+      else if (act === 'cut-cast-add') { const sp = [...cutSpeakersOf(cutDialogue(s.id)), ...cutAllSpeakers()].find(x => !(x in cast)); if (!sp) return; cast[sp] = cutActorFor(sp); }
+      else { const talk = cutSpeakersOf(cutDialogue(s.id)); if (!talk.length) return toast('В диалоге шага пока никто не говорит', 'err'); for (const sp of talk) if (!cast[sp]) cast[sp] = cutActorFor(sp); }
+      if (Object.keys(cast).length) s.cast = cast; else delete s.cast;
+      saveCut(); renderSteps(); renderStepEditor(); break;
+    }
+    case 'cut-npc-new': case 'cut-npc-edit': cutPersonDialog(act === 'cut-npc-edit' ? b.dataset.id : null); break;
+    case 'cut-npc-del': {
+      const id = b.dataset.id; if (!confirm(`Убрать «${id}» из сцены? Шаги с ним останутся — поправь их.`)) return;
+      delete CUT.npcs[id]; saveCut(); fillDatalists(); renderCutPeople(); break;
+    }
+    case 'cut-npc-appear': {
+      const id = b.dataset.id, at = cutStepSel >= 0 ? cutStepSel + 1 : Math.max(0, CUT.steps.findIndex(x => x.do === 'hold') + 1);
+      CUT.steps.splice(at, 0, { do: 'appear', who: 'npc:' + id, time: 0.6 }); cutStepSel = at; saveCut(); renderSteps(); renderStepEditor(); break;
+    }
     case 'cut-try-sound': AC().resume?.(); playSfx(s?.[b.dataset.k] || ''); break;
     case 'cut-try-music': AC().resume?.(); playMusic(s?.[b.dataset.k] || ''); setTimeout(stopMusic, 8000); break;
     case 'cut-img-up': {
@@ -601,6 +758,8 @@ document.addEventListener('input', e => {
     else if (ft === 'json') { if (v.trim() === '') v = undefined; else { try { v = JSON.parse(v); t.style.outline = ''; } catch { t.style.outline = '1px solid var(--err)'; return; } } }
     else if (ft === 'list') { const a = v.split(',').map(x => x.trim()).filter(Boolean); v = a.length ? (k === 'if' && a.length === 1 ? a[0] : a) : undefined; }
     else if (ft === 'actor') { v = v.trim(); if (v.startsWith('[')) { try { v = JSON.parse(v); } catch {} } if (v === '') v = undefined; }
+    else if (ft === 'pair') { const a = Array.isArray(s[k]) ? [...s[k]] : ['', '']; a[+t.dataset.pi] = v.trim(); v = a.some(Boolean) ? a : undefined; }
+    else if (ft === 'cast') { v = cutCastFromRows(); }
     else if (ft === 'color') { const tx = t.parentElement.querySelector('[data-ft="text"]'); if (tx) tx.value = v; }
     else v = v === '' ? undefined : v;
     if (v === undefined) delete s[k]; else s[k] = v;
