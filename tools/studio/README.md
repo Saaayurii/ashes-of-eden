@@ -191,9 +191,14 @@ edit still applies, the entry is marked `stale`, and the studio says «База
 override. A bestiary enemy's animation may change its length: with more or
 fewer frames than the game's it is not an override but a strip of the studio's
 own (`assets/sprites/<id>_studio_<anim>.png`, in `projects/files.json`), and
-the animation's path in `data/enemy_archetypes/tree.json` is pointed at it
-(`resizedStrips` in `repo.js`). The hero's strips cannot grow (his `.tres`
-stays the generator's).
+the animation's path is pointed at it (`resizedStrips` in `repo.js`): in
+`data/enemy_archetypes/tree.json` for the tree's own, else in the
+`data/enemies` file that names the strip — its own, up `extends`, then whose
+`like` it borrows (`stripHome` in lib.js). A frame turned off (👁) is left out
+of the strip, so that is how an animation gets shorter; an empty frame added
+changes nothing. A shared copy of a game creature (listed as `shared_<id>`)
+sends as that creature (`gameCharId`). The hero's strips cannot grow (his
+`.tres` stays the generator's).
 
 **It keeps the repository's formatting.** `strings.csv`, dialogue files and
 cutscenes are rewritten byte-identically when unchanged (tests check this

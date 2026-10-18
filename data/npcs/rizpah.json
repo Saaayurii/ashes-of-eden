@@ -1,15 +1,14 @@
 {
   "id": "rizpah",
-  "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn (an old woman on sackcloth, a stick, a small fire)",
+  "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): seated on the rock by her small fire, her own sheet",
   "name": "NPC_RIZPAH",
-  "avatar": "res://assets/portraits/nun.png",
   "dialogue": "npc_rizpah",
   "face": "right",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/nun_v2_idle.png",
-      "walk": "res://assets/sprites/nun_v2_walk.png",
-      "interact": "res://assets/sprites/nun_v2_attack.png"
+      "idle": "res://assets/sprites/rizpah_idle.png",
+      "walk": "res://assets/sprites/rizpah_walk.png",
+      "interact": "res://assets/sprites/rizpah_interact.png"
     },
     "cell": [
       48,

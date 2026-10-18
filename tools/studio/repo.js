@@ -215,10 +215,14 @@ async function commitFiles(files, del, title, body, intoPr = null) {
 // studio can open it again from the branch — on this computer or another one.
 const PROJECT_KIND = { chars: 'chars', bg: 'bgs', cut: 'cuts', workspace: 'workspaces' };
 // a cutscene is named by its id; a character or background by the name she gave it
-const projectPath = (kind, o) => kind === 'workspaces' ? 'tools/studio/projects/workspaces/workspace.json' : `tools/studio/projects/${kind}/${slug(kind === 'cuts' ? o.id : (o.name || o.id))}.json`;
+// a creature of the game named in Russian (Культист в капюшоне) has no Latin to name a file by: its id, which
+// is also the name a copy shared before was kept under — never one sprite.json for them all
+const projectPath = (kind, o) => kind === 'workspaces' ? 'tools/studio/projects/workspaces/workspace.json'
+  : `tools/studio/projects/${kind}/${slug(kind === 'cuts' || !/[a-z0-9]/i.test(o.name || '') ? (kind === 'chars' ? gameCharId(o) : o.id) : o.name)}.json`;
 async function projectFile(kind, obj) {
   if (kind === 'workspaces') return ['tools/studio/projects/workspaces/workspace.json', JSON.stringify(await workspaceBundle()) + '\n'];
   const copy = JSON.parse(JSON.stringify(obj)); delete copy.shared; delete copy.pendingPr; delete copy.dirty;
+  if (kind === 'chars') copy.id = gameCharId(copy);   // build_data lists it as shared_<id> beside the game's again
   if (kind === 'chars') { copy.reference = await shrinkSrc(copy.reference); for (const a of copy.animations) for (const f of a.frames) f.src = await shrinkSrc(f.src); }
   return [projectPath(kind, obj), JSON.stringify(copy) + '\n'];
 }
@@ -330,10 +334,13 @@ async function addOverrides(files, pics) {
 // A character the game draws with a generator (the bestiary, the hero): only the frames she changed,
 // laid into the game's own pictures where they lie (build_data's regions), as overrides.
 async function gameCharOverrides() {
-  const orig = await (await fetch(`import/chars/${encodeURIComponent(P.id)}.sprite.json`, { cache: 'no-store' })).json();
-  // a bestiary enemy's strips are named in the archetype tree, which the studio may edit: an animation
-  // with more or fewer frames than the game's becomes a strip of its own (resizedStrips), not an override
-  const tree = P.origin.generator === 'tools/art/build_bestiary_assets.py';
+  // a copy she shared and opened again (shared_<id>) is the game's creature all the same
+  const id = gameCharId(P), got = await fetch(`import/chars/${encodeURIComponent(id)}.sprite.json`, { cache: 'no-store' });
+  if (!got.ok) throw new Error(`«${P.name}» нет среди персонажей игры (${id}). Открой его заново из списка «Игра · …» и повтори правку там.`);
+  const orig = await got.json();
+  // an enemy's strips are named in the archetype tree or its data/enemies file, which the studio may edit:
+  // an animation with more or fewer frames than the game's becomes a strip of its own (resizedStrips), not an override
+  const tree = !!P.origin.enemy || P.origin.generator === 'tools/art/build_bestiary_assets.py';
   const all = frameEdits(P.animations, orig.animations, tree), pics = {}, direct = {};
   const edits = all.filter(e => !e.resize), resized = all.filter(e => e.resize);
   if (!all.length) throw new Error('Нечего отправлять: ни один кадр не отличается от игры. Поправь кадр (✎) или замени картинку.');
@@ -375,32 +382,40 @@ async function gameCharOverrides() {
   return { files, title: `Studio: ${name} — ${[frames ? `правка ${frames} кадр(ов)` : '', ...strips.map(s => `${s.name} ${s.now} кадр(ов)`)].filter(Boolean).join(', ')}`,
     body: `Правка персонажа игры **${name}**: ${parts.join('; ')}.`,
     notes: [...done.length ? [`Картинки ${name} собирает генератор (${P.origin.generator}); правка лежит в tools/studio/overrides/, и генератор кладёт её поверх своей картинки. Робот студии пересоберёт их в этой же отправке.`] : [],
-      ...strips.length ? [`Анимации ${strips.map(s => s.name).join(', ')} — свои ленты студии; data/enemy_archetypes/tree.json теперь указывает на них${strips.some(s => !s.was) ? ' (новые добавлены строкой в sprite.animations)' : ''}. Если у атаки задан hit_frame, проверь, что такой кадр есть (проверка данных скажет).`] : []] };
+      ...strips.length ? [`Анимации ${strips.map(s => s.name).join(', ')} — свои ленты студии; ${Object.keys(files).filter(f => f.startsWith('data/')).join(', ') || 'данные врага'} теперь указывает на них${strips.some(s => !s.was) ? ' (новые добавлены строкой в sprite.animations)' : ''}. Если у атаки задан hit_frame, проверь, что такой кадр есть (проверка данных скажет).`] : []] };
 }
 // An animation of the bestiary with another number of frames than the game's, or one it does not have
 // yet (idle_to_walk): the whole strip, written as a file of the studio's own (a generator never writes
-// it), and the archetype tree pointed at it — a new animation is a new line in its sprite.animations.
-// → [{name, was, now, path}]
+// it), and the file that names the creature's strips pointed at it — the archetype tree for the tree's
+// own (a new animation is a new line in its sprite.animations), else the data/enemies file that names
+// it (lib.js stripHome). → [{name, was, now, path}]
 async function resizedStrips(files, resized, origAnims) {
   if (!resized.length) return [];
-  const TREE = 'data/enemy_archetypes/tree.json';
-  let text = files[TREE] || await repoText(TREE);
-  const at = JSON.parse(text).findIndex(e => e.id === P.id && e.sprite?.animations);
-  if (at < 0) throw new Error(`${P.name} нет в ${TREE} — длину его анимаций студия поменять не может.`);
+  const TREE = 'data/enemy_archetypes/tree.json', id = gameCharId(P);
+  const text = async path => files[path] ?? await repoText(path);
+  const at = JSON.parse(await text(TREE)).findIndex(e => e.id === id && e.sprite?.animations);
   const W = +P.settings.cellW, H = +P.settings.cellH, out = [], gen = generatedSet();
   for (const r of resized) {
-    const a = P.animations.find(x => x.id === r.anim), fr = a.frames.filter(f => !f.off && processed.has(f.id));
+    const a = P.animations.find(x => x.id === r.anim), live = liveFrames(a), fr = live.filter(f => processed.has(f.id));
     if (!fr.length) throw new Error(`В «${a.name}» нет готовых кадров.`);
+    if (fr.length < live.length) throw new Error(`В «${a.name}» не готов кадр #${a.frames.indexOf(live.find(f => !processed.has(f.id))) + 1} — подожди обработку или выключи его (👁) и отправь ещё раз.`);
     const sheet = mk(W * fr.length, H), sx = sheet.getContext('2d');
     fr.forEach((f, i) => sx.drawImage(processed.get(f.id), i * W, 0));
     // a strip the studio already made for it is written again; the generator's own is left alone
-    const was = r.res ? r.res.replace('res://', '') : '', own = `assets/sprites/${slug(P.id)}_studio_${slug(r.name)}.png`;
+    const was = r.res ? r.res.replace('res://', '') : '', own = `assets/sprites/${slug(id)}_studio_${slug(r.name)}.png`;
     const path = !was || gen.has(was) ? own : was;
     files[path] = await canvasBlob(sheet);
-    if (path !== was) text = patchJson(text, [at, 'sprite', 'animations'], { [r.name]: 'res://' + path });
+    if (path !== was) {
+      let file = TREE, where = [at, 'sprite', 'animations'];
+      if (at < 0) {
+        const home = await stripHome(async e => { try { return JSON.parse(await text(`data/enemies/${e}.json`)); } catch { return null; } }, id, r.name, r.res);
+        if (!home) throw new Error(`Не нашла, где в данных игры названа анимация «${r.name}» у ${P.name} (data/enemy_archetypes/tree.json, data/enemies/${id}.json) — её длину студия поменять не может.`);
+        file = `data/enemies/${home}.json`; where = ['sprite', 'animations'];
+      }
+      files[file] = patchJson(await text(file), where, { [r.name]: 'res://' + path });
+    }
     out.push({ name: r.name, was: r.add ? 0 : origAnims.find(x => x.id === r.anim).regions.length, now: fr.length, path });
   }
-  files[TREE] = text;
   return out;
 }
 // Any other generated picture she replaced whole (a room's painting): what differs from the game's is hers.
@@ -750,11 +765,18 @@ async function enemyWizard() {
   const pick = slot => enemySlotFor(anims, slot)?.id || '';
   const taken = enemyList.some(e => e.id === id);
   let getPlace = null; ewVoices = {}; ewAvatar = null;
-  setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id); });
+  // the base is the whole fight: say what it does, and offer one that shoots to a character that looks like a shooter
+  const shooter = looksRanged(P), base0 = enemyBaseFor(bases, P);
+  const fightNote = bid => { const e = bases.find(x => x.id === bid); if (!e) return '';
+    return shootsFrom(e) ? `Стреляет (${esc(e.attacks.join(' + '))}): снаряд и замах — как у «${esc(e.name.ru || e.id)}».`
+      : `Бьёт вблизи (${esc(e.attacks.join(' + '))}) — не стреляет.${shooter ? ' <b>Персонаж похож на стрелка:</b> выбери образец, который стреляет, иначе в игре он будет бить, а не стрелять.' : ''}`; };
+  setTimeout(() => { const box = document.getElementById('ewPlace'); if (box) getPlace = roomPicker(box, id);
+    const sel = document.getElementById('ewBase'), out = document.getElementById('ewFight');
+    if (sel && out) { const show = () => { out.innerHTML = fightNote(sel.value); }; sel.addEventListener('change', show); show(); } });
   await dialog(`<h3>Сделать «${esc(P.name)}» врагом</h3>
     <div class="fgrid">
       <div><label>Имя файла (латиницей)</label><input id="ewId" value="${esc(taken ? id + '_2' : id)}"></div>
-      <div><label>Похож по бою на…</label><select id="ewBase">${bases.map(e => `<option value="${e.id}">${esc(e.name.ru || e.id)} — ${BEHAVIOUR_RU[e.behaviour]}, ${e.attacks.join(' + ')}, ${e.hp} HP</option>`).join('')}</select></div>
+      <div><label>Похож по бою на…</label><select id="ewBase">${bases.map(e => `<option value="${e.id}" ${e.id === base0 ? 'selected' : ''}>${esc(e.name.ru || e.id)} — ${BEHAVIOUR_RU[e.behaviour]}, ${e.attacks.join(' + ')}, ${e.hp} HP</option>`).join('')}</select><div class="muted" id="ewFight"></div></div>
       <div><label>Имя (рус.)</label><input id="ewNameRu" placeholder="Лучница"></div>
       <div><label>Имя (англ.)</label><input id="ewNameEn" placeholder="Archer"></div>
       <div class="wide"><label>Кто это (рус., для бестиария)</label><textarea id="ewLoreRu" rows="2"></textarea></div>
@@ -773,7 +795,7 @@ async function enemyWizard() {
     <div class="row" style="margin:0"><button class="sm" data-ewv="avatar">⬆ Своя картинка</button><span class="muted" id="ewAvatar">по умолчанию — анимация покоя</span></div>
     <h3 style="margin-top:12px">Где появляется</h3>
     <div id="ewPlace"></div>
-    <div class="note">Бой (здоровье, скорость, атаки) враг берёт у выбранного. Подраться с ним можно сразу на тренировочном дворе в превью.</div>
+    <div class="note">Бой (здоровье, скорость, атаки, стреляет ли и чем) враг берёт у выбранного в «Похож по бою на…». Подраться с ним можно сразу на тренировочном дворе в превью.</div>
     <div class="warn" id="ewErr"></div>`,
     [['→ В игру', d => {
       const v = q => d.querySelector(q).value.trim(), form = { id: slug(v('#ewId')), base: v('#ewBase'), place: getPlace?.() || null, voices: { ...ewVoices }, avatar: ewAvatar,
@@ -782,6 +804,8 @@ async function enemyWizard() {
       const err = !form.id ? 'Нужно имя файла' : enemyList.some(e => e.id === form.id) ? `Враг «${form.id}» в игре уже есть — выбери другое имя` : !form.map.idle ? 'Нужна анимация «покой»'
         : !(form.name.ru || form.name.en) ? 'Нужно имя' : !(form.tip.ru || form.tip.en) ? 'Нужна подсказка «как драться» — без неё игра не примет врага' : '';
       if (err) { d.querySelector('#ewErr').textContent = err; return false; }
+      const fight = bases.find(e => e.id === form.base);
+      if (shooter && fight && !shootsFrom(fight) && !confirm(`«${P.name}» похож на стрелка, а «${fight.name.ru || fight.id}» бьёт вблизи и не стреляет — в игре у него будет ближний бой.\n\nOK — так и задумано\nОтмена — выбрать другой образец`)) return false;
       setTimeout(() => sendToGame(() => enemyFiles(form), 'chars'));
     }, 'primary'], ['Отмена']]);
 }

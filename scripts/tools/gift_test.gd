@@ -348,7 +348,7 @@ func _run() -> void:
 	# Some cards name the night they start appearing on, so a fifth run can
 	# hold something the first could not (Run.gift_locked).
 	var gated: Array = data.abilities.values().filter(
-		func(a): return int(a.get("unlock_nights", 0)) > 0)
+		func(a): return int(a.get("unlock_nights", 0)) > 0 and not a.has("nights"))
 	_assert(not gated.is_empty(), "some gifts are held back for a later night")
 	if not gated.is_empty():
 		var profile = root.get_node("Profile")
@@ -373,11 +373,64 @@ func _run() -> void:
 
 		# A gift with no night named has always been available.
 		var ungated: Array = data.abilities.values().filter(
-			func(a): return int(a.get("unlock_nights", 0)) == 0)
+			func(a): return int(a.get("unlock_nights", 0)) == 0 and not a.has("nights"))
 		profile.data.nights = 0
 		_assert(not ungated.is_empty() and not run.gift_locked(ungated[0]),
 			"a gift with no night named is never held back")
 		profile.data.nights = nights_before
+
+	# --- gifts of one night ---------------------------------------------------
+	# A chapter's gifts carry "nights" (Omens.of_night): dealt in that
+	# chapter's night only, never in the first, the daily or a duel.
+	var night_was: String = game.night
+	var omens = load("res://scripts/run/omens.gd")
+	var seir: Array = data.abilities.values().filter(func(a): return a.get("nights", []).has("seir"))
+	_assert(seir.size() == 6, "Seir has its six gifts (%d)" % seir.size())
+	if not seir.is_empty():
+		game.night = ""
+		_assert(not seir.any(func(a): return omens.of_night(a)), "the first night is no night of Seir's gifts")
+		var first_hand: Array = []
+		for i in 200:
+			first_hand += run._roll_gifts().map(func(a): return a.id)
+		_assert(not seir.any(func(a): return first_hand.has(a.id)), "and no hand of the first night holds one")
+		game.night = "seir"
+		var seir_hand: Array = []
+		for i in 400:
+			seir_hand += run._roll_gifts().map(func(a): return a.id)
+		var dealt: Array = seir.filter(func(a): return not run.gift_locked(a))
+		_assert(dealt.all(func(a): return seir_hand.has(a.id)), "every open gift of Seir turns up in its hands")
+		_assert(seir_hand.any(func(id): return not data.abilities[id].has("nights")),
+			"and the gifts of every night still do")
+		var unrelieved: Dictionary = data.abilities["unrelieved"]
+		var profile_nights: int = root.get_node("Profile").data.nights
+		root.get_node("Profile").data.nights = int(unrelieved.unlock_nights)
+		game.night = ""
+		_assert(not run.gifts_unlocked_tonight().map(func(a): return a.id).has("unrelieved"),
+			"a night that never deals Seir's gift does not announce it")
+		game.night = "seir"
+		_assert(run.gifts_unlocked_tonight().map(func(a): return a.id).has("unrelieved"), "  Seir does")
+		root.get_node("Profile").data.nights = profile_nights
+		game.night = "marah"
+		_assert(not seir.any(func(a): return omens.of_night(a)), "another chapter's night deals none")
+
+	# --- gifts of one night's own ("nights": chapter V's sting and fruit) -------
+	var of_engedi: Array = data.abilities.values().filter(func(a): return (a.get("nights", []) as Array).has("engedi"))
+	_assert(of_engedi.size() == 6, "Engedi has its six gifts (%d)" % of_engedi.size())
+	game.night = ""
+	_assert(not of_engedi.any(func(a): return omens.of_night(a)), "the first night deals none of Engedi's")
+	game.night = "engedi"
+	_assert(of_engedi.all(func(a): return omens.of_night(a)), "the Engedi night deals them all")
+	_assert(omens.of_night(data.abilities["mending_light"]), "  and the gifts of every night beside them")
+	var fasting: Dictionary = data.abilities["fasting"]
+	_assert(is_equal_approx(run.gift_weight(fasting), run.RARITY_WEIGHT.common * run.NIGHT_GIFT_WEIGHT),
+		"  a night's own gift weighs %.0f× its rarity" % run.NIGHT_GIFT_WEIGHT)
+	var engedi_pool: Array = data.abilities.values().filter(func(a): return a.path == "grace" and omens.of_night(a) and not run.gift_locked(a))
+	var own := 0
+	for i in 2000:
+		if (run._weighted_pick(engedi_pool).get("nights", []) as Array).has("engedi"):
+			own += 1
+	_assert(own > 300 and own < 1100, "  Engedi's grace is offered on %d of 2000 deals" % own)
+	game.night = night_was
 	_finish()
 
 

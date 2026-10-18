@@ -72,6 +72,14 @@ func _run() -> void:
 		"  the gift's execute and the rite's on top (%.2f)" % float(player.stats.execute))
 	_check(float(player.stats.execute) <= 1.2, "  under the cap")
 
+	# chapter V's pair (data/resonances/chapter_5.json): the sting sweetens more
+	gift.call("honeyed_sting")
+	_check(not game.resonances.has("sought_not_found"), "Honeyed Sting alone is half a pair")
+	gift.call("seeking_death")
+	_check(game.resonances.has("sought_not_found"), "with Seeking Death it wakes Sought and Not Found")
+	_check(absf(float(player.stats.torment_damage) - 0.5) < 0.001,
+		"  the sting's blows +30 %% and +20 %%, at the cap (%.2f)" % float(player.stats.torment_damage))
+
 	var restored: Array = resonances.active(game.abilities)
 	restored.sort()
 	var kept: Array = game.resonances.duplicate()

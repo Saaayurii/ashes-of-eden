@@ -1,14 +1,14 @@
 {
   "id": "saul",
-  "_art": "stand-in body (matthew); own sheet in docs/CHAPTER6_ART.md",
+  "_art": "drawn by Codex (docs/CHAPTER6_ART.md §3): his own sheet",
   "name": "NPC_SAUL",
   "dialogue": "npc_saul",
   "face": "left",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/matthew_v2_idle.png",
-      "walk": "res://assets/sprites/matthew_v2_walk.png",
-      "interact": "res://assets/sprites/matthew_v2_attack.png"
+      "idle": "res://assets/sprites/saul_idle.png",
+      "walk": "res://assets/sprites/saul_walk.png",
+      "interact": "res://assets/sprites/saul_interact.png"
     },
     "cell": [
       48,

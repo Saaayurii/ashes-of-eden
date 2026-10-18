@@ -899,7 +899,19 @@ const ENEMY_ANIMATIONS = ['idle', 'walk', 'idle_to_walk', 'interact', 'attack', 
 function enemySlotFor(anims, slot) {
   return anims.find(a => a.name === slot) || (slot === 'attack' && anims.find(a => /attack|shoot/.test(a.name))) || null;
 }
-// The post itself; strips: {slot: data URL of a strip of whole cells}.
+// A new enemy fights as the one it extends — attacks, projectile and all. An archer drawn with a bow and
+// made to extend a cultist swings the cultist's knife (ash_archer did): a character that looks like a
+// shooter (a shoot/ranged animation, a bow in its name or description) is offered a base that shoots.
+const SHOOTER_WORDS = /\b(archer|bow|bowman|crossbow|sling|slinger|shoot|shooter|marksman)|лук|лучни|арбалет|стрел|праща/i;
+const looksRanged = p => (p.animations || []).some(a => /shoot|ranged|bow/.test(a.name)) || SHOOTER_WORDS.test(`${p.name || ''} ${p.description || ''}`);
+const shootsFrom = e => (e.attacks || []).includes('ranged');
+// bases: import/enemies.json entries the wizard offers → the id to preselect: a walker or caster that
+// shoots for a shooter (one that also stands its ground in melee last), the first otherwise
+function enemyBaseFor(bases, p) {
+  if (!looksRanged(p)) return bases[0]?.id || '';
+  const rank = e => (shootsFrom(e) ? 0 : 4) + (e.behaviour === 'flyer' ? 2 : 0) + ((e.attacks || []).length > 1 ? 1 : 0);
+  return [...bases].sort((a, b) => rank(a) - rank(b))[0]?.id || '';
+}
 function liveMessage({ name, base, cell, fps, strips }) {
   return { type: 'ashes-live', name: name || '', extends: base || 'cultist', cell: [+cell[0], +cell[1]], fps: +fps || 8, strips };
 }
@@ -1000,12 +1012,14 @@ const overrideFiles = path => ({ edit: OVERRIDE_DIR + path, mask: OVERRIDE_DIR +
 // archetype tree), so an animation with another number of frames is not an override but a strip of its
 // own — {resize: true, anim, name, res, w, h}, with no frame edits for it — and an animation the game
 // does not have yet, named as Enemy plays it (ENEMY_ANIMATIONS), is a new strip: {…, add: true, res: null}.
-// An animation she added and left empty is not sent.
+// An animation she added and left empty is not sent. A frame turned off (👁) or left without a picture
+// is not in the strip: turning one off is how a bestiary animation gets shorter.
+const liveFrames = a => a.frames.filter(f => !f.off && f.src);
 function frameEdits(anims, orig, resizable = false) {
   const out = [];
   for (const a of anims) {
     const o = orig.find(x => x.id === a.id) || orig.find(x => x.name && x.name === a.name);
-    if (!o && !a.frames.some(f => !f.off)) continue;
+    if (!o && !liveFrames(a).length) continue;
     if (!o && resizable && ENEMY_ANIMATIONS.includes(a.name)) {
       const [, , , w, h] = orig.find(x => (x.regions || []).length)?.regions[0] || [];
       out.push({ resize: true, add: true, anim: a.id, name: a.name, res: null, w, h });
@@ -1014,14 +1028,14 @@ function frameEdits(anims, orig, resizable = false) {
     if (!o && resizable) throw new Error(`Анимацию «${a.name}» игра не знает. Назови её так, как её играет враг: ${ENEMY_ANIMATIONS.join(', ')}.`);
     if (!o) throw new Error(`Анимации «${a.name}» нет у этого персонажа в игре — новую анимацию добавляют новым персонажем.`);
     const n = (o.regions || []).length;
-    if (resizable && n && a.frames.length !== n) {
+    if (resizable && n && (liveFrames(a).length !== n || a.frames.slice(0, n).some(f => f.off || !f.src))) {
       const [res, , , w, h] = o.regions[0];
       out.push({ resize: true, anim: a.id, name: o.name || a.name, res, w, h });
       continue;
     }
-    if (a.frames.length > n) throw new Error(`В «${a.name}» кадров больше, чем в игре (${n}): ленту, которую собирает генератор, можно править, но не удлинять.`);
+    if (liveFrames({ frames: a.frames.slice(n) }).length) throw new Error(`В «${a.name}» кадров больше, чем в игре (${n}): ленту, которую собирает генератор, можно править, но не удлинять.`);
     a.frames.forEach((f, i) => {
-      if (f.off) return;
+      if (f.off || i >= n) return;
       const of = o.frames[i], [res, x, y, w, h] = o.regions[i];
       const whole = !of || f.id !== of.id || f.src !== of.src || (+f.dx || 0) !== (+of.dx || 0) || (+f.dy || 0) !== (+of.dy || 0) || (+f.sc || 1) !== (+of.sc || 1);
       const pixels = whole ? [] : Object.keys(f.patch || {}).map(k => k.split(',').map(Number)).filter(([px, py]) => px >= 0 && py >= 0 && px < w && py < h);
@@ -1029,6 +1043,28 @@ function frameEdits(anims, orig, resizable = false) {
     });
   }
   return out;
+}
+// The creature of the game a project edits. A copy she shared (tools/studio/projects) and opened again
+// is listed as shared_<id> beside the game's own, and is still that creature.
+const gameCharId = p => p.origin?.enemy || (p.origin?.kind === 'game' ? String(p.id).replace(/^shared_/, '') : p.id);
+// The data/enemies file that names a strip a creature plays, for one outside the archetype tree:
+// its own file, then up "extends" (the base names what a variant does not), then the creature its
+// "like" borrows from (Enemy._setup_sprite). res: the strip it plays now, or null for an animation
+// it does not have yet (the first file of the chain that names any). get(id) → that file's JSON
+// (or a promise of it), null when there is none. → the id of the file, or null.
+async function stripHome(get, id, name, res, seen = new Set()) {
+  const chain = [];
+  for (let at = id; at && !seen.has(at); at = chain[chain.length - 1].e.extends) {
+    seen.add(at);
+    const e = await get(at); if (!e) break;
+    chain.push({ at, e });
+  }
+  for (const { at, e } of chain) {
+    const a = e.sprite?.animations;
+    if (a && (res ? a[name] === res : true)) return at;
+  }
+  const like = chain.find(c => c.e.sprite?.like)?.e.sprite.like;
+  return like ? stripHome(get, like, name, res, seen) : null;
 }
 // A mask (1 = hers) of where two RGBA pictures differ by more than tol in any channel, OR'd into `into`.
 function diffMask(a, b, w, h, tol = 8, into = new Uint8Array(w * h)) {
@@ -1497,5 +1533,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, frameEdits, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, looksRanged, shootsFrom, enemyBaseFor, frameEdits, liveFrames, gameCharId, stripHome, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
 })(typeof module !== 'undefined' ? module.exports : window);

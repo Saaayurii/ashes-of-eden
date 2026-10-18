@@ -1,15 +1,14 @@
 {
   "id": "zacchaeus",
-  "_art": "stand-in body (matthew) and portrait (matthew); own sheet and portrait in docs/CHAPTER4_ART.md",
+  "_art": "drawn by Codex (docs/CHAPTER4_ART.md §3): astride his branch, his own sheet",
   "name": "NPC_ZACCHAEUS",
-  "avatar": "res://assets/portraits/matthew.png",
   "dialogue": "npc_zacchaeus",
   "face": "left",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/matthew_v2_idle.png",
-      "walk": "res://assets/sprites/matthew_v2_walk.png",
-      "interact": "res://assets/sprites/matthew_v2_attack.png"
+      "idle": "res://assets/sprites/zacchaeus_idle.png",
+      "walk": "res://assets/sprites/zacchaeus_walk.png",
+      "interact": "res://assets/sprites/zacchaeus_interact.png"
     },
     "cell": [
       48,

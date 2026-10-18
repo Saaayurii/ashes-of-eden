@@ -1,15 +1,15 @@
 {
   "id": "lazarus",
-  "_art": "stand-in body (severin); own sheet in docs/CHAPTER2_ART.md (the portrait is drawn)",
+  "_art": "drawn by Codex (docs/CHAPTER2_ART.md §3): lying by the milestone, his own sheet; the portrait is drawn",
   "name": "NPC_LAZARUS",
   "avatar": "res://assets/portraits/lazarus.png",
   "dialogue": "npc_lazarus",
   "face": "left",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/severin_v2_idle.png",
-      "walk": "res://assets/sprites/severin_v2_walk.png",
-      "interact": "res://assets/sprites/severin_v2_attack.png"
+      "idle": "res://assets/sprites/lazarus_idle.png",
+      "walk": "res://assets/sprites/lazarus_walk.png",
+      "interact": "res://assets/sprites/lazarus_interact.png"
     },
     "cell": [
       48,
