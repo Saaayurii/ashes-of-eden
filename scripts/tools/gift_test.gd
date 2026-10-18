@@ -413,6 +413,24 @@ func _run() -> void:
 		game.night = "marah"
 		_assert(not seir.any(func(a): return omens.of_night(a)), "another chapter's night deals none")
 
+	# --- gifts of one night's own ("nights": chapter V's sting and fruit) -------
+	var of_engedi: Array = data.abilities.values().filter(func(a): return (a.get("nights", []) as Array).has("engedi"))
+	_assert(of_engedi.size() == 6, "Engedi has its six gifts (%d)" % of_engedi.size())
+	game.night = ""
+	_assert(not of_engedi.any(func(a): return omens.of_night(a)), "the first night deals none of Engedi's")
+	game.night = "engedi"
+	_assert(of_engedi.all(func(a): return omens.of_night(a)), "the Engedi night deals them all")
+	_assert(omens.of_night(data.abilities["mending_light"]), "  and the gifts of every night beside them")
+	var fasting: Dictionary = data.abilities["fasting"]
+	_assert(is_equal_approx(run.gift_weight(fasting), run.RARITY_WEIGHT.common * run.NIGHT_GIFT_WEIGHT),
+		"  a night's own gift weighs %.0f× its rarity" % run.NIGHT_GIFT_WEIGHT)
+	var engedi_pool: Array = data.abilities.values().filter(func(a): return a.path == "grace" and omens.of_night(a) and not run.gift_locked(a))
+	var own_deals := 0
+	for i in 2000:
+		if (run._weighted_pick(engedi_pool).get("nights", []) as Array).has("engedi"):
+			own_deals += 1
+	_assert(own_deals > 300 and own_deals < 1100, "  Engedi's grace is offered on %d of 2000 deals" % own_deals)
+
 	# --- every chapter's gifts, each in its own night only ---------------------
 	# `"nights": [...]` (Omens.of_night): Blood Feud means nothing where no two
 	# armies fight, so the first night never deals it and its own night does.

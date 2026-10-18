@@ -21,8 +21,20 @@
   "essence": 16,
   "voice": "gate_warden",
   "sprite": {
-    "like": "gate_warden",
-    "tint": "#e8ecf4"
+    "cell": [
+      108,
+      52
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/host_spearman_v2_idle.png",
+      "walk": "res://assets/sprites/host_spearman_v2_walk.png",
+      "attack": "res://assets/sprites/host_spearman_v2_attack.png",
+      "attack_alt": "res://assets/sprites/host_spearman_v2_attack_alt.png",
+      "special": "res://assets/sprites/host_spearman_v2_special.png",
+      "hurt": "res://assets/sprites/host_spearman_v2_hurt.png",
+      "death": "res://assets/sprites/host_spearman_v2_death.png"
+    }
   },
   "attacks": [
     {
@@ -48,5 +60,6 @@
       "weight": 1,
       "animation": "attack_alt"
     }
-  ]
+  ],
+  "_art": "its own atlas, a zealot of the Host in whitened mail (Codex, docs/CHAPTER3_ART.md §2)"
 }

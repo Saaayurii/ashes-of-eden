@@ -18,6 +18,9 @@ static var ROOMS: Array:
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 ## How often each rarity is offered, relative to the others (docs/BALANCE.md).
 const RARITY_WEIGHT := {"common": 55.0, "rare": 30.0, "epic": 12.0, "legendary": 3.0}
+## A gift of this night's own (its "nights") is dealt this much more often than
+## its rarity alone would: two to a path among some twenty, it would hardly show.
+const NIGHT_GIFT_WEIGHT := 3.0
 ## Ash for a room cleared without a wound, and for one where a boss stood.
 ## Chests pay 15, a boss 10–25: this is a tip for clean play, not a wage.
 const UNSCATHED_ASH := 3
@@ -1135,15 +1138,22 @@ static func gifts_unlocked_tonight() -> Array:
 var _gift_rng := RandomNumberGenerator.new()
 
 
+## How heavily [param ability] weighs in a deal: its rarity, times
+## NIGHT_GIFT_WEIGHT when it is a gift of this night's own.
+static func gift_weight(ability: Dictionary) -> float:
+	var weight := float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+	return weight * NIGHT_GIFT_WEIGHT if not (ability.get("nights", []) as Array).is_empty() else weight
+
+
 func _weighted_pick(pool: Array) -> Dictionary:
 	var total := 0.0
 	for ability in pool:
-		total += float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+		total += gift_weight(ability)
 	if total <= 0.0:
 		return {}
 	var roll := (_gift_rng.randf() if Game.daily != "" else randf()) * total
 	for ability in pool:
-		roll -= float(RARITY_WEIGHT.get(ability.get("rarity", "common"), 55.0))
+		roll -= gift_weight(ability)
 		if roll <= 0.0:
 			return ability
 	return pool.back()

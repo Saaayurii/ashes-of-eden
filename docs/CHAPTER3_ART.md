@@ -1,7 +1,7 @@
 # Глава III — заказ картин
 
-*Картины главы «Третья труба · Гнев» (docs/CHAPTER3.md). Ничего ещё не нарисовано: этот файл —
-заказ. Рисует Codex CLI (`codex exec`, встроенная генерация картинок) по промптам ниже, как
+*Картины главы «Третья труба · Гнев» (docs/CHAPTER3.md). Что уже нарисовано и что ещё стоит на
+заглушке — в «Состоянии»; столбцы «Сейчас стоит» ниже — заглушки, какими они были до картин. Рисует Codex CLI (`codex exec`, встроенная генерация картинок) по промптам ниже, как
 рисовал Сеир; то, что у него выйдет слабо, уходит художнице (её ChatGPT, навык `ashes-art`,
 `.claude/skills/ashes-art/SKILL.md`). Пока картины нет, глава играется на заглушках — они названы
 в каждой строке.*
@@ -11,20 +11,21 @@
 | Что | Статус | Чем заменено пока |
 |---|---|---|
 | 12 панелей 1280×720 `assets/levels/marah_*.png` | **12 из 12**: `gallows`, `ford`, `host_bank`, `field`, `bitter_wells`, `dry_bed` нарисованы Codex, `legion_bank`, `trench`, `parley`, `siege`, `springs_path`, `wormwood_spring` — генерацией изображений ChatGPT (те же промпты, тот же образец стиля); все обведены, reach / stairs / void зелёны | — (ночь `marah` — все двенадцать комнат, обе развилки, точка отдыха у загона пастуха) |
-| Атласы `host_spearman`, `host_archer`, `host_sentinel`, `legion_brute`, `host_standard_bearer`, `legion_centurion`, `wormwood` | **не нарисовано** | `"extends"` + `sprite.like` + `tint` (CHAPTER3.md §8): `gate_warden`, `ash_archer`, `wraith`, `shield_bearer`, `gate_warden` ×1,15, `fallen_champion`, `ophanim` |
+| Атласы `host_spearman`, `host_archer`, `host_sentinel`, `legion_brute`, `host_standard_bearer`, `legion_centurion` | **нарисованы Codex**, нарезаны `build_bestiary_assets.py` (`GAME_CELLS`, летуны — `FLYERS`), у каждого свои семь полос `<id>_v2_*` | — |
+| Атлас `wormwood` (босс) | **не нарисовано** (у Codex кончилась квота на этой картине) | `"extends"` + `sprite.like` `ophanim` + `tint` |
 | `legion_possessed`, `wormwood_shade` | **не рисовать** — варианты на старых полосах | `possessed_villager` (тёплая сажа), `wraith` (зелёный) |
-| Портреты врагов (7) и босса | **не нарисовано** | портрет того, чью полосу он берёт |
-| Листы тел людей (`malchus`, `marah_scout`, `malchus_hanged`, `rizpah`, `parley_bannerbearer`, `parley_centurion`) | **не нарисовано** | `severin_v2` (Малх), `villager_v2` (разведчик, повешенный Малх — его лист с полосой `hanged`), `nun_v2` (Рицпа), `stranger_v2` (Знаменосец, тон белый), `knight_of_ash_v2` (Сотник, тёплый) |
-| Портреты людей (Малх, Рицпа, Знаменосец, Сотник, Полынь) | **не нарисовано** | `severin`, `nun`, `stranger`, `knight_of_ash`, `ophanim` |
+| Портреты врагов (7) и босса | **не нарисовано**; бестиарий показывает живую полосу, портрет нужен только Полыни (`speakers` `WORMWOOD`, `LEGION_CENTURION`, `HOST_BANNER`) | диалог без портрета |
+| Листы тел людей | **нарисованы Codex**: `malchus` (и `malchus_far`), `malchus_hanged`, `rizpah`, `parley_bannerbearer`, `parley_centurion`. Висящего Малха Codex рисует без верёвки (модерация не пропускает петлю), верёвку дорисовывает `build_people_sheets.py` (`HANGED`, `_rope`) | — |
+| Лист `marah_scout` | **не нарисовано** — модерация Codex не пропускает петлю на шее; переписан промпт без петли (связанные руки, чурбак), ждёт квоты | `villager_v2` |
+| Портреты людей (Малх, Рицпа, Знаменосец, Сотник, разведчик, Полынь) | **не нарисовано**; чужие портреты (`severin`, `nun`, `gate_warden`, `fallen_champion`) сняты — диалог идёт без портрета, пока не будет своего | — (у разведчика пока `possessed_villager`) |
 | Полоса горькой воды `assets/fx/liquids/body_bitter.png` | **не нарисовано** (генератор) | `body_bog.png` |
-| Стили снарядов `host_arrow`, `wormwood`, `wormwood_ember` | **не нарисовано** | полосы `lance`, `wraith`, `ember` с тоном |
+| Стили снарядов `host_arrow`, `wormwood` | **нарисованы Codex** (`*_flight_v3.png`, режет `tools/art/build_flight_strips.py` из `projectiles/source/`) | — |
+| Стиль снаряда `wormwood_ember` | **не нарисовано** (квота) | полоса `ophanim` с тоном |
 | Пластины глубины (`depth/<room>_backfill.png`) | **не нарисовано** | без них проёмы стоят |
 | Передний план (`front_layers.json`) | **не нарисовано** | без него |
 | Замурованные стены у 3 тайников (`reveals`) | **не нарисовано** | тайник стоит открыто |
 
-Порядок: сначала 12 панелей (без них нет главы), затем атлас Полыни и обеих армий (копейщик,
-громила — их больше всего на экране), затем люди (их видно в сценах), затем глубина и передний
-план.
+Порядок: атлас Полыни, лист разведчика и портреты людей, затем глубина и передний план.
 
 ## 0. Библия стиля главы
 
@@ -120,7 +121,7 @@
 > between trench posts at the far right, about 97 percent across.
 > **Style:** …(общий блок)… **Constraints:** …(общий блок)…
 
-## 2. Враги — атласы 7×7 (не нарисованы)
+## 2. Враги — атласы 7×7 (нарисованы Codex, кроме Полыни)
 
 Каждый — `assets/sprites/enemy_atlases/<id>.png`, сетка 7×7, ряды сверху вниз: idle, walk,
 attack, attack_alt, special, hurt, death (`ART_DIRECTION.md`, «Enemies»). **В каждом ряду атаки
@@ -148,7 +149,7 @@ attack, attack_alt, special, hurt, death (`ART_DIRECTION.md`, «Enemies»). **В
 Портрет каждого для бестиария — `assets/portraits/<id>.png`, 192×192, по одному кадру idle; у
 Полыни — ядро крупно, трещины, пар.
 
-## 3. Люди — листы NPC и портреты (не нарисованы)
+## 3. Люди — листы NPC (нарисованы Codex, кроме разведчика) и портреты (не нарисованы)
 
 Лист — три полосы (`idle`, `walk`, `interact`), клетки 48×48, как `assets/sprites/villager_v2_*`.
 Портрет для диалогов — `assets/portraits/<id>.png`, 192×192 (`avatar` у NPC и `speakers` в

@@ -1,15 +1,15 @@
 {
   "id": "malchus_far",
-  "_art": "stand-in body (villager); chapter III's Malchus sheet once it exists",
+  "_art": "Malchus's own sheet (docs/CHAPTER3_ART.md §3), seen from afar",
   "name": "SPEAKER_REVELLER",
   "dialogue": "npc_euphrates_silent",
   "scripted": true,
   "face": "right",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/villager_v2_idle.png",
-      "walk": "res://assets/sprites/villager_v2_walk.png",
-      "interact": "res://assets/sprites/villager_v2_attack.png"
+      "idle": "res://assets/sprites/malchus_idle.png",
+      "walk": "res://assets/sprites/malchus_walk.png",
+      "interact": "res://assets/sprites/malchus_interact.png"
     },
     "cell": [
       48,

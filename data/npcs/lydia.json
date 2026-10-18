@@ -1,15 +1,14 @@
 {
   "id": "lydia",
-  "_art": "stand-in body (villager) and portrait (naomi); own sheet and portrait in docs/CHAPTER4_ART.md",
+  "_art": "drawn by Codex (docs/CHAPTER4_ART.md §3): the dyer with her paddle and purple cloth, her own sheet",
   "name": "NPC_LYDIA",
-  "avatar": "res://assets/portraits/naomi.png",
   "dialogue": "npc_lydia",
   "face": "left",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/villager_v2_idle.png",
-      "walk": "res://assets/sprites/villager_v2_walk.png",
-      "interact": "res://assets/sprites/villager_v2_attack.png"
+      "idle": "res://assets/sprites/lydia_idle.png",
+      "walk": "res://assets/sprites/lydia_walk.png",
+      "interact": "res://assets/sprites/lydia_interact.png"
     },
     "cell": [
       48,
