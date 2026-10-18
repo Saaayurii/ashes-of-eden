@@ -474,7 +474,7 @@
       ]
     },
     "host_arrow": {
-      "sheet": "res://assets/sprites/projectiles/zealot_flight_v3.png",
+      "sheet": "res://assets/sprites/projectiles/host_arrow_flight_v3.png",
       "frames": 4,
       "fps": 15,
       "shader": 1,
@@ -554,7 +554,7 @@
       ]
     },
     "wormwood": {
-      "sheet": "res://assets/sprites/projectiles/wraith_flight_v3.png",
+      "sheet": "res://assets/sprites/projectiles/wormwood_flight_v3.png",
       "frames": 4,
       "fps": 12,
       "shader": 2,
@@ -732,8 +732,7 @@
       ]
     },
     "incense": {
-      "_art": "stand-in strip until incense_flight_v3.png is drawn (docs/CHAPTER6_ART.md): a slow warm puff",
-      "sheet": "res://assets/sprites/projectiles/ash_flight_v3.png",
+      "sheet": "res://assets/sprites/projectiles/incense_flight_v3.png",
       "frames": 4,
       "fps": 6,
       "shader": 3,

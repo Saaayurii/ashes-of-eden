@@ -1,0 +1,5 @@
+[
+  {"id": "sought_not_found", "name": "RES_SOUGHT_NOT_FOUND", "description": "RES_SOUGHT_NOT_FOUND_DESC",
+   "needs": {"gifts": ["honeyed_sting", "seeking_death"]},
+   "effects": [{"type": "stat", "stat": "torment_damage", "value": 0.2}]}
+]

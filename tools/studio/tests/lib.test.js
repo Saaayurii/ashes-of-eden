@@ -495,6 +495,78 @@ test('frameEdits hands a bestiary animation of another length over whole, longer
   assert.equal(L.frameEdits([{ id: 'cultist_idle', name: 'idle', frames: frames(3) }], orig, true).some(e => e.resize), false, 'the same length stays an override');
 });
 
+test('frameEdits: a frame turned off shortens a bestiary animation, an empty one added does not lengthen it', () => {
+  const orig = [{ id: 'cultist_idle', name: 'idle', frames: [0, 1, 2].map(i => ({ id: `cultist_idle_${i}`, src: `s${i}` })),
+    regions: [0, 1, 2].map(i => ['res://assets/sprites/cultist_v2_idle.png', i * 32, 0, 32, 40]) }];
+  const same = () => orig[0].frames.map(f => ({ ...f }));
+  const off = same(); off[1].off = true;
+  assert.equal(L.frameEdits([{ id: 'cultist_idle', name: 'idle', frames: off }], orig, true)[0]?.resize, true, 'three frames, one off: a strip of two');
+  const blank = [...same(), { id: 'new', src: null }];
+  assert.deepEqual(L.frameEdits([{ id: 'cultist_idle', name: 'idle', frames: blank }], orig, true), [], 'an empty frame added is not a change');
+  const swapped = [...same(), { id: 'new', src: 'n' }]; swapped[0].off = true;
+  assert.equal(L.frameEdits([{ id: 'cultist_idle', name: 'idle', frames: swapped }], orig, true)[0]?.resize, true, 'one off, one added: the strip is rebuilt, not overridden by index');
+  assert.deepEqual(L.liveFrames({ frames: swapped }).map(f => f.id), ['cultist_idle_1', 'cultist_idle_2', 'new']);
+});
+
+test('the enemy wizard offers an archer a base that shoots, never the cultist\'s knife by default', () => {
+  const bases = [
+    { id: 'censer_monk', behaviour: 'caster', attacks: ['nova', 'ranged'] },
+    { id: 'cultist', behaviour: 'walker', attacks: ['melee'] },
+    { id: 'host_archer', behaviour: 'caster', attacks: ['ranged'] },
+    { id: 'wraith', behaviour: 'flyer', attacks: ['ranged'] }];
+  const archer = { name: 'ash_archer', description: 'hooded archer with a longbow', animations: [{ name: 'idle' }] };
+  assert.ok(L.looksRanged(archer));
+  assert.ok(L.looksRanged({ name: 'Лучница', animations: [] }), 'in Russian');
+  assert.ok(L.looksRanged({ name: 'x', animations: [{ name: 'shoot' }] }), 'a shoot animation');
+  assert.ok(!L.looksRanged({ name: 'cultist', description: 'a cultist with a knife, elbow out', animations: [{ name: 'attack' }] }), '«elbow» is no bow');
+  assert.equal(L.enemyBaseFor(bases, archer), 'host_archer', 'a grounded pure shooter first');
+  assert.equal(L.enemyBaseFor(bases, { name: 'brute', animations: [] }), 'censer_monk', 'anyone else: the list as it is');
+  assert.ok(L.shootsFrom(bases[3]) && !L.shootsFrom(bases[1]));
+  // the real list the wizard reads
+  const list = path.join(__dirname, '../import/enemies.json');
+  if (fs.existsSync(list)) {
+    const real = JSON.parse(fs.readFileSync(list, 'utf8')).filter(e => !e.boss && !e.extends && ['walker', 'flyer', 'caster'].includes(e.behaviour) && e.bestiary !== false);
+    assert.ok(L.shootsFrom(real.find(e => e.id === L.enemyBaseFor(real, archer))), 'the game has a shooter to offer');
+  }
+});
+
+test('a shared copy of a game creature is that creature', () => {
+  assert.equal(L.gameCharId({ id: 'shared_shade', origin: { kind: 'game', generator: 'x' } }), 'shade');
+  assert.equal(L.gameCharId({ id: 'shared_x', origin: { kind: 'game', enemy: 'cultist' } }), 'cultist');
+  assert.equal(L.gameCharId({ id: 'shared_mine' }), 'shared_mine', 'a project of her own keeps its id');
+});
+
+test('stripHome finds the data/enemies file that names a strip: its own, its base, or whose it borrows', async () => {
+  const raw = {
+    cultist: { id: 'cultist', sprite: { animations: { idle: 'res://a/cultist_idle.png', walk: 'res://a/cultist_walk.png' }, cell: [64, 64] } },
+    cult_slinger: { id: 'cult_slinger', extends: 'cultist', sprite: { like: 'cultist', tint: '#fff' } },
+    acolyte: { id: 'acolyte', extends: 'preacher' },
+    preacher: { id: 'preacher', sprite: { animations: { idle: 'res://a/preacher_idle.png' } } },
+    caller: { id: 'caller', sprite: { like: 'cultist' } },
+    loop_a: { id: 'loop_a', extends: 'loop_b' }, loop_b: { id: 'loop_b', extends: 'loop_a' },
+  };
+  const get = id => raw[id] || null;
+  assert.equal(await L.stripHome(get, 'cult_slinger', 'idle', 'res://a/cultist_idle.png'), 'cultist', 'up extends');
+  assert.equal(await L.stripHome(get, 'acolyte', 'idle', 'res://a/preacher_idle.png'), 'preacher');
+  assert.equal(await L.stripHome(get, 'caller', 'walk', 'res://a/cultist_walk.png'), 'cultist', 'through like');
+  assert.equal(await L.stripHome(get, 'cult_slinger', 'idle_to_walk', null), 'cultist', 'a new animation: the file that names the others');
+  assert.equal(await L.stripHome(get, 'cult_slinger', 'idle', 'res://a/other.png'), null);
+  assert.equal(await L.stripHome(get, 'loop_a', 'idle', null), null, 'a loop of extends ends');
+});
+
+test('every own-strip creature of the game is found a home for each strip it plays', async () => {
+  const root = path.join(__dirname, '../../..'), dir = path.join(root, 'data/enemies');
+  const get = id => { try { return JSON.parse(fs.readFileSync(path.join(dir, id + '.json'), 'utf8')); } catch { return null; } };
+  const tree = new Set(JSON.parse(fs.readFileSync(path.join(root, 'data/enemy_archetypes/tree.json'), 'utf8')).filter(e => e.sprite).map(e => e.id));
+  const chars = path.join(root, 'tools/studio/import/chars');
+  if (!fs.existsSync(chars)) return;   // build_data.py not run here
+  for (const f of fs.readdirSync(chars)) {
+    const c = JSON.parse(fs.readFileSync(path.join(chars, f), 'utf8'));
+    if (!c.origin?.enemy || tree.has(L.gameCharId(c))) continue;
+    for (const a of c.animations) assert.ok(await L.stripHome(get, L.gameCharId(c), a.name, a.file), `${c.id} ${a.name}: ${a.file}`);
+  }
+});
+
 test('frameEdits hands a bestiary character an animation the game does not have yet as a new strip', () => {
   const orig = [{ id: 'shade_idle', name: 'idle', frames: [0, 1].map(i => ({ id: `shade_idle_${i}`, src: `s${i}` })),
     regions: [0, 1].map(i => ['res://assets/sprites/shade_studio_idle.png', i * 132, 0, 132, 88]) }];

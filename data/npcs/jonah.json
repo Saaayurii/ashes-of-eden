@@ -1,15 +1,15 @@
 {
   "id": "jonah",
-  "_art": "stand-in body (matthew); own sheet in docs/CHAPTER2_ART.md (the portrait is drawn)",
+  "_art": "drawn by Codex (docs/CHAPTER2_ART.md §3): seated on the roof's edge, his own sheet and portrait",
   "name": "NPC_JONAH",
   "avatar": "res://assets/portraits/jonah.png",
   "dialogue": "npc_jonah",
   "face": "right",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/matthew_v2_idle.png",
-      "walk": "res://assets/sprites/matthew_v2_walk.png",
-      "interact": "res://assets/sprites/matthew_v2_attack.png"
+      "idle": "res://assets/sprites/jonah_idle.png",
+      "walk": "res://assets/sprites/jonah_walk.png",
+      "interact": "res://assets/sprites/jonah_interact.png"
     },
     "cell": [
       48,

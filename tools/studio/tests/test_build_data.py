@@ -258,7 +258,7 @@ class Enemies(unittest.TestCase):
                 self.assertTrue(e["char"] in chars or e["char"] in shared, f"{e['id']} wears {e['char']}, which the studio does not list")
         by = {e["id"]: e for e in listed}
         self.assertEqual((by["cult_caller"]["char"], by["cult_caller"]["tint"]), ("cultist", "#c8b4ff"))
-        self.assertEqual(by["host_archer"]["char"], "ash_archer")   # the studio's own project
+        self.assertEqual(by["elite_cultist"]["char"], "cultist")   # the studio's own project
         self.assertEqual(chars["cultist"]["name"], by["cultist"]["name"]["ru"])
         self.assertEqual(chars["ophanim_seal"]["origin"]["generator"], "tools/art/make_ophanim_seals.py")
         for c in chars.values():
