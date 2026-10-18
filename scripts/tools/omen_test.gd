@@ -70,6 +70,8 @@ func _run() -> void:
 	var away: bool = omens.of_night(data.abilities.get("loosened_chain", {}))
 	_check(here and not away and omens.of_night(data.abilities.get("seal_of_order", {"nights": ["?"]})),
 		"Loosened Chain is dealt in the Euphrates night only; chapter I's gifts in every night")
+	var tyre_only: Array = data.omens.values().filter(func(o): return o.get("nights", []).has("tyre"))
+	_check(tyre_only.size() == 3, "Tyre has three omens of its own (%d)" % tyre_only.size())
 	var a := RandomNumberGenerator.new()
 	var b := RandomNumberGenerator.new()
 	a.seed = 77
@@ -150,6 +152,17 @@ func _run() -> void:
 	game.omen = ""
 	_check(is_equal_approx(vials.ash_multiplier(), 1.0) and float(vials.rule("promote_chance")) == 0.0,
 		"a plain night is a plain night")
+	# Tyre's own (docs/CHAPTER4.md §7): the dark and the lamps are rules too
+	game.omen = "third_of_the_day"
+	_check(is_equal_approx(float(vials.rule("dark")), 1.33) and is_equal_approx(float(vials.rule("essence")), 1.3),
+		"A Third of the Day: a deeper dark, more essence")
+	game.omen = "debt_called_in"
+	_check(is_equal_approx(float(vials.rule("lamp_price")), 2.0) and int(vials.rule("flasks")) == 1,
+		"The Debt Called In: lamps at twice the price, one more flask")
+	game.omen = "woe_woe_woe"
+	_check(is_equal_approx(float(vials.rule("enemy_damage")), 1.2) and is_equal_approx(vials.ash_multiplier(), 1.4),
+		"Woe, Woe, Woe: harder blows, richer Ash")
+	game.omen = ""
 
 	# --- the world says it: the crone's router has a line per omen ------------------
 	var box = load("res://scripts/ui/dialogue_box.gd")

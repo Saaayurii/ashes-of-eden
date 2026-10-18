@@ -4,7 +4,7 @@
   "epithet": "BOSS_EPITHET_ABADDON",
   "lore": "ENEMY_ABADDON_LORE",
   "tip": "TIP_ABADDON",
-  "hp": 1450,
+  "hp": 1650,
   "speed": 110,
   "damage": 0,
   "attack_interval": 0.7,
