@@ -5,7 +5,7 @@
   "lore": "ENEMY_FOUR_BOUND_LORE",
   "tip": "TIP_FOUR_BOUND",
   "_art": "stand-in: the knight of ash's strips, cold and pale, until its own atlas is drawn; the chains are the game's (Tether)",
-  "hp": 1600,
+  "hp": 1250,
   "speed": 58,
   "damage": 0,
   "attack_interval": 1.0,

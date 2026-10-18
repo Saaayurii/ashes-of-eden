@@ -4,7 +4,7 @@
   "name": "ENEMY_LOCUST_HERALD",
   "lore": "ENEMY_LOCUST_HERALD_LORE",
   "tip": "TIP_LOCUST_HERALD",
-  "hp": 260,
+  "hp": 280,
   "armor": 0.15,
   "size": 15,
   "essence": 50,

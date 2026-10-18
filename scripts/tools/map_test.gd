@@ -78,6 +78,30 @@ func _run() -> void:
 	_check(_node(nodes, "seir_road").step == 0 and _node(nodes, "seir_road").state == "here", "and starts at its road")
 	_check(_node(nodes, "seir_gate").state == "ahead" and _node(nodes, "seir_square").state == "unknown",
 		"its own furthest room, not the first night's, hides what is past it")
+
+	# every night of the campaign: a column per step, every room once and in a
+	# place, a fork's ways side by side, somewhere to rest on the way
+	for night in root.get_node("Data").nights():
+		var id := str(night.id)
+		root.get_node("Data").use_night(id)
+		var way: Array = route.rooms()
+		nodes = map_script.layout(way, [], str(way[0]), 99)
+		columns = {}
+		var unplaced: Array = []
+		var rests := 0
+		for node in nodes:
+			columns[int(node.step)] = true
+			if str(node.place) == "":
+				unplaced.append(str(node.path).get_file().get_basename())
+			if node.rest:
+				rests += 1
+		var label := id if id != "" else "first"
+		_check(nodes.size() == way.size() and columns.size() == route.length(way), "%s: %d rooms in %d columns" % [label, nodes.size(), columns.size()])
+		_check(unplaced.is_empty(), "%s: every room is in a place %s" % [label, unplaced])
+		_check(rests > 0, "%s: a rest point on the way (%d)" % [label, rests])
+		var forked := nodes.filter(func(n) -> bool: return n.row != 0.0)
+		_check(forked.all(func(n) -> bool: return forked.any(func(m) -> bool: return m.step == n.step and m.row == -n.row)),
+			"%s: each fork's ways share a column (%d rooms on forks)" % [label, forked.size()])
 	root.get_node("Data").use_night("")
 
 	# --- kept in a save, and opened from the pause menu -----------------------

@@ -4,7 +4,7 @@
   "lore": "ENEMY_CENSER_MONK_LORE",
   "tip": "TIP_CENSER_MONK",
   "_art": "its own atlas, hooded, a censer on its chain (Codex, docs/CHAPTER6_ART.md)",
-  "hp": 54,
+  "hp": 68,
   "speed": 50,
   "damage": 0,
   "attack_interval": 1.0,

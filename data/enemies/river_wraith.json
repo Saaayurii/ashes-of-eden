@@ -5,7 +5,7 @@
   "lore": "ENEMY_RIVER_WRAITH_LORE",
   "tip": "TIP_RIVER_WRAITH",
   "_art": "its own atlas, silt-green — a spirit of the river (Codex)",
-  "hp": 46,
+  "hp": 58,
   "speed": 70,
   "aggro_range": 460,
   "color": "#5a7a6a",

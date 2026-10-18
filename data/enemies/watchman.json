@@ -4,7 +4,7 @@
   "lore": "ENEMY_WATCHMAN_LORE",
   "tip": "TIP_WATCHMAN",
   "epithet": "BOSS_EPITHET_WATCHMAN",
-  "hp": 1100,
+  "hp": 1550,
   "speed": 44,
   "damage": 0,
   "attack_interval": 1.0,

@@ -4,7 +4,7 @@
   "lore": "ENEMY_SEA_WRAITH_LORE",
   "tip": "TIP_SEA_WRAITH",
   "_art": "the wraith's own strips, recoloured — an honest reuse: a spirit of the drowned sea",
-  "hp": 34,
+  "hp": 42,
   "speed": 68,
   "damage": 6,
   "attack_interval": 0.8,
