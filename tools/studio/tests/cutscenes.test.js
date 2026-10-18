@@ -107,7 +107,7 @@ test('a person made for one scene is written as the validator wants an NPC, and 
   // checked before sending
   const own = extra => ({ ...ctx, own: { zz_shepherd: { ...person, ...extra } }, scene: 'zz_scene', rooms: ['graveyard_cross'],
     gameNpcs: new Map(npcs.map(n => [n.id, n._studio || ''])), scripted: new Set(npcs.filter(n => n.scripted).map(n => n.id)), missing: () => [] });
-  const scene = [{ do: 'hold' }, { do: 'appear', who: 'npc:zz_shepherd', time: 0.6 }, { do: 'camera', between: ['player', 'npc:zz_shepherd'] }, { do: 'release' }];
+  const scene = [{ do: 'hold' }, { do: 'appear', who: 'npc:zz_shepherd', time: 0.6 }, { do: 'camera', between: ['player', 'npc:zz_shepherd'] }, { do: 'face', who: 'npc:zz_shepherd', dir: -1 }, { do: 'release' }];
   assert.deepEqual(L.cutProblems(scene, own({})).err, [], 'her own person is an actor of the scene');
   assert.deepEqual(L.cutProblems(scene, own({})).warn, []);
   const problems = (extra, id) => { const c = own(extra); if (id) c.own = { [id]: c.own.zz_shepherd }; return L.cutProblems(scene, c); };
@@ -122,6 +122,9 @@ test('a person made for one scene is written as the validator wants an NPC, and 
   const c = own({}); c.missing = () => ['uk', 'zh_CN'];
   assert.ok(L.cutProblems(scene, c).warn.some(m => m.includes('uk, zh_CN')));
   assert.ok(L.cutProblems(scene.filter(s => s.do !== 'appear'), own({})).warn.some(m => m.includes('zz_shepherd')), 'unseen until it appears');
+  // the game's own scenes aim a camera or a burst at the spot before a person comes, and vanish them branch by branch: no warning there
+  for (const f of fs.readdirSync(path.join(ROOT, 'data/cutscenes')))
+    assert.ok(!L.cutProblems(JSON.parse(read('data/cutscenes/' + f)).steps, own({})).warn.some(m => m.includes('Не видно')), f);
 
   // the room table: placed once, placing again moves them, the rest of the table untouched
   const before = read('tools/rooms/studio_rooms.json');

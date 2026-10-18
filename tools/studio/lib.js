@@ -768,16 +768,16 @@ function cutProblems(steps, ctx) {
   }
   // a person hidden until called (npc.gd "scripted") is not seen before an "appear"
   const hidden = id => !!own[id] || !!ctx.scripted?.has(id), shown = new Set(), unseen = new Set();
-  const look = (who, kind) => { const n = String(who ?? ''); if (n.startsWith('npc:') && kind !== 'appear' && hidden(n.slice(4)) && !shown.has(n.slice(4))) unseen.add(n.slice(4)); };
+  const look = (who, kind) => { const n = String(who ?? ''); if (n.startsWith('npc:') && kind !== 'appear' && kind !== 'vanish' && hidden(n.slice(4)) && !shown.has(n.slice(4))) unseen.add(n.slice(4)); };
   let holds = 0, choiceFlags = new Set(), skipLosers = new Set();
   steps.forEach((s, i) => {
     const at = `шаг ${i + 1}`, kind = s.do;
     if (!(kind in CUTSCENE_NEEDS)) { err.push(`${at}: неизвестный шаг «${kind}»`); return; }
     for (const f of CUTSCENE_NEEDS[kind]) if (s[f] === undefined || s[f] === '') err.push(`${at}: нужно поле «${f}»`);
     if (s.who !== undefined && s.who !== '') actor(s.who, at);
-    [s.who, s.to, s.at, ...(Array.isArray(s.between) ? s.between : []), ...(s.cast && typeof s.cast === 'object' ? Object.values(s.cast) : [])].forEach(w => look(w, kind));
+    look(s.who, kind);   // only what acts on the body: a camera or a burst may aim at the spot before they come
     if (kind === 'appear' && String(s.who || '').startsWith('npc:')) shown.add(String(s.who).slice(4));
-    if (kind === 'vanish' && String(s.who || '').startsWith('npc:')) shown.delete(String(s.who).slice(4));
+    if (kind === 'vanish' && String(s.who || '').startsWith('npc:') && !s.if && !s.unless && !s.path) shown.delete(String(s.who).slice(4));   // a branch's vanish leaves the others
     if (kind === 'dialogue' && s.cast !== undefined) {
       if (!s.cast || typeof s.cast !== 'object' || Array.isArray(s.cast)) err.push(`${at}: «камера на говорящих» — кто говорит → на кого смотреть`);
       else for (const [who, a] of Object.entries(s.cast)) {
