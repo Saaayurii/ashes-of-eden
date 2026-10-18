@@ -3,7 +3,7 @@
   "name": "ENEMY_FEASTER",
   "lore": "ENEMY_FEASTER_LORE",
   "tip": "TIP_FEASTER",
-  "hp": 120,
+  "hp": 90,
   "speed": 30,
   "damage": 0,
   "attack_interval": 1.0,

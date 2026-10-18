@@ -235,6 +235,8 @@ func _on_bestiary_unlocked(enemy_id: String) -> void:
 
 
 func _hide_boss_bar_unless_boss() -> void:
+	if not is_inside_tree():
+		return  # deferred past the end of the scene
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if enemy.get("stats") is Dictionary and enemy.stats.get("boss", false) and not enemy.is_dead():
 			return

@@ -89,6 +89,32 @@ func _run() -> void:
 		game.practice = ""
 		net.active = false
 
+	# the campaign as game.json tells it: from a fresh profile every dawn, in
+	# order, opens the next night and no other, through to the finale's night
+	profile.data.dawns = {}
+	profile.data.wins = 0
+	var chain: Array = data.nights()
+	for i in chain.size():
+		var night: Dictionary = chain[i]
+		var label: String = night.id if night.id != "" else "the first night"
+		_check(campaign.night_open(night), "%s is open after %d dawn(s) in order" % [label, i])
+		if i + 1 < chain.size():
+			_check(not campaign.night_open(chain[i + 1]), "%s waits for %s's dawn" % [chain[i + 1].id, label])
+			# a night ahead of its turn stays shut however many dawns are counted
+			if i + 2 < chain.size():
+				profile.data.wins = i + 2
+				_check(not campaign.night_open(chain[i + 2]), "%s waits for %s too, not only for %d dawns" % [chain[i + 2].id, chain[i + 1].id, i + 2])
+		data.use_night(str(night.id))
+		game.night = str(night.id)
+		game.alignment = {"grace": 0, "temptation": 0, "will": 0}
+		profile.data.wins = i + 1
+		campaign.record_dawn()
+	var finale: Dictionary = data.game.get("finale", {})
+	var last: Dictionary = chain[chain.size() - 1]
+	_check(str(finale.get("room", "")) == str((last.rooms as Array).back()), "the finale is the last room of the last night (%s)" % finale.get("room", ""))
+	_check(bool(finale.get("ends_campaign", false)), "the finale ends the campaign")
+
+	profile.data.dawns = {}
 	campaign.allow_in_tools = false
 	campaign.record_dawn()
 	_check(profile.data.dawns.is_empty(), "a tool script records no dawn")
