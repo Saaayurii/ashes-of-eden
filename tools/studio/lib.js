@@ -706,6 +706,90 @@ function cutsceneJson(id, steps) {
   return `{\n  "id": ${JSON.stringify(id)},\n  "steps": [\n${steps.map(s => '    ' + fmtStep(s)).join(',\n')}\n  ]\n}\n`;
 }
 
+// A painted picture's import as the Web build wants it (tools/export/check_lossy.py: a picture
+// under a lossy glob in .gitignore must have its .import committed with compress/mode=1).
+// No uid and no imported path: Godot writes both on its first import and keeps these params.
+function lossyImport(res) {
+  return `[remap]\n\nimporter="texture"\ntype="CompressedTexture2D"\nmetadata={\n"vram_texture": false\n}\n\n[deps]\n\nsource_file="${res}"\n\n[params]\n\n` +
+    ['compress/mode=1', 'compress/high_quality=false', 'compress/lossy_quality=0.85', 'compress/uastc_level=0', 'compress/rdo_quality_loss=0.0',
+      'compress/hdr_compression=1', 'compress/normal_map=0', 'compress/channel_pack=0', 'mipmaps/generate=false', 'mipmaps/limit=-1', 'roughness/mode=0',
+      'roughness/src_normal=""', 'process/channel_remap/red=0', 'process/channel_remap/green=1', 'process/channel_remap/blue=2', 'process/channel_remap/alpha=3',
+      'process/fix_alpha_border=true', 'process/premult_alpha=false', 'process/normal_map_invert_y=false', 'process/hdr_as_srgb=false',
+      'process/hdr_clamp_exposure=false', 'process/size_limit=0', 'detect_3d/compress_to=1'].join('\n') + '\n';
+}
+
+// What validate_data.gd would say about one cutscene (_check_cutscenes, _check_actor, the
+// dialogues it plays, _check_story_flags), and what the game does that she may not expect.
+// ctx: dialogue(id) → the dialogue or null, image(res) → whether the picture exists,
+// key(k) → whether the string exists, npcs: Set of npc ids, flags: gdFlags(...) of the whole
+// game with this scene in it. Change _check_cutscenes, change this.
+const CUTSCENE_NEEDS = { hold: [], release: [], letterbox: [], wait: ['time'], camera: [], title: [], flash: [], fx: ['kind'], presence: [],
+  move: ['who'], walk: ['who'], anim: ['who', 'anim'], face: ['who', 'dir'], dialogue: ['id'], shake: [], sound: ['name'], music: ['name'], fade: ['to'],
+  appear: ['who'], vanish: ['who'], panel: ['image'], panel_clear: [] };
+const CUTSCENE_FX = ['ash', 'sparkle', 'dust', 'puff', 'light', 'debris'];
+function cutProblems(steps, ctx) {
+  const err = [], warn = [], flagsOf = v => v == null || v === '' ? [] : [].concat(v).map(String);
+  const actor = (who, at) => {
+    const n = String(who);
+    if (['player', 'boss', 'door'].includes(n)) return;
+    if (n.startsWith('npc:')) { if (ctx.npcs && !ctx.npcs.has(n.slice(4))) err.push(`${at}: нет такого NPC «${n.slice(4)}»`); return; }
+    err.push(`${at}: «${n}» — не персонаж (player, boss, door, npc:<id>)`);
+  };
+  let holds = 0, choiceFlags = new Set(), skipLosers = new Set();
+  steps.forEach((s, i) => {
+    const at = `шаг ${i + 1}`, kind = s.do;
+    if (!(kind in CUTSCENE_NEEDS)) { err.push(`${at}: неизвестный шаг «${kind}»`); return; }
+    for (const f of CUTSCENE_NEEDS[kind]) if (s[f] === undefined || s[f] === '') err.push(`${at}: нужно поле «${f}»`);
+    if (s.who !== undefined && s.who !== '') actor(s.who, at);
+    if (kind === 'camera') {
+      if (s.between !== undefined) { if (!Array.isArray(s.between) || s.between.length !== 2) err.push(`${at}: камера «между» — ровно два персонажа`); else s.between.forEach(a => actor(a, at)); }
+      else if (s.to === undefined || s.to === '') err.push(`${at}: камере нужно «к кому» или «между двумя»`);
+      else if (!Array.isArray(s.to)) actor(s.to, at);
+    }
+    if ((kind === 'move' || kind === 'walk')) {
+      if (s.to === undefined && s.by === undefined) err.push(`${at}: нужно «куда» или «на сколько»`);
+      else if (s.to !== undefined && !Array.isArray(s.to)) actor(s.to, at);
+    }
+    if (kind === 'fx') { if (s.kind !== undefined && !CUTSCENE_FX.includes(String(s.kind))) err.push(`${at}: эффект — один из ${CUTSCENE_FX.join(', ')}`); if (s.at !== undefined && !Array.isArray(s.at)) actor(s.at, at); }
+    if (kind === 'title') {
+      if (s.who === undefined && s.name === undefined) err.push(`${at}: титру нужно «кто» или своё имя`);
+      if (s.at !== undefined && !['top', 'bottom'].includes(String(s.at))) err.push(`${at}: титр стоит сверху или снизу`);
+      for (const k of ['name', 'subtitle']) if (s[k] !== undefined && ctx.key && !ctx.key(s[k])) err.push(`${at}: нет строки «${s[k]}»`);
+    }
+    if (kind === 'panel' && s.image && ctx.image && !ctx.image(s.image)) err.push(`${at}: нет картинки ${s.image}`);
+    if (s.path !== undefined && !['grace', 'temptation', 'will'].includes(String(s.path))) err.push(`${at}: путь — grace, temptation или will`);
+    for (const k of ['if', 'unless']) for (const f of flagsOf(s[k])) {
+      if (ctx.flags && !ctx.flags[f]?.set.length) err.push(`${at}: флаг «${f}» нигде не ставится — ${k === 'if' ? 'шаг никогда не сыграет' : 'условие всегда выполнено'}`);
+      if (k === 'if' && choiceFlags.has(f)) skipLosers.add(f);
+    }
+    if (kind === 'hold') holds++; else if (kind === 'release') holds--;
+    if (kind === 'dialogue' && s.id) {
+      const d = ctx.dialogue(s.id);
+      if (!d) { err.push(`${at}: нет диалога «${s.id}»`); return; }
+      const nodes = d.nodes || {}, caption = d.blocking === false;
+      if (!nodes[d.start]) err.push(`${at}: у диалога «${s.id}» нет начальной реплики`);
+      if (!caption && s.wait === false) warn.push(`${at}: «Ждать конца: нет» не действует — диалог в нижней панели игра всё равно ждёт`);
+      for (const [nid, n] of Object.entries(nodes)) {
+        const w = `${at}, ${s.id}#${nid}`;
+        if (n.next && !nodes[n.next]) err.push(`${w}: «дальше» ведёт в несуществующую «${n.next}»`);
+        if (n.choices && caption) err.push(`${w}: в субтитрах не бывает ответов`);
+        if (n.text && ctx.key && !ctx.key(n.text)) err.push(`${w}: пустая реплика (нет текста)`);
+        (n.choices || []).forEach((c, ci) => {
+          if (c.next && !nodes[c.next]) err.push(`${w}: ответ ${ci + 1} ведёт в несуществующую «${c.next}»`);
+          if (c.text && ctx.key && !ctx.key(c.text)) err.push(`${w}: у ответа ${ci + 1} нет текста`);
+          for (const f of c.effect?.set_flags || []) {
+            choiceFlags.add(f);
+            if (ctx.flags && !ctx.flags[f]?.read.length) warn.push(`${w}: флаг «${f}» ответа ${ci + 1} никто не читает — выбор ни на что не влияет`);
+          }
+        });
+      }
+    }
+  });
+  if (holds > 0) err.push('управление забрано («Забрать управление») и не возвращено («Вернуть управление»)');
+  if (skipLosers.size) warn.push(`Если игрок пропустит сцену, ответов не будет: шаги «только если ${[...skipLosers].join(', ')}» не сыграют. Вариант без флага — тот, что увидит пропустивший.`);
+  return { err: [...new Set(err)], warn: [...new Set(warn)] };
+}
+
 // Where one changed take of a sound goes so that CI stays green: a file a
 // generator writes (tools/check_generators.py) is never rewritten — a numbered
 // take beside it wins in Audio._clip, and dropping a generated take is allowed.
@@ -1533,5 +1617,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, looksRanged, shootsFrom, enemyBaseFor, frameEdits, liveFrames, gameCharId, stripHome, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, looksRanged, shootsFrom, enemyBaseFor, frameEdits, liveFrames, gameCharId, stripHome, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, lossyImport, CUTSCENE_NEEDS, cutProblems, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
 })(typeof module !== 'undefined' ? module.exports : window);

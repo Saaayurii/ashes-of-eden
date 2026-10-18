@@ -11,7 +11,7 @@ async function loadCutData() {
 }
 const migrateCut = c => { c.kind = 'cutscene'; c.steps ||= []; c.dialogues ||= {}; c.strings ||= {}; c.images ||= {}; return c; };
 let cutSaveTimer = null;
-function saveCut() { if (!CUT) return; CUT.updated = Date.now(); CUT.dirty = true; trackChange('cut'); clearTimeout(cutSaveTimer); cutSaveTimer = setTimeout(() => { if (dbOk) DB.put(CUT, 'cutscenes').catch(() => {}); }, 400); }
+function saveCut() { if (!CUT) return; CUT.updated = Date.now(); CUT.dirty = true; trackChange('cut'); cutCheckSoon(); clearTimeout(cutSaveTimer); cutSaveTimer = setTimeout(() => { if (dbOk) DB.put(CUT, 'cutscenes').catch(() => {}); }, 400); }
 async function cutUpsert(c) { const i = cuts.findIndex(x => x.id === c.id); if (i >= 0) cuts[i] = c; else cuts.push(c); if (dbOk) try { await DB.put(c, 'cutscenes'); } catch {} }
 async function cutInit() { try { cuts = ((await DB.all('cutscenes')) || []).map(migrateCut); } catch { cuts = []; } let last = null; try { last = localStorage.getItem('ss_lastcut'); } catch {} CUT = cuts.find(c => c.id === last) || cuts[0] || null; }
 async function importGameCutscenes() {
@@ -77,7 +77,32 @@ function stepSummary(s) {
 function renderCutSel() {
   $('#cutSel').innerHTML = cuts.slice().sort((a, b) => a.id.localeCompare(b.id)).map(c => `<option value="${esc(c.id)}" ${c === CUT ? 'selected' : ''}>${esc(c.id)}</option>`).join('') || '<option>—</option>';
 }
-function renderCutAll() { trackChange('cut'); renderCutSel(); $('#cutEmpty').style.display = CUT ? 'none' : ''; renderCutBgSel(); renderSteps(); renderStepEditor(); drawCutFrame(); }
+function renderCutAll() { trackChange('cut'); renderCutSel(); $('#cutEmpty').style.display = CUT ? 'none' : ''; renderCutBgSel(); renderSteps(); renderStepEditor(); drawCutFrame(); cutCheck(); }
+/* what validate_data.gd would refuse, before she sends it (lib.js cutProblems over the whole game's flags, this scene in it) */
+let cutCheckTimer = 0;
+function cutCheckSoon() { clearTimeout(cutCheckTimer); cutCheckTimer = setTimeout(cutCheck, 300); }
+const cutDialogue = id => CUT?.dialogues[id] || DLG.work?.[id] || getDialogue(id);
+const cutHasText = k => !!(CUT?.strings[k]?.ru || CUT?.strings[k]?.en || cutData?.strings[k]?.ru || cutData?.strings[k]?.en);
+async function cutCheck() {
+  const box = $('#cutChecks'); if (!box) return;
+  if (!CUT) { box.innerHTML = ''; return; }
+  let world = null; try { await gdLoad(); world = WORLD.data.files; } catch {}
+  const files = {}, own = new Set(Object.keys(CUT.dialogues));
+  for (const [p, doc] of Object.entries({ ...(world || {}), ...(WORLD?.work || {}) })) {
+    if (p.startsWith('data/dialogues/')) { const keep = [].concat(doc).filter(d => !own.has(d?.id)); if (keep.length) files[p] = keep; continue; }
+    files[p] = doc;
+  }
+  files[`data/cutscenes/${CUT.id}.json`] = { id: CUT.id, steps: CUT.steps };
+  files['data/dialogues/~studio.json'] = Object.values(CUT.dialogues);
+  const flags = world ? gdFlags(files, { read: GD.data.flags_read_in_code, set: GD.data.flags_set_in_code, tests: GD.data.flags_for_tests, awaited: GD.data.flags_awaited }) : null;
+  const npcs = world ? new Set(Object.entries(files).filter(([p]) => p.startsWith('data/npcs/')).flatMap(([, d]) => [].concat(d).map(n => n?.id)).filter(Boolean)) : null;
+  const known = new Set((library || []).map(e => e.res));
+  const { err, warn } = cutProblems(CUT.steps, { dialogue: cutDialogue, key: cutHasText, npcs, flags,
+    image: res => !!CUT.images[res] || !library || known.has(res) });
+  box.innerHTML = !err.length && !warn.length ? '<div class="muted" style="padding:4px 2px">✓ Проверка: ошибок нет</div>'
+    : `<div class="card" style="margin:6px 0;${err.length ? 'border-color:var(--err)' : ''}"><b>Проверка</b> <span class="muted">${err.length ? `ошибок: ${err.length} — игра не примет сцену, пока их не исправить` : 'ошибок нет, есть замечания'}</span>
+      ${err.map(m => `<div class="warn" style="color:var(--err)">✕ ${esc(m)}</div>`).join('')}${warn.map(m => `<div class="warn">⚠ ${esc(m)}</div>`).join('')}</div>`;
+}
 function renderSteps() {
   if (!CUT) { $('#stepList').innerHTML = ''; return; }
   $('#stepList').innerHTML = CUT.steps.map((s, i) => {
@@ -139,6 +164,7 @@ function dialogueIncoming(d) {
   }
   return inc;
 }
+const CUT_PATHS = [['grace', 'благодать'], ['temptation', 'искушение'], ['will', 'воля']];
 const cutLineText = (key, loc) => { const v = loc === 'en' ? strEn(key) : str(key); return v === key ? '' : v; };
 function cutNextSel(d, v, attr, self) {
   return `<select ${attr} style="width:auto;max-width:260px"><option value="">— конец диалога —</option>${Object.keys(d.nodes).filter(k => k !== self).map(k => `<option value="${esc(k)}"${k === v ? ' selected' : ''}>${esc(k)}${d.nodes[k].branches ? ' (развилка)' : ' — ' + esc(cutLineText(d.nodes[k].text, 'ru').slice(0, 30) || '(пусто)')}</option>`).join('')}</select>`;
@@ -171,6 +197,7 @@ function renderDialogueEditor(id) {
           <div class="row" style="margin:2px 0 0"><label style="margin:0" title="Флаг запоминает выбор: шаги катсцены после диалога могут идти только при нём («Условия» шага), его видят и другие диалоги">ставит флаги <input data-dc="flags" list="dlCutFlags" value="${esc((c.effect?.set_flags || []).join(', '))}" placeholder="например stayed_with_agnes" style="width:200px"></label>
             <span class="muted">→</span>${cutNextSel(d, c.next, 'data-dc="next"', nid)}
             <button class="sm" data-act="dlg-after-choice" title="Новая реплика, которую услышат только после этого ответа">＋ Реплика после ответа</button></div>
+          <div class="row" style="margin:2px 0 0"><span class="muted" title="Сколько этот ответ добавляет к скрытому счётчику пути; шаги «Только на пути» и ауру героя решает тот, что впереди">путь:</span>${CUT_PATHS.map(([p, l]) => `<label style="margin:0">${l} <input type="number" step="1" data-dc="eff.${p}" value="${c.effect?.[p] ?? ''}" style="width:52px"></label>`).join('')}</div>
         </div>`).join('')}
         <div class="row" style="margin:4px 0 0">${n.choices?.length ? '' : `<span class="muted">дальше →</span>${cutNextSel(d, n.next, 'data-dl="next"', nid)}<button class="sm" data-act="dlg-after" title="Новая реплика сразу после этой">＋ Реплика после</button>`}
           <button class="sm" data-act="dlg-add-choice"${caption ? ' disabled title="В субтитрах выбора не бывает"' : ' title="Игрок выберет ответ; у каждого ответа — свои реплики и свои флаги"'}>＋ Ответ</button></div>
@@ -250,7 +277,13 @@ function drawCutFrame() {
   x.restore();
 }
 function cutLoop() { requestAnimationFrame(cutLoop); if (mode === 'cut') drawCutFrame(); }
-function sleepTok(sec, tok) { return new Promise(r => { if (tok.stop || !sec) return r(); const t = setTimeout(r, sec * 1000); tok.wake.push(() => { clearTimeout(t); r(); }); }); }
+function sleepTok(sec, tok) { return new Promise(r => { if (tok.stop || tok.instant || !sec) return r(); const t = setTimeout(r, sec * 1000); tok.wake.push(() => { clearTimeout(t); r(); }); }); }
+// «⏭ Пропустить сцену»: what two presses do in the game — the step in hand cut short, a dialogue closed unanswered, the rest applied at once
+function cutSkip() {
+  if (!cutRun) return cutPlay(Math.max(0, cutStepSel), true);
+  cutRun.instant = true; tweens.forEach(t => { t.obj[t.key] = t.to; }); tweens = []; cs.title = null; cs.flashA = 0;
+  const w = cutRun.wake; cutRun.wake = []; w.forEach(f => f());
+}
 function cutStop() { if (cutRun) { cutRun.stop = true; cutRun.wake.forEach(f => f()); } cutRun = null; cutCur = -1; cutWaiter = null; cutHits = []; stopPreview(); stopMusic(); }
 function stopMusic() { try { musicSrc?.stop(); } catch {} musicSrc = null; }
 async function sfxUrl(name) {
@@ -341,7 +374,8 @@ async function playDialogue(id, tok) {
   cs.line = null; cutHits = [];
 }
 async function runStep(s, tok) {
-  const T = s.time ?? 0;
+  const I = tok.instant, T = I ? 0 : s.time ?? 0;   // a skip: what is left applies at once, nothing is shown or heard (Cutscene._run instant)
+  if (I && ['wait', 'dialogue', 'title', 'flash', 'shake', 'sound', 'fx'].includes(s.do)) return;
   cs.label = `${STEP_TYPES[s.do]?.label || s.do}: ${stepSummary(s)}${s.if || s.unless || s.path ? '  (с условием)' : ''}`;
   switch (s.do) {
     case 'letterbox': tween(cs, 'bars', s.on === false ? 0 : 1, T); return sleepTok(T, tok);
@@ -349,7 +383,10 @@ async function runStep(s, tok) {
     case 'camera': tween(cs, 'zoom', s.to === 'player' ? 1 : (s.zoom ?? cs.zoom), T); return sleepTok(T, tok);
     case 'move': case 'walk': case 'appear': case 'vanish': return sleepTok(T, tok);
     case 'anim': case 'face': case 'hold': case 'release': case 'fx': return sleepTok(0.15, tok);
-    case 'dialogue': { const p = playDialogue(s.id, tok); if (s.wait !== false) await p; return; }
+    case 'dialogue': {   // a dialogue in the bottom panel holds the scene whatever «wait» says (Cutscene._dialogue)
+      const d = CUT?.dialogues[s.id] || DLG.work?.[s.id] || getDialogue(s.id), p = playDialogue(s.id, tok);
+      if (s.wait !== false || d?.blocking !== false) await p; return;
+    }
     case 'title': {
       cs.title = { name: s.name ? str(s.name) : s.who === 'boss' ? '«Имя босса»' : (s.who || ''), sub: s.subtitle ? str(s.subtitle) : s.who === 'boss' ? 'эпитет босса' : '', at: s.at };
       if (s.sound) playSfx(s.sound);
@@ -366,24 +403,24 @@ async function runStep(s, tok) {
       cs.panel = { img: im, alpha: T ? 0 : 1, drift: s.drift ?? 0.05, driftTime: s.drift_time ?? 8, pan: s.pan, t0: performance.now() };
       if (T) tween(cs.panel, 'alpha', 1, T); return sleepTok(T, tok);
     }
-    case 'panel_clear': if (cs.panel) tween(cs.panel, 'alpha', 0, T || 0.5); await sleepTok(T || 0.5, tok); cs.panel = null; return;
+    case 'panel_clear': if (cs.panel) tween(cs.panel, 'alpha', 0, I ? 0 : T || 0.5); await sleepTok(T || 0.5, tok); cs.panel = null; return;
     case 'presence':
-      if (s.on === false) { if (cs.presence) tween(cs.presence, 'a', 0, T || 0.6); return sleepTok(T, tok); }
-      cs.presence = { a: 0, color: s.color || '#d9e8ff', radius: s.radius || 90, eyes: s.eyes !== false }; tween(cs.presence, 'a', s.strength ?? 0.8, T || 1); return sleepTok(T, tok);
+      if (s.on === false) { if (cs.presence) tween(cs.presence, 'a', 0, I ? 0 : T || 0.6); return sleepTok(T, tok); }
+      cs.presence = { a: 0, color: s.color || '#d9e8ff', radius: s.radius || 90, eyes: s.eyes !== false }; tween(cs.presence, 'a', s.strength ?? 0.8, I ? 0 : T || 1); return sleepTok(T, tok);
     default: return sleepTok(0.1, tok);
   }
 }
-async function cutPlay(from = 0) {
+async function cutPlay(from = 0, instant = false) {
   if (!CUT) return;
   cutStop(); resetCs(); AC().resume?.();
-  const tok = cutRun = { stop: false, wake: [] };
+  const tok = cutRun = { stop: false, wake: [], instant };
   cutResetStory(); cutShowStory(); cutSkipped = new Set();
   for (let i = from; i < CUT.steps.length && !tok.stop; i++) {
     cutCur = i;
     if (!cutPasses(CUT.steps[i])) { cutSkipped.add(i); renderSteps(); continue; }   // its condition does not hold: the game passes it by
     renderSteps(); await runStep(CUT.steps[i], tok);
   }
-  if (cutRun === tok) { cutCur = -1; cs.label = tok.stop ? '' : '■ конец катсцены'; renderSteps(); setTimeout(stopMusic, 1500); }
+  if (cutRun === tok) { cutCur = -1; cs.label = tok.stop ? '' : tok.instant ? '⏭ сцена пропущена — так её оставит игра; ответов не было' : '■ конец катсцены'; cutRun = null; renderSteps(); setTimeout(stopMusic, 1500); }
 }
 function renderCutBgSel() {
   const sel = $('#cutBg'); if (!sel || sel.options.length > 1 || !library) return;
@@ -473,6 +510,7 @@ document.addEventListener('click', async e => {
     case 'cut-play': cutPlay(0); break;
     case 'cut-play-from': cutPlay(Math.max(0, cutStepSel)); break;
     case 'cut-stop': cutStop(); resetCs(); renderSteps(); break;
+    case 'cut-skip': cutSkip(); break;
     case 'cut-step': cutStepSel = +b.dataset.i; renderSteps(); renderStepEditor(); break;
     case 'cut-sup': case 'cut-sdown': case 'cut-sdup': case 'cut-sdel': {
       const i = +e.target.closest('[data-i]').dataset.i, st = CUT.steps;
@@ -581,6 +619,12 @@ document.addEventListener('input', e => {
   if (t.dataset.dc && s?.do === 'dialogue') {
     const nid = t.closest('[data-nid]').dataset.nid, d = ownDialogue(s.id), c = d.nodes[nid].choices[+t.closest('[data-ci]').dataset.ci], f = t.dataset.dc;
     if (f === 'next') { if (t.value) c.next = t.value; else delete c.next; saveCut(); renderDialogueEditor(s.id); return; }
+    if (f.startsWith('eff.')) {
+      const p = f.slice(4), v = t.value.trim() === '' ? 0 : Math.round(+t.value) || 0; c.effect ||= {};
+      if (v) c.effect[p] = v; else delete c.effect[p];
+      if (!Object.keys(c.effect).length) delete c.effect;
+      saveCut(); cutCheck(); return;
+    }
     if (f === 'flags') {
       const a = t.value.split(',').map(x => x.trim()).filter(Boolean); c.effect ||= {};
       if (a.length) c.effect.set_flags = a; else delete c.effect.set_flags;

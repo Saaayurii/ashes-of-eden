@@ -561,12 +561,14 @@ a{color:var(--sel)}
       <button class="sm" data-act="cut-add">+ Шаг</button>
     </div>
     <div class="note">Новый шаг встаёт после выбранного.</div>
+    <div id="cutChecks"></div>
   </aside>
   <main class="cutmain">
     <div class="bgtool">
       <button class="sm" data-act="cut-play">▶ С начала</button>
       <button class="sm" data-act="cut-play-from">▶ С шага</button>
       <button class="sm ghost" data-act="cut-stop">■ Стоп</button>
+      <button class="sm ghost" data-act="cut-skip" title="Как два нажатия «пропустить» в игре: текущий шаг обрывается, диалоги закрываются без ответа, остальные шаги применяются сразу. Так сцену увидит тот, кто её пропустил.">⏭ Пропустить сцену</button>
       <span class="grow"></span>
       <label class="inline" style="margin:0">Фон <select id="cutBg" style="width:220px"><option value="">— без фона —</option></select></label>
     </div>
