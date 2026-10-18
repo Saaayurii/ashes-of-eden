@@ -22,8 +22,20 @@
   "stagger_chance": 0.4,
   "voice": "cultist",
   "sprite": {
-    "like": "ash_archer",
-    "tint": "#f0f0e8"
+    "cell": [
+      64,
+      58
+    ],
+    "fps": 9,
+    "animations": {
+      "idle": "res://assets/sprites/host_archer_v2_idle.png",
+      "walk": "res://assets/sprites/host_archer_v2_walk.png",
+      "attack": "res://assets/sprites/host_archer_v2_attack.png",
+      "attack_alt": "res://assets/sprites/host_archer_v2_attack_alt.png",
+      "special": "res://assets/sprites/host_archer_v2_special.png",
+      "hurt": "res://assets/sprites/host_archer_v2_hurt.png",
+      "death": "res://assets/sprites/host_archer_v2_death.png"
+    }
   },
   "attack": {
     "type": "ranged",
@@ -40,5 +52,6 @@
     "color": "#f4f6ff",
     "volley": 2,
     "volley_gap": 0.35
-  }
+  },
+  "_art": "its own atlas, an archer of the Host in a white hooded cloak (Codex, docs/CHAPTER3_ART.md §2)"
 }

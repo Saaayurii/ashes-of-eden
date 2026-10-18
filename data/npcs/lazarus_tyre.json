@@ -1,6 +1,6 @@
 {
   "id": "lazarus_tyre",
-  "_art": "the same man as in Seir, on the rich man's steps with the dogs; shown only by rich_gate_arrival when lazarus_helped",
+  "_art": "the same man as in Seir, sitting on the rich man's steps (his seated sheet, docs/CHAPTER2_ART.md §3); shown only by rich_gate_arrival when lazarus_helped",
   "name": "NPC_LAZARUS",
   "avatar": "res://assets/portraits/lazarus.png",
   "dialogue": "npc_lazarus_tyre",
@@ -8,9 +8,9 @@
   "face": "right",
   "sprite": {
     "animations": {
-      "idle": "res://assets/sprites/severin_v2_idle.png",
-      "walk": "res://assets/sprites/severin_v2_walk.png",
-      "interact": "res://assets/sprites/severin_v2_attack.png"
+      "idle": "res://assets/sprites/lazarus_sit_idle.png",
+      "walk": "res://assets/sprites/lazarus_sit_walk.png",
+      "interact": "res://assets/sprites/lazarus_sit_interact.png"
     },
     "cell": [
       48,

@@ -79,9 +79,17 @@ GAME_CELLS = {
     # the Heavenly Hall (chapter VII), drawn by Codex's image generation
     "seraph": (72, 60), "measuring_angel": (60, 72), "register_scribe": (56, 52),
     "cherub": (112, 96),
+    # Marah (chapter III) and Tyre (chapter IV), drawn by Codex's image generation
+    # (assets/CREDITS.md); they stood on other creatures' strips until then
+    "host_spearman": (52, 51), "host_archer": (52, 48), "host_sentinel": (56, 56),
+    "legion_brute": (64, 59), "host_standard_bearer": (60, 61), "legion_centurion": (60, 58),
+    "wormwood": (92, 92),
+    "prince_of_tyre": (64, 64), "tyre_guard": (56, 55), "cutpurse": (48, 45),
+    "debt_wraith": (48, 44), "dim_star": (34, 34), "woe_eagle": (80, 44), "tyre_treasurer": (60, 58),
 }
 # A creature that hovers: its drawing is centred in the cell, not stood on the bottom row.
-FLYERS = {"raven", "shade", "wraith", "ophanim", "locust", "pit_smoke", "abaddon", "river_wraith", "fettered_angel", "seraph"}
+FLYERS = {"raven", "shade", "wraith", "ophanim", "locust", "pit_smoke", "abaddon", "river_wraith", "fettered_angel", "seraph",
+          "host_sentinel", "wormwood", "debt_wraith", "dim_star", "woe_eagle"}
 # The cherub's four faces (Ezek. 1:10), one row each of a 7x7 atlas: four idle
 # frames, then three of its attack. Each is cut to HEAD_CELL, its collar ring on
 # the bottom row, and laid on the body at the tree's "head_at" (Enemy, CherubFaces).

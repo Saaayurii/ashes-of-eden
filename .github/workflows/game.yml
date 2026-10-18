@@ -73,7 +73,7 @@ jobs:
         if: hashFiles('pack/rooms/*.json') != ''
         run: |
           set -eu
-          python3 -m pip install --quiet numpy pillow
+          python3 -m pip install --quiet numpy "pillow<13"
           (cd engine && python3 tools/rooms/generate_rooms.py --pack)
           rsync -a --delete engine/content/scenes/rooms/ pack/scenes/rooms/
           if [ -d engine/content/assets/levels/composed ]; then
@@ -116,7 +116,7 @@ jobs:
         working-directory: engine
         run: |
           set -eu
-          python3 -m pip install --quiet pillow
+          python3 -m pip install --quiet "pillow<13"
           owner="${GITHUB_REPOSITORY%%/*}"
           python3 tools/web/pack_shell.py --repo "${GITHUB_REPOSITORY}" \
             --url "https://$(echo "$owner" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}/"
@@ -134,7 +134,7 @@ jobs:
         working-directory: engine
         run: |
           set -eux
-          python3 -m pip install --quiet pillow
+          python3 -m pip install --quiet "pillow<13"
           engine_sha=$(git rev-parse HEAD)
           pack_sha=$(git -C ../pack rev-parse HEAD)  # the rooms' commit, when there was one
           python3 tools/studio/build_data.py \
