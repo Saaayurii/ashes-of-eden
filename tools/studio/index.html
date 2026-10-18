@@ -187,6 +187,7 @@ body:not([data-mode=chars]) .layout,body:not([data-mode=bg]) .bglayout,body:not(
 .srow:hover{background:var(--panel2)}
 .srow.on{border-color:var(--sel);background:var(--panel2)}
 .srow.play{background:#2b3a22}
+.srow.skipd{opacity:.45}
 .srow .sn{color:var(--muted);width:20px;text-align:right;flex:none}
 .srow b{flex:none}
 .srow .ss{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -572,7 +573,12 @@ a{color:var(--sel)}
     <div class="cutstage"><canvas id="cutCanvas" width="640" height="360"></canvas>
       <div class="bgempty" id="cutEmpty"><div>Катсцен пока нет</div><div class="row" style="justify-content:center"><button data-act="cut-new">+ Новая катсцена</button><button data-act="cut-game">Загрузить катсцены из игры</button></div></div>
     </div>
-    <div class="note" style="padding:0 12px">Превью примерное: показывает картины, полосы, затемнения, вспышки, титры, реплики, звук и музыку. Движения персонажей и камеры подписаны текстом — их видно только в игре.</div>
+    <div class="bgtool" title="С чем начинается просмотр: флаги, уже поставленные раньше в игре, и путь, к которому склоняется Элиан. Ответы в диалогах добавляют свои флаги по ходу, шаги с условиями выполняются или пропускаются, как в игре.">
+      <label class="inline" style="margin:0">Флаги в начале <input id="cutFlags" list="dlCutFlags" placeholder="через запятую" style="width:200px"></label>
+      <label class="inline" style="margin:0">Путь <select id="cutPath"><option value="">по ответам</option><option value="grace">благодать</option><option value="temptation">искушение</option><option value="will">воля</option></select></label>
+      <span class="muted" id="cutStoryNow"></span>
+    </div>
+    <div class="note" style="padding:0 12px">Превью примерное: показывает картины, полосы, затемнения, вспышки, титры, реплики, звук и музыку. Движения персонажей и камеры подписаны текстом — их видно только в игре. Реплики ждут, как в игре: «Дальше» (или пробел), «Пропустить», ответ — щелчком или цифрой 1–9.</div>
     <div id="stepEditor" class="steped"></div>
   </main>
 </div>
@@ -754,7 +760,7 @@ a{color:var(--sel)}
   <main id="sndMain" class="sndmain"></main>
 </div>
 
-<datalist id="dlActors"></datalist><datalist id="dlSfx"></datalist><datalist id="dlMusic"></datalist><datalist id="dlDialogues"></datalist><datalist id="dlImages"></datalist>
+<datalist id="dlActors"></datalist><datalist id="dlSfx"></datalist><datalist id="dlMusic"></datalist><datalist id="dlDialogues"></datalist><datalist id="dlImages"></datalist><datalist id="dlCutFlags"></datalist>
 
 <div id="libModal" class="fs" hidden>
   <div class="fsbar">
