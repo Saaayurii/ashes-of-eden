@@ -480,11 +480,35 @@ func _run() -> void:
 	_assert(is_equal_approx(run.gift_weight(fasting), run.RARITY_WEIGHT.common * run.NIGHT_GIFT_WEIGHT),
 		"  a night's own gift weighs %.0f× its rarity" % run.NIGHT_GIFT_WEIGHT)
 	var engedi_pool: Array = data.abilities.values().filter(func(a): return a.path == "grace" and omens.of_night(a) and not run.gift_locked(a))
-	var own := 0
+	var own_deals := 0
 	for i in 2000:
 		if (run._weighted_pick(engedi_pool).get("nights", []) as Array).has("engedi"):
-			own += 1
-	_assert(own > 300 and own < 1100, "  Engedi's grace is offered on %d of 2000 deals" % own)
+			own_deals += 1
+	_assert(own_deals > 300 and own_deals < 1100, "  Engedi's grace is offered on %d of 2000 deals" % own_deals)
+
+	# --- every chapter's gifts, each in its own night only ---------------------
+	# `"nights": [...]` (Omens.of_night): Blood Feud means nothing where no two
+	# armies fight, so the first night never deals it and its own night does.
+	var by_night := {}
+	for ability in data.abilities.values():
+		for night_id in ability.get("nights", []):
+			by_night[night_id] = by_night.get(night_id, []) + [ability]
+	for night_id in by_night:
+		var own: Array = by_night[night_id]
+		var seen := {}
+		game.night = ""
+		for i in 300:
+			for ability in run._roll_gifts():
+				seen[ability.id] = true
+		_assert(own.all(func(a): return not seen.has(a.id)),
+			"the first night deals none of %s's %d gifts" % [night_id, own.size()])
+		seen = {}
+		game.night = night_id
+		for i in 300:
+			for ability in run._roll_gifts():
+				seen[ability.id] = true
+		var missing: Array = own.filter(func(a): return not run.gift_locked(a) and not seen.has(a.id)).map(func(a): return a.id)
+		_assert(missing.is_empty(), "  %s deals every one of them %s" % [night_id, missing])
 	game.night = night_was
 	# Tyre's six are built on its lamps and its dark: dealt there, nowhere else.
 	var tyre: Array = data.abilities.values().filter(func(a): return a.get("nights", []).has("tyre"))
