@@ -91,7 +91,7 @@ function gdFlags(files, code = {}) {
 const GD_RULES = {
   achievements: ['nights', 'wins', 'total_kills', 'kills', 'known', 'notes', 'items', 'affixes', 'moves', 'deeds', 'fast', 'endings'],
   vials: ['flasks', 'enemy_damage', 'enemy_hp', 'promote_chance', 'rest_heal', 'promote'],
-  omens: ['essence', 'ash', 'flasks', 'enemy_damage', 'enemy_hp', 'skill_cooldown', 'enemy_sight', 'promote_chance', 'rest_heal', 'promote'],
+  omens: ['essence', 'ash', 'flasks', 'enemy_damage', 'enemy_hp', 'skill_cooldown', 'enemy_sight', 'promote_chance', 'rest_heal', 'promote', 'dark', 'lamp_price'],
   affixes: ['hp', 'damage', 'speed', 'cooldown', 'armor'],
   skins: ['nights', 'total_kills', 'kills'],
 };
@@ -142,7 +142,13 @@ function gdProblems(kind, e, ctx) {
       else if (['enemy_damage', 'enemy_hp', 'skill_cooldown', 'enemy_sight'].includes(k)) { hurts ||= v > 1; helps ||= v < 1; }
       else if (k === 'promote_chance') { hurts ||= v > 0; if (v > 1) err('promote_chance — 0…1'); }
       else if (k === 'rest_heal') { hurts ||= v < 1; if (v <= 0) err('rest_heal больше 0'); }
+      // chapter V (docs/CHAPTER5.md §7): the sting, the cloud, the fruit — as validate_data.gd's _check_omen
+      else if (k === 'torment') { hurts ||= v > 1; helps ||= v < 1; if (!(v > 0 && v <= 3)) err('torment — множитель длины мучения, 0…3'); }
+      else if (k === 'swarm') { hurts ||= v > 0; helps ||= v < 0; if (Math.abs(v) > 6) err('swarm — −6…6 саранчи на рой'); }
+      else if (k === 'fruit_heal') { helps ||= v > 1; hurts ||= v < 1; if (!(v > 0 && v <= 3)) err('fruit_heal — множитель лечения плода, 0…3'); }
+      else if (k === 'surfeit_per_fruit') { hurts ||= v > 1; if (!(v >= 1 && v <= 3)) err('surfeit_per_fruit — 1…3'); }
       else if (k === 'tether_length') { hurts ||= v > 1; helps ||= v < 1; if (v < 1 || v > 2) err('tether_length — 1…2'); }  // глава VI: цепь длиннее
+      else if (k === 'dark' || k === 'lamp_price') { hurts ||= v > 1; helps ||= v < 1; if (v <= 0 || v > 2) err(`rules.${k} — 0…2`); }  // глава IV: темнее, лампы дороже
       else if (k === 'promote') { for (const [from, to] of Object.entries(v || {})) if (!(from in ctx.enemies) || !(to in ctx.enemies)) err(`promote ${from} → ${to}: нет такого врага`); }
       else err(`rules.${k} — не правило знамения`);
     }

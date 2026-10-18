@@ -8,8 +8,10 @@
 - Ночь — `engedi` (`data/game.json` `nights`, §8), префикс id — `engedi_`, 12 комнат, ночь
   проходит 10. Строки — `DLG_CH5_*`, `NOTE_*`, `AREA_ENGEDI_*`.
 - Заказ картин — `docs/CHAPTER5_ART.md`: 12 панелей, атласы, листы людей, портреты.
-- Дары и знамения ждут в черновике `drafts/chapter_5/data/{abilities,omens}` (их вводит сессия
-  баланса, как в Сеире), всё остальное — в `data/`.
+- Дары и знамения — в игре: `data/abilities/chapter_5.json`, `data/omens/chapter_5.json`,
+  резонанс — `data/resonances/chapter_5.json`. Все с `"nights": ["engedi"]`: сдаются только в
+  ночь Енгадди (`Omens.of_night`: `Run._roll_gifts`, `Omens.roll`), и свой дар ночи выпадает
+  втрое чаще своей редкости (`Run.NIGHT_GIFT_WEIGHT`), иначе два на путь среди двадцати не видны.
 - «Пятая труба» (Откр. 9:1–11, пересказ): звезда, павшая с неба, получает ключ от колодца бездны;
   из колодца встаёт дым, как из печи, и солнце меркнет; из дыма выходит саранча, и ей велено не
   вредить ни траве, ни зелени, ни деревьям — только людям без печати Божией на челе; не убивать, а
@@ -104,7 +106,7 @@
   ими воспользоваться.
 - **Соблазн.** Плод — это то, что лечит *сейчас*. Дары соблазна (`glut`, `honeyed_sting`)
   платят за сытость и за мучение уроном. Ни один выбор главы не запрещает есть.
-- **Цена милосердия.** Благодать главы — не есть: дар `fasting` лечит за каждую зачищенную
+- **Цена милосердия.** Благодать главы — не есть: дар `fasting` лечит 30 за каждую зачищенную
   комнату, пока сытость ноль, и только так. Кто постится, доходит до кладезя без запасного
   лечения, кроме фляг, — и с жидким роем.
 - **Сад цел.** Саранча не садится на деревья и не рвёт листву: её пике — мимо зон `sway`
@@ -307,26 +309,30 @@
 
 ## 7. Дары, знамения, места отдыха, области
 
-**Дары** (`drafts/chapter_5/data/abilities/chapter_5.json`, id закреплены). Новые механики — ключи
+**Дары** (`data/abilities/chapter_5.json`, `"nights": ["engedi"]`, id закреплены). Новые механики — ключи
 в `Player.BASE_STATS` (0 = нет), `STATS` в валидаторе, потолок в `AbilitySystem.CAPS`, проверка в
 `gift_test.gd`.
 
 | id | Путь | Редкость | Механика | Ключ |
 |---|---|---|---|---|
 | `seal_on_the_brow` | благодать | epic | мучение не ложится вовсе (Откр. 9:4) | `torment_immune` 1 (новый; потолок 1) |
-| `fasting` | благодать | common | зачищенная комната лечит 10 — только пока сытость ночи ноль | `fasting` 10 (новый; потолок 20) |
+| `fasting` | благодать | common | зачищенная комната лечит 30 — только пока сытость ночи ноль (было 10: «Литания покоя» лечит 25 без условий) | `fasting` 30 (новый; потолок 40) |
 | `glut` | соблазн | rare | +5 % урона за каждую единицу сытости, до +40 % | `glut` 0,05 (новый; потолок 0,05, счёт до 8) |
 | `honeyed_sting` | соблазн | common | пока мучение идёт — удары на 30 % тяжелее | `torment_damage` 0,3 (новый; потолок 0,5) |
 | `seeking_death` | воля | rare | раз за комнату смертельный удар оставляет 1 hp и кладёт мучение 4 с; «искал — не нашёл» | `death_refused` 1 (новый; потолок 1; не во дворе) |
 | `pruning_hook` | воля | common | «копья — на серпы»: замах шире | `attack_scale` +0,1 (существующий) |
 
-**Знамения** (`drafts/chapter_5/data/omens/chapter_5.json`) — каждое сделка (валидатор):
+**Знамения** (`data/omens/chapter_5.json`, `"nights": ["engedi"]`) — каждое сделка (валидатор):
 
 | id | Что дают | Что берут | rules |
 |---|---|---|---|
 | `five_months` | Пепел ×1,4, эссенция ×1,15 | мучение длится в полтора раза дольше | `torment` 1,5 (новый, MUL), `ash` 1,4, `essence` 1,15 |
 | `smoke_of_the_pit` | враги видят вдвое хуже (`enemy_sight` 0,6), Пепел ×1,3 | в каждом рое на двоих больше | `swarm` +2 (новый, ADD), `enemy_sight` 0,6, `ash` 1,3 |
 | `full_table` | плоды лечат в полтора раза сильнее, Пепел ×1,25 | каждый плод — две единицы сытости | `fruit_heal` 1,5 (новый, MUL), `surfeit_per_fruit` 2 (новый, MAX), `ash` 1,25 |
+
+**Резонанс** (`data/resonances/chapter_5.json`): `sought_not_found` «Искали и не нашли» —
+Медовое жало + Искать смерти, `torment_damage` +0,2 (вместе с жалом — потолок 0,5): воля ищет
+смерти и находит муку, соблазн делает из муки силу.
 
 Новые ключи знамений — в `Vials` (`ADD` / `MUL` / `MAX`, `DEFAULTS`), читают их `fruit.gd`,
 `swarm.gd` и `Player` (длительность мучения).
@@ -412,7 +418,7 @@
   `voice_at_the_rim.json`, `abaddon_arrival.json`, `ch5_finale.json`.
 - `data/forks/chapter_5.json`, `data/rest_points/chapter_5.json`, `data/notes/ch5_notes.json`,
   `data/chapters/chapter_5.json`; `data/liquids.json` (`honey`, `wine`).
-- `drafts/chapter_5/data/abilities/chapter_5.json`, `drafts/chapter_5/data/omens/chapter_5.json`.
+- `data/abilities/chapter_5.json`, `data/omens/chapter_5.json`, `data/resonances/chapter_5.json`.
 - `tools/rooms/painted_rooms.py` — 12 таблиц `engedi_*` (в конец блока), `generate_rooms.py`
   (`FOCAL_RANGES`), `RoomLayers.FAR_WINDOWS`, `data/backdrops.json`, `data/ambience.json`,
   `<id>.lights.json` — по `CHAPTER5_ART.md`.

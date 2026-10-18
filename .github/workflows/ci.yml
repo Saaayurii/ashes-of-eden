@@ -147,9 +147,11 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/ci.yml
 
+      # Pillow 13 draws the people sheets a few hundred pixels apart; pinned until
+      # they are regenerated with it. generators.yml stays unpinned and tells us.
       - name: Generators still reproduce what is committed
         run: |
-          python3 -m pip install --quiet numpy pillow
+          python3 -m pip install --quiet numpy "pillow<13"
           python3 tools/check_generators.py
 
       # The loading page is the one file nothing else tests: it is not
@@ -216,7 +218,7 @@ jobs:
       - name: ${{ matrix.script }}.e2e.cjs
         working-directory: tools/studio/e2e
         run: |
-          python3 -m pip install --quiet numpy pillow
+          python3 -m pip install --quiet numpy "pillow<13"
           # the studio's data (tools/studio/import): studio.github reads it before
           # any server builds it, and it used to be left by the script before it
           python3 ../../../tools/studio/build_data.py

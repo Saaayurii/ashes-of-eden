@@ -33,6 +33,8 @@ const TRAVERSAL_SPEED := 110.0  # px/s: a hero who stops, looks, jumps
 ## Walking to a seal and breaking it (45 HP, ~4 swings) — a guess, stated.
 const SEAL_TIME := 4.0
 const FREE_TIME := 20.0
+## Duels of each pair; the median is the number (see _duel_median).
+const SAMPLES := 3
 
 var _results := {}
 ## Common enemies free to move (docs/ENEMY_AI.md: they pace, queue, give
@@ -80,10 +82,24 @@ func _run() -> void:
 	await _wait(1.0)
 	_clear_room(run)
 	await _wait(0.3)
-	for id in ["possessed_villager", "cultist", "fallen_guard", "shade", "raven"]:
+	var only_duels := Array(OS.get_cmdline_user_args()).any(func(a) -> bool: return str(a).begins_with("duel="))
+	# chapter I's five, then the three commonest commons of every later night
+	var free_ids: Array = ["possessed_villager", "cultist", "fallen_guard", "shade", "raven"]
+	for night in root.get_node("Data").nights():
+		if str(night.get("id", "")) == "":
+			continue
+		for id in _commonest(night.rooms, 3):
+			if not free_ids.has(id):
+				free_ids.append(id)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("free="):  # debug: which free duels to run before duel=
+			free_ids = Array(arg.trim_prefix("free=").split(","))
+			only_duels = false
+	for id in ([] if only_duels else free_ids):
 		_free[id] = await _free_duel(run, id)
 		print("  free %-15s hurts %5.1f HP/s" % [id, _free[id]])
-	_moves = await _move_rates(run)
+	if not only_duels:
+		_moves = await _move_rates(run)
 	game.practice = ""
 	if OS.get_cmdline_user_args().has("quick"):
 		quit(0)
@@ -92,12 +108,20 @@ func _run() -> void:
 	await _wait(1.0)
 	_clear_room(run)
 	var ids: Array = []
+	# `-- duel=a,b`: only those duels, printed, nothing written (for tuning one body)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("duel="):
+			for id in arg.trim_prefix("duel=").split(","):
+				var r: Dictionary = await _duel_median(run, id)
+				print("  %-20s TTK %6.1fs  hits %3d  hurts %5.1f HP/s  %s" % [id, r.ttk, r.hits, r.dps_taken, "" if r.killed else "(NOT KILLED in limit)"])
+			quit(0)
+			return
 	for id in data.enemies:
 		if data.enemies[id].get("bestiary", true) and data.enemies[id].get("behaviour", "walker") != "seal":
 			ids.append(id)
 	ids.sort()
 	for id in ids:
-		_results[id] = await _duel(run, id)
+		_results[id] = await _duel_median(run, id)
 		var r: Dictionary = _results[id]
 		print("  %-20s TTK %6.1fs  hits %3d  hurts %5.1f HP/s  %s" % [id, r.ttk, r.hits, r.dps_taken, "" if r.killed else "(NOT KILLED in limit)"])
 	_census(run, data)
@@ -108,6 +132,15 @@ func _run() -> void:
 	quit(0)
 
 
+## The practice yard ([param yard]) or the first room again, emptied.
+func _to_room(run, yard: bool) -> void:
+	root.get_node("Game").practice = "training_dummy" if yard else ""
+	run._load_room(run.PRACTICE_INDEX if yard else 0)
+	await _wait(1.0)
+	_clear_room(run)
+	await _wait(0.3)
+
+
 func _clear_room(run) -> void:
 	for enemy in get_nodes_in_group("enemies"):
 		enemy.queue_free()
@@ -115,12 +148,42 @@ func _clear_room(run) -> void:
 		prop.queue_free()
 
 
+## A shield turned at the wrong moment, a seal far off, a crit or two: one
+## duel of the same pair ran from 2.5 s to 6.6 s. The median of SAMPLES.
+func _duel_median(run, id: String) -> Dictionary:
+	var runs: Array = []
+	var samples := SAMPLES
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("samples="):
+			samples = maxi(1, int(arg.trim_prefix("samples=")))
+	for i in samples:
+		runs.append(await _duel(run, id))
+	runs.sort_custom(func(a, b) -> bool: return a.ttk < b.ttk)
+	var mid: Dictionary = runs[runs.size() / 2].duplicate()
+	var taken := 0.0
+	for r in runs:
+		taken += r.dps_taken
+	mid.dps_taken = taken / runs.size()  # what it deals is a rate: the mean
+	return mid
+
+
 ## One enemy, one hero, flat ground. Returns ttk, hits, dps_taken, killed.
 func _duel(run, id: String) -> Dictionary:
+	var spec: Dictionary = root.get_node("Data").enemies[id]
+	var boss: bool = spec.get("boss", false)
+	var chained: bool = spec.has("tether") or spec.has("bound_phases")
+	# Every duel in a room of its own: what the one before left behind (a
+	# summons, a pool, the dark) made the later duels up to a third longer.
+	# A chained body's pillars need a room that names them: the yard does
+	# (flat, and nothing counts there); by the village's left wall he followed
+	# it off the edge.
+	await _to_room(run, chained)
+	# the night's clock hardens what spawns (Game.enemy_hp_multiplier, +6 % HP
+	# every 3 min): the duels are the bodies as written, the census adds the clock
+	root.get_node("Game").elapsed = 0.0
 	var hero = run.player
 	hero.set("_dead", false)
 	hero.set("controls_enabled", true)
-	var boss: bool = root.get_node("Data").enemies[id].get("boss", false)
 	hero.stats = hero.BASE_STATS.duplicate()
 	hero.hp = 1000000.0 if boss else 100000.0
 	hero.stats.max_hp = hero.hp
@@ -142,7 +205,11 @@ func _duel(run, id: String) -> Dictionary:
 			# A boss is pinned in front of a hero standing on the floor: hanging him
 			# in the air under a flying boss drops him out of the room (void fall).
 			hero.global_position.y = ground_y
-			enemy.global_position = hero.global_position + Vector2(24.0, -12.0)
+			if enemy.get("tethered"):
+				# a chained body is held at its pillar: he walks to it, it is not dragged
+				hero.global_position.x = enemy.global_position.x - 24.0
+			else:
+				enemy.global_position = hero.global_position + Vector2(24.0, -12.0)
 			_face(hero, 1)
 		else:
 			# Pinned too: a knocked-back or retreating body would otherwise leave the
@@ -175,6 +242,8 @@ func _duel(run, id: String) -> Dictionary:
 			Input.action_release("attack")
 		await physics_frame
 		t += 1.0 / Engine.physics_ticks_per_second
+		if OS.get_cmdline_user_args().has("debug") and fmod(t, 5.0) < 1.0 / Engine.physics_ticks_per_second:
+			print("    debug t=%.0f hero=%s hp=%.0f dead=%s enemy=%s hp=%.0f state=%s" % [t, hero.global_position, hero.hp, hero.is_dead(), enemy.global_position if is_instance_valid(enemy) else "-", enemy.hp if is_instance_valid(enemy) else 0.0, enemy.state if is_instance_valid(enemy) else "-"])
 		if is_instance_valid(enemy) and enemy.hp < last_hp - 0.01:
 			hits += 1
 			last_hp = enemy.hp
@@ -319,12 +388,65 @@ func _move_rates(run) -> Dictionary:
 	return out
 
 
-func _census(run, data) -> void:
-	var rooms: Array = run.ROOMS
+## Every enemy a room fights, in order: its spawns, its reinforcement waves
+## (room.gd waves_json), and what a body that comes apart splits into.
+func _room_ids(scene) -> Array:
+	var data = root.get_node("Data")
+	var ids: Array = []
+	for spawn in scene.get_node("Spawns").get_children():
+		ids.append(str(spawn.get("enemy_id")))
+	var waves = JSON.parse_string(str(scene.get("waves_json")))
+	for wave in (waves if waves is Array else []):
+		for row in wave:
+			ids.append(str(row[0]))
+	var out: Array = []
+	while not ids.is_empty():
+		var id: String = ids.pop_front()
+		out.append(id)
+		var death: Dictionary = data.enemies.get(id, {}).get("on_death", {})
+		if death.get("type", "") == "split":
+			for i in int(death.get("count", 2)):
+				ids.append(str(death.get("into", "shade")))
+	return out
+
+
+## A common: neither a boss nor an elite nor a mid-boss, and it can hurt.
+func _is_common(id: String) -> bool:
+	var spec: Dictionary = root.get_node("Data").enemies.get(id, {})
+	var tags: Array = spec.get("tags", [])
+	return not spec.get("boss", false) and not tags.has("elite") and not tags.has("miniboss") \
+		and spec.get("behaviour", "walker") != "seal" and not spec.get("waits", false)
+
+
+## The [param n] commons met most often in [param rooms].
+func _commonest(rooms: Array, n: int) -> Array:
+	var counts := {}
+	for path in rooms:
+		var scene = load(str(path)).instantiate()
+		for id in _room_ids(scene):
+			if _is_common(id):
+				counts[id] = int(counts.get(id, 0)) + 1
+		scene.free()
+	var ids: Array = counts.keys()
+	ids.sort_custom(func(a, b) -> bool: return counts[a] > counts[b] or (counts[a] == counts[b] and a < b))
+	return ids.slice(0, n)
+
+
+## One night's rooms: a row each, and the night's sums.
+func _census_night(rooms: Array, data) -> Dictionary:
 	var total_time := 0.0
 	var total_essence := 0.0
 	var room_rows: PackedStringArray = []
 	var route = load("res://scripts/run/route.gd")
+	var common_count := 0.0
+	var common_ttk := 0.0
+	var common_dps := 0.0
+	var tank := 0.0
+	var tank_rooms: Array = []  # face-tank HP of every fighting room, in order
+	var hardest := {"damage": 0.0, "id": ""}
+	var elites := 0.0
+	var bosses_all: Array = []
+	var enemies := 0.0
 	for path in rooms:
 		# a fork's ways share one slot of the night: each counts for its share
 		var fork: Dictionary = route.fork_holding(path)
@@ -334,44 +456,95 @@ func _census(run, data) -> void:
 		var hp := 0.0
 		var essence := 0.0
 		var fight := 0.0
+		var room_tank := 0.0
 		var bosses: PackedStringArray = []
 		var boss_fight := 0.0
-		var ids: Array = []
-		for spawn in scene.get_node("Spawns").get_children():
-			ids.append(str(spawn.get("enemy_id")))
-		# the reinforcements (room.gd waves_json) are fought too
 		var waves = JSON.parse_string(str(scene.get("waves_json")))
-		for wave in (waves if waves is Array else []):
-			for row in wave:
-				ids.append(str(row[0]))
 		var waves_here: int = (waves as Array).size() if waves is Array else 0
-		while not ids.is_empty():
-			var id: String = ids.pop_front()
+		for id in _room_ids(scene):
 			var spec: Dictionary = data.enemies.get(id, {})
 			count += 1
 			hp += float(spec.get("hp", 0))
 			essence += float(spec.get("essence", 10))
 			if spec.get("boss", false):
 				bosses.append(id)
+				if not bosses_all.has(id):
+					bosses_all.append(id)
 				boss_fight += _results.get(id, {}).get("ttk", 0.0)
 			elif _results.has(id):
-				fight += _results[id].ttk
-			# a body that comes apart is fought again in pieces
-			var death: Dictionary = spec.get("on_death", {})
-			if death.get("type", "") == "split":
-				for i in int(death.get("count", 2)):
-					ids.append(str(death.get("into", "shade")))
+				var r: Dictionary = _results[id]
+				fight += r.ttk
+				room_tank += _threat(spec) * r.ttk
+				if (spec.get("tags", []) as Array).has("elite"):
+					elites += share
+				if _is_common(id):
+					common_count += share
+					common_ttk += r.ttk * share
+					common_dps += _threat(spec) * share
+					for attack in _attacks(spec):
+						if float(attack.get("damage", 0)) > hardest.damage:
+							hardest = {"damage": float(attack.get("damage", 0)), "id": id}
+		# the night's clock as this room begins (Game.enemy_hp_multiplier):
+		# its bodies take longer to fell and hit harder
+		var steps := floorf(total_time / 180.0)
+		var hp_scale := 1.0 + 0.06 * steps
+		fight *= hp_scale
+		boss_fight *= hp_scale
+		room_tank *= hp_scale * (1.0 + 0.04 * steps)
+		enemies += count * share
+		tank += room_tank * share
+		if count > 0 and bosses.is_empty():
+			tank_rooms.append(room_tank)
 		var width := float(scene.get("width"))
 		var room_time := fight * FIGHT_OVERHEAD + boss_fight * BOSS_OVERHEAD + width / TRAVERSAL_SPEED
 		total_time += room_time * share
 		total_essence += essence * share
-		room_rows.append("| %s%s | %d | %d | %d | %d | %.0f s | %s |" % [path.get_file().get_basename(), " (one way of a fork)" if share < 1.0 else "", count, waves_here, int(hp), int(essence), room_time, ", ".join(bosses)])
+		room_rows.append("| %s%s | %d | %d | %d | %d | %.0f s | %.0f | %s |" % [path.get_file().get_basename(), " (one way of a fork)" if share < 1.0 else "", count, waves_here, int(hp), int(essence), room_time, room_tank, ", ".join(bosses)])
 		scene.free()
-	var levels := _levels(total_essence)
 	var places := {}
 	for path in rooms:
 		places[data.chapter_for(path).get("id", path)] = true
-	var doors := places.size()
+	return {"rows": room_rows, "time": total_time, "essence": total_essence,
+		"levels": _levels(total_essence), "doors": places.size(), "enemies": enemies,
+		"common_ttk": common_ttk / maxf(0.01, common_count), "common_dps": common_dps / maxf(0.01, common_count),
+		"tank": tank, "tank_rooms": tank_rooms, "hardest": hardest, "elites": elites, "bosses": bosses_all}
+
+
+## What a body throws at one who stands in front of it, by its JSON: the mean
+## blow over the mean cycle (wind-up + cooldown). The pinned duels' measured
+## damage/s rides on how the AI happened to space itself and swings run to run
+## by half; this does not, so the nights are compared by it.
+func _threat(spec: Dictionary) -> float:
+	var list := _attacks(spec)
+	if list.is_empty():
+		return 0.0
+	var damage := 0.0
+	var cycle := 0.0
+	for attack in list:
+		damage += float(attack.get("damage", 0)) * maxf(1.0, float(attack.get("volley", 1)))
+		cycle += float(attack.get("windup", 0.5)) + float(attack.get("cooldown", 1.5))
+	return damage / maxf(0.1, cycle)
+
+
+## Every blow an enemy has: its one attack, its list, its phases' lists.
+func _attacks(spec: Dictionary) -> Array:
+	var out: Array = []
+	if spec.get("attack") is Dictionary:
+		out.append(spec.attack)
+	out.append_array(spec.get("attacks", []))
+	for phase in spec.get("phases", []):
+		if phase is Dictionary:
+			out.append_array(phase.get("attacks", []))
+	return out
+
+
+func _census(run, data) -> void:
+	var first: Dictionary = _census_night(run.ROOMS, data)
+	var room_rows: PackedStringArray = first.rows
+	var total_time: float = first.time
+	var total_essence: float = first.essence
+	var levels: int = first.levels
+	var doors: int = first.doors
 	var gifts := levels + doors
 	var common := ["possessed_villager", "cultist", "shade", "zealot", "wraith"]
 	var common_ttk := 0.0
@@ -393,10 +566,15 @@ func _census(run, data) -> void:
 	_lines.append("| Common enemy TTK, fresh hero | 2–3 s | %.1f s | %s |" % [common_ttk, _mark(common_ttk >= 1.5 and common_ttk <= 3.5)])
 	_lines.append("| Upgrades per run (levels + place doors) | 10–14 | %d (%d levels + %d doors) | %s |" % [gifts, levels, doors, _mark(gifts >= 10 and gifts <= 14)])
 	_lines.append("| Run length (estimate) | 25–30 min | %.0f min | %s |" % [total_time / 60.0, _mark(total_time >= 1500.0 and total_time <= 1800.0)])
-	for boss_id in ["blind_preacher", "knight_of_ash", "ophanim"]:
+	var boss_ids: Array = []
+	for night in data.nights():
+		for boss_id in (first if str(night.id) == "" else _census_night(night.rooms, data)).bosses:
+			boss_ids.append(boss_id)
+	for boss_id in boss_ids:
 		if _results.has(boss_id):
 			var r: Dictionary = _results[boss_id]
-			var mini: bool = boss_id != "ophanim"  # the preacher and the knight are mid-bosses
+			# the preacher and the knight are mid-bosses; every night ends on a whole one
+			var mini: bool = ["blind_preacher", "knight_of_ash"].has(boss_id)
 			var wanted := "1.5–2.5 min" if mini else "3–4 min"
 			var real: float = r.ttk * BOSS_OVERHEAD  # dodging, phases (docs/BALANCE.md §6)
 			var ok: bool = real >= 90.0 and real <= 150.0 if mini else real >= 180.0 and real <= 240.0
@@ -433,11 +611,89 @@ func _census(run, data) -> void:
 	_lines.append("")
 	_lines.append("## Rooms")
 	_lines.append("")
-	_lines.append("| Room | Enemies | Waves | Total HP | Essence | Est. time | Bosses |")
-	_lines.append("|---|---|---|---|---|---|---|")
+	_lines.append("| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |")
+	_lines.append("|---|---|---|---|---|---|---|---|")
 	_lines.append_array(room_rows)
 	_lines.append("")
+	_lines.append("Face-tank HP = Σ, over the room's non-boss enemies, of what it throws at a fresh hero standing and swinging until it falls: its threat (mean blow over mean wind-up + cooldown, from its JSON) × its pinned TTK, hardened by the night's clock — what a room costs one who never rolls or blocks, the measure the nights are compared by below. (The duels' measured damage/s swings by half from run to run with the AI's spacing, so it is shown, not used.) ")
 	_lines.append("Room time = Σ TTK × %.1f (walking, dodging, waiting for openings) + a boss's TTK × %.1f (docs/BALANCE.md §6) + width / %d px/s. Enemies count every reinforcement wave and what a body splits into. The %.1f is measured from playtests (see the constant in balance_probe.gd); the TTKs are real; the walking speed is a guess." % [FIGHT_OVERHEAD, BOSS_OVERHEAD, int(TRAVERSAL_SPEED), FIGHT_OVERHEAD])
+	_append_nights(data, first)
+	_append_windups(data)
+
+
+## Night against night (docs/BALANCE.md: difficulty rises night to night, no
+## spikes): each night is begun by a fresh hero — level one, no gifts — so a
+## night's first rooms are measured against chapter I's first rooms, and its
+## sums against the night before.
+func _append_nights(data, first: Dictionary) -> void:
+	var nights: Array = []
+	for night in data.nights():
+		var id := str(night.id)
+		nights.append({"id": id if id != "" else "first", "c": first if id == "" else _census_night(night.rooms, data)})
+	_lines.append("")
+	_lines.append("## Nights")
+	_lines.append("")
+	_lines.append("Every night is begun by a fresh hero (level one, no gifts, the reliquary aside), so it is its own curve. Common = neither boss, elite nor mid-boss; TTK is the pinned duels above, damage/s the threat from the JSON (see Rooms), both weighted by how often the night meets each.")
+	_lines.append("")
+	_lines.append("| Night | Enemies | Elites | Common TTK | Common dmg/s | Face-tank HP: first 3 rooms | mean room | worst room | night | Hardest common blow | Boss fight | Gifts | Est. length |")
+	_lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+	for n in nights:
+		var c: Dictionary = n.c
+		var rooms_tank: Array = c.tank_rooms
+		var opening := 0.0
+		for i in mini(3, rooms_tank.size()):
+			opening += rooms_tank[i]
+		var mean := 0.0
+		var worst := 0.0
+		for v in rooms_tank:
+			mean += v
+			worst = maxf(worst, v)
+		mean /= maxf(1.0, rooms_tank.size())
+		var boss_line: PackedStringArray = []
+		for boss_id in c.bosses:
+			if _results.has(boss_id):
+				boss_line.append("%s %.1f min" % [boss_id, _results[boss_id].ttk * BOSS_OVERHEAD / 60.0])
+		_lines.append("| %s | %.0f | %.0f | %.1f s | %.1f | %.0f | %.0f | %.0f | %.0f | %d (%s) | %s | %d (%d + %d) | %.0f min |" % [n.id, c.enemies, c.elites,
+			c.common_ttk, c.common_dps, opening, mean, worst, c.tank, int(c.hardest.damage), c.hardest.id,
+			", ".join(boss_line), c.levels + c.doors, c.levels, c.doors, c.time / 60.0])
+	for n in nights:
+		if n.id == "first":
+			continue
+		_lines.append("")
+		_lines.append("### %s" % n.id)
+		_lines.append("")
+		_lines.append("| Room | Enemies | Waves | Total HP | Essence | Est. time | Face-tank HP | Bosses |")
+		_lines.append("|---|---|---|---|---|---|---|---|")
+		_lines.append_array(n.c.rows)
+
+
+## docs/BALANCE.md § Telegraphs: normal 0.3–0.5 s, strong 0.7–1.0 s. Every
+## blow under 0.3 s, or of 15 and more under 0.6 s, is listed — a wind-up the
+## player cannot read is a bug, not a difficulty.
+func _append_windups(data) -> void:
+	var rows: PackedStringArray = []
+	var ids: Array = data.enemies.keys()
+	ids.sort()
+	for id in ids:
+		var spec: Dictionary = data.enemies[id]
+		if spec.get("behaviour", "walker") == "seal" or id == "training_dummy":
+			continue
+		for attack in _attacks(spec):
+			var damage := float(attack.get("damage", 0))
+			var windup := float(attack.get("windup", 0))
+			if damage > 0 and (windup < 0.3 or (damage >= 15 and windup < 0.6)):
+				rows.append("| %s | %s | %d | %.2f s |" % [id, str(attack.get("type", "melee")), int(damage), windup])
+	_lines.append("")
+	_lines.append("## Wind-ups")
+	_lines.append("")
+	if rows.is_empty():
+		_lines.append("Every blow of every enemy winds up for at least 0.3 s, and every blow of 15 or more for at least 0.6 s.")
+		return
+	_lines.append("Blows under 0.3 s, or of 15 and more under 0.6 s:")
+	_lines.append("")
+	_lines.append("| Enemy | Attack | Damage | Wind-up |")
+	_lines.append("|---|---|---|---|")
+	_lines.append_array(rows)
 
 
 ## Levels reached from a pile of essence: Game.essence_needed's curve.
