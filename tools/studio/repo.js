@@ -521,7 +521,10 @@ async function cutFiles() {
   }
   const rules = {};
   for (const [res, src] of Object.entries(CUT.images)) {
-    files[res.replace('res://', '')] = dataURLtoBlob(src);
+    const path = res.replace('res://', '');
+    files[path] = dataURLtoBlob(src);
+    // a new picture needs its lossy import committed, or CI's check_lossy.py refuses it (the Web would grow by megabytes)
+    if (!await repoText(path + '.import')) files[path + '.import'] = lossyImport(res);
     rules[res.split('/').pop().replace(/\.[^.]+$/, '')] = CUT.families?.[res] || 'dusk';
   }
   if (Object.keys(rules).length) {

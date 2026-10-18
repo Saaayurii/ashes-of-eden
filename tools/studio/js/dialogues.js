@@ -230,7 +230,8 @@ function dlgDrawPanel(x, o) {   // dialogue_box.tscn: Panel 16..−16 × −128.
     const by = Y + H - 28, cx = X + W - 12 - cw;
     dlgRound(x, cx, by, cw, 22, 3); x.fillStyle = 'rgba(40,40,46,0.9)'; x.fill(); x.fillStyle = '#ddd'; x.fillText(cont, cx + 8, by + 4);
     x.fillStyle = '#aaa'; x.fillText(skip, cx - sw - 4, by + 4);
-    if (o.hits) DLG.hit.push({ r: [X, Y, W, H], go: n.next || null });
+    // Skip ends the whole dialogue (DialogueBox._on_skip); found before the panel, which is «дальше»
+    if (o.hits) DLG.hit.push({ r: [cx - sw - 8, by, sw + 4, 22], go: '#skip', skip: true }, { r: [X, Y, W, H], go: n.next || null });
   }
   if (o.hits && y > Y + H) { x.fillStyle = '#e06464'; x.font = '10px system-ui'; x.fillText('текст не влезает в панель — в игре она вырастет', X + 4, Y + H + 3); }
   x.textBaseline = 'alphabetic';
@@ -313,6 +314,7 @@ function dlgCanvasClick(e) {
   if (!h) return;
   if (h.go === 'restart') return dlgPreviewGo(d.start);
   if (h.go === 'type') { DLG.t0 = -1e9; return dlgPaint(); }
+  if (h.skip) return dlgPreviewGo(null);
   dlgPreviewGo(h.go);
 }
 /* ---------- dragging the windows ---------- */
