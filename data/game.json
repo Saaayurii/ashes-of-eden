@@ -150,6 +150,7 @@
     },
     {
       "id": "hall",
+      "after": "euphrates",
       "after_dawns": 6,
       "opening": {"wake": false},
       "seed": "dawns",

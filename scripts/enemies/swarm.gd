@@ -194,8 +194,8 @@ static func may_strike(body: Enemy) -> bool:
 	return busy < int(spec(body.enemy_id).dive_slots)
 
 
-## One saw him: the whole cloud knows.
-static func wake(body: Enemy, who: Player) -> void:
+## One saw him (or, in Marah, a soldier of the other side): the whole cloud knows.
+static func wake(body: Enemy, who: Node2D) -> void:
 	if str(body.stats.get("behaviour", "")) != "swarm":
 		return
 	for other in members(body):
