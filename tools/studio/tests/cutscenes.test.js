@@ -78,3 +78,64 @@ test('a picture she uploads comes with the import check_lossy wants', () => {
   const params = s => s.slice(s.indexOf('[params]')).trim();
   assert.equal(params(t), params(theirs));
 });
+
+test('a camera on two people and a camera on whoever speaks are checked like the game checks them', () => {
+  const ctx = context(), errs = steps => L.cutProblems(steps, ctx).err;
+  assert.deepEqual(errs([{ do: 'camera', between: ['player', 'npc:stranger'], time: 1 }]), []);
+  assert.ok(errs([{ do: 'camera', between: ['player', ''] }]).some(m => m.includes('два')), 'the picker half filled');
+  assert.ok(errs([{ do: 'camera', between: ['player', 'npc:nobody_at_all'] }]).some(m => m.includes('nobody_at_all')));
+  const dlg = 'ch1_stranger';
+  assert.deepEqual(errs([{ do: 'dialogue', id: dlg, cast: { SPEAKER_ELIAN: 'player', SPEAKER_STRANGER: 'npc:stranger' } }]), []);
+  assert.ok(errs([{ do: 'dialogue', id: dlg, cast: { SPEAKER_ELIAN: '' } }]).some(m => m.includes('не выбран')), 'a speaker with no one to look at');
+  assert.ok(errs([{ do: 'dialogue', id: dlg, cast: { SPEAKER_NOBODY_ZZ: 'player' } }]).some(m => m.includes('SPEAKER_NOBODY_ZZ')));
+  assert.ok(errs([{ do: 'dialogue', id: dlg, cast: { SPEAKER_ELIAN: 'npc:nobody_at_all' } }]).some(m => m.includes('nobody_at_all')));
+  assert.ok(errs([{ do: 'dialogue', id: dlg, cast: ['player'] }]).length, 'cast is a map, not a list');
+});
+
+test('a person made for one scene is written as the validator wants an NPC, and stands in one room', () => {
+  const ctx = context(), npcs = fs.readdirSync(path.join(ROOT, 'data/npcs')).map(f => JSON.parse(read('data/npcs/' + f)));
+  const gdNeeds = read('scripts/tools/validate_data.gd').match(/"npcs": \[([^\]]*)\]/)[1].match(/"(\w+)"/g).map(x => x.slice(1, -1));
+  const stranger = npcs.find(n => n.id === 'stranger'), idle = stranger.sprite.animations.idle;
+  const person = { name: 'SPEAKER_STRANGER', dialogue: 'ch1_stranger', face: 'right', avatar: 'res://assets/portraits/elders.png',
+    sprite: { idle, cell: stranger.sprite.cell, fps: 4, size: [stranger.sprite.cell[0] * 4, stranger.sprite.cell[1]] }, at: { room: 'graveyard_cross', x: 300, y: 254 } };
+  const doc = JSON.parse(L.npcJson('zz_shepherd', person, 'zz_scene'));
+  for (const k of gdNeeds) assert.ok(k in doc, k);
+  assert.equal(doc.scripted, true); assert.equal(doc.menu, false); assert.equal(doc._studio, 'zz_scene');
+  assert.deepEqual(doc.sprite, { animations: { idle }, cell: stranger.sprite.cell, fps: 4 }, 'the studio\'s own bookkeeping (size) stays out');
+  assert.equal(doc.avatar, person.avatar);
+
+  // checked before sending
+  const own = extra => ({ ...ctx, own: { zz_shepherd: { ...person, ...extra } }, scene: 'zz_scene', rooms: ['graveyard_cross'],
+    gameNpcs: new Map(npcs.map(n => [n.id, n._studio || ''])), scripted: new Set(npcs.filter(n => n.scripted).map(n => n.id)), missing: () => [] });
+  const scene = [{ do: 'hold' }, { do: 'appear', who: 'npc:zz_shepherd', time: 0.6 }, { do: 'camera', between: ['player', 'npc:zz_shepherd'] }, { do: 'release' }];
+  assert.deepEqual(L.cutProblems(scene, own({})).err, [], 'her own person is an actor of the scene');
+  assert.deepEqual(L.cutProblems(scene, own({})).warn, []);
+  const problems = (extra, id) => { const c = own(extra); if (id) c.own = { [id]: c.own.zz_shepherd }; return L.cutProblems(scene, c); };
+  assert.ok(problems({}, 'Bad-Id').err.some(m => m.includes('латиница')));
+  assert.ok(problems({}, 'stranger').err.some(m => m.includes('уже есть')), 'the game\'s own person is not overwritten');
+  assert.ok(problems({ at: null }).err.some(m => m.includes('ни в одной комнате')));
+  assert.ok(problems({ at: { room: 'swamp_moon', x: 1, y: 1 } }).warn.some(m => m.includes('swamp_moon')), 'standing where the scene does not play');
+  assert.ok(problems({ dialogue: '' }).err.some(m => m.includes('диалог')));
+  assert.ok(problems({ sprite: { ...person.sprite, cell: [50, stranger.sprite.cell[1]] } }).err.some(m => m.includes('не делится')));
+  assert.ok(problems({ sprite: { ...person.sprite, idle: 'res://assets/sprites/zz_nope.png' } }).err.some(m => m.includes('zz_nope')));
+  assert.ok(problems({ name: 'SPEAKER_ZZ_NO_TEXT' }).err.some(m => m.includes('нет имени')));
+  const c = own({}); c.missing = () => ['uk', 'zh_CN'];
+  assert.ok(L.cutProblems(scene, c).warn.some(m => m.includes('uk, zh_CN')));
+  assert.ok(L.cutProblems(scene.filter(s => s.do !== 'appear'), own({})).warn.some(m => m.includes('zz_shepherd')), 'unseen until it appears');
+
+  // the room table: placed once, placing again moves them, the rest of the table untouched
+  const before = read('tools/rooms/studio_rooms.json');
+  const once = L.mergeStudioRooms(before, { room: 'graveyard_cross', npc: ['zz_shepherd', 300, 254] });
+  assert.deepEqual(JSON.parse(once).graveyard_cross.npcs, [['zz_shepherd', 300, 254]]);
+  const moved = JSON.parse(L.mergeStudioRooms(once, { room: 'swamp_moon', npc: ['zz_shepherd', 10, 20] }));
+  assert.equal(moved.graveyard_cross.npcs, undefined);
+  assert.deepEqual(moved.swamp_moon.npcs, [['zz_shepherd', 10, 20]]);
+  assert.equal(L.mergeStudioRooms(L.mergeStudioRooms(once, { room: 'graveyard_cross', npc: ['zz_shepherd', 1, 1] }), { room: 'graveyard_cross', npc: ['zz_shepherd', 300, 254] }), once);
+  assert.ok(once.includes('["zz_shepherd", 300, 254]'), 'one row a line, like every other row');
+});
+
+test('a person stands on the floor, an enemy over it', () => {
+  const floor = [[100, 300, 200]];
+  assert.deepEqual(L.snapToSurface(floor, 150, 250), { x: 150, y: 288 });
+  assert.deepEqual(L.snapToSurface(floor, 150, 250, L.NPC_LIFT), { x: 150, y: 300 - L.NPC_LIFT });
+});

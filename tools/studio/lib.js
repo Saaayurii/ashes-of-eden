@@ -718,6 +718,18 @@ function lossyImport(res) {
       'process/hdr_clamp_exposure=false', 'process/size_limit=0', 'detect_3d/compress_to=1'].join('\n') + '\n';
 }
 
+// A person made for one scene (data/npcs, validate_data.gd "npcs"): hidden until its "appear"
+// (npc.gd "scripted"), never talked to on E, not on the main menu; "_studio" names the scene that
+// made it, so that scene may write it again. person: {name, dialogue, face, avatar, sprite: {idle, cell, fps}}.
+const SCENE_NPC_ID = /^[a-z][a-z0-9_]*$/;
+function npcJson(id, person, scene) {
+  const p = person.sprite || {}, doc = { id, _studio: scene, name: person.name, dialogue: person.dialogue, scripted: true, menu: false,
+    face: person.face === 'right' ? 'right' : 'left', sprite: { animations: { idle: p.idle }, cell: (p.cell || []).map(v => Math.round(v)), fps: p.fps || 4 } };
+  if (p.ground_offset) doc.sprite.ground_offset = p.ground_offset;
+  if (person.avatar) doc.avatar = person.avatar;
+  return JSON.stringify(doc, null, 2) + '\n';
+}
+
 // What validate_data.gd would say about one cutscene (_check_cutscenes, _check_actor, the
 // dialogues it plays, _check_story_flags), and what the game does that she may not expect.
 // ctx: dialogue(id) → the dialogue or null, image(res) → whether the picture exists,
@@ -727,22 +739,54 @@ const CUTSCENE_NEEDS = { hold: [], release: [], letterbox: [], wait: ['time'], c
   move: ['who'], walk: ['who'], anim: ['who', 'anim'], face: ['who', 'dir'], dialogue: ['id'], shake: [], sound: ['name'], music: ['name'], fade: ['to'],
   appear: ['who'], vanish: ['who'], panel: ['image'], panel_clear: [] };
 const CUTSCENE_FX = ['ash', 'sparkle', 'dust', 'puff', 'light', 'debris'];
+// ctx.own: {id: person} — the people this scene makes (npcJson), checked as validate_data.gd's "npcs"
+// would; ctx.gameNpcs: Map id → the scene that made it ("" for the game's own), ctx.scripted: Set of
+// the game's people hidden until an "appear", ctx.rooms: the rooms that play this scene, ctx.missing(key):
+// the locales a string has no text in, ctx.scene: this scene's id.
 function cutProblems(steps, ctx) {
-  const err = [], warn = [], flagsOf = v => v == null || v === '' ? [] : [].concat(v).map(String);
+  const err = [], warn = [], flagsOf = v => v == null || v === '' ? [] : [].concat(v).map(String), own = ctx.own || {};
   const actor = (who, at) => {
     const n = String(who);
     if (['player', 'boss', 'door'].includes(n)) return;
-    if (n.startsWith('npc:')) { if (ctx.npcs && !ctx.npcs.has(n.slice(4))) err.push(`${at}: нет такого NPC «${n.slice(4)}»`); return; }
+    if (n.startsWith('npc:')) { if (ctx.npcs && !ctx.npcs.has(n.slice(4)) && !own[n.slice(4)]) err.push(`${at}: нет такого NPC «${n.slice(4)}»`); return; }
     err.push(`${at}: «${n}» — не персонаж (player, boss, door, npc:<id>)`);
   };
+  for (const [id, n] of Object.entries(own)) {
+    const at = `человек «${id}»`;
+    if (!SCENE_NPC_ID.test(id)) err.push(`${at}: имя файла — латиница, цифры и _, с буквы`);
+    if (ctx.gameNpcs?.has(id) && ctx.gameNpcs.get(id) !== ctx.scene) err.push(`${at}: такой NPC уже есть в игре — выбери другое имя файла`);
+    if (!n.name || ctx.key && !ctx.key(n.name)) err.push(`${at}: нет имени`);
+    else if (ctx.missing) { const m = ctx.missing(n.name); if (m.length) warn.push(`${at}: имя без перевода на ${m.join(', ')} — там будет английское`); }
+    if (!n.sprite?.idle) err.push(`${at}: нет картинки`);
+    else if (ctx.image && !ctx.image(n.sprite.idle)) err.push(`${at}: нет картинки ${n.sprite.idle}`);
+    const [cw, ch] = n.sprite?.cell || [];
+    if (!(cw > 0 && ch > 0)) err.push(`${at}: размер кадра — два целых больше нуля`);
+    else if (n.sprite.size && (n.sprite.size[0] % cw || n.sprite.size[1] !== ch)) err.push(`${at}: картинка ${n.sprite.size.join('×')} не делится на кадры ${cw}×${ch}`);
+    if (!n.dialogue || !ctx.dialogue(n.dialogue)) err.push(`${at}: нужен диалог (игра требует его у каждого NPC, хоть сценой он и не говорит)`);
+    if (!n.at?.room) err.push(`${at}: не стоит ни в одной комнате — «Появиться» его не найдёт`);
+    else if (ctx.rooms?.length && !ctx.rooms.includes(n.at.room)) warn.push(`${at}: стоит в ${n.at.room}, а сцена играет в ${ctx.rooms.join(', ')}`);
+  }
+  // a person hidden until called (npc.gd "scripted") is not seen before an "appear"
+  const hidden = id => !!own[id] || !!ctx.scripted?.has(id), shown = new Set(), unseen = new Set();
+  const look = (who, kind) => { const n = String(who ?? ''); if (n.startsWith('npc:') && kind !== 'appear' && hidden(n.slice(4)) && !shown.has(n.slice(4))) unseen.add(n.slice(4)); };
   let holds = 0, choiceFlags = new Set(), skipLosers = new Set();
   steps.forEach((s, i) => {
     const at = `шаг ${i + 1}`, kind = s.do;
     if (!(kind in CUTSCENE_NEEDS)) { err.push(`${at}: неизвестный шаг «${kind}»`); return; }
     for (const f of CUTSCENE_NEEDS[kind]) if (s[f] === undefined || s[f] === '') err.push(`${at}: нужно поле «${f}»`);
     if (s.who !== undefined && s.who !== '') actor(s.who, at);
+    [s.who, s.to, s.at, ...(Array.isArray(s.between) ? s.between : []), ...(s.cast && typeof s.cast === 'object' ? Object.values(s.cast) : [])].forEach(w => look(w, kind));
+    if (kind === 'appear' && String(s.who || '').startsWith('npc:')) shown.add(String(s.who).slice(4));
+    if (kind === 'vanish' && String(s.who || '').startsWith('npc:')) shown.delete(String(s.who).slice(4));
+    if (kind === 'dialogue' && s.cast !== undefined) {
+      if (!s.cast || typeof s.cast !== 'object' || Array.isArray(s.cast)) err.push(`${at}: «камера на говорящих» — кто говорит → на кого смотреть`);
+      else for (const [who, a] of Object.entries(s.cast)) {
+        if (!who || ctx.key && !ctx.key(who)) err.push(`${at}: камера на говорящих: нет говорящего «${who}»`);
+        if (a === undefined || a === '' || Array.isArray(a)) err.push(`${at}: камера на говорящих: для «${who}» не выбран персонаж`); else actor(a, at);
+      }
+    }
     if (kind === 'camera') {
-      if (s.between !== undefined) { if (!Array.isArray(s.between) || s.between.length !== 2) err.push(`${at}: камера «между» — ровно два персонажа`); else s.between.forEach(a => actor(a, at)); }
+      if (s.between !== undefined) { if (!Array.isArray(s.between) || s.between.length !== 2 || s.between.some(a => a === '' || a == null)) err.push(`${at}: камера «между» — ровно два персонажа`); else s.between.forEach(a => actor(a, at)); }
       else if (s.to === undefined || s.to === '') err.push(`${at}: камере нужно «к кому» или «между двумя»`);
       else if (!Array.isArray(s.to)) actor(s.to, at);
     }
@@ -786,6 +830,7 @@ function cutProblems(steps, ctx) {
     }
   });
   if (holds > 0) err.push('управление забрано («Забрать управление») и не возвращено («Вернуть управление»)');
+  if (unseen.size) warn.push(`Не видно, пока не появится: ${[...unseen].join(', ')} — добавь «Появиться» раньше (если он не появился в прошлой сцене)`);
   if (skipLosers.size) warn.push(`Если игрок пропустит сцену, ответов не будет: шаги «только если ${[...skipLosers].join(', ')}» не сыграют. Вариант без флага — тот, что увидит пропустивший.`);
   return { err: [...new Set(err)], warn: [...new Set(warn)] };
 }
@@ -887,16 +932,28 @@ function prStatus({ state, merged, checks, deployed, review }) {
 // The floor under a point, by the rule check_reach (tools/rooms/painted_rooms.py)
 // uses: a surface [x, top, width] reaching the point's x (±8 px) whose top is
 // below its feet; an enemy's origin stands 12 px above that top.
-function snapToSurface(surfaces, x, y) {
+// lift: how far above the top the origin stands — 12 for an enemy, NPC_LIFT for a person (npc.gd
+// stands the strip's bottom row a pixel under its origin, the stranger is 1 px over his ledge).
+const NPC_LIFT = 1;
+function snapToSurface(surfaces, x, y, lift = 12) {
   let best = null;
-  for (const [sx, sy, sw] of surfaces || []) if (sx - 8 <= x && x <= sx + sw + 8 && sy >= y + 12 - 4 && (!best || sy < best[1])) best = [sx, sy, sw];
-  return best ? { x: Math.round(x), y: Math.round(best[1] - 12) } : null;
+  for (const [sx, sy, sw] of surfaces || []) if (sx - 8 <= x && x <= sx + sw + 8 && sy >= y + lift - 4 && (!best || sy < best[1])) best = [sx, sy, sw];
+  return best ? { x: Math.round(x), y: Math.round(best[1] - lift) } : null;
 }
-// change: {room, spawn: [id, x, y]} or {room, intro_cutscene | outro_cutscene: id}.
-// An enemy is placed once per room (placing it again moves it).
+// change: {room, spawn: [id, x, y]}, {room, npc: [id, x, y]} or {room, intro_cutscene | outro_cutscene: id}.
+// An enemy is placed once per room (placing it again moves it); a person stands in one room
+// only (placing them again takes them out of where they stood).
 function mergeStudioRooms(text, change) {
-  const all = text ? JSON.parse(text) : {}, r = all[change.room] ||= {};
+  const all = text ? JSON.parse(text) : {};
+  if (change.npc) for (const [name, room] of Object.entries(all)) {
+    if (!room.npcs) continue;
+    room.npcs = room.npcs.filter(n => n[0] !== change.npc[0]);
+    if (!room.npcs.length) delete room.npcs;
+    if (!Object.keys(room).length) delete all[name];
+  }
+  const r = all[change.room] ||= {};
   if (change.spawn) { r.spawns = (r.spawns || []).filter(s => s[0] !== change.spawn[0]); r.spawns.push(change.spawn); }
+  if (change.npc) (r.npcs ||= []).push(change.npc);
   for (const k of ['intro_cutscene', 'outro_cutscene']) if (change[k] !== undefined) r[k] = change[k];
   return fmtStudioRooms(all);
 }
@@ -1617,5 +1674,5 @@ function packFiles(files, del = []) {
   return { files: out, del: del.map(where) };
 }
 
-Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, looksRanged, shootsFrom, enemyBaseFor, frameEdits, liveFrames, gameCharId, stripHome, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, lossyImport, CUTSCENE_NEEDS, cutProblems, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
+Object.assign(g, { GAME_REPO, gameDataBase, storageKey, studioDbName, PACK_TABLES, packFiles, HERO_SECTIONS, heroPatch, actionsPatch, filesFingerprint, fingerprintMark, REF_ROLES, spritePrompt, OVERRIDE_DIR, overrideFiles, looksRanged, shootsFrom, enemyBaseFor, frameEdits, liveFrames, gameCharId, stripHome, ENEMY_ANIMATIONS, diffMask, mergeOverrides, HERO_H, STEADY, frameStats, artChecks, enemySlotFor, liveMessage, snapToSurface, mergeStudioRooms, contentKey, creatureGroups, mergeDecision, prStatus, spriteFramesTres, csvParse, csvStringify, mergeStrings, mergeDialogueFile, LOOK_SCREEN, LOOK_HOME, LOOK_CAPTION_H, LOOK_COLORS, LOOK_NUMBERS, mergeLook, lookRect, clampLook, fmtLooks, mergeLooks, insertBackdropRules, setBackdropRule, rebuildDialogue, alignEdit, warpEdit, matchColours, jsonSpans, pyJson, patchJson, jsonItems, setJsonList, lifeEntry, cutsceneJson, lossyImport, CUTSCENE_NEEDS, cutProblems, SCENE_NPC_ID, npcJson, NPC_LIFT, planSoundWrite, snapshot, unsnapshot, applyPatch, hsv, cornerColor, maskPixels, cropBox, copyCut, downscale, cdist, buildPalette, applyPalette, anchorX, edgeProfiles, P_STEP, trackLines, trackScore, peakThr, gridCurve, pickP, measuredStep, globalGridP, gridFor, gridSample, nativeSprite, mergeInnerGaps, toI16, encodeWav, EDIT_DEFAULT, isDefaultEdit, fmtJson, composeSurfaces, composeCanJump, composeReach, traceLedges, COMPOSE_LISTS, composeShift, composeGrid, composeClip, fmtComposed, composeImage, composeStitch, composeTone, composeJoin, composeJoinBelow, composeNight, composeHole, composeTiles, composeWindowDepth, composeWindows, frontAt, frontBox, frontEdgeFade, frontCandidates, fmtStudioRooms });
 })(typeof module !== 'undefined' ? module.exports : window);

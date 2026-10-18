@@ -536,6 +536,13 @@ async function cutFiles() {
     files['tools/rooms/studio_rooms.json'] = mergeStudioRooms(files['tools/rooms/studio_rooms.json'] || await repoText('tools/rooms/studio_rooms.json'), { room: CUT.attach.room, [CUT.attach.when]: id });
     notes.push(`Будет играть в комнате ${CUT.attach.room} ${CUT.attach.when === 'outro_cutscene' ? 'после зачистки' : 'при входе'}; сцену пересоберёт робот студии.`);
   } else notes.push(rooms ? `Катсцену показывает комната ${rooms.join(', ')}.` : 'Катсцену пока не показывает ни одна комната — «🏠 В комнату», чтобы подключить.');
+  // the people this scene made: their data/npcs file and where they stand (studio_rooms.json "npcs"); their names went in with the strings
+  for (const [nid, n] of Object.entries(CUT.npcs || {})) {
+    files[`data/npcs/${nid}.json`] = npcJson(nid, n, id);
+    if (!n.at?.room) continue;
+    files['tools/rooms/studio_rooms.json'] = mergeStudioRooms(files['tools/rooms/studio_rooms.json'] || await repoText('tools/rooms/studio_rooms.json'), { room: n.at.room, npc: [nid, n.at.x, n.at.y] });
+    notes.push(`${nid} стоит в ${n.at.room} (${n.at.x}, ${n.at.y}), невидимый до шага «Появиться»; комнату пересоберёт робот студии.`);
+  }
   return { id, files, notes, title: `Studio: cutscene ${id}`, body: `Катсцена **${id}**: ${CUT.steps.length} шагов.` };
 }
 async function soundFiles() {
