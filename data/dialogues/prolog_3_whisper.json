@@ -1,7 +1,0 @@
-{
-  "id": "prolog_3_whisper",
-  "start": "p1",
-  "nodes": {
-    "p1": {"speaker": "SPEAKER_VOICE", "text": "DLG_PROLOG_3_WHISPER_1"}
-  }
-}
