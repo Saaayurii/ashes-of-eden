@@ -87,7 +87,7 @@ width = 1600
 height = 720
 void_kill_y = 700
 intro_dialogue = ""
-intro_cutscene = "witnesses_in_the_street"
+intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/euphrates_town_wide.png"
 

@@ -87,8 +87,8 @@ width = 1600
 height = 720
 void_kill_y = 690
 intro_dialogue = ""
-intro_cutscene = "abaddon_arrival"
-outro_cutscene = "ch5_finale"
+intro_cutscene = ""
+outro_cutscene = ""
 painting_source = "res://assets/levels/engedi_abyss_mouth_wide.png"
 
 [node name="Ambient" type="CanvasModulate" parent="."]

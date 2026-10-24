@@ -367,7 +367,7 @@ PAINTED = {
         # Eighth panel: inside. Galleries of bones on four floors, a ladder up
         # to the ossuary with the gilded coffin, the way on at the bottom right.
         painting="catacombs_1", width=1280, height=720, weather="none", fog=0.15, intro="", music="dead_bridge",
-        intro_cutscene="voice_in_the_dark",  # the Voice asks its one question
+        intro_cutscene="",  # the Voice asks its one question
         ground=[(0, 700, 1280, 20)],
         ledges=[(50, 157, 196, 14), (297, 178, 87, 12), (365, 260, 274, 14), (769, 204, 139, 12), (859, 240, 99, 12),
                 (956, 234, 182, 14), (1109, 234, 171, 14), (1047, 191, 154, 12), (31, 332, 80, 12), (100, 344, 100, 12),
@@ -463,7 +463,7 @@ PAINTED = {
         # top right. Lava burns and returns the hero to safe footing; beyond
         # the panel there is no invisible safety floor.
         painting="crypt_lava", width=1280, height=720, weather="embers", fog=0.2, intro="", music="boss_knight",
-        intro_cutscene="knight_arrival",
+        intro_cutscene="",
         ground=[],
         ledges=[(28, 173, 170, 14), (103, 222, 100, 10), (188, 235, 96, 10), (266, 252, 47, 10), (278, 261, 262, 14),
                 (613, 259, 46, 10), (672, 200, 301, 16), (821, 180, 61, 10), (956, 180, 96, 12), (958, 226, 148, 12),
@@ -482,7 +482,7 @@ PAINTED = {
         # Thirteenth panel, the Ophanim: the locked gate of the pit, a grand
         # stair up to it over a bridge of bone. The gate is the exit.
         painting="hell_gate", width=1280, height=720, weather="embers", fog=0.15, intro="", music="boss_ophanim",
-        intro_cutscene="ophanim_arrival", outro_cutscene="ch1_finale",  # its words are in the scene, not a caption under it
+        intro_cutscene="", outro_cutscene="",  # its words are in the scene, not a caption under it
         ground=[(900, 372, 220, 30)],
         ledges=[(60, 142, 100, 12), (159, 176, 111, 14), (364, 239, 154, 14),
                 (81, 393, 64, 10), (123, 416, 100, 12), (194, 447, 51, 10), (203, 462, 95, 10), (290, 492, 168, 14),
@@ -501,7 +501,7 @@ PAINTED = {
         # The Blind Preacher's arena (docs/CHAPTER1.md, scene 7): the nave he
         # preached in, before the church proper. One fight, no adds but his own.
         interior=True, floor="ledge", width=960, height=420, weather="none", fog=0.1,
-        intro="", intro_cutscene="preacher_arrival", music="arena",
+        intro="", intro_cutscene="", music="arena",
         ground=[(0, 380, 960, 40)],
         # The central loft was isolated by both expansion seams and had no
         # combat role; keep the two reachable side balconies around the arena.
@@ -522,7 +522,7 @@ PAINTED = {
         # the middle, the bell tower above. Quiet on purpose (docs/CHAPTER1.md).
         # 420 tall so a screen taller than 16:9 still shows only church.
         interior=True, floor="ledge", width=960, height=420, weather="none", fog=0.0, intro="", music="church",
-        intro_cutscene="church_matthew",  # the bell, and the priest at the altar
+        intro_cutscene="",  # the bell, and the priest at the altar
         ground=[(0, 380, 960, 40)],
         # The low choir steps overlap the gallery piers instead of hovering in
         # the nave; the 42/48 px rise still keeps both balconies reachable.
@@ -550,7 +550,7 @@ PAINTED = {
         # The coast road: the dead tree on the bluff, the city's gate tower on
         # the right. Lazarus lies by the milestone; the ravens are the fight.
         painting="seir_road", width=1280, height=720, weather="ash", fog=0.2, intro="", music="road",
-        intro_cutscene="lazarus_on_the_road", void_kill_y=690,
+        intro_cutscene="", void_kill_y=690,
         ground=[(0, 470, 222, 250), (0, 567, 1280, 153)],
         ledges=[(226, 477, 49, 12), (265, 508, 55, 12)],
         spawns=[("raven", 150, 250), ("raven", 270, 330)],
@@ -626,7 +626,7 @@ PAINTED = {
         # The quay: Naomi's lamp on the bench is the only warm light; the
         # sailors' shrine is the rest point.
         painting="seir_quay", width=1280, height=720, weather="ash", fog=0.25, intro="", music="dead_bridge",
-        intro_cutscene="quay_arrival", void_kill_y=690,
+        intro_cutscene="", void_kill_y=690,
         ground=[(0, 490, 1280, 230)],
         ledges=[(349, 436, 59, 12), (925, 452, 68, 12), (839, 413, 96, 12)],
         spawns=[("drowned", 180, 478), ("drowned", 700, 478), ("drowned", 1010, 478),
@@ -688,7 +688,7 @@ PAINTED = {
     "seir_lighthouse": dict(
         # The lamp room: the Watchman stands between Elian and the fire.
         painting="seir_lighthouse", width=1280, height=720, weather="none", fog=0.08, intro="", music="boss_knight",
-        intro_cutscene="watchman_arrival", outro_cutscene="ch2_finale", void_kill_y=690,
+        intro_cutscene="", outro_cutscene="", void_kill_y=690,
         ground=[(0, 495, 1280, 225)],
         ledges=[(854, 442, 85, 12), (954, 396, 124, 12), (1068, 441, 56, 12)],
         spawns=[("watchman", 640, 483)],
@@ -704,7 +704,7 @@ PAINTED = {
         # The elders' stair: the twenty-four sit on the terraces along it and
         # cast down their crowns toward the top edge, where nothing is shown.
         painting="hall_elders_stair", width=1280, height=720, weather="none", fog=0.05, intro="", music="church",
-        intro_cutscene="elders_fall_down", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 562, 1280, 158)],
         ledges=[(530, 343, 250, 14), (780, 346, 340, 14)],
         ramps=[(170, 562, 530, 343)],
@@ -718,7 +718,7 @@ PAINTED = {
         # The outer court, given to the nations and never measured: the
         # seraph over it, the wheels over the terrace, the tally in the niche.
         painting="hall_outer_court", width=1280, height=720, weather="none", fog=0.08, intro="", music="church",
-        intro_cutscene="ch7_court_sky", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 570, 1280, 150)],
         ledges=[(495, 548, 235, 12), (545, 528, 185, 12), (595, 508, 135, 12), (690, 488, 45, 12), (730, 432, 360, 14),
                 (1120, 544, 36, 8)],  # the niche's sill by the door, where the tally is walled up
@@ -791,7 +791,7 @@ PAINTED = {
         # the stones are painted light only (BackdropLife lava), not a pool:
         # the scene is no fight and the walk to it must not burn.
         painting="hall_stones_of_fire", width=1280, height=720, weather="none", fog=0.05, intro="", music="end",
-        intro_cutscene="lucifer_on_the_stones", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 500, 1280, 220)],
         spawns=[],
         props=[],
@@ -804,7 +804,7 @@ PAINTED = {
         # it. The voices, the thunder, then the fight. The door asks which way
         # (fork_hall_storm).
         painting="hall_ark_sanctum", width=1280, height=720, weather="none", fog=0.08, intro="", music="church",
-        intro_cutscene="ark_opened", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 530, 1280, 190)],
         ledges=[(122, 420, 295, 12)],
         platforms=[(440, 475, 50, 10)],
@@ -854,7 +854,7 @@ PAINTED = {
         # The gate of Eden in its hedge of fire, and the Cherub before it.
         # Beaten, he lowers the sword (ch7_finale); the door is the gate.
         painting="hall_eden_gate", width=1280, height=720, weather="none", fog=0.05, intro="", music="boss_ophanim",
-        intro_cutscene="cherub_at_the_gate", outro_cutscene="ch7_finale", void_kill_y=700,
+        intro_cutscene="", outro_cutscene="", void_kill_y=700,
         ground=[(0, 540, 1280, 180)],
         spawns=[("cherub", 760, 528)],
         props=[],
@@ -871,7 +871,7 @@ PAINTED = {
         # road a dead sycamore with Zacchaeus in it. The near booth's stair
         # climbs to its roof; the sea beyond the parapet is the backdrop.
         painting="tyre_causeway", width=1280, height=720, weather="ash", fog=0.2, intro="", music="road",
-        intro_cutscene="zacchaeus_in_the_sycamore", dark=0.35,
+        intro_cutscene="", dark=0.35,
         ground=[(0, 498, 1280, 222)],
         ledges=[(440, 455, 48, 12), (478, 420, 45, 12), (512, 385, 30, 12), (542, 347, 210, 14)],
         spawns=[("woe_eagle", 700, 250), ("woe_eagle", 1050, 320), ("cutpurse", 880, 486)],
@@ -956,7 +956,7 @@ PAINTED = {
         # over it reached by the terrace stair on the left, the garden wall on
         # the right under the fig. The household shrine is the rest point.
         painting="tyre_rich_gate", width=1280, height=720, weather="ash", fog=0.15, intro="", music="village_night",
-        intro_cutscene="rich_gate_arrival", dark=0.45,
+        intro_cutscene="", dark=0.45,
         ground=[(0, 579, 1280, 141)],
         ledges=[(590, 557, 295, 12), (613, 517, 233, 12),
                 (40, 407, 210, 14), (255, 365, 40, 12), (295, 325, 40, 12), (335, 288, 40, 12), (372, 250, 40, 12),
@@ -1033,7 +1033,7 @@ PAINTED = {
         # The throne room over the sea: the prince's four lamps burn (his),
         # two by the door are for sale. The sea is behind glass — no fall.
         painting="tyre_throne", width=1280, height=720, weather="none", fog=0.08, intro="", music="boss_knight",
-        intro_cutscene="prince_of_tyre_arrival", outro_cutscene="ch4_finale", dark=0.3,
+        intro_cutscene="", outro_cutscene="", dark=0.3,
         ground=[(0, 521, 1280, 199)],
         ledges=[(1010, 470, 228, 12)],
         spawns=[("prince_of_tyre", 700, 509)],
@@ -1045,7 +1045,7 @@ PAINTED = {
         # Chapter III opens here (docs/CHAPTER3.md): the dead tree on its rock
         # over the ford, Malchus under the noose; both armies come for the rope.
         painting="marah_gallows", width=1280, height=720, weather="ash", fog=0.25, intro="", music="road",
-        intro_cutscene="malchus_at_the_tree", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 510, 990, 210), (1100, 605, 180, 115)],
         ledges=[(400, 396, 545, 14), (262, 472, 110, 12), (393, 447, 80, 12), (900, 452, 55, 12)],
         ramps=[(985, 510, 1105, 605)],
@@ -1124,7 +1124,7 @@ PAINTED = {
         # The truce tent between the lines: the white half and the warm half,
         # the long table in the middle; the two who talk there are the scene's.
         painting="marah_parley", width=1280, height=720, weather="none", fog=0.08, intro="", music="graveyard",
-        intro_cutscene="parley_tent", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 538, 1280, 182)],
         ledges=[(150, 437, 190, 12), (490, 457, 300, 12), (985, 437, 170, 12),  # the white side's table, the long table, the warm side's
                 (175, 492, 45, 10), (455, 494, 35, 10), (800, 494, 35, 10), (990, 492, 45, 10)],  # the crates and the stools
@@ -1170,7 +1170,7 @@ PAINTED = {
         # basin, a flat rock either side. Wormwood's arena; the basin is the
         # "Spring" she floods (studio_rooms.json), her anchor over the star.
         painting="marah_wormwood_spring", width=1280, height=720, weather="none", fog=0.12, intro="", music="boss_ophanim",
-        intro_cutscene="wormwood_arrival", outro_cutscene="ch3_finale", void_kill_y=700,
+        intro_cutscene="", outro_cutscene="", void_kill_y=700,
         ground=[(0, 590, 395, 130), (395, 640, 565, 80), (960, 590, 320, 130)],
         ledges=[(150, 535, 135, 14), (995, 537, 135, 14)],  # the two flat rocks
         spawns=[("wormwood", 640, 330)],
@@ -1207,7 +1207,7 @@ PAINTED = {
         # The road under the brown smoke: Ahithophel by his fig tree, the cut
         # ropes on the ground at its foot; his fig lies there only if he was lied to.
         painting="engedi_smoke_road", width=1280, height=720, weather="ash", fog=0.2, intro="", music="road",
-        intro_cutscene="ahithophel_by_the_tree", void_kill_y=690,
+        intro_cutscene="", void_kill_y=690,
         ground=[(0, 572, 1280, 148)],
         spawns=[("locust", 900, 380), ("vine_husk", 700, 560), ("vine_husk", 1000, 560)],
         props=[("engedi_fig", 180, 572), ("engedi_fig", 420, 572), ("engedi_fig_ahithophel", 350, 572)],
@@ -1274,7 +1274,7 @@ PAINTED = {
         # The edge of the abyss: the vineyard's boundary stone is the rest
         # point; past it the smoke rises out of the ground. The Voice speaks here.
         painting="engedi_pit_rim", width=1280, height=720, weather="ash", fog=0.2, intro="", music="dead_bridge",
-        intro_cutscene="voice_at_the_rim", void_kill_y=690,
+        intro_cutscene="", void_kill_y=690,
         ground=[(0, 549, 1280, 171)],
         spawns=[("locust_rider", 500, 537), ("locust_rider", 1000, 537), ("locust", 700, 300),
                 ("pit_smoke", 400, 250), ("pit_smoke", 900, 250)],
@@ -1285,7 +1285,7 @@ PAINTED = {
         # The mouth of the pit: one stone floor over the fire. Abaddon comes up
         # out of it; the key is in the finale.
         painting="engedi_abyss_mouth", width=1280, height=720, weather="ash", fog=0.1, intro="", music="boss_ophanim",
-        intro_cutscene="abaddon_arrival", outro_cutscene="ch5_finale", void_kill_y=690,
+        intro_cutscene="", outro_cutscene="", void_kill_y=690,
         ground=[(0, 440, 1280, 280)],
         spawns=[("abaddon", 640, 300)],
         props=[],
@@ -1309,7 +1309,7 @@ PAINTED = {
         # The feast without end: six feasters wait at the long table and do not
         # lift their heads; the swollen two and a rider hold the door.
         painting="engedi_feast_hall", width=1280, height=720, weather="none", fog=0.1, intro="", music="church",
-        intro_cutscene="feast_without_end", void_kill_y=690,
+        intro_cutscene="", void_kill_y=690,
         ground=[(0, 582, 1280, 138)],
         ledges=[(263, 518, 708, 14)],
         spawns=[("feaster", 300, 570), ("feaster", 420, 570), ("feaster", 540, 570), ("feaster", 700, 570),
@@ -1361,7 +1361,7 @@ PAINTED = {
         # The bank under the storm: the mighty angel stands in the depth with the
         # little book. The ford is shallow water to wade, not a fall.
         painting="euphrates_bank", width=1280, height=720, weather="rain", fog=0.25, intro="", music="road",
-        intro_cutscene="little_book", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 522, 745, 198), (745, 576, 262, 144), (1005, 526, 275, 194)],
         liquids=[["water", 745, 540, 262, 36]],
         spawns=[("river_wraith", 820, 420), ("river_wraith", 930, 380), ("horseman", 1120, 514)],
@@ -1371,7 +1371,7 @@ PAINTED = {
     "euphrates_town": dict(
         # The feast in the street; the two witnesses lie in the middle of it.
         painting="euphrates_town", width=1280, height=720, weather="none", fog=0.15, intro="", music="village_night",
-        intro_cutscene="witnesses_in_the_street", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 503, 1280, 217)],
         spawns=[("flagellant", 300, 491), ("flagellant", 860, 491), ("flagellant", 1000, 491), ("river_wraith", 700, 380)],
         props=[("barrel", 1010, 503)],
@@ -1418,7 +1418,7 @@ PAINTED = {
         # The refectory: the table laid for forty, the bread untouched; Saul by
         # the oven, which is the rest point.
         painting="euphrates_refectory", width=1280, height=720, weather="none", fog=0.1, intro="", music="church",
-        intro_cutscene="refectory_arrival", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 568, 1280, 152)],
         ledges=[(290, 505, 650, 12), (940, 503, 190, 12)],
         spawns=[("flagellant", 200, 556), ("flagellant", 600, 493), ("censer_monk", 140, 556)],
@@ -1437,7 +1437,7 @@ PAINTED = {
         # The golden altar with four horns; the voice speaks from them, and the
         # lion-headed horse wakes beside it.
         painting="euphrates_altar_court", width=1280, height=720, weather="none", fog=0.15, intro="", music="church",
-        intro_cutscene="voice_from_the_horns", void_kill_y=700,
+        intro_cutscene="", void_kill_y=700,
         ground=[(0, 535, 1280, 185)],
         ledges=[(380, 500, 515, 12), (455, 458, 365, 12)],
         spawns=[("lion_horse", 980, 523), ("flagellant", 250, 523), ("flagellant", 1100, 523), ("censer_monk", 560, 446),
@@ -1490,7 +1490,7 @@ PAINTED = {
         # Under the river: four pillars banded with gold, a ring at each foot.
         # The Four Bound stands at the first and swaps as each falls.
         painting="euphrates_bound", width=1280, height=720, weather="none", fog=0.12, intro="", music="boss_ophanim",
-        intro_cutscene="the_four_bound", outro_cutscene="ch6_finale", void_kill_y=700,
+        intro_cutscene="", outro_cutscene="", void_kill_y=700,
         ground=[(0, 600, 1280, 120)],
         ledges=[(0, 575, 80, 12), (1200, 575, 80, 12)],
         spawns=[("four_bound", 640, 588)],

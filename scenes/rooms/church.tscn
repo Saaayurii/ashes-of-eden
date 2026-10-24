@@ -119,7 +119,7 @@ script = ExtResource("1_room")
 width = 1200
 height = 420
 intro_dialogue = ""
-intro_cutscene = "church_matthew"
+intro_cutscene = ""
 outro_cutscene = ""
 
 [node name="Ambient" type="CanvasModulate" parent="."]

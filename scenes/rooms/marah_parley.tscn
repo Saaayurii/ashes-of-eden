@@ -108,7 +108,7 @@ width = 1600
 height = 720
 void_kill_y = 700
 intro_dialogue = ""
-intro_cutscene = "parley_tent"
+intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/marah_parley_wide.png"
 

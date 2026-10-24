@@ -1,8 +1,0 @@
-{
-  "id": "feast_without_end",
-  "steps": [
-    {"do": "camera", "to": "player", "offset": [320, 0], "zoom": 1.0, "time": 2.0},
-    {"do": "dialogue", "id": "ch5_feast"},
-    {"do": "camera", "to": "player", "zoom": 1.0, "time": 0.8}
-  ]
-}

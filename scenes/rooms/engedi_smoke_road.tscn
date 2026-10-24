@@ -91,7 +91,7 @@ width = 1600
 height = 720
 void_kill_y = 690
 intro_dialogue = ""
-intro_cutscene = "ahithophel_by_the_tree"
+intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/engedi_smoke_road_wide.png"
 

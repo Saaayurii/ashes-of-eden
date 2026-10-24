@@ -99,7 +99,7 @@ script = ExtResource("1_room")
 width = 1600
 height = 720
 intro_dialogue = ""
-intro_cutscene = "zacchaeus_in_the_sycamore"
+intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/tyre_causeway_wide.png"
 

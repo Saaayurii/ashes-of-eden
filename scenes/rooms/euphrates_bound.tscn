@@ -93,8 +93,8 @@ width = 1600
 height = 720
 void_kill_y = 700
 intro_dialogue = ""
-intro_cutscene = "the_four_bound"
-outro_cutscene = "ch6_finale"
+intro_cutscene = ""
+outro_cutscene = ""
 painting_source = "res://assets/levels/euphrates_bound_wide.png"
 
 [node name="Ambient" type="CanvasModulate" parent="."]

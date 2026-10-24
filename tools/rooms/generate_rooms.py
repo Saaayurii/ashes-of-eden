@@ -1005,7 +1005,7 @@ ROOMS = {
     "fallen_knight": dict(
         # Boss arena, one screen: a raised dais in the middle, ledges to escape to.
         backdrop="dead_bridge", width=1024, height=360, weather="rain", fog=0.5, intro="", music="boss_knight",
-        intro_cutscene="knight_arrival",
+        intro_cutscene="",
         ground=[(0, 320, 1024, 40), (412, 272, 200, 48)],
         platforms=[(120, 230, 110, 12), (800, 230, 110, 12), (300, 180, 90, 12), (640, 180, 90, 12)],
         spawns=[("knight_of_ash", 720, 308)],
@@ -1036,7 +1036,7 @@ ROOMS = {
     "church_ophanim": dict(
         # Boss arena, one screen: a symmetrical nave with a high altar in the middle.
         backdrop="village_night", width=960, height=360, weather="embers", fog=0.3, intro="ch1_ophanim", music="boss_ophanim",
-        intro_cutscene="ophanim_arrival", outro_cutscene="ch1_finale",
+        intro_cutscene="", outro_cutscene="",
         ground=[(0, 320, 960, 40)],
         platforms=[(90, 250, 120, 12), (750, 250, 120, 12), (240, 200, 100, 14), (620, 200, 100, 14), (430, 160, 100, 12)],
         spawns=[("ophanim", 480, 110)],

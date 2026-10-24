@@ -90,7 +90,7 @@ width = 1600
 height = 720
 void_kill_y = 690
 intro_dialogue = ""
-intro_cutscene = "feast_without_end"
+intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/engedi_feast_hall_wide.png"
 
