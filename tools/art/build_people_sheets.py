@@ -17,10 +17,12 @@ Also cuts the two dogs at the rich gate (assets/decor/tyre_dogs.png, 2 frames
 
 Deterministic. Writes through `patched()` (the art studio's edits).
 """
+import math
 import os
 import sys
 from statistics import median
 
+import numpy as np
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -54,6 +56,62 @@ HANGED = {"malchus_hanged"}
 ROPE = (58, 44, 30, 255)
 LIFT = 5
 ROPE_LIGHT = (92, 72, 50, 255)
+# Pillow's own fixed-point resampling (Resample.c), so the cut does not move
+# when Pillow does: 13.0 changed its Lanczos and drew these people a few
+# hundred pixels apart. Same numbers as Pillow 12, byte for byte.
+PRECISION_BITS = 22
+
+
+def _lanczos_coeffs(in_size: int, out_size: int) -> tuple[np.ndarray, np.ndarray]:
+    scale = in_size / out_size
+    filterscale = max(scale, 1.0)
+    support = 3.0 * filterscale
+    kk = np.zeros((out_size, int(math.ceil(support)) * 2 + 1), dtype=np.int64)
+    first = np.zeros(out_size, dtype=np.int64)
+    for xx in range(out_size):
+        centre = (xx + 0.5) * scale
+        xmin = max(int(centre - support + 0.5), 0)
+        xmax = min(int(centre + support + 0.5), in_size) - xmin
+        weights = []
+        for x in range(xmax):
+            t = (x + xmin - centre + 0.5) / filterscale
+            w = 0.0
+            if -3.0 <= t < 3.0:  # sinc(t) * sinc(t / 3)
+                w = 1.0 if t == 0 else math.sin(t * math.pi) / (t * math.pi) * (math.sin(t / 3 * math.pi) / (t / 3 * math.pi))
+            weights.append(w)
+        total = sum(weights)
+        for x, w in enumerate(weights):
+            if total != 0.0:
+                w /= total
+            kk[xx, x] = int((-0.5 if w < 0 else 0.5) + w * (1 << PRECISION_BITS))
+        first[xx] = xmin
+    return kk, first
+
+
+def _resample_rows(a: np.ndarray, out_size: int) -> np.ndarray:
+    """(h, w, c) uint8 -> (h, out_size, c), along the rows."""
+    kk, first = _lanczos_coeffs(a.shape[1], out_size)
+    src = np.pad(a.astype(np.int64), ((0, 0), (0, kk.shape[1]), (0, 0)))
+    out = np.full((a.shape[0], out_size, a.shape[2]), 1 << (PRECISION_BITS - 1), dtype=np.int64)
+    for x in range(kk.shape[1]):
+        out += src[:, first + x, :] * kk[:, x][None, :, None]
+    return np.clip(out >> PRECISION_BITS, 0, 255).astype(np.uint8)
+
+
+def _lanczos(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """`image.resize(size, LANCZOS)` as Pillow 12 did it: premultiplied, rows then columns."""
+    a = np.asarray(image.convert("RGBA")).astype(np.int64)
+    alpha = a[..., 3:4]
+    t = a[..., :3] * alpha + 128
+    pm = np.concatenate([((t >> 8) + t) >> 8, alpha], axis=2).astype(np.uint8)
+    if size[0] != pm.shape[1]:
+        pm = _resample_rows(pm, size[0])
+    if size[1] != pm.shape[0]:
+        pm = _resample_rows(pm.transpose(1, 0, 2), size[1]).transpose(1, 0, 2)
+    pm = pm.astype(np.int64)
+    alpha = pm[..., 3:4]
+    rgb = np.where((alpha == 0) | (alpha == 255), pm[..., :3], np.clip(255 * pm[..., :3] // np.maximum(alpha, 1), 0, 255))
+    return Image.fromarray(np.concatenate([rgb, alpha], axis=2).astype(np.uint8), "RGBA")
 
 
 def _rope(cell: Image.Image) -> None:
@@ -93,7 +151,7 @@ def _place(frame: Image.Image, scale: float, size: tuple[int, int], middle: floa
         return out
     body = frame.crop(box)
     w, h = max(1, round(body.width * scale)), max(1, round(body.height * scale))
-    body = body.resize((w, h), Image.Resampling.LANCZOS)
+    body = _lanczos(body, (w, h))
     body.putalpha(body.getchannel("A").point(lambda a: 255 if a > 110 else 0))
     # centred on the cell, feet on its bottom row; the frame's own offset from
     # the person's middle (the idle row's, else the sheet cell's centre) is
