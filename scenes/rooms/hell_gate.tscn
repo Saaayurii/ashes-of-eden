@@ -161,8 +161,8 @@ script = ExtResource("1_room")
 width = 1600
 height = 720
 intro_dialogue = ""
-intro_cutscene = "ophanim_arrival"
-outro_cutscene = "ch1_finale"
+intro_cutscene = ""
+outro_cutscene = ""
 painting_source = "res://assets/levels/hell_gate_wide.png"
 depth_parallax = 0.036
 

@@ -2,7 +2,6 @@
   "id": "saul",
   "_art": "drawn by Codex (docs/CHAPTER6_ART.md §3): his own sheet",
   "name": "NPC_SAUL",
-  "dialogue": "npc_saul",
   "face": "left",
   "sprite": {
     "animations": {

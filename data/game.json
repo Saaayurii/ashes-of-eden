@@ -46,8 +46,8 @@
     "res://scenes/rooms/gate_threshold.tscn",
     "res://scenes/rooms/hell_gate.tscn"
   ],
-  "opening": {"prologue": "ch1_prologue", "prologue_short": "ch1_prologue_short", "intro": "ch1_intro", "last_fall": "ch1_last_fall"},
-  "finale": {"room": "res://scenes/rooms/hall_eden_gate.tscn", "cutscene": "ch7_finale", "ends_campaign": true},
+  "opening": {},
+  "finale": {"room": "res://scenes/rooms/hall_eden_gate.tscn", "ends_campaign": true},
   "nights": [
     {
       "id": "seir",

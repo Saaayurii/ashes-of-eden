@@ -2,7 +2,6 @@
   "id": "malchus_hanged",
   "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): the same man, limp; the rope is drawn by build_people_sheets.py",
   "name": "NPC_MALCHUS",
-  "dialogue": "ch3_malchus_hanged",
   "scripted": true,
   "face": "left",
   "sprite": {

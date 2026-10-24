@@ -2,7 +2,6 @@
   "id": "enoch",
   "name": "NPC_ENOCH",
   "avatar": "res://assets/portraits/enoch.png",
-  "dialogue": "npc_enoch",
   "face": "left",
   "sprite": {
     "animations": {

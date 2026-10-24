@@ -134,8 +134,8 @@ script = ExtResource("1_room")
 width = 960
 height = 360
 intro_dialogue = "ch1_ophanim"
-intro_cutscene = "ophanim_arrival"
-outro_cutscene = "ch1_finale"
+intro_cutscene = ""
+outro_cutscene = ""
 
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.627, 0.549, 0.596, 1)

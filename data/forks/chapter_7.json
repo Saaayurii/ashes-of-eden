@@ -3,7 +3,6 @@
     "id": "hall_temple_fork",
     "_comment": "Past the measured temple: the gallery of lamps or the sea of glass. Both come out in the archive.",
     "after": "res://scenes/rooms/hall_measured_temple.tscn",
-    "dialogue": "fork_hall_temple",
     "options": {
       "lamps": "res://scenes/rooms/hall_gallery_of_lamps.tscn",
       "glass": "res://scenes/rooms/hall_sea_of_glass.tscn"
@@ -14,7 +13,6 @@
     "id": "hall_storm_fork",
     "_comment": "Past the opened temple: up through the thunders or out along the hail gallery. Both come out on the flaming way.",
     "after": "res://scenes/rooms/hall_ark_sanctum.tscn",
-    "dialogue": "fork_hall_storm",
     "options": {
       "thunders": "res://scenes/rooms/hall_thunders.tscn",
       "hail": "res://scenes/rooms/hall_hail_gallery.tscn"

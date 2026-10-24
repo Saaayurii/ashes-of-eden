@@ -3,7 +3,6 @@
   "_art": "drawn by Codex (docs/CHAPTER2_ART.md §3): seated on the roof's edge, his own sheet and portrait",
   "name": "NPC_JONAH",
   "avatar": "res://assets/portraits/jonah.png",
-  "dialogue": "npc_jonah",
   "face": "right",
   "sprite": {
     "animations": {

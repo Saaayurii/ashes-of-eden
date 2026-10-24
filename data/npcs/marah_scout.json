@@ -3,7 +3,6 @@
   "_art": "stand-in body until its sheet in docs/CHAPTER3_ART.md is drawn (the Legion's scout under the noose)",
   "name": "NPC_MARAH_SCOUT",
   "avatar": "res://assets/portraits/possessed_villager.png",
-  "dialogue": "ch3_malchus",
   "scripted": true,
   "face": "right",
   "sprite": {

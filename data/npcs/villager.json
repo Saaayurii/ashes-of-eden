@@ -1,7 +1,6 @@
 {
   "id": "villager",
   "name": "NPC_VILLAGER",
-  "dialogue": "npc_villager",
   "avatar": "res://assets/portraits/villager.png",
   "face": "right",
   "sprite": {

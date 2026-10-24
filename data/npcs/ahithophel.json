@@ -3,7 +3,6 @@
   "_art": "drawn by Codex (docs/CHAPTER5_ART.md §3): seated, his own sheet and portrait",
   "name": "NPC_AHITHOPHEL",
   "avatar": "res://assets/portraits/ahithophel.png",
-  "dialogue": "npc_ahithophel",
   "face": "left",
   "sprite": {
     "animations": {

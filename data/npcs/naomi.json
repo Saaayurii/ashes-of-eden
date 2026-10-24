@@ -3,7 +3,6 @@
   "_art": "drawn by Codex (docs/CHAPTER2_ART.md §3): seated with her lamp, her own sheet and portrait",
   "name": "NPC_NAOMI",
   "avatar": "res://assets/portraits/naomi.png",
-  "dialogue": "npc_naomi",
   "face": "right",
   "sprite": {
     "animations": {

@@ -2,7 +2,6 @@
   "id": "parley_centurion",
   "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): the Legion's centurion at the parley, his own sheet",
   "name": "SPEAKER_LEGION_CENTURION",
-  "dialogue": "ch3_parley",
   "scripted": true,
   "face": "left",
   "sprite": {

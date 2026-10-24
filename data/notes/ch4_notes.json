@@ -2,21 +2,18 @@
   {
     "id": "note_light_tariff",
     "name": "NOTE_LIGHT_TARIFF",
-    "dialogue": "note_light_tariff",
     "place": "tyre_market",
     "avatar": "res://assets/icons/quest/letter_2.png"
   },
   {
     "id": "note_tyre_ledger",
     "name": "NOTE_TYRE_LEDGER",
-    "dialogue": "note_tyre_ledger",
     "place": "tyre_market",
     "avatar": "res://assets/icons/realm/document_4.png"
   },
   {
     "id": "note_lamplighter_letter",
     "name": "NOTE_LAMPLIGHTER_LETTER",
-    "dialogue": "note_lamplighter_letter",
     "place": "tyre_palace",
     "avatar": "res://assets/icons/quest/letter_5.png"
   }

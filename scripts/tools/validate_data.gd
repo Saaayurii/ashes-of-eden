@@ -62,14 +62,14 @@ const REQUIRED := {
 	"dialogues": ["id", "start", "nodes"],
 	"cutscenes": ["id", "steps"],
 	"chapters": ["id", "chapter", "title", "rooms"],
-	"npcs": ["id", "name", "dialogue", "sprite"],
+	"npcs": ["id", "name", "sprite"],
 	"props": ["id", "kind", "sprite"],
-	"notes": ["id", "name", "dialogue"],
+	"notes": ["id", "name"],
 	"items": ["id", "name", "description", "rarity", "icon", "effects"],
 	"rest_points": ["id", "at"],
 	"skins": ["id", "name", "description", "unlock"],
 	"techniques": ["id", "name", "input"],
-	"forks": ["id", "after", "dialogue", "options", "then"],
+	"forks": ["id", "after", "options", "then"],
 	"achievements": ["id", "name", "description", "unlock"],
 	"resonances": ["id", "name", "description", "needs", "effects"],
 	"vials": ["id", "tier", "name", "description", "rules"],
@@ -77,7 +77,7 @@ const REQUIRED := {
 	"omens": ["id", "name", "description", "rules"],
 	"affixes": ["id", "name", "color", "mods"],
 	"weapons": ["id", "name", "description", "icon", "chain"],
-	"endings": ["id", "name", "description", "line", "cutscene", "order", "when"],
+	"endings": ["id", "name", "description", "line", "order", "when"],
 }
 
 var errors: PackedStringArray = []
@@ -500,7 +500,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 				_error("%s: at is [x, y] on the room's floor" % where)
 		"notes":
 			_use_key(entry.get("name", ""), where)
-			if not _dialogue_ids.has(entry.get("dialogue", "")):
+			if entry.has("dialogue") and not _dialogue_ids.has(entry.get("dialogue", "")):
 				_error("%s: unknown dialogue %s" % [where, entry.get("dialogue", "")])
 			if entry.has("place") and not _chapter_ids.has(entry.place):
 				_error("%s: unknown place %s" % [where, entry.place])
@@ -527,7 +527,7 @@ func _check_entry(collection: String, entry: Dictionary) -> void:
 			_check_sprite(entry.get("sprite", {}), where)
 			if entry.has("avatar") and not FileAccess.file_exists(str(entry.avatar)):
 				_error("%s: avatar not found: %s" % [where, entry.avatar])
-			if not _dialogue_ids.has(entry.get("dialogue", "")):
+			if entry.has("dialogue") and not _dialogue_ids.has(entry.get("dialogue", "")):
 				_error("%s: unknown dialogue \"%s\"" % [where, entry.get("dialogue", "")])
 		"cutscenes":
 			_check_cutscene(entry, where)
@@ -1410,7 +1410,7 @@ func _check_ending(entry: Dictionary, where: String) -> void:
 	_ending_ids[str(entry.get("id", ""))] = true
 	if not str(entry.get("id", "")).is_valid_identifier():
 		_error("%s: the id names a deed and a record: letters, digits, _" % where)
-	if not _cutscene_ids.has(entry.get("cutscene", "")):
+	if entry.has("cutscene") and not _cutscene_ids.has(entry.get("cutscene", "")):
 		_error("%s: unknown cutscene %s" % [where, entry.get("cutscene", "")])
 	if not entry.get("order") is float:
 		_error("%s: order is a number (lower is tried first)" % where)
@@ -1570,7 +1570,9 @@ func _check_fork(entry: Dictionary, where: String) -> void:
 	for dialogue in _game_entries("dialogues"):
 		if dialogue.get("id", "") == entry.get("dialogue", ""):
 			question = dialogue
-	if question.is_empty():
+	if not entry.has("dialogue"):
+		pass  # no question written yet: the door takes the first way
+	elif question.is_empty():
 		_error("%s: no dialogue %s asks the way" % [where, entry.get("dialogue", "")])
 	else:
 		var answers := {}

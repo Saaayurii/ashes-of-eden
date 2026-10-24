@@ -87,7 +87,7 @@ width = 1600
 height = 720
 void_kill_y = 690
 intro_dialogue = ""
-intro_cutscene = "voice_at_the_rim"
+intro_cutscene = ""
 outro_cutscene = ""
 painting_source = "res://assets/levels/engedi_pit_rim_wide.png"
 

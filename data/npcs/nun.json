@@ -1,7 +1,6 @@
 {
   "id": "nun",
   "name": "NPC_NUN",
-  "dialogue": "npc_nun",
   "avatar": "res://assets/portraits/nun.png",
   "face": "left",
   "sprite": {

@@ -3,7 +3,6 @@
     "id": "seir_square_fork",
     "_comment": "Past Jonah's square the city splits: over the roofs or along the red canal. Both come out on the quay.",
     "after": "res://scenes/rooms/seir_square.tscn",
-    "dialogue": "fork_seir_square",
     "options": {
       "roofs": "res://scenes/rooms/seir_roofs.tscn",
       "canal": "res://scenes/rooms/seir_canal.tscn"
@@ -14,7 +13,6 @@
     "id": "seir_harbour_fork",
     "_comment": "Past the wrecks: through the rotting warehouses or out along the breakwater. Both come out at the lighthouse stair.",
     "after": "res://scenes/rooms/seir_wrecks.tscn",
-    "dialogue": "fork_seir_harbour",
     "options": {
       "warehouses": "res://scenes/rooms/seir_warehouses.tscn",
       "breakwater": "res://scenes/rooms/seir_breakwater.tscn"

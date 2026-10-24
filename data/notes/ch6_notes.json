@@ -2,21 +2,18 @@
   {
     "id": "note_chain_roll",
     "name": "NOTE_CHAIN_ROLL",
-    "dialogue": "note_chain_roll",
     "place": "euphrates_abbey",
     "avatar": "res://assets/icons/quest/letter_2.png"
   },
   {
     "id": "note_seven_thunders",
     "name": "NOTE_SEVEN_THUNDERS",
-    "dialogue": "note_seven_thunders",
     "place": "euphrates_abbey",
     "avatar": "res://assets/icons/quest/letter_4.png"
   },
   {
     "id": "note_novice_envy",
     "name": "NOTE_NOVICE_ENVY",
-    "dialogue": "note_novice_envy",
     "place": "euphrates_riverbed",
     "avatar": "res://assets/icons/quest/letter_5.png"
   }

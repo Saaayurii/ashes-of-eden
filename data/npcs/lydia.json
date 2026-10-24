@@ -2,7 +2,6 @@
   "id": "lydia",
   "_art": "drawn by Codex (docs/CHAPTER4_ART.md §3): the dyer with her paddle and purple cloth, her own sheet",
   "name": "NPC_LYDIA",
-  "dialogue": "npc_lydia",
   "face": "left",
   "sprite": {
     "animations": {

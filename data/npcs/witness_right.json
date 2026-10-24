@@ -2,7 +2,6 @@
   "id": "witness_right",
   "_art": "stand-in body (severin); lying in the street, own sheet in docs/CHAPTER6_ART.md",
   "name": "SPEAKER_REVELLER",
-  "dialogue": "npc_euphrates_silent",
   "scripted": true,
   "face": "left",
   "sprite": {

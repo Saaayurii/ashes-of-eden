@@ -1,7 +1,6 @@
 {
   "id": "severin",
   "name": "NPC_SEVERIN",
-  "dialogue": "npc_severin",
   "avatar": "res://assets/portraits/severin.png",
   "face": "right",
   "sprite": {

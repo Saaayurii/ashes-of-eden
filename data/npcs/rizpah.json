@@ -2,7 +2,6 @@
   "id": "rizpah",
   "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): seated on the rock by her small fire, her own sheet",
   "name": "NPC_RIZPAH",
-  "dialogue": "npc_rizpah",
   "face": "right",
   "sprite": {
     "animations": {

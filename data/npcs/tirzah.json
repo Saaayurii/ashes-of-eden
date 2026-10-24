@@ -3,7 +3,6 @@
   "_art": "drawn by Codex (docs/CHAPTER5_ART.md §3): seated by the spring, her own sheet and portrait",
   "name": "NPC_TIRZAH",
   "avatar": "res://assets/portraits/tirzah.png",
-  "dialogue": "npc_tirzah",
   "face": "left",
   "sprite": {
     "animations": {

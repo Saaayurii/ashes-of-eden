@@ -2,21 +2,18 @@
   {
     "id": "note_vintner_day",
     "name": "NOTE_VINTNER_DAY",
-    "dialogue": "note_vintner_day",
     "place": "engedi_vineyards",
     "avatar": "res://assets/icons/quest/letter_2.png"
   },
   {
     "id": "note_endless_menu",
     "name": "NOTE_ENDLESS_MENU",
-    "dialogue": "note_endless_menu",
     "place": "engedi_feast",
     "avatar": "res://assets/icons/quest/letter_4.png"
   },
   {
     "id": "note_key_page",
     "name": "NOTE_KEY_PAGE",
-    "dialogue": "note_key_page",
     "place": "engedi_pit",
     "avatar": "res://assets/icons/quest/letter_5.png"
   }

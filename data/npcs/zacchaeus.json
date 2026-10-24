@@ -2,7 +2,6 @@
   "id": "zacchaeus",
   "_art": "drawn by Codex (docs/CHAPTER4_ART.md §3): astride his branch, his own sheet",
   "name": "NPC_ZACCHAEUS",
-  "dialogue": "npc_zacchaeus",
   "face": "left",
   "sprite": {
     "animations": {

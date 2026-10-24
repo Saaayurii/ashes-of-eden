@@ -932,6 +932,8 @@ func _next_room() -> int:
 	var fork := Route.fork_after(ROOMS[room_index])
 	if fork.is_empty():
 		return Route.next_index(ROOMS, room_index)
+	if not fork.has("dialogue"):
+		return Route.next_index(ROOMS, room_index)
 	var picked := [""]
 	var on_choice := func(dialogue_id: String, choice_id: String) -> void:
 		if dialogue_id == str(fork.dialogue):

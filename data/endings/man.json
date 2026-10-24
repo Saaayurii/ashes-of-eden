@@ -3,7 +3,6 @@
   "name": "ENDING_MAN",
   "description": "ENDING_MAN_DESC",
   "line": "ENDING_MAN_LINE",
-  "cutscene": "ending_man",
   "order": 4,
   "when": {"path": "will", "lead": 2},
   "fallback": true

@@ -3,7 +3,6 @@
     "id": "euphrates_cloister_fork",
     "_comment": "Past the gate: the open cloister or the scriptorium. Both come out in the refectory.",
     "after": "res://scenes/rooms/euphrates_gate.tscn",
-    "dialogue": "fork_euphrates_cloister",
     "options": {
       "cloister": "res://scenes/rooms/euphrates_cloister.tscn",
       "scriptorium": "res://scenes/rooms/euphrates_scriptorium.tscn"
@@ -14,7 +13,6 @@
     "id": "euphrates_depth_fork",
     "_comment": "Past the altar court: the crypt of chains or the cistern. Both come out at the river stair.",
     "after": "res://scenes/rooms/euphrates_altar_court.tscn",
-    "dialogue": "fork_euphrates_depth",
     "options": {
       "crypt": "res://scenes/rooms/euphrates_crypt_of_chains.tscn",
       "cistern": "res://scenes/rooms/euphrates_cistern.tscn"

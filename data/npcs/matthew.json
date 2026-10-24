@@ -1,7 +1,6 @@
 {
   "id": "matthew",
   "name": "NPC_MATTHEW",
-  "dialogue": "npc_matthew",
   "avatar": "res://assets/portraits/matthew.png",
   "face": "left",
   "sprite": {

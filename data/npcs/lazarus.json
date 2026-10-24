@@ -3,7 +3,6 @@
   "_art": "drawn by Codex (docs/CHAPTER2_ART.md §3): lying by the milestone, his own sheet; the portrait is drawn",
   "name": "NPC_LAZARUS",
   "avatar": "res://assets/portraits/lazarus.png",
-  "dialogue": "npc_lazarus",
   "face": "left",
   "sprite": {
     "animations": {

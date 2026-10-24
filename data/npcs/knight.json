@@ -1,7 +1,6 @@
 {
   "id": "knight",
   "name": "NPC_KNIGHT",
-  "dialogue": "npc_knight",
   "avatar": "res://assets/portraits/knight.png",
   "face": "right",
   "sprite": {

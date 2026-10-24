@@ -3,7 +3,6 @@
   "_art": "the same man, sitting on Naomi's bench (his seated sheet, docs/CHAPTER2_ART.md §3); shown only by quay_arrival when lazarus_helped",
   "name": "NPC_LAZARUS",
   "avatar": "res://assets/portraits/lazarus.png",
-  "dialogue": "npc_lazarus",
   "scripted": true,
   "face": "left",
   "sprite": {

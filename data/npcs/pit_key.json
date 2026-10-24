@@ -2,7 +2,6 @@
   "id": "pit_key",
   "_art": "the key of the pit, drawn by tools/art/make_engedi_props.py; shown only by ch5_finale",
   "name": "NPC_PIT_KEY",
-  "dialogue": "ch5_abaddon_fall",
   "scripted": true,
   "face": "right",
   "sprite": {

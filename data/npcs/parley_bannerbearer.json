@@ -2,7 +2,6 @@
   "id": "parley_bannerbearer",
   "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): the Host's bannerbearer at the parley, his own sheet",
   "name": "SPEAKER_HOST_BANNER",
-  "dialogue": "ch3_parley",
   "scripted": true,
   "face": "right",
   "sprite": {

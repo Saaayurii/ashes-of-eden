@@ -2,7 +2,6 @@
   "id": "malchus_far",
   "_art": "Malchus's own sheet (docs/CHAPTER3_ART.md §3), seen from afar",
   "name": "SPEAKER_REVELLER",
-  "dialogue": "npc_euphrates_silent",
   "scripted": true,
   "face": "right",
   "sprite": {

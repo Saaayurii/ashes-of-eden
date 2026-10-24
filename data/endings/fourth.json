@@ -3,7 +3,6 @@
   "name": "ENDING_FOURTH",
   "description": "ENDING_FOURTH_DESC",
   "line": "ENDING_FOURTH_LINE",
-  "cutscene": "ending_fourth",
   "order": 1,
   "when": {"balanced": 1, "flags": ["version_heaven", "version_abyss", "version_man", "book_read", "register_read"]}
 }

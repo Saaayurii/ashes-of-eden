@@ -2,7 +2,6 @@
   "id": "elders_3",
   "name": "SPEAKER_ELDERS",
   "avatar": "res://assets/portraits/elders.png",
-  "dialogue": "ch7_elders",
   "scripted": true,
   "menu": false,
   "face": "left",

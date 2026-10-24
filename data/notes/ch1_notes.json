@@ -2,28 +2,24 @@
   {
     "id": "note_gate_log",
     "name": "NOTE_GATE_LOG",
-    "dialogue": "note_gate_log",
     "place": "village",
     "avatar": "res://assets/icons/quest/letter_2.png"
   },
   {
     "id": "note_preacher_letters",
     "name": "NOTE_PREACHER_LETTERS",
-    "dialogue": "note_preacher_letters",
     "place": "swamp",
     "avatar": "res://assets/icons/quest/letter_4.png"
   },
   {
     "id": "note_crypt_names",
     "name": "NOTE_CRYPT_NAMES",
-    "dialogue": "note_crypt_names",
     "place": "catacombs",
     "avatar": "res://assets/icons/quest/letter_5.png"
   },
   {
     "id": "note_condemned_book",
     "name": "NOTE_CONDEMNED_BOOK",
-    "dialogue": "note_condemned_book",
     "place": "church",
     "avatar": "res://assets/icons/quest/letter_3.png"
   }

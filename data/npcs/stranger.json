@@ -1,7 +1,6 @@
 {
   "id": "stranger",
   "name": "SPEAKER_STRANGER",
-  "dialogue": "ch1_stranger",
   "scripted": true,
   "menu": false,
   "face": "left",

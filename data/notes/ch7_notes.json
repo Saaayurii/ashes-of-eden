@@ -2,21 +2,18 @@
   {
     "id": "note_crown",
     "name": "NOTE_CROWN",
-    "dialogue": "note_crown",
     "place": "hall_stair",
     "avatar": "res://assets/icons/realm/badge_2.png"
   },
   {
     "id": "note_court_tally",
     "name": "NOTE_COURT_TALLY",
-    "dialogue": "note_court_tally",
     "place": "hall_courts",
     "avatar": "res://assets/icons/realm/document_2.png"
   },
   {
     "id": "note_register",
     "name": "NOTE_REGISTER",
-    "dialogue": "note_register",
     "place": "hall_archive",
     "avatar": "res://assets/icons/realm/document_5.png"
   }

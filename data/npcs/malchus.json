@@ -2,7 +2,6 @@
   "id": "malchus",
   "_art": "drawn by Codex (docs/CHAPTER3_ART.md §3): the hangman, his own sheet",
   "name": "NPC_MALCHUS",
-  "dialogue": "ch3_malchus",
   "scripted": true,
   "face": "left",
   "sprite": {

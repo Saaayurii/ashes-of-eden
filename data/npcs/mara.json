@@ -1,7 +1,6 @@
 {
   "id": "mara",
   "name": "NPC_MARA",
-  "dialogue": "npc_mara",
   "avatar": "res://assets/portraits/mara.png",
   "face": "left",
   "sprite": {

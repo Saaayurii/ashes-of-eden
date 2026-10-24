@@ -2,7 +2,6 @@
   "id": "lucifer",
   "name": "SPEAKER_LUCIFER",
   "avatar": "res://assets/portraits/lucifer.png",
-  "dialogue": "ch7_lucifer",
   "scripted": true,
   "menu": false,
   "face": "left",
